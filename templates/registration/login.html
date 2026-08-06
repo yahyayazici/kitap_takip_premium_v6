@@ -1,0 +1,595 @@
+{% load static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Giriş | Çinili Saray Kitap Takip Sistemi</title>
+
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@300;400;500;600&display=swap");
+
+        :root {
+            --navy-950: #06162f;
+            --navy-900: #08234c;
+            --blue-600: #326cf4;
+            --purple-500: #7657ed;
+            --text: #10213f;
+            --muted: #738099;
+            --border: #d9e2ef;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+            margin: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: var(--text);
+            background:
+                radial-gradient(
+                    circle at 78% 18%,
+                    rgba(63, 119, 244, 0.46),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 88% 88%,
+                    rgba(118, 87, 237, 0.44),
+                    transparent 34%
+                ),
+                linear-gradient(
+                    135deg,
+                    var(--navy-950) 0%,
+                    var(--navy-900) 54%,
+                    #193b86 100%
+                );
+            font-family: "Poppins", "Segoe UI", sans-serif;
+            font-weight: 400;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        .login-scene {
+            position: relative;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 42px 24px;
+            isolation: isolate;
+        }
+
+        .login-scene::before,
+        .login-scene::after {
+            content: "";
+            position: fixed;
+            z-index: -3;
+            left: 0;
+            width: 100%;
+            height: 95px;
+            opacity: 0.32;
+            background:
+                linear-gradient(30deg, transparent 24%, rgba(255,255,255,.1) 25%, rgba(255,255,255,.1) 50%, transparent 51%) 0 0 / 88px 52px,
+                linear-gradient(150deg, transparent 24%, rgba(255,255,255,.08) 25%, rgba(255,255,255,.08) 50%, transparent 51%) 0 0 / 88px 52px;
+        }
+
+        .login-scene::before {
+            top: 0;
+        }
+
+        .login-scene::after {
+            bottom: 0;
+            transform: rotate(180deg);
+        }
+
+        .ambient-light {
+            position: fixed;
+            z-index: -2;
+            width: 520px;
+            height: 520px;
+            right: -130px;
+            top: 80px;
+            border-radius: 50%;
+            background: rgba(55, 112, 239, 0.23);
+            filter: blur(90px);
+            pointer-events: none;
+        }
+
+        .floating-book {
+            position: fixed;
+            z-index: -1;
+            width: 72px;
+            height: 55px;
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 10px 15px 15px 10px;
+            background: linear-gradient(
+                145deg,
+                rgba(255,255,255,.16),
+                rgba(255,255,255,.04)
+            );
+            box-shadow: 0 18px 40px rgba(0,0,0,.12);
+            backdrop-filter: blur(5px);
+            animation: floatBook 9s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .floating-book::before {
+            content: "";
+            position: absolute;
+            top: 8px;
+            bottom: 8px;
+            left: 10px;
+            width: 2px;
+            border-radius: 2px;
+            background: rgba(255,255,255,.18);
+        }
+
+        .book-one {
+            top: 14%;
+            left: 27%;
+            transform: rotate(18deg);
+        }
+
+        .book-two {
+            top: 47%;
+            left: 8%;
+            transform: rotate(-16deg);
+            animation-delay: -3s;
+        }
+
+        .book-three {
+            top: 31%;
+            right: 12%;
+            transform: rotate(38deg);
+            animation-delay: -5s;
+        }
+
+        .book-four {
+            right: 24%;
+            bottom: 11%;
+            transform: rotate(-12deg);
+            animation-delay: -7s;
+        }
+
+        @keyframes floatBook {
+            0%,
+            100% {
+                translate: 0 0;
+            }
+
+            50% {
+                translate: 0 -24px;
+            }
+        }
+
+        .login-shell {
+            width: min(1040px, 100%);
+            min-height: 560px;
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(390px, 0.8fr);
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,.18);
+            border-radius: 30px;
+            background: rgba(255,255,255,.09);
+            box-shadow:
+                0 38px 100px rgba(0, 13, 42, 0.38),
+                inset 0 1px rgba(255,255,255,.12);
+            backdrop-filter: blur(24px);
+        }
+
+        .login-visual {
+            position: relative;
+            padding: 54px 56px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            color: #ffffff;
+            background:
+                radial-gradient(
+                    circle at 82% 20%,
+                    rgba(255,255,255,.13),
+                    transparent 27%
+                ),
+                linear-gradient(
+                    145deg,
+                    rgba(18, 54, 108, .92),
+                    rgba(49, 101, 189, .60)
+                );
+        }
+
+        .login-visual::after {
+            content: "";
+            position: absolute;
+            width: 340px;
+            height: 340px;
+            right: -190px;
+            bottom: -190px;
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 50%;
+            box-shadow:
+                0 0 0 48px rgba(255,255,255,.035),
+                0 0 0 96px rgba(255,255,255,.025);
+        }
+
+        .brand-logo {
+            position: relative;
+            z-index: 2;
+            width: 190px;
+            padding: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,.22);
+            border-radius: 19px;
+            background: rgba(255,255,255,.96);
+            box-shadow: 0 18px 45px rgba(0,0,0,.16);
+        }
+
+        .brand-logo img {
+            display: block;
+            width: 100%;
+            max-height: 126px;
+            object-fit: contain;
+        }
+
+        .visual-copy {
+            position: relative;
+            z-index: 2;
+            margin-top: 54px;
+        }
+
+        .visual-kicker {
+            margin: 0 0 14px;
+            color: rgba(255,255,255,.68);
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: .18em;
+        }
+
+        .visual-copy h1 {
+            margin: 0;
+            color: #ffffff;
+            font-size: clamp(38px, 4vw, 58px);
+            font-weight: 400;
+            line-height: 1.12;
+            letter-spacing: -0.045em;
+        }
+
+        .visual-copy p {
+            max-width: 520px;
+            margin: 23px 0 0;
+            color: rgba(255,255,255,.82);
+            font-size: 15px;
+            font-weight: 300;
+            line-height: 1.85;
+        }
+
+        .visual-footer {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255,255,255,.64);
+            font-size: 11px;
+            font-weight: 300;
+        }
+
+        .visual-footer::before {
+            content: "";
+            width: 28px;
+            height: 1px;
+            background: rgba(255,255,255,.42);
+        }
+
+        .login-form-panel {
+            padding: 58px 54px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: rgba(255,255,255,.985);
+        }
+
+        .form-heading {
+            margin-bottom: 34px;
+        }
+
+        .form-heading .script {
+            display: block;
+            margin-bottom: 1px;
+            color: #2e66d7;
+            font-family: "Great Vibes", cursive;
+            font-size: 38px;
+            font-weight: 400;
+            line-height: 1;
+        }
+
+        .form-heading h2 {
+            margin: 0;
+            color: var(--text);
+            font-size: 31px;
+            font-weight: 500;
+            letter-spacing: -0.04em;
+        }
+
+        .form-heading p {
+            margin: 9px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 300;
+            line-height: 1.65;
+        }
+
+        .form-error {
+            margin-bottom: 18px;
+            padding: 12px 14px;
+            border: 1px solid #f4c7c7;
+            border-radius: 12px;
+            color: #a33232;
+            background: #fff2f2;
+            font-size: 12px;
+            font-weight: 400;
+        }
+
+        .field-group {
+            margin-bottom: 18px;
+        }
+
+        .field-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #44526a;
+            font-size: 12px;
+            font-weight: 400;
+        }
+
+        .field-control {
+            position: relative;
+        }
+
+        .field-control input {
+            width: 100%;
+            height: 50px;
+            padding: 0 16px;
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            outline: none;
+            color: var(--text);
+            background: #ffffff;
+            font-size: 14px;
+            font-weight: 400;
+            transition:
+                border-color .2s ease,
+                box-shadow .2s ease,
+                transform .2s ease;
+        }
+
+        .field-control input:hover {
+            border-color: #b9c8dc;
+        }
+
+        .field-control input:focus {
+            border-color: var(--blue-600);
+            box-shadow: 0 0 0 4px rgba(50,108,244,.11);
+        }
+
+        .login-button {
+            width: 100%;
+            height: 50px;
+            margin-top: 8px;
+            border: 0;
+            border-radius: 13px;
+            color: #ffffff;
+            background: linear-gradient(
+                135deg,
+                var(--blue-600),
+                var(--purple-500)
+            );
+            box-shadow: 0 15px 30px rgba(61, 91, 221, .22);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition:
+                transform .18s ease,
+                box-shadow .18s ease;
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 19px 36px rgba(61, 91, 221, .29);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .login-note {
+            margin: 24px 0 0;
+            color: #98a2b3;
+            font-size: 10px;
+            font-weight: 300;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        @media (max-width: 850px) {
+            .login-scene {
+                padding: 22px 14px;
+            }
+
+            .login-shell {
+                grid-template-columns: 1fr;
+                max-width: 580px;
+                border-radius: 24px;
+            }
+
+            .login-visual {
+                min-height: 400px;
+                padding: 37px 34px;
+            }
+
+            .brand-logo {
+                width: 150px;
+            }
+
+            .visual-copy {
+                margin-top: 38px;
+            }
+
+            .visual-copy h1 {
+                font-size: 40px;
+            }
+
+            .visual-footer {
+                margin-top: 36px;
+            }
+
+            .login-form-panel {
+                padding: 42px 34px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-visual,
+            .login-form-panel {
+                padding: 32px 24px;
+            }
+
+            .visual-copy h1 {
+                font-size: 34px;
+            }
+
+            .form-heading h2 {
+                font-size: 27px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<main class="login-scene">
+
+    <div class="ambient-light"></div>
+
+    <span class="floating-book book-one"></span>
+    <span class="floating-book book-two"></span>
+    <span class="floating-book book-three"></span>
+    <span class="floating-book book-four"></span>
+
+    <section class="login-shell">
+
+        <div class="login-visual">
+
+            <div class="brand-logo">
+                <img
+                    src="{% static 'images/cinili-saray-logo.jpeg' %}"
+                    alt="Çinili Saray"
+                >
+            </div>
+
+            <div class="visual-copy">
+                <p class="visual-kicker">KİTAP TAKİP SİSTEMİ</p>
+
+                <h1>
+                    Her sayfa,<br>
+                    yeni bir yolculuk.
+                </h1>
+
+                <p>
+                    Çinili Saray Kitap Takip Sistemi; okuma süreçlerini,
+                    kitap sınavlarını ve talebe gelişimini tek merkezde
+                    buluşturur.
+                </p>
+            </div>
+
+            <div class="visual-footer">
+                Çinili Saray Proje
+            </div>
+
+        </div>
+
+        <div class="login-form-panel">
+
+            <div class="form-heading">
+                <span class="script">Tekrar</span>
+                <h2>Hoş geldiniz</h2>
+
+                <p>
+                    Sisteme devam etmek için kullanıcı bilgilerinizle
+                    giriş yapın.
+                </p>
+            </div>
+
+            {% if form.errors %}
+                <div class="form-error">
+                    Kullanıcı adı veya şifre hatalı. Bilgilerinizi kontrol
+                    ederek tekrar deneyin.
+                </div>
+            {% endif %}
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                {% if next %}
+                    <input type="hidden" name="next" value="{{ next }}">
+                {% endif %}
+
+                <div class="field-group">
+                    <label for="{{ form.username.id_for_label }}">
+                        Kullanıcı adı
+                    </label>
+
+                    <div class="field-control">
+                        <input
+                            type="text"
+                            name="{{ form.username.html_name }}"
+                            id="{{ form.username.id_for_label }}"
+                            value="{{ form.username.value|default:'' }}"
+                            autocomplete="username"
+                            autofocus
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <label for="{{ form.password.id_for_label }}">
+                        Şifre
+                    </label>
+
+                    <div class="field-control">
+                        <input
+                            type="password"
+                            name="{{ form.password.html_name }}"
+                            id="{{ form.password.id_for_label }}"
+                            autocomplete="current-password"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <button type="submit" class="login-button">
+                    Sisteme Giriş Yap
+                </button>
+            </form>
+
+            <p class="login-note">
+                Giriş bilgileriniz kurum yöneticisi tarafından oluşturulur.
+            </p>
+
+        </div>
+
+    </section>
+</main>
+</body>
+</html>

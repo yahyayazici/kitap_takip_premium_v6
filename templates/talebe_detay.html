@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}{{ talebe.ad_soyad }}{% endblock %}
+
+{% block content %}
+
+<div class="page-head">
+    <div>
+        <p class="kicker">TALEBE PROFİLİ</p>
+        <h1>{{ talebe.ad_soyad }}</h1>
+        <p class="muted">
+            {{ talebe.sinif }}/{{ talebe.sube }}
+        </p>
+    </div>
+
+    <a href="{% url 'talebe_listesi' %}" class="ghost-btn">
+        Talebe Listesine Dön
+    </a>
+</div>
+
+<section class="panel">
+    <h2>Profil kontrolü</h2>
+    <p>Toplam okunan: {{ toplam_okunan|default:0 }} sayfa</p>
+</section>
+
+{% endblock %}

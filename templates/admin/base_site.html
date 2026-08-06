@@ -1,0 +1,35 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}
+    {% if subtitle %}{{ subtitle }} · {% endif %}
+    {{ title }} · Çinili Saray Yönetim Merkezi
+{% endblock %}
+
+{% block branding %}
+<a href="{% url 'admin:index' %}" class="cs-brand">
+    <span class="cs-brand-mark">ÇS</span>
+
+    <span class="cs-brand-copy">
+        <strong>Çinili Saray</strong>
+        <small>Yönetim Merkezi</small>
+    </span>
+</a>
+{% endblock %}
+
+{% block nav-global %}
+<div class="cs-top-actions">
+    <a href="{% url 'dashboard' %}" class="cs-top-link">
+        Siteye Dön
+    </a>
+
+    <a href="{% url 'admin:index' %}" class="cs-top-link cs-top-link-primary">
+        Yönetim Ana Sayfa
+    </a>
+</div>
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/css/cinili_admin_premium.css' %}">
+{% endblock %}

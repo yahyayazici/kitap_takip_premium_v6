@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Genel Bakış{% endblock %}
+{% block content %}
+<div class="dashboard-page">
+<section class="welcome-panel">
+    <div class="welcome-copy">
+        <p class="welcome-kicker">KİTAP TAKİP SİSTEMİ</p>
+
+        <h1 class="welcome-title">
+            <span class="welcome-script">Hoş geldiniz,</span>
+            <span class="welcome-name">
+                {% if request.user.first_name %}
+                    {{ request.user.first_name }}
+                {% else %}
+                    {{ request.user.username|title }}
+                {% endif %}
+            </span>
+        </h1>
+
+        <p class="welcome-description">
+            Okuma, kitap ve sınav süreçlerini tek merkezden yönetin.
+        </p>
+    </div>
+
+    <div class="welcome-date">
+        <span>Bugün</span>
+        <strong id="current-date"></strong>
+    </div>
+</section>
+<section class="metric-grid">
+  <article class="metric-card tone-blue"><span>BUGÜN OKUNAN</span><strong>{{ toplam_okunan|default:0 }}</strong><small>Toplam sayfa</small></article>
+  <article class="metric-card tone-green"><span>AKTİF KİTAP</span><strong>{{ devam_eden|default:0 }}</strong><small>Okuma sürecinde</small></article>
+  <article class="metric-card tone-orange"><span>SINAV BEKLEYEN</span><strong>{{ sinav_bekleyen|default:0 }}</strong><small>Sonuç bekliyor</small></article>
+  <article class="metric-card tone-purple"><span>SINAV SAYISI</span><strong>{{ sinav_sayisi|default:0 }}</strong><small>Toplam sınav</small></article>
+  <article class="metric-card tone-cyan"><span>TALEBE</span><strong>{{ talebe_sayisi|default:0 }}</strong><small>Aktif grupta</small></article>
+</section>
+<section class="dashboard-main-grid">
+  <article class="dashboard-card quick-main-card">
+    <div class="card-heading"><div><p class="card-kicker">HIZLI ERİŞİM</p><h2>Hızlı İşlemler</h2></div></div>
+    <div class="quick-actions quick-actions-large">
+      <a href="{% url 'toplu_zimmet' %}" class="quick-action qa-blue"><b>01</b><div><strong>Kitap Zimmetle</strong><small>Talebelere toplu kitap tanımla</small></div></a>
+      <a href="{% url 'toplu_gunluk_okuma' %}" class="quick-action qa-green"><b>02</b><div><strong>Günlük Okuma</strong><small>Sayfa kayıtlarını tek ekrandan gir</small></div></a>
+      <a href="{% url 'sinav_ekle_panel' %}" class="quick-action qa-orange"><b>03</b><div><strong>Sınav Oluştur</strong><small>Yeni kitap sınavı tanımla</small></div></a>
+      <a href="{% url 'sinav_sonuc_paneli' %}" class="quick-action qa-purple"><b>04</b><div><strong>Sonuç Girişi</strong><small>Sınav sonuçlarını kaydet</small></div></a>
+      <a href="{% url 'raporlar' %}" class="quick-action qa-cyan"><b>05</b><div><strong>Rapor Merkezi</strong><small>Filtrele ve PDF raporu al</small></div></a>
+      {% if request.user.is_superuser %}<a href="{% url 'yonetim:dashboard' %}" class="quick-action qa-navy"><b>06</b><div><strong>Yönetim Merkezi</strong><small>Sınıf, talebe ve personeli yönet</small></div></a>{% endif %}
+    </div>
+  </article>
+  <article class="dashboard-card class-access-card">
+    <div class="card-heading"><div><p class="card-kicker">SINIFLAR</p><h2>Sınıflara Hızlı Geçiş</h2></div></div>
+    <div class="class-access-grid">{% for sinif in siniflar %}<a href="{% url 'talebe_listesi' %}?sinif={{ sinif.id }}" class="class-access-item"><strong>{{ sinif }}</strong><span>{{ sinif.talebe_sayisi }} talebe</span></a>{% empty %}<div class="dashboard-empty">Sınıf kaydı bulunmuyor.</div>{% endfor %}</div>
+  </article>
+</section>
+<section class="dashboard-bottom-grid">
+  <article class="dashboard-card"><div class="card-heading"><div><p class="card-kicker">BUGÜN</p><h2>Günlük Okuma Durumu</h2></div><a href="{% url 'toplu_gunluk_okuma' %}" class="small-button">Kayıt Gir</a></div><div class="reading-state"><div class="reading-ring"><strong>{{ bugunku_kayit|default:0 }}</strong><span>Kayıt</span></div><div class="reading-state-details"><div><i class="state-dot state-green"></i><span>Kaydı tamamlanan</span><strong>{{ bugunku_kayit|default:0 }}</strong></div><div><i class="state-dot state-orange"></i><span>Kayıt bekleyen</span><strong>{{ bekleyen|default:0 }}</strong></div><div><i class="state-dot state-blue"></i><span>Toplam talebe</span><strong>{{ talebe_sayisi|default:0 }}</strong></div></div></div></article>
+  <article class="dashboard-card"><div class="card-heading"><div><p class="card-kicker">KİTAPLAR</p><h2>Aktif Kitaplar</h2></div><a href="{% url 'kitap_listesi' %}" class="small-button">Arşivi Aç</a></div><div class="active-books-list">{% for zimmet in zimmetler|slice:":6" %}{% if zimmet.durum == 'okunuyor' %}<div class="active-book-row"><span class="mini-book-cover">{{ zimmet.kitap.ad|slice:":1" }}</span><div><strong>{{ zimmet.kitap.ad }}</strong><small>{{ zimmet.talebe.ad_soyad }}</small></div><span class="mini-book-page">{{ zimmet.son_sayfa|default:0 }}/{{ zimmet.kitap.toplam_sayfa }}</span></div>{% endif %}{% empty %}<div class="dashboard-empty">Aktif kitap yok.</div>{% endfor %}</div></article>
+</section>
+</div>
+{% endblock %}
+{% block extra_js %}<script>document.addEventListener('DOMContentLoaded',()=>{const e=document.getElementById('current-date');if(e)e.textContent=new Intl.DateTimeFormat('tr-TR',{day:'2-digit',month:'long',year:'numeric',weekday:'long'}).format(new Date())});</script>{% endblock %}

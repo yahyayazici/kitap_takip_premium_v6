@@ -1,0 +1,716 @@
+{% extends "base.html" %}
+
+{% block title %}Yeni Sınav Ekle{% endblock %}
+
+{% block content %}
+
+<div class="exam-create-page">
+
+    <header class="exam-page-header">
+
+        <div>
+            <p class="exam-kicker">SINAV YÖNETİMİ</p>
+
+            <h1>Yeni Sınav Ekle</h1>
+
+            <p class="exam-description">
+                Sınav adı, soru sayısı ve tarih bilgisini girin.
+                Etüt hocası sistem tarafından otomatik belirlenir.
+            </p>
+        </div>
+
+        <a
+            href="{% url 'sinav_sonuc_paneli' %}"
+            class="exam-secondary-button"
+        >
+            Sonuç Giriş Paneli
+        </a>
+
+    </header>
+
+
+    <section class="exam-layout">
+
+        <form method="post" class="exam-form-card">
+            {% csrf_token %}
+        <div class="exam-field exam-field-full">
+    <label for="{{ form.kitap.id_for_label }}">
+        Kitap <span>*</span>
+    </label>
+
+    {{ form.kitap }}
+
+    {% if form.kitap.errors %}
+        <small class="field-error">
+            {{ form.kitap.errors|striptags }}
+        </small>
+    {% else %}
+        <small>Sınavın ait olduğu kitabı seçin.</small>
+    {% endif %}
+</div>
+
+
+
+            <div class="exam-form-head">
+
+                <div class="exam-form-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 20h9"></path>
+                        <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+                    </svg>
+                </div>
+
+                <div>
+                    <h2>Sınav Bilgileri</h2>
+                    <p>Zorunlu alanları doldurarak sınavı oluşturun.</p>
+                </div>
+
+            </div>
+
+
+            {% if form.non_field_errors %}
+
+                <div class="exam-form-alert">
+
+                    {% for error in form.non_field_errors %}
+                        <span>{{ error }}</span>
+                    {% endfor %}
+
+                </div>
+
+            {% endif %}
+
+
+            <div class="exam-form-grid">
+
+                <div class="exam-field exam-field-full">
+
+                    <label for="{{ form.ad.id_for_label }}">
+                        Sınav Adı
+                        <span>*</span>
+                    </label>
+
+                    {{ form.ad }}
+
+                    {% if form.ad.errors %}
+                        <small class="exam-field-error">
+                            {{ form.ad.errors|striptags }}
+                        </small>
+                    {% else %}
+                        <small class="exam-field-help">
+                            Örnek: Gizli Çekmece Kitap Sınavı
+                        </small>
+                    {% endif %}
+
+                </div>
+
+
+                <div class="exam-field">
+
+                    <label for="{{ form.soru_sayisi.id_for_label }}">
+                        Soru Sayısı
+                        <span>*</span>
+                    </label>
+
+                    {{ form.soru_sayisi }}
+
+                    {% if form.soru_sayisi.errors %}
+                        <small class="exam-field-error">
+                            {{ form.soru_sayisi.errors|striptags }}
+                        </small>
+                    {% else %}
+                        <small class="exam-field-help">
+                            Testte bulunan toplam soru sayısı
+                        </small>
+                    {% endif %}
+
+                </div>
+
+
+                <div class="exam-field">
+
+                    <label for="{{ form.sinav_tarihi.id_for_label }}">
+                        Sınav Tarihi
+                        <span>*</span>
+                    </label>
+
+                    {{ form.sinav_tarihi }}
+
+                    {% if form.sinav_tarihi.errors %}
+                        <small class="exam-field-error">
+                            {{ form.sinav_tarihi.errors|striptags }}
+                        </small>
+                    {% else %}
+                        <small class="exam-field-help">
+                            Sınavın uygulandığı tarihi seçin
+                        </small>
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <div class="exam-form-note">
+
+                <div class="exam-note-icon">
+                    i
+                </div>
+
+                <p>
+                    Sonuçlar daha sonra <strong>Sonuç Giriş Paneli</strong>
+                    üzerinden talebe bazında girilecektir.
+                </p>
+
+            </div>
+
+
+            <footer class="exam-form-footer">
+
+                <a
+                    href="{% url 'dashboard' %}"
+                    class="exam-secondary-button"
+                >
+                    Vazgeç
+                </a>
+
+                <button
+                    type="submit"
+                    class="exam-primary-button"
+                >
+                    Sınavı Oluştur
+                </button>
+
+            </footer>
+
+        </form>
+
+
+        <aside class="exam-process-card">
+
+            <p class="exam-process-kicker">İŞLEYİŞ</p>
+
+            <h2>
+                Sınavı oluşturun,
+                sonuçları daha sonra girin.
+            </h2>
+
+            <div class="exam-process-list">
+
+                <div class="exam-process-step">
+
+                    <span>1</span>
+
+                    <div>
+                        <strong>Sınav adını belirleyin</strong>
+                        <small>Kitap ve sınav ismini açık şekilde yazın.</small>
+                    </div>
+
+                </div>
+
+
+                <div class="exam-process-step">
+
+                    <span>2</span>
+
+                    <div>
+                        <strong>Soru sayısını girin</strong>
+                        <small>Puan bu sayı üzerinden otomatik hesaplanır.</small>
+                    </div>
+
+                </div>
+
+
+                <div class="exam-process-step">
+
+                    <span>3</span>
+
+                    <div>
+                        <strong>Sınav tarihini seçin</strong>
+                        <small>Sınavın uygulandığı günü kaydedin.</small>
+                    </div>
+
+                </div>
+
+
+                <div class="exam-process-step">
+
+                    <span>4</span>
+
+                    <div>
+                        <strong>Sonuçları girin</strong>
+                        <small>Talebelerin doğru, yanlış ve boş sayılarını kaydedin.</small>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+    </section>
+
+</div>
+
+
+<style>
+
+.exam-create-page {
+    width: 100%;
+    max-width: 1480px;
+    margin: 0 auto;
+}
+
+
+/* SAYFA BAŞLIĞI */
+
+.exam-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.exam-kicker {
+    margin: 0;
+    color: #3474e8;
+    font-size: 11px;
+    font-weight: 850;
+    letter-spacing: .12em;
+}
+
+.exam-page-header h1 {
+    margin: 6px 0 0;
+    color: #11203d;
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1.12;
+    letter-spacing: -.05em;
+}
+
+.exam-description {
+    max-width: 720px;
+    margin: 9px 0 0;
+    color: #7b899f;
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+
+/* SAYFA YERLEŞİMİ */
+
+.exam-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 350px;
+    gap: 20px;
+    align-items: start;
+}
+
+
+/* FORM KARTI */
+
+.exam-form-card {
+    overflow: hidden;
+    padding: 26px;
+    border: 1px solid #dfe6f0;
+    border-radius: 22px;
+    background: #ffffff;
+    box-shadow: 0 18px 48px rgba(26, 45, 84, .08);
+}
+
+.exam-form-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 26px;
+}
+
+.exam-form-icon {
+    width: 52px;
+    height: 52px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 52px;
+    border-radius: 16px;
+    color: #3778ff;
+    background: #eaf1ff;
+}
+
+.exam-form-icon svg {
+    width: 23px;
+    height: 23px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.exam-form-head h2 {
+    margin: 0;
+    color: #14213d;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -.035em;
+}
+
+.exam-form-head p {
+    margin: 6px 0 0;
+    color: #7e8a9e;
+    font-size: 11px;
+}
+
+
+/* FORM ALANLARI */
+
+.exam-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.exam-field-full {
+    grid-column: 1 / -1;
+}
+
+.exam-field label {
+    display: block;
+    margin-bottom: 9px;
+    color: #33435f;
+    font-size: 11px;
+    font-weight: 750;
+}
+
+.exam-field label span {
+    color: #dc4f4f;
+}
+
+.exam-field input,
+.exam-field select,
+.exam-field textarea {
+    width: 100%;
+    height: 50px;
+    padding: 0 15px;
+    border: 1px solid #dbe4ef;
+    border-radius: 13px;
+    outline: none;
+    color: #172641;
+    background: #f9fbfe;
+    font-size: 12px;
+    font-weight: 600;
+    transition:
+        border-color 180ms ease,
+        background 180ms ease,
+        box-shadow 180ms ease;
+}
+
+.exam-field input:hover,
+.exam-field select:hover,
+.exam-field textarea:hover {
+    border-color: #c3d2e8;
+}
+
+.exam-field input:focus,
+.exam-field select:focus,
+.exam-field textarea:focus {
+    border-color: #75a0f5;
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(55, 120, 255, .09);
+}
+
+.exam-field-help,
+.exam-field-error {
+    display: block;
+    min-height: 16px;
+    margin-top: 7px;
+    font-size: 9px;
+    line-height: 1.4;
+}
+
+.exam-field-help {
+    color: #8a96a8;
+}
+
+.exam-field-error {
+    color: #d74a4a;
+}
+
+
+/* BİLGİ NOTU */
+
+.exam-form-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    margin-top: 23px;
+    padding: 14px;
+    border: 1px solid #dce7f7;
+    border-radius: 14px;
+    background: #f5f9ff;
+}
+
+.exam-note-icon {
+    width: 25px;
+    height: 25px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 25px;
+    border-radius: 8px;
+    color: #ffffff;
+    background: #3778ff;
+    font-size: 11px;
+    font-weight: 850;
+}
+
+.exam-form-note p {
+    margin: 2px 0 0;
+    color: #54647d;
+    font-size: 10px;
+    line-height: 1.55;
+}
+
+
+/* FORM ALT ALANI */
+
+.exam-form-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 26px;
+    padding-top: 20px;
+    border-top: 1px solid #e7ecf3;
+}
+
+
+/* BUTONLAR */
+
+.exam-primary-button,
+.exam-secondary-button {
+    min-height: 45px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 19px;
+    cursor: pointer;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 750;
+    text-decoration: none;
+    transition:
+        transform 180ms ease,
+        box-shadow 180ms ease,
+        border-color 180ms ease;
+}
+
+.exam-primary-button {
+    border: 0;
+    color: #ffffff;
+    background: linear-gradient(135deg, #2869ed, #625cee);
+    box-shadow: 0 11px 25px rgba(42, 100, 225, .24);
+}
+
+.exam-primary-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 30px rgba(42, 100, 225, .3);
+}
+
+.exam-secondary-button {
+    border: 1px solid #dce4ef;
+    color: #243552;
+    background: #ffffff;
+    box-shadow: 0 7px 18px rgba(29, 50, 90, .05);
+}
+
+.exam-secondary-button:hover {
+    transform: translateY(-1px);
+    border-color: #bfd0eb;
+}
+
+
+/* HATA ALANI */
+
+.exam-form-alert {
+    display: grid;
+    gap: 5px;
+    margin-bottom: 20px;
+    padding: 13px 15px;
+    border: 1px solid #f0bcbc;
+    border-radius: 13px;
+    color: #b93838;
+    background: #fff3f3;
+    font-size: 10px;
+}
+
+
+/* SAĞ İŞLEYİŞ KARTI */
+
+.exam-process-card {
+    position: sticky;
+    top: 28px;
+    overflow: hidden;
+    padding: 27px;
+    border-radius: 23px;
+    color: #ffffff;
+    background:
+        radial-gradient(
+            circle at 90% 10%,
+            rgba(255, 255, 255, .16),
+            transparent 28%
+        ),
+        linear-gradient(
+            150deg,
+            #153774,
+            #275bc0 58%,
+            #3268db
+        );
+    box-shadow: 0 22px 48px rgba(29, 67, 151, .25);
+}
+
+.exam-process-kicker {
+    margin: 0;
+    color: #71a5ff;
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: .12em;
+}
+
+.exam-process-card h2 {
+    margin: 13px 0 0;
+    color: #ffffff;
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1.24;
+    letter-spacing: -.035em;
+}
+
+.exam-process-list {
+    display: grid;
+    margin-top: 27px;
+}
+
+.exam-process-step {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 13px;
+    padding: 17px 0;
+    border-top: 1px solid rgba(255, 255, 255, .14);
+}
+
+.exam-process-step > span {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    color: #ffffff;
+    background: rgba(255, 255, 255, .13);
+    font-size: 13px;
+    font-weight: 850;
+}
+
+.exam-process-step strong {
+    display: block;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 750;
+}
+
+.exam-process-step small {
+    display: block;
+    margin-top: 5px;
+    color: rgba(255, 255, 255, .65);
+    font-size: 9px;
+    line-height: 1.5;
+}
+
+
+/* RESPONSIVE */
+
+@media (max-width: 1050px) {
+
+    .exam-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .exam-process-card {
+        position: static;
+    }
+}
+
+@media (max-width: 700px) {
+
+    .exam-page-header {
+        flex-direction: column;
+    }
+
+    .exam-page-header h1 {
+        font-size: 28px;
+    }
+
+    .exam-page-header > .exam-secondary-button {
+        width: 100%;
+    }
+
+    .exam-form-card {
+        padding: 19px;
+    }
+
+    .exam-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .exam-field-full {
+        grid-column: auto;
+    }
+
+    .exam-form-footer {
+        flex-direction: column-reverse;
+    }
+
+    .exam-form-footer > * {
+        width: 100%;
+    }
+}
+
+</style>
+
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const nameInput =
+        document.getElementById("{{ form.ad.id_for_label }}");
+
+    const questionInput =
+        document.getElementById("{{ form.soru_sayisi.id_for_label }}");
+
+    const dateInput =
+        document.getElementById("{{ form.sinav_tarihi.id_for_label }}");
+
+
+    if (nameInput) {
+        nameInput.placeholder =
+            "Örnek: Gizli Çekmece Kitap Sınavı";
+    }
+
+
+    if (questionInput) {
+
+        questionInput.placeholder = "Örnek: 30";
+        questionInput.min = "1";
+        questionInput.inputMode = "numeric";
+
+    }
+
+
+    if (dateInput) {
+        dateInput.type = "date";
+    }
+
+});
+
+</script>
+
+{% endblock %}

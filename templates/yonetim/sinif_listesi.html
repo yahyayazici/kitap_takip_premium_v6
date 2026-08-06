@@ -1,0 +1,58 @@
+{% extends "yonetim/base.html" %}
+
+{% block title %}Sınıf ve Şubeler{% endblock %}
+{% block page_title %}Sınıf ve Şube Yönetimi{% endblock %}
+
+{% block content %}
+
+<section class="cs-page-head">
+    <div>
+        <span class="cs-card-label">SINIF YÖNETİMİ</span>
+        <h2>Sınıf ve Şubeler</h2>
+        <p>Admin istediği sınıfı ve şubeyi serbestçe tanımlayabilir.</p>
+    </div>
+
+    <a
+        href="{% url 'yonetim:sinif_ekle' %}"
+        class="cs-btn cs-btn-primary"
+    >
+        Yeni Sınıf
+    </a>
+</section>
+
+<div class="cs-class-grid cs-class-grid-large">
+    {% for sinif in siniflar %}
+        <article class="cs-class-card cs-class-card-large">
+            <div>
+                <span class="cs-card-label">SINIF / ŞUBE</span>
+                <strong>{{ sinif }}</strong>
+            </div>
+
+            <div class="cs-class-meta">
+                <span>{{ sinif.talebe_sayisi }} talebe</span>
+                <span>{{ sinif.hoca_sayisi }} etüt hocası</span>
+            </div>
+
+            <div class="cs-class-actions">
+                {% if sinif.aktif %}
+                    <span class="cs-status">Aktif</span>
+                {% else %}
+                    <span class="cs-status is-passive">Pasif</span>
+                {% endif %}
+
+                <a
+                    href="{% url 'yonetim:sinif_duzenle' sinif.pk %}"
+                    class="cs-table-link"
+                >
+                    Düzenle
+                </a>
+            </div>
+        </article>
+    {% empty %}
+        <div class="cs-card cs-empty">
+            Henüz sınıf ve şube eklenmedi.
+        </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,814 @@
+{% extends "base.html" %}
+
+{% block title %}
+Toplu Kitap Sınavı
+{% endblock %}
+
+{% block content %}
+
+<header class="page-head">
+    <div>
+        <p class="kicker">
+            {{ bugun|date:"d F Y" }}
+        </p>
+
+        <h1>Toplu Kitap Sınavı</h1>
+
+        <p class="muted">
+            Sınav bekleyen talebelerin sonuçlarını aynı ekrandan girin.
+            Boş bırakılan satırlar kaydedilmez.
+        </p>
+    </div>
+
+    <a
+        href="{% url 'dashboard' %}"
+        class="ghost-btn"
+    >
+        Genel Bakışa Dön
+    </a>
+</header>
+
+
+<section class="exam-summary">
+
+    <article class="summary-card">
+        <span>Sınav Bekleyen</span>
+        <strong>{{ satirlar|length }}</strong>
+        <small>Talebe</small>
+    </article>
+
+    <article class="summary-card">
+        <span>Giriş Yapılan</span>
+        <strong id="filled-summary">0</strong>
+        <small>Kayda hazır</small>
+    </article>
+
+    <article class="summary-card">
+        <span>Puan Ortalaması</span>
+        <strong id="average-summary">0</strong>
+        <small>Girilen sonuçlar</small>
+    </article>
+
+</section>
+
+
+<section class="panel exam-panel">
+
+    <form method="post" id="bulk-exam-form">
+
+        {% csrf_token %}
+
+        <div class="exam-toolbar">
+
+            <div>
+                <strong>Kitap Sınavı Listesi</strong>
+
+                <span>
+                    Doğru, yanlış, boş ve puan bilgilerini girip
+                    bütün sonuçları tek işlemle kaydedin.
+                </span>
+            </div>
+
+            <div class="toolbar-actions">
+
+                <button
+                    type="button"
+                    class="ghost-btn"
+                    id="clear-button"
+                >
+                    Alanları Temizle
+                </button>
+
+                <button
+                    type="submit"
+                    class="primary-btn"
+                >
+                    Tümünü Kaydet
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="exam-table-wrap">
+
+            <table class="exam-table">
+
+                <thead>
+                    <tr>
+                        <th>Talebe</th>
+                        <th>Kitap</th>
+                        <th>Toplam Soru</th>
+                        <th>Doğru</th>
+                        <th>Yanlış</th>
+                        <th>Boş</th>
+                        <th>Puan</th>
+                        <th>Kontrol</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                {% for satir in satirlar %}
+
+                    <tr class="exam-row">
+
+                        <td>
+                            <div class="student-cell">
+
+                                <div class="student-initial">
+                                    {{ satir.zimmet.talebe.ad_soyad|slice:":1" }}
+                                </div>
+
+                                <div>
+                                    <strong>
+                                        {{ satir.zimmet.talebe.ad_soyad }}
+                                    </strong>
+
+                                    <span>
+                                        {{ satir.zimmet.talebe.sinif }}
+
+                                        {% if satir.zimmet.talebe.sube %}
+                                            / {{ satir.zimmet.talebe.sube }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+
+                            </div>
+                        </td>
+
+
+                        <td>
+                            <strong class="book-name">
+                                {{ satir.zimmet.kitap.ad }}
+                            </strong>
+
+                            <span class="book-page-count">
+                                {{ satir.zimmet.kitap.yazar|default:"Yazar belirtilmedi" }}
+                            </span>
+                        </td>
+
+
+                        <td>
+                            <input
+                                type="number"
+                                name="toplam_soru_{{ satir.zimmet.id }}"
+                                value="{% if satir.sinav %}{{ satir.sinav.toplam_soru }}{% endif %}"
+                                min="1"
+                                class="exam-input total-question"
+                                placeholder="10"
+                                autocomplete="off"
+                            >
+                        </td>
+
+
+                        <td>
+                            <input
+                                type="number"
+                                name="dogru_{{ satir.zimmet.id }}"
+                                value="{% if satir.sinav %}{{ satir.sinav.dogru }}{% endif %}"
+                                min="0"
+                                class="exam-input correct-answer"
+                                placeholder="0"
+                                autocomplete="off"
+                            >
+                        </td>
+
+
+                        <td>
+                            <input
+                                type="number"
+                                name="yanlis_{{ satir.zimmet.id }}"
+                                value="{% if satir.sinav %}{{ satir.sinav.yanlis }}{% endif %}"
+                                min="0"
+                                class="exam-input wrong-answer"
+                                placeholder="0"
+                                autocomplete="off"
+                            >
+                        </td>
+
+
+                        <td>
+                            <input
+                                type="number"
+                                name="bos_{{ satir.zimmet.id }}"
+                                value="{% if satir.sinav %}{{ satir.sinav.bos }}{% endif %}"
+                                min="0"
+                                class="exam-input empty-answer"
+                                placeholder="0"
+                                autocomplete="off"
+                            >
+                        </td>
+
+
+                        <td>
+                            <input
+                                type="number"
+                                name="puan_{{ satir.zimmet.id }}"
+                                value="{% if satir.sinav %}{{ satir.sinav.puan }}{% endif %}"
+                                min="0"
+                                max="100"
+                                step="0.01"
+                                class="exam-input score-input"
+                                placeholder="0"
+                                autocomplete="off"
+                            >
+                        </td>
+
+
+                        <td>
+                            <span class="exam-result">
+                                —
+                            </span>
+                        </td>
+
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+                        <td colspan="8">
+
+                            <div class="empty-state">
+
+                                <strong>
+                                    Sınav bekleyen talebe bulunmuyor
+                                </strong>
+
+                                <span>
+                                    Kitabı tamamlayan talebeler burada listelenecek.
+                                </span>
+
+                                <a
+                                    href="{% url 'dashboard' %}"
+                                    class="primary-btn"
+                                >
+                                    Genel Bakışa Dön
+                                </a>
+
+                            </div>
+
+                        </td>
+                    </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        {% if satirlar %}
+
+            <div class="exam-bottom">
+
+                <div class="exam-bottom-summary">
+
+                    <strong id="filled-count">
+                        0
+                    </strong>
+
+                    <div>
+                        <span>talebenin sonucu hazır</span>
+                        <small>
+                            Hatalı satırlar kaydedilmez.
+                        </small>
+                    </div>
+
+                </div>
+
+                <button
+                    type="submit"
+                    class="primary-btn save-all-button"
+                >
+                    Bütün Sonuçları Kaydet
+                </button>
+
+            </div>
+
+        {% endif %}
+
+    </form>
+
+</section>
+
+
+<style>
+
+    .exam-summary {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 15px;
+        margin-bottom: 17px;
+    }
+
+    .summary-card {
+        padding: 19px 20px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: var(--shadow);
+    }
+
+    .summary-card span {
+        display: block;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 750;
+    }
+
+    .summary-card strong {
+        display: block;
+        margin-top: 10px;
+        font-size: 27px;
+        letter-spacing: -0.04em;
+    }
+
+    .summary-card small {
+        display: block;
+        margin-top: 7px;
+        color: var(--muted);
+        font-size: 9px;
+    }
+
+    .exam-panel {
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .exam-toolbar,
+    .exam-bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 20px 22px;
+    }
+
+    .exam-toolbar {
+        border-bottom: 1px solid var(--line);
+    }
+
+    .exam-bottom {
+        border-top: 1px solid var(--line);
+    }
+
+    .exam-toolbar strong {
+        display: block;
+        font-size: 14px;
+    }
+
+    .exam-toolbar span {
+        display: block;
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 10px;
+    }
+
+    .toolbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .exam-table-wrap {
+        overflow-x: auto;
+    }
+
+    .exam-table {
+        width: 100%;
+        min-width: 1120px;
+        border-collapse: collapse;
+    }
+
+    .exam-table th {
+        padding: 13px 14px;
+        color: var(--muted);
+        background: #f8faff;
+        text-align: left;
+        font-size: 9px;
+        font-weight: 850;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .exam-table td {
+        padding: 14px;
+        border-top: 1px solid #edf1f6;
+        font-size: 11px;
+    }
+
+    .exam-row {
+        transition: background 0.18s ease;
+    }
+
+    .exam-row:hover {
+        background: #fafcff;
+    }
+
+    .exam-row.is-good {
+        background: rgba(29, 139, 105, 0.045);
+    }
+
+    .exam-row.is-medium {
+        background: rgba(207, 143, 37, 0.055);
+    }
+
+    .exam-row.is-error {
+        background: rgba(181, 63, 73, 0.045);
+    }
+
+    .student-cell {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+    }
+
+    .student-initial {
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        flex: 0 0 38px;
+        border-radius: 12px;
+        color: var(--blue);
+        background: #eaf0ff;
+        font-size: 12px;
+        font-weight: 900;
+    }
+
+    .student-cell strong {
+        display: block;
+        font-size: 12px;
+    }
+
+    .student-cell span,
+    .book-page-count {
+        display: block;
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 9px;
+    }
+
+    .book-name {
+        display: block;
+        max-width: 210px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 11px;
+    }
+
+    .exam-input {
+        width: 88px;
+        padding: 10px 11px;
+        border: 1px solid #dfe6f1;
+        border-radius: 10px;
+        color: var(--ink);
+        background: #fbfcff;
+        font-size: 12px;
+        font-weight: 800;
+        outline: none;
+    }
+
+    .exam-input:focus {
+        border-color: #83a1e8;
+        box-shadow: 0 0 0 4px rgba(40, 91, 212, 0.08);
+    }
+
+    .exam-input.input-error {
+        border-color: #d66a73;
+        background: #fff9fa;
+    }
+
+    .exam-result {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 82px;
+        padding: 7px 10px;
+        border-radius: 999px;
+        color: var(--muted);
+        background: #f0f3f8;
+        font-size: 9px;
+        font-weight: 850;
+    }
+
+    .exam-result.good {
+        color: #167457;
+        background: #e8f7f1;
+    }
+
+    .exam-result.medium {
+        color: #9a661a;
+        background: #fff5df;
+    }
+
+    .exam-result.error {
+        color: #a53640;
+        background: #ffebed;
+    }
+
+    .exam-bottom-summary {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+    }
+
+    .exam-bottom-summary > strong {
+        color: var(--blue);
+        font-size: 27px;
+    }
+
+    .exam-bottom-summary span {
+        display: block;
+        color: var(--ink);
+        font-size: 11px;
+        font-weight: 750;
+    }
+
+    .exam-bottom-summary small {
+        display: block;
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 9px;
+    }
+
+    .save-all-button {
+        min-width: 220px;
+    }
+
+    .empty-state {
+        display: grid;
+        justify-items: center;
+        gap: 9px;
+        padding: 50px 20px;
+        text-align: center;
+    }
+
+    .empty-state strong {
+        font-size: 15px;
+    }
+
+    .empty-state span {
+        margin-bottom: 8px;
+        color: var(--muted);
+        font-size: 11px;
+    }
+
+    @media (max-width: 900px) {
+
+        .exam-summary {
+            grid-template-columns: 1fr;
+        }
+
+        .exam-toolbar,
+        .exam-bottom {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .toolbar-actions {
+            width: 100%;
+        }
+
+        .toolbar-actions .ghost-btn,
+        .toolbar-actions .primary-btn,
+        .save-all-button {
+            flex: 1;
+            width: 100%;
+        }
+
+    }
+
+    @media (max-width: 600px) {
+
+        .toolbar-actions {
+            flex-direction: column;
+        }
+
+    }
+
+</style>
+
+
+<script>
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const rows = document.querySelectorAll(".exam-row");
+        const inputs = document.querySelectorAll(".exam-input");
+
+        const filledCount = document.getElementById("filled-count");
+        const filledSummary = document.getElementById("filled-summary");
+        const averageSummary = document.getElementById("average-summary");
+        const clearButton = document.getElementById("clear-button");
+        const form = document.getElementById("bulk-exam-form");
+
+        function updateRows() {
+
+            let filled = 0;
+            let scoreTotal = 0;
+            let scoreCount = 0;
+            let hasError = false;
+
+            rows.forEach(function (row) {
+
+                const totalInput = row.querySelector(".total-question");
+                const correctInput = row.querySelector(".correct-answer");
+                const wrongInput = row.querySelector(".wrong-answer");
+                const emptyInput = row.querySelector(".empty-answer");
+                const scoreInput = row.querySelector(".score-input");
+                const result = row.querySelector(".exam-result");
+
+                const rawValues = [
+                    totalInput.value.trim(),
+                    correctInput.value.trim(),
+                    wrongInput.value.trim(),
+                    emptyInput.value.trim(),
+                    scoreInput.value.trim()
+                ];
+
+                row.classList.remove(
+                    "is-good",
+                    "is-medium",
+                    "is-error"
+                );
+
+                result.classList.remove(
+                    "good",
+                    "medium",
+                    "error"
+                );
+
+                [
+                    totalInput,
+                    correctInput,
+                    wrongInput,
+                    emptyInput,
+                    scoreInput
+                ].forEach(function (input) {
+                    input.classList.remove("input-error");
+                });
+
+                const rowIsEmpty = rawValues.every(value => value === "");
+
+                if (rowIsEmpty) {
+                    result.textContent = "—";
+                    return;
+                }
+
+                filled += 1;
+
+                const total = Number(totalInput.value || 0);
+                const correct = Number(correctInput.value || 0);
+                const wrong = Number(wrongInput.value || 0);
+                const empty = Number(emptyInput.value || 0);
+                const score = Number(scoreInput.value || 0);
+
+                if (total <= 0) {
+                    result.textContent = "Soru Hatalı";
+                    result.classList.add("error");
+                    totalInput.classList.add("input-error");
+                    row.classList.add("is-error");
+                    hasError = true;
+                    return;
+                }
+
+                if (correct + wrong + empty !== total) {
+                    result.textContent = "Toplam Hatalı";
+                    result.classList.add("error");
+
+                    correctInput.classList.add("input-error");
+                    wrongInput.classList.add("input-error");
+                    emptyInput.classList.add("input-error");
+
+                    row.classList.add("is-error");
+                    hasError = true;
+                    return;
+                }
+
+                if (score < 0 || score > 100) {
+                    result.textContent = "Puan Hatalı";
+                    result.classList.add("error");
+                    scoreInput.classList.add("input-error");
+                    row.classList.add("is-error");
+                    hasError = true;
+                    return;
+                }
+
+                scoreTotal += score;
+                scoreCount += 1;
+
+                if (score >= 80) {
+                    result.textContent = "Başarılı";
+                    result.classList.add("good");
+                    row.classList.add("is-good");
+                }
+
+                else if (score >= 60) {
+                    result.textContent = "Orta";
+                    result.classList.add("medium");
+                    row.classList.add("is-medium");
+                }
+
+                else {
+                    result.textContent = "Geliştirilmeli";
+                    result.classList.add("error");
+                    row.classList.add("is-error");
+                }
+
+            });
+
+            const average = scoreCount
+                ? Math.round((scoreTotal / scoreCount) * 10) / 10
+                : 0;
+
+            if (filledCount) {
+                filledCount.textContent = filled;
+            }
+
+            if (filledSummary) {
+                filledSummary.textContent = filled;
+            }
+
+            if (averageSummary) {
+                averageSummary.textContent = average;
+            }
+
+            form.dataset.hasError = hasError ? "true" : "false";
+        }
+
+
+        inputs.forEach(function (input) {
+            input.addEventListener("input", updateRows);
+        });
+
+
+        if (clearButton) {
+            clearButton.addEventListener("click", function () {
+
+                const confirmed = window.confirm(
+                    "Girdiğiniz bütün sınav sonuçları temizlensin mi?"
+                );
+
+                if (!confirmed) {
+                    return;
+                }
+
+                inputs.forEach(function (input) {
+                    input.value = "";
+                });
+
+                updateRows();
+            });
+        }
+
+
+        if (form) {
+            form.addEventListener("submit", function (event) {
+
+                updateRows();
+
+                if (form.dataset.hasError === "true") {
+                    event.preventDefault();
+
+                    window.alert(
+                        "Hatalı sınav girişleri var. Kırmızı işaretli alanları düzeltin."
+                    );
+
+                    return;
+                }
+
+                const rowsWithData = Array.from(rows).filter(function (row) {
+
+                    const rowInputs = row.querySelectorAll(".exam-input");
+
+                    return Array.from(rowInputs).some(
+                        input => input.value.trim() !== ""
+                    );
+
+                }).length;
+
+                if (rowsWithData === 0) {
+                    event.preventDefault();
+
+                    window.alert(
+                        "Kaydetmek için en az bir talebenin sınav sonucunu girin."
+                    );
+                }
+
+            });
+        }
+
+
+        updateRows();
+
+    });
+
+</script>
+
+{% endblock %}

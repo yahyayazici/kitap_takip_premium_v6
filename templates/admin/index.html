@@ -1,0 +1,989 @@
+tamamm v {% extends "admin/base_site.html" %}
+{% load i18n static log %}
+
+{% block title %}Yönetim Merkezi · Çinili Saray{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}
+{{ block.super }} dashboard cinili-admin-dashboard
+{% endblock %}
+
+{% block nav-breadcrumbs %}{% endblock %}
+
+{% block nav-sidebar %}{% endblock %}
+
+{% block content %}
+
+<style>
+    /* =====================================================
+       DJANGO'NUN VARSAYILAN ANA SAYFA SINIRLAMALARINI KALDIR
+       ===================================================== */
+
+    html,
+    body,
+    #container,
+    #main,
+    #content-start,
+    #content,
+    #content-main {
+        width: 100% !important;
+        max-width: none !important;
+        min-width: 0 !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    body.cinili-admin-dashboard #main {
+        display: block !important;
+    }
+
+    body.cinili-admin-dashboard #content {
+        width: 100% !important;
+        padding: 32px 36px 60px !important;
+    }
+
+    body.cinili-admin-dashboard #content-main {
+        float: none !important;
+    }
+
+    body.cinili-admin-dashboard #nav-sidebar,
+    body.cinili-admin-dashboard .toggle-nav-sidebar {
+        display: none !important;
+    }
+
+    body.cinili-admin-dashboard .breadcrumbs {
+        display: none !important;
+    }
+
+    body.cinili-admin-dashboard #content > h1 {
+        display: none !important;
+    }
+
+    /* =====================================================
+       ANA SAYFA
+       ===================================================== */
+
+    .cs-dashboard {
+        width: 100%;
+        max-width: 1480px;
+        margin: 0 auto;
+    }
+
+    /* =====================================================
+       ÜST KARŞILAMA ALANI
+       ===================================================== */
+
+    .cs-hero {
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 36px;
+        min-height: 220px;
+        padding: 34px 38px;
+        border: 1px solid rgba(255, 255, 255, .12);
+        border-radius: 26px;
+        color: #ffffff;
+        background:
+            radial-gradient(
+                circle at 86% 8%,
+                rgba(113, 163, 255, .34),
+                transparent 28%
+            ),
+            radial-gradient(
+                circle at 72% 90%,
+                rgba(110, 87, 232, .26),
+                transparent 32%
+            ),
+            linear-gradient(
+                135deg,
+                #061936 0%,
+                #0a326e 56%,
+                #2866d4 100%
+            );
+        box-shadow:
+            0 30px 75px rgba(14, 50, 110, .20),
+            inset 0 1px rgba(255, 255, 255, .12);
+    }
+
+    .cs-hero::after {
+        position: absolute;
+        top: -90px;
+        right: -60px;
+        width: 300px;
+        height: 300px;
+        border: 1px solid rgba(255, 255, 255, .12);
+        border-radius: 50%;
+        content: "";
+    }
+
+    .cs-hero-copy {
+        position: relative;
+        z-index: 2;
+        max-width: 630px;
+    }
+
+    .cs-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        min-height: 26px;
+        padding: 0 10px;
+        border: 1px solid rgba(255, 255, 255, .14);
+        border-radius: 999px;
+        color: #c7d9fb;
+        background: rgba(255, 255, 255, .07);
+        font-size: 9px;
+        font-weight: 850;
+        letter-spacing: .14em;
+    }
+
+    .cs-hero h1 {
+        margin: 14px 0 0 !important;
+        color: #ffffff !important;
+        font-size: 42px !important;
+        font-weight: 900 !important;
+        line-height: 1.06 !important;
+        letter-spacing: -.05em !important;
+    }
+
+    .cs-hero-description {
+        max-width: 560px;
+        margin: 14px 0 0;
+        color: #d8e5fa;
+        font-size: 13px;
+        line-height: 1.65;
+    }
+
+    .cs-hero-meta {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(170px, 1fr));
+        gap: 12px;
+        min-width: 390px;
+    }
+
+    .cs-hero-meta-card {
+        min-height: 92px;
+        padding: 18px;
+        border: 1px solid rgba(255, 255, 255, .15);
+        border-radius: 17px;
+        background: rgba(255, 255, 255, .08);
+        backdrop-filter: blur(18px);
+    }
+
+    .cs-hero-meta-card span,
+    .cs-hero-meta-card strong {
+        display: block;
+    }
+
+    .cs-hero-meta-card span {
+        color: #bed0ed;
+        font-size: 9px;
+        font-weight: 700;
+    }
+
+    .cs-hero-meta-card strong {
+        margin-top: 9px;
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 850;
+    }
+
+    /* =====================================================
+       ÖZET KARTLARI
+       ===================================================== */
+
+    .cs-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 18px;
+    }
+
+    .cs-summary-card {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        min-height: 102px;
+        padding: 19px;
+        border: 1px solid #dde5f0;
+        border-radius: 19px;
+        background: rgba(255, 255, 255, .96);
+        box-shadow: 0 16px 42px rgba(22, 46, 87, .06);
+    }
+
+    .cs-summary-icon {
+        width: 50px;
+        height: 50px;
+        flex: 0 0 50px;
+        display: grid;
+        place-items: center;
+        border-radius: 15px;
+        color: #2863d2;
+        background: #eaf1ff;
+        font-size: 12px;
+        font-weight: 900;
+    }
+
+    .cs-summary-icon.is-green {
+        color: #16815f;
+        background: #e9f8f2;
+    }
+
+    .cs-summary-icon.is-orange {
+        color: #ba681b;
+        background: #fff3e5;
+    }
+
+    .cs-summary-copy span,
+    .cs-summary-copy strong {
+        display: block;
+    }
+
+    .cs-summary-copy span {
+        color: #7c899d;
+        font-size: 9px;
+        font-weight: 750;
+    }
+
+    .cs-summary-copy strong {
+        margin-top: 6px;
+        color: #13213d;
+        font-size: 17px;
+        font-weight: 900;
+        letter-spacing: -.03em;
+    }
+
+    /* =====================================================
+       ANA İÇERİK DÜZENİ
+       ===================================================== */
+
+    .cs-dashboard-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 380px;
+        gap: 22px;
+        margin-top: 26px;
+    }
+
+    .cs-main-column,
+    .cs-side-column {
+        min-width: 0;
+    }
+
+    .cs-section-heading {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 15px;
+    }
+
+    .cs-section-kicker {
+        color: #316cde;
+        font-size: 9px;
+        font-weight: 900;
+        letter-spacing: .14em;
+    }
+
+    .cs-section-heading h2,
+    .cs-activity-header h2 {
+        margin: 6px 0 0;
+        color: #13213d;
+        font-size: 24px;
+        font-weight: 900;
+        letter-spacing: -.04em;
+    }
+
+    /* =====================================================
+       UYGULAMA MODÜLLERİ
+       ===================================================== */
+
+    .cs-app-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 17px;
+    }
+
+    .cs-app-card {
+        overflow: hidden;
+        min-width: 0;
+        border: 1px solid #dde5f0;
+        border-radius: 21px;
+        background: #ffffff;
+        box-shadow: 0 20px 55px rgba(22, 46, 87, .07);
+    }
+
+    .cs-app-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        min-height: 86px;
+        padding: 18px 19px;
+        border-bottom: 1px solid #e5ebf3;
+        background:
+            linear-gradient(
+                180deg,
+                #ffffff 0%,
+                #f8fafe 100%
+            );
+    }
+
+    .cs-app-header-copy {
+        min-width: 0;
+    }
+
+    .cs-app-label {
+        color: #3972df;
+        font-size: 8px;
+        font-weight: 900;
+        letter-spacing: .13em;
+    }
+
+    .cs-app-header h3 {
+        margin: 6px 0 0;
+        color: #13213d;
+        font-size: 17px;
+        font-weight: 900;
+        line-height: 1.25;
+        letter-spacing: -.03em;
+    }
+
+    .cs-app-count {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 38px;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        color: #2863d2;
+        background: #eaf1ff;
+        font-size: 12px;
+        font-weight: 900;
+    }
+
+    .cs-model-list {
+        padding: 5px 0;
+    }
+
+    .cs-model-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        min-height: 64px;
+        padding: 11px 16px;
+        border-top: 1px solid #edf1f6;
+    }
+
+    .cs-model-row:first-child {
+        border-top: 0;
+    }
+
+    .cs-model-info {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+    }
+
+    .cs-model-dot {
+        width: 9px;
+        height: 9px;
+        flex: 0 0 9px;
+        border-radius: 50%;
+        background:
+            linear-gradient(
+                135deg,
+                #3174eb,
+                #6759e8
+            );
+        box-shadow: 0 0 0 5px #edf3ff;
+    }
+
+    .cs-model-name {
+        color: #1c2d4b !important;
+        font-size: 10px;
+        font-weight: 820;
+        line-height: 1.35;
+        text-decoration: none;
+    }
+
+    .cs-model-name:hover {
+        color: #2863d2 !important;
+    }
+
+    .cs-model-actions {
+        flex: 0 0 auto;
+        display: flex;
+        gap: 7px;
+    }
+
+    .cs-model-button {
+        min-height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 11px;
+        border: 1px solid #d8e1ee;
+        border-radius: 9px;
+        color: #294b7c !important;
+        background: #ffffff;
+        font-size: 8px;
+        font-weight: 850;
+        text-decoration: none;
+    }
+
+    .cs-model-button.is-primary {
+        color: #ffffff !important;
+        border-color: transparent;
+        background:
+            linear-gradient(
+                135deg,
+                #2e6fe8,
+                #6659e8
+            );
+        box-shadow: 0 7px 16px rgba(53, 96, 215, .16);
+    }
+
+    /* =====================================================
+       SON İŞLEMLER
+       ===================================================== */
+
+    .cs-side-column {
+        display: flex;
+        flex-direction: column;
+        gap: 17px;
+    }
+
+    .cs-activity-card,
+    .cs-system-card {
+        overflow: hidden;
+        border: 1px solid #dde5f0;
+        border-radius: 21px;
+        background: #ffffff;
+        box-shadow: 0 20px 55px rgba(22, 46, 87, .07);
+    }
+
+    .cs-activity-header {
+        padding: 19px;
+        border-bottom: 1px solid #e5ebf3;
+    }
+
+    .cs-activity-list {
+        padding: 5px 0;
+    }
+
+    .cs-activity-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        min-height: 63px;
+        padding: 12px 17px;
+        border-top: 1px solid #edf1f6;
+    }
+
+    .cs-activity-item:first-child {
+        border-top: 0;
+    }
+
+    .cs-activity-indicator {
+        width: 10px;
+        height: 10px;
+        flex: 0 0 10px;
+        margin-top: 4px;
+        border-radius: 50%;
+        background: #718198;
+        box-shadow: 0 0 0 4px #edf1f6;
+    }
+
+    .cs-activity-indicator.is-addition {
+        background: #1c9a73;
+        box-shadow: 0 0 0 4px #e7f7f1;
+    }
+
+    .cs-activity-indicator.is-change {
+        background: #3372e7;
+        box-shadow: 0 0 0 4px #eaf1ff;
+    }
+
+    .cs-activity-indicator.is-deletion {
+        background: #d24d57;
+        box-shadow: 0 0 0 4px #fff0f1;
+    }
+
+    .cs-activity-copy {
+        min-width: 0;
+    }
+
+    .cs-activity-copy strong,
+    .cs-activity-copy a {
+        display: block;
+        color: #1b2c4a !important;
+        font-size: 9px;
+        font-weight: 820;
+        line-height: 1.45;
+        text-decoration: none;
+    }
+
+    .cs-activity-copy span {
+        display: block;
+        margin-top: 4px;
+        color: #8591a4;
+        font-size: 7px;
+    }
+
+    /* =====================================================
+       SİSTEM BİLGİ KARTI
+       ===================================================== */
+
+    .cs-system-card {
+        position: relative;
+        padding: 23px;
+        color: #ffffff;
+        background:
+            radial-gradient(
+                circle at 90% 15%,
+                rgba(108, 158, 255, .28),
+                transparent 30%
+            ),
+            linear-gradient(
+                135deg,
+                #071d40,
+                #0c397b
+            );
+    }
+
+    .cs-system-label {
+        color: #bcd1f5;
+        font-size: 8px;
+        font-weight: 900;
+        letter-spacing: .13em;
+    }
+
+    .cs-system-card h3 {
+        margin: 8px 0 0;
+        color: #ffffff;
+        font-size: 18px;
+        font-weight: 900;
+        letter-spacing: -.03em;
+    }
+
+    .cs-system-card p {
+        margin: 10px 0 0;
+        color: #d7e4f8;
+        font-size: 9px;
+        line-height: 1.65;
+    }
+
+    .cs-empty-state {
+        padding: 28px 20px;
+        color: #7e8a9d;
+        font-size: 10px;
+        text-align: center;
+    }
+
+    /* =====================================================
+       MOBİL
+       ===================================================== */
+
+    @media (max-width: 1180px) {
+        .cs-dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .cs-side-column {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 900px) {
+        body.cinili-admin-dashboard #content {
+            padding: 22px 16px 42px !important;
+        }
+
+        .cs-hero {
+            align-items: flex-start;
+            flex-direction: column;
+            padding: 27px 24px;
+        }
+
+        .cs-hero-meta {
+            width: 100%;
+            min-width: 0;
+        }
+
+        .cs-summary-grid,
+        .cs-app-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 650px) {
+        .cs-hero h1 {
+            font-size: 32px !important;
+        }
+
+        .cs-hero-meta,
+        .cs-side-column {
+            grid-template-columns: 1fr;
+        }
+
+        .cs-model-row {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .cs-model-actions {
+            width: 100%;
+        }
+
+        .cs-model-button {
+            flex: 1;
+        }
+    }
+</style>
+
+
+<div class="cs-dashboard">
+
+    <!-- ÜST KARŞILAMA -->
+
+    <section class="cs-hero">
+
+        <div class="cs-hero-copy">
+
+            <span class="cs-eyebrow">
+                ÇİNİLİ SARAY PROJE
+            </span>
+
+            <h1>
+                Yönetim Merkezi
+            </h1>
+
+            <p class="cs-hero-description">
+                Talebe, kitap, sınav ve takip süreçlerini
+                tek merkezden yönetin. Sistem içerisindeki
+                bütün yönetim modüllerine bu ekran üzerinden
+                güvenli biçimde erişebilirsiniz.
+            </p>
+
+        </div>
+
+
+        <div class="cs-hero-meta">
+
+            <div class="cs-hero-meta-card">
+                <span>Bugün</span>
+
+                <strong>
+                    {% now "d F Y" %}
+                </strong>
+            </div>
+
+
+            <div class="cs-hero-meta-card">
+                <span>Aktif Kullanıcı</span>
+
+                <strong>
+                    {{ request.user.get_username }}
+                </strong>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ÖZET -->
+
+    <section class="cs-summary-grid">
+
+        <article class="cs-summary-card">
+
+            <div class="cs-summary-icon">
+                01
+            </div>
+
+            <div class="cs-summary-copy">
+                <span>Yönetim Modülü</span>
+                <strong>{{ app_list|length }}</strong>
+            </div>
+
+        </article>
+
+
+        <article class="cs-summary-card">
+
+            <div class="cs-summary-icon is-green">
+                02
+            </div>
+
+            <div class="cs-summary-copy">
+                <span>Sistem Durumu</span>
+                <strong>Aktif</strong>
+            </div>
+
+        </article>
+
+
+        <article class="cs-summary-card">
+
+            <div class="cs-summary-icon is-orange">
+                03
+            </div>
+
+            <div class="cs-summary-copy">
+                <span>Yönetim Yapısı</span>
+                <strong>Merkezî Kontrol</strong>
+            </div>
+
+        </article>
+
+    </section>
+
+
+    <!-- ANA DÜZEN -->
+
+    <div class="cs-dashboard-grid">
+
+        <!-- SOL TARAF -->
+
+        <main class="cs-main-column">
+
+            <div class="cs-section-heading">
+
+                <div>
+                    <span class="cs-section-kicker">
+                        YÖNETİM MODÜLLERİ
+                    </span>
+
+                    <h2>
+                        Kontrol Alanları
+                    </h2>
+                </div>
+
+            </div>
+
+
+            <div class="cs-app-grid">
+
+                {% for app in app_list %}
+
+                    <section class="cs-app-card">
+
+                        <header class="cs-app-header">
+
+                            <div class="cs-app-header-copy">
+
+                                <span class="cs-app-label">
+                                    MODÜL
+                                </span>
+
+                                <h3>
+                                    {{ app.name }}
+                                </h3>
+
+                            </div>
+
+
+                            <span class="cs-app-count">
+                                {{ app.models|length }}
+                            </span>
+
+                        </header>
+
+
+                        <div class="cs-model-list">
+
+                            {% for model in app.models %}
+
+                                <div class="cs-model-row">
+
+                                    <div class="cs-model-info">
+
+                                        <span class="cs-model-dot"></span>
+
+                                        {% if model.admin_url %}
+
+                                            <a
+                                                href="{{ model.admin_url }}"
+                                                class="cs-model-name"
+                                            >
+                                                {{ model.name }}
+                                            </a>
+
+                                        {% else %}
+
+                                            <span class="cs-model-name">
+                                                {{ model.name }}
+                                            </span>
+
+                                        {% endif %}
+
+                                    </div>
+
+
+                                    <div class="cs-model-actions">
+
+                                        {% if model.add_url %}
+
+                                            <a
+                                                href="{{ model.add_url }}"
+                                                class="cs-model-button is-primary"
+                                            >
+                                                Ekle
+                                            </a>
+
+                                        {% endif %}
+
+
+                                        {% if model.admin_url %}
+
+                                            <a
+                                                href="{{ model.admin_url }}"
+                                                class="cs-model-button"
+                                            >
+                                                Yönet
+                                            </a>
+
+                                        {% endif %}
+
+                                    </div>
+
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    </section>
+
+                {% empty %}
+
+                    <div class="cs-empty-state">
+                        Yetkiniz bulunan yönetim modülü bulunamadı.
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        </main>
+
+
+        <!-- SAĞ TARAF -->
+
+        <aside class="cs-side-column">
+
+            <section class="cs-activity-card">
+
+                <header class="cs-activity-header">
+
+                    <span class="cs-section-kicker">
+                        SON İŞLEMLER
+                    </span>
+
+                    <h2>
+                        Hareket Geçmişi
+                    </h2>
+
+                </header>
+
+
+                {% get_admin_log 8 as admin_log for_user user %}
+
+
+                <div class="cs-activity-list">
+
+                    {% for entry in admin_log %}
+
+                        <article class="cs-activity-item">
+
+                            <span class="
+                                cs-activity-indicator
+
+                                {% if entry.is_addition %}
+                                    is-addition
+                                {% elif entry.is_change %}
+                                    is-change
+                                {% elif entry.is_deletion %}
+                                    is-deletion
+                                {% endif %}
+                            "></span>
+
+
+                            <div class="cs-activity-copy">
+
+                                {% if entry.is_deletion or not entry.get_admin_url %}
+
+                                    <strong>
+                                        {{ entry.object_repr }}
+                                    </strong>
+
+                                {% else %}
+
+                                    <a href="{{ entry.get_admin_url }}">
+                                        {{ entry.object_repr }}
+                                    </a>
+
+                                {% endif %}
+
+
+                                {% if entry.content_type %}
+
+                                    <span>
+                                        {{ entry.content_type.name|capfirst }}
+                                    </span>
+
+                                {% endif %}
+
+                            </div>
+
+                        </article>
+
+                    {% empty %}
+
+                        <div class="cs-empty-state">
+                            Henüz kayıtlı işlem bulunmuyor.
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </section>
+
+
+            <section class="cs-system-card">
+
+                <span class="cs-system-label">
+                    SİSTEM
+                </span>
+
+                <h3>
+                    Çinili Saray Yönetim Merkezi
+                </h3>
+
+                <p>
+                    Yönetim paneli üzerinden yapılan işlemler
+                    Django kayıt sisteminde saklanır. Kritik
+                    değişikliklerden önce ilgili verileri
+                    dikkatlice kontrol edin.
+                </p>
+
+            </section>
+
+        </aside>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block sidebar %}{% endblock %}

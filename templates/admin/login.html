@@ -1,0 +1,59 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block bodyclass %}{{ block.super }} login cs-login-page{% endblock %}
+{% block nav-sidebar %}{% endblock %}
+{% block nav-breadcrumbs %}{% endblock %}
+
+{% block content %}
+<div class="cs-login-shell">
+    <section class="cs-login-card">
+        <div class="cs-login-brand">
+            <span class="cs-login-mark">ÇS</span>
+            <div>
+                <strong>Çinili Saray</strong>
+                <small>Yönetim Merkezi</small>
+            </div>
+        </div>
+
+        <div class="cs-login-copy">
+            <span class="cs-eyebrow">GÜVENLİ GİRİŞ</span>
+            <h1>Yönetim paneline giriş yapın</h1>
+            <p>
+                Yetkili hesabınızla sisteme erişin.
+            </p>
+        </div>
+
+        {% if form.errors and not form.non_field_errors %}
+            <p class="errornote">Kullanıcı adı veya şifre hatalı.</p>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+            {% for error in form.non_field_errors %}
+                <p class="errornote">{{ error }}</p>
+            {% endfor %}
+        {% endif %}
+
+        <form action="{{ app_path }}" method="post" id="login-form">
+            {% csrf_token %}
+
+            <div class="form-row">
+                {{ form.username.errors }}
+                <label for="{{ form.username.id_for_label }}">Kullanıcı adı</label>
+                {{ form.username }}
+            </div>
+
+            <div class="form-row">
+                {{ form.password.errors }}
+                <label for="{{ form.password.id_for_label }}">Şifre</label>
+                {{ form.password }}
+                <input type="hidden" name="next" value="{{ next }}">
+            </div>
+
+            <div class="submit-row">
+                <input type="submit" value="Yönetim Merkezine Gir">
+            </div>
+        </form>
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,913 @@
+{% extends "base.html" %}
+
+{% block title %}Toplu Kitap Zimmeti{% endblock %}
+
+{% block content %}
+
+    <div class="assignment-page">
+
+        <!-- SAYFA BAŞLIĞI -->
+        <section class="page-hero">
+            <div>
+                <p class="page-kicker">TOPLU İŞLEM</p>
+                <h1>Gruba Kitap Zimmetle</h1>
+                <p class="page-description">
+                    Kitabı seçin, sayfa sayısını kontrol edin ve talebelere
+                    tek işlemle zimmetleyin.
+                </p>
+            </div>
+
+            <a href="{% url 'dashboard' %}" class="secondary-button">
+                Genel Bakışa Dön
+            </a>
+        </section>
+
+
+        <form method="post" id="assignment-form">
+            {% csrf_token %}
+
+            <!-- ZİMMET BİLGİLERİ -->
+            <section class="assignment-card">
+
+                <div class="card-header">
+                    <div>
+                        <p class="card-kicker">KİTAP VE TARİH BİLGİLERİ</p>
+                        <h2>Zimmet Bilgileri</h2>
+                        <p>
+                            Seçilen kitabın toplam sayfa sayısını kontrol
+                            ederek zimmet tarihlerini belirleyin.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="assignment-fields">
+
+                    <!-- KİTAP -->
+                    <div class="field-group field-large">
+                        <label for="kitap_id">
+                            Kitap
+                            <span>*</span>
+                        </label>
+
+                        <select
+                                name="kitap_id"
+                                id="kitap_id"
+                                required
+                        >
+                            <option value="">Kitap seçiniz</option>
+
+                            {% for kitap in kitaplar %}
+                                <option
+                                        value="{{ kitap.id }}"
+                                        data-page-count="{{ kitap.toplam_sayfa|default:0 }}"
+                                        {% if request.POST.kitap_id == kitap.id|stringformat:"s" %}
+                                        selected
+                                        {% endif %}
+                                >
+                                    {{ kitap.ad }}
+                                    {% if kitap.yazar %}
+                                        — {{ kitap.yazar }}
+                                    {% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+
+                    <!-- ZİMMET TARİHİ -->
+                    <div class="field-group">
+                        <label for="zimmet_tarihi">
+                            Zimmet Tarihi
+                            <span>*</span>
+                        </label>
+
+                        <input
+                                type="date"
+                                name="zimmet_tarihi"
+                                id="zimmet_tarihi"
+                                value="{{ request.POST.zimmet_tarihi }}"
+                                required
+                        >
+                    </div>
+
+
+                    <!-- HEDEF BİTİŞ TARİHİ -->
+                    <div class="field-group">
+                        <label for="hedef_bitis_tarihi">
+                            Hedef Bitiş Tarihi
+                        </label>
+
+                        <input
+                                type="date"
+                                name="hedef_bitis_tarihi"
+                                id="hedef_bitis_tarihi"
+                                value="{{ request.POST.hedef_bitis_tarihi }}"
+                        >
+                    </div>
+                </div>
+                <!-- AKTİF KİTABI OLANLARI ATLA -->
+                <label class="option-row">
+                    <input
+                            type="checkbox"
+                            name="aktif_kitabi_olanlari_atla"
+                            id="aktif_kitabi_olanlari_atla"
+                            {% if request.POST.aktif_kitabi_olanlari_atla %}
+                            checked
+                            {% else %}
+                            checked
+                            {% endif %}
+                    >
+
+                    <span class="custom-checkbox"></span>
+
+                    <span class="option-copy">
+                    <strong>Aktif kitabı olan talebeleri atla</strong>
+
+                    <small>
+                        Okuma süreci devam eden talebelere ikinci bir
+                        aktif kitap tanımlanmaz.
+                    </small>
+                </span>
+                </label>
+
+            </section>
+
+
+            <!-- TALEBE SEÇİMİ -->
+            <section class="assignment-card student-selection-card">
+
+                <div class="student-section-header">
+                    <div>
+                        <p class="card-kicker">TALEBE SEÇİMİ</p>
+                        <h2>Talebeler</h2>
+
+                        <p>
+                            İşaretlediğiniz talebelere seçilen kitap
+                            zimmetlenecektir.
+                        </p>
+                    </div>
+
+                    <div class="selection-actions">
+                        <button
+                                type="button"
+                                class="secondary-button"
+                                id="select-all"
+                        >
+                            Tümünü Seç
+                        </button>
+
+                        <button
+                                type="button"
+                                class="secondary-button"
+                                id="clear-all"
+                        >
+                            Temizle
+                        </button>
+                    </div>
+                </div>
+
+
+                <div class="student-grid">
+
+                    {% for talebe in talebeler %}
+
+                        <label class="student-option">
+
+                            <input
+                                    type="checkbox"
+                                    name="talebe_ids"
+                                    value="{{ talebe.id }}"
+                                    class="student-checkbox"
+                            >
+
+                            <span class="student-card">
+
+                            <span class="student-avatar">
+                                {{ talebe.ad_soyad|slice:":1"|upper }}
+                            </span>
+
+                            <span class="student-information">
+                                <strong>{{ talebe.ad_soyad }}</strong>
+
+                                <small>
+                                    {% if talebe.sinif_sube %}
+                                        {{ talebe.sinif_sube }}
+                                    {% elif talebe.sinif %}
+                                        {{ talebe.sinif }}
+                                    {% else %}
+                                        Sınıf belirtilmemiş
+                                    {% endif %}
+                                </small>
+                            </span>
+
+                            <span class="student-checkmark">
+                                ✓
+                            </span>
+
+                        </span>
+
+                        </label>
+
+                    {% empty %}
+
+                        <div class="empty-state">
+                            <strong>Talebe bulunamadı</strong>
+
+                            <p>
+                                Kitap zimmeti oluşturabilmek için önce
+                                sisteme talebe eklemelisiniz.
+                            </p>
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </section>
+
+
+            <!-- ALT İŞLEM ÇUBUĞU -->
+            <section class="form-footer">
+
+                <div class="selection-summary">
+                    <strong id="selected-count">0</strong>
+
+                    <span>
+                    talebe seçildi
+                </span>
+                </div>
+
+                <div class="footer-actions">
+
+                    <a href="{% url 'dashboard' %}" class="cancel-link">
+                        Vazgeç
+                    </a>
+
+                    <button type="submit" class="primary-button">
+                        Seçilen Talebelere Zimmetle
+                    </button>
+
+                </div>
+
+            </section>
+
+        </form>
+
+    </div>
+
+
+    <style>
+        .assignment-page {
+            width: min(100%, 1460px);
+            margin: 0 auto;
+        }
+
+
+        /* SAYFA BAŞLIĞI */
+
+        .page-hero {
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 32px;
+            margin-bottom: 22px;
+            padding: 29px 31px;
+            overflow: hidden;
+            border: 1px solid rgba(52, 103, 204, .13);
+            border-radius: 22px;
+            background: linear-gradient(
+                    135deg,
+                    rgba(255, 255, 255, .98),
+                    rgba(238, 244, 255, .96)
+            );
+            box-shadow: 0 16px 40px rgba(26, 52, 94, .07);
+        }
+
+        .page-hero::before {
+            content: "";
+            position: absolute;
+            width: 290px;
+            height: 290px;
+            top: -190px;
+            right: 80px;
+            border-radius: 50%;
+            background: rgba(55, 112, 240, .08);
+        }
+
+        .page-hero::after {
+            content: "";
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            right: -75px;
+            bottom: -110px;
+            border: 1px solid rgba(94, 78, 224, .10);
+            border-radius: 50%;
+            box-shadow: 0 0 0 30px rgba(94, 78, 224, .025),
+            0 0 0 60px rgba(94, 78, 224, .018);
+        }
+
+        .page-hero > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-kicker,
+        .card-kicker {
+            margin: 0 0 8px;
+            color: #326cf3;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: .14em;
+        }
+
+        .page-hero h1 {
+            margin: 0;
+            color: #102140;
+            font-family: "Poppins", "Segoe UI", sans-serif;
+            font-size: clamp(28px, 3vw, 40px);
+            font-weight: 500;
+            line-height: 1.14;
+            letter-spacing: -.045em;
+        }
+
+        .page-description {
+            max-width: 690px;
+            margin: 11px 0 0;
+            color: #6e7a90;
+            font-size: 14px;
+            font-weight: 300;
+            line-height: 1.7;
+        }
+
+
+        /* ANA KART */
+
+        .assignment-card {
+            margin-bottom: 19px;
+            overflow: hidden;
+            border: 1px solid #dce5f0;
+            border-radius: 22px;
+            background: #ffffff;
+            box-shadow: 0 16px 40px rgba(26, 52, 94, .065);
+        }
+
+        .card-header,
+        .student-section-header {
+            padding: 24px 26px;
+            border-bottom: 1px solid #e5ebf3;
+        }
+
+        .card-header h2,
+        .student-section-header h2 {
+            margin: 0;
+            color: #12223f;
+            font-family: "Poppins", "Segoe UI", sans-serif;
+            font-size: 21px;
+            font-weight: 500;
+            letter-spacing: -.025em;
+        }
+
+        .card-header p:not(.card-kicker),
+        .student-section-header p:not(.card-kicker) {
+            margin: 7px 0 0;
+            color: #7b879b;
+            font-size: 12px;
+            font-weight: 300;
+            line-height: 1.65;
+        }
+
+
+        /* FORM ALANLARI */
+
+        .assignment-fields {
+            display: grid;
+            grid-template-columns:
+            minmax(250px, 1.35fr)
+            repeat(3, minmax(180px, .85fr));
+            gap: 16px;
+            padding: 25px 26px 16px;
+        }
+
+        .field-group {
+            min-width: 0;
+        }
+
+        .field-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #3f4e66;
+            font-size: 11px;
+            font-weight: 400;
+        }
+
+        .field-group label span {
+            color: #e15757;
+        }
+
+        .field-group input,
+        .field-group select {
+            width: 100%;
+            height: 48px;
+            padding: 0 14px;
+            border: 1px solid #cdd9e8;
+            border-radius: 13px;
+            outline: none;
+            color: #172641;
+            background: #ffffff;
+            font-family: "Poppins", "Segoe UI", sans-serif;
+            font-size: 13px;
+            font-weight: 400;
+            transition: border-color .18s ease,
+            box-shadow .18s ease;
+        }
+
+        .field-group input:focus,
+        .field-group select:focus {
+            border-color: #3975ef;
+            box-shadow: 0 0 0 4px rgba(57, 117, 239, .10);
+        }
+
+        .field-group small {
+            display: block;
+            margin-top: 7px;
+            color: #929bad;
+            font-size: 9px;
+            font-weight: 300;
+        }
+
+
+        /* SEÇENEK SATIRI */
+
+        .option-row {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            margin: 2px 26px 25px;
+            padding: 14px 16px;
+            border: 1px solid #dce5f2;
+            border-radius: 14px;
+            background: #f5f8fd;
+            cursor: pointer;
+        }
+
+        .option-row input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .custom-checkbox {
+            width: 22px;
+            height: 22px;
+            display: grid;
+            place-items: center;
+            flex: 0 0 22px;
+            border: 1px solid #bfcde0;
+            border-radius: 7px;
+            background: #ffffff;
+        }
+
+        .option-row input:checked + .custom-checkbox {
+            border-color: #3975ef;
+            background: #3975ef;
+        }
+
+        .option-row input:checked + .custom-checkbox::after {
+            content: "✓";
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .option-copy strong {
+            display: block;
+            color: #24344f;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .option-copy small {
+            display: block;
+            margin-top: 4px;
+            color: #8692a6;
+            font-size: 9px;
+            font-weight: 300;
+        }
+
+
+        /* TALEBE SEÇİMİ */
+
+        .student-section-header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .selection-actions {
+            display: flex;
+            gap: 9px;
+        }
+
+        .student-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            padding: 22px 26px 27px;
+        }
+
+        .student-option {
+            position: relative;
+            display: block;
+            cursor: pointer;
+        }
+
+        .student-checkbox {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .student-card {
+            min-height: 76px;
+            display: grid;
+            grid-template-columns: 43px minmax(0, 1fr) 26px;
+            align-items: center;
+            gap: 12px;
+            padding: 13px;
+            border: 1px solid #dce5f0;
+            border-radius: 15px;
+            background: linear-gradient(
+                    145deg,
+                    #ffffff,
+                    #f9fbff
+            );
+            transition: transform .18s ease,
+            border-color .18s ease,
+            background .18s ease,
+            box-shadow .18s ease;
+        }
+
+        .student-option:hover .student-card {
+            transform: translateY(-2px);
+            border-color: #b8cdf2;
+            box-shadow: 0 10px 24px rgba(31, 65, 124, .08);
+        }
+
+        .student-checkbox:checked + .student-card {
+            border-color: #3975ef;
+            background: linear-gradient(
+                    145deg,
+                    #f3f7ff,
+                    #eaf1ff
+            );
+            box-shadow: 0 0 0 3px rgba(57, 117, 239, .08);
+        }
+
+        .student-avatar {
+            width: 43px;
+            height: 43px;
+            display: grid;
+            place-items: center;
+            border-radius: 13px;
+            color: #2d65d5;
+            background: #e8f0ff;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .student-information strong {
+            display: block;
+            overflow: hidden;
+            color: #152541;
+            font-size: 12px;
+            font-weight: 500;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .student-information small {
+            display: block;
+            margin-top: 5px;
+            color: #8490a3;
+            font-size: 9px;
+            font-weight: 300;
+        }
+
+        .student-checkmark {
+            width: 24px;
+            height: 24px;
+            display: grid;
+            place-items: center;
+            border: 1px solid #c9d6e6;
+            border-radius: 8px;
+            color: transparent;
+            background: #ffffff;
+            font-size: 12px;
+            transition: all .18s ease;
+        }
+
+        .student-checkbox:checked +
+        .student-card
+        .student-checkmark {
+            border-color: #3975ef;
+            color: #ffffff;
+            background: #3975ef;
+        }
+
+
+        /* BUTONLAR */
+
+        .primary-button,
+        .secondary-button {
+            min-height: 43px;
+            padding: 0 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-family: "Poppins", "Segoe UI", sans-serif;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .primary-button {
+            border: 0;
+            color: #ffffff;
+            background: linear-gradient(
+                    135deg,
+                    #326cf3,
+                    #6856e9
+            );
+            box-shadow: 0 12px 25px rgba(62, 90, 218, .19);
+        }
+
+        .secondary-button {
+            border: 1px solid #d5dfec;
+            color: #43516a;
+            background: #ffffff;
+        }
+
+
+        /* ALT BAR */
+
+        .form-footer {
+            position: sticky;
+            z-index: 20;
+            bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            padding: 17px 20px;
+            border: 1px solid rgba(211, 222, 237, .95);
+            border-radius: 18px;
+            background: rgba(255, 255, 255, .94);
+            box-shadow: 0 18px 45px rgba(25, 51, 92, .13);
+            backdrop-filter: blur(16px);
+        }
+
+        .selection-summary {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .selection-summary strong {
+            color: #326cf3;
+            font-size: 23px;
+            font-weight: 500;
+        }
+
+        .selection-summary span {
+            color: #657289;
+            font-size: 11px;
+            font-weight: 300;
+        }
+
+        .footer-actions {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .cancel-link {
+            color: #5e6b80;
+            font-size: 11px;
+            font-weight: 400;
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            padding: 45px 20px;
+            color: #718096;
+            text-align: center;
+        }
+
+        .empty-state strong {
+            color: #172641;
+            font-weight: 500;
+        }
+
+
+        /* RESPONSIVE */
+
+        @media (max-width: 1100px) {
+            .assignment-fields {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .student-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 700px) {
+            .page-hero,
+            .student-section-header,
+            .form-footer {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .assignment-fields,
+            .student-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .selection-actions,
+            .footer-actions {
+                width: 100%;
+            }
+
+            .selection-actions > *,
+            .footer-actions .primary-button {
+                flex: 1;
+            }
+        }
+    </style>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const bookSelect =
+                document.getElementById("kitap_id");
+
+            const pageCountInput =
+                document.getElementById("kitap_sayfa_sayisi");
+
+            const studentCheckboxes =
+                Array.from(
+                    document.querySelectorAll(".student-checkbox")
+                );
+
+            const selectAllButton =
+                document.getElementById("select-all");
+
+            const clearAllButton =
+                document.getElementById("clear-all");
+
+            const selectedCount =
+                document.getElementById("selected-count");
+
+            const assignmentForm =
+                document.getElementById("assignment-form");
+
+
+            function updatePageCount() {
+                if (!bookSelect || !pageCountInput) {
+                    return;
+                }
+
+                const selectedOption =
+                    bookSelect.options[bookSelect.selectedIndex];
+
+                if (!selectedOption || !selectedOption.value) {
+                    pageCountInput.value = "";
+                    return;
+                }
+
+                const pageCount =
+                    selectedOption.dataset.pageCount;
+
+                if (
+                    pageCount &&
+                    Number(pageCount) > 0
+                ) {
+                    pageCountInput.value = pageCount;
+                }
+            }
+
+
+            function updateSelectedCount() {
+                const count =
+                    studentCheckboxes.filter(
+                        checkbox => checkbox.checked
+                    ).length;
+
+                if (selectedCount) {
+                    selectedCount.textContent = count;
+                }
+            }
+
+
+            if (bookSelect) {
+                bookSelect.addEventListener(
+                    "change",
+                    updatePageCount
+                );
+
+                if (
+                    bookSelect.value &&
+                    !pageCountInput.value
+                ) {
+                    updatePageCount();
+                }
+            }
+
+
+            studentCheckboxes.forEach(function (checkbox) {
+                checkbox.addEventListener(
+                    "change",
+                    updateSelectedCount
+                );
+            });
+
+
+            if (selectAllButton) {
+                selectAllButton.addEventListener(
+                    "click",
+                    function () {
+                        studentCheckboxes.forEach(
+                            checkbox => checkbox.checked = true
+                        );
+
+                        updateSelectedCount();
+                    }
+                );
+            }
+
+
+            if (clearAllButton) {
+                clearAllButton.addEventListener(
+                    "click",
+                    function () {
+                        studentCheckboxes.forEach(
+                            checkbox => checkbox.checked = false
+                        );
+
+                        updateSelectedCount();
+                    }
+                );
+            }
+
+
+            if (assignmentForm) {
+                assignmentForm.addEventListener(
+                    "submit",
+                    function (event) {
+                        const selectedStudents =
+                            studentCheckboxes.filter(
+                                checkbox => checkbox.checked
+                            );
+
+                        if (selectedStudents.length === 0) {
+                            event.preventDefault();
+
+                            alert(
+                                "Zimmetleme yapmak için en az bir talebe seçmelisiniz."
+                            );
+
+                            return;
+                        }
+
+                        if (
+                            !pageCountInput.value ||
+                            Number(pageCountInput.value) < 1
+                        ) {
+                            event.preventDefault();
+
+                            alert(
+                                "Geçerli bir kitap sayfa sayısı girin."
+                            );
+                        }
+                    }
+                );
+            }
+
+
+            updateSelectedCount();
+
+        });
+    </script>
+
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "yonetim/base.html" %}
+
+{% block title %}Etüt Hocaları{% endblock %}
+{% block page_title %}Etüt Hocası Yönetimi{% endblock %}
+
+{% block content %}
+
+<section class="cs-page-head">
+    <div>
+        <span class="cs-card-label">PERSONEL YÖNETİMİ</span>
+        <h2>Etüt Hocaları</h2>
+        <p>Kullanıcı hesaplarını ve sınıf yetkilerini yönetin.</p>
+    </div>
+
+    <a
+        href="{% url 'yonetim:personel_ekle' %}"
+        class="cs-btn cs-btn-primary"
+    >
+        Etüt Hocası Ekle
+    </a>
+</section>
+
+<section class="cs-card">
+    <div class="cs-table-wrap">
+        <table class="cs-table">
+            <thead>
+                <tr>
+                    <th>Ad Soyad</th>
+                    <th>Kullanıcı Adı</th>
+                    <th>Sorumlu Sınıflar</th>
+                    <th>Talebe</th>
+                    <th>Durum</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for personel in personeller %}
+                    <tr>
+                        <td><strong>{{ personel.ad_soyad }}</strong></td>
+                        <td>{{ personel.user.username }}</td>
+                        <td>
+                            {% for grup in personel.sorumlu_sinif_subeler.all %}
+                                <span class="cs-chip">{{ grup }}</span>
+                            {% empty %}
+                                <span class="cs-muted">Sınıf atanmamış</span>
+                            {% endfor %}
+                        </td>
+                        <td>{{ personel.talebe_sayisi }}</td>
+                        <td>
+                            {% if personel.aktif %}
+                                <span class="cs-status">Aktif</span>
+                            {% else %}
+                                <span class="cs-status is-passive">Pasif</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a
+                                href="{% url 'yonetim:personel_duzenle' personel.pk %}"
+                                class="cs-table-link"
+                            >
+                                Düzenle
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="cs-empty">
+                            Henüz etüt hocası kaydı yok.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

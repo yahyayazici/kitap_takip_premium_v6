@@ -1,0 +1,88 @@
+{% extends "yonetim/base.html" %}
+
+{% block title %}Talebeler{% endblock %}
+{% block page_title %}Talebe Yönetimi{% endblock %}
+
+{% block content %}
+
+<section class="cs-page-head">
+    <div>
+        <span class="cs-card-label">TALEBE YÖNETİMİ</span>
+        <h2>Talebeler</h2>
+        <p>Talebe kayıtlarını görüntüleyin ve düzenleyin.</p>
+    </div>
+
+    <a
+        href="{% url 'yonetim:talebe_ekle' %}"
+        class="cs-btn cs-btn-primary"
+    >
+        Talebe Ekle
+    </a>
+</section>
+
+<section class="cs-card">
+
+    <form method="get" class="cs-search">
+        <input
+            type="search"
+            name="q"
+            value="{{ arama }}"
+            placeholder="Talebe, numara, sınıf veya etüt hocası ara..."
+            class="cs-input"
+        >
+        <button class="cs-btn cs-btn-light">Ara</button>
+    </form>
+
+    <div class="cs-table-wrap">
+        <table class="cs-table">
+            <thead>
+                <tr>
+                    <th>Talebe No</th>
+                    <th>Ad Soyad</th>
+                    <th>Sınıf</th>
+                    <th>Aktif Kitap</th>
+                    <th>Etüt Hocası</th>
+                    <th>Durum</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for talebe in talebeler %}
+                    <tr>
+                        <td>{{ talebe.talebe_no|default:"—" }}</td>
+                        <td><strong>{{ talebe.ad_soyad }}</strong></td>
+                        <td>
+                            {{ talebe.sinif_sube|default:"Sınıf atanmamış" }}
+                        </td>
+                        <td>{{ talebe.aktif_zimmet.kitap.ad|default:"Kitap yok" }}</td>
+                        <td>{{ talebe.etut_hocasi.ad_soyad }}</td>
+                        <td>
+                            {% if talebe.aktif %}
+                                <span class="cs-status">Aktif</span>
+                            {% else %}
+                                <span class="cs-status is-passive">Pasif</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a
+                                href="{% url 'yonetim:talebe_duzenle' talebe.pk %}"
+                                class="cs-table-link"
+                            >
+                                Düzenle
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" class="cs-empty">
+                            Talebe kaydı bulunamadı.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

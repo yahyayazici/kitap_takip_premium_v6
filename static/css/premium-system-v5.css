@@ -1,0 +1,463 @@
+/* =========================================================
+   ÇİNİLİ SARAY — PREMIUM SYSTEM V5
+   İnce Poppins tipografi + zarif karşılama + kontrollü ölçüler
+========================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@300;400;500;600&display=swap');
+
+:root {
+    --v5-font: "Poppins", "Segoe UI Variable", "Segoe UI", Arial, sans-serif;
+    --v5-script: "Great Vibes", "Segoe Script", "Monotype Corsiva", cursive;
+    --v5-ink: #0b2144;
+    --v5-text: #263650;
+    --v5-muted: #708097;
+    --v5-blue: #2f6ff3;
+    --v5-border: #dce5f0;
+    --v5-bg: #f3f6fb;
+    --v5-card: rgba(255,255,255,.97);
+    --v5-shadow: 0 14px 34px rgba(22, 47, 87, .065);
+    --v5-shadow-hover: 0 20px 44px rgba(22, 58, 119, .105);
+    --v5-radius: 18px;
+}
+
+html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: geometricPrecision;
+}
+
+body,
+button,
+input,
+select,
+textarea,
+.v3-nav-link,
+.v3-user-copy,
+.cs-nav-link,
+.cs-user,
+table,
+label {
+    font-family: var(--v5-font) !important;
+}
+
+body {
+    color: var(--v5-text) !important;
+    background:
+        radial-gradient(circle at 92% 1%, rgba(67, 112, 226, .075), transparent 25%),
+        linear-gradient(180deg, #f7f9fd 0, var(--v5-bg) 240px) !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    line-height: 1.65 !important;
+}
+
+/* Genel alanı daha rafine ve daha dar tut */
+.v3-header-inner,
+.v3-main .page-content {
+    width: min(100%, 1460px) !important;
+}
+
+.v3-main .page-content {
+    padding: 30px 30px 58px !important;
+}
+
+.dashboard-page,
+.library-page,
+.bulk-assign-page,
+.daily-reading-page,
+.exam-page,
+.report-page {
+    max-width: 1400px !important;
+    margin-inline: auto !important;
+}
+
+/* Üst navigasyon: daha ince, ferah */
+.v3-header-inner { min-height: 72px !important; }
+.v3-nav-link {
+    min-width: 82px !important;
+    padding-inline: 13px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    letter-spacing: -.012em !important;
+}
+.v3-brand-copy strong {
+    font-family: var(--v5-font) !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    letter-spacing: -.025em !important;
+}
+.v3-brand-copy small,
+.v3-user-copy small { font-weight: 300 !important; }
+.v3-user-copy strong,
+.v3-logout { font-weight: 500 !important; }
+
+/* Ana karşılama: kıvrımlı ifade + normal isim */
+.welcome-panel {
+    min-height: 170px !important;
+    padding: 30px 34px !important;
+    border-radius: 24px !important;
+}
+.welcome-title {
+    display: flex !important;
+    align-items: baseline !important;
+    flex-wrap: wrap !important;
+    gap: 10px 14px !important;
+    margin: 0 !important;
+    line-height: 1 !important;
+}
+.welcome-title .welcome-script {
+    font-family: var(--v5-script) !important;
+    color: #fff !important;
+    font-size: clamp(42px, 4vw, 64px) !important;
+    font-weight: 400 !important;
+    letter-spacing: .005em !important;
+    line-height: .95 !important;
+    text-shadow: 0 8px 22px rgba(8, 27, 77, .13);
+}
+.welcome-title .welcome-name {
+    font-family: var(--v5-font) !important;
+    color: #fff !important;
+    font-size: clamp(30px, 2.6vw, 43px) !important;
+    font-weight: 500 !important;
+    letter-spacing: -.04em !important;
+}
+.welcome-title .welcome-wave {
+    font-family: var(--v5-font) !important;
+    font-size: 30px !important;
+}
+.welcome-panel > div > p:not(.welcome-kicker) {
+    font-size: 13px !important;
+    font-weight: 300 !important;
+}
+.welcome-kicker {
+    font-family: var(--v5-font) !important;
+    font-size: 10px !important;
+    font-weight: 500 !important;
+    letter-spacing: .16em !important;
+}
+
+/* Tüm iç sayfaların başlık alanları: düz boşluk yerine zarif desenli yüzey */
+.page-head,
+.page-header,
+.list-page-head,
+.report-page-head,
+.cs-page-head,
+.cs-form-intro {
+    position: relative !important;
+    overflow: hidden !important;
+    padding: 25px 28px !important;
+    margin: 0 0 20px !important;
+    border: 1px solid rgba(202, 216, 235, .88) !important;
+    border-radius: 20px !important;
+    background:
+        linear-gradient(110deg, rgba(255,255,255,.98), rgba(244,248,255,.95)),
+        repeating-linear-gradient(135deg, transparent 0 28px, rgba(47,111,243,.025) 28px 29px) !important;
+    box-shadow: 0 12px 32px rgba(26, 51, 93, .055) !important;
+}
+.page-head::before,
+.page-header::before,
+.list-page-head::before,
+.report-page-head::before,
+.cs-page-head::before,
+.cs-form-intro::before {
+    content: "";
+    position: absolute;
+    width: 230px;
+    height: 230px;
+    right: -75px;
+    top: -125px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(47,111,243,.10), rgba(116,88,232,.025) 58%, transparent 70%);
+    pointer-events: none;
+}
+.page-head::after,
+.cs-page-head::after {
+    content: "";
+    position: absolute;
+    width: 130px;
+    height: 130px;
+    right: 100px;
+    bottom: -95px;
+    border: 1px solid rgba(47,111,243,.09);
+    border-radius: 32px;
+    transform: rotate(28deg);
+    pointer-events: none;
+}
+
+/* Başlık sistemi: Poppins ince ve görünür */
+h1, h2, h3,
+.page-head h1,
+.page-header h1,
+.list-page-head h1,
+.report-page-head h1,
+.section-heading h2,
+.card-heading h2,
+.library-panel-head h2,
+.selection-head h2,
+.cs-page-head h2,
+.cs-form-intro h2,
+.cs-card h2,
+.cs-card h3,
+.cs-topbar h1 {
+    font-family: var(--v5-font) !important;
+    color: var(--v5-ink) !important;
+    font-weight: 500 !important;
+    letter-spacing: -.035em !important;
+    line-height: 1.18 !important;
+}
+.page-head h1,
+.page-header h1,
+.list-page-head h1,
+.report-page-head h1,
+.cs-page-head h2,
+.cs-form-intro h2 {
+    margin: 4px 0 8px !important;
+    font-size: clamp(29px, 2.25vw, 39px) !important;
+}
+.page-head p,
+.page-header p,
+.list-page-head p,
+.report-page-head p,
+.cs-page-head p,
+.cs-form-intro p,
+.muted {
+    color: var(--v5-muted) !important;
+    font-size: 13px !important;
+    font-weight: 300 !important;
+    line-height: 1.65 !important;
+}
+.kicker,
+.eyebrow,
+.card-kicker,
+.page-kicker,
+.cs-kicker,
+.cs-card-label,
+.cs-nav-label,
+.book-category {
+    font-family: var(--v5-font) !important;
+    color: var(--v5-blue) !important;
+    font-size: 10px !important;
+    font-weight: 500 !important;
+    letter-spacing: .15em !important;
+}
+
+/* Kartlar: daha dengeli, daha az yatay yayılım */
+.panel,
+.form-card,
+.dashboard-card,
+.report-card,
+.report-stat-card,
+.metric-card,
+.content-card,
+.table-card,
+.list-card,
+.student-card,
+.talebe-card,
+.library-panel,
+.library-summary-card,
+.library-book-card,
+.bulk-assign-card,
+.daily-reading-card,
+.surface-card,
+.cs-card,
+.cs-stat-card,
+.cs-panel,
+.cs-list-card,
+.cs-class-card {
+    border: 1px solid var(--v5-border) !important;
+    border-radius: var(--v5-radius) !important;
+    background: var(--v5-card) !important;
+    box-shadow: var(--v5-shadow) !important;
+}
+.metric-card,
+.library-summary-card,
+.report-stat-card,
+.cs-stat-card {
+    min-height: 120px !important;
+    padding: 18px 20px !important;
+}
+.metric-content span,
+.metric-label,
+.library-summary-card > span,
+.report-stat-card span,
+.cs-stat-card span {
+    color: #66758c !important;
+    font-size: 10px !important;
+    font-weight: 500 !important;
+    letter-spacing: .08em !important;
+}
+.metric-content strong,
+.metric-value,
+.library-summary-card > strong,
+.report-stat-card strong,
+.cs-stat-card strong {
+    font-family: var(--v5-font) !important;
+    color: var(--v5-ink) !important;
+    font-size: 28px !important;
+    font-weight: 500 !important;
+}
+.metric-content small,
+.library-summary-card small,
+.report-stat-card small {
+    font-weight: 300 !important;
+}
+
+/* Talebe kartlarını daha premium ve kompakt hale getir */
+.student-grid {
+    gap: 14px !important;
+}
+.student-card,
+.student-select-card {
+    padding: 16px !important;
+    border-radius: 16px !important;
+}
+.student-info h3,
+.student-copy strong,
+.student-status-info strong,
+.book-card-content h3,
+.library-panel-head h2,
+.active-book-row strong {
+    font-family: var(--v5-font) !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+}
+.student-info p,
+.student-meta span,
+.student-copy small,
+.student-status-info span,
+.book-card-content p,
+.active-book-row small {
+    font-size: 10px !important;
+    font-weight: 300 !important;
+}
+.student-meta {
+    padding: 12px !important;
+    border-radius: 12px !important;
+}
+.student-meta strong { font-weight: 500 !important; }
+
+/* Masaüstünde içerik/kart enini biraz azalt */
+.panel,
+.library-panel,
+.bulk-assign-card,
+.daily-reading-card,
+.report-layout,
+.exam-layout,
+.form-card {
+    max-width: 1400px !important;
+    margin-inline: auto !important;
+}
+.library-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 390px)) !important;
+    justify-content: start !important;
+}
+.library-book-card { max-width: 390px !important; }
+
+/* Butonlar: tarayıcı varsayılan görüntüsünü tamamen kaldır */
+.primary-btn,
+.ghost-btn,
+.report-button,
+.small-button,
+.student-detail-btn,
+.cs-btn,
+button:not(.v3-menu-toggle):not(.v3-toast-close),
+input[type="submit"] {
+    appearance: none !important;
+    min-height: 40px !important;
+    padding: 9px 15px !important;
+    border: 1px solid #d4dfed !important;
+    border-radius: 11px !important;
+    font-family: var(--v5-font) !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+}
+.primary-btn,
+.cs-btn-primary,
+button[type="submit"] {
+    color: #fff !important;
+    border-color: transparent !important;
+    background: linear-gradient(135deg, #316ff1, #6558e7) !important;
+    box-shadow: 0 8px 18px rgba(47,111,243,.18) !important;
+}
+.ghost-btn,
+.small-button,
+.cs-btn-light,
+.cs-btn-ghost {
+    color: #30425e !important;
+    background: #fff !important;
+}
+
+/* Formlar ve tablolar: ince metin */
+label,
+.form-label,
+.field-label,
+.cs-field label {
+    color: #40506a !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+}
+input,
+select,
+textarea,
+.cs-input {
+    min-height: 44px !important;
+    border: 1px solid #cad7e7 !important;
+    border-radius: 11px !important;
+    color: var(--v5-ink) !important;
+    background: #fff !important;
+    font-size: 12px !important;
+    font-weight: 400 !important;
+}
+thead th,
+table th {
+    color: #596982 !important;
+    font-size: 10px !important;
+    font-weight: 500 !important;
+    letter-spacing: .06em !important;
+}
+tbody td,
+table td {
+    color: var(--v5-text) !important;
+    font-size: 12px !important;
+    font-weight: 400 !important;
+}
+td strong { font-weight: 500 !important; }
+
+/* Yönetim panelinin kendi tipografisini de aynı sisteme bağla */
+.cs-main { background: var(--v5-bg) !important; }
+.cs-content { max-width: 1420px !important; margin-inline: auto !important; }
+.cs-topbar h1 { font-size: 27px !important; font-weight: 500 !important; }
+.cs-nav-link { font-size: 11px !important; font-weight: 400 !important; }
+.cs-brand strong, .cs-user strong { font-weight: 500 !important; }
+.cs-card-head h3, .cs-class-card strong { font-weight: 500 !important; }
+.cs-list-row strong { font-weight: 500 !important; }
+.cs-list-row small, .cs-muted, .cs-field small { font-weight: 300 !important; }
+
+/* Hafif premium hareket */
+.student-card,
+.library-book-card,
+.metric-card,
+.cs-card,
+.cs-class-card {
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease !important;
+}
+.student-card:hover,
+.library-book-card:hover,
+.metric-card:hover,
+.cs-class-card:hover {
+    transform: translateY(-2px) !important;
+    border-color: #bdceed !important;
+    box-shadow: var(--v5-shadow-hover) !important;
+}
+
+@media (max-width: 900px) {
+    .v3-main .page-content { padding: 20px 15px 42px !important; }
+    .page-head,
+    .page-header,
+    .list-page-head,
+    .report-page-head,
+    .cs-page-head,
+    .cs-form-intro { padding: 21px !important; }
+    .welcome-title { display: block !important; }
+    .welcome-title .welcome-name { display: block; margin-top: 6px; }
+}

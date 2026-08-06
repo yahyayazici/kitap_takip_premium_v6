@@ -1,0 +1,73 @@
+:root {
+    --v3-navy: #071a38;
+    --v3-navy-2: #0b2752;
+    --v3-blue: #2f67ed;
+    --v3-purple: #7056ee;
+    --v3-bg: #f3f6fb;
+    --v3-card: #ffffff;
+    --v3-text: #10203c;
+    --v3-muted: #68758a;
+    --v3-border: #dce4ef;
+    --v3-shadow: 0 12px 36px rgba(20, 44, 85, .09);
+}
+* { box-sizing: border-box; }
+html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+body.v3-body { margin: 0; background: var(--v3-bg); color: var(--v3-text); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 15px; font-weight: 500; }
+.v3-header { position: sticky; top: 0; z-index: 1000; background: linear-gradient(110deg, var(--v3-navy), var(--v3-navy-2)); box-shadow: 0 8px 28px rgba(3, 18, 43, .17); }
+.v3-header-inner { min-height: 82px; max-width: 1720px; margin: 0 auto; padding: 0 28px; display: flex; align-items: center; gap: 24px; }
+.v3-brand { min-width: 205px; display: flex; align-items: center; gap: 12px; color: #fff; text-decoration: none; }
+.v3-brand-mark { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 13px; background: linear-gradient(145deg, #3e7af3, #7858ee); font-weight: 900; box-shadow: inset 0 0 0 1px rgba(255,255,255,.25); }
+.v3-brand-copy { display: flex; flex-direction: column; line-height: 1.1; }
+.v3-brand-copy strong { font-size: 16px; font-weight: 850; letter-spacing: -.2px; }
+.v3-brand-copy small { margin-top: 5px; color: #b9c9e4; font-size: 11px; font-weight: 650; }
+.v3-nav { flex: 1; display: flex; align-items: stretch; align-self: stretch; justify-content: center; gap: 2px; }
+.v3-nav-link { position: relative; min-width: 88px; padding: 0 13px; display: flex; align-items: center; justify-content: center; color: #d7e2f4; text-decoration: none; text-align: center; font-size: 13px; font-weight: 750; transition: .2s ease; }
+.v3-nav-link:hover { color: #fff; background: rgba(255,255,255,.07); }
+.v3-nav-link.active { color: var(--v3-blue); background: #fff; }
+.v3-nav-link.active::after { content: ""; position: absolute; left: 20px; right: 20px; bottom: 0; height: 3px; border-radius: 3px 3px 0 0; background: linear-gradient(90deg, var(--v3-blue), var(--v3-purple)); }
+.v3-user-area { min-width: 225px; display: flex; align-items: center; justify-content: flex-end; gap: 10px; color: #fff; }
+.v3-user-avatar { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.1); color: #8bb2ff; font-weight: 850; }
+.v3-user-copy { display: flex; flex-direction: column; line-height: 1.15; max-width: 110px; }
+.v3-user-copy strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; font-weight: 800; }
+.v3-user-copy small { margin-top: 4px; color: #aebed8; font-size: 10px; font-weight: 650; }
+.v3-logout { border: 1px solid rgba(255,255,255,.18); border-radius: 9px; padding: 8px 10px; background: rgba(255,255,255,.06); color: #fff; font-size: 11px; font-weight: 750; cursor: pointer; }
+.v3-menu-toggle { display: none; width: 42px; height: 42px; border: 1px solid rgba(255,255,255,.16); border-radius: 11px; background: rgba(255,255,255,.08); padding: 10px; }
+.v3-menu-toggle span { display: block; height: 2px; margin: 4px 0; background: #fff; border-radius: 3px; }
+.v3-main { width: 100%; min-height: calc(100vh - 82px); }
+.v3-main .page-content { width: min(100%, 1720px); margin: 0 auto; padding: 34px 30px 56px; }
+/* Eski sidebar düzenini kesin olarak iptal et */
+.application-shell { display: block !important; min-height: auto !important; }
+.sidebar, .mobile-header, .sidebar-overlay { display: none !important; }
+.main-content { margin-left: 0 !important; width: 100% !important; min-height: auto !important; padding: 0 !important; }
+/* Netlik ve kontrast */
+h1, h2, h3, h4, h5, h6 { color: var(--v3-text); font-weight: 850; letter-spacing: -.025em; }
+p, span, label, td, th, input, select, textarea, button { text-rendering: optimizeLegibility; }
+input, select, textarea { color: var(--v3-text) !important; font-weight: 600 !important; border-color: #cad5e4 !important; background: #fff !important; }
+input::placeholder, textarea::placeholder { color: #8c98aa !important; opacity: 1; }
+button, .button, .btn { font-weight: 750 !important; }
+/* Kartlar ve listeler kaybolmasın */
+.card, .panel, .content-card, .table-card, .form-card, .student-card, .talebe-card, .book-card, .list-card, .stat-card, .dashboard-card, .section-card, .report-card { background: #fff !important; border: 1px solid var(--v3-border) !important; box-shadow: var(--v3-shadow) !important; }
+table { color: var(--v3-text); }
+th { color: #45536a !important; font-weight: 800 !important; }
+td { font-weight: 600; }
+/* Sayfalardaki eski düşük kontrast metinleri toparla */
+.page-subtitle, .section-description, .muted, .text-muted, small { color: var(--v3-muted); }
+.v3-toast-wrap { position: fixed; z-index: 1400; right: 22px; top: 98px; width: min(390px, calc(100vw - 32px)); display: grid; gap: 10px; }
+.v3-toast { position: relative; padding: 15px 42px 15px 16px; border: 1px solid var(--v3-border); border-radius: 14px; background: #fff; box-shadow: var(--v3-shadow); display: grid; gap: 4px; }
+.v3-toast strong { font-size: 13px; }.v3-toast span { color: var(--v3-muted); font-size: 12px; }.v3-toast-close { position: absolute; right: 12px; top: 10px; border: 0; background: none; font-size: 22px; cursor: pointer; color: #7c8798; }
+@media (max-width: 1240px) {
+    .v3-header-inner { gap: 12px; padding: 0 18px; }
+    .v3-brand { min-width: 172px; }
+    .v3-user-area { min-width: auto; }.v3-user-copy { display: none; }
+    .v3-nav-link { min-width: auto; padding: 0 10px; font-size: 12px; }
+}
+@media (max-width: 900px) {
+    .v3-header-inner { min-height: 70px; flex-wrap: wrap; padding: 0 16px; }
+    .v3-brand { margin-right: auto; }.v3-menu-toggle { display: block; order: 2; }.v3-user-area { order: 3; }
+    .v3-nav { display: none; order: 4; flex: 0 0 calc(100% + 32px); margin: 0 -16px; align-self: auto; padding: 8px 12px 14px; background: #081d3e; flex-wrap: wrap; justify-content: flex-start; }
+    .v3-nav.open { display: flex; }
+    .v3-nav-link { min-height: 44px; flex: 1 1 130px; border-radius: 10px; }
+    .v3-nav-link.active { border-radius: 10px; }.v3-nav-link.active::after { display: none; }
+    .v3-user-area form { display: none; }
+    .v3-main .page-content { padding: 24px 16px 42px; }
+}

@@ -1,0 +1,664 @@
+{% extends "base.html" %}
+
+{% block title %}{{ sinav.ad }} · Sonuç Girişi{% endblock %}
+
+{% block content %}
+
+<div class="result-entry-page">
+
+    <header class="result-entry-header">
+        <div>
+            <p class="result-kicker">
+                {{ sinav.sinav_tarihi|date:"d F Y"|upper }}
+            </p>
+
+            <h1>{{ sinav.ad }}</h1>
+
+            <p class="result-description">
+                {{ toplam_soru }} soruluk sınavın doğru, yanlış ve boş
+                sayılarını girin. Puanlar otomatik hesaplanır.
+            </p>
+        </div>
+
+        <div class="result-header-actions">
+            <a
+                href="{% url 'sinav_sirali_sonuc_pdf' sinav.id %}"
+                class="result-secondary-button"
+            >
+                Sıralı Sonuç PDF
+            </a>
+
+            <a
+                href="{% url 'sinav_sonuc_paneli' %}"
+                class="result-back-button"
+            >
+                Sınavlara Dön
+            </a>
+        </div>
+    </header>
+
+    <form method="post" id="result-form">
+        {% csrf_token %}
+
+        <section class="result-card">
+
+            <div class="result-card-header">
+                <div>
+                    <p class="result-section-kicker">SONUÇ GİRİŞİ</p>
+                    <h2>Talebe Sonuçları</h2>
+                    <p>
+                        Doğru, yanlış ve boş toplamı
+                        <strong>{{ toplam_soru }}</strong> olmalıdır.
+                    </p>
+                </div>
+
+                <div class="result-card-actions">
+                    <button
+                        type="button"
+                        class="result-clear-button"
+                        id="clear-fields"
+                    >
+                        Alanları Temizle
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="result-save-button"
+                    >
+                        Bütün Sonuçları Kaydet
+                    </button>
+                </div>
+            </div>
+
+            <div class="result-table-wrap">
+                <table class="result-table">
+                    <thead>
+                        <tr>
+                            <th>Talebe</th>
+                            <th>Doğru</th>
+                            <th>Yanlış</th>
+                            <th>Boş</th>
+                            <th>Puan</th>
+                            <th>Karne</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for satir in satirlar %}
+                            <tr
+                                class="result-row"
+                                data-total="{{ toplam_soru }}"
+                            >
+                                <td>
+                                    <div class="student-cell">
+                                        <span class="student-avatar">
+                                            {{ satir.talebe.ad_soyad|slice:":1"|upper }}
+                                        </span>
+
+                                        <span class="student-copy">
+                                            <strong>
+                                                {{ satir.talebe.ad_soyad }}
+                                            </strong>
+
+                                            <small>
+                                                {{ satir.talebe.sinif }}
+                                                {% if satir.talebe.sube %}
+                                                    / {{ satir.talebe.sube }}
+                                                {% endif %}
+                                            </small>
+                                        </span>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <input
+                                        type="number"
+                                        name="dogru_{{ satir.talebe.id }}"
+                                        value="{{ satir.dogru }}"
+                                        min="0"
+                                        max="{{ toplam_soru }}"
+                                        class="result-input correct-input"
+                                        inputmode="numeric"
+                                    >
+                                </td>
+
+                                <td>
+                                    <input
+                                        type="number"
+                                        name="yanlis_{{ satir.talebe.id }}"
+                                        value="{{ satir.yanlis }}"
+                                        min="0"
+                                        max="{{ toplam_soru }}"
+                                        class="result-input wrong-input"
+                                        inputmode="numeric"
+                                    >
+                                </td>
+
+                                <td>
+                                    <input
+                                        type="number"
+                                        name="bos_{{ satir.talebe.id }}"
+                                        value="{{ satir.bos }}"
+                                        min="0"
+                                        max="{{ toplam_soru }}"
+                                        class="result-input empty-input"
+                                        inputmode="numeric"
+                                    >
+                                </td>
+
+                                <td>
+                                    <span class="score-pill">
+                                        {{ satir.puan|floatformat:2 }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    {% if satir.sonuc %}
+                                        <a
+                                            href="{% url 'sinav_karne_pdf' sinav.id satir.talebe.id %}"
+                                            class="student-pdf-button"
+                                        >
+                                            Karne PDF
+                                        </a>
+                                    {% else %}
+                                        <span class="pdf-waiting">
+                                            Önce Kaydet
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6">
+                                    <div class="empty-results">
+                                        Bu sınav için talebe bulunamadı.
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="result-card-footer">
+                <div class="result-count">
+                    <strong>{{ satirlar|length }}</strong>
+                    <span>talebe</span>
+                </div>
+
+                <p>
+                    Sıralı sonuç PDF’si, kaydedilmiş neticeler üzerinden
+                    hazırlanır.
+                </p>
+            </div>
+
+        </section>
+    </form>
+
+    <section class="ranking-card">
+
+        <div class="ranking-header">
+            <div>
+                <p class="result-section-kicker">BAŞARI LİSTESİ</p>
+                <h2>Başarı Sıralaması</h2>
+                <p>Puanlar yüksekten düşüğe doğru sıralanır.</p>
+            </div>
+
+            <div class="ranking-count">
+                <strong>{{ siralama|length }}</strong>
+                <span>Sonuç</span>
+            </div>
+        </div>
+
+        <div class="ranking-list">
+            {% for sonuc in siralama %}
+                <div class="ranking-item">
+                    <span class="ranking-number">
+                        {{ sonuc.derece }}
+                    </span>
+
+                    <div class="ranking-student">
+                        <strong>{{ sonuc.talebe.ad_soyad }}</strong>
+                        <small>
+                            {{ sonuc.dogru }} doğru ·
+                            {{ sonuc.yanlis }} yanlış ·
+                            {{ sonuc.bos }} boş
+                        </small>
+                    </div>
+
+                    <strong class="ranking-score">
+                        {{ sonuc.puan|floatformat:2 }}
+                    </strong>
+                </div>
+            {% empty %}
+                <div class="empty-results">
+                    Henüz kaydedilmiş sonuç bulunmuyor.
+                </div>
+            {% endfor %}
+        </div>
+
+    </section>
+
+</div>
+
+<style>
+    .result-entry-page {
+        width: 100%;
+        padding: 28px 30px 48px;
+    }
+
+    .result-entry-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+
+    .result-kicker,
+    .result-section-kicker {
+        margin: 0 0 8px;
+        color: #2563eb;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .14em;
+    }
+
+    .result-entry-header h1,
+    .result-card-header h2,
+    .ranking-header h2 {
+        margin: 0;
+        color: #0c1d3a;
+        letter-spacing: -.035em;
+    }
+
+    .result-entry-header h1 {
+        font-size: 30px;
+    }
+
+    .result-description,
+    .result-card-header p,
+    .ranking-header p {
+        margin: 8px 0 0;
+        color: #748197;
+        font-size: 12px;
+        line-height: 1.55;
+    }
+
+    .result-header-actions,
+    .result-card-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .result-secondary-button,
+    .result-back-button,
+    .result-clear-button,
+    .result-save-button {
+        min-height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 17px;
+        border-radius: 11px;
+        font-size: 11px;
+        font-weight: 800;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .result-secondary-button {
+        color: #ffffff;
+        background: #0b2a5b;
+        box-shadow: 0 10px 24px rgba(11, 42, 91, .18);
+    }
+
+    .result-back-button,
+    .result-clear-button {
+        border: 1px solid #d8e1ee;
+        color: #19345d;
+        background: #ffffff;
+    }
+
+    .result-save-button {
+        border: 0;
+        color: #ffffff;
+        background: linear-gradient(135deg, #2869ed, #625cee);
+        box-shadow: 0 10px 24px rgba(55, 94, 220, .22);
+    }
+
+    .result-card,
+    .ranking-card {
+        overflow: hidden;
+        border: 1px solid #dde5f0;
+        border-radius: 20px;
+        background: #ffffff;
+        box-shadow: 0 16px 42px rgba(21, 44, 83, .07);
+    }
+
+    .result-card-header,
+    .ranking-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        padding: 24px 26px;
+    }
+
+    .result-card-header h2,
+    .ranking-header h2 {
+        font-size: 20px;
+    }
+
+    .result-table-wrap {
+        overflow-x: auto;
+        border-top: 1px solid #e4eaf2;
+        border-bottom: 1px solid #e4eaf2;
+    }
+
+    .result-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .result-table th {
+        padding: 14px 16px;
+        color: #52617a;
+        background: #f4f7fb;
+        font-size: 10px;
+        font-weight: 800;
+        text-align: left;
+    }
+
+    .result-table td {
+        padding: 15px 16px;
+        border-top: 1px solid #e7ecf3;
+        vertical-align: middle;
+    }
+
+    .result-table tbody tr:first-child td {
+        border-top: 0;
+    }
+
+    .student-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 220px;
+    }
+
+    .student-avatar {
+        width: 44px;
+        height: 44px;
+        flex: 0 0 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 13px;
+        color: #3163cf;
+        background: #eaf1ff;
+        font-size: 15px;
+        font-weight: 850;
+    }
+
+    .student-copy {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .student-copy strong {
+        color: #10203d;
+        font-size: 12px;
+    }
+
+    .student-copy small {
+        color: #8792a5;
+        font-size: 9px;
+    }
+
+    .result-input {
+        width: 80px;
+        height: 44px;
+        padding: 0 10px;
+        border: 1px solid #d4dfed;
+        border-radius: 12px;
+        outline: none;
+        color: #0d1d39;
+        background: #f9fbfd;
+        font-size: 13px;
+        font-weight: 800;
+        text-align: center;
+    }
+
+    .result-input:focus {
+        border-color: #4b79ec;
+        background: #ffffff;
+        box-shadow: 0 0 0 3px rgba(75, 121, 236, .1);
+    }
+
+    .score-pill {
+        min-width: 72px;
+        min-height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        color: #2457c5;
+        background: #eaf1ff;
+        font-size: 11px;
+        font-weight: 850;
+    }
+
+    .student-pdf-button {
+        min-height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 14px;
+        border: 1px solid #cfdbec;
+        border-radius: 10px;
+        color: #173761;
+        background: #ffffff;
+        font-size: 10px;
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    .student-pdf-button:hover {
+        color: #ffffff;
+        border-color: #12366c;
+        background: #12366c;
+    }
+
+    .pdf-waiting {
+        color: #919caf;
+        font-size: 10px;
+    }
+
+    .result-card-footer {
+        min-height: 66px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 0 26px;
+    }
+
+    .result-count {
+        display: flex;
+        align-items: baseline;
+        gap: 5px;
+    }
+
+    .result-count strong {
+        color: #10203d;
+        font-size: 14px;
+    }
+
+    .result-count span,
+    .result-card-footer p {
+        color: #7f8ba0;
+        font-size: 10px;
+    }
+
+    .ranking-card {
+        margin-top: 20px;
+    }
+
+    .ranking-count {
+        min-width: 74px;
+        padding: 12px 14px;
+        border: 1px solid #dde5ef;
+        border-radius: 13px;
+        text-align: center;
+    }
+
+    .ranking-count strong,
+    .ranking-count span {
+        display: block;
+    }
+
+    .ranking-count strong {
+        color: #12213f;
+        font-size: 17px;
+    }
+
+    .ranking-count span {
+        margin-top: 4px;
+        color: #8b96a8;
+        font-size: 9px;
+    }
+
+    .ranking-list {
+        padding: 0 20px 20px;
+    }
+
+    .ranking-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        min-height: 66px;
+        margin-top: 9px;
+        padding: 10px 14px;
+        border: 1px solid #e1e7f0;
+        border-radius: 14px;
+        background: #fbfcfe;
+    }
+
+    .ranking-number {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 11px;
+        color: #2459c8;
+        background: #eaf1ff;
+        font-size: 12px;
+        font-weight: 850;
+    }
+
+    .ranking-student {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .ranking-student strong {
+        color: #10203d;
+        font-size: 11px;
+    }
+
+    .ranking-student small {
+        color: #8490a3;
+        font-size: 9px;
+    }
+
+    .ranking-score {
+        color: #10203d;
+        font-size: 13px;
+    }
+
+    .empty-results {
+        padding: 30px;
+        color: #8490a3;
+        font-size: 11px;
+        text-align: center;
+    }
+
+    @media (max-width: 900px) {
+        .result-entry-page {
+            padding: 20px 16px 36px;
+        }
+
+        .result-entry-header,
+        .result-card-header,
+        .ranking-header {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .result-header-actions,
+        .result-card-actions {
+            width: 100%;
+            flex-direction: column;
+        }
+
+        .result-secondary-button,
+        .result-back-button,
+        .result-clear-button,
+        .result-save-button {
+            width: 100%;
+        }
+
+        .result-card-footer {
+            align-items: flex-start;
+            flex-direction: column;
+            padding: 18px 20px;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const clearButton = document.getElementById("clear-fields");
+
+        if (clearButton) {
+            clearButton.addEventListener("click", function () {
+                document
+                    .querySelectorAll(".result-input")
+                    .forEach(function (input) {
+                        input.value = "";
+                    });
+            });
+        }
+
+        document
+            .querySelectorAll(".result-row")
+            .forEach(function (row) {
+                const total = Number(row.dataset.total || 0);
+                const correctInput = row.querySelector(".correct-input");
+                const wrongInput = row.querySelector(".wrong-input");
+                const emptyInput = row.querySelector(".empty-input");
+
+                function updateEmpty() {
+                    const correct = Number(correctInput.value || 0);
+                    const wrong = Number(wrongInput.value || 0);
+                    const remaining = total - correct - wrong;
+
+                    if (remaining >= 0) {
+                        emptyInput.value = remaining;
+                    }
+                }
+
+                correctInput.addEventListener("input", updateEmpty);
+                wrongInput.addEventListener("input", updateEmpty);
+            });
+    });
+</script>
+
+{% endblock %}

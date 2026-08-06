@@ -1,0 +1,820 @@
+{% extends "base.html" %}
+
+{% block title %}Sonuç Giriş Paneli{% endblock %}
+
+{% block content %}
+
+<div class="result-panel-page">
+
+    <header class="result-page-header">
+
+        <div>
+            <p class="result-kicker">SINAVLAR</p>
+
+            <h1>Sonuç Giriş Paneli</h1>
+
+            <p class="result-description">
+                Oluşturduğunuz sınavları görüntüleyin ve talebelerin sonuç girişine geçin.
+            </p>
+        </div>
+
+        <a
+            href="{% url 'sinav_ekle_panel' %}"
+            class="result-primary-button"
+        >
+            Yeni Sınav Ekle
+        </a>
+
+    </header>
+
+
+    <section class="result-summary-grid">
+
+        <article class="result-summary-card">
+
+            <div class="result-summary-icon icon-blue">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 20h9"></path>
+                    <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+                </svg>
+            </div>
+
+            <div>
+                <span>TOPLAM SINAV</span>
+                <strong>{{ sinavlar|length }}</strong>
+                <small>Oluşturulan sınav</small>
+            </div>
+
+        </article>
+
+
+        <article class="result-summary-card">
+
+            <div class="result-summary-icon icon-green">
+                <svg viewBox="0 0 24 24">
+                    <path d="m5 12 4 4L19 6"></path>
+                </svg>
+            </div>
+
+            <div>
+                <span>SONUÇ GİRİLEN</span>
+
+                <strong>
+                    {% with toplam=0 %}
+                        {% for sinav in sinavlar %}
+                            {% if sinav.girilen_sonuc %}
+                                {{ forloop.counter }}
+                            {% endif %}
+                        {% empty %}
+                            0
+                        {% endfor %}
+                    {% endwith %}
+                </strong>
+
+                <small>İşlem yapılan sınav</small>
+            </div>
+
+        </article>
+
+
+        <article class="result-summary-card">
+
+            <div class="result-summary-icon icon-orange">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M12 7v5l3 2"></path>
+                </svg>
+            </div>
+
+            <div>
+                <span>SONUÇ BEKLEYEN</span>
+
+                <strong>
+                    {% with bekleyen=0 %}
+                        {% for sinav in sinavlar %}
+                            {% if not sinav.girilen_sonuc %}
+                                {{ forloop.counter }}
+                            {% endif %}
+                        {% empty %}
+                            0
+                        {% endfor %}
+                    {% endwith %}
+                </strong>
+
+                <small>Sonuç girişi bekliyor</small>
+            </div>
+
+        </article>
+
+    </section>
+
+
+    <section class="result-list-card">
+
+        <header class="result-list-header">
+
+            <div>
+                <h2>Sınavlar</h2>
+                <p>Sonuç girişi yapmak istediğiniz sınavı seçin.</p>
+            </div>
+
+            <div class="result-search">
+
+                <svg viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="7"></circle>
+                    <path d="m20 20-3.5-3.5"></path>
+                </svg>
+
+                <input
+                    type="search"
+                    id="exam-search"
+                    placeholder="Sınav ara..."
+                >
+
+            </div>
+
+        </header>
+
+
+        <div class="result-exam-grid" id="exam-grid">
+
+            {% for sinav in sinavlar %}
+
+                <article
+                    class="result-exam-card"
+                    data-exam="{{ sinav.ad|lower }}"
+                >
+
+                    <div class="result-card-top">
+
+                        <div class="result-card-icon">
+                            {{ sinav.ad|slice:":1"|upper }}
+                        </div>
+
+                        <span class="result-date">
+                            {{ sinav.sinav_tarihi|date:"d.m.Y"|default:"—" }}
+                        </span>
+
+                    </div>
+
+
+                    <div class="result-card-copy">
+
+                        <span class="result-card-label">
+                            KİTAP SINAVI
+                        </span>
+
+                        <h3>{{ sinav.ad }}</h3>
+
+                        <p>
+                            Sınav sonuçlarını talebe bazında kaydedin.
+                        </p>
+
+                    </div>
+
+
+                    <div class="result-card-stats">
+
+                        <div>
+                            <span>Soru Sayısı</span>
+                            <strong>{{ sinav.soru_sayisi|default:0 }}</strong>
+                        </div>
+
+                        <div>
+                            <span>Girilen Sonuç</span>
+                            <strong>{{ sinav.girilen_sonuc|default:0 }}</strong>
+                        </div>
+
+                    </div>
+
+
+                    <div class="result-progress-area">
+
+                        <div class="result-progress-head">
+
+                            <span>Sonuç giriş durumu</span>
+
+                            <strong>
+                                {% if sinav.girilen_sonuc %}
+                                    Başlandı
+                                {% else %}
+                                    Bekliyor
+                                {% endif %}
+                            </strong>
+
+                        </div>
+
+                        <div class="result-progress">
+
+                            <i
+                                style="width:
+                                {% if sinav.girilen_sonuc %}
+                                    55%
+                                {% else %}
+                                    8%
+                                {% endif %};"
+                            ></i>
+
+                        </div>
+
+                    </div>
+
+
+                    <footer class="result-card-footer">
+
+                        <a
+                            href="{% url 'sinav_sonuclari_gir' sinav.id %}"
+                            class="result-secondary-button"
+                        >
+                            Sonuçları Gör
+                        </a>
+
+                        <a
+                            href="{% url 'sinav_sonuclari_gir' sinav.id %}"
+                            class="result-primary-button"
+                        >
+                            Sonuç Gir
+                        </a>
+
+                    </footer>
+
+                </article>
+
+            {% empty %}
+
+                <div class="result-empty-state">
+
+                    <div class="result-empty-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 20h9"></path>
+                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+                        </svg>
+                    </div>
+
+                    <strong>Henüz sınav oluşturulmamış.</strong>
+
+                    <span>
+                        İlk sınavı oluşturarak sonuç giriş sürecini başlatabilirsiniz.
+                    </span>
+
+                    <a
+                        href="{% url 'sinav_ekle_panel' %}"
+                        class="result-primary-button"
+                    >
+                        İlk Sınavı Oluştur
+                    </a>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+</div>
+
+
+<style>
+
+.result-panel-page {
+    width: 100%;
+    max-width: 1480px;
+    margin: 0 auto;
+}
+
+
+/* BAŞLIK */
+
+.result-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.result-kicker {
+    margin: 0;
+    color: #3474e8;
+    font-size: 11px;
+    font-weight: 850;
+    letter-spacing: .12em;
+}
+
+.result-page-header h1 {
+    margin: 6px 0 0;
+    color: #11203d;
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1.12;
+    letter-spacing: -.05em;
+}
+
+.result-description {
+    margin: 9px 0 0;
+    color: #7b899f;
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+
+/* BUTONLAR */
+
+.result-primary-button,
+.result-secondary-button {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 18px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 750;
+    text-decoration: none;
+    transition:
+        transform 180ms ease,
+        box-shadow 180ms ease,
+        border-color 180ms ease;
+}
+
+.result-primary-button {
+    color: #ffffff;
+    background: linear-gradient(135deg, #2869ed, #625cee);
+    box-shadow: 0 11px 25px rgba(42, 100, 225, .24);
+}
+
+.result-primary-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 30px rgba(42, 100, 225, .3);
+}
+
+.result-secondary-button {
+    border: 1px solid #dce4ef;
+    color: #243552;
+    background: #ffffff;
+    box-shadow: 0 7px 18px rgba(29, 50, 90, .05);
+}
+
+.result-secondary-button:hover {
+    transform: translateY(-1px);
+    border-color: #bfd0eb;
+}
+
+
+/* ÖZET KARTLARI */
+
+.result-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 17px;
+    margin-bottom: 19px;
+}
+
+.result-summary-card {
+    min-height: 128px;
+    display: flex;
+    align-items: center;
+    gap: 17px;
+    padding: 23px;
+    border: 1px solid #dfe6f0;
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 16px 42px rgba(26, 45, 84, .07);
+}
+
+.result-summary-icon {
+    width: 54px;
+    height: 54px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 54px;
+    border-radius: 17px;
+}
+
+.result-summary-icon svg {
+    width: 23px;
+    height: 23px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.icon-blue {
+    color: #3778ff;
+    background: #eaf1ff;
+}
+
+.icon-green {
+    color: #15996a;
+    background: #e8f7f1;
+}
+
+.icon-orange {
+    color: #e57d16;
+    background: #fff0df;
+}
+
+.result-summary-card span {
+    display: block;
+    color: #6f7e95;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .08em;
+}
+
+.result-summary-card strong {
+    display: block;
+    margin-top: 7px;
+    color: #14213d;
+    font-size: 31px;
+    line-height: 1;
+    letter-spacing: -.05em;
+}
+
+.result-summary-card small {
+    display: block;
+    margin-top: 7px;
+    color: #929daf;
+    font-size: 10px;
+}
+
+
+/* ANA KART */
+
+.result-list-card {
+    padding: 24px;
+    border: 1px solid #dfe6f0;
+    border-radius: 22px;
+    background: #ffffff;
+    box-shadow: 0 18px 48px rgba(26, 45, 84, .08);
+}
+
+.result-list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 22px;
+}
+
+.result-list-header h2 {
+    margin: 0;
+    color: #14213d;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -.035em;
+}
+
+.result-list-header p {
+    margin: 7px 0 0;
+    color: #7e8a9e;
+    font-size: 11px;
+}
+
+
+/* ARAMA */
+
+.result-search {
+    width: min(330px, 100%);
+    height: 46px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 14px;
+    border: 1px solid #dce4ef;
+    border-radius: 13px;
+    background: #f9fbfe;
+}
+
+.result-search svg {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 17px;
+    fill: none;
+    stroke: #8a97aa;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+}
+
+.result-search input {
+    width: 100%;
+    border: 0;
+    outline: 0;
+    color: #172641;
+    background: transparent;
+    font-size: 11px;
+}
+
+
+/* SINAV KARTLARI */
+
+.result-exam-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.result-exam-card {
+    padding: 20px;
+    border: 1px solid #e1e7f0;
+    border-radius: 20px;
+    background:
+        linear-gradient(
+            145deg,
+            #ffffff,
+            #fbfcff
+        );
+    box-shadow: 0 12px 30px rgba(31, 54, 95, .06);
+    transition:
+        transform 190ms ease,
+        box-shadow 190ms ease,
+        border-color 190ms ease;
+}
+
+.result-exam-card:hover {
+    transform: translateY(-5px);
+    border-color: #c7d7f1;
+    box-shadow: 0 22px 45px rgba(31, 54, 95, .12);
+}
+
+.result-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.result-card-icon {
+    width: 50px;
+    height: 50px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 50px;
+    border-radius: 15px;
+    color: #3565ca;
+    background: #eaf1ff;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.result-date {
+    padding: 7px 10px;
+    border-radius: 999px;
+    color: #53627a;
+    background: #f0f4f9;
+    font-size: 9px;
+    font-weight: 750;
+}
+
+.result-card-copy {
+    margin-top: 20px;
+}
+
+.result-card-label {
+    display: block;
+    color: #3778ff;
+    font-size: 9px;
+    font-weight: 850;
+    letter-spacing: .11em;
+}
+
+.result-card-copy h3 {
+    margin: 8px 0 0;
+    color: #14213d;
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1.3;
+    letter-spacing: -.035em;
+}
+
+.result-card-copy p {
+    margin: 8px 0 0;
+    color: #7d899d;
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+
+/* KART İSTATİSTİKLERİ */
+
+.result-card-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.result-card-stats > div {
+    padding: 13px;
+    border: 1px solid #ebeff5;
+    border-radius: 13px;
+    background: #f8faff;
+}
+
+.result-card-stats span {
+    display: block;
+    color: #7d899d;
+    font-size: 9px;
+}
+
+.result-card-stats strong {
+    display: block;
+    margin-top: 6px;
+    color: #15233f;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+
+/* İLERLEME */
+
+.result-progress-area {
+    margin-top: 18px;
+}
+
+.result-progress-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #7d899d;
+    font-size: 9px;
+}
+
+.result-progress-head strong {
+    color: #149369;
+}
+
+.result-progress {
+    height: 7px;
+    margin-top: 8px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e9eef6;
+}
+
+.result-progress i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #3778ff, #7259e9);
+}
+
+
+/* KART ALT ALANI */
+
+.result-card-footer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+
+/* BOŞ DURUM */
+
+.result-empty-state {
+    grid-column: 1 / -1;
+    display: grid;
+    justify-items: center;
+    gap: 9px;
+    padding: 70px 20px;
+    text-align: center;
+}
+
+.result-empty-icon {
+    width: 62px;
+    height: 62px;
+    display: grid;
+    place-items: center;
+    border-radius: 18px;
+    color: #3778ff;
+    background: #eaf1ff;
+}
+
+.result-empty-icon svg {
+    width: 28px;
+    height: 28px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.result-empty-state strong {
+    color: #14213d;
+    font-size: 14px;
+}
+
+.result-empty-state span {
+    max-width: 430px;
+    color: #7d899d;
+    font-size: 10px;
+    line-height: 1.6;
+}
+
+.result-empty-state .result-primary-button {
+    margin-top: 10px;
+}
+
+
+/* RESPONSIVE */
+
+@media (max-width: 1100px) {
+
+    .result-exam-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 850px) {
+
+    .result-summary-grid,
+    .result-exam-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .result-list-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .result-search {
+        width: 100%;
+    }
+}
+
+@media (max-width: 650px) {
+
+    .result-page-header {
+        flex-direction: column;
+    }
+
+    .result-page-header h1 {
+        font-size: 28px;
+    }
+
+    .result-page-header > .result-primary-button {
+        width: 100%;
+    }
+
+    .result-list-card {
+        padding: 18px;
+    }
+
+    .result-card-footer {
+        grid-template-columns: 1fr;
+    }
+}
+
+</style>
+
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const searchInput =
+        document.getElementById("exam-search");
+
+    const cards =
+        document.querySelectorAll(".result-exam-card");
+
+
+    if (!searchInput) {
+        return;
+    }
+
+
+    searchInput.addEventListener("input", function () {
+
+        const query =
+            this.value
+                .trim()
+                .toLocaleLowerCase("tr-TR");
+
+
+        cards.forEach(function (card) {
+
+            const searchable =
+                (card.dataset.exam || "")
+                    .toLocaleLowerCase("tr-TR");
+
+
+            card.style.display =
+                searchable.includes(query)
+                    ? ""
+                    : "none";
+
+        });
+
+    });
+
+});
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}{{ baslik }}{% endblock %}
+{% block content %}
+<header class="page-head"><div><p class="kicker">HIZLI İŞLEM</p><h1>{{ baslik }}</h1><p class="muted">{{ aciklama }}</p></div></header>
+<section class="form-card">
+<form method="post" class="form-grid">{% csrf_token %}
+  {% for field in form %}
+  <label class="{% if field.name == 'aciklama' or field.name == 'degerlendirme' %}full{% endif %}">
+    <span>{{ field.label }}</span>{{ field }}
+    {% for error in field.errors %}<small class="error">{{ error }}</small>{% endfor %}
+  </label>
+  {% endfor %}
+  {% if form.non_field_errors %}<div class="error full">{{ form.non_field_errors }}</div>{% endif %}
+  <div class="form-actions full"><a class="ghost-btn" href="javascript:history.back()">Vazgeç</a><button class="primary-btn">Kaydet</button></div>
+</form>
+</section>
+{% endblock %}

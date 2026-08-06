@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+
+    <title>{{ sinav.ad }} · Sıralı Sonuçlar</title>
+
+    <style>
+        @page {
+            size: A4;
+            margin: 10mm 12mm 13mm;
+
+            @bottom-left {
+                content: "Çinili Saray Proje";
+                color: #7f8aa0;
+                font-size: 8px;
+            }
+
+            @bottom-right {
+                content: "Sayfa " counter(page) " / " counter(pages);
+                color: #7f8aa0;
+                font-size: 8px;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            color: #10203d;
+            background: #ffffff;
+            font-family: "DejaVu Sans", Arial, sans-serif;
+            font-size: 10.5px;
+        }
+
+        .report {
+            width: 100%;
+        }
+
+        .topbar {
+            width: 100%;
+            margin-bottom: 10px;
+            border-collapse: collapse;
+        }
+
+        .topbar td {
+            vertical-align: middle;
+        }
+
+        .brand-mark-cell {
+            width: 44px;
+        }
+
+        .brand-mark {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            color: #ffffff;
+            background: #0c2f66;
+            font-size: 12px;
+            font-weight: 800;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .brand-copy {
+            padding-left: 9px;
+        }
+
+        .brand-name {
+            color: #0d2347;
+            font-size: 12.5px;
+            font-weight: 800;
+        }
+
+        .brand-subtitle {
+            margin-top: 2px;
+            color: #7e8aa0;
+            font-size: 7px;
+            font-weight: 700;
+            letter-spacing: .7px;
+        }
+
+        .document-label {
+            color: #446086;
+            font-size: 7px;
+            font-weight: 800;
+            text-align: right;
+            letter-spacing: .9px;
+        }
+
+        .hero {
+            padding: 16px 18px;
+            border-radius: 14px;
+            color: #ffffff;
+            background: linear-gradient(
+                135deg,
+                #071f4a 0%,
+                #123b7c 60%,
+                #2a67d7 100%
+            );
+        }
+
+        .hero-kicker {
+            color: #bfd4ff;
+            font-size: 7px;
+            font-weight: 800;
+            letter-spacing: .9px;
+        }
+
+        .hero-title {
+            margin-top: 7px;
+            font-size: 22px;
+            font-weight: 800;
+            line-height: 1.12;
+            letter-spacing: -.4px;
+        }
+
+        .hero-description {
+            margin-top: 6px;
+            max-width: 82%;
+            color: #d8e5fb;
+            font-size: 8.2px;
+            line-height: 1.48;
+        }
+
+        .meta-strip {
+            width: 100%;
+            margin-top: 8px;
+            border-collapse: separate;
+            border-spacing: 5px;
+        }
+
+        .meta-strip td {
+            width: 25%;
+            padding: 9px 10px;
+            border: 1px solid #dfe6ef;
+            border-radius: 9px;
+            background: #ffffff;
+            vertical-align: top;
+        }
+
+        .meta-label {
+            color: #7d899d;
+            font-size: 7px;
+            font-weight: 800;
+            letter-spacing: .55px;
+        }
+
+        .meta-value {
+            margin-top: 4px;
+            color: #10203d;
+            font-size: 10px;
+            font-weight: 800;
+            line-height: 1.3;
+        }
+
+        .summary-strip {
+            width: 100%;
+            margin-top: 2px;
+            border-collapse: separate;
+            border-spacing: 5px;
+        }
+
+        .summary-strip td {
+            width: 33.333%;
+            padding: 10px 11px;
+            border-radius: 10px;
+        }
+
+        .summary-blue {
+            border: 1px solid #cfddf8;
+            background: #edf3ff;
+        }
+
+        .summary-green {
+            border: 1px solid #d2eadc;
+            background: #eff9f3;
+        }
+
+        .summary-gold {
+            border: 1px solid #eddcc2;
+            background: #fff7ea;
+        }
+
+        .summary-label {
+            color: #728097;
+            font-size: 7px;
+            font-weight: 800;
+            letter-spacing: .65px;
+        }
+
+        .summary-value {
+            margin-top: 4px;
+            color: #10203d;
+            font-size: 17px;
+            font-weight: 850;
+        }
+
+        .section {
+            margin-top: 9px;
+            border: 1px solid #dfe6ef;
+            border-radius: 13px;
+            overflow: hidden;
+            background: #ffffff;
+        }
+
+        .section-header {
+            padding: 11px 13px;
+            border-bottom: 1px solid #e4e9f1;
+            background: #f7f9fc;
+        }
+
+        .section-kicker {
+            color: #2563eb;
+            font-size: 7px;
+            font-weight: 800;
+            letter-spacing: .85px;
+        }
+
+        .section-title {
+            margin-top: 3px;
+            color: #10203d;
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .ranking-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .ranking-table thead {
+            display: table-header-group;
+        }
+
+        .ranking-table tr {
+            page-break-inside: avoid;
+        }
+
+        .ranking-table th {
+            padding: 8px 7px;
+            color: #61708a;
+            background: #eef3f8;
+            font-size: 7px;
+            font-weight: 800;
+            text-align: center;
+            letter-spacing: .4px;
+        }
+
+        .ranking-table th.student-head {
+            text-align: left;
+        }
+
+        .ranking-table td {
+            padding: 8px 7px;
+            border-top: 1px solid #e6ebf2;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .ranking-table tbody tr:first-child td {
+            border-top: 0;
+        }
+
+        .ranking-table tbody tr:nth-child(even) {
+            background: #fbfcfe;
+        }
+
+        .rank-cell {
+            width: 42px;
+        }
+
+        .rank-badge {
+            width: 28px;
+            height: 28px;
+            margin: 0 auto;
+            border-radius: 9px;
+            color: #2458c7;
+            background: #eaf1ff;
+            font-size: 10px;
+            font-weight: 850;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .rank-first {
+            color: #7a4b00;
+            background: #fff0bd;
+        }
+
+        .rank-second {
+            color: #4c596c;
+            background: #eef1f5;
+        }
+
+        .rank-third {
+            color: #7a452a;
+            background: #f5dfd1;
+        }
+
+        .student-cell {
+            text-align: left !important;
+        }
+
+        .student-name {
+            color: #10203d;
+            font-size: 9.5px;
+            font-weight: 800;
+        }
+
+        .student-meta {
+            margin-top: 2px;
+            color: #8792a5;
+            font-size: 6.8px;
+        }
+
+        .number-cell {
+            color: #20304d;
+            font-size: 8.8px;
+            font-weight: 750;
+        }
+
+        .score-cell {
+            color: #1d56c7;
+            font-size: 10px;
+            font-weight: 850;
+        }
+
+        .analysis-grid {
+            width: 100%;
+            margin-top: 10px;
+            border-collapse: separate;
+            border-spacing: 5px;
+        }
+
+        .analysis-grid td {
+            width: 50%;
+            min-height: 84px;
+            padding: 12px 13px;
+            border: 1px solid #dfe6ef;
+            border-radius: 11px;
+            vertical-align: top;
+        }
+
+        .analysis-title {
+            color: #16365f;
+            font-size: 9px;
+            font-weight: 800;
+        }
+
+        .analysis-text {
+            margin-top: 6px;
+            color: #5f6f86;
+            font-size: 8.4px;
+            line-height: 1.58;
+        }
+
+        .signature-wrap {
+            margin-top: 16px;
+            padding: 14px 10px 8px;
+            border: 1px solid #e1e7ef;
+            border-radius: 12px;
+            background: #fbfcfe;
+        }
+
+        .signature-title {
+            color: #62718a;
+            font-size: 7px;
+            font-weight: 800;
+            text-align: center;
+            letter-spacing: .7px;
+        }
+
+        .signature-table {
+            width: 100%;
+            margin-top: 26px;
+            border-collapse: collapse;
+        }
+
+        .signature-table td {
+            width: 50%;
+            color: #435572;
+            font-size: 8.2px;
+            text-align: center;
+        }
+
+        .signature-line {
+            width: 68%;
+            margin: 0 auto 7px;
+            border-top: 1px solid #aeb9c9;
+        }
+
+        .footer-note {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-left: 4px solid #2d6be7;
+            border-radius: 9px;
+            color: #5f6e84;
+            background: #f4f7fc;
+            font-size: 8px;
+            line-height: 1.5;
+        }
+
+        .footer-note strong {
+            color: #17355f;
+        }
+
+        .document-space {
+            min-height: 18mm;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="report">
+
+    <table class="topbar">
+        <tr>
+            <td class="brand-mark-cell">
+                <table>
+                    <tr>
+                        <td class="brand-mark">ÇS</td>
+                    </tr>
+                </table>
+            </td>
+
+            <td class="brand-copy">
+                <div class="brand-name">Çinili Saray Proje</div>
+                <div class="brand-subtitle">KİTAP TAKİP SİSTEMİ</div>
+            </td>
+
+            <td class="document-label">
+                SIRALI SINAV SONUÇ BELGESİ
+            </td>
+        </tr>
+    </table>
+
+    <section class="hero">
+        <div class="hero-kicker">KİTAP SINAVI</div>
+
+        <div class="hero-title">
+            {% if sinav.kitap %}
+                {{ sinav.kitap.ad }}
+            {% else %}
+                {{ sinav.ad }}
+            {% endif %}
+            <br>
+            Sınav Neticeleri
+        </div>
+
+        <div class="hero-description">
+            Kitap sınavı sonuçları, grup içerisindeki başarı sıralamasına
+            göre hazırlanmıştır. Eşit puan alan talebeler aynı dereceyi
+            paylaşır.
+        </div>
+    </section>
+
+    <table class="meta-strip">
+        <tr>
+            <td>
+                <div class="meta-label">GRUP</div>
+                <div class="meta-value">{{ grup_adi }}</div>
+            </td>
+
+            <td>
+                <div class="meta-label">SINAV TARİHİ</div>
+                <div class="meta-value">
+                    {{ sinav.sinav_tarihi|date:"d.m.Y" }}
+                </div>
+            </td>
+
+            <td>
+                <div class="meta-label">SORU SAYISI</div>
+                <div class="meta-value">{{ sinav.soru_sayisi }}</div>
+            </td>
+
+            <td>
+                <div class="meta-label">SINAV ADI</div>
+                <div class="meta-value">{{ sinav.ad }}</div>
+            </td>
+        </tr>
+    </table>
+
+    <table class="summary-strip">
+        <tr>
+            <td class="summary-blue">
+                <div class="summary-label">KATILAN TALEBE</div>
+                <div class="summary-value">{{ toplam_talebe }}</div>
+            </td>
+
+            <td class="summary-green">
+                <div class="summary-label">GRUP ORTALAMASI</div>
+                <div class="summary-value">
+                    {{ sinif_ortalamasi|floatformat:2 }}
+                </div>
+            </td>
+
+            <td class="summary-gold">
+                <div class="summary-label">EN YÜKSEK PUAN</div>
+                <div class="summary-value">
+                    {{ en_yuksek_puan|floatformat:2 }}
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <section class="section">
+        <div class="section-header">
+            <div class="section-kicker">BAŞARI LİSTESİ</div>
+            <div class="section-title">Sıralı Sonuç Tablosu</div>
+        </div>
+
+        <table class="ranking-table">
+            <thead>
+                <tr>
+                    <th>SIRA</th>
+                    <th class="student-head">TALEBE</th>
+                    <th>DOĞRU</th>
+                    <th>YANLIŞ</th>
+                    <th>BOŞ</th>
+                    <th>PUAN</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for sonuc in sonuclar %}
+                    <tr>
+                        <td class="rank-cell">
+                            <table>
+                                <tr>
+                                    <td class="
+                                        rank-badge
+                                        {% if sonuc.derece == 1 %}
+                                            rank-first
+                                        {% elif sonuc.derece == 2 %}
+                                            rank-second
+                                        {% elif sonuc.derece == 3 %}
+                                            rank-third
+                                        {% endif %}
+                                    ">
+                                        {{ sonuc.derece }}
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+
+                        <td class="student-cell">
+                            <div class="student-name">
+                                {{ sonuc.talebe.ad_soyad }}
+                            </div>
+
+                            <div class="student-meta">
+                                {{ sonuc.talebe.sinif }}
+                                {% if sonuc.talebe.sube %}
+                                    / {{ sonuc.talebe.sube }}
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        <td class="number-cell">{{ sonuc.dogru }}</td>
+                        <td class="number-cell">{{ sonuc.yanlis }}</td>
+                        <td class="number-cell">{{ sonuc.bos }}</td>
+
+                        <td class="score-cell">
+                            {{ sonuc.puan|floatformat:2 }}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6">
+                            Henüz kaydedilmiş sonuç bulunmamaktadır.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <table class="analysis-grid">
+        <tr>
+            <td>
+                <div class="analysis-title">Genel Değerlendirme</div>
+                <div class="analysis-text">
+                    Grup ortalaması
+                    <strong>{{ sinif_ortalamasi|floatformat:2 }}</strong>
+                    puandır. Sonuçlar; talebelerin kitabın olay örgüsünü,
+                    ana düşüncesini, karakter ilişkilerini ve metindeki
+                    ayrıntıları kavrama düzeyini göstermektedir.
+                </div>
+            </td>
+
+            <td>
+                <div class="analysis-title">Takip Notu</div>
+                <div class="analysis-text">
+                    Neticeler doğrultusunda çıkarım, ayrıntı ve bağlam
+                    temelli sorulara yönelik çalışmalar sürdürülecek;
+                    talebelerimizin sonraki kitap süreci düzenli olarak
+                    takip edilecektir.
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="document-space"></div>
+
+    <div class="footer-note">
+        <strong>Bilgilendirme:</strong>
+        Bu belge, kitap sınavı sonuçlarının grup içerisindeki sıralı
+        neticesini göstermektedir. Puanlar 100 üzerinden hesaplanmıştır.
+    </div>
+
+</div>
+
+</body>
+</html>
