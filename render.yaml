@@ -4,7 +4,7 @@ services:
     runtime: python
     plan: free
     buildCommand: "./build.sh"
-    startCommand: "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"
+    startCommand: "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --timeout 120"
     envVars:
       - key: PYTHON_VERSION
         value: "3.12.7"
@@ -24,6 +24,8 @@ services:
         fromDatabase:
           name: cinili-saray-db
           property: connectionString
+      - key: RUN_SEED_WAVE0
+        value: "true"
 
 databases:
   - name: cinili-saray-db

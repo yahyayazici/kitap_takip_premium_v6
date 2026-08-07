@@ -11,5 +11,4 @@ fi
 
 if [ "${RUN_SEED_WAVE0:-}" = "true" ]; then
   python manage.py seed_wave0
-  python manage.py seed_dini_ders_mufredat
 fi

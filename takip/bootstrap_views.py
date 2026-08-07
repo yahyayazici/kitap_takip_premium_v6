@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import io
 import os
+import traceback
 
 from django.contrib.auth.models import User
 from django.core.management import call_command
@@ -66,11 +68,23 @@ def bootstrap_setup(request):
     if not _bootstrap_key_ok(request):
         return HttpResponseForbidden("Geçersiz anahtar.")
 
-    call_command("seed_wave0")
-    call_command("seed_dini_ders_mufredat")
+    out = io.StringIO()
+    try:
+        call_command("seed_wave0", stdout=out)
+    except Exception:
+        return HttpResponse(
+            "Bootstrap-setup başarısız (seed_wave0):\n\n"
+            f"{out.getvalue()}\n"
+            f"{traceback.format_exc()}\n\n"
+            "İpucu: Render → Environment → RUN_SEED_WAVE0=true ekleyip "
+            "Manual Deploy yapın; seed build aşamasında çalışır (zaman aşımı olmaz).",
+            content_type="text/plain; charset=utf-8",
+            status=500,
+        )
 
     return HttpResponse(
-        "Tamam — roller, modüller, dini ders müfredatı ve temel tanımlar yüklendi. "
+        "Tamam — roller, modüller, dini ders müfredatı ve temel tanımlar yüklendi.\n\n"
+        f"{out.getvalue()}\n"
         "Yönetim merkezini yenileyin.",
         content_type="text/plain; charset=utf-8",
     )
