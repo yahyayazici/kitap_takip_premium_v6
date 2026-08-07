@@ -12,6 +12,11 @@ from django.http import HttpResponse, HttpResponseForbidden
 from django.views.decorators.http import require_GET
 
 
+@require_GET
+def health_check(request):
+    return HttpResponse("ok", content_type="text/plain")
+
+
 def _bootstrap_key_ok(request) -> bool:
     expected_key = os.environ.get("ADMIN_BOOTSTRAP_KEY", "").strip()
     if not expected_key:

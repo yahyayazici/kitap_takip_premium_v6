@@ -3,9 +3,10 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import include, path
 
-from takip.bootstrap_views import bootstrap_admin, bootstrap_setup
+from takip.bootstrap_views import bootstrap_admin, bootstrap_setup, health_check
 
 urlpatterns = [
+    path("health/", health_check, name="health_check"),
     path("admin/", admin.site.urls),
     path("bootstrap-admin/", bootstrap_admin, name="bootstrap_admin"),
     path("bootstrap-setup/", bootstrap_setup, name="bootstrap_setup"),

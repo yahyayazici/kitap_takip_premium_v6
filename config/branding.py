@@ -6,6 +6,7 @@ import os
 
 PANEL_NAME = os.environ.get("PANEL_NAME", "Çinili Saray Proje")
 PANEL_SHORT = os.environ.get("PANEL_SHORT", "Çinili Saray Proje")
+PANEL_MOBILE_SHORT = os.environ.get("PANEL_MOBILE_SHORT", "Çinili Saray")
 PANEL_MODULE_LABEL = os.environ.get("PANEL_MODULE_LABEL", "Eğitim Modülü")
 PANEL_ORG = os.environ.get("PANEL_ORG", "Çinili Saray Proje")
 PANEL_FOOTER = os.environ.get("PANEL_FOOTER", "Çinili Saray Proje")

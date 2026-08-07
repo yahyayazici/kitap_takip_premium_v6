@@ -1,5 +1,6 @@
 from config.branding import (
     PANEL_FOOTER,
+    PANEL_MOBILE_SHORT,
     PANEL_MODULE_LABEL,
     PANEL_MODULES,
     PANEL_NAME,
@@ -50,6 +51,7 @@ def panel_branding(request):
     return {
         "panel_name": PANEL_NAME,
         "panel_short": PANEL_SHORT,
+        "panel_mobile_short": PANEL_MOBILE_SHORT,
         "panel_module_label": module_label,
         "panel_org": PANEL_ORG,
         "panel_footer": PANEL_FOOTER,
