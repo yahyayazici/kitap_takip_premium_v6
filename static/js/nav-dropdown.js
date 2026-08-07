@@ -5,6 +5,11 @@
     document.body.appendChild(backdrop);
 
     const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const collapseQuery = window.matchMedia('(max-width: 1180px)');
+
+    function isCollapsedNav() {
+        return collapseQuery.matches;
+    }
 
     function syncHeaderHeight() {
         const header = document.querySelector('.v3-header, .cs-v6-header');
@@ -14,8 +19,12 @@
     }
 
     function updateBackdrop() {
-        const anyOpen = document.querySelector('.v3-nav-dropdown.open');
-        document.body.classList.toggle('v3-nav-menu-open', Boolean(anyOpen));
+        const anyDropdownOpen = document.querySelector('.v3-nav-dropdown.open');
+        const mobileNavOpen = document.querySelector('.v3-nav.open, .cs-v6-nav.open');
+        const showBackdrop = Boolean(anyDropdownOpen && !isCollapsedNav()) || Boolean(mobileNavOpen && isCollapsedNav());
+        document.body.classList.toggle('v3-nav-menu-open', Boolean(anyDropdownOpen && !isCollapsedNav()));
+        document.body.classList.toggle('v3-mobile-nav-open', Boolean(mobileNavOpen && isCollapsedNav()));
+        backdrop.setAttribute('aria-hidden', showBackdrop ? 'false' : 'true');
     }
 
     function closeDropdowns(except) {
@@ -29,6 +38,19 @@
                 trigger.setAttribute('aria-expanded', 'false');
             }
         });
+        updateBackdrop();
+    }
+
+    function closeMobileNav() {
+        const nav = document.getElementById('v3-nav') || document.getElementById('yonetim-nav');
+        const toggle = document.getElementById('v3-menu-toggle') || document.getElementById('yonetim-menu-toggle');
+        if (nav) {
+            nav.classList.remove('open');
+        }
+        if (toggle) {
+            toggle.setAttribute('aria-expanded', 'false');
+        }
+        closeDropdowns();
         updateBackdrop();
     }
 
@@ -52,6 +74,8 @@
             if (!open) {
                 closeDropdowns();
             }
+            updateBackdrop();
+            syncHeaderHeight();
         });
     }
 
@@ -66,6 +90,9 @@
             event.stopPropagation();
             const willOpen = !dropdown.classList.contains('open');
             if (willOpen) {
+                if (isCollapsedNav()) {
+                    closeDropdowns(dropdown);
+                }
                 openDropdown(dropdown);
             } else {
                 dropdown.classList.remove('open');
@@ -76,10 +103,16 @@
 
         if (finePointer.matches) {
             dropdown.addEventListener('mouseenter', function () {
+                if (isCollapsedNav()) {
+                    return;
+                }
                 openDropdown(dropdown);
             });
 
             dropdown.addEventListener('mouseleave', function () {
+                if (isCollapsedNav()) {
+                    return;
+                }
                 dropdown.classList.remove('open');
                 trigger.setAttribute('aria-expanded', 'false');
                 updateBackdrop();
@@ -87,20 +120,43 @@
         }
     });
 
+    if (nav) {
+        nav.querySelectorAll('a.v3-nav-link, a.v3-nav-dropdown-link').forEach(function (link) {
+            link.addEventListener('click', function () {
+                if (isCollapsedNav()) {
+                    closeMobileNav();
+                }
+            });
+        });
+    }
+
     backdrop.addEventListener('click', function () {
+        if (isCollapsedNav()) {
+            closeMobileNav();
+            return;
+        }
         closeDropdowns();
     });
 
     document.addEventListener('click', function (event) {
-        if (!event.target.closest('.v3-nav-dropdown') && !event.target.closest('.v3-nav-backdrop')) {
-            closeDropdowns();
+        if (event.target.closest('.v3-nav-dropdown') || event.target.closest('.v3-nav-backdrop')) {
+            return;
         }
+        if (isCollapsedNav()) {
+            return;
+        }
+        closeDropdowns();
     });
 
     document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') {
-            closeDropdowns();
+            closeMobileNav();
         }
+    });
+
+    collapseQuery.addEventListener('change', function () {
+        closeMobileNav();
+        syncHeaderHeight();
     });
 
     document.querySelectorAll('.v3-toast-close').forEach(function (button) {

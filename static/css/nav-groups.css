@@ -1,9 +1,11 @@
 :root {
     --v3-header-height: 88px;
+    --nav-collapse-bp: 1180px;
 }
 
 .v3-header,
-.cs-v6-header {
+.cs-v6-header,
+.yonetim-v6-header {
     overflow: visible !important;
     position: sticky;
     top: 0;
@@ -231,28 +233,146 @@ body.v3-nav-menu-open {
     }
 }
 
-@media (max-width: 900px) {
-    body.v3-nav-menu-open {
-        overflow: auto;
+/* Mobil / dar pencere — hamburger menü (1180px ve altı) */
+@media (max-width: 1180px) {
+    :root {
+        --v3-header-height: 64px;
+    }
+
+    body.v3-nav-menu-open,
+    body.v3-mobile-nav-open {
+        overflow: hidden;
     }
 
     .v3-nav-backdrop {
+        top: 0;
+    }
+
+    body.v3-mobile-nav-open .v3-nav-backdrop {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+    }
+
+    .v3-header-inner,
+    .cs-v6-inner {
+        flex-wrap: wrap;
+        align-items: center;
+        min-height: var(--v3-header-height) !important;
+        gap: 10px 12px;
+    }
+
+    .v3-brand,
+    .cs-v6-brand {
+        flex: 1 1 auto;
+        min-width: 0;
+        max-width: calc(100% - 108px);
+    }
+
+    .v3-brand-copy,
+    .v6-brand-copy {
+        min-width: 0;
+    }
+
+    .v3-brand-copy strong,
+    .v6-brand-copy strong {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .v3-menu-toggle,
+    .yonetim-menu-toggle {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        order: 2;
+        margin-left: auto;
+        cursor: pointer;
+    }
+
+    .v3-user-area,
+    .cs-v6-actions,
+    .yonetim-v6-actions {
+        order: 3;
+        min-width: 0 !important;
+        flex-shrink: 0;
+    }
+
+    .v3-user-copy,
+    .yonetim-user-copy {
         display: none;
     }
 
+    .v3-user-area form,
+    .yonetim-site-link {
+        display: none;
+    }
+
+    .v3-nav,
+    .cs-v6-nav {
+        display: none !important;
+        order: 10;
+        flex: 0 0 100% !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        flex-direction: column !important;
+        flex-wrap: nowrap !important;
+        align-items: stretch !important;
+        align-self: stretch !important;
+        justify-content: flex-start !important;
+        gap: 2px !important;
+        margin: 0 !important;
+        padding: 6px 0 10px !important;
+        background: rgba(6, 20, 48, 0.94) !important;
+        border-radius: 0 0 14px 14px;
+        max-height: min(72vh, 560px);
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .v3-nav.open,
+    .cs-v6-nav.open {
+        display: flex !important;
+    }
+
     .v3-nav-group {
-        flex: 1 1 100%;
-        flex-direction: column;
+        flex: 0 0 auto !important;
+        width: 100% !important;
+        flex-direction: column !important;
     }
 
     .v3-header .v3-nav-link,
     .v3-header .v3-nav-trigger,
     .cs-v6-header .v3-nav-link,
-    .cs-v6-header .v3-nav-trigger {
-        width: 100%;
-        min-height: 44px;
-        justify-content: space-between;
-        padding-inline: 12px;
+    .cs-v6-header .v3-nav-trigger,
+    .yonetim-v6-header .v3-nav-link,
+    .yonetim-v6-header .v3-nav-trigger {
+        width: 100% !important;
+        min-width: 0 !important;
+        min-height: 48px !important;
+        justify-content: space-between !important;
+        padding-inline: 14px !important;
+        font-size: 14px !important;
+        border-radius: 10px !important;
+    }
+
+    .v3-header button.v3-nav-link.v3-nav-trigger,
+    .cs-v6-header button.v3-nav-link.v3-nav-trigger,
+    .yonetim-v6-header button.v3-nav-link.v3-nav-trigger {
+        min-height: 48px !important;
+        padding-inline: 14px !important;
+    }
+
+    .v3-header .v3-nav-link.active::after,
+    .cs-v6-header .v3-nav-link.active::after,
+    .yonetim-v6-header .v3-nav-link.active::after,
+    .v3-nav-dropdown.is-section-active > .v3-nav-trigger::after,
+    .v3-nav-dropdown.open > .v3-nav-trigger::after {
+        display: none !important;
     }
 
     .v3-nav-dropdown::after {
@@ -260,31 +380,48 @@ body.v3-nav-menu-open {
     }
 
     .v3-nav-dropdown-panel {
-        position: static;
-        min-width: 0;
-        width: 100%;
-        margin-top: 4px;
-        padding: 6px;
-        opacity: 1;
-        visibility: visible;
-        pointer-events: auto;
-        transform: none;
+        position: static !important;
+        left: auto !important;
+        top: auto !important;
+        min-width: 0 !important;
+        width: 100% !important;
+        margin: 0 0 4px !important;
+        padding: 4px 6px 6px !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+        transform: none !important;
         display: none;
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(255, 255, 255, 0.1);
-        box-shadow: none;
+        background: rgba(255, 255, 255, 0.06) !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+        box-shadow: none !important;
     }
 
     .v3-nav-dropdown-wide .v3-nav-dropdown-panel {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
     }
 
     .v3-nav-dropdown.open .v3-nav-dropdown-panel {
-        display: grid;
+        display: flex !important;
+        flex-direction: column;
+        gap: 2px;
     }
 
     .v3-nav-dropdown-link {
-        min-height: 42px;
+        min-height: 44px;
+    }
+}
+
+@media (max-width: 480px) {
+    .v3-brand-copy small,
+    .v6-brand-copy small {
+        display: none;
+    }
+
+    .v3-user-avatar,
+    .yonetim-user-chip {
+        width: 34px;
+        height: 34px;
     }
 }
 

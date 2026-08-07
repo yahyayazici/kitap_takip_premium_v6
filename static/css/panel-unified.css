@@ -1442,3 +1442,49 @@ table tbody td {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
+
+/* Dar pencere / mobil — panel-unified !important kurallarını nav ile hizala */
+@media (max-width: 1180px) {
+    :root {
+        --v3-header-height: 64px;
+    }
+
+    .v3-header-inner,
+    .cs-v6-inner {
+        min-height: var(--v3-header-height) !important;
+    }
+
+    .v3-header .v3-nav-link,
+    .v3-header .v3-nav-trigger,
+    .cs-v6-header .v3-nav-link,
+    .cs-v6-header .v3-nav-trigger,
+    .cs-v6-header .cs-v6-nav a,
+    .yonetim-v6-header .v3-nav-link,
+    .yonetim-v6-header .v3-nav-trigger,
+    .v3-header button.v3-nav-link.v3-nav-trigger,
+    .cs-v6-header button.v3-nav-link.v3-nav-trigger,
+    .yonetim-v6-header button.v3-nav-link.v3-nav-trigger {
+        min-height: 48px !important;
+        padding-inline: 14px !important;
+        font-size: 14px !important;
+    }
+
+    .v3-main .page-content,
+    .cs-v6-main,
+    body.veli-body .cs-v6-main,
+    body.ogretmen-body .cs-v6-main,
+    body.talebe-body .cs-v6-main,
+    body.yonetim-body .cs-v6-main {
+        padding-inline: 16px !important;
+    }
+
+    .page-head,
+    .patterned-page-head,
+    .welcome-panel,
+    .yonetim-page-head,
+    .result-page-header,
+    .result-entry-header,
+    .dash-hero {
+        padding: 22px 20px !important;
+    }
+}
