@@ -30,6 +30,20 @@ if RENDER_EXTERNAL_HOSTNAME:
     if render_origin not in CSRF_TRUSTED_ORIGINS:
         CSRF_TRUSTED_ORIGINS.append(render_origin)
 
+# Özel domain — Render Environment: CUSTOM_DOMAIN=panel.ornek.com
+for _domain in os.environ.get("CUSTOM_DOMAIN", "").split(","):
+    host = _domain.strip().lower()
+    if not host:
+        continue
+    if host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(host)
+    if not host.startswith("."):
+        https_origin = f"https://{host}"
+        if https_origin not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(https_origin)
+
+CANONICAL_HOST = os.environ.get("CANONICAL_HOST", "").strip().lower()
+
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
@@ -48,6 +62,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "config.middleware.CanonicalHostMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
