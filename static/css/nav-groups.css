@@ -256,22 +256,55 @@ body.v3-nav-menu-open {
 
     .v3-header-inner,
     .cs-v6-inner {
-        flex-wrap: wrap;
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) 42px 38px;
+        grid-template-rows: auto auto;
         align-items: center;
+        column-gap: 10px;
+        row-gap: 0;
         min-height: var(--v3-header-height) !important;
-        gap: 10px 12px;
+        flex-wrap: nowrap !important;
+    }
+
+    .yonetim-v6-header .cs-v6-inner {
+        grid-template-columns: minmax(0, 1fr) 42px auto;
     }
 
     .v3-brand,
     .cs-v6-brand {
-        flex: 1 1 auto;
+        grid-column: 1;
+        grid-row: 1;
+        flex: unset !important;
         min-width: 0;
-        max-width: calc(100% - 108px);
+        max-width: 100%;
+        width: 100%;
+        overflow: hidden;
+    }
+
+    .v3-brand.v6-brand-block,
+    .cs-v6-brand.v6-brand-block {
+        padding: 3px 8px 3px 3px !important;
+        gap: 8px !important;
+        border-radius: 12px !important;
+        box-shadow: none !important;
+    }
+
+    .v6-brand-divider {
+        display: none !important;
+    }
+
+    .v3-brand-mark,
+    .v6-brand-mark,
+    .cs-v6-brand-mark {
+        width: 34px !important;
+        height: 34px !important;
+        flex-shrink: 0;
     }
 
     .v3-brand-copy,
     .v6-brand-copy {
         min-width: 0;
+        overflow: hidden;
     }
 
     .v3-brand-copy strong,
@@ -280,25 +313,53 @@ body.v3-nav-menu-open {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        font-size: 13px !important;
+        line-height: 1.15;
+    }
+
+    .v3-brand-copy small,
+    .v6-brand-copy small {
+        display: none !important;
     }
 
     .v3-menu-toggle,
     .yonetim-menu-toggle {
+        grid-column: 2;
+        grid-row: 1;
         display: inline-flex !important;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
-        order: 2;
-        margin-left: auto;
+        width: 42px;
+        height: 42px;
+        padding: 9px !important;
+        order: unset !important;
+        margin: 0 !important;
         cursor: pointer;
+    }
+
+    .v3-menu-toggle span,
+    .yonetim-menu-toggle span {
+        display: block;
+        width: 100%;
+        height: 2px;
+        margin: 3px 0;
+        background: #fff;
+        border-radius: 3px;
     }
 
     .v3-user-area,
     .cs-v6-actions,
     .yonetim-v6-actions {
-        order: 3;
+        grid-column: 3;
+        grid-row: 1;
+        order: unset !important;
         min-width: 0 !important;
+        width: auto !important;
         flex-shrink: 0;
+        justify-self: end;
+        gap: 8px !important;
     }
 
     .v3-user-copy,
@@ -314,7 +375,9 @@ body.v3-nav-menu-open {
     .v3-nav,
     .cs-v6-nav {
         display: none !important;
-        order: 10;
+        grid-column: 1 / -1;
+        grid-row: 2;
+        order: unset !important;
         flex: 0 0 100% !important;
         width: 100% !important;
         max-width: 100% !important;
@@ -413,15 +476,28 @@ body.v3-nav-menu-open {
 }
 
 @media (max-width: 480px) {
-    .v3-brand-copy small,
-    .v6-brand-copy small {
-        display: none;
+    .v3-header-inner,
+    .cs-v6-inner {
+        grid-template-columns: minmax(0, 1fr) 40px 34px;
+        column-gap: 8px;
+        padding-inline: 12px !important;
+    }
+
+    .v3-menu-toggle,
+    .yonetim-menu-toggle {
+        width: 40px;
+        height: 40px;
     }
 
     .v3-user-avatar,
     .yonetim-user-chip {
         width: 34px;
         height: 34px;
+    }
+
+    .v3-brand-copy strong,
+    .v6-brand-copy strong {
+        font-size: 12px !important;
     }
 }
 
