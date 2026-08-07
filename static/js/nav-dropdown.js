@@ -13,9 +13,22 @@
 
     function syncHeaderHeight() {
         const header = document.querySelector('.v3-header, .cs-v6-header');
-        if (header) {
-            document.documentElement.style.setProperty('--v3-header-height', header.offsetHeight + 'px');
+        if (!header) {
+            return;
         }
+
+        if (isCollapsedNav()) {
+            document.documentElement.style.removeProperty('--v3-header-height');
+            return;
+        }
+
+        document.documentElement.style.setProperty('--v3-header-height', header.offsetHeight + 'px');
+    }
+
+    function scheduleHeaderHeightSync() {
+        window.requestAnimationFrame(function () {
+            syncHeaderHeight();
+        });
     }
 
     function updateBackdrop() {
@@ -52,6 +65,7 @@
         }
         closeDropdowns();
         updateBackdrop();
+        scheduleHeaderHeightSync();
     }
 
     function openDropdown(dropdown) {
@@ -75,7 +89,7 @@
                 closeDropdowns();
             }
             updateBackdrop();
-            syncHeaderHeight();
+            scheduleHeaderHeightSync();
         });
     }
 

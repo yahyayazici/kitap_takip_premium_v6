@@ -248,22 +248,34 @@ body.v3-nav-menu-open {
         top: 0;
     }
 
+    .v3-header,
+    .cs-v6-header {
+        overflow: visible !important;
+    }
+
     body.v3-mobile-nav-open .v3-nav-backdrop {
         opacity: 1;
         visibility: visible;
         pointer-events: auto;
     }
 
+    body.v3-mobile-nav-open .v3-main,
+    body.v3-mobile-nav-open .cs-v6-main {
+        pointer-events: none;
+    }
+
     .v3-header-inner,
     .cs-v6-inner {
         display: grid !important;
         grid-template-columns: minmax(0, 1fr) 42px 38px;
-        grid-template-rows: auto auto;
+        grid-template-rows: auto;
         align-items: center;
         column-gap: 10px;
         row-gap: 0;
-        min-height: var(--v3-header-height) !important;
+        position: relative;
+        min-height: 64px !important;
         flex-wrap: nowrap !important;
+        overflow: visible;
     }
 
     .yonetim-v6-header .cs-v6-inner {
@@ -375,22 +387,24 @@ body.v3-nav-menu-open {
     .v3-nav,
     .cs-v6-nav {
         display: none !important;
-        grid-column: 1 / -1;
-        grid-row: 2;
-        order: unset !important;
-        flex: 0 0 100% !important;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 1300;
+        flex: none !important;
         width: 100% !important;
         max-width: 100% !important;
         flex-direction: column !important;
         flex-wrap: nowrap !important;
         align-items: stretch !important;
-        align-self: stretch !important;
         justify-content: flex-start !important;
         gap: 2px !important;
         margin: 0 !important;
         padding: 6px 0 10px !important;
-        background: rgba(6, 20, 48, 0.94) !important;
+        background: rgba(6, 20, 48, 0.98) !important;
         border-radius: 0 0 14px 14px;
+        box-shadow: 0 16px 36px rgba(4, 14, 36, 0.35);
         max-height: min(72vh, 560px);
         overflow-x: hidden;
         overflow-y: auto;
