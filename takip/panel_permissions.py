@@ -304,7 +304,7 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
             "rehberlik_detay",
             "rehberlik_duzenle",
         ),
-        nav_group="Rehberlik",
+        nav_group="İletişim",
     ),
     PanelNavItem(
         key="veli_randevu",
@@ -328,7 +328,7 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
     ),
     PanelNavItem(
         key="disiplin",
-        label="İstişare ve Disiplin Kurulu",
+        label="Disiplin Kurulu",
         url_name="disiplin_kurul_panel",
         roller=DISIPLIN_KURUL_ROLLER,
         active_names=(
@@ -343,7 +343,7 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
             "disiplin_detay",
             "disiplin_duzenle",
         ),
-        nav_group="Disiplin",
+        nav_group="Disiplin & Takip",
     ),
     PanelNavItem(
         key="gunluk_takip",
@@ -356,7 +356,7 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
             "gunluk_takip_detay",
             "gunluk_takip_duzenle",
         ),
-        nav_group="Takip",
+        nav_group="Disiplin & Takip",
     ),
     PanelNavItem(
         key="mezun",
@@ -442,10 +442,8 @@ NAV_GROUP_ORDER: tuple[str, ...] = (
     "Görevler",
     "Kitaplar",
     "Eğitim",
-    "Rehberlik",
     "İletişim",
-    "Disiplin",
-    "Takip",
+    "Disiplin & Takip",
     "Kurum",
 )
 
@@ -457,7 +455,9 @@ class PanelNavGroup:
 
     @property
     def is_dropdown(self) -> bool:
-        return len(self.items) > 1
+        if self.name == "Genel":
+            return len(self.items) > 1
+        return len(self.items) >= 1
 
 
 def _personel_profili(user: User):
