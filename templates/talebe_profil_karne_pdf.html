@@ -1,0 +1,567 @@
+{% load pdf_extras static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>{{ talebe.ad_soyad }} · Kitap Karnesi</title>
+    <style>
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-Regular.ttf' %}") format("truetype");
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-Medium.ttf' %}") format("truetype");
+            font-weight: 500;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-SemiBold.ttf' %}") format("truetype");
+            font-weight: 600;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-Bold.ttf' %}") format("truetype");
+            font-weight: 700;
+            font-style: normal;
+        }
+
+        @page {
+            size: A4;
+            margin: 11mm 12mm 10mm;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Poppins", sans-serif;
+            font-size: 7px;
+            font-weight: 400;
+            color: #64738A;
+            background: #FFFFFF;
+            -webkit-font-smoothing: antialiased;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        table.layout { width: 100%; border-collapse: collapse; }
+
+        .gap8  { height: 8px;  font-size: 0; line-height: 0; }
+        .gap16 { height: 16px; font-size: 0; line-height: 0; }
+        .gap20 { height: 20px; font-size: 0; line-height: 0; }
+
+        .header-table { width: 100%; border-collapse: collapse; }
+        .header-logo-cell { width: 1%; padding: 0; vertical-align: middle; white-space: nowrap; }
+        .header-text-cell { width: 1%; padding: 0 0 0 8px; vertical-align: middle; text-align: left; white-space: nowrap; }
+        .header-right { text-align: right; vertical-align: bottom; padding: 0 0 0 16px; white-space: nowrap; }
+
+        .brand-logo-wrap { width: 36px; height: 36px; line-height: 0; }
+        .brand-logo { display: block; width: 36px; height: 36px; object-fit: contain; }
+        .brand-name { font-size: 13px; font-weight: 600; color: #183F78; line-height: 1.15; text-align: left; }
+        .brand-sub { margin-top: 3px; font-size: 7px; font-weight: 500; letter-spacing: 0.45px; color: #98A4B5; text-transform: uppercase; text-align: left; }
+        .doc-title { font-size: 6.5px; font-weight: 600; letter-spacing: 0.5px; color: #8B98AA; text-transform: uppercase; text-align: right; }
+
+        .hero {
+            position: relative;
+            overflow: hidden;
+            border-radius: 14px;
+            background: linear-gradient(128deg, #1A4FA8 0%, #2B6FD4 42%, #173B73 100%);
+            color: #FFFFFF;
+            padding: 16px 18px;
+        }
+
+        .hero-books {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            margin-top: -36px;
+            opacity: 0.14;
+            pointer-events: none;
+        }
+
+        .hero-inner { position: relative; z-index: 1; }
+        .hero-tag { font-size: 6.5px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: rgba(255,255,255,0.72); }
+        .hero-title { margin-top: 8px; font-size: 20px; font-weight: 700; line-height: 1.2; letter-spacing: -0.25px; color: #FFFFFF; }
+        .hero-meta { margin-top: 8px; font-size: 7px; font-weight: 400; line-height: 1.45; color: rgba(255,255,255,0.76); }
+
+        .student-panel {
+            border: 1px solid #DFE6F0;
+            border-radius: 16px;
+            background: #FFFFFF;
+            box-shadow: 0 8px 24px rgba(26, 45, 84, 0.04);
+            padding: 14px 18px;
+        }
+
+        .student-name { font-size: 16px; font-weight: 700; color: #17243A; letter-spacing: -0.2px; }
+        .student-class { margin-top: 6px; font-size: 8px; font-weight: 400; color: #9AA5B5; }
+
+        .meta-panel {
+            border: 1px solid #DFE6F0;
+            border-radius: 16px;
+            background: #FFFFFF;
+            box-shadow: 0 8px 24px rgba(26, 45, 84, 0.04);
+            padding: 14px 18px;
+        }
+
+        .meta-table { width: 100%; border-collapse: collapse; }
+        .meta-item { width: 33%; padding: 0 18px; vertical-align: top; text-align: left; border-right: 1px solid #EEF2F6; }
+        .meta-item:first-child { padding-left: 0; }
+        .meta-item:last-child { padding-right: 0; border-right: none; }
+        .meta-label { font-size: 6.5px; font-weight: 600; letter-spacing: 0.6px; color: #8B98AA; text-transform: uppercase; }
+        .meta-value { margin-top: 6px; font-size: 10.5px; font-weight: 600; color: #14213D; line-height: 1.2; }
+
+        .stats-table {
+            width: calc(100% + 16px);
+            margin-left: -8px;
+            border-collapse: separate;
+            border-spacing: 8px 0;
+        }
+
+        .stat-cell {
+            position: relative;
+            overflow: hidden;
+            padding: 14px 12px;
+            min-height: 82px;
+            border-radius: 16px;
+            background: #FFFFFF;
+            border: 1px solid #DFE6F0;
+            box-shadow: 0 10px 28px rgba(26, 45, 84, 0.05);
+            vertical-align: top;
+            text-align: left;
+        }
+
+        .stat-accent {
+            position: absolute;
+            top: 0;
+            left: 12px;
+            right: 12px;
+            height: 2px;
+            border-radius: 0 0 999px 999px;
+            opacity: 0.7;
+        }
+
+        .stat-deco {
+            position: absolute;
+            width: 56px;
+            height: 56px;
+            right: -18px;
+            bottom: -22px;
+            border-radius: 50%;
+            opacity: 0.09;
+        }
+
+        .tone-blue  { color: #3778FF; }
+        .tone-green { color: #1AA477; }
+        .tone-orange { color: #EE8A24; }
+        .tone-purple { color: #7657E8; }
+
+        .tone-blue  .stat-accent, .tone-blue  .stat-deco { background: #3778FF; }
+        .tone-green .stat-accent, .tone-green .stat-deco { background: #1AA477; }
+        .tone-orange .stat-accent, .tone-orange .stat-deco { background: #EE8A24; }
+        .tone-purple .stat-accent, .tone-purple .stat-deco { background: #7657E8; }
+
+        .stat-label { font-size: 6.5px; font-weight: 600; letter-spacing: 0.55px; color: #68778F; text-transform: uppercase; }
+        .stat-metric { margin-top: 8px; font-size: 22px; font-weight: 700; line-height: 1; letter-spacing: -0.3px; font-variant-numeric: tabular-nums; white-space: nowrap; color: #14213D; }
+        .stat-sub { margin-top: 5px; font-size: 6.5px; font-weight: 400; color: #929DAF; }
+
+        .info-panel {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #DFE6F0;
+            border-radius: 20px;
+            background: #FFFFFF;
+            box-shadow: 0 12px 32px rgba(26, 45, 84, 0.06);
+            padding: 14px 18px;
+        }
+
+        .info-panel-accent {
+            position: absolute;
+            top: 0;
+            left: 18px;
+            right: 18px;
+            height: 2px;
+            border-radius: 0 0 999px 999px;
+            background: #3778FF;
+            opacity: 0.55;
+        }
+
+        .progress-track { margin-top: 10px; border-radius: 999px; overflow: hidden; background: #EEF2F6; height: 5px; }
+        .progress-fill-cell { height: 5px; font-size: 0; line-height: 0; background: linear-gradient(90deg, #1A4FA8 0%, #2B6FD4 100%); }
+        .progress-rest-cell { height: 5px; font-size: 0; line-height: 0; background: #EEF2F6; }
+        .progress-note { margin-top: 8px; font-size: 8px; font-weight: 500; color: #4A5568; }
+
+        .section-kicker { font-size: 6.5px; font-weight: 600; letter-spacing: 0.85px; color: #35659C; text-transform: uppercase; }
+        .section-title { margin-top: 3px; font-size: 13px; font-weight: 700; color: #17243A; }
+
+        .table-panel {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #DFE6F0;
+            border-radius: 20px;
+            background: #FFFFFF;
+            box-shadow: 0 12px 32px rgba(26, 45, 84, 0.06);
+            padding: 0;
+        }
+
+        .table-panel-accent {
+            position: absolute;
+            top: 0;
+            left: 18px;
+            right: 18px;
+            height: 2px;
+            border-radius: 0 0 999px 999px;
+            background: #3778FF;
+            opacity: 0.55;
+        }
+
+        .table-panel-head { padding: 14px 18px 0; }
+
+        table.results { width: 100%; border-collapse: collapse; }
+
+        table.results thead th {
+            padding: 10px 8px;
+            background: transparent;
+            font-size: 6.5px;
+            font-weight: 600;
+            letter-spacing: 0.35px;
+            text-transform: uppercase;
+            color: #8390A2;
+            text-align: center;
+            border: none;
+            border-bottom: 1px solid #EEF2F6;
+        }
+
+        table.results thead th.left { text-align: left; padding-left: 18px; }
+
+        table.results tbody td {
+            padding: 6px 8px;
+            font-size: 8px;
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
+            color: #33425A;
+            text-align: center;
+            vertical-align: middle;
+            border: none;
+            border-top: 1px solid #F0F3F7;
+        }
+
+        table.results tbody tr:first-child td { border-top: none; }
+        table.results tbody td.left { text-align: left; padding-left: 18px; }
+
+        .cell-name { font-size: 10px; font-weight: 600; color: #17243A; }
+        .cell-meta { margin-top: 2px; font-size: 7px; font-weight: 400; color: #9AA5B5; }
+        .num-cell { font-size: 9px; font-weight: 700; font-variant-numeric: tabular-nums; color: #17243A; }
+        .score { font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums; color: #1D4F91; white-space: nowrap; }
+
+        .status-text {
+            font-size: 8px;
+            font-weight: 600;
+            white-space: nowrap;
+            color: #465668;
+        }
+
+        .status-okunuyor { color: #1AA477; }
+        .status-sinav_yapildi { color: #3778FF; }
+        .status-sinav_bekliyor { color: #EE8A24; }
+        .status-tamamlandi { color: #1D4F91; }
+        .status-yarim, .status-iade { color: #68778F; }
+
+        .footer-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            border-top: 1px solid #E7EBF1;
+        }
+
+        .footer-table td {
+            padding-top: 10px;
+            font-size: 6.5px;
+            font-weight: 500;
+            letter-spacing: 0.35px;
+            color: #9AA6B7;
+        }
+
+        .footer-left  { text-align: left;  width: 50%; }
+        .footer-right { text-align: right; width: 50%; }
+    </style>
+</head>
+<body>
+
+<table class="layout">
+
+    <tr>
+        <td colspan="3">
+            <table class="header-table" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="header-logo-cell">
+                        <div class="brand-logo-wrap">
+                            <img class="brand-logo" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="Çinili Saray">
+                        </div>
+                    </td>
+                    <td class="header-text-cell">
+                        <div class="brand-name">{{ panel_org }}</div>
+                        <div class="brand-sub">{{ panel_name }}</div>
+                    </td>
+                    <td class="header-right">
+                        <div class="doc-title">Kitap Karnesi</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+
+    <tr><td colspan="3" class="gap16"></td></tr>
+
+    <tr>
+        <td colspan="3" class="hero">
+            <svg class="hero-books" width="120" height="72" viewBox="0 0 120 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M72 8C72 8 88 6 96 14V58C88 52 72 54 72 54V8Z" fill="#FFFFFF" opacity="0.9"/>
+                <path d="M68 10C68 10 52 8 44 16V60C52 54 68 56 68 56V10Z" fill="#FFFFFF" opacity="0.55"/>
+                <path d="M28 18C28 18 42 16 48 22V62C42 58 28 60 28 60V18Z" fill="#FFFFFF" opacity="0.75"/>
+                <path d="M24 20C24 20 10 18 4 24V64C10 60 24 62 24 62V20Z" fill="#FFFFFF" opacity="0.45"/>
+            </svg>
+            <div class="hero-inner">
+                <div class="hero-tag">Kitap Karnesi</div>
+                <div class="hero-title">Okuma &amp; Sınav Özeti</div>
+                <div class="hero-meta">Zimmet · günlük okuma · aktif kitap · sınav performansı</div>
+            </div>
+        </td>
+    </tr>
+
+    <tr><td colspan="3" class="gap16"></td></tr>
+
+    <tr>
+        <td colspan="3">
+            <div class="student-panel">
+                <div class="student-name">{{ talebe.ad_soyad }}</div>
+                <div class="student-class">{{ sinif_goster }}{% if talebe.talebe_no %} · No: {{ talebe.talebe_no }}{% endif %}{% if talebe.aktif %} · Aktif Talebe{% else %} · Pasif{% endif %}</div>
+            </div>
+        </td>
+    </tr>
+
+    <tr><td colspan="3" class="gap16"></td></tr>
+
+    <tr>
+        <td colspan="3">
+            <div class="meta-panel">
+                <table class="meta-table" cellspacing="0" cellpadding="0">
+                    <tr>
+                        <td class="meta-item">
+                            <div class="meta-label">Sınıf / Şube</div>
+                            <div class="meta-value">{{ sinif_goster }}</div>
+                        </td>
+                        <td class="meta-item">
+                            <div class="meta-label">Etüt Hocası</div>
+                            <div class="meta-value">{{ talebe.etut_hocasi.ad_soyad }}</div>
+                        </td>
+                        <td class="meta-item">
+                            <div class="meta-label">Dini Ders Hocası</div>
+                            <div class="meta-value">{% if talebe.zimmet_hocalari_ayni %}Etüt ile aynı{% else %}{{ talebe.dini_ders_hocasi.ad_soyad }}{% endif %}</div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </td>
+    </tr>
+
+    <tr><td colspan="3" class="gap16"></td></tr>
+
+    <tr>
+        <td colspan="3">
+            <table class="stats-table" cellpadding="0">
+                <tr>
+                    <td width="25%" class="stat-cell tone-blue">
+                        <div class="stat-accent"></div>
+                        <div class="stat-deco"></div>
+                        <div class="stat-label">Toplam Okunan</div>
+                        <div class="stat-metric">{{ toplam_okunan }}</div>
+                        <div class="stat-sub">Sayfa</div>
+                    </td>
+                    <td width="25%" class="stat-cell tone-green">
+                        <div class="stat-accent"></div>
+                        <div class="stat-deco"></div>
+                        <div class="stat-label">Kitap Zimmeti</div>
+                        <div class="stat-metric">{{ zimmetler|length }}</div>
+                        <div class="stat-sub">Toplam kayıt</div>
+                    </td>
+                    <td width="25%" class="stat-cell tone-orange">
+                        <div class="stat-accent"></div>
+                        <div class="stat-deco"></div>
+                        <div class="stat-label">Okuma Kaydı</div>
+                        <div class="stat-metric">{{ kayitlar|length }}</div>
+                        <div class="stat-sub">Günlük giriş</div>
+                    </td>
+                    <td width="25%" class="stat-cell tone-purple">
+                        <div class="stat-accent"></div>
+                        <div class="stat-deco"></div>
+                        <div class="stat-label">Sınav Sonucu</div>
+                        <div class="stat-metric">{{ sinav_sonuclari|length }}</div>
+                        <div class="stat-sub">Toplam sınav</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+
+    {% if aktif_zimmet %}
+    <tr><td colspan="3" class="gap16"></td></tr>
+    <tr>
+        <td colspan="3">
+            <div class="info-panel">
+                <div class="info-panel-accent"></div>
+                <div class="section-kicker">Aktif Kitap</div>
+                <div class="section-title">{{ aktif_zimmet.kitap.ad }}</div>
+                <table class="progress-track" width="100%" cellspacing="0" cellpadding="0">
+                    <tr>
+                        <td width="{{ aktif_yuzde }}%" class="progress-fill-cell">&nbsp;</td>
+                        <td class="progress-rest-cell">&nbsp;</td>
+                    </tr>
+                </table>
+                <div class="progress-note">{{ aktif_zimmet.okunan_toplam }} / {{ aktif_zimmet.kitap.toplam_sayfa }} sayfa · %{{ aktif_yuzde }} tamamlandı</div>
+            </div>
+        </td>
+    </tr>
+    {% endif %}
+
+    <tr><td colspan="3" class="gap20"></td></tr>
+
+    <tr>
+        <td colspan="3">
+            <div class="table-panel">
+                <div class="table-panel-accent"></div>
+                <div class="table-panel-head">
+                    <div class="section-kicker">Kitap Geçmişi</div>
+                    <div class="section-title">Zimmet Kayıtları</div>
+                </div>
+                <table class="results" style="margin-top:10px;">
+                    <thead>
+                        <tr>
+                            <th class="left" style="width:34%;">Kitap</th>
+                            <th style="width:18%;">Durum</th>
+                            <th style="width:12%;">Okunan</th>
+                            <th style="width:12%;">Toplam</th>
+                            <th style="width:24%;">Zimmet Tarihi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for z in zimmetler %}
+                        <tr>
+                            <td class="left"><div class="cell-name">{{ z.kitap.ad }}</div></td>
+                            <td><span class="status-text status-{{ z.durum }}">{{ z.get_durum_display }}</span></td>
+                            <td class="num-cell">{{ z.okunan_toplam }}</td>
+                            <td class="num-cell">{{ z.kitap.toplam_sayfa }}</td>
+                            <td>{{ z.zimmet_tarihi|date:"d.m.Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="left" style="padding:18px;">Kitap zimmeti bulunmuyor.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </td>
+    </tr>
+
+    <tr><td colspan="3" class="gap16"></td></tr>
+
+    <tr>
+        <td colspan="3">
+            <div class="table-panel">
+                <div class="table-panel-accent"></div>
+                <div class="table-panel-head">
+                    <div class="section-kicker">Günlük Okuma</div>
+                    <div class="section-title">Son Okuma Kayıtları</div>
+                </div>
+                <table class="results" style="margin-top:10px;">
+                    <thead>
+                        <tr>
+                            <th style="width:14%;">Tarih</th>
+                            <th class="left" style="width:36%;">Kitap</th>
+                            <th style="width:14%;">Son Sayfa</th>
+                            <th style="width:14%;">Okunan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for kayit in kayitlar|slice:":12" %}
+                        <tr>
+                            <td>{{ kayit.tarih|date:"d.m.Y" }}</td>
+                            <td class="left"><div class="cell-name">{{ kayit.zimmet.kitap.ad }}</div></td>
+                            <td class="num-cell">{{ kayit.son_sayfa }}</td>
+                            <td class="num-cell">+{{ kayit.okunan_miktar }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="left" style="padding:18px;">Okuma kaydı bulunmuyor.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </td>
+    </tr>
+
+    <tr><td colspan="3" class="gap16"></td></tr>
+
+    <tr>
+        <td colspan="3">
+            <div class="table-panel">
+                <div class="table-panel-accent"></div>
+                <div class="table-panel-head">
+                    <div class="section-kicker">Sınav Performansı</div>
+                    <div class="section-title">Sınav Sonuçları</div>
+                </div>
+                <table class="results" style="margin-top:10px;">
+                    <thead>
+                        <tr>
+                            <th class="left" style="width:24%;">Sınav</th>
+                            <th class="left" style="width:24%;">Kitap</th>
+                            <th style="width:12%;">Tarih</th>
+                            <th style="width:8%;">D</th>
+                            <th style="width:8%;">Y</th>
+                            <th style="width:8%;">B</th>
+                            <th style="width:16%;">Puan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sonuc in sinav_sonuclari %}
+                        <tr>
+                            <td class="left"><div class="cell-name">{{ sonuc.sinav.ad }}</div></td>
+                            <td class="left">{{ sonuc.sinav.kitap.ad }}</td>
+                            <td>{{ sonuc.sinav.sinav_tarihi|date:"d.m.Y" }}</td>
+                            <td class="num-cell">{{ sonuc.dogru }}</td>
+                            <td class="num-cell">{{ sonuc.yanlis }}</td>
+                            <td class="num-cell">{{ sonuc.bos }}</td>
+                            <td class="score">{{ sonuc.puan|pdf_puan }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="left" style="padding:18px;">Sınav sonucu bulunmuyor.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </td>
+    </tr>
+
+    <tr>
+        <td colspan="3">
+            <table class="footer-table" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="footer-left">{{ panel_org }}</td>
+                    <td class="footer-right">{{ panel_footer }}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+
+</table>
+
+</body>
+</html>

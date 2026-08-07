@@ -1,0 +1,455 @@
+/* Yönetim — kurumsal + konforlu arayüz (Apple-esintili vurgular) */
+
+.yonetim-body {
+    --ym-accent-blue: #2563eb;
+    --ym-accent-indigo: #4f46e5;
+    --ym-accent-teal: #0d9488;
+    --ym-accent-amber: #d97706;
+    --ym-accent-rose: #e11d48;
+    --ym-surface: #ffffff;
+    --ym-surface-soft: #f8fbff;
+    --ym-line: #e2e8f0;
+    --ym-text: #0f172a;
+    --ym-muted: #64748b;
+
+    --panel-table-head: 11px;
+    --panel-table-cell: 15px;
+    --panel-label-font: 14px;
+    --panel-input-font: 15px;
+    --panel-body-font: 15px;
+    --panel-btn-min-h: 44px;
+    --panel-input-min-h: 44px;
+}
+
+/* Kartlar — renkli sol şerit + hafif derinlik */
+.yonetim-page .dashboard-card,
+.yonetim-page .report-table-card,
+.yonetim-page .yonetim-table-card,
+.yonetim-page .yonetim-form-card,
+.yonetim-page .yonetim-highlight-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--ym-line) !important;
+    border-radius: 18px !important;
+    background: linear-gradient(180deg, #ffffff 0%, var(--ym-surface-soft) 100%) !important;
+    box-shadow: 0 10px 32px rgba(15, 23, 42, 0.06) !important;
+}
+
+.yonetim-page .dashboard-card::before,
+.yonetim-page .report-table-card::before,
+.yonetim-page .yonetim-table-card::before,
+.yonetim-page .yonetim-form-card::before,
+.yonetim-page .yonetim-highlight-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 4px;
+    border-radius: 18px 0 0 18px;
+    background: linear-gradient(180deg, var(--ym-accent-blue), #60a5fa);
+}
+
+.yonetim-page .yonetim-form-card::before {
+    background: linear-gradient(180deg, var(--ym-accent-indigo), #818cf8);
+}
+
+.yonetim-page .yonetim-highlight-card::before {
+    background: linear-gradient(180deg, var(--ym-accent-teal), #2dd4bf);
+}
+
+.yonetim-page .card-kicker {
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.14em !important;
+    color: var(--ym-accent-blue) !important;
+}
+
+.yonetim-page .card-heading h2 {
+    font-size: clamp(21px, 2.1vw, 26px) !important;
+    font-weight: 600 !important;
+    color: var(--ym-text) !important;
+}
+
+/* Tablolar — daha okunaklı, sıkıştırılmış sütunlar */
+.yonetim-page .yonetim-data-table,
+.yonetim-page .report-data-table {
+    table-layout: auto;
+    width: 100%;
+}
+
+.yonetim-page .yonetim-data-table thead th,
+.yonetim-page .report-data-table thead th {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase;
+    color: var(--ym-muted) !important;
+    background: #f1f5f9 !important;
+    border-bottom: 1px solid var(--ym-line) !important;
+    padding: 14px 16px !important;
+    white-space: nowrap;
+}
+
+.yonetim-page .yonetim-data-table tbody td,
+.yonetim-page .report-data-table tbody td {
+    font-size: 15px !important;
+    color: #1e293b !important;
+    padding: 16px 16px !important;
+    vertical-align: middle;
+    border-bottom: 1px solid #eef2f7 !important;
+}
+
+.yonetim-page .yonetim-data-table tbody tr:hover td {
+    background: #f8fbff;
+}
+
+.yonetim-page .yonetim-data-table tbody td strong,
+.yonetim-page .report-data-table tbody td strong {
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    color: var(--ym-text) !important;
+}
+
+.yonetim-page .yonetim-data-table .muted-inline,
+.yonetim-page .report-empty {
+    font-size: 14px !important;
+    color: var(--ym-muted) !important;
+}
+
+.yonetim-page .report-record-count,
+.yonetim-page .yonetim-chip,
+.yonetim-page .status-pill {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+}
+
+/* Formlar — iki sütun, geniş alanlar tam satır */
+.yonetim-form-layout {
+    max-width: 920px;
+}
+
+.yonetim-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 24px;
+    align-items: start;
+}
+
+.yonetim-form-grid .yonetim-field-wide,
+.yonetim-form-grid .yonetim-field-checkbox-grid,
+.yonetim-form-grid .yonetim-field-check-row,
+.yonetim-form-grid .yonetim-form-errors,
+.yonetim-form-grid .yonetim-field:has(textarea),
+.yonetim-form-grid .yonetim-field:has(select[multiple]),
+.yonetim-form-grid .yonetim-field:has(.yonetim-field-control > ul),
+.yonetim-form-grid .yonetim-field:has(input[type="file"]) {
+    grid-column: 1 / -1;
+}
+
+.yonetim-form-card .yonetim-field > label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: #334155 !important;
+}
+
+.yonetim-form-card .yonetim-field small {
+    display: block;
+    margin-top: 6px;
+    font-size: 13px !important;
+    color: var(--ym-muted) !important;
+    line-height: 1.45;
+}
+
+.yonetim-form-card .yonetim-field-control input[type="text"],
+.yonetim-form-card .yonetim-field-control input[type="password"],
+.yonetim-form-card .yonetim-field-control input[type="email"],
+.yonetim-form-card .yonetim-field-control input[type="number"],
+.yonetim-form-card .yonetim-field-control input[type="date"],
+.yonetim-form-card .yonetim-field-control input[type="url"],
+.yonetim-form-card .yonetim-field-control select,
+.yonetim-form-card .yonetim-field-control textarea,
+.yonetim-form-card .cs-input {
+    width: 100%;
+    min-height: 44px !important;
+    padding: 11px 14px !important;
+    font-size: 15px !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 12px !important;
+    background: #fff !important;
+    color: var(--ym-text) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.yonetim-form-card .yonetim-field-control input:focus,
+.yonetim-form-card .yonetim-field-control select:focus,
+.yonetim-form-card .yonetim-field-control textarea:focus {
+    outline: none;
+    border-color: #93c5fd !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.yonetim-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 8px;
+    padding-top: 20px;
+    border-top: 1px solid var(--ym-line);
+}
+
+/* Sınıf kartları */
+.yonetim-page .yonetim-class-card {
+    border: 1px solid var(--ym-line) !important;
+    border-radius: 16px !important;
+    background: linear-gradient(180deg, #fff 0%, #f8fbff 100%) !important;
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05) !important;
+    padding: 20px 22px !important;
+}
+
+.yonetim-page .yonetim-class-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 3px;
+    border-radius: 16px 0 0 16px;
+    background: linear-gradient(180deg, var(--ym-accent-blue), #93c5fd);
+}
+
+.yonetim-page .yonetim-class-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.yonetim-page .yonetim-class-card h3,
+.yonetim-page .yonetim-class-card strong {
+    font-size: 22px !important;
+    font-weight: 700 !important;
+    color: var(--ym-text) !important;
+}
+
+/* KPI / istatistik kartları */
+.yonetim-page .metric-card,
+.yonetim-page .yonetim-stat-card {
+    border: 1px solid var(--ym-line) !important;
+    border-radius: 16px !important;
+    background: #fff !important;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05) !important;
+}
+
+/* RBAC modül satırları */
+.yonetim-page .yonetim-module-row,
+.yonetim-page .rbac-modul-satir {
+    padding: 16px 18px;
+    border: 1px solid var(--ym-line);
+    border-radius: 14px;
+    background: #fff;
+    margin-bottom: 12px;
+    border-left: 3px solid var(--ym-accent-indigo);
+}
+
+/* Arama satırı */
+.yonetim-page .yonetim-search-row input,
+.yonetim-page .talebe-search input {
+    min-height: 44px !important;
+    font-size: 15px !important;
+}
+
+@media (max-width: 860px) {
+    .yonetim-form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .yonetim-page .yonetim-data-table thead th,
+    .yonetim-page .yonetim-data-table tbody td {
+        padding: 12px !important;
+        font-size: 14px !important;
+    }
+}
+
+/* Eski sınıf adları — tüm panellere aynı görünüm */
+.yonetim-page .yonetim-card,
+.yonetim-page .yonetim-panel {
+    position: relative;
+    overflow: hidden;
+    padding: 28px 30px !important;
+    border: 1px solid var(--ym-line) !important;
+    border-radius: 18px !important;
+    background: linear-gradient(180deg, #ffffff 0%, var(--ym-surface-soft) 100%) !important;
+    box-shadow: 0 10px 32px rgba(15, 23, 42, 0.06) !important;
+}
+
+.yonetim-page .yonetim-card::before,
+.yonetim-page .yonetim-panel::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 4px;
+    border-radius: 18px 0 0 18px;
+    background: linear-gradient(180deg, var(--ym-accent-blue), #60a5fa);
+}
+
+.yonetim-page .yonetim-table,
+.yonetim-page table.report-data-table:not(.yonetim-data-table) {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.yonetim-page .yonetim-table thead th,
+.yonetim-page .dashboard-card table thead th {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase;
+    color: var(--ym-muted) !important;
+    background: #f1f5f9 !important;
+    padding: 14px 16px !important;
+    border-bottom: 1px solid var(--ym-line) !important;
+}
+
+.yonetim-page .yonetim-table tbody td,
+.yonetim-page .dashboard-card table tbody td {
+    font-size: 15px !important;
+    padding: 16px !important;
+    border-bottom: 1px solid #eef2f7 !important;
+    vertical-align: middle;
+}
+
+.yonetim-page .dashboard-card table tbody td:last-child a,
+.yonetim-page .yonetim-table tbody td:last-child a {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 0 14px !important;
+    border: 1px solid #dbeafe !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+    color: #1d4ed8 !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    white-space: nowrap;
+}
+
+.yonetim-page .dashboard-card table tbody td:last-child a:hover,
+.yonetim-page .yonetim-table tbody td:last-child a:hover {
+    border-color: #93c5fd !important;
+    background: #f8fbff !important;
+}
+
+/* Sınıf kart ızgarası */
+.yonetim-class-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 18px;
+}
+
+.yonetim-page .yonetim-class-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    margin-top: 10px;
+    font-size: 14px !important;
+    color: var(--ym-muted) !important;
+}
+
+.yonetim-page .yonetim-class-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--ym-line);
+}
+
+.yonetim-page .yonetim-class-actions .yonetim-link {
+    display: inline-flex !important;
+    align-items: center;
+    min-height: 38px;
+    padding: 0 14px !important;
+    border: 1px solid #dbeafe !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+    color: #1d4ed8 !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+}
+
+/* Rol yetki blokları */
+.yonetim-perm-block {
+    margin-bottom: 16px !important;
+    padding: 18px 20px !important;
+    border: 1px solid var(--ym-line) !important;
+    border-radius: 14px !important;
+    border-left: 3px solid var(--ym-accent-indigo) !important;
+    background: #fff !important;
+}
+
+.yonetim-perm-block > label {
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+}
+
+.yonetim-perm-block > label small {
+    font-size: 12px !important;
+    color: var(--ym-muted) !important;
+    font-weight: 500;
+}
+
+.yonetim-perm-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+    padding-left: 28px;
+}
+
+.yonetim-perm-actions label {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 6px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    cursor: pointer;
+}
+
+.yonetim-perm-actions label:has(input:checked) {
+    border-color: #93c5fd;
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.yonetim-perm-actions input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+}
+
+/* Tablo sütun oranları — içerik geniş, işlem dar */
+.yonetim-page .yonetim-data-table col.col-name { width: 28%; }
+.yonetim-page .yonetim-data-table col.col-meta { width: 14%; }
+.yonetim-page .yonetim-data-table col.col-status { width: 10%; }
+.yonetim-page .yonetim-data-table col.col-action { width: 1%; }
+
+.yonetim-page .responsive-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}

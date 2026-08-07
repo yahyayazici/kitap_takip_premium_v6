@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Kurul Ayarları · {{ kurul_adi }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/disiplin-kurul-premium.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dk-page">
+
+<header class="dk-head">
+    <div>
+        <p class="dk-eyebrow"><a href="{% url 'disiplin_kurul_panel' %}" style="color:inherit;text-decoration:none;">← {{ kurul_adi }}</a></p>
+        <h1>Kurul Ayarları</h1>
+        <p class="dk-sub">Varsayılan kurul üyeleri, görevleri ve gündem maddelerini yönetin. Yeni kurul oluşturulurken bu liste otomatik kullanılır.</p>
+    </div>
+    <div class="dk-actions">
+        <a href="{% url 'disiplin_kurul_olustur' %}" class="dk-btn dk-btn-primary">Kurul Oluştur</a>
+    </div>
+</header>
+
+<div class="dk-admin-grid">
+    <section class="dk-card" style="padding:24px;">
+        <h2 class="dk-section-title">Genel Ayarlar</h2>
+        <form method="post" class="dk-form-grid">
+            {% csrf_token %}
+            <input type="hidden" name="aksiyon" value="ayar_kaydet">
+            <div class="dk-field">{{ ayar_form.kurul_adi.label_tag }}{{ ayar_form.kurul_adi }}</div>
+            <div class="dk-field">{{ ayar_form.varsayilan_toplanti_yeri.label_tag }}{{ ayar_form.varsayilan_toplanti_yeri }}</div>
+            <div class="dk-form-actions" style="grid-column:1/-1;">
+                <button type="submit" class="dk-btn dk-btn-primary">Kaydet</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="dk-card" style="padding:24px;">
+        <h2 class="dk-section-title">Kurul Üyeleri</h2>
+        <ul class="dk-settings-list">
+            {% for uye in uyeler %}
+            <li>
+                <div>
+                    <strong>{{ uye.personel.ad_soyad }}</strong>
+                    <span>{{ uye.get_kurul_gorevi_display }}{% if not uye.aktif %} · Pasif{% endif %}</span>
+                </div>
+                <form method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="aksiyon" value="uye_sil">
+                    <input type="hidden" name="uye_id" value="{{ uye.pk }}">
+                    <button type="submit" class="dk-btn dk-btn-sm dk-btn-ghost">Sil</button>
+                </form>
+            </li>
+            {% empty %}
+            <li class="dk-muted">Henüz üye eklenmedi.</li>
+            {% endfor %}
+        </ul>
+
+        <form method="post" class="dk-form-grid" style="margin-top:16px;">
+            {% csrf_token %}
+            <input type="hidden" name="aksiyon" value="uye_kaydet">
+            <div class="dk-field">{{ uye_form.personel.label_tag }}{{ uye_form.personel }}</div>
+            <div class="dk-field">{{ uye_form.kurul_gorevi.label_tag }}{{ uye_form.kurul_gorevi }}</div>
+            <div class="dk-field">{{ uye_form.sira.label_tag }}{{ uye_form.sira }}</div>
+            <div class="dk-field dk-check-field">{{ uye_form.aktif }} {{ uye_form.aktif.label_tag }}</div>
+            <div class="dk-form-actions" style="grid-column:1/-1;">
+                <button type="submit" class="dk-btn dk-btn-primary">Üye Ekle</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="dk-card" style="padding:24px; grid-column:1/-1;">
+        <h2 class="dk-section-title">Varsayılan Gündem Maddeleri</h2>
+        <ul class="dk-settings-list">
+            {% for madde in gundem %}
+            <li>
+                <div>
+                    <strong>{{ madde.sira }}. {{ madde.baslik }}</strong>
+                    {% if not madde.aktif %}<span>Pasif</span>{% endif %}
+                </div>
+                <form method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="aksiyon" value="gundem_sil">
+                    <input type="hidden" name="madde_id" value="{{ madde.pk }}">
+                    <button type="submit" class="dk-btn dk-btn-sm dk-btn-ghost">Sil</button>
+                </form>
+            </li>
+            {% empty %}
+            <li class="dk-muted">Henüz gündem maddesi yok.</li>
+            {% endfor %}
+        </ul>
+
+        <form method="post" class="dk-form-grid" style="margin-top:16px;">
+            {% csrf_token %}
+            <input type="hidden" name="aksiyon" value="gundem_kaydet">
+            <div class="dk-field">{{ gundem_form.baslik.label_tag }}{{ gundem_form.baslik }}</div>
+            <div class="dk-field">{{ gundem_form.sira.label_tag }}{{ gundem_form.sira }}</div>
+            <div class="dk-field dk-check-field">{{ gundem_form.aktif }} {{ gundem_form.aktif.label_tag }}</div>
+            <div class="dk-form-actions" style="grid-column:1/-1;">
+                <button type="submit" class="dk-btn dk-btn-primary">Gündem Ekle</button>
+            </div>
+        </form>
+    </section>
+</div>
+</div>
+{% endblock %}

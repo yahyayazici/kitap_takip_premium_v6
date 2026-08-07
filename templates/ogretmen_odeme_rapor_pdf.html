@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>Öğretmen Ödeme Raporu</title>
+    <style>
+        @page { size: A4 landscape; margin: 10mm; }
+        body { font-family: sans-serif; font-size: 9px; color: #334155; }
+        h1 { font-size: 16px; margin: 0 0 8px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #e2e8f0; padding: 5px; }
+        th { background: #f8fafc; }
+    </style>
+</head>
+<body>
+    <h1>Öğretmen Ödeme Raporu</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Dönem / Grup</th>
+                <th>Öğretmen</th>
+                <th>Branş</th>
+                <th>Sınıf</th>
+                <th>Saat</th>
+                {% if finans_goster %}<th>Ücret</th><th>Tutar</th>{% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for satir in satirlar %}
+            <tr>
+                <td>{{ satir.etiket }}</td>
+                <td>{{ satir.ogretmen }}</td>
+                <td>{{ satir.brans }}</td>
+                <td>{{ satir.sinif|default:"—" }}</td>
+                <td>{{ satir.toplam_saat }}</td>
+                {% if finans_goster %}
+                <td>{{ satir.saatlik_ucret|default:"—" }}</td>
+                <td>{{ satir.odenecek_tutar }} ₺</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p style="margin-top:10px;">Toplam saat: {{ istatistik.toplam_saat }}{% if finans_goster %} · Toplam ödeme: {{ istatistik.toplam_odeme }} ₺{% endif %}</p>
+</body>
+</html>

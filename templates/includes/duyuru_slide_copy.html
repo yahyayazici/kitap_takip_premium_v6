@@ -1,0 +1,14 @@
+<div class="duyuru-copy-slide-head">
+    <span class="duyuru-slide-tag">{{ duyuru.kategori_etiketi }}</span>
+    <strong class="duyuru-copy-title">{{ duyuru.baslik }}</strong>
+</div>
+<ul class="duyuru-slide-list">
+    {% for madde in duyuru.ozet_maddeleri %}
+    <li>{{ madde }}</li>
+    {% empty %}
+    <li>{{ duyuru.ozet|truncatechars:140 }}</li>
+    {% endfor %}
+</ul>
+{% if duyuru.dis_link %}
+<a href="{{ duyuru.dis_link }}" class="duyuru-slide-link-label" target="_blank" rel="noopener">Detay →</a>
+{% endif %}

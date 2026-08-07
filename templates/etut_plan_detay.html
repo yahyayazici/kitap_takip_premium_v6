@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Etüt Planı · {{ plan.hafta_goster }}{% endblock %}
+{% block content %}
+<div class="result-entry-page">
+    <header class="result-entry-header">
+        <div>
+            <p class="result-kicker">{{ plan.hafta_goster }}</p>
+            <h1>{{ plan.etut_hocasi.ad_soyad }}</h1>
+            <p class="result-description">
+                {{ ozet.tamamlandi }}/{{ ozet.toplam }} tamamlandı ·
+                {{ plan.get_durum_display }}
+            </p>
+        </div>
+        <div class="result-header-actions">
+            <a href="{% url 'etut_plan_panel' %}" class="result-back-button">Bu Hafta</a>
+            <a href="{% url 'etut_plan_arsiv' %}" class="ghost-btn">Arşiv</a>
+        </div>
+    </header>
+
+    {% if duzenleyebilir %}
+    <section class="library-panel" style="margin-bottom:20px;">
+        <p class="card-kicker">YENİ FAALİYET</p>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="aksiyon" value="faaliyet_ekle">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
+                {{ form.as_p }}
+            </div>
+            <button type="submit" class="primary-btn" style="margin-top:12px;">Ekle</button>
+        </form>
+    </section>
+    {% endif %}
+
+    {% for grup in gun_gruplari %}
+    <section class="result-card" style="margin-bottom:16px;">
+        <h2 style="margin-bottom:12px;">{{ grup.label }}</h2>
+        <div class="responsive-table">
+            <table class="report-data-table">
+                <thead>
+                    <tr>
+                        <th>Tür</th>
+                        <th>Faaliyet</th>
+                        <th>Hedef</th>
+                        <th>Durum</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for f in grup.faaliyetler %}
+                    <tr>
+                        <td>{{ f.get_faaliyet_turu_display }}</td>
+                        <td>
+                            <strong>{{ f.baslik }}</strong>
+                            {% if f.aciklama %}<br><small>{{ f.aciklama }}</small>{% endif %}
+                        </td>
+                        <td>{{ f.hedef|default:"—" }}</td>
+                        <td>
+                            {% for key, icon in durum_ikonlari.items %}{% if key == f.uygulama_durumu %}{{ icon }} {% endif %}{% endfor %}
+                            {{ f.get_uygulama_durumu_display }}
+                        </td>
+                        <td>
+                            {% if duzenleyebilir %}
+                            <form method="post" style="display:inline-flex;gap:4px;flex-wrap:wrap;">
+                                {% csrf_token %}
+                                <input type="hidden" name="aksiyon" value="durum_guncelle">
+                                <input type="hidden" name="faaliyet_id" value="{{ f.id }}">
+                                <button type="submit" name="durum" value="tamamlandi" class="ghost-btn" title="Tamamlandı">✅</button>
+                                <button type="submit" name="durum" value="devam" class="ghost-btn" title="Devam">⏳</button>
+                                <button type="submit" name="durum" value="yapilamadi" class="ghost-btn" title="Yapılamadı">❌</button>
+                            </form>
+                            <form method="post" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="aksiyon" value="faaliyet_sil">
+                                <input type="hidden" name="faaliyet_id" value="{{ f.id }}">
+                                <button type="submit" class="ghost-btn" onclick="return confirm('Silinsin mi?');">Sil</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% empty %}
+    <section class="library-panel"><p class="report-empty">Henüz faaliyet eklenmedi.</p></section>
+    {% endfor %}
+
+    {% if duzenleyebilir and plan.durum != 'tamamlandi' %}
+    <section class="library-panel" style="margin-top:20px;">
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="aksiyon" value="not_kaydet">
+            <label>Haftalık not
+                <textarea name="notlar" rows="3" class="input">{{ plan.notlar }}</textarea>
+            </label>
+            <button type="submit" class="ghost-btn" style="margin-top:8px;">Notu Kaydet</button>
+        </form>
+        <form method="post" style="margin-top:20px;">
+            {% csrf_token %}
+            <input type="hidden" name="aksiyon" value="hafta_tamamla">
+            <button type="submit" class="primary-btn" onclick="return confirm('Hafta arşivlensin mi?');">Haftayı Tamamla ve Arşivle</button>
+        </form>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

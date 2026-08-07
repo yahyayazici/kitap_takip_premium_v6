@@ -1,0 +1,86 @@
+{% extends "yonetim/base.html" %}
+
+{% block title %}{{ liste.ad }} · Düzenle{% endblock %}
+
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">YEMEKÇİLİK DÜZENLEME</p>
+        <h1>{{ liste.ad }}</h1>
+        <p class="muted">Öğünleri ve talebe havuzunu güncelleyin; günlük atamaları manuel düzenleyebilirsiniz.</p>
+    </div>
+    <div class="yonetim-page-head-actions">
+        <a href="{% url 'yonetim:yemekci_pdf' liste.pk %}" class="ghost-btn yonetim-head-ghost" target="_blank">PDF İndir</a>
+        <a href="{% url 'yonetim:yemekci_listesi' %}" class="ghost-btn">Listeye Dön</a>
+    </div>
+</header>
+
+<form method="post" class="program-edit-form">
+    {% csrf_token %}
+
+    <section class="dashboard-card yonetim-form-card">
+        <div class="card-heading"><div><p class="card-kicker">LİSTE BİLGİSİ</p><h2>Genel Ayarlar</h2></div></div>
+        {% if form.non_field_errors %}<div class="yonetim-form-errors">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="yonetim-form-grid">
+            {% for field in form %}
+            <div class="yonetim-field{% if field.name == 'haric_tarihler_metin' or field.name == 'ogunler' or field.name == 'talebe_havuzu' %} yonetim-field-full{% endif %}">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                <div class="yonetim-field-control">{{ field }}</div>
+                {% if field.help_text %}<p class="muted yonetim-field-help">{{ field.help_text }}</p>{% endif %}
+                {% for error in field.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="report-table-card yonetim-table-card program-lines-card">
+        <div class="card-heading">
+            <div>
+                <p class="card-kicker">ÖĞÜN-GÜN ATAMALARI</p>
+                <h2>Yemekçilik Takvimi</h2>
+            </div>
+            <button type="submit" name="action" value="redistribute" class="ghost-btn yonetim-head-ghost" formnovalidate>Otomatik Yeniden Dağıt</button>
+        </div>
+
+        {{ formset.management_form }}
+        {% if formset.non_form_errors %}<div class="yonetim-form-errors">{{ formset.non_form_errors }}</div>{% endif %}
+
+        <div class="responsive-table">
+            <table class="report-data-table yonetim-data-table program-lines-table">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Gün</th>
+                        <th>Öğün</th>
+                        <th>Sorumlu</th>
+                        <th>Yardımcı</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for atama_form in formset %}
+                    <tr>
+                        {% for hidden in atama_form.hidden_fields %}{{ hidden }}{% endfor %}
+                        <td>{{ atama_form.tarih }}</td>
+                        <td>{{ atama_form.instance.tarih|date:"l" }}</td>
+                        <td>{{ atama_form.instance.ogun.ad }}</td>
+                        <td>{{ atama_form.talebe }}</td>
+                        <td>{{ atama_form.yardimci }}</td>
+                    </tr>
+                    {% if atama_form.errors %}
+                    <tr><td colspan="5" class="yonetim-field-error">{{ atama_form.errors }}</td></tr>
+                    {% endif %}
+                    {% empty %}
+                    <tr><td colspan="5" class="report-empty">Henüz atama yok. Kaydedip otomatik dağıtım yapın.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <div class="yonetim-form-actions program-form-actions">
+        <button type="submit" class="primary-btn">Kaydet</button>
+    </div>
+</form>
+
+{% endblock %}

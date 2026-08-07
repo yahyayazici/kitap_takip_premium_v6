@@ -1,0 +1,46 @@
+{% extends "yonetim/base.html" %}
+{% block title %}{{ deneme.ad }}{% endblock %}
+{% block content %}
+<div class="yonetim-page">
+    <header class="yonetim-page-head">
+        <div>
+            <h1>{{ deneme.ad }}</h1>
+            <p>{{ deneme.sinav_tarihi|date:"d.m.Y" }} · {{ deneme.get_durum_display }}</p>
+        </div>
+        <a href="{% url 'yonetim:deneme_listesi' %}" class="ghost-btn">Liste</a>
+    </header>
+
+    {% if yukleyebilir and deneme.durum != 'aktif' %}
+    <section class="yonetim-card" style="margin-bottom:20px;">
+        <h2>Excel Yükle</h2>
+        <p>Optik sistemden alınan sonuç dosyasını yükleyin. Önizleme sonrası aktarım yapılır.</p>
+        <form method="post" enctype="multipart/form-data" style="margin-top:12px;">
+            {% csrf_token %}
+            <input type="file" name="excel" accept=".xlsx,.xls" class="input" required>
+            <button type="submit" class="primary-btn" style="margin-top:12px;">Yükle ve Önizle</button>
+        </form>
+    </section>
+    {% endif %}
+
+    {% if deneme.durum == 'aktif' %}
+    <section class="yonetim-card">
+        <h2>Net Sıralaması</h2>
+        <table class="yonetim-table">
+            <thead>
+                <tr><th>#</th><th>Talebe</th><th>Net</th><th>Puan</th></tr>
+            </thead>
+            <tbody>
+                {% for sonuc in sonuclar %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ sonuc.talebe.ad_soyad }}</td>
+                    <td>{{ sonuc.toplam_net }}</td>
+                    <td>{{ sonuc.puan }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

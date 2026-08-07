@@ -1,150 +1,115 @@
 {% extends "yonetim/base.html" %}
 
 {% block title %}Yönetim Merkezi{% endblock %}
-{% block page_title %}Genel Bakış{% endblock %}
 
 {% block content %}
+<div class="dash-home yonetim-dash">
 
-<section class="cs-hero">
-    <div>
-        <span class="cs-hero-label">YÖNETİM MERKEZİ</span>
-        <h2>Kurumunuzu tek merkezden yönetin.</h2>
-        <p>
-            Sınıflar, etüt hocaları ve talebe kayıtları
-            artık aynı tasarım diliyle tek panelde.
-        </p>
-    </div>
+{% include "includes/panel_hero.html" with eyebrow="Yönetim merkezi" title="Kurumunuzu tek merkezden yönetin" meta="Sınıflar, personel ve talebe kayıtları" show_date=True %}
 
-    <div class="cs-hero-actions">
-        <a
-            href="{% url 'yonetim:talebe_ekle' %}"
-            class="cs-btn cs-btn-primary"
-        >
-            Talebe Ekle
-        </a>
-
-        <a
-            href="{% url 'yonetim:personel_ekle' %}"
-            class="cs-btn cs-btn-ghost"
-        >
-            Etüt Hocası Ekle
-        </a>
-    </div>
-</section>
-
-<section class="cs-stat-grid">
-    <article class="cs-stat">
-        <span>Toplam Talebe</span>
-        <strong>{{ toplam_talebe }}</strong>
-        <small>{{ aktif_talebe }} aktif kayıt</small>
-    </article>
-
-    <article class="cs-stat">
-        <span>Etüt Hocası</span>
-        <strong>{{ toplam_personel }}</strong>
-        <small>{{ aktif_personel }} aktif personel</small>
-    </article>
-
-    <article class="cs-stat">
-        <span>Aktif Sınıf</span>
-        <strong>{{ toplam_sinif }}</strong>
-        <small>Tanımlı sınıf ve şube</small>
-    </article>
-</section>
-
-<div class="cs-grid-2">
-
-    <section class="cs-card">
-        <div class="cs-card-head">
-            <div>
-                <span class="cs-card-label">SON KAYITLAR</span>
-                <h3>Yeni Talebeler</h3>
-            </div>
-            <a href="{% url 'yonetim:talebe_listesi' %}">
-                Tümünü Gör
-            </a>
-        </div>
-
-        <div class="cs-list">
-            {% for talebe in son_talebeler %}
-                <div class="cs-list-row">
-                    <span class="cs-avatar">
-                        {{ talebe.ad_soyad|slice:":1"|upper }}
-                    </span>
-                    <div>
-                        <strong>{{ talebe.ad_soyad }}</strong>
-                        <small>
-                            {{ talebe.sinif_sube|default:"Sınıf atanmamış" }}
-                            · {{ talebe.etut_hocasi.ad_soyad }}
-                        </small>
-                    </div>
-                </div>
-            {% empty %}
-                <div class="cs-empty">Henüz talebe kaydı yok.</div>
-            {% endfor %}
-        </div>
-    </section>
-
-    <section class="cs-card">
-        <div class="cs-card-head">
-            <div>
-                <span class="cs-card-label">PERSONEL</span>
-                <h3>Etüt Hocaları</h3>
-            </div>
-            <a href="{% url 'yonetim:personel_listesi' %}">
-                Tümünü Gör
-            </a>
-        </div>
-
-        <div class="cs-list">
-            {% for personel in son_personeller %}
-                <div class="cs-list-row">
-                    <span class="cs-avatar cs-avatar-dark">
-                        {{ personel.ad_soyad|slice:":1"|upper }}
-                    </span>
-                    <div>
-                        <strong>{{ personel.ad_soyad }}</strong>
-                        <small>
-                            {{ personel.talebe_sayisi }} talebe
-                            · {{ personel.sorumlu_gruplar }}
-                        </small>
-                    </div>
-                </div>
-            {% empty %}
-                <div class="cs-empty">Henüz personel kaydı yok.</div>
-            {% endfor %}
-        </div>
-    </section>
-
+<div class="dash-quick-add">
+    <a href="{% url 'yonetim:hizli_kayit' %}" class="primary-btn">+ Hızlı Ekle</a>
+    <span>Personel · Talebe · Öğretmen</span>
 </div>
 
-<section class="cs-card cs-section-space">
-    <div class="cs-card-head">
-        <div>
-            <span class="cs-card-label">SINIFLAR</span>
-            <h3>Sınıf ve Şubeler</h3>
-        </div>
-        <a href="{% url 'yonetim:sinif_listesi' %}">
-            Tümünü Gör
-        </a>
-    </div>
+<section class="dash-metrics yonetim-metrics">
+    <article class="dash-stat dash-stat-blue">
+        <span class="dash-stat-label">Talebe</span>
+        <strong class="dash-stat-value">{{ toplam_talebe }}</strong>
+        <span class="dash-stat-note">{{ aktif_talebe }} aktif kayıt</span>
+    </article>
+    <article class="dash-stat dash-stat-green">
+        <span class="dash-stat-label">Etüt hocası</span>
+        <strong class="dash-stat-value">{{ toplam_personel }}</strong>
+        <span class="dash-stat-note">{{ aktif_personel }} aktif personel</span>
+    </article>
+    <article class="dash-stat dash-stat-violet">
+        <span class="dash-stat-label">Sınıf</span>
+        <strong class="dash-stat-value">{{ toplam_sinif }}</strong>
+        <span class="dash-stat-note">Tanımlı sınıf ve şube</span>
+    </article>
+</section>
 
-    <div class="cs-class-grid">
-        {% for sinif in siniflar %}
-            <a
-                href="{% url 'yonetim:sinif_duzenle' sinif.pk %}"
-                class="cs-class-card"
-            >
-                <strong>{{ sinif }}</strong>
-                <span>
-                    {{ sinif.talebe_sayisi }} talebe
-                    · {{ sinif.hoca_sayisi }} hoca
+<div class="dash-split">
+    <section class="dash-panel">
+        <div class="dash-panel-head">
+            <div>
+                <p class="dash-eyebrow dash-accent-eyebrow-blue">Kayıt</p>
+                <h2>Yeni talebeler</h2>
+            </div>
+            <a href="{% url 'yonetim:talebe_listesi' %}" class="dash-text-btn">Tümü</a>
+        </div>
+        <nav class="dash-shortcuts" aria-label="Son talebeler">
+            {% for talebe in son_talebeler %}
+            <a href="{% url 'yonetim:talebe_duzenle' talebe.pk %}" class="dash-shortcut">
+                <span class="dash-shortcut-icon" aria-hidden="true">{{ talebe.ad_soyad|slice:":1"|upper }}</span>
+                <span class="dash-shortcut-copy">
+                    <strong>{{ talebe.ad_soyad }}</strong>
+                    <span>
+                        {% if talebe.sinif_sube %}{{ talebe.sinif_sube }}{% elif talebe.sinif %}{{ talebe.sinif }}{% else %}Sınıf atanmamış{% endif %}
+                        · {{ talebe.etut_hocasi.ad_soyad }}
+                    </span>
                 </span>
+                <svg class="dash-shortcut-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
             </a>
+            {% empty %}
+            <p class="og-empty-note">Henüz talebe kaydı yok.</p>
+            {% endfor %}
+        </nav>
+    </section>
+
+    <section class="dash-panel">
+        <div class="dash-panel-head">
+            <div>
+                <p class="dash-eyebrow dash-accent-eyebrow-teal">Personel</p>
+                <h2>Etüt hocaları</h2>
+            </div>
+            <a href="{% url 'yonetim:personel_listesi' %}" class="dash-text-btn">Tümü</a>
+        </div>
+        <nav class="dash-shortcuts" aria-label="Son personel">
+            {% for personel in son_personeller %}
+            <a href="{% url 'yonetim:personel_duzenle' personel.pk %}" class="dash-shortcut">
+                <span class="dash-shortcut-icon" aria-hidden="true">{{ personel.ad_soyad|slice:":1"|upper }}</span>
+                <span class="dash-shortcut-copy">
+                    <strong>{{ personel.ad_soyad }}</strong>
+                    <span>{{ personel.talebe_sayisi }} talebe · {{ personel.sorumlu_gruplar }}</span>
+                </span>
+                <svg class="dash-shortcut-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+            </a>
+            {% empty %}
+            <p class="og-empty-note">Henüz personel kaydı yok.</p>
+            {% endfor %}
+        </nav>
+    </section>
+</div>
+
+<section class="dash-panel">
+    <div class="dash-panel-head">
+        <div>
+                <p class="dash-eyebrow dash-accent-eyebrow-violet">Sınıflar</p>
+            <h2>Sınıf ve şubeler</h2>
+        </div>
+        <div class="page-head-actions">
+            <a href="{% url 'yonetim:talebe_ekle' %}" class="dash-text-btn">Talebe ekle</a>
+            <a href="{% url 'yonetim:personel_ekle' %}" class="dash-text-btn">Hoca ekle</a>
+            <a href="{% url 'yonetim:sinif_listesi' %}" class="dash-text-btn">Tümü</a>
+        </div>
+    </div>
+    <div class="dash-class-list">
+        {% for sinif in siniflar %}
+        <a href="{% url 'yonetim:sinif_duzenle' sinif.pk %}" class="dash-class-row">
+            <span>{{ sinif }} · {{ sinif.talebe_sayisi }} talebe</span>
+            <em class="dash-class-status {% if sinif.aktif %}dash-class-status-ok{% else %}dash-class-status-off{% endif %}">{% if sinif.aktif %}Aktif{% else %}Pasif{% endif %}</em>
+        </a>
         {% empty %}
-            <div class="cs-empty">Henüz sınıf tanımlanmadı.</div>
+        <p class="og-empty-note">Henüz sınıf tanımlanmadı.</p>
         {% endfor %}
     </div>
 </section>
 
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/panel_date_js.html" %}
 {% endblock %}

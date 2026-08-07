@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% load static finans_extras %}
+{% block title %}{{ talebe.ad_soyad }} · Finans · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/finans-premium.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="fn-page">
+
+<header class="fn-head">
+    <div>
+        <p class="fn-crumb"><a href="{% url 'finans_panel' %}">Finans Yönetimi</a> › Öğrenci Kartı</p>
+        <h1>{{ talebe.ad_soyad }}</h1>
+        <p class="fn-sub">{{ dosya.egitim_yili.ad }} · Finans dosyası ve tahsilat geçmişi</p>
+    </div>
+    <div class="fn-head-actions">
+        <a href="{% url 'finans_panel' %}" class="fn-btn">← Listeye Dön</a>
+        {% if tahsilat_girebilir %}
+        <a href="#fn-tahsilat" class="fn-btn fn-btn-primary">+ Tahsilat</a>
+        {% endif %}
+    </div>
+</header>
+
+<section class="fn-card fn-hero">
+    <span class="fn-avatar fn-avatar-lg">{{ talebe.ad_soyad|slice:":1"|upper }}</span>
+    <div class="fn-hero-meta">
+        <h2>{{ talebe.ad_soyad }}</h2>
+        <div class="fn-info-grid">
+            <div class="fn-info-box"><span>Sınıf</span><strong>{% if talebe.sinif_sube %}{{ talebe.sinif_sube }}{% else %}{{ talebe.sinif }}{% endif %}</strong></div>
+            <div class="fn-info-box"><span>Etüt</span><strong>{{ talebe.etut_hocasi.ad_soyad|default:"—" }}</strong></div>
+            <div class="fn-info-box"><span>Numara</span><strong>{{ talebe.talebe_no|default:"—" }}</strong></div>
+            <div class="fn-info-box"><span>Toplam Ücret</span><strong>{{ dosya.toplam_ucret|para }}</strong></div>
+            <div class="fn-info-box"><span>İndirim</span><strong>{{ dosya.indirim_tutari|para }}</strong></div>
+            <div class="fn-info-box"><span>Net Ücret</span><strong>{{ dosya.net_ucret|para }}</strong></div>
+        </div>
+    </div>
+    <div class="fn-progress-wrap">
+        <span class="fn-status fn-status--{{ dosya.durum }}">{{ dosya.get_durum_display }}</span>
+        <div class="fn-info-box" style="margin:0.75rem 0">
+            <span>Ödenen</span><strong>{{ dosya.odenen_tutar|para }}</strong>
+        </div>
+        <div class="fn-info-box" style="margin-bottom:0.75rem">
+            <span>Kalan</span><strong>{{ dosya.kalan_tutar|para }}</strong>
+        </div>
+        <div class="fn-progress-label">
+            <span>Tahsilat durumu</span>
+            <span>%{{ dosya.tahsilat_orani }}</span>
+        </div>
+        <div class="fn-progress-bar"><span style="width:{{ dosya.tahsilat_orani }}%"></span></div>
+    </div>
+</section>
+
+<div class="fn-split">
+    <section class="fn-card">
+        <div class="fn-section-head"><h3>Ödeme Planı</h3></div>
+        {% if yonetebilir %}
+        <form method="post" class="fn-filters" style="margin-bottom:1rem">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="odeme_plani">
+            <input type="number" name="pesinat" value="{{ dosya.pesinat }}" step="0.01" class="fn-input" placeholder="Peşinat">
+            <input type="number" name="taksit_sayisi" value="{{ dosya.taksit_sayisi }}" min="1" max="24" class="fn-input" placeholder="Taksit">
+            <button type="submit" class="fn-btn fn-btn-sm fn-btn-primary">Planı Oluştur</button>
+        </form>
+        {% endif %}
+        <div class="fn-table-wrap">
+            <table class="fn-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Vade</th>
+                        <th>Tutar</th>
+                        <th>Ödenen</th>
+                        <th>Kalan</th>
+                        <th>Durum</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in taksitler %}
+                    <tr>
+                        <td>{{ t.sira }}</td>
+                        <td>{{ t.vade|date:"d.m.Y" }}</td>
+                        <td>{{ t.tutar|para }}</td>
+                        <td>{{ t.odenen_tutar|para }}</td>
+                        <td>{{ t.kalan|para }}</td>
+                        <td><span class="fn-status fn-status--{% if t.durum == 'odendi' %}tamamlandi{% elif t.durum == 'gecikti' %}gecikti{% elif t.durum == 'kismi' %}devam{% else %}bekliyor{% endif %}">{{ t.get_durum_display }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="fn-empty">Ödeme planı henüz oluşturulmadı.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="fn-card" id="fn-tahsilat">
+        {% if tahsilat_form %}
+        <div class="fn-section-head"><h3>Tahsilat Ekle</h3></div>
+        <form method="post" class="fn-form-grid">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="tahsilat">
+            <div class="fn-field-row">
+                <div class="fn-field">
+                    <label>{{ tahsilat_form.tarih.label }}</label>
+                    {{ tahsilat_form.tarih }}
+                </div>
+                <div class="fn-field">
+                    <label>{{ tahsilat_form.tutar.label }}</label>
+                    {{ tahsilat_form.tutar }}
+                </div>
+            </div>
+            <div class="fn-field-row">
+                <div class="fn-field">
+                    <label>{{ tahsilat_form.yontem.label }}</label>
+                    {{ tahsilat_form.yontem }}
+                </div>
+                <div class="fn-field">
+                    <label>{{ tahsilat_form.tur.label }}</label>
+                    {{ tahsilat_form.tur }}
+                </div>
+            </div>
+            <div class="fn-field">
+                <label>Taksit (opsiyonel)</label>
+                <select name="taksit_id" class="fn-input">
+                    <option value="">— Genel tahsilat —</option>
+                    {% for t in taksitler %}
+                    {% if t.kalan > 0 %}
+                    <option value="{{ t.pk }}">Taksit {{ t.sira }} · {{ t.kalan|para }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="fn-field">
+                <label>{{ tahsilat_form.aciklama.label }}</label>
+                {{ tahsilat_form.aciklama }}
+            </div>
+            <button type="submit" class="fn-btn fn-btn-primary">Kaydet</button>
+        </form>
+        {% else %}
+        <p class="fn-empty">Tahsilat giriş yetkiniz bulunmuyor.</p>
+        {% endif %}
+    </section>
+</div>
+
+<section class="fn-card" style="margin-top:1.25rem">
+    <div class="fn-section-head"><h3>Ödeme Geçmişi</h3></div>
+    <ul class="fn-timeline">
+        {% for th in tahsilatlar %}
+        <li{% if th.iptal %} class="fn-timeline--iptal"{% endif %}>
+            <div class="fn-timeline-date">{{ th.tarih|date:"d F Y" }}</div>
+            <div class="fn-timeline-body">
+                <strong>{{ th.tutar|para }}</strong> · {{ th.get_yontem_display }}
+                {% if th.kaydeden %} · {{ th.kaydeden.get_full_name|default:th.kaydeden.username }}{% endif %}
+                {% if th.iptal %}<br><small style="color:var(--fn-red)">İptal edildi</small>{% else %}<br><small style="color:var(--fn-green)">Tamamlandı</small>{% endif %}
+                {% if th.aciklama %}<br><small>{{ th.aciklama }}</small>{% endif %}
+            </div>
+        </li>
+        {% empty %}
+        <li class="fn-empty">Henüz tahsilat kaydı yok.</li>
+        {% endfor %}
+    </ul>
+</section>
+
+</div>
+{% endblock %}

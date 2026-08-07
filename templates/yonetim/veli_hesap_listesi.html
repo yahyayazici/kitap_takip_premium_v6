@@ -1,0 +1,58 @@
+{% extends "yonetim/base.html" %}
+{% block title %}Veli Hesapları{% endblock %}
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">VELİ PANELİ</p>
+        <h1>Veli Hesapları</h1>
+        <p class="muted">Veli paneli giriş hesaplarını yönetin.</p>
+    </div>
+    <div class="yonetim-page-head-actions">
+        <a href="{% url 'yonetim:veli_goruntuleme_paneli' %}" class="ghost-btn yonetim-head-ghost">Görüntüleme Paneli</a>
+        <a href="{% url 'yonetim:veli_hesap_ekle' %}" class="primary-btn">Yeni Hesap</a>
+    </div>
+</header>
+
+<section class="report-table-card yonetim-table-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">HESAPLAR</p>
+            <h2>Kayıtlı Veli Hesapları</h2>
+        </div>
+        <span class="report-record-count">{{ hesaplar|length }} hesap</span>
+    </div>
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <thead>
+                <tr>
+                    <th>Ad Soyad</th>
+                    <th>Kullanıcı</th>
+                    <th>Öğrenciler</th>
+                    <th class="yonetim-center-col">Aktif</th>
+                    <th class="yonetim-action-col">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for h in hesaplar %}
+                <tr>
+                    <td><strong>{{ h.ad_soyad }}</strong></td>
+                    <td>{{ h.user.username }}</td>
+                    <td>{% for b in h.talebe_baglantilari.all %}{{ b.talebe.ad_soyad }}{% if not forloop.last %}, {% endif %}{% empty %}<span class="muted-inline">—</span>{% endfor %}</td>
+                    <td class="yonetim-center-col">{% if h.aktif %}<span class="status-pill status-okunuyor">Evet</span>{% else %}<span class="status-pill status-iade">Hayır</span>{% endif %}</td>
+                    <td class="yonetim-action-col">
+                        <span class="yonetim-action-group">
+                            <a href="{% url 'yonetim:veli_hesap_duzenle' h.pk %}" class="yonetim-link">Düzenle</a>
+                            <a href="{% url 'yonetim:veli_goruntuleme_detay' h.pk %}" class="yonetim-link yonetim-action-btn-muted">Görüntüleme</a>
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="report-empty">Veli hesabı yok.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Raporlar · Disiplin Kurulu{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/disiplin-kurul-premium.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dk-page">
+<header class="dk-head">
+    <div>
+        <p class="dk-eyebrow"><a href="{% url 'disiplin_kurul_panel' %}" style="color:inherit;text-decoration:none;">← Disiplin Kurulu</a></p>
+        <h1>Raporlar</h1>
+    </div>
+    <div class="dk-actions">
+        <a href="{% url 'disiplin_kurul_excel' %}?{{ request.GET.urlencode }}" class="dk-btn dk-btn-ghost">Excel</a>
+    </div>
+</header>
+
+<div class="dk-stats">
+    <article class="dk-stat"><strong class="dk-stat-value">{{ ozet.toplam_kurul }}</strong><span class="dk-stat-label">Toplam Kurul</span></article>
+    <article class="dk-stat"><strong class="dk-stat-value">{{ ozet.toplam_karar }}</strong><span class="dk-stat-label">Toplam Karar</span></article>
+    <article class="dk-stat"><strong class="dk-stat-value">{{ ozet.tamamlanan }}</strong><span class="dk-stat-label">Tamamlanan</span></article>
+    <article class="dk-stat"><strong class="dk-stat-value">{{ ozet.bekleyen }}</strong><span class="dk-stat-label">Bekleyen</span></article>
+    <article class="dk-stat"><strong class="dk-stat-value">{{ ozet.geciken }}</strong><span class="dk-stat-label">Geciken</span></article>
+</div>
+
+<form method="get" class="dk-card" style="padding:20px;margin-bottom:16px;">
+    <div class="dk-filters" style="grid-template-columns:repeat(4,minmax(0,1fr));">
+        <div class="dk-field">{{ form.tarih_bas.label_tag }}{{ form.tarih_bas }}</div>
+        <div class="dk-field">{{ form.tarih_bit.label_tag }}{{ form.tarih_bit }}</div>
+        <div class="dk-field">{{ form.kurul_turu.label_tag }}{{ form.kurul_turu }}</div>
+        <div class="dk-field">{{ form.durum.label_tag }}{{ form.durum }}</div>
+    </div>
+    <div class="dk-form-actions"><button type="submit" class="dk-btn dk-btn-primary">Filtrele</button></div>
+</form>
+
+<section class="dk-card">
+    <div class="dk-card-head"><h2>Kurul Listesi</h2></div>
+    <div class="dk-card-body">
+        <div class="dk-kurul-list">
+            {% for k in ozet.kurullar %}
+            <article class="dk-kurul-item">
+                <div><span class="label">Kurul No</span><strong class="dk-kurul-no">{{ k.kurul_no }}</strong></div>
+                <div><span class="label">Öğrenci</span><strong>{{ k.talebe }}</strong></div>
+                <div><span class="label">Durum</span><span class="dk-badge" style="color:{{ k.durum_renk }};background:{{ k.durum_bg }};">{{ k.durum_etiket }}</span></div>
+                <div><span class="label">Toplantı</span><strong>{{ k.toplanti_tarihi }}</strong></div>
+                <div><a href="{{ k.detay_url }}" class="dk-btn dk-btn-sm">Detay</a></div>
+            </article>
+            {% empty %}
+            <p class="dk-empty">Kayıt bulunamadı.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Randevu Detay · {{ panel_short }}{% endblock %}
+{% block content %}
+<header class="page-head patterned-page-head">
+    <div>
+        <p class="kicker">RANDEVU</p>
+        <h1>{{ randevu.talebe.ad_soyad }}</h1>
+        <p class="muted">{{ randevu.tarih|date:"d F Y" }} · {{ randevu.baslangic|time:"H:i" }} — {{ randevu.personel.ad_soyad }}</p>
+    </div>
+    <div class="page-head-actions">
+        <a href="{% url 'randevu_panel' %}" class="ghost-btn">← Randevular</a>
+    </div>
+</header>
+
+<section class="dashboard-card">
+    <dl class="detail-grid">
+        <dt>Veli</dt><dd>{{ randevu.veli.ad_soyad|default:randevu.veli.user.get_full_name }}</dd>
+        <dt>Konu</dt><dd>{{ randevu.konu|default:"—" }}</dd>
+        <dt>Durum</dt><dd>{{ randevu.get_durum_display }}</dd>
+    </dl>
+
+    {% if randevu.gorusme %}
+    <div style="margin-top:1rem;padding:1rem;background:#f7f8fa;border-radius:12px">
+        <strong>Görüşme notu kaydedildi</strong>
+        <p>{{ randevu.gorusme.ozet }}</p>
+        <p class="muted">{{ randevu.gorusme.detay|linebreaksbr }}</p>
+        <a href="{% url 'iletisim_detay' randevu.gorusme.pk %}">İletişim kaydına git →</a>
+    </div>
+    {% elif not_form %}
+    <form method="post" style="margin-top:1.25rem">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="not">
+        <div class="form-field"><label>Özet</label>{{ not_form.ozet }}</div>
+        <div class="form-field"><label>Görüşme notu</label>{{ not_form.detay }}</div>
+        <div class="form-field"><label>Alınan kararlar</label>{{ not_form.kararlar }}</div>
+        <button type="submit" class="primary-btn">Notu Kaydet · Öğrenci Dosyasına İşle</button>
+    </form>
+    {% endif %}
+
+    {% if randevu.durum == "planlandi" %}
+    <form method="post" style="margin-top:1rem" onsubmit="return confirm('Randevu iptal edilsin mi?')">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="iptal">
+        <button type="submit" class="ghost-btn">Randevuyu İptal Et</button>
+    </form>
+    {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Ödeme Raporları{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ogretmen-odeme.css' %}">
+{% endblock %}
+
+{% block content %}
+<header class="page-head patterned-page-head">
+    <div>
+        <p class="kicker">ADMIN RAPOR</p>
+        <h1>Ödeme Raporları</h1>
+        <p class="muted">Tüm ödeme kayıtları — filtrele, incele, dışa aktar.</p>
+    </div>
+    <div class="page-head-actions">
+        <a href="{% url 'ogretmen_odeme_listesi' %}" class="ghost-btn">Ödeme Girişi</a>
+    </div>
+</header>
+
+<section class="report-filter-card">
+    <form method="get" class="oo-report-filter">
+        <label>Tarih Başlangıç<input type="date" name="baslangic" value="{{ filtre.baslangic }}"></label>
+        <label>Tarih Bitiş<input type="date" name="bitis" value="{{ filtre.bitis }}"></label>
+        <label>Gruplama
+            <select name="gruplama">
+                <option value="donemlik" {% if filtre.gruplama == 'donemlik' %}selected{% endif %}>Dönemlik</option>
+                <option value="gunluk" {% if filtre.gruplama == 'gunluk' %}selected{% endif %}>Günlük</option>
+                <option value="haftalik" {% if filtre.gruplama == 'haftalik' %}selected{% endif %}>Haftalık</option>
+                <option value="aylik" {% if filtre.gruplama == 'aylik' %}selected{% endif %}>Aylık</option>
+            </select>
+        </label>
+        <label>Öğretmen
+            <select name="ogretmen">
+                <option value="">Tümü</option>
+                {% for hoca in ogretmenler %}
+                <option value="{{ hoca.id }}" {% if filtre.ogretmen == hoca.id|stringformat:'s' %}selected{% endif %}>{{ hoca.ad_soyad }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>Branş
+            <select name="brans">
+                <option value="">Tümü</option>
+                {% for brans in branslar %}
+                <option value="{{ brans.id }}" {% if filtre.brans == brans.id|stringformat:'s' %}selected{% endif %}>{{ brans.ad }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>Sınıf
+            <select name="sinif">
+                <option value="">Tümü</option>
+                {% for sinif in siniflar %}
+                <option value="{{ sinif.id }}" {% if filtre.sinif == sinif.id|stringformat:'s' %}selected{% endif %}>{{ sinif.sinif }}-{{ sinif.sube }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <button type="submit" class="primary-btn">Filtrele</button>
+        <a href="?{{ request.GET.urlencode }}&format=pdf" class="ghost-btn" target="_blank">PDF</a>
+        <a href="?{{ request.GET.urlencode }}&format=excel" class="ghost-btn">Excel</a>
+    </form>
+</section>
+
+<section class="metric-grid report-metrics">
+    <div class="metric-card tone-blue"><span>Kayıt</span><strong>{{ istatistik.kayit_sayisi }}</strong></div>
+    <div class="metric-card tone-purple"><span>Toplam Saat</span><strong>{{ istatistik.toplam_saat }}</strong></div>
+    {% if finans_goster %}
+    <div class="metric-card tone-green"><span>Toplam Ödeme</span><strong>{{ istatistik.toplam_odeme }} ₺</strong></div>
+    {% endif %}
+</section>
+
+<section class="report-table-card">
+    <div class="responsive-table">
+        <table class="report-data-table">
+            <thead>
+                <tr>
+                    <th>Dönem / Grup</th>
+                    <th>Öğretmen</th>
+                    <th>Branş</th>
+                    <th>Sınıf</th>
+                    <th>Saat</th>
+                    {% if finans_goster %}<th>Ücret</th><th>Tutar</th>{% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for satir in satirlar %}
+                <tr>
+                    <td>{{ satir.etiket }}</td>
+                    <td><strong>{{ satir.ogretmen }}</strong></td>
+                    <td>{{ satir.brans }}</td>
+                    <td>{{ satir.sinif|default:"—" }}</td>
+                    <td class="num-col">{{ satir.toplam_saat }}</td>
+                    {% if finans_goster %}
+                    <td class="num-col">{{ satir.saatlik_ucret|default:"—" }}</td>
+                    <td class="num-col">{{ satir.odenecek_tutar }} ₺</td>
+                    {% endif %}
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="report-empty">Kayıt bulunamadı.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

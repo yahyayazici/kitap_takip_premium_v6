@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ kurul.kurul_no }} · Disiplin Kurulu{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/disiplin-kurul-premium.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dk-page">
+
+<header class="dk-head">
+    <div>
+        <p class="dk-eyebrow"><a href="{% url 'disiplin_kurul_panel' %}" style="color:inherit;text-decoration:none;">← Disiplin Kurulu</a></p>
+        <h1>{{ kurul.kurul_no }}</h1>
+        <p class="dk-sub">{{ kurul.get_kurul_turu_display }} · {{ talebe.ad_soyad }}</p>
+    </div>
+    <div class="dk-actions">
+        <a href="{% url 'disiplin_kurul_pdf' kurul.pk %}" class="dk-btn dk-btn-ghost" target="_blank">PDF Tutanak</a>
+        <a href="{{ profil_url }}" class="dk-btn dk-btn-ghost">Öğrenci Profili</a>
+        {% if duzenleyebilir and tam_yetki %}
+        <form method="post" action="{% url 'disiplin_kurul_durum_ilerlet' kurul.pk %}" style="display:inline;">
+            {% csrf_token %}
+            <select name="durum" class="dk-select" style="width:auto;display:inline-block;min-height:38px;" onchange="this.form.submit()">
+                {% for val, label in durum_secenekleri %}
+                {% if val != 'taslak' %}
+                <option value="{{ val }}" {% if kurul.durum == val %}selected{% endif %}>{{ label }}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+        </form>
+        {% endif %}
+    </div>
+</header>
+
+<article class="dk-card dk-hero">
+    <div>
+        <div class="dk-avatar">{{ talebe.ad_soyad|slice:":1"|upper }}</div>
+        <h2 style="margin:12px 0 4px;font-size:1.1rem;">{{ talebe.ad_soyad }}</h2>
+        <p class="dk-sub">{{ sinif }} · Etüt: {{ etut }}</p>
+        <p class="dk-sub">No: {{ talebe.talebe_no|default:"—" }}</p>
+    </div>
+    <div class="dk-info-grid">
+        <div class="dk-info-row"><span>Kurul Türü</span><strong>{{ kurul.get_kurul_turu_display }}</strong></div>
+        <div class="dk-info-row"><span>Kurul Numarası</span><strong>{{ kurul.kurul_no }}</strong></div>
+        <div class="dk-info-row"><span>Toplantı Tarihi</span><strong>{% if kurul.toplanti_tarihi %}{{ kurul.toplanti_tarihi|date:"d.m.Y" }}{% else %}—{% endif %}</strong></div>
+        <div class="dk-info-row"><span>Saat</span><strong>{% if kurul.toplanti_saati %}{{ kurul.toplanti_saati|time:"H:i" }}{% else %}—{% endif %}</strong></div>
+        <div class="dk-info-row"><span>Toplantı Yeri</span><strong>{{ kurul.toplanti_yeri|default:"—" }}</strong></div>
+        <div class="dk-info-row"><span>Oturum Başkanı</span><strong>{% if kurul.oturum_baskani %}{{ kurul.oturum_baskani.personel_profili.ad_soyad|default:kurul.oturum_baskani.username }}{% else %}—{% endif %}</strong></div>
+        <div class="dk-info-row"><span>Raportör</span><strong>{% if kurul.raportor %}{{ kurul.raportor.personel_profili.ad_soyad|default:kurul.raportor.username }}{% else %}—{% endif %}</strong></div>
+        <div class="dk-info-row"><span>Sonraki Kontrol</span><strong>{% if kurul.sonraki_kontrol_tarihi %}{{ kurul.sonraki_kontrol_tarihi|date:"d.m.Y" }}{% else %}—{% endif %}</strong></div>
+        <div class="dk-info-row"><span>Oluşturan</span><strong>{{ audit.olusturan }}</strong></div>
+    </div>
+    <div class="dk-status-card" style="background:{{ durum_stil.bg }};border-color:{{ durum_stil.renk }}33;">
+        <span class="label">Durum</span>
+        <strong style="color:{{ durum_stil.renk }};">{{ kurul.get_durum_display }}</strong>
+        <p class="dk-sub" style="font-size:0.8rem;">Uygulama Süreci</p>
+        {% if kurul.durum == 'uygulama' or kurul.durum == 'kontrol' %}
+        <span class="dk-badge" style="background:#fff;color:{{ durum_stil.renk }};">Aktif takip</span>
+        {% endif %}
+    </div>
+</article>
+
+<nav class="dk-card dk-timeline" aria-label="Kurul süreci">
+    {% for adim in surec %}
+    <div class="dk-timeline-step {{ adim.state }}">
+        <div class="dk-timeline-dot">{% if adim.state == 'done' %}✓{% else %}•{% endif %}</div>
+        <span>{{ adim.etiket }}</span>
+    </div>
+    {% endfor %}
+</nav>
+
+<div class="dk-layout">
+    <div>
+        <article class="dk-card" style="margin-bottom:16px;">
+            <div class="dk-card-head"><h2>Alınan Kararlar</h2>
+                {% if duzenleyebilir and tam_yetki %}<button type="button" class="dk-btn dk-btn-sm dk-btn-primary" onclick="document.getElementById('dk-karar-form').hidden=false;">+ Yeni Karar</button>{% endif %}
+            </div>
+            <div class="dk-card-body">
+                {% if duzenleyebilir and tam_yetki %}
+                <form id="dk-karar-form" method="post" action="{% url 'disiplin_kurul_karar_ekle' kurul.pk %}" class="dk-karar" hidden style="background:#f8fafc;margin-bottom:16px;">
+                    {% csrf_token %}
+                    <div class="dk-form-grid">
+                        <div class="dk-field" style="grid-column:1/-1;">{{ karar_form.metin.label_tag }}{{ karar_form.metin }}</div>
+                        <div class="dk-field">{{ karar_form.kategori.label_tag }}{{ karar_form.kategori }}</div>
+                        <div class="dk-field">{{ karar_form.sorumlu.label_tag }}{{ karar_form.sorumlu }}</div>
+                        <div class="dk-field">{{ karar_form.baslangic_tarihi.label_tag }}{{ karar_form.baslangic_tarihi }}</div>
+                        <div class="dk-field">{{ karar_form.kontrol_tarihi.label_tag }}{{ karar_form.kontrol_tarihi }}</div>
+                        <div class="dk-field">{{ karar_form.durum.label_tag }}{{ karar_form.durum }}</div>
+                        <div class="dk-field">{{ karar_form.iliskili_modul.label_tag }}{{ karar_form.iliskili_modul }}</div>
+                        <div class="dk-field" style="grid-column:1/-1;">{{ karar_form.notlar.label_tag }}{{ karar_form.notlar }}</div>
+                    </div>
+                    <div class="dk-form-actions"><button type="submit" class="dk-btn dk-btn-primary">Kararı Kaydet</button></div>
+                </form>
+                {% endif %}
+
+                {% for karar in kararlar %}
+                <article class="dk-karar">
+                    <div class="dk-karar-head">
+                        <div>
+                            <strong>{{ karar.karar_no }}</strong>
+                            <span class="dk-badge" style="color:{{ karar.kategori_renk }};background:{{ karar.kategori_bg }};">{{ karar.kategori }}</span>
+                            {% if karar.gecikti %}<span class="dk-badge dk-late" style="background:#fef2f2;">Gecikti</span>{% elif karar.uyari %}<span class="dk-badge" style="background:#fffbeb;color:#d97706;">2 gün kaldı</span>{% endif %}
+                        </div>
+                        {% if duzenleyebilir %}
+                        <form method="post" action="{% url 'disiplin_kurul_karar_durum' kurul.pk karar.pk %}" style="display:flex;gap:8px;flex-wrap:wrap;">
+                            {% csrf_token %}
+                            <select name="durum" class="dk-select" style="min-height:32px;">
+                                {% for val, label in durum_form.fields.durum.choices %}
+                                <option value="{{ val }}" {% if karar.durum == val %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            <input type="text" name="not_metni" class="dk-input" placeholder="Not ekle…" style="min-width:140px;">
+                            <button type="submit" class="dk-btn dk-btn-sm">Güncelle</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    <p>{{ karar.metin }}</p>
+                    <div class="dk-karar-meta">
+                        <div><span>Sorumlu</span><strong>{{ karar.sorumlu }}</strong></div>
+                        <div><span>Başlangıç</span><strong>{{ karar.baslangic }}</strong></div>
+                        <div><span>Kontrol</span><strong>{{ karar.kontrol }}</strong></div>
+                        <div><span>Modül</span><strong>{{ karar.modul }}</strong></div>
+                    </div>
+                    {% if karar.notlar %}<p class="dk-sub"><em>{{ karar.notlar }}</em></p>{% endif %}
+                    <div class="dk-mini-timeline">
+                        {% for step in karar.timeline %}
+                        <span class="dk-mini-step {{ step.state }}">{{ step.etiket }}</span>
+                        {% endfor %}
+                    </div>
+                </article>
+                {% empty %}
+                <p class="dk-empty">Henüz karar eklenmedi.</p>
+                {% endfor %}
+            </div>
+        </article>
+    </div>
+
+    <aside class="dk-side-stack">
+        <article class="dk-card">
+            <div class="dk-card-head"><h2>Kurul Katılımcıları</h2></div>
+            <div class="dk-card-body">
+                <div class="dk-participants">
+                    {% for p in katilimcilar %}
+                    <div class="dk-participant">
+                        <span class="dk-participant-avatar">{{ p.bas_harf }}</span>
+                        <div>
+                            <strong>{{ p.ad }}</strong><br>
+                            <small>{{ p.kurum_gorevi }}</small><br>
+                            <small style="color:var(--dk-accent);">{{ p.kurul_gorevi }}</small>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="dk-empty">Katılımcı tanımlı değil.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </article>
+
+        <article class="dk-card">
+            <div class="dk-card-head"><h2>Gündem Maddeleri</h2></div>
+            <div class="dk-card-body">
+                <ul class="dk-agenda">
+                    {% for g in gundem %}
+                    <li>
+                        <span><span class="dk-agenda-num">{{ g.sira|stringformat:"02d" }}</span> {{ g.baslik }}</span>
+                        <span class="dk-badge" style="{% if g.durum == 'goruldu' %}background:#dcfce7;color:#166534;{% else %}background:#f1f5f9;color:#64748b;{% endif %}">{{ g.durum_etiket }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </article>
+
+        <article class="dk-card">
+            <div class="dk-card-head"><h2>Denetim</h2></div>
+            <div class="dk-card-body" style="font-size:0.8125rem;color:var(--dk-muted);">
+                <p>Oluşturan: <strong style="color:var(--dk-navy);">{{ audit.olusturan }}</strong></p>
+                <p>Son düzenleyen: <strong style="color:var(--dk-navy);">{{ audit.son_duzenleyen }}</strong></p>
+                <p>Oluşturma: {{ audit.olusturulma }}</p>
+                <p>Güncelleme: {{ audit.guncellenme }}</p>
+            </div>
+        </article>
+    </aside>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Akademik Takip · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/akademik-takip.css' %}">
+{% endblock %}
+{% block content %}
+<div class="at-page">
+    <header class="at-page-head">
+        <h1>Akademik Takip</h1>
+        <p>Öğrencilerin akademik eksikliklerine yönelik müdahalelerinizi kaydedin ve takip edin.</p>
+    </header>
+
+    <div class="at-top-actions">
+        {% if olusturabilir %}
+        <a href="#yeni-kayit" class="at-purple-btn">+ Yeni Kayıt ve Günlük</a>
+        {% endif %}
+        <a href="{% url 'akademik_mudahale_rapor' %}" class="at-outline-btn">Rapor & Analiz</a>
+    </div>
+
+    <div class="at-split">
+        {% if olusturabilir and form %}
+        <aside class="at-form-card" id="yeni-kayit">
+            <div class="at-form-card-head">⊕ Yeni Müdahale Kaydı</div>
+            <div class="at-form-card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                    <div class="at-field">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="at-field">
+                        <label for="panel_sinif">Sınıf <span class="req">*</span></label>
+                        <select id="panel_sinif">
+                            <option value="">Sınıf Seçin</option>
+                            {% for ss in sinif_subeler %}
+                            <option value="{{ ss.id }}">{{ ss.sinif }}-{{ ss.sube }}</option>
+                            {% empty %}
+                            <option value="7-A">7-A</option>
+                            <option value="7-B">7-B</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="at-field">
+                        <label for="{{ form.talebe.id_for_label }}">Öğrenci <span class="req">*</span></label>
+                        {{ form.talebe }}
+                        {{ form.talebe.errors }}
+                    </div>
+
+                    <div class="at-field">
+                        <label for="{{ form.mudahale_turu.id_for_label }}">Müdahale Türü <span class="req">*</span></label>
+                        {{ form.mudahale_turu }}
+                        {{ form.mudahale_turu.errors }}
+                    </div>
+
+                    <div class="at-field">
+                        <label for="{{ form.ders.id_for_label }}">Ders</label>
+                        {{ form.ders }}
+                        {{ form.ders.errors }}
+                    </div>
+
+                    <div class="at-field">
+                        <label for="{{ form.konu.id_for_label }}">Konu Adı</label>
+                        {{ form.konu }}
+                        {{ form.konu.errors }}
+                    </div>
+
+                    <div class="at-field">
+                        <label for="{{ form.sure_dakika.id_for_label }}">Süre (dakika)</label>
+                        {{ form.sure_dakika }}
+                        {{ form.sure_dakika.errors }}
+                    </div>
+
+                    <div id="ek-alanlar" class="at-ek-grid"></div>
+
+                    <div class="at-field">
+                        <label for="{{ form.degerlendirme_notu.id_for_label }}">Değerlendirme Notu</label>
+                        {{ form.degerlendirme_notu }}
+                        {{ form.degerlendirme_notu.errors }}
+                    </div>
+
+                    <button type="submit" class="at-submit-btn">+ Müdahale Kaydı Ekle</button>
+                </form>
+            </div>
+        </aside>
+        {% endif %}
+
+        <section class="at-list-card">
+            <div class="at-list-card-head">
+                <span>☰ Müdahale Kayıtları</span>
+                <div class="at-tabs">
+                    <a href="{% url 'akademik_mudahale_listesi' %}" class="at-tab {% if not filtre_sinif %}active{% endif %}">Tümü</a>
+                    {% for ss in sinif_subeler %}
+                    <a href="?sinif_sube={{ ss.id }}" class="at-tab {% if filtre_sinif == ss.id|stringformat:'s' %}active{% endif %}">{{ ss.sinif }}-{{ ss.sube }}</a>
+                    {% empty %}
+                    <a href="?sinif_sube=7-A" class="at-tab">7-A</a>
+                    <a href="?sinif_sube=7-B" class="at-tab">7-B</a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="at-records">
+                {% for kayit in kayitlar %}
+                <article class="at-record-item">
+                    <div>
+                        <strong>{{ kayit.talebe.ad_soyad }}</strong>
+                        {% if kayit.talebe.talebe_no %}<span style="color:#94a3b8;font-size:12px;"> · #{{ kayit.talebe.talebe_no }}</span>{% endif %}
+                        <div class="at-record-meta">
+                            <span class="at-tur-pill" style="background:{{ kayit.mudahale_turu.renk }};">{{ kayit.mudahale_turu.ikon }} {{ kayit.mudahale_turu.ad }}</span>
+                            {% if kayit.ders %}<span>{{ kayit.ders.ad }}</span>{% endif %}
+                            {% if kayit.konu %}<span>{{ kayit.konu }}</span>{% endif %}
+                            {% if kayit.sure_dakika %}<span>{{ kayit.sure_dakika }} dk</span>{% endif %}
+                            <span>{{ kayit.tarih|date:"d.m.Y" }}</span>
+                        </div>
+                    </div>
+                    <a href="{% url 'akademik_mudahale_detay' kayit.pk %}" class="at-outline-btn" style="align-self:center;">Detay</a>
+                </article>
+                {% empty %}
+                <div class="at-empty">
+                    <div class="at-empty-icon">📥</div>
+                    <p>Henüz kayıt bulunmuyor.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+</div>
+
+{% if olusturabilir and form %}
+<script>
+(function () {
+    const talebeler = {{ talebeler_json|safe }};
+    const semalar = {{ tur_semalari_json|safe }};
+    const sinifSelect = document.getElementById("panel_sinif");
+    const talebeSelect = document.getElementById("id_talebe");
+    const turSelect = document.getElementById("id_mudahale_turu");
+    const ekContainer = document.getElementById("ek-alanlar");
+
+    function sinifEtiket(t) {
+        if (t.sinif_sube_id) return String(t.sinif_sube_id);
+        return t.sinif_etiket || "";
+    }
+
+    function talebeLabel(t) {
+        return t.talebe_no ? `${t.ad_soyad} (${t.talebe_no})` : t.ad_soyad;
+    }
+
+    function renderTalebeler() {
+        if (!talebeSelect) return;
+        const seciliSinif = sinifSelect ? sinifSelect.value : "";
+        const mevcut = talebeSelect.value;
+        talebeSelect.innerHTML = "";
+        const placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.textContent = "Öğrenci Seçin";
+        talebeSelect.appendChild(placeholder);
+
+        talebeler.forEach(function (t) {
+            if (seciliSinif && String(t.sinif_sube_id) !== seciliSinif && t.sinif_etiket !== seciliSinif) {
+                return;
+            }
+            const opt = document.createElement("option");
+            opt.value = t.id;
+            opt.textContent = talebeLabel(t);
+            if (String(t.id) === mevcut) opt.selected = true;
+            talebeSelect.appendChild(opt);
+        });
+    }
+
+    function renderEkAlanlar() {
+        if (!ekContainer || !turSelect) return;
+        ekContainer.innerHTML = "";
+        const turId = turSelect.value;
+        if (!turId || !semalar[turId]) return;
+        semalar[turId].forEach(function (alan) {
+            const wrap = document.createElement("div");
+            wrap.className = "at-field";
+            wrap.style.marginBottom = "0";
+            const label = document.createElement("label");
+            label.textContent = alan.label;
+            const input = document.createElement("input");
+            input.name = "ek_" + alan.key;
+            input.placeholder = alan.label;
+            input.type = alan.type === "number" ? "number" : "text";
+            wrap.appendChild(label);
+            wrap.appendChild(input);
+            ekContainer.appendChild(wrap);
+        });
+    }
+
+    if (sinifSelect) {
+        if (sinifSelect.options.length > 1) sinifSelect.selectedIndex = 1;
+        sinifSelect.addEventListener("change", renderTalebeler);
+    }
+    if (turSelect) {
+        turSelect.addEventListener("change", renderEkAlanlar);
+    }
+    renderTalebeler();
+    renderEkAlanlar();
+})();
+</script>
+{% endif %}
+{% endblock %}

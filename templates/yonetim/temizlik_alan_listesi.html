@@ -1,0 +1,66 @@
+{% extends "yonetim/base.html" %}
+
+{% block title %}Temizlik Alanları{% endblock %}
+
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">TEMİZLİK YÖNETİMİ</p>
+        <h1>Temizlik Alanları</h1>
+        <p class="muted">Koridor, yemekhane ve diğer bölgeleri tanımlayın; listelerde kullanın.</p>
+    </div>
+    <div class="yonetim-page-head-actions">
+        <a href="{% url 'yonetim:temizlik_listesi' %}" class="ghost-btn yonetim-head-ghost">Listeler</a>
+        <a href="{% url 'yonetim:temizlik_alan_ekle' %}" class="primary-btn">Alan Ekle</a>
+    </div>
+</header>
+
+<section class="report-table-card yonetim-table-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">ALAN KATALOĞU</p>
+            <h2>Tüm Bölgeler</h2>
+        </div>
+        <span class="report-record-count">{{ alanlar|length }} alan</span>
+    </div>
+
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <thead>
+                <tr>
+                    <th>Sıra</th>
+                    <th>Alan</th>
+                    <th>Açıklama</th>
+                    <th>Durum</th>
+                    <th class="yonetim-action-col">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alan in alanlar %}
+                <tr>
+                    <td class="num-col">{{ alan.sira }}</td>
+                    <td><strong>{{ alan.ad }}</strong></td>
+                    <td>{{ alan.aciklama|default:"—" }}</td>
+                    <td>
+                        {% if alan.aktif %}
+                            <span class="status-pill status-okunuyor">Aktif</span>
+                        {% else %}
+                            <span class="status-pill status-iade">Pasif</span>
+                        {% endif %}
+                    </td>
+                    <td class="yonetim-action-col">
+                        <a href="{% url 'yonetim:temizlik_alan_duzenle' alan.pk %}" class="yonetim-link">Düzenle</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="report-empty">Henüz temizlik alanı tanımlanmamış.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

@@ -1,11 +1,31 @@
 from django.urls import path
 
+from . import veli_goruntuleme_yonetim_views
+from . import veli_yonetim_views
+from . import talebe_yonetim_views
+from . import deneme_yonetim_views
+from . import yazili_takip_yonetim_views
+from . import dini_ders_takip_yonetim_views
+from . import akademik_mudahale_yonetim_views
+from . import ktt_yonetim_views
+from . import yonetim_rbac_views
 from . import yonetim_views
+from . import ogretmen_odeme_yonetim_views
+from . import mezun_yonetim_views
+from . import aidat_yonetim_views
+from . import veli_randevu_yonetim_views
+from . import yonetim_hizli_kayit_views
 
 app_name = "yonetim"
 
 urlpatterns = [
     path("", yonetim_views.dashboard, name="dashboard"),
+
+    path(
+        "ekle/",
+        yonetim_hizli_kayit_views.hizli_kayit,
+        name="hizli_kayit",
+    ),
 
     path(
         "siniflar/",
@@ -53,5 +73,436 @@ urlpatterns = [
         "talebeler/<int:pk>/duzenle/",
         yonetim_views.talebe_duzenle,
         name="talebe_duzenle",
+    ),
+    path(
+        "talebeler/excel-yukle/",
+        yonetim_views.talebe_excel_yukle,
+        name="talebe_excel_yukle",
+    ),
+    path(
+        "talebeler/excel-sablon/",
+        yonetim_views.talebe_excel_sablon_indir,
+        name="talebe_excel_sablon_indir",
+    ),
+    path(
+        "talebeler/excel-mevcut/",
+        yonetim_views.talebe_excel_mevcut_indir,
+        name="talebe_excel_mevcut_indir",
+    ),
+    path(
+        "talebeler/rapor/pdf/",
+        yonetim_views.talebe_liste_raporu_pdf,
+        name="talebe_liste_raporu_pdf",
+    ),
+
+    path(
+        "ogretmen-odeme-profilleri/",
+        ogretmen_odeme_yonetim_views.ogretmen_odeme_profil_listesi,
+        name="ogretmen_odeme_profil_listesi",
+    ),
+    path(
+        "ogretmen-odeme-profilleri/<int:pk>/duzenle/",
+        ogretmen_odeme_yonetim_views.ogretmen_odeme_profil_duzenle,
+        name="ogretmen_odeme_profil_duzenle",
+    ),
+    path(
+        "ogretmen-odeme-profilleri/<int:pk>/sil/",
+        ogretmen_odeme_yonetim_views.ogretmen_odeme_profil_sil,
+        name="ogretmen_odeme_profil_sil",
+    ),
+
+    path(
+        "mezuniyet/",
+        mezun_yonetim_views.mezuniyet_islemi,
+        name="mezuniyet_islemi",
+    ),
+    path(
+        "mezunlar/<int:pk>/duzenle/",
+        mezun_yonetim_views.mezun_profil_duzenle,
+        name="mezun_profil_duzenle",
+    ),
+
+    path(
+        "aidat-tanimlari/",
+        aidat_yonetim_views.aidat_tanim_listesi,
+        name="aidat_tanim_listesi",
+    ),
+    path(
+        "aidat-tanimlari/ekle/",
+        aidat_yonetim_views.aidat_tanim_ekle,
+        name="aidat_tanim_ekle",
+    ),
+    path(
+        "aidat-tanimlari/<int:pk>/duzenle/",
+        aidat_yonetim_views.aidat_tanim_duzenle,
+        name="aidat_tanim_duzenle",
+    ),
+
+    path(
+        "veli-hesaplari/",
+        veli_yonetim_views.veli_hesap_listesi,
+        name="veli_hesap_listesi",
+    ),
+    path(
+        "veli-hesaplari/ekle/",
+        veli_yonetim_views.veli_hesap_ekle,
+        name="veli_hesap_ekle",
+    ),
+    path(
+        "veli-hesaplari/<int:pk>/duzenle/",
+        veli_yonetim_views.veli_hesap_duzenle,
+        name="veli_hesap_duzenle",
+    ),
+    path(
+        "veli-randevu/",
+        veli_randevu_yonetim_views.randevu_personel_listesi,
+        name="randevu_personel_listesi",
+    ),
+    path(
+        "veli-randevu/<int:pk>/",
+        veli_randevu_yonetim_views.randevu_personel_ayar,
+        name="randevu_personel_ayar",
+    ),
+    path(
+        "veli-goruntuleme/",
+        veli_goruntuleme_yonetim_views.veli_goruntuleme_paneli,
+        name="veli_goruntuleme_paneli",
+    ),
+    path(
+        "veli-goruntuleme/<int:pk>/",
+        veli_goruntuleme_yonetim_views.veli_goruntuleme_detay_view,
+        name="veli_goruntuleme_detay",
+    ),
+
+    path(
+        "talebe-hesaplari/",
+        talebe_yonetim_views.talebe_hesap_listesi,
+        name="talebe_hesap_listesi",
+    ),
+    path(
+        "talebe-hesaplari/ekle/",
+        talebe_yonetim_views.talebe_hesap_ekle,
+        name="talebe_hesap_ekle",
+    ),
+    path(
+        "talebe-hesaplari/<int:pk>/duzenle/",
+        talebe_yonetim_views.talebe_hesap_duzenle,
+        name="talebe_hesap_duzenle",
+    ),
+
+    path(
+        "duyurular/",
+        yonetim_views.duyuru_listesi,
+        name="duyuru_listesi",
+    ),
+    path(
+        "duyurular/ekle/",
+        yonetim_views.duyuru_ekle,
+        name="duyuru_ekle",
+    ),
+    path(
+        "duyurular/<int:pk>/duzenle/",
+        yonetim_views.duyuru_duzenle,
+        name="duyuru_duzenle",
+    ),
+    path(
+        "duyurular/<int:pk>/sil/",
+        yonetim_views.duyuru_sil,
+        name="duyuru_sil",
+    ),
+
+    path(
+        "programlar/",
+        yonetim_views.program_listesi,
+        name="program_listesi",
+    ),
+    path(
+        "programlar/ekle/",
+        yonetim_views.program_ekle,
+        name="program_ekle",
+    ),
+    path(
+        "programlar/<int:pk>/duzenle/",
+        yonetim_views.program_duzenle,
+        name="program_duzenle",
+    ),
+    path(
+        "programlar/<int:pk>/pdf/",
+        yonetim_views.program_pdf,
+        name="program_pdf",
+    ),
+
+    path(
+        "imam-muezzin/",
+        yonetim_views.imam_listesi,
+        name="imam_listesi",
+    ),
+    path(
+        "imam-muezzin/ekle/",
+        yonetim_views.imam_ekle,
+        name="imam_ekle",
+    ),
+    path(
+        "imam-muezzin/<int:pk>/gorev/",
+        yonetim_views.imam_gorev_panel,
+        name="imam_gorev_panel",
+    ),
+    path(
+        "imam-muezzin/<int:pk>/onizleme/",
+        yonetim_views.imam_onizleme,
+        name="imam_onizleme",
+    ),
+    path(
+        "imam-muezzin/<int:pk>/duzenle/",
+        yonetim_views.imam_duzenle,
+        name="imam_duzenle",
+    ),
+    path(
+        "imam-muezzin/<int:pk>/pdf/",
+        yonetim_views.imam_pdf,
+        name="imam_pdf",
+    ),
+
+    path(
+        "temizlik/alanlar/",
+        yonetim_views.temizlik_alan_listesi,
+        name="temizlik_alan_listesi",
+    ),
+    path(
+        "temizlik/alanlar/ekle/",
+        yonetim_views.temizlik_alan_ekle,
+        name="temizlik_alan_ekle",
+    ),
+    path(
+        "temizlik/alanlar/<int:pk>/duzenle/",
+        yonetim_views.temizlik_alan_duzenle,
+        name="temizlik_alan_duzenle",
+    ),
+    path(
+        "temizlik/",
+        yonetim_views.temizlik_listesi,
+        name="temizlik_listesi",
+    ),
+    path(
+        "temizlik/ekle/",
+        yonetim_views.temizlik_ekle,
+        name="temizlik_ekle",
+    ),
+    path(
+        "temizlik/<int:pk>/gorev/",
+        yonetim_views.temizlik_gorev_panel,
+        name="temizlik_gorev_panel",
+    ),
+    path(
+        "temizlik/<int:pk>/duzenle/",
+        yonetim_views.temizlik_duzenle,
+        name="temizlik_duzenle",
+    ),
+    path(
+        "temizlik/<int:pk>/pdf/",
+        yonetim_views.temizlik_pdf,
+        name="temizlik_pdf",
+    ),
+    path(
+        "temizlik/<int:pk>/rapor/",
+        yonetim_views.temizlik_rapor,
+        name="temizlik_rapor",
+    ),
+
+    path(
+        "yemekcilik/ogunler/",
+        yonetim_views.yemek_ogun_listesi,
+        name="yemek_ogun_listesi",
+    ),
+    path(
+        "yemekcilik/ogunler/ekle/",
+        yonetim_views.yemek_ogun_ekle,
+        name="yemek_ogun_ekle",
+    ),
+    path(
+        "yemekcilik/ogunler/<int:pk>/duzenle/",
+        yonetim_views.yemek_ogun_duzenle,
+        name="yemek_ogun_duzenle",
+    ),
+    path(
+        "yemekcilik/",
+        yonetim_views.yemekci_listesi,
+        name="yemekci_listesi",
+    ),
+    path(
+        "yemekcilik/ekle/",
+        yonetim_views.yemekci_ekle,
+        name="yemekci_ekle",
+    ),
+    path(
+        "yemekcilik/<int:pk>/duzenle/",
+        yonetim_views.yemekci_duzenle,
+        name="yemekci_duzenle",
+    ),
+    path(
+        "yemekcilik/<int:pk>/pdf/",
+        yonetim_views.yemekci_pdf,
+        name="yemekci_pdf",
+    ),
+
+    path(
+        "ktt/<int:pk>/sil/",
+        ktt_yonetim_views.ktt_sil,
+        name="ktt_sil",
+    ),
+    path(
+        "ktt/<int:pk>/veli-toggle/",
+        ktt_yonetim_views.ktt_veli_toggle,
+        name="ktt_veli_toggle",
+    ),
+    path(
+        "ktt/",
+        ktt_yonetim_views.ktt_listesi,
+        name="ktt_listesi",
+    ),
+
+    path(
+        "mudahale-turleri/",
+        akademik_mudahale_yonetim_views.mudahale_turu_listesi,
+        name="mudahale_turu_listesi",
+    ),
+    path(
+        "mudahale-turleri/ekle/",
+        akademik_mudahale_yonetim_views.mudahale_turu_ekle,
+        name="mudahale_turu_ekle",
+    ),
+    path(
+        "mudahale-turleri/<int:pk>/duzenle/",
+        akademik_mudahale_yonetim_views.mudahale_turu_duzenle,
+        name="mudahale_turu_duzenle",
+    ),
+    path(
+        "mudahale-turleri/<int:pk>/sil/",
+        akademik_mudahale_yonetim_views.mudahale_turu_sil,
+        name="mudahale_turu_sil",
+    ),
+
+    path(
+        "dini-ders/seviyeler/",
+        dini_ders_takip_yonetim_views.dini_ders_seviye_listesi,
+        name="dini_ders_seviye_listesi",
+    ),
+    path(
+        "dini-ders/seviyeler/<int:pk>/duzenle/",
+        dini_ders_takip_yonetim_views.dini_ders_seviye_duzenle,
+        name="dini_ders_seviye_duzenle",
+    ),
+    path(
+        "dini-ders/alanlar/",
+        dini_ders_takip_yonetim_views.dini_ders_alan_listesi,
+        name="dini_ders_alan_listesi",
+    ),
+    path(
+        "dini-ders/alanlar/ekle/",
+        dini_ders_takip_yonetim_views.dini_ders_alan_ekle,
+        name="dini_ders_alan_ekle",
+    ),
+    path(
+        "dini-ders/alanlar/<int:pk>/duzenle/",
+        dini_ders_takip_yonetim_views.dini_ders_alan_duzenle,
+        name="dini_ders_alan_duzenle",
+    ),
+    path(
+        "dini-ders/konular/",
+        dini_ders_takip_yonetim_views.dini_ders_konu_listesi,
+        name="dini_ders_konu_listesi",
+    ),
+    path(
+        "dini-ders/konular/ekle/",
+        dini_ders_takip_yonetim_views.dini_ders_konu_ekle,
+        name="dini_ders_konu_ekle",
+    ),
+    path(
+        "dini-ders/konular/<int:pk>/duzenle/",
+        dini_ders_takip_yonetim_views.dini_ders_konu_duzenle,
+        name="dini_ders_konu_duzenle",
+    ),
+
+    path(
+        "denemeler/",
+        deneme_yonetim_views.deneme_listesi,
+        name="deneme_listesi",
+    ),
+    path(
+        "denemeler/ekle/",
+        deneme_yonetim_views.deneme_ekle,
+        name="deneme_ekle",
+    ),
+    path(
+        "denemeler/rapor/",
+        deneme_yonetim_views.deneme_rapor,
+        name="deneme_rapor",
+    ),
+    path(
+        "denemeler/<int:pk>/",
+        deneme_yonetim_views.deneme_detay,
+        name="deneme_detay",
+    ),
+    path(
+        "denemeler/<int:pk>/onizleme/",
+        deneme_yonetim_views.deneme_onizleme,
+        name="deneme_onizleme",
+    ),
+
+    path(
+        "yazili-takip/",
+        yazili_takip_yonetim_views.yazili_kamp_listesi,
+        name="yazili_kamp_listesi",
+    ),
+    path(
+        "yazili-takip/ekle/",
+        yazili_takip_yonetim_views.yazili_kamp_ekle,
+        name="yazili_kamp_ekle",
+    ),
+    path(
+        "yazili-takip/<int:pk>/",
+        yazili_takip_yonetim_views.yazili_kamp_detay,
+        name="yazili_kamp_detay",
+    ),
+    path(
+        "yazili-takip/<int:pk>/duzenle/",
+        yazili_takip_yonetim_views.yazili_kamp_duzenle,
+        name="yazili_kamp_duzenle",
+    ),
+    path(
+        "yazili-takip/<int:pk>/sil/",
+        yazili_takip_yonetim_views.yazili_kamp_sil,
+        name="yazili_kamp_sil",
+    ),
+    path(
+        "yazili-takip/<int:kamp_pk>/sinav/ekle/",
+        yazili_takip_yonetim_views.yazili_sinav_ekle,
+        name="yazili_sinav_ekle",
+    ),
+    path(
+        "yazili-takip/sinav/<int:pk>/",
+        yazili_takip_yonetim_views.yazili_sinav_detay,
+        name="yazili_sinav_detay",
+    ),
+    path(
+        "yazili-takip/sinav/<int:pk>/duzenle/",
+        yazili_takip_yonetim_views.yazili_sinav_duzenle,
+        name="yazili_sinav_duzenle",
+    ),
+    path(
+        "yazili-takip/sinav/<int:pk>/sil/",
+        yazili_takip_yonetim_views.yazili_sinav_sil,
+        name="yazili_sinav_sil",
+    ),
+
+    path(
+        "yetkiler/roller/",
+        yonetim_rbac_views.rol_listesi,
+        name="rol_listesi",
+    ),
+    path(
+        "yetkiler/roller/<int:pk>/",
+        yonetim_rbac_views.rol_duzenle,
+        name="rol_duzenle",
     ),
 ]

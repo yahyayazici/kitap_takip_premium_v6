@@ -1,0 +1,96 @@
+{% extends "yonetim/base.html" %}
+{% load static %}
+
+{% block title %}Temizlik Raporları · {{ liste.ad }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/temizlik-premium.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="tz-page tz-merkez">
+    <header class="tz-head">
+        <div>
+            <p class="tz-crumb">
+                <a href="{% url 'yonetim:temizlik_listesi' %}">Temizlik</a> ›
+                <a href="{% url 'yonetim:temizlik_gorev_panel' liste.pk %}">{{ liste.ad }}</a> › Raporlar
+            </p>
+            <h1>Temizlik Raporları</h1>
+            <p class="tz-sub">Kat, mahal, talebe ve personel bazında filtreleyin; PDF veya Excel alın.</p>
+        </div>
+        <div class="tz-head-actions">
+            <a href="{% url 'yonetim:temizlik_gorev_panel' liste.pk %}" class="tz-btn">← Yönetim Merkezi</a>
+        </div>
+    </header>
+
+    <form method="get" class="tz-kat-card" style="padding:20px 24px;margin-bottom:24px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;">
+            <label>Kat
+                <select name="kat" class="tz-input">
+                    <option value="">Tümü</option>
+                    {% for val, label in kat_secenekleri %}
+                    <option value="{{ val }}" {% if filtre.kat_id == val|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>Mahal
+                <select name="mahal" class="tz-input">
+                    <option value="">Tümü</option>
+                    {% for val, label in mahal_secenekleri %}
+                    <option value="{{ val }}" {% if filtre.mahal_id == val|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>Talebe
+                <select name="talebe" class="tz-input">
+                    <option value="">Tümü</option>
+                    {% for t in talebeler %}
+                    <option value="{{ t.pk }}" {% if filtre.talebe_id == t.pk|stringformat:"s" %}selected{% endif %}>{{ t.ad_soyad }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>Sorumlu Personel
+                <select name="personel" class="tz-input">
+                    <option value="">Tümü</option>
+                    {% for p in personeller %}
+                    <option value="{{ p.id }}" {% if filtre.personel_id == p.id|stringformat:"s" %}selected{% endif %}>{{ p.ad }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>Tarih
+                <input type="date" name="tarih" class="tz-input" value="{{ filtre.tarih }}">
+            </label>
+        </div>
+        <div class="tz-toolbar" style="margin:16px 0 0;">
+            <button type="submit" class="tz-btn tz-btn-primary">Filtrele</button>
+            <a href="{% url 'yonetim:temizlik_rapor' liste.pk %}?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}format=pdf" class="tz-btn">PDF</a>
+            <a href="{% url 'yonetim:temizlik_rapor' liste.pk %}?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}format=excel" class="tz-btn">Excel</a>
+        </div>
+    </form>
+
+    <section class="tz-kat-card">
+        <div class="tz-mahal-list">
+            {% for row in satirlar %}
+            <article class="tz-mahal-card">
+                <div class="tz-mahal-main">
+                    <div>
+                        <strong>{{ row.kat }} · {{ row.mahal }}</strong>
+                        <small>{{ row.sorumlular }}</small>
+                    </div>
+                </div>
+                <div class="tz-chip-row">
+                    <span class="tz-talebe-chip">👤 {{ row.talebe }}</span>
+                </div>
+                <div class="tz-mahal-controls">
+                    <span class="tz-muted">{{ row.durum }}</span>
+                </div>
+            </article>
+            {% empty %}
+            <p class="tz-empty">Filtreye uygun kayıt yok.</p>
+            {% endfor %}
+        </div>
+        <footer class="tz-kat-foot">
+            <span>Toplam <strong>{{ satirlar|length }}</strong> satır</span>
+        </footer>
+    </section>
+</div>
+{% endblock %}

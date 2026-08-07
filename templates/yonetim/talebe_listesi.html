@@ -1,84 +1,102 @@
 {% extends "yonetim/base.html" %}
 
 {% block title %}Talebeler{% endblock %}
-{% block page_title %}Talebe Yönetimi{% endblock %}
 
 {% block content %}
 
-<section class="cs-page-head">
+<header class="page-head patterned-page-head yonetim-page-head">
     <div>
-        <span class="cs-card-label">TALEBE YÖNETİMİ</span>
-        <h2>Talebeler</h2>
-        <p>Talebe kayıtlarını görüntüleyin ve düzenleyin.</p>
+        <p class="kicker">TALEBE YÖNETİMİ</p>
+        <h1>Talebeler</h1>
+        <p class="muted">Talebe kayıtlarını görüntüleyin ve düzenleyin.</p>
+    </div>
+    <div class="yonetim-page-head-actions">
+        {% include "includes/talebe_liste_rapor_panel.html" %}
+        <a href="{% url 'yonetim:talebe_excel_yukle' %}" class="ghost-btn yonetim-head-ghost">Excel ile Yükle</a>
+        <a href="{% url 'yonetim:talebe_ekle' %}" class="primary-btn">Talebe Ekle</a>
+    </div>
+</header>
+
+<section class="report-table-card yonetim-table-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">TALEBE LİSTESİ</p>
+            <h2>Kayıtlı Talebeler</h2>
+        </div>
+        <span class="report-record-count">{{ talebeler|length }} talebe</span>
     </div>
 
-    <a
-        href="{% url 'yonetim:talebe_ekle' %}"
-        class="cs-btn cs-btn-primary"
-    >
-        Talebe Ekle
-    </a>
-</section>
+    <div class="yonetim-toolbar">
+        <form method="get" class="yonetim-search">
+            <input type="search" name="q" value="{{ arama }}" placeholder="Talebe, numara, sınıf veya hoca ara..." class="yonetim-input">
+            <button class="primary-btn yonetim-search-btn" type="submit">Ara</button>
+        </form>
+    </div>
 
-<section class="cs-card">
-
-    <form method="get" class="cs-search">
-        <input
-            type="search"
-            name="q"
-            value="{{ arama }}"
-            placeholder="Talebe, numara, sınıf veya etüt hocası ara..."
-            class="cs-input"
-        >
-        <button class="cs-btn cs-btn-light">Ara</button>
-    </form>
-
-    <div class="cs-table-wrap">
-        <table class="cs-table">
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <colgroup>
+                <col style="width:8%">
+                <col style="width:22%">
+                <col style="width:12%">
+                <col style="width:18%">
+                <col style="width:18%">
+                <col style="width:10%">
+                <col style="width:12%">
+            </colgroup>
             <thead>
                 <tr>
-                    <th>Talebe No</th>
+                    <th class="yonetim-center-col">Talebe No</th>
                     <th>Ad Soyad</th>
                     <th>Sınıf</th>
-                    <th>Aktif Kitap</th>
                     <th>Etüt Hocası</th>
-                    <th>Durum</th>
-                    <th></th>
+                    <th>Dini Ders Hocası</th>
+                    <th class="yonetim-center-col">Durum</th>
+                    <th class="yonetim-action-col">İşlem</th>
                 </tr>
             </thead>
-
             <tbody>
                 {% for talebe in talebeler %}
-                    <tr>
-                        <td>{{ talebe.talebe_no|default:"—" }}</td>
-                        <td><strong>{{ talebe.ad_soyad }}</strong></td>
-                        <td>
-                            {{ talebe.sinif_sube|default:"Sınıf atanmamış" }}
-                        </td>
-                        <td>{{ talebe.aktif_zimmet.kitap.ad|default:"Kitap yok" }}</td>
-                        <td>{{ talebe.etut_hocasi.ad_soyad }}</td>
-                        <td>
-                            {% if talebe.aktif %}
-                                <span class="cs-status">Aktif</span>
-                            {% else %}
-                                <span class="cs-status is-passive">Pasif</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <a
-                                href="{% url 'yonetim:talebe_duzenle' talebe.pk %}"
-                                class="cs-table-link"
-                            >
-                                Düzenle
-                            </a>
-                        </td>
-                    </tr>
+                <tr>
+                    <td class="num-col yonetim-center-col">{% if talebe.talebe_no %}{{ talebe.talebe_no }}{% else %}<span class="muted-inline">—</span>{% endif %}</td>
+                    <td>
+                        <div class="yonetim-person-cell">
+                            <span class="yonetim-avatar">{{ talebe.ad_soyad|slice:":1"|upper }}</span>
+                            <strong>{{ talebe.ad_soyad }}</strong>
+                        </div>
+                    </td>
+                    <td>
+                        {% if talebe.sinif_sube %}
+                            <span class="yonetim-chip">{{ talebe.sinif_sube }}</span>
+                        {% elif talebe.sinif %}
+                            <span class="yonetim-chip">{{ talebe.sinif }}{% if talebe.sube %} / {{ talebe.sube }}{% endif %}</span>
+                        {% else %}
+                            <span class="muted-inline">—</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ talebe.etut_hocasi.ad_soyad }}</td>
+                    <td>
+                        {% if talebe.zimmet_hocalari_ayni %}
+                            <span class="muted-inline">Etüt ile aynı</span>
+                        {% else %}
+                            {{ talebe.dini_ders_hocasi.ad_soyad }}
+                        {% endif %}
+                    </td>
+                    <td class="yonetim-center-col">
+                        {% if talebe.aktif %}
+                            <span class="status-pill status-okunuyor">Aktif</span>
+                        {% else %}
+                            <span class="status-pill status-iade">Pasif</span>
+                        {% endif %}
+                    </td>
+                    <td class="yonetim-action-col">
+                        <a href="{% url 'yonetim:talebe_duzenle' talebe.pk %}" class="yonetim-link">Düzenle</a>
+                    </td>
+                </tr>
                 {% empty %}
-                    <tr>
-                        <td colspan="7" class="cs-empty">
-                            Talebe kaydı bulunamadı.
-                        </td>
-                    </tr>
+                <tr>
+                    <td colspan="7" class="report-empty">Talebe kaydı bulunamadı.</td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>

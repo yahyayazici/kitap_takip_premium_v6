@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}İstatistik Merkezi · Mezun{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/mezun-premium.css' %}">{% endblock %}
+{% block content %}
+<div class="mz-page">
+<header class="mz-head">
+    <div>
+        <p class="mz-crumb"><a href="{% url 'mezun_listesi' %}">Mezun Merkezi</a> › İstatistik</p>
+        <h1>İstatistik Merkezi</h1>
+    </div>
+    <a href="{% url 'mezun_listesi' %}" class="mz-btn">← Geri</a>
+</header>
+<div class="mz-kpi-grid" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+    <article class="mz-kpi"><span class="mz-kpi-icon">◎</span><strong class="mz-kpi-value">{{ stats.ozet.toplam_mezun }}</strong><span class="mz-kpi-label">Toplam Mezun</span></article>
+    <article class="mz-kpi mz-kpi--gold"><span class="mz-kpi-icon">★</span><strong class="mz-kpi-value">{{ stats.ozet.ilk_1 }}</strong><span class="mz-kpi-label">İlk %1</span></article>
+    <article class="mz-kpi mz-kpi--green"><span class="mz-kpi-icon">🎓</span><strong class="mz-kpi-value">{{ stats.ozet.universite_yerlesen }}</strong><span class="mz-kpi-label">Üniversite</span></article>
+    <article class="mz-kpi mz-kpi--purple"><span class="mz-kpi-icon">%</span><strong class="mz-kpi-value">%{{ stats.katilim_orani }}</strong><span class="mz-kpi-label">Etkinlik Katılım</span></article>
+</div>
+<div class="mz-split">
+    <section class="mz-card">
+        <h3 style="margin:0 0 0.5rem">Yıllara Göre Mezun</h3>
+        <div class="mz-bar-chart">
+            {% for y in stats.yil_grafik %}
+            <span style="height:{% widthratio y.adet stats.ozet.toplam_mezun 100 %}%" title="{{ y.yil }}: {{ y.adet }}"></span>
+            {% endfor %}
+        </div>
+        <div style="display:flex;gap:0.5rem;margin-top:0.5rem;font-size:0.72rem;color:var(--mz-muted)">
+            {% for y in stats.yil_grafik %}<span style="flex:1;text-align:center">{{ y.yil }}</span>{% endfor %}
+        </div>
+    </section>
+    <section class="mz-card">
+        <h3 style="margin:0 0 0.75rem">En Çok Yerleşilen Liseler</h3>
+        <ul class="mz-mini-list">
+            {% for l in stats.lise_dagilim %}<li><span>{{ l.yerlestigi_lise|truncatechars:28 }}</span><strong>{{ l.adet }}</strong></li>{% empty %}<li>—</li>{% endfor %}
+        </ul>
+    </section>
+</div>
+<div class="mz-split" style="margin-top:1.25rem">
+    <section class="mz-card">
+        <h3 style="margin:0 0 0.75rem">En Çok Yerleşilen Üniversiteler</h3>
+        <ul class="mz-mini-list">
+            {% for u in stats.uni_dagilim %}<li><span>{{ u.universite|truncatechars:28 }}</span><strong>{{ u.adet }}</strong></li>{% empty %}<li>—</li>{% endfor %}
+        </ul>
+    </section>
+    <section class="mz-card">
+        <h3 style="margin:0 0 0.75rem">En Çok Tercih Edilen Bölümler</h3>
+        <ul class="mz-mini-list">
+            {% for b in stats.bolum_dagilim %}<li><span>{{ b.bolum|truncatechars:28 }}</span><strong>{{ b.adet }}</strong></li>{% empty %}<li>—</li>{% endfor %}
+        </ul>
+    </section>
+</div>
+</div>
+{% endblock %}

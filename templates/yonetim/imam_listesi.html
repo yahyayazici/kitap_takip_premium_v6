@@ -1,0 +1,83 @@
+{% extends "yonetim/base.html" %}
+
+{% block title %}İmam / Müezzin{% endblock %}
+
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">GÖREV YÖNETİMİ</p>
+        <h1>İmam / Müezzin Listeleri</h1>
+        <p class="muted">Tarih aralığına göre otomatik dağıtım, manuel düzenleme ve PDF çıktısı.</p>
+    </div>
+    <div class="yonetim-page-head-actions">
+        <a href="{% url 'imam_muezzin_panel' %}" class="ghost-btn yonetim-head-ghost">Personel Görünümü</a>
+        <a href="{% url 'yonetim:imam_ekle' %}" class="primary-btn">Liste Ekle</a>
+    </div>
+</header>
+
+{% if bugun_atama %}
+<section class="dashboard-card yonetim-highlight-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">BUGÜN</p>
+            <h2>{{ bugun_atama.imam.ad_soyad }} · {{ bugun_atama.muezzin.ad_soyad }}</h2>
+        </div>
+        <a href="{% url 'yonetim:imam_gorev_panel' bugun_atama.liste.pk %}" class="small-button">Düzenle</a>
+    </div>
+    <p class="muted">{{ bugun_atama.tarih|date:"d F Y, l" }} · {{ bugun_atama.liste.ad }}</p>
+</section>
+{% endif %}
+
+<section class="report-table-card yonetim-table-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">LİSTE ARŞİVİ</p>
+            <h2>Tüm Listeler</h2>
+        </div>
+        <span class="report-record-count">{{ listeler|length }} liste</span>
+    </div>
+
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <thead>
+                <tr>
+                    <th>Liste</th>
+                    <th>Tarih Aralığı</th>
+                    <th>Gün</th>
+                    <th>Durum</th>
+                    <th class="yonetim-action-col">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for liste in listeler %}
+                <tr>
+                    <td><strong>{{ liste.ad }}</strong></td>
+                    <td>{{ liste.tarih_araligi_goster }}</td>
+                    <td class="num-col">{{ liste.gun_sayisi }}</td>
+                    <td>
+                        {% if liste.yayinda_mi %}
+                            <span class="status-pill status-okunuyor">Yayında</span>
+                        {% elif liste.aktif %}
+                            <span class="status-pill status-yarim">Planlı / Arşiv</span>
+                        {% else %}
+                            <span class="status-pill status-iade">Pasif</span>
+                        {% endif %}
+                    </td>
+                    <td class="yonetim-action-col">
+                        <a href="{% url 'yonetim:imam_gorev_panel' liste.pk %}" class="yonetim-link">Görev Yönetimi</a>
+                        <a href="{% url 'yonetim:imam_duzenle' liste.pk %}" class="yonetim-link">Ayarlar</a>
+                        <a href="{% url 'yonetim:imam_pdf' liste.pk %}" class="yonetim-link">PDF</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="report-empty">Henüz imam / müezzin listesi yok.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

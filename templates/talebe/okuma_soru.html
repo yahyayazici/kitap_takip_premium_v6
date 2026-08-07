@@ -1,0 +1,55 @@
+{% extends "talebe/base.html" %}
+{% block title %}Okuma & Soru · Talebe Paneli{% endblock %}
+{% block content %}
+<div class="dash-home talebe-dash">
+
+{% include "includes/panel_hero.html" with title="Günlük okuma & soru" meta=konum_etiket show_date=True %}
+
+{% if not girebilir %}
+<section class="dash-panel">
+    <p class="talebe-konum-note">Bugün kurs günü — giriş kapalı. Ev veya izin günlerinde kayıt yapabilirsiniz.</p>
+</section>
+{% else %}
+<form method="post" class="talebe-soru-form">
+    {% csrf_token %}
+    <section class="dash-panel">
+        <div class="dash-panel-head"><div><p class="dash-eyebrow">Not</p><h2>Günlük not</h2></div></div>
+        <label class="talebe-field">
+            <span>Bugün hakkında kısa not (isteğe bağlı)</span>
+            <textarea name="gunluk_not" rows="2">{{ gunluk_not }}</textarea>
+        </label>
+    </section>
+
+    <section class="dash-panel">
+        <div class="dash-panel-head"><div><p class="dash-eyebrow">Soru</p><h2>Ders bazlı kayıt</h2></div></div>
+        <div class="responsive-table">
+            <table class="veli-table">
+                <thead>
+                    <tr><th>Ders</th><th>Toplam</th><th>Doğru</th><th>Yanlış</th><th>Boş</th></tr>
+                </thead>
+                <tbody>
+                    {% for satir in satirlar %}
+                    <tr>
+                        <td>{{ satir.ders.ad }}</td>
+                        <td><input type="number" name="ders_{{ satir.ders.id }}_toplam" min="0" value="{{ satir.toplam_soru }}"></td>
+                        <td><input type="number" name="ders_{{ satir.ders.id }}_dogru" min="0" value="{{ satir.dogru }}"></td>
+                        <td><input type="number" name="ders_{{ satir.ders.id }}_yanlis" min="0" value="{{ satir.yanlis }}"></td>
+                        <td><input type="number" name="ders_{{ satir.ders.id }}_bos" min="0" value="{{ satir.bos }}"></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="talebe-form-actions">
+            <button type="submit" class="primary-btn">Kaydet</button>
+        </div>
+    </section>
+</form>
+{% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/panel_date_js.html" %}
+{% endblock %}

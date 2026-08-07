@@ -1,0 +1,29 @@
+{% for group in yonetim_nav_groups %}
+    {% if group.is_dropdown %}
+    {% with rm=request.resolver_match %}
+    <div class="v3-nav-group v3-nav-dropdown{% if group.name == 'Eğitim' or group.name == 'Kurum' %} v3-nav-dropdown-wide{% endif %}{% for item in group.items %}{% if rm.view_name == item.url_name or rm.url_name in item.active_names %} is-section-active{% endif %}{% endfor %}">
+        <button type="button"
+                class="v3-nav-link v3-nav-trigger"
+                aria-haspopup="true"
+                aria-expanded="false">
+            {{ group.name }}
+            <svg class="v3-nav-chevron" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+                <path d="M2 3.5L5 6.5L8 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+        </button>
+        <div class="v3-nav-dropdown-panel" role="menu">
+            {% for item in group.items %}
+            <a href="{% url item.url_name %}"
+               role="menuitem"
+               class="v3-nav-dropdown-link {% if rm.view_name == item.url_name or rm.url_name in item.active_names %}active{% endif %}">{{ item.label }}</a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endwith %}
+    {% else %}
+        {% with item=group.items.0 rm=request.resolver_match %}
+        <a href="{% url item.url_name %}"
+           class="v3-nav-link {% if rm.view_name == item.url_name or rm.url_name in item.active_names %}active{% endif %}">{{ item.label }}</a>
+        {% endwith %}
+    {% endif %}
+{% endfor %}

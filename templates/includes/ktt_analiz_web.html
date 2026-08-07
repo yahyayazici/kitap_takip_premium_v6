@@ -1,0 +1,26 @@
+{% if analiz and analiz.bolumler %}
+<section class="ktt-analiz-card">
+    <header class="ktt-analiz-head">
+        <div class="ktt-analiz-head-text">
+            <p class="ktt-analiz-kicker">Akademik değerlendirme</p>
+            <h2 class="ktt-analiz-title">{{ analiz.baslik }}</h2>
+        </div>
+        <span class="ktt-analiz-badge {% if analiz.yapay_zeka %}is-ai{% else %}is-data{% endif %}">
+            {{ analiz_durumu.etiket }}
+        </span>
+    </header>
+
+    {% if analiz.uyari %}
+    <p class="ktt-analiz-note">{{ analiz.uyari }}</p>
+    {% endif %}
+
+    <div class="ktt-analiz-stack">
+        {% for bolum in analiz.bolumler %}
+        <article class="ktt-analiz-section ktt-analiz-ton-{{ bolum.ton }}">
+            <h3 class="ktt-analiz-section-title">{{ bolum.baslik }}</h3>
+            <div class="ktt-analiz-section-body">{{ bolum.icerik|linebreaksbr }}</div>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}

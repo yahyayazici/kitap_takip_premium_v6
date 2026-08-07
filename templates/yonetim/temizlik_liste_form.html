@@ -1,0 +1,88 @@
+{% extends "yonetim/base.html" %}
+{% load static %}
+
+{% block title %}{{ sayfa_basligi }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/temizlik-premium.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">TEMİZLİK LİSTESİ</p>
+        <h1>{{ sayfa_basligi }}</h1>
+        <p class="muted">{{ sayfa_aciklama }}</p>
+    </div>
+    <a href="{% url geri_url %}" class="ghost-btn">Listeye Dön</a>
+</header>
+
+<section class="dashboard-card yonetim-form-card tz-form-page">
+    <form method="post">
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="yonetim-form-errors">{{ form.non_field_errors }}</div>{% endif %}
+
+        <div class="yonetim-form-grid">
+            <div class="yonetim-field">
+                <label for="{{ form.ad.id_for_label }}">{{ form.ad.label }}</label>
+                <div class="yonetim-field-control">{{ form.ad }}</div>
+                {% for error in form.ad.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+            </div>
+            <div class="yonetim-field">
+                <label for="{{ form.baslangic_tarihi.id_for_label }}">{{ form.baslangic_tarihi.label }}</label>
+                <div class="yonetim-field-control">{{ form.baslangic_tarihi }}</div>
+                {% for error in form.baslangic_tarihi.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+            </div>
+            <div class="yonetim-field">
+                <label for="{{ form.bitis_tarihi.id_for_label }}">{{ form.bitis_tarihi.label }}</label>
+                <div class="yonetim-field-control">{{ form.bitis_tarihi }}</div>
+                {% for error in form.bitis_tarihi.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+            </div>
+        </div>
+
+        <div class="tz-inline-toggles yonetim-field-full">
+            <label class="tz-toggle-chip">{{ form.cumartesi_dahil }} {{ form.cumartesi_dahil.label }}</label>
+            <label class="tz-toggle-chip">{{ form.pazar_dahil }} {{ form.pazar_dahil.label }}</label>
+            <label class="tz-toggle-chip">{{ form.aktif }} {{ form.aktif.label }}</label>
+        </div>
+
+        <div class="yonetim-field yonetim-field-full">
+            <label for="{{ form.haric_tarihler_metin.id_for_label }}">{{ form.haric_tarihler_metin.label }}</label>
+            <div class="yonetim-field-control">{{ form.haric_tarihler_metin }}</div>
+            {% if form.haric_tarihler_metin.help_text %}<p class="muted yonetim-field-help">{{ form.haric_tarihler_metin.help_text }}</p>{% endif %}
+        </div>
+
+        <div class="yonetim-field yonetim-field-full">
+            <div class="tz-field-head">
+                <label for="{{ form.talebe_havuzu.id_for_label }}">{{ form.talebe_havuzu.label }}</label>
+                <button type="button" class="tz-link-btn" data-select-all="talebe_havuzu">Tümünü seç</button>
+            </div>
+            {% if form.talebe_havuzu.help_text %}<p class="muted yonetim-field-help">{{ form.talebe_havuzu.help_text }}</p>{% endif %}
+            <div class="tz-select-grid" data-chip-group="talebe_havuzu">
+                <div class="yonetim-field-control">{{ form.talebe_havuzu }}</div>
+            </div>
+            {% for error in form.talebe_havuzu.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+        </div>
+
+        <p class="muted tz-form-note">Kat ve mahal tanımları kayıttan sonra <strong>Görev Yönetimi</strong> ekranından yapılır.</p>
+
+        <div class="yonetim-form-actions">
+            <button type="submit" class="primary-btn">Kaydet ve Görev Paneline Git</button>
+        </div>
+    </form>
+</section>
+
+<script>
+(function () {
+    document.querySelectorAll("[data-select-all]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            var group = btn.getAttribute("data-select-all");
+            document.querySelectorAll('[data-chip-group="' + group + '"] input[type="checkbox"]').forEach(function (cb) {
+                cb.checked = true;
+            });
+        });
+    });
+})();
+</script>
+
+{% endblock %}

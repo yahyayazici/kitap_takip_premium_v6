@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}{{ sayfa_basligi }}{% endblock %}
+{% block content %}
+<div class="library-page">
+    <header class="page-head patterned-page-head">
+        <div>
+            <p class="kicker">KTT</p>
+            <h1>{{ sayfa_basligi }}</h1>
+        </div>
+        <a href="{% url 'ktt_listesi' %}" class="ghost-btn">← Listeye Dön</a>
+    </header>
+
+    <section class="library-panel" style="max-width:640px;">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="primary-btn">Kaydet</button>
+        </form>
+    </section>
+</div>
+{% endblock %}

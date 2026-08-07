@@ -1,0 +1,157 @@
+{% extends "veli/base.html" %}
+{% block title %}{{ talebe.ad_soyad }} · Sınavlar{% endblock %}
+{% block content %}
+<div class="dash-home veli-dash">
+    {% include "veli/includes/talebe_layout_head.html" %}
+
+    <div class="veli-tab-row">
+        <a href="?tab=ktt" class="{% if sinav_tab == 'ktt' %}active{% endif %}">Kazanım Takip Testleri (KTT)</a>
+        <a href="?tab=deneme" class="{% if sinav_tab == 'deneme' %}active{% endif %}">Deneme Sınavları</a>
+        <a href="?tab=yazili" class="{% if sinav_tab == 'yazili' %}active{% endif %}">Yazılı Takip</a>
+        <a href="?tab=ogretmen" class="{% if sinav_tab == 'ogretmen' %}active{% endif %}">Öğretmen Notları</a>
+    </div>
+
+    {% if sinav_tab == 'ktt' %}
+    <section class="dash-panel">
+        <p class="veli-card-kicker">KTT SONUÇLARI</p>
+        <h2 style="margin:0 0 16px;font-size:17px;">Kazanım Tarama Testleri</h2>
+        <div class="responsive-table">
+            <table class="veli-table">
+                <thead>
+                    <tr>
+                        <th>KTT Sınavı</th>
+                        <th>Ders</th>
+                        <th>Tarih</th>
+                        <th>D</th>
+                        <th>Y</th>
+                        <th>B</th>
+                        <th>Net</th>
+                        <th>Puan (100)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in ktt_sonuclari %}
+                    <tr>
+                        <td><strong>{{ s.ktt.ad }}</strong></td>
+                        <td><span class="veli-pill blue">{{ s.ktt.ders.ad }}</span></td>
+                        <td>{{ s.ktt.sinav_tarihi|date:"d.m.Y" }}</td>
+                        <td><span class="veli-pill green">{{ s.dogru }}</span></td>
+                        <td><span class="veli-pill red">{{ s.yanlis }}</span></td>
+                        <td>{{ s.bos }}</td>
+                        <td><strong>{{ s.net }}</strong></td>
+                        <td>
+                            <div class="veli-score-bar">
+                                <div class="bar"><span style="width:{{ s.puan }}%;"></span></div>
+                                <small>{{ s.puan }}</small>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="8" style="color:#718097;">Veliye açık KTT sonucu bulunmuyor.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% elif sinav_tab == 'ogretmen' %}
+    <section class="dash-panel">
+        <p class="veli-card-kicker">ÖĞRETMEN NOTLARI</p>
+        <h2 style="margin:0 0 16px;font-size:17px;">Ders notları</h2>
+        <table class="veli-table">
+            <thead>
+                <tr><th>Tarih</th><th>Ders</th><th>Tür</th><th>Puan</th><th>Öğretmen</th><th>Açıklama</th></tr>
+            </thead>
+            <tbody>
+                {% for n in ogretmen_notlari %}
+                <tr>
+                    <td>{{ n.tarih|date:"d.m.Y" }}</td>
+                    <td><span class="veli-pill blue">{{ n.ders.ad }}</span></td>
+                    <td>{{ n.get_tur_display }}</td>
+                    <td><strong>{{ n.puan }}</strong></td>
+                    <td>{{ n.etut_hocasi.ad_soyad }}</td>
+                    <td>{{ n.aciklama|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" style="color:#718097;">Öğretmen notu bulunmuyor.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    {% elif sinav_tab == 'yazili' %}
+    <section class="dash-panel">
+        <p class="veli-card-kicker">YAZILI TAKİP</p>
+        <h2 style="margin:0 0 16px;font-size:17px;">Yazılı Sınav Sonuçları</h2>
+        <div class="responsive-table">
+            <table class="veli-table">
+                <thead>
+                    <tr>
+                        <th>Kamp</th>
+                        <th>Sınav</th>
+                        <th>Ders</th>
+                        <th>Tarih</th>
+                        <th>D</th>
+                        <th>Y</th>
+                        <th>B</th>
+                        <th>Net</th>
+                        <th>Puan (100)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in yazili_sonuclari %}
+                    <tr>
+                        <td>{{ s.sinav.kamp.ad }}</td>
+                        <td><strong>{{ s.sinav.ad }}</strong></td>
+                        <td><span class="veli-pill blue">{{ s.sinav.ders_goster }}</span></td>
+                        <td>{{ s.sinav.sinav_tarihi|date:"d.m.Y" }}</td>
+                        <td><span class="veli-pill green">{{ s.dogru }}</span></td>
+                        <td><span class="veli-pill red">{{ s.yanlis }}</span></td>
+                        <td>{{ s.bos }}</td>
+                        <td><strong>{{ s.net }}</strong></td>
+                        <td>
+                            <div class="veli-score-bar">
+                                <div class="bar"><span style="width:{{ s.puan }}%;"></span></div>
+                                <small>{{ s.puan }}</small>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="9" style="color:#718097;">Veliye açık yazılı sınav sonucu bulunmuyor.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% elif sinav_tab == 'deneme' %}
+    <section class="dash-panel">
+        <p class="veli-card-kicker">DENEME ARŞİVİ</p>
+        <h2 style="margin:0 0 16px;font-size:17px;">Deneme Sınavları</h2>
+        <table class="veli-table">
+            <thead>
+                <tr><th>Tarih</th><th>Deneme</th><th>Toplam Net</th><th>Puan</th></tr>
+            </thead>
+            <tbody>
+                {% for s in deneme_sonuclari %}
+                <tr>
+                    <td>{{ s.deneme.sinav_tarihi|date:"d.m.Y" }}</td>
+                    <td><strong>{{ s.deneme.ad }}</strong></td>
+                    <td><strong style="color:#2563eb;">{{ s.toplam_net }}</strong></td>
+                    <td>
+                        <div class="veli-score-bar">
+                            <div class="bar"><span style="width:{{ s.puan }}%;"></span></div>
+                            <small>{{ s.puan }}</small>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" style="color:#718097;">Deneme sonucu bulunmuyor.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/panel_date_js.html" %}
+{% endblock %}

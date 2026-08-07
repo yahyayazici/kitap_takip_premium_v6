@@ -1,0 +1,87 @@
+{% extends "yonetim/base.html" %}
+
+{% block title %}Duyurular{% endblock %}
+
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">DUYURU YÖNETİMİ</p>
+        <h1>Duyurular</h1>
+        <p class="muted">Ana sayfa carousel’inde görünen duyuruları yönetin. Sol tarafa fotoğraf veya video, sağ tarafa metin ekleyin.</p>
+    </div>
+    <div class="yonetim-page-head-actions">
+        <a href="{% url 'dashboard' %}" class="ghost-btn yonetim-head-ghost">Ana Sayfayı Gör</a>
+        <a href="{% url 'yonetim:duyuru_ekle' %}" class="primary-btn">Duyuru Ekle</a>
+    </div>
+</header>
+
+<section class="report-table-card yonetim-table-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">YAYIN LİSTESİ</p>
+            <h2>Tüm Duyurular</h2>
+        </div>
+        <span class="report-record-count">{{ duyurular|length }} duyuru</span>
+    </div>
+
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <thead>
+                <tr>
+                    <th>Sıra</th>
+                    <th>Başlık</th>
+                    <th>Kategori</th>
+                    <th>Hedef</th>
+                    <th>Tarih Aralığı</th>
+                    <th>Durum</th>
+                    <th class="yonetim-action-col">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for duyuru in duyurular %}
+                <tr>
+                    <td class="num-col">{{ duyuru.sira }}</td>
+                    <td>
+                        <div class="yonetim-duyuru-title">
+                            <span class="duyuru-mini-tone {{ duyuru.ton_sinifi }}"></span>
+                            <strong>{{ duyuru.baslik }}</strong>
+                        </div>
+                        <small class="muted-inline">{{ duyuru.ozet|truncatechars:72 }}</small>
+                    </td>
+                    <td><span class="yonetim-chip">{{ duyuru.kategori_etiketi }}</span></td>
+                    <td>{{ duyuru.get_hedef_kitle_display }}</td>
+                    <td>
+                        {{ duyuru.baslangic|date:"d.m.Y" }}
+                        {% if duyuru.bitis %}– {{ duyuru.bitis|date:"d.m.Y" }}{% else %}– süresiz{% endif %}
+                    </td>
+                    <td>
+                        {% if duyuru.yayinda_mi %}
+                            <span class="status-pill status-okunuyor">Yayında</span>
+                        {% elif duyuru.aktif %}
+                            <span class="status-pill status-yarim">Planlı</span>
+                        {% else %}
+                            <span class="status-pill status-iade">Pasif</span>
+                        {% endif %}
+                    </td>
+                    <td class="yonetim-table-actions yonetim-action-col">
+                        <div class="yonetim-action-group">
+                            <a href="{% url 'yonetim:duyuru_duzenle' duyuru.pk %}" class="yonetim-action-btn">Düzenle</a>
+                            <form method="post" action="{% url 'yonetim:duyuru_sil' duyuru.pk %}" class="yonetim-inline-action" onsubmit="return confirm('“{{ duyuru.baslik|escapejs }}” duyurusu silinsin mi?');">
+                                {% csrf_token %}
+                                <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger">Sil</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="report-empty">Henüz duyuru yok. İlk duyuruyu ekleyin.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

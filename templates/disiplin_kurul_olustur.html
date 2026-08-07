@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Kurul Oluştur · {{ kurul_adi }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/disiplin-kurul-premium.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dk-page">
+
+<header class="dk-head">
+    <div>
+        <p class="dk-eyebrow"><a href="{% url 'disiplin_kurul_panel' %}" style="color:inherit;text-decoration:none;">← {{ kurul_adi }}</a></p>
+        <h1>Kurul Oluştur</h1>
+        <p class="dk-sub">Öğrenci seçin, toplantı gününü belirleyin ve gündemi hazırlayın. Üyeler admin tarafından tanımlanan listeden otomatik gelir.</p>
+    </div>
+    {% if tam_yetki %}
+    <div class="dk-actions">
+        <a href="{% url 'disiplin_kurul_ayarlar' %}" class="dk-btn dk-btn-ghost">Kurul Üyeleri &amp; Gündem</a>
+    </div>
+    {% endif %}
+</header>
+
+<form method="post" class="dk-card" style="padding:24px;">
+    {% csrf_token %}
+
+    <section class="dk-form-section">
+        <h2 class="dk-section-title">Öğrenci</h2>
+        <div class="dk-form-grid">
+            <div class="dk-field">{{ form.talebe.label_tag }}{{ form.talebe }}{% if form.talebe.errors %}<ul class="errorlist">{% for e in form.talebe.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}</div>
+        </div>
+    </section>
+
+    <section class="dk-form-section">
+        <h2 class="dk-section-title">Toplantı Bilgileri</h2>
+        <p class="dk-section-note">Bu bilgiler kurul gündeminin üstünde paylaşılır.</p>
+        <div class="dk-form-grid">
+            <div class="dk-field">{{ form.toplanti_tarihi.label_tag }}{{ form.toplanti_tarihi }}</div>
+            <div class="dk-field">{{ form.toplanti_saati.label_tag }}{{ form.toplanti_saati }}</div>
+            <div class="dk-field">{{ form.toplanti_yeri.label_tag }}{{ form.toplanti_yeri }}</div>
+            <div class="dk-field" style="grid-column:1/-1;">{{ form.genel_aciklama.label_tag }}{{ form.genel_aciklama }}</div>
+        </div>
+    </section>
+
+    <section class="dk-form-section">
+        <h2 class="dk-section-title">Gündem</h2>
+        <p class="dk-section-note">Her satır bir gündem maddesi. Varsayılan maddeler admin ayarlarından gelir; bu toplantı için düzenleyebilirsiniz.</p>
+        <div class="dk-field">{{ form.gundem_metin.label_tag }}{{ form.gundem_metin }}</div>
+    </section>
+
+    <section class="dk-form-section">
+        <h2 class="dk-section-title">Kurul Üyeleri</h2>
+        <p class="dk-section-note">Aşağıdaki üyeler otomatik atanır. Değiştirmek için {% if tam_yetki %}<a href="{% url 'disiplin_kurul_ayarlar' %}">Kurul Ayarları</a>{% else %}yöneticiye başvurun{% endif %}.</p>
+        <ul class="dk-member-preview">
+            {% for uye in varsayilan_uyeler %}
+            <li><strong>{{ uye.ad_soyad }}</strong> <span>{{ uye.gorev_etiket }}</span></li>
+            {% empty %}
+            <li class="dk-muted">Henüz varsayılan üye tanımlanmadı.</li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <div class="dk-form-actions">
+        <button type="submit" name="action" value="taslak" class="dk-btn dk-btn-ghost">Taslak Kaydet</button>
+        <button type="submit" name="action" value="olustur" class="dk-btn dk-btn-primary">Gündemi Yayınla</button>
+    </div>
+</form>
+</div>
+{% endblock %}

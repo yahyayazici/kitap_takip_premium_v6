@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Aidat · {{ panel_short }}{% endblock %}
+{% block content %}
+<header class="page-head patterned-page-head">
+    <div>
+        <p class="kicker">KURUM</p>
+        <h1>Aidat Takip</h1>
+        <p class="muted">Talebe aidat kayıtları ve tahsilat.</p>
+    </div>
+</header>
+
+<section class="dashboard-card">
+    <div class="card-heading"><div><p class="card-kicker">FİLTRE</p><h2>Kayıtları Ara</h2></div></div>
+    <form method="get" class="filter-row">
+        <input type="search" name="q" value="{{ filtre_q }}" placeholder="Talebe veya aidat adı..." class="input">
+        <select name="durum" class="input">
+            <option value="">Tüm durumlar</option>
+            <option value="bekliyor" {% if filtre_durum == "bekliyor" %}selected{% endif %}>Bekliyor</option>
+            <option value="odendi" {% if filtre_durum == "odendi" %}selected{% endif %}>Ödendi</option>
+            <option value="kismi" {% if filtre_durum == "kismi" %}selected{% endif %}>Kısmi</option>
+            <option value="gecikmis" {% if filtre_durum == "gecikmis" %}selected{% endif %}>Gecikmiş</option>
+            <option value="muaf" {% if filtre_durum == "muaf" %}selected{% endif %}>Muaf</option>
+        </select>
+        <select name="yil" class="input">
+            <option value="">Tüm eğitim yılları</option>
+            {% for y in egitim_yillari %}
+            <option value="{{ y.id }}" {% if filtre_yil == y.id|stringformat:"s" %}selected{% endif %}>{{ y.ad }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="ghost-btn">Filtrele</button>
+    </form>
+</section>
+
+<section class="dashboard-card">
+    <div class="card-heading"><div><p class="card-kicker">LİSTE</p><h2>Aidat Kayıtları</h2></div></div>
+    <div class="responsive-table">
+        <table class="report-data-table">
+            <thead>
+                <tr>
+                    <th>Talebe</th>
+                    <th>Aidat</th>
+                    <th>Tutar</th>
+                    <th>Ödenen</th>
+                    <th>Durum</th>
+                    <th>Vade</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for k in kayitlar %}
+                <tr>
+                    <td>{{ k.talebe.ad_soyad }}</td>
+                    <td>{{ k.tanim.ad }}</td>
+                    <td>{{ k.tanim.tutar }} ₺</td>
+                    <td>{{ k.odenen_tutar }} ₺</td>
+                    <td>{{ k.get_durum_display }}</td>
+                    <td>{{ k.tanim.vade|date:"d.m.Y" }}</td>
+                    <td><a href="{% url 'aidat_detay' k.pk %}">Detay</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7">Kayıt bulunamadı.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

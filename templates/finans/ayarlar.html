@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Finans Ayarları · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/finans-premium.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="fn-page">
+
+<header class="fn-head">
+    <div>
+        <p class="fn-crumb"><a href="{% url 'finans_panel' %}">Finans Yönetimi</a> › Ayarlar</p>
+        <h1>Finans Ayarları</h1>
+        <p class="fn-sub">Ücret politikaları, indirimler ve kampanya yönetimine hızlı erişim.</p>
+    </div>
+    <div class="fn-head-actions">
+        <a href="{% url 'finans_panel' %}" class="fn-btn">← Panele Dön</a>
+    </div>
+</header>
+
+<div class="fn-discount-grid">
+    <a href="{% url 'finans_politikalar' %}" class="fn-discount-card" style="text-decoration:none;color:inherit">
+        <h3>Ücret Politikaları</h3>
+        <p class="fn-sub">{% if yil %}{{ yil.ad }}{% else %}Eğitim yılı{% endif %} bazında sınıf ücretleri</p>
+    </a>
+    <a href="{% url 'finans_indirimler' %}" class="fn-discount-card" style="text-decoration:none;color:inherit">
+        <h3>İndirim Yönetimi</h3>
+        <p class="fn-sub">Kardeş, peşin, burs ve diğer indirim türleri</p>
+    </a>
+    <a href="{% url 'finans_raporlar' %}" class="fn-discount-card" style="text-decoration:none;color:inherit">
+        <h3>Raporlar</h3>
+        <p class="fn-sub">PDF ve Excel dışa aktarma</p>
+    </a>
+</div>
+
+</div>
+{% endblock %}

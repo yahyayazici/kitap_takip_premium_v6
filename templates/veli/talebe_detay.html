@@ -1,0 +1,169 @@
+{% extends "veli/base.html" %}
+{% block title %}{{ talebe.ad_soyad }} · Veli Paneli{% endblock %}
+{% block content %}
+<div class="dash-home veli-dash">
+    <header class="daily-header">
+        <div>
+            <p class="daily-kicker">ÖĞRENCİ GELİŞİMİ</p>
+            <h1>{{ talebe.ad_soyad }}</h1>
+            <p class="daily-description">
+                {% if talebe.sinif_sube %}{{ talebe.sinif_sube }}{% else %}{{ talebe.sinif }}{% endif %}
+                {% if talebe.dini_ders_seviyesi %} · {{ talebe.dini_ders_seviyesi }}{% endif %}
+            </p>
+        </div>
+        <div class="result-header-actions">
+            {% if talebeler|length > 1 %}
+            <a href="{% url 'veli_dashboard' %}" class="result-back-button">Öğrenci Seç</a>
+            {% endif %}
+        </div>
+    </header>
+
+    <section class="dash-metrics">
+        <article class="dash-stat dash-stat-green">
+            <span class="dash-stat-label">Bu hafta soru</span>
+            <strong class="dash-stat-value">{{ haftalik_soru.toplam_soru }}</strong>
+            <span class="dash-stat-note">{{ haftalik_soru.gun_sayisi }} gün kayıt</span>
+        </article>
+        <article class="dash-stat dash-stat-blue">
+            <span class="dash-stat-label">Haftalık net</span>
+            <strong class="dash-stat-value">{{ haftalik_soru.toplam_net }}</strong>
+        </article>
+        <article class="dash-stat dash-stat-violet">
+            <span class="dash-stat-label">Bu ay soru</span>
+            <strong class="dash-stat-value">{{ aylik_soru.toplam_soru }}</strong>
+        </article>
+        <article class="dash-stat dash-stat-amber">
+            <span class="dash-stat-label">Başarı</span>
+            <strong class="dash-stat-value">%{{ haftalik_soru.basari_orani }}</strong>
+        </article>
+    </section>
+
+    {% if zimmetler %}
+    <section class="dash-panel">
+        <div class="card-heading"><div><p class="card-kicker">KİTAP</p><h2>Okunan Kitaplar</h2></div></div>
+        <div class="responsive-table">
+            <table class="report-data-table profile-data-table">
+                <thead><tr><th>Kitap</th><th>Durum</th></tr></thead>
+                <tbody>
+                    {% for z in zimmetler %}
+                    <tr><td><strong>{{ z.kitap.ad }}</strong></td><td>{{ z.get_durum_display }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if mudahaleler %}
+    <section class="dash-panel">
+        <div class="card-heading"><div><p class="card-kicker">AKADEMİK DESTEK</p><h2>Son Çalışmalar</h2></div></div>
+        <div class="responsive-table">
+            <table class="report-data-table profile-data-table">
+                <thead><tr><th>Tarih</th><th>Tür</th><th>Özet</th></tr></thead>
+                <tbody>
+                    {% for m in mudahaleler %}
+                    <tr>
+                        <td>{{ m.tarih|date:"d.m.Y" }}</td>
+                        <td>{{ m.mudahale_turu.ikon }} {{ m.mudahale_turu.ad }}</td>
+                        <td>{{ m.veli_ozet }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if soru_kayitlari %}
+    <section class="dash-panel">
+        <div class="card-heading"><div><p class="card-kicker">SORU TAKİP</p><h2>Son 7 Gün</h2></div></div>
+        <div class="responsive-table">
+            <table class="report-data-table profile-data-table">
+                <thead><tr><th>Tarih</th><th>Soru</th><th>Net</th><th>Başarı</th></tr></thead>
+                <tbody>
+                    {% for k in soru_kayitlari %}
+                    <tr>
+                        <td>{{ k.tarih|date:"d.m.Y" }}</td>
+                        <td class="num-col">{{ k.toplam_soru }}</td>
+                        <td class="num-col">{{ k.toplam_net }}</td>
+                        <td class="num-col">%{{ k.basari_orani }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if ktt_sonuclari %}
+    <section class="dash-panel">
+        <div class="card-heading"><div><p class="card-kicker">KTT</p><h2>Kazanım Tarama</h2></div></div>
+        <div class="responsive-table">
+            <table class="report-data-table profile-data-table">
+                <thead><tr><th>Tarih</th><th>KTT</th><th>Ders</th><th>Net</th><th>Puan</th></tr></thead>
+                <tbody>
+                    {% for s in ktt_sonuclari %}
+                    <tr>
+                        <td>{{ s.ktt.sinav_tarihi|date:"d.m.Y" }}</td>
+                        <td>{{ s.ktt.ad }}</td>
+                        <td>{{ s.ktt.ders.ad }}</td>
+                        <td class="num-col">{{ s.net }}</td>
+                        <td class="num-col">{{ s.puan }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if deneme_sonuclari %}
+    <section class="dash-panel">
+        <div class="card-heading"><div><p class="card-kicker">DENEME</p><h2>Deneme Arşivi</h2></div></div>
+        <div class="responsive-table">
+            <table class="report-data-table profile-data-table">
+                <thead><tr><th>Tarih</th><th>Deneme</th><th>Toplam Net</th><th>Puan</th></tr></thead>
+                <tbody>
+                    {% for s in deneme_sonuclari %}
+                    <tr>
+                        <td>{{ s.deneme.sinav_tarihi|date:"d.m.Y" }}</td>
+                        <td><strong>{{ s.deneme.ad }}</strong></td>
+                        <td class="num-col profile-score">{{ s.toplam_net }}</td>
+                        <td class="num-col">{{ s.puan }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if dini_ders_ozet %}
+    <section class="dash-panel">
+        <div class="card-heading"><div><p class="card-kicker">DİNİ DERS</p><h2>İlerleme Özeti</h2></div></div>
+        <div class="daily-stat-grid">
+            {% for o in dini_ders_ozet %}
+            <article class="daily-stat-card"><div><span>{{ o.alan|upper }}</span><strong>{{ o.tamamlanan }}/{{ o.toplam }}</strong><small>%{{ o.yuzde }}</small></div></article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if personel_notlari %}
+    <section class="dash-panel">
+        <div class="card-heading"><div><p class="card-kicker">KURUM NOTU</p><h2>Paylaşılan Notlar</h2></div></div>
+        {% for n in personel_notlari %}
+        <article style="padding:12px 0;border-bottom:1px solid #eef2f7;">
+            <small style="color:#718097;">{{ n.olusturulma|date:"d.m.Y" }}</small>
+            <strong style="display:block;margin-top:4px;">{{ n.baslik }}</strong>
+            <p style="margin:4px 0 0;font-size:13px;color:#4a5568;">{{ n.icerik }}</p>
+        </article>
+        {% endfor %}
+    </section>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/panel_date_js.html" %}
+{% endblock %}

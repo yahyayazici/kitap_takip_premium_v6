@@ -1,0 +1,9 @@
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('#current-date, [data-panel-date]').forEach(function (el) {
+        el.textContent = new Intl.DateTimeFormat('tr-TR', {
+            day: 'numeric', month: 'long', year: 'numeric', weekday: 'long'
+        }).format(new Date());
+    });
+});
+</script>

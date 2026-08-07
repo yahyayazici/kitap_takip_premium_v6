@@ -1,0 +1,111 @@
+{% extends "yonetim/base.html" %}
+{% load static %}
+{% block title %}{{ veli.ad_soyad }} · Görüntüleme{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/veli-goruntuleme-panel.css' %}">
+{% endblock %}
+{% block content %}
+<div class="yonetim-page vgp-page">
+    <header class="yonetim-page-head">
+        <div>
+            <p class="kicker"><a href="{% url 'yonetim:veli_goruntuleme_paneli' %}">Veli Görüntüleme</a></p>
+            <h1>{{ veli.ad_soyad }}</h1>
+            <p class="vgp-lead">{{ veli.user.username }} · {% for t in detay.ozet.talebeler %}{{ t.ad_soyad }}{% if not forloop.last %}, {% endif %}{% empty %}Öğrenci yok{% endfor %}</p>
+        </div>
+        <span class="vgp-badge vgp-badge--{{ detay.ozet.durum }}">{{ detay.ozet.durum_etiketi }}</span>
+    </header>
+
+    <section class="vgp-stats">
+        <article class="vgp-stat">
+            <span class="vgp-stat-label">Son aktivite</span>
+            <strong>{% if detay.ozet.son_aktivite %}{{ detay.ozet.son_aktivite|date:"d.m.Y H:i" }}{% else %}—{% endif %}</strong>
+        </article>
+        <article class="vgp-stat">
+            <span class="vgp-stat-label">Duyuru</span>
+            <strong>{{ detay.ozet.duyuru.gorulen }}/{{ detay.ozet.duyuru.toplam }}</strong>
+        </article>
+        <article class="vgp-stat">
+            <span class="vgp-stat-label">KTT</span>
+            <strong>{{ detay.ozet.ktt.gorulen }}/{{ detay.ozet.ktt.toplam }}</strong>
+        </article>
+        <article class="vgp-stat">
+            <span class="vgp-stat-label">Deneme</span>
+            <strong>{{ detay.ozet.deneme.gorulen }}/{{ detay.ozet.deneme.toplam }}</strong>
+        </article>
+    </section>
+
+    <div class="vgp-grid">
+        <section class="yonetim-card">
+            <h2>Duyurular</h2>
+            <table class="yonetim-table vgp-detail-table">
+                <thead><tr><th>Başlık</th><th>Tarih</th><th>Durum</th><th>Son görüntüleme</th></tr></thead>
+                <tbody>
+                    {% for d in detay.duyurular %}
+                    <tr class="{% if not d.goruldu %}vgp-row-miss{% endif %}">
+                        <td>{{ d.baslik }}</td>
+                        <td>{{ d.alt }}</td>
+                        <td>{% if d.goruldu %}<span class="vgp-ok">Görüldü</span>{% else %}<span class="vgp-miss">Görülmedi</span>{% endif %}</td>
+                        <td>{% if d.son %}{{ d.son|date:"d.m.Y H:i" }}{% else %}—{% endif %}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4">Aktif duyuru yok.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        {% for blok in detay.talebe_bloklari %}
+        <section class="yonetim-card">
+            <h2>{{ blok.talebe.ad_soyad }} · KTT</h2>
+            <table class="yonetim-table vgp-detail-table">
+                <thead><tr><th>Sınav</th><th>Tarih</th><th>Durum</th><th>Son görüntüleme</th></tr></thead>
+                <tbody>
+                    {% for s in blok.ktt %}
+                    <tr class="{% if not s.goruldu %}vgp-row-miss{% endif %}">
+                        <td>{{ s.baslik }}</td>
+                        <td>{{ s.alt }}</td>
+                        <td>{% if s.goruldu %}<span class="vgp-ok">Görüldü</span>{% else %}<span class="vgp-miss">Görülmedi</span>{% endif %}</td>
+                        <td>{% if s.son %}{{ s.son|date:"d.m.Y H:i" }}{% else %}—{% endif %}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4">Veliye açık KTT yok.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <h2 class="vgp-subhead">{{ blok.talebe.ad_soyad }} · Deneme</h2>
+            <table class="yonetim-table vgp-detail-table">
+                <thead><tr><th>Deneme</th><th>Tarih</th><th>Durum</th><th>Son görüntüleme</th></tr></thead>
+                <tbody>
+                    {% for s in blok.deneme %}
+                    <tr class="{% if not s.goruldu %}vgp-row-miss{% endif %}">
+                        <td>{{ s.baslik }}</td>
+                        <td>{{ s.alt }}</td>
+                        <td>{% if s.goruldu %}<span class="vgp-ok">Görüldü</span>{% else %}<span class="vgp-miss">Görülmedi</span>{% endif %}</td>
+                        <td>{% if s.son %}{{ s.son|date:"d.m.Y H:i" }}{% else %}—{% endif %}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4">Deneme sonucu yok.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        {% endfor %}
+
+        <section class="yonetim-card">
+            <h2>Son hareketler</h2>
+            <ul class="vgp-timeline">
+                {% for h in detay.son_hareketler %}
+                <li>
+                    <time>{{ h.son_goruntulenme|date:"d.m.Y H:i" }}</time>
+                    <span>{{ h.get_tur_display }}{% if h.talebe %} · {{ h.talebe.ad_soyad }}{% endif %}{% if h.referans_id %} #{{ h.referans_id }}{% endif %}</span>
+                    <small>{{ h.sayfa }}</small>
+                </li>
+                {% empty %}
+                <li class="vgp-muted">Henüz kayıt yok.</li>
+                {% endfor %}
+            </ul>
+        </section>
+    </div>
+</div>
+{% endblock %}

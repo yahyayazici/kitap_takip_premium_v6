@@ -1,0 +1,40 @@
+{% extends "yonetim/base.html" %}
+{% block title %}{{ rol.ad }} · Yetkiler{% endblock %}
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">ROL YETKİLERİ</p>
+        <h1>{{ rol.ad }}</h1>
+        <p class="muted"><code>{{ rol.slug }}</code> — modül erişimi ve işlem izinleri</p>
+    </div>
+    <a href="{% url 'yonetim:rol_listesi' %}" class="ghost-btn">← Rollere Dön</a>
+</header>
+
+<section class="dashboard-card yonetim-form-card">
+    <form method="post" class="yonetim-form-layout">
+        {% csrf_token %}
+        {% for satir in satirlar %}
+        <div class="yonetim-perm-block">
+            <label>
+                <input type="checkbox" name="modul_{{ satir.modul.kod }}" {% if satir.erisim %}checked{% endif %}>
+                <strong>{{ satir.modul.ad }}</strong>
+                <small>{{ satir.modul.kod }}</small>
+            </label>
+            <div class="yonetim-perm-actions">
+                {% for item in satir.islemler %}
+                <label>
+                    <input type="checkbox" name="islem_{{ satir.modul.kod }}_{{ item.islem.kod }}" {% if item.izin %}checked{% endif %}>
+                    {{ item.islem.ad }}
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+        <div class="yonetim-form-actions">
+            <button type="submit" class="primary-btn">Kaydet</button>
+        </div>
+    </form>
+</section>
+
+{% endblock %}

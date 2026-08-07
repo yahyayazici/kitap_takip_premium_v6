@@ -1,0 +1,25 @@
+{% if analiz and analiz.bolumler %}
+<tr><td colspan="3" class="gap16"></td></tr>
+<tr>
+    <td colspan="3">
+        <div class="analiz-panel">
+            <div class="analiz-panel-accent"></div>
+            <div class="analiz-panel-head">
+                <div class="section-kicker">
+                    {% if analiz.yapay_zeka %}Yapay Zeka · Ölçme-Değerlendirme{% else %}Akademik Değerlendirme{% endif %}
+                </div>
+                <div class="section-title">{{ analiz.baslik }}</div>
+                {% if analiz.uyari %}
+                <div class="analiz-uyari">{{ analiz.uyari }}</div>
+                {% endif %}
+            </div>
+            {% for bolum in analiz.bolumler %}
+            <div class="analiz-block analiz-ton-{{ bolum.ton }}">
+                <div class="eval-title">{{ bolum.baslik }}</div>
+                <div class="eval-body analiz-body">{{ bolum.icerik|linebreaksbr }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </td>
+</tr>
+{% endif %}

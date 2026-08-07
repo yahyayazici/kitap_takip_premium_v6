@@ -1,0 +1,313 @@
+{% extends "yonetim/base.html" %}
+{% load static %}
+
+{% block title %}Hızlı Ekle · Yönetim{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/yonetim-hizli-kayit.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="yonetim-page yk-page">
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">KURUM KAYDI</p>
+        <h1>Hızlı Ekle</h1>
+        <p class="muted">Personel, talebe veya öğretmen kaydını tek ekrandan oluşturun.</p>
+    </div>
+</header>
+
+<nav class="yk-tabs" aria-label="Kayıt türü">
+    {% for kod, baslik, _ in tur_secenekleri %}
+    <a href="?tur={{ kod }}" class="yk-tab{% if tur == kod %} is-active{% endif %}">
+        {{ baslik }}
+    </a>
+    {% endfor %}
+</nav>
+
+<section class="dashboard-card yk-card">
+    <div class="yk-card-head">
+        {% for kod, baslik, aciklama in tur_secenekleri %}
+            {% if tur == kod %}
+            <div>
+                <p class="card-kicker">YENİ KAYIT</p>
+                <h2>{{ baslik }}</h2>
+                <p class="yk-card-desc">{{ aciklama }}</p>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <form method="post" class="yk-form">
+        {% csrf_token %}
+        <input type="hidden" name="tur" value="{{ tur }}">
+
+        {% if form.non_field_errors %}
+        <div class="yonetim-form-errors">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        {% if tur == "talebe" %}
+        <div class="yk-section">
+            <h3 class="yk-section-title">Talebe Bilgileri</h3>
+            <div class="yk-grid">
+                {% for field in form %}
+                    {% if field.name != "veli_ad_soyad" and field.name != "veli_telefon" and field.name != "veli_yakinlik" and field.name != "veli_hesap_olustur" and field.name != "veli_kullanici_adi" and field.name != "veli_sifre" %}
+                    <div class="yk-field{% if field.name == 'ad_soyad' %} yk-field-wide{% endif %}">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                        {% for error in field.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="yk-section yk-section-veli">
+            <h3 class="yk-section-title">Veli Bilgileri</h3>
+            <p class="yk-section-note">Veli kişi kaydı otomatik oluşturulur. İsterseniz aynı anda veli panel hesabı da açılır.</p>
+            <div class="yk-grid">
+                {% for field in form %}
+                    {% if field.name == "veli_ad_soyad" or field.name == "veli_telefon" or field.name == "veli_yakinlik" or field.name == "veli_hesap_olustur" or field.name == "veli_kullanici_adi" or field.name == "veli_sifre" %}
+                    <div class="yk-field{% if field.name == 'veli_hesap_olustur' %} yk-field-check{% endif %}{% if field.name == 'veli_ad_soyad' %} yk-field-wide{% endif %}">
+                        {% if field.name == "veli_hesap_olustur" %}
+                        <label class="yk-check-label">{{ field }} {{ field.label }}</label>
+                        {% else %}
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% endif %}
+                        {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                        {% for error in field.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        {% elif tur == "ogretmen" %}
+        <div class="yk-section">
+            <p class="yk-section-note">Yalnızca ad soyad girin. Kullanıcı adı ve şifre otomatik oluşturulur; kayıttan sonra giriş bilgisi PDF'i indirilir.</p>
+            <div class="yk-grid yk-grid-2">
+                <div class="yk-field yk-field-wide">
+                    <label for="{{ form.ad_soyad.id_for_label }}">{{ form.ad_soyad.label }}</label>
+                    {{ form.ad_soyad }}
+                    {% for error in form.ad_soyad.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="yk-section">
+            <h3 class="yk-section-title">Branş &amp; Ödeme</h3>
+            <div class="yk-grid yk-grid-2">
+                <div class="yk-field">
+                    <label for="{{ form.brans.id_for_label }}">{{ form.brans.label }}</label>
+                    {{ form.brans }}
+                    {% for error in form.brans.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+                </div>
+                <div class="yk-field">
+                    <label for="{{ form.saatlik_ucret.id_for_label }}">{{ form.saatlik_ucret.label }}</label>
+                    {{ form.saatlik_ucret }}
+                    {% for error in form.saatlik_ucret.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="yk-section">
+            <h3 class="yk-section-title">Sorumlu Sınıflar</h3>
+            <div class="yk-checkbox-grid">
+                {{ form.sorumlu_sinif_subeler }}
+            </div>
+            {% for error in form.sorumlu_sinif_subeler.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+        </div>
+
+        {% elif tur == "personel" %}
+        <div class="yk-section">
+            <p class="yk-section-note">Yalnızca ad soyad ve rol girin. Kullanıcı adı ve şifre otomatik oluşturulur; kayıttan sonra giriş bilgisi PDF'i indirilir.</p>
+            <div class="yk-grid yk-grid-2">
+                {% for field in form %}
+                    {% if field.name != "sorumlu_sinif_subeler" %}
+                    <div class="yk-field{% if field.name == 'ad_soyad' %} yk-field-wide{% endif %}{% if field.name == 'aktif' %} yk-field-check{% endif %}">
+                        {% if field.name == "aktif" %}
+                        <label class="yk-check-label">{{ field }} {{ field.label }}</label>
+                        {% else %}
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% endif %}
+                        {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                        {% for error in field.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="yk-section yk-section-siniflar" id="yk-personel-siniflar" hidden>
+            <h3 class="yk-section-title">Sorumlu Sınıflar</h3>
+            <p class="yk-section-note">Sınıf mesulü için sorumlu olduğu sınıf ve şubeleri seçin.</p>
+            <div class="yk-checkbox-grid">
+                {{ form.sorumlu_sinif_subeler }}
+            </div>
+            {% for error in form.sorumlu_sinif_subeler.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+        </div>
+
+        {% endif %}
+
+        <div class="yk-actions">
+            <button type="submit" class="primary-btn yk-submit">
+                {% if tur == "personel" or tur == "ogretmen" %}Kaydet ve PDF İndir{% else %}Kaydet{% endif %}
+            </button>
+            {% if tur == "personel" %}
+            <a href="{% url 'yonetim:personel_listesi' %}" class="ghost-btn">Personel Listesi</a>
+            {% elif tur == "ogretmen" %}
+            <a href="{% url 'yonetim:ogretmen_odeme_profil_listesi' %}" class="ghost-btn">Öğretmen Listesi</a>
+            {% else %}
+            <a href="{% url 'yonetim:talebe_listesi' %}" class="ghost-btn">Talebe Listesi</a>
+            {% endif %}
+        </div>
+    </form>
+
+    {% if tur == "personel" %}
+    <div class="yk-section yk-section-excel">
+        <h3 class="yk-section-title">Toplu Personel Ekle</h3>
+        <p class="yk-section-note">
+            Her satıra bir ad soyad yazın. Tüm personel için aynı rol uygulanır.
+            Kayıttan sonra her personel için ayrı giriş PDF'i içeren ZIP dosyası indirilir.
+        </p>
+        <form method="post" class="yk-excel-form yk-toplu-personel-form">
+            {% csrf_token %}
+            <input type="hidden" name="tur" value="personel">
+            <input type="hidden" name="islem" value="toplu_personel">
+            <div class="yk-grid">
+                <div class="yk-field yk-field-wide">
+                    <label for="{{ toplu_personel_form.isim_listesi.id_for_label }}">{{ toplu_personel_form.isim_listesi.label }}</label>
+                    {{ toplu_personel_form.isim_listesi }}
+                    {% if toplu_personel_form.isim_listesi.help_text %}<small>{{ toplu_personel_form.isim_listesi.help_text }}</small>{% endif %}
+                    {% for error in toplu_personel_form.isim_listesi.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+                </div>
+                <div class="yk-field">
+                    <label for="{{ toplu_personel_form.ana_rol.id_for_label }}">{{ toplu_personel_form.ana_rol.label }}</label>
+                    {{ toplu_personel_form.ana_rol }}
+                    {% for error in toplu_personel_form.ana_rol.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+                </div>
+                <div class="yk-field yk-field-check">
+                    <label class="yk-check-label">{{ toplu_personel_form.aktif }} {{ toplu_personel_form.aktif.label }}</label>
+                </div>
+            </div>
+            <div class="yk-section yk-section-siniflar yk-toplu-siniflar" id="yk-toplu-siniflar" hidden>
+                <h3 class="yk-section-title">Sorumlu Sınıflar</h3>
+                <p class="yk-section-note">Toplu eklenen sınıf mesullerine aynı sınıflar atanır.</p>
+                <div class="yk-checkbox-grid">
+                    {{ toplu_personel_form.sorumlu_sinif_subeler }}
+                </div>
+                {% for error in toplu_personel_form.sorumlu_sinif_subeler.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+            </div>
+            <button type="submit" class="primary-btn yk-excel-submit">Toplu Ekle ve ZIP İndir</button>
+        </form>
+    </div>
+    {% endif %}
+
+    {% if tur == "ogretmen" %}
+    <div class="yk-section yk-section-excel">
+        <h3 class="yk-section-title">Toplu Öğretmen Ekle</h3>
+        <p class="yk-section-note">
+            Her satıra bir ad soyad yazın. Tüm öğretmenler için aynı branş, ücret ve sınıflar uygulanır.
+            Kayıttan sonra her öğretmen için ayrı giriş PDF'i içeren ZIP dosyası indirilir.
+        </p>
+        <form method="post" class="yk-excel-form yk-toplu-ogretmen-form">
+            {% csrf_token %}
+            <input type="hidden" name="tur" value="ogretmen">
+            <input type="hidden" name="islem" value="toplu_ogretmen">
+            <div class="yk-grid">
+                <div class="yk-field yk-field-wide">
+                    <label for="{{ toplu_ogretmen_form.isim_listesi.id_for_label }}">{{ toplu_ogretmen_form.isim_listesi.label }}</label>
+                    {{ toplu_ogretmen_form.isim_listesi }}
+                    {% if toplu_ogretmen_form.isim_listesi.help_text %}<small>{{ toplu_ogretmen_form.isim_listesi.help_text }}</small>{% endif %}
+                    {% for error in toplu_ogretmen_form.isim_listesi.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+                </div>
+                <div class="yk-field">
+                    <label for="{{ toplu_ogretmen_form.brans.id_for_label }}">{{ toplu_ogretmen_form.brans.label }}</label>
+                    {{ toplu_ogretmen_form.brans }}
+                    {% for error in toplu_ogretmen_form.brans.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+                </div>
+                <div class="yk-field">
+                    <label for="{{ toplu_ogretmen_form.saatlik_ucret.id_for_label }}">{{ toplu_ogretmen_form.saatlik_ucret.label }}</label>
+                    {{ toplu_ogretmen_form.saatlik_ucret }}
+                    {% for error in toplu_ogretmen_form.saatlik_ucret.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+                </div>
+            </div>
+            <div class="yk-section">
+                <h3 class="yk-section-title">Sorumlu Sınıflar</h3>
+                <p class="yk-section-note">Toplu eklenen öğretmenlere aynı sınıflar atanır.</p>
+                <div class="yk-checkbox-grid">
+                    {{ toplu_ogretmen_form.sorumlu_sinif_subeler }}
+                </div>
+                {% for error in toplu_ogretmen_form.sorumlu_sinif_subeler.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+            </div>
+            <button type="submit" class="primary-btn yk-excel-submit">Toplu Ekle ve ZIP İndir</button>
+        </form>
+    </div>
+    {% endif %}
+
+    {% if tur == "talebe" %}
+    <div class="yk-section yk-section-excel">
+        <h3 class="yk-section-title">Excel ile Veli &amp; TC Yükle</h3>
+        <p class="yk-section-note">
+            Kayıtlı talebe listesini indirin; <strong>Talebe TC</strong>, anne/baba ad ve telefon sütunlarını doldurup yükleyin.
+            Eksik satırlar ve boş alanlar kabul edilir — doldurduğunuz bilgiler güncellenir.
+            Veli paneli: <strong>kullanıcı adı = talebe TC</strong>, <strong>şifre = TC son 4 hane</strong> (anne ve baba aynı hesap).
+        </p>
+        <div class="yk-excel-actions">
+            <a href="{% url 'yonetim:talebe_excel_mevcut_indir' %}" class="ghost-btn yk-excel-btn">
+                Mevcut Listeyi İndir (.xlsx)
+            </a>
+        </div>
+        <form method="post" enctype="multipart/form-data" class="yk-excel-form">
+            {% csrf_token %}
+            <input type="hidden" name="tur" value="talebe">
+            <input type="hidden" name="islem" value="excel_yukle">
+            <div class="yk-field yk-field-wide">
+                <label for="{{ excel_form.excel_dosyasi.id_for_label }}">{{ excel_form.excel_dosyasi.label }}</label>
+                {{ excel_form.excel_dosyasi }}
+                {% for error in excel_form.excel_dosyasi.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+            </div>
+            <button type="submit" class="primary-btn yk-excel-submit">Excel Yükle</button>
+        </form>
+        {% if excel_sonuc and excel_sonuc.bilgi %}
+        <ul class="yk-excel-info">
+            {% for mesaj in excel_sonuc.bilgi|slice:":10" %}
+            <li>{{ mesaj }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+    {% endif %}
+</section>
+
+</div>
+
+{% if tur == "personel" %}
+<script>
+(function () {
+    var sinifRol = "sinif_mesul";
+
+    function toggleSinif(panel, rolSelect) {
+        if (!panel || !rolSelect) return;
+        var goster = rolSelect.value === sinifRol;
+        panel.hidden = !goster;
+        panel.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
+            cb.disabled = !goster;
+        });
+    }
+
+    document.querySelectorAll("[data-yk-rol-sec]").forEach(function (rolSelect) {
+        var form = rolSelect.closest("form");
+        if (!form) return;
+        var panel = form.querySelector(".yk-section-siniflar, .yk-toplu-siniflar");
+        toggleSinif(panel, rolSelect);
+        rolSelect.addEventListener("change", function () {
+            toggleSinif(panel, rolSelect);
+        });
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}

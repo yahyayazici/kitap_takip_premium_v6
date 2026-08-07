@@ -1,0 +1,43 @@
+{% extends "yonetim/base.html" %}
+{% block title %}Deneme Rapor{% endblock %}
+{% block content %}
+<div class="yonetim-page">
+    <header class="yonetim-page-head">
+        <h1>Deneme Raporu</h1>
+        <a href="{% url 'yonetim:deneme_listesi' %}" class="ghost-btn">Denemeler</a>
+    </header>
+    <section class="yonetim-card" style="margin-bottom:20px;">
+        <form method="get">
+            <label>Deneme
+                <select name="deneme" class="input" onchange="this.form.submit()">
+                    <option value="">Seçin…</option>
+                    {% for d in denemeler %}
+                    <option value="{{ d.id }}" {% if filtre.deneme == d.id|stringformat:"s" %}selected{% endif %}>{{ d.ad }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            {% if filtre.deneme %}
+            <a href="{% url 'yonetim:deneme_rapor' %}?deneme={{ filtre.deneme }}&format=excel" class="ghost-btn">Excel İndir</a>
+            {% endif %}
+        </form>
+    </section>
+    {% if sonuclar %}
+    <section class="yonetim-card">
+        <table class="yonetim-table">
+            <thead><tr><th>#</th><th>Talebe</th><th>Sınıf</th><th>Net</th><th>Puan</th></tr></thead>
+            <tbody>
+                {% for s in sonuclar %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ s.talebe.ad_soyad }}</td>
+                    <td>{{ s.talebe.sinif_sube }}</td>
+                    <td>{{ s.toplam_net }}</td>
+                    <td>{{ s.puan }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Öğretmen Ödeme{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ogretmen-odeme.css' %}">
+{% endblock %}
+
+{% block content %}
+<header class="page-head patterned-page-head">
+    <div>
+        <p class="kicker">KURUM</p>
+        <h1>Öğretmen Ödeme</h1>
+        <p class="muted">Ders saati girişi ve ödeme dönemleri.</p>
+    </div>
+    <div class="page-head-actions">
+        <a href="{% url 'ogretmen_odeme_rapor' %}" class="ghost-btn">Ödeme Raporları</a>
+    </div>
+</header>
+
+{% if girebilir and olustur_form %}
+<section class="dashboard-card oo-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">YENİ DÖNEM</p>
+            <h2>Ödeme Girişi</h2>
+        </div>
+    </div>
+    <form method="post" class="oo-create-form">
+        {% csrf_token %}
+        <input type="hidden" name="islem" value="olustur">
+        <div class="oo-form-grid">
+            <label>{{ olustur_form.etut_hocasi.label }}{{ olustur_form.etut_hocasi }}</label>
+            <label>{{ olustur_form.baslangic.label }}{{ olustur_form.baslangic }}</label>
+            <label>{{ olustur_form.bitis.label }}{{ olustur_form.bitis }}</label>
+        </div>
+        <label class="oo-full">{{ olustur_form.notlar.label }}{{ olustur_form.notlar }}</label>
+        <div class="oo-form-actions">
+            <button type="submit" class="primary-btn">Tabloyu Oluştur</button>
+        </div>
+    </form>
+</section>
+{% endif %}
+
+<section class="dashboard-card oo-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">KAYITLAR</p>
+            <h2>Ödeme Dönemleri</h2>
+        </div>
+    </div>
+    <div class="responsive-table">
+        <table class="report-data-table">
+            <thead>
+                <tr>
+                    <th>Öğretmen</th>
+                    <th>Tarih Aralığı</th>
+                    <th>Toplam Saat</th>
+                    {% if finans_goster %}<th>Ödenecek Tutar</th>{% endif %}
+                    <th>İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for donem in donemler %}
+                <tr>
+                    <td><strong>{{ donem.etut_hocasi.ad_soyad }}</strong></td>
+                    <td>{{ donem.baslangic|date:"d.m.Y" }} – {{ donem.bitis|date:"d.m.Y" }}</td>
+                    <td class="num-col">{{ donem.toplam_saat }}</td>
+                    {% if finans_goster %}<td class="num-col">{{ donem.odenecek_tutar }} ₺</td>{% endif %}
+                    <td>
+                        <a href="{% url 'ogretmen_odeme_detay' donem.pk %}" class="small-button">Aç</a>
+                        <a href="{% url 'ogretmen_odeme_pdf' donem.pk %}" class="small-button" target="_blank">PDF</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="report-empty">Henüz ödeme dönemi yok.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

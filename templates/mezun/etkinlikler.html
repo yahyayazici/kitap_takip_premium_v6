@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Mezun Etkinlikleri · {{ panel_short }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/mezun-premium.css' %}">{% endblock %}
+{% block content %}
+<div class="mz-page">
+<header class="mz-head">
+    <div>
+        <p class="mz-crumb"><a href="{% url 'mezun_listesi' %}">Mezun Merkezi</a> › Etkinlikler</p>
+        <h1>Mezun Etkinlikleri</h1>
+    </div>
+    <a href="{% url 'mezun_listesi' %}" class="mz-btn">← Geri</a>
+</header>
+<div class="mz-split">
+    <section class="mz-card">
+        <div class="mz-section-head"><h3>Etkinlik Listesi</h3></div>
+        {% for e in etkinlikler %}
+        <article style="padding:0.85rem 0;border-bottom:1px solid var(--mz-border)">
+            <strong>{{ e.ad }}</strong> · {{ e.get_tur_display }}<br>
+            <small style="color:var(--mz-muted)">{{ e.tarih|date:"d F Y" }}{% if e.saat %} · {{ e.saat|time:"H:i" }}{% endif %}{% if e.yer %} · {{ e.yer }}{% endif %}</small>
+            {% if e.aciklama %}<p style="margin:0.35rem 0 0;font-size:0.8125rem">{{ e.aciklama }}</p>{% endif %}
+        </article>
+        {% empty %}<p class="mz-empty">Henüz etkinlik yok.</p>{% endfor %}
+    </section>
+    {% if form %}
+    <section class="mz-card">
+        <div class="mz-section-head"><h3>Etkinlik Oluştur</h3></div>
+        <form method="post" class="mz-form-grid">{% csrf_token %}
+            <div class="mz-field"><label>Ad</label>{{ form.ad }}</div>
+            <div class="mz-field-row"><div class="mz-field"><label>Tür</label>{{ form.tur }}</div><div class="mz-field"><label>Tarih</label>{{ form.tarih }}</div></div>
+            <div class="mz-field-row"><div class="mz-field"><label>Saat</label>{{ form.saat }}</div><div class="mz-field"><label>Yer</label>{{ form.yer }}</div></div>
+            <div class="mz-field"><label>Açıklama</label>{{ form.aciklama }}</div>
+            <button type="submit" class="mz-btn mz-btn-primary">Oluştur</button>
+        </form>
+    </section>
+    {% endif %}
+</div>
+</div>
+{% endblock %}

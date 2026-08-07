@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Ödeme Dönemi · {{ donem.etut_hocasi.ad_soyad }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ogretmen-odeme.css' %}">
+{% endblock %}
+
+{% block content %}
+<header class="page-head patterned-page-head">
+    <div>
+        <p class="kicker">ÖDEME GİRİŞİ</p>
+        <h1>{{ donem.etut_hocasi.ad_soyad }}</h1>
+        <p class="muted">{{ donem.baslangic|date:"d.m.Y" }} – {{ donem.bitis|date:"d.m.Y" }} · {{ brans_etiket }}</p>
+    </div>
+    <div class="page-head-actions">
+        <a href="{% url 'ogretmen_odeme_listesi' %}" class="ghost-btn">Listeye Dön</a>
+        <a href="{% url 'ogretmen_odeme_pdf' donem.pk %}" class="ghost-btn" target="_blank">PDF</a>
+        {% if girebilir %}
+        <button type="submit" form="oo-donem-form" class="primary-btn">Kaydet</button>
+        {% endif %}
+    </div>
+</header>
+
+<form method="post" id="oo-donem-form" class="oo-donem-form">
+    {% csrf_token %}
+
+    {% if finans_goster %}
+    <section class="metric-grid oo-metrics">
+        <div class="metric-card tone-blue">
+            <span>Saatlik Ücret</span>
+            <input type="text" name="saatlik_ucret" class="oo-rate-input" value="{{ donem.saatlik_ucret }}" {% if not girebilir %}readonly{% endif %}>
+        </div>
+        <div class="metric-card tone-purple">
+            <span>Toplam Saat</span>
+            <strong id="oo-toplam-saat">{{ toplam_saat }}</strong>
+        </div>
+        <div class="metric-card tone-green">
+            <span>Ödenecek Tutar</span>
+            <strong id="oo-toplam-tutar">{{ odenecek_tutar }} ₺</strong>
+        </div>
+    </section>
+    {% else %}
+    <section class="metric-grid oo-metrics">
+        <div class="metric-card tone-purple">
+            <span>Toplam Ders Saati</span>
+            <strong id="oo-toplam-saat">{{ toplam_saat }}</strong>
+        </div>
+    </section>
+    {% endif %}
+
+    <section class="dashboard-card oo-card">
+        <div class="card-heading">
+            <div>
+                <p class="card-kicker">DERS SAATİ MATRİSİ</p>
+                <h2>Sınıf × Gün Tablosu</h2>
+            </div>
+            <div class="oo-teacher-chip">
+                <span class="oo-teacher-avatar">{{ ogretmen_bas_harf }}</span>
+                <span>{{ donem_yil }}</span>
+            </div>
+        </div>
+
+        <div class="oo-matrix-wrap">
+            <table class="oo-matrix-table">
+                <thead>
+                    <tr>
+                        <th class="oo-matrix-sticky">Sınıf</th>
+                        {% for gun in gunler %}
+                        <th class="{% if gun.hafta_sonu %}oo-weekend{% endif %}">
+                            <span class="oo-day-label">{{ gun.gun_kisalt }}</span>
+                            <span class="oo-date-label">{{ gun.tarih_kisa }}</span>
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for satir in satirlar %}
+                    <tr>
+                        <th class="oo-matrix-sticky oo-class-label">{{ satir.sinif.sinif }}-{{ satir.sinif.sube }}</th>
+                        {% for hucre in satir.hucreler %}
+                        <td>
+                            <input
+                                type="text"
+                                name="{{ hucre.name }}"
+                                value="{{ hucre.value }}"
+                                class="oo-cell-input"
+                                inputmode="decimal"
+                                placeholder="—"
+                                {% if not girebilir %}readonly{% endif %}
+                            >
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="{{ gunler|length|add:1 }}" class="report-empty">Aktif sınıf bulunamadı.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="oo-total-row">
+                        <th class="oo-matrix-sticky">TOPLAM SAAT</th>
+                        {% for gun in gunler %}
+                        <td class="oo-col-total {% if gun.hafta_sonu %}oo-weekend{% endif %}" data-gun-id="{{ gun.id }}">
+                            {{ gun.toplam_saat }}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <label class="oo-full">Notlar<textarea name="notlar" rows="2" class="input" {% if not girebilir %}readonly{% endif %}>{{ donem.notlar }}</textarea></label>
+    </section>
+</form>
+
+{% if silebilir %}
+<form method="post" action="{% url 'ogretmen_odeme_sil' donem.pk %}" onsubmit="return confirm('Bu dönem silinsin mi?');">
+    {% csrf_token %}
+    <button type="submit" class="ghost-btn oo-delete">Dönemi Sil</button>
+</form>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/ogretmen-odeme.js' %}"></script>
+{% endblock %}

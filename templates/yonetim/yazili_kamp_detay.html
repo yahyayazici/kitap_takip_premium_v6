@@ -1,0 +1,74 @@
+{% extends "yonetim/base.html" %}
+{% block title %}{{ kamp.ad }}{% endblock %}
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">YAZILI KAMP</p>
+        <h1>{{ kamp.ad }}</h1>
+        <p class="muted">
+            {{ kamp.sinif_seviyesi }}. sınıf ·
+            {{ kamp.baslangic|date:"d.m.Y" }} — {{ kamp.bitis|date:"d.m.Y" }}
+        </p>
+    </div>
+    <div class="yonetim-page-head-actions">
+        {% if duzenleyebilir %}
+        <a href="{% url 'yonetim:yazili_kamp_duzenle' kamp.pk %}" class="ghost-btn yonetim-head-ghost">Kamp Düzenle</a>
+        {% endif %}
+        {% if olusturabilir %}
+        <a href="{% url 'yonetim:yazili_sinav_ekle' kamp.pk %}" class="primary-btn">Sınav Ekle</a>
+        {% endif %}
+        <a href="{% url 'yonetim:yazili_kamp_listesi' %}" class="ghost-btn yonetim-head-ghost">Liste</a>
+    </div>
+</header>
+
+<section class="report-table-card yonetim-table-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">SINAVLAR</p>
+            <h2>Kamp Sınavları</h2>
+        </div>
+    </div>
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <thead>
+                <tr>
+                    <th>Tarih</th>
+                    <th>Sınav</th>
+                    <th>Ders</th>
+                    <th>Soru</th>
+                    <th>Durum</th>
+                    <th class="yonetim-action-col">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in sinavlar %}
+                <tr>
+                    <td>{{ s.sinav_tarihi|date:"d.m.Y" }}</td>
+                    <td><strong>{{ s.ad }}</strong></td>
+                    <td>{{ s.ders_goster }}</td>
+                    <td>{{ s.soru_sayisi }}</td>
+                    <td>{{ s.get_durum_display }}</td>
+                    <td class="yonetim-action-col">
+                        <a href="{% url 'yonetim:yazili_sinav_detay' s.pk %}" class="yonetim-link">Detay</a>
+                        {% if duzenleyebilir %}
+                        · <a href="{% url 'yonetim:yazili_sinav_duzenle' s.pk %}" class="yonetim-link">Düzenle</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="report-empty">Sınav tanımlı değil.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% if duzenleyebilir %}
+<form method="post" action="{% url 'yonetim:yazili_kamp_sil' kamp.pk %}" onsubmit="return confirm('Kamp ve tüm sınavları silinsin mi?');">
+    {% csrf_token %}
+    <button type="submit" class="ghost-btn" style="color:#b91c1c;">Kampı Sil</button>
+</form>
+{% endif %}
+
+{% endblock %}

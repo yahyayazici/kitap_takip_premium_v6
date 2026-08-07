@@ -1,0 +1,49 @@
+{% load static %}
+<div class="veli-breadcrumb">
+    <a href="{% url 'veli_dashboard' %}">Ana Sayfa</a>
+    <span class="sep">›</span>
+    <span>{{ talebe.ad_soyad }}</span>
+</div>
+
+<header class="dash-hero">
+    <div class="dash-hero-float" aria-hidden="true">
+        {% include "includes/v6_header_books.html" %}
+    </div>
+    <div class="dash-hero-copy">
+        <p class="dash-eyebrow">{{ panel_short }}</p>
+        <h1>{{ talebe.ad_soyad }}</h1>
+        <p class="dash-hero-meta">
+            Sınıf: {{ sinif_goster }}
+            {% if talebe.talebe_no %} · No: {{ talebe.talebe_no }}{% endif %}
+        </p>
+        {% if talebe.dini_ders_seviyesi or talebe.dini_ders_hocasi %}
+        <div class="dash-hero-badges">
+            {% if talebe.dini_ders_seviyesi %}
+            <span class="dash-hero-badge">Seviye: {{ talebe.dini_ders_seviyesi }}</span>
+            {% endif %}
+            {% if talebe.dini_ders_hocasi %}
+            <span class="dash-hero-badge dash-hero-badge-green">Hoca: {{ talebe.dini_ders_hocasi.ad_soyad }}</span>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    {% if talebeler|length > 1 %}
+    <div class="dash-hero-date dash-hero-action">
+        <a href="{% url 'veli_dashboard' %}" class="dash-hero-btn">Öğrenci değiştir</a>
+    </div>
+    {% else %}
+    <div class="dash-hero-date">
+        <span class="dash-eyebrow">Bugün</span>
+        <time data-panel-date></time>
+    </div>
+    {% endif %}
+</header>
+
+<nav class="veli-subnav">
+    <a href="{% url 'veli_talebe_dashboard' talebe.id %}" class="{% if aktif_sekme == 'dashboard' %}active{% endif %}">Dashboard</a>
+    <a href="{% url 'veli_talebe_profil' talebe.id %}" class="{% if aktif_sekme == 'profil' %}active{% endif %}">Öğrenci Profili</a>
+    <a href="{% url 'veli_talebe_sinavlar' talebe.id %}" class="{% if aktif_sekme == 'sinavlar' %}active{% endif %}">Sınav Sonuçları</a>
+    <a href="{% url 'veli_talebe_dini_ders' talebe.id %}" class="{% if aktif_sekme == 'dini_ders' %}active{% endif %}">Dini Ders Takibi</a>
+    <a href="{% url 'veli_talebe_aidat' talebe.id %}" class="{% if aktif_sekme == 'aidat' %}active{% endif %}">Aidat</a>
+    <a href="{% url 'veli_talebe_randevu' talebe.id %}" class="{% if aktif_sekme == 'randevu' %}active{% endif %}">Randevu</a>
+</nav>

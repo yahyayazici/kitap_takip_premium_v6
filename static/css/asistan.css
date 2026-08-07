@@ -1,0 +1,236 @@
+.asistan-fab {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 1500;
+    width: 56px;
+    height: 56px;
+    border: none;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #316ff1, #6558e7);
+    color: #fff;
+    box-shadow: 0 14px 34px rgba(47, 111, 243, 0.35);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.asistan-fab:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 40px rgba(47, 111, 243, 0.42);
+}
+
+.asistan-panel {
+    position: fixed;
+    right: 24px;
+    bottom: 92px;
+    z-index: 1500;
+    width: min(460px, calc(100vw - 32px));
+    height: min(680px, calc(100vh - 96px));
+    max-height: min(680px, calc(100vh - 96px));
+    display: none;
+    flex-direction: column;
+    border: 1px solid #dce5f2;
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 24px 60px rgba(15, 40, 90, 0.18);
+    overflow: hidden;
+}
+
+.asistan-panel.open {
+    display: flex;
+}
+
+.asistan-head {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px;
+    background: linear-gradient(135deg, #15427f, #2a6cb8);
+    color: #fff;
+}
+
+.asistan-head strong {
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.asistan-head small {
+    display: block;
+    margin-top: 2px;
+    font-size: 11px;
+    opacity: 0.82;
+}
+
+.asistan-close {
+    width: 32px;
+    height: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.asistan-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: #f7faff;
+}
+
+.asistan-messages {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 16px;
+    display: grid;
+    gap: 12px;
+    align-content: start;
+}
+
+.asistan-msg {
+    max-width: 92%;
+    padding: 11px 14px;
+    border-radius: 14px;
+    font-size: 13px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+}
+
+.asistan-msg.user {
+    justify-self: end;
+    background: linear-gradient(135deg, #316ff1, #6558e7);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+}
+
+.asistan-msg.bot {
+    justify-self: start;
+    background: #fff;
+    color: #1a2f4d;
+    border: 1px solid #e3eaf3;
+    border-bottom-left-radius: 4px;
+}
+
+.asistan-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.asistan-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 0 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    text-decoration: none !important;
+    cursor: pointer;
+    border: 1px solid #d4dfed;
+    background: #fff;
+    color: #173b80 !important;
+}
+
+.asistan-action-btn.pdf {
+    border-color: #b8ccf5;
+    background: #eef4ff;
+}
+
+.asistan-footer {
+    flex-shrink: 0;
+    border-top: 1px solid #e8eef5;
+    background: #fff;
+}
+
+.asistan-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    max-height: 68px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 10px 12px 6px;
+    background: #f7faff;
+    border-bottom: 1px solid #e8eef5;
+}
+
+.asistan-suggestions:empty {
+    display: none;
+    padding: 0;
+    border-bottom: none;
+}
+
+.asistan-chip {
+    border: 1px solid #dce5f2;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 11px;
+    background: #fff;
+    color: #475569;
+    cursor: pointer;
+    line-height: 1.3;
+}
+
+.asistan-form {
+    display: flex;
+    gap: 8px;
+    padding: 12px;
+    background: #fff;
+}
+
+.asistan-input {
+    flex: 1;
+    min-height: 42px;
+    padding: 0 14px;
+    border: 1px solid #d4dfed;
+    border-radius: 12px;
+    font-size: 13px;
+}
+
+.asistan-send {
+    min-width: 42px;
+    min-height: 42px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #316ff1, #6558e7);
+    color: #fff;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.asistan-typing {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: #708097;
+    padding: 0 16px 10px;
+    background: #f7faff;
+}
+
+@media (max-width: 700px) {
+    .asistan-fab {
+        right: 16px;
+        bottom: 16px;
+    }
+
+    .asistan-panel {
+        right: 16px;
+        bottom: 84px;
+        width: calc(100vw - 32px);
+        height: min(620px, calc(100vh - 88px));
+        max-height: min(620px, calc(100vh - 88px));
+    }
+}

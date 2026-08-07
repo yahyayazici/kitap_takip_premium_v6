@@ -1,4 +1,5 @@
 from decimal import Decimal, ROUND_HALF_UP
+from datetime import date, datetime
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -62,6 +63,70 @@ class SinifSube(models.Model):
         return f"{self.sinif}/{self.sube}"
 
 
+class PersonelProfili(models.Model):
+    class Rol(models.TextChoices):
+        IDARECI = "idareci", "İdareci"
+        IC_MESUL = "ic_mesul", "İç Mesul"
+        EGITIM_MESUL = "egitim_mesul", "Eğitim Mesulü"
+        ETUT_MESUL = "etut_mesul", "Etüt Mesulü"
+        SINIF_MESUL = "sinif_mesul", "Sınıf Mesulü"
+        REHBER_OGRETMENI = "rehber_ogretmeni", "Rehber Öğretmeni"
+        MUHASEBECI = "muhasebeci", "Muhasebeci"
+        NEHARI_MESUL = "nehari_mesul", "Nehari Mesulü"
+        MAHAL_SORUMLU = "mahal_sorumlusu", "Mahal Sorumlusu"
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="personel_profili",
+        verbose_name="Kullanıcı hesabı",
+    )
+    ad_soyad = models.CharField(
+        max_length=120,
+        verbose_name="Ad soyad",
+    )
+    ana_rol = models.CharField(
+        max_length=30,
+        choices=Rol.choices,
+        default=Rol.ETUT_MESUL,
+        verbose_name="Ana rol",
+    )
+    rol = models.ForeignKey(
+        "Rol",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="personel_profilleri",
+        verbose_name="RBAC rolü",
+    )
+    etut_hocasi = models.OneToOneField(
+        "EtutHocasi",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="personel_kaydi",
+        verbose_name="Etüt hocası kaydı",
+    )
+    aktif = models.BooleanField(
+        default=True,
+        verbose_name="Aktif",
+    )
+    olusturulma = models.DateTimeField(auto_now_add=True)
+    guncellenme = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Personel profili"
+        verbose_name_plural = "Personel profilleri"
+        ordering = ["ad_soyad"]
+
+    def __str__(self):
+        return f"{self.ad_soyad} — {self.get_ana_rol_display()}"
+
+    @property
+    def rol_etiketi(self):
+        return self.get_ana_rol_display()
+
+
 class EtutHocasi(models.Model):
     user = models.OneToOneField(
         User,
@@ -99,6 +164,11 @@ class EtutHocasi(models.Model):
 
 
 class Talebe(models.Model):
+    class Durum(models.TextChoices):
+        AKTIF = "aktif", "Aktif"
+        MEZUN = "mezun", "Mezun"
+        AYRILDI = "ayrildi", "Ayrıldı"
+
     ad_soyad = models.CharField(
         max_length=120,
         verbose_name="Ad soyad",
@@ -137,15 +207,61 @@ class Talebe(models.Model):
         related_name="talebeler",
         verbose_name="Etüt hocası",
     )
+    dini_ders_hocasi = models.ForeignKey(
+        EtutHocasi,
+        on_delete=models.PROTECT,
+        related_name="dini_ders_talebeleri",
+        verbose_name="Dini ders hocası",
+    )
     aktif = models.BooleanField(
         default=True,
         verbose_name="Aktif",
+    )
+    durum = models.CharField(
+        max_length=10,
+        choices=Durum.choices,
+        default=Durum.AKTIF,
+        verbose_name="Durum",
+    )
+    dini_ders_seviyesi = models.ForeignKey(
+        "DiniDersSeviyesi",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="talebeler",
+        verbose_name="Dini ders seviyesi",
+    )
+    dogum_tarihi = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Doğum tarihi",
+    )
+    telefon = models.CharField(
+        max_length=20,
+        blank=True,
+        verbose_name="Telefon",
+    )
+    tc_kimlik = models.CharField(
+        max_length=11,
+        blank=True,
+        verbose_name="TC kimlik no",
+    )
+    eposta = models.EmailField(
+        blank=True,
+        verbose_name="E-posta",
     )
 
     class Meta:
         verbose_name = "Talebe"
         verbose_name_plural = "Talebeler"
         ordering = ["sinif", "sube", "ad_soyad"]
+
+    def save(self, *args, **kwargs):
+        if self.durum == self.Durum.AKTIF:
+            self.aktif = True
+        else:
+            self.aktif = False
+        super().save(*args, **kwargs)
 
     def clean(self):
         super().clean()
@@ -166,13 +282,59 @@ class Talebe(models.Model):
                     }
                 )
 
+        if self.sinif_sube_id and self.dini_ders_hocasi_id:
+            yetkili = self.dini_ders_hocasi.sorumlu_sinif_subeler.filter(
+                pk=self.sinif_sube_id,
+                aktif=True,
+            ).exists()
+
+            if not yetkili:
+                raise ValidationError(
+                    {
+                        "dini_ders_hocasi": (
+                            "Seçilen dini ders hocası bu sınıf ve şubeden "
+                            "sorumlu değildir."
+                        )
+                    }
+                )
+
+    @property
+    def zimmet_hocalari_ayni(self) -> bool:
+        return self.etut_hocasi_id == self.dini_ders_hocasi_id
+
     def save(self, *args, **kwargs):
         if self.sinif_sube_id:
             self.sinif = self.sinif_sube.sinif
             self.sube = self.sinif_sube.sube
 
+        if self.etut_hocasi_id and not self.dini_ders_hocasi_id:
+            self.dini_ders_hocasi = self.etut_hocasi
+
+        if not self.talebe_no:
+            self.talebe_no = self._yeni_talebe_no()
+
         self.full_clean()
         super().save(*args, **kwargs)
+
+    @classmethod
+    def _yeni_talebe_no(cls) -> str:
+        mevcut_numaralar = (
+            cls.objects.exclude(talebe_no__isnull=True)
+            .exclude(talebe_no="")
+            .values_list("talebe_no", flat=True)
+        )
+
+        en_buyuk = 0
+        for numara in mevcut_numaralar:
+            if numara.isdigit():
+                en_buyuk = max(en_buyuk, int(numara))
+
+        aday = str(en_buyuk + 1)
+        while cls.objects.filter(talebe_no=aday).exists():
+            en_buyuk += 1
+            aday = str(en_buyuk + 1)
+
+        return aday
 
     def __str__(self):
         grup = (
@@ -591,3 +753,1230 @@ class SinavSonucu(models.Model):
             f"{self.talebe.ad_soyad} — "
             f"{self.puan}"
         )
+
+
+class Duyuru(models.Model):
+    class Kategori(models.TextChoices):
+        GENEL = "genel", "Genel"
+        EGITIM = "egitim", "Eğitim"
+        PROGRAM = "program", "Program"
+        KURUM = "kurum", "Kurum"
+
+    class HedefKitle(models.TextChoices):
+        TUM_PERSONEL = "tum_personel", "Tüm personel"
+        PERSONEL = "personel", "Personel paneli"
+        VELI = "veli", "Veli paneli"
+
+    class Ton(models.TextChoices):
+        NAVY = "navy", "Lacivert"
+        VIOLET = "violet", "Mor"
+        TEAL = "teal", "Turkuaz"
+        AMBER = "amber", "Kehribar"
+
+    baslik = models.CharField(
+        max_length=200,
+        verbose_name="Başlık",
+    )
+    ozet = models.TextField(
+        max_length=500,
+        verbose_name="Kısa açıklama",
+    )
+    kategori = models.CharField(
+        max_length=20,
+        choices=Kategori.choices,
+        default=Kategori.GENEL,
+        verbose_name="Kategori",
+    )
+    hedef_kitle = models.CharField(
+        max_length=20,
+        choices=HedefKitle.choices,
+        default=HedefKitle.TUM_PERSONEL,
+        verbose_name="Hedef kitle",
+    )
+    dis_link = models.URLField(
+        blank=True,
+        verbose_name="Bağlantı",
+        help_text="İsteğe bağlı. Duyuruya tıklanınca açılacak adres.",
+    )
+    gorsel = models.ImageField(
+        upload_to="duyurular/",
+        blank=True,
+        null=True,
+        verbose_name="Görsel",
+        help_text="Sol tarafta gösterilecek fotoğraf.",
+    )
+    video_url = models.URLField(
+        blank=True,
+        verbose_name="Video bağlantısı",
+        help_text="YouTube, Vimeo veya doğrudan .mp4 bağlantısı.",
+    )
+    video_dosya = models.FileField(
+        upload_to="duyurular/videolar/",
+        blank=True,
+        null=True,
+        verbose_name="Video dosyası",
+        help_text="İsteğe bağlı. Yüklenen video sol tarafta oynatılır.",
+    )
+    ton = models.CharField(
+        max_length=20,
+        choices=Ton.choices,
+        default=Ton.NAVY,
+        verbose_name="Görsel ton",
+    )
+    baslangic = models.DateField(
+        default=timezone.localdate,
+        verbose_name="Yayın başlangıcı",
+    )
+    bitis = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Yayın bitişi",
+    )
+    sira = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Sıra",
+        help_text="Küçük numara önce gösterilir.",
+    )
+    aktif = models.BooleanField(
+        default=True,
+        verbose_name="Aktif",
+    )
+    olusturan = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="olusturdugu_duyurular",
+        verbose_name="Oluşturan",
+    )
+    olusturulma = models.DateTimeField(auto_now_add=True)
+    guncellenme = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Duyuru"
+        verbose_name_plural = "Duyurular"
+        ordering = ["sira", "-baslangic", "-id"]
+
+    def __str__(self):
+        return self.baslik
+
+    @property
+    def ton_sinifi(self) -> str:
+        return f"duyuru-tone-{self.ton}"
+
+    @property
+    def kategori_etiketi(self) -> str:
+        return self.get_kategori_display()
+
+    @property
+    def ozet_maddeleri(self) -> list[str]:
+        import re
+
+        text = (self.ozet or "").strip()
+        if not text:
+            return []
+
+        parcalar = re.split(r"[\n\r]+|(?:^|\s)[•\-–]\s*", text)
+        maddeler = [p.strip().strip(".") for p in parcalar if p and p.strip()]
+        if len(maddeler) <= 1:
+            maddeler = [p.strip() for p in re.split(r"[.;]+", text) if p.strip()]
+        return maddeler[:4]
+
+    @property
+    def yayinda_mi(self) -> bool:
+        if not self.aktif:
+            return False
+
+        bugun = timezone.localdate()
+        if self.baslangic > bugun:
+            return False
+
+        if self.bitis and self.bitis < bugun:
+            return False
+
+        return True
+
+    @property
+    def gorsel_var_mi(self) -> bool:
+        return bool(self.gorsel)
+
+    @property
+    def video_var_mi(self) -> bool:
+        return bool(self.video_url or self.video_dosya)
+
+    @property
+    def medya_var_mi(self) -> bool:
+        return self.gorsel_var_mi or self.video_var_mi
+
+    @property
+    def oto_gorsel_goster(self) -> bool:
+        return not self.medya_var_mi
+
+    @property
+    def oto_gorsel_ozeti(self) -> str:
+        maddeler = self.ozet_maddeleri
+        if maddeler:
+            return maddeler[0][:100]
+        ozet = (self.ozet or "").strip()
+        if not ozet:
+            return ""
+        tek_satir = " ".join(ozet.split())
+        return tek_satir[:100]
+
+    @property
+    def oto_gorsel_harfi(self) -> str:
+        baslik = (self.baslik or "").strip()
+        if not baslik:
+            return "D"
+        return baslik[0].upper()
+
+    @property
+    def oto_gorsel_sahne(self) -> str:
+        from takip.duyuru_service import duyuru_oto_sahne
+
+        return duyuru_oto_sahne(self)
+
+    @property
+    def oto_sahne_ikonu(self) -> str:
+        ikonlar = {
+            "asistan": "🤖",
+            "egitim": "📘",
+            "program": "📅",
+            "kurum": "🏛",
+            "genel": "📣",
+        }
+        return ikonlar.get(self.oto_gorsel_sahne, "📣")
+
+    @property
+    def oto_gorsel_ikonu(self) -> str:
+        ikonlar = {
+            self.Kategori.EGITIM: "📘",
+            self.Kategori.PROGRAM: "📅",
+            self.Kategori.KURUM: "🏛",
+            self.Kategori.GENEL: "📣",
+        }
+        return ikonlar.get(self.kategori, "📣")
+
+    @property
+    def video_gomme_url(self) -> str | None:
+        from takip.duyuru_service import video_gomme_adresi
+
+        if self.video_dosya:
+            return self.video_dosya.url
+        if self.video_url:
+            return video_gomme_adresi(self.video_url)
+        return None
+
+    @property
+    def video_gomme_mi(self) -> bool:
+        adres = self.video_gomme_url or ""
+        return "youtube.com/embed" in adres or "player.vimeo.com" in adres
+
+
+class ProgramPlan(models.Model):
+    ad = models.CharField(
+        max_length=200,
+        verbose_name="Program adı",
+    )
+    aciklama = models.TextField(
+        blank=True,
+        verbose_name="Açıklama",
+    )
+    baslangic_tarihi = models.DateField(
+        verbose_name="Başlangıç tarihi",
+    )
+    bitis_tarihi = models.DateField(
+        verbose_name="Bitiş tarihi",
+    )
+    aktif = models.BooleanField(
+        default=True,
+        verbose_name="Aktif",
+    )
+    olusturan = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="olusturdugu_programlar",
+        verbose_name="Oluşturan",
+    )
+    olusturulma = models.DateTimeField(auto_now_add=True)
+    guncellenme = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Program planı"
+        verbose_name_plural = "Program planları"
+        ordering = ["-baslangic_tarihi", "ad"]
+
+    def __str__(self):
+        return self.ad
+
+    def clean(self):
+        super().clean()
+
+        if (
+            self.baslangic_tarihi
+            and self.bitis_tarihi
+            and self.bitis_tarihi < self.baslangic_tarihi
+        ):
+            raise ValidationError(
+                {"bitis_tarihi": "Bitiş tarihi başlangıçtan önce olamaz."}
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    @property
+    def yayinda_mi(self) -> bool:
+        if not self.aktif:
+            return False
+
+        bugun = timezone.localdate()
+        return self.baslangic_tarihi <= bugun <= self.bitis_tarihi
+
+    @property
+    def tarih_araligi_goster(self) -> str:
+        return (
+            f"{self.baslangic_tarihi.strftime('%d.%m.%Y')}"
+            f" – {self.bitis_tarihi.strftime('%d.%m.%Y')}"
+        )
+
+
+class ProgramSatir(models.Model):
+    class FaaliyetTuru(models.TextChoices):
+        DERS = "ders", "Ders"
+        ETUT = "etut", "Etüt"
+        NAMAZ = "namaz", "Namaz"
+        YEMEK = "yemek", "Yemek"
+        DINLENME = "dinlenme", "Dinlenme"
+        SPOR = "spor", "Spor"
+        GOREV = "gorev", "Görev"
+        TOPLANTI = "toplanti", "Toplantı"
+        DIGER = "diger", "Diğer"
+
+    class FaaliyetDurumu(models.TextChoices):
+        ETKIN = "etkin", "Etkin"
+        PASIF = "pasif", "Pasif"
+
+    program = models.ForeignKey(
+        ProgramPlan,
+        on_delete=models.CASCADE,
+        related_name="satirlar",
+        verbose_name="Program",
+    )
+    baslangic_saati = models.TimeField(
+        verbose_name="Başlangıç",
+    )
+    bitis_saati = models.TimeField(
+        verbose_name="Bitiş",
+    )
+    sure_dakika = models.PositiveIntegerField(
+        default=0,
+        editable=False,
+        verbose_name="Süre (dk)",
+    )
+    faaliyet_turu = models.CharField(
+        max_length=20,
+        choices=FaaliyetTuru.choices,
+        default=FaaliyetTuru.DERS,
+        verbose_name="Faaliyet türü",
+    )
+    faaliyet_adi = models.CharField(
+        max_length=200,
+        verbose_name="Faaliyet adı",
+    )
+    program_adi = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name="Program adı",
+        help_text="Boş bırakılırsa üst program adı kullanılır.",
+    )
+    faaliyet_durumu = models.CharField(
+        max_length=10,
+        choices=FaaliyetDurumu.choices,
+        default=FaaliyetDurumu.ETKIN,
+        verbose_name="Durum",
+    )
+    sira = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Sıra",
+    )
+
+    class Meta:
+        verbose_name = "Program satırı"
+        verbose_name_plural = "Program satırları"
+        ordering = ["sira", "baslangic_saati", "id"]
+
+    def __str__(self):
+        return f"{self.baslangic_saati:%H:%M} {self.faaliyet_adi}"
+
+    @classmethod
+    def sure_dakika_hesapla(cls, baslangic, bitis) -> int:
+        bas = datetime.combine(date.min, baslangic)
+        bit = datetime.combine(date.min, bitis)
+
+        if bit <= bas:
+            raise ValidationError(
+                "Bitiş saati başlangıç saatinden sonra olmalıdır."
+            )
+
+        return int((bit - bas).total_seconds() // 60)
+
+    def clean(self):
+        super().clean()
+
+        if self.baslangic_saati and self.bitis_saati:
+            self.sure_dakika = self.sure_dakika_hesapla(
+                self.baslangic_saati,
+                self.bitis_saati,
+            )
+
+    def save(self, *args, **kwargs):
+        if self.baslangic_saati and self.bitis_saati:
+            self.sure_dakika = self.sure_dakika_hesapla(
+                self.baslangic_saati,
+                self.bitis_saati,
+            )
+
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    @property
+    def sure_goster(self) -> str:
+        saat, dakika = divmod(self.sure_dakika, 60)
+
+        if saat and dakika:
+            return f"{saat} sa {dakika} dk"
+
+        if saat:
+            return f"{saat} sa"
+
+        return f"{dakika} dk"
+
+    @property
+    def gorunen_program_adi(self) -> str:
+        return self.program_adi or self.program.ad
+
+
+class ImamMuezzinListesi(models.Model):
+    ad = models.CharField(
+        max_length=200,
+        verbose_name="Liste adı",
+    )
+    baslangic_tarihi = models.DateField(
+        verbose_name="Başlangıç tarihi",
+    )
+    bitis_tarihi = models.DateField(
+        verbose_name="Bitiş tarihi",
+    )
+    cumartesi_dahil = models.BooleanField(
+        default=True,
+        verbose_name="Cumartesi dahil",
+    )
+    pazar_dahil = models.BooleanField(
+        default=False,
+        verbose_name="Pazar dahil",
+    )
+    haric_tarihler = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name="Hariç tutulan günler",
+        help_text="ISO formatında tarih listesi (YYYY-MM-DD).",
+    )
+    talebe_havuzu = models.ManyToManyField(
+        Talebe,
+        blank=True,
+        related_name="imam_muezzin_listeleri",
+        verbose_name="Talebe havuzu",
+        help_text="Boş bırakılırsa tüm aktif talebeler kullanılır.",
+    )
+    aktif = models.BooleanField(
+        default=True,
+        verbose_name="Aktif",
+    )
+    olusturan = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="olusturdugu_imam_listeleri",
+        verbose_name="Oluşturan",
+    )
+    olusturulma = models.DateTimeField(auto_now_add=True)
+    guncellenme = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "İmam müezzin listesi"
+        verbose_name_plural = "İmam müezzin listeleri"
+        ordering = ["-baslangic_tarihi", "ad"]
+
+    def __str__(self):
+        return self.ad
+
+    def clean(self):
+        super().clean()
+
+        if (
+            self.baslangic_tarihi
+            and self.bitis_tarihi
+            and self.bitis_tarihi < self.baslangic_tarihi
+        ):
+            raise ValidationError(
+                {"bitis_tarihi": "Bitiş tarihi başlangıçtan önce olamaz."}
+            )
+
+    @property
+    def tarih_araligi_goster(self) -> str:
+        return (
+            f"{self.baslangic_tarihi.strftime('%d.%m.%Y')}"
+            f" – {self.bitis_tarihi.strftime('%d.%m.%Y')}"
+        )
+
+    @property
+    def yayinda_mi(self) -> bool:
+        if not self.aktif:
+            return False
+
+        bugun = timezone.localdate()
+        return self.baslangic_tarihi <= bugun <= self.bitis_tarihi
+
+
+class ImamMuezzinAtama(models.Model):
+    liste = models.ForeignKey(
+        ImamMuezzinListesi,
+        on_delete=models.CASCADE,
+        related_name="atamalar",
+        verbose_name="Liste",
+    )
+    tarih = models.DateField(
+        verbose_name="Tarih",
+    )
+    imam = models.ForeignKey(
+        Talebe,
+        on_delete=models.PROTECT,
+        related_name="imam_gorevleri",
+        verbose_name="İmam",
+        null=True,
+        blank=True,
+    )
+    muezzin = models.ForeignKey(
+        Talebe,
+        on_delete=models.PROTECT,
+        related_name="muezzin_gorevleri",
+        verbose_name="Müezzin",
+        null=True,
+        blank=True,
+    )
+    manuel_duzenlendi = models.BooleanField(
+        default=False,
+        verbose_name="Manuel düzenlendi",
+    )
+
+    class Meta:
+        verbose_name = "İmam müezzin ataması"
+        verbose_name_plural = "İmam müezzin atamaları"
+        ordering = ["tarih"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["liste", "tarih"],
+                name="benzersiz_liste_gun_atama",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.tarih} — {self.imam} / {self.muezzin}"
+
+
+class ImamMuezzinHavuzKaydi(models.Model):
+    class Rol(models.TextChoices):
+        IMAM = "imam", "İmam"
+        MUEZZIN = "muezzin", "Müezzin"
+
+    liste = models.ForeignKey(
+        ImamMuezzinListesi,
+        on_delete=models.CASCADE,
+        related_name="havuz_kayitlari",
+        verbose_name="Liste",
+    )
+    talebe = models.ForeignKey(
+        Talebe,
+        on_delete=models.CASCADE,
+        related_name="imam_muezzin_havuz_kayitlari",
+        verbose_name="Talebe",
+    )
+    rol = models.CharField(max_length=10, choices=Rol.choices, verbose_name="Rol")
+    sira = models.PositiveIntegerField(default=0, verbose_name="Sıra")
+
+    class Meta:
+        verbose_name = "İmam müezzin havuz kaydı"
+        verbose_name_plural = "İmam müezzin havuz kayıtları"
+        ordering = ["rol", "sira", "talebe__ad_soyad"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["liste", "rol", "talebe"],
+                name="benzersiz_imam_muezzin_havuz",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.get_rol_display()} — {self.talebe.ad_soyad}"
+
+
+class TemizlikAlani(models.Model):
+    ad = models.CharField(
+        max_length=120,
+        verbose_name="Alan adı",
+    )
+    kat = models.ForeignKey(
+        "TemizlikKati",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="alanlar",
+        verbose_name="Kat",
+    )
+    aciklama = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name="Açıklama",
+    )
+    sira = models.PositiveSmallIntegerField(
+        default=0,
+        verbose_name="Sıra",
+    )
+    aktif = models.BooleanField(
+        default=True,
+        verbose_name="Aktif",
+    )
+
+    class Meta:
+        verbose_name = "Temizlik alanı"
+        verbose_name_plural = "Temizlik alanları"
+        ordering = ["sira", "ad"]
+
+    def __str__(self):
+        return self.ad
+
+
+class TemizlikListesi(models.Model):
+    ad = models.CharField(
+        max_length=200,
+        verbose_name="Liste adı",
+    )
+    baslangic_tarihi = models.DateField(
+        verbose_name="Başlangıç tarihi",
+    )
+    bitis_tarihi = models.DateField(
+        verbose_name="Bitiş tarihi",
+    )
+    cumartesi_dahil = models.BooleanField(
+        default=True,
+        verbose_name="Cumartesi dahil",
+    )
+    pazar_dahil = models.BooleanField(
+        default=False,
+        verbose_name="Pazar dahil",
+    )
+    haric_tarihler = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name="Hariç tutulan günler",
+        help_text="ISO formatında tarih listesi (YYYY-MM-DD).",
+    )
+    alanlar = models.ManyToManyField(
+        TemizlikAlani,
+        blank=True,
+        related_name="temizlik_listeleri",
+        verbose_name="Temizlik alanları",
+        help_text="Boş bırakılırsa tüm aktif alanlar kullanılır.",
+    )
+    talebe_havuzu = models.ManyToManyField(
+        Talebe,
+        blank=True,
+        related_name="temizlik_listeleri",
+        verbose_name="Talebe havuzu",
+        help_text="Boş bırakılırsa tüm aktif talebeler kullanılır.",
+    )
+    aktif = models.BooleanField(
+        default=True,
+        verbose_name="Aktif",
+    )
+    olusturan = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="olusturdugu_temizlik_listeleri",
+        verbose_name="Oluşturan",
+    )
+    olusturulma = models.DateTimeField(auto_now_add=True)
+    guncellenme = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Temizlik listesi"
+        verbose_name_plural = "Temizlik listeleri"
+        ordering = ["-baslangic_tarihi", "ad"]
+
+    def __str__(self):
+        return self.ad
+
+    def clean(self):
+        super().clean()
+
+        if (
+            self.baslangic_tarihi
+            and self.bitis_tarihi
+            and self.bitis_tarihi < self.baslangic_tarihi
+        ):
+            raise ValidationError(
+                {"bitis_tarihi": "Bitiş tarihi başlangıçtan önce olamaz."}
+            )
+
+    @property
+    def tarih_araligi_goster(self) -> str:
+        return (
+            f"{self.baslangic_tarihi.strftime('%d.%m.%Y')}"
+            f" – {self.bitis_tarihi.strftime('%d.%m.%Y')}"
+        )
+
+    @property
+    def yayinda_mi(self) -> bool:
+        if not self.aktif:
+            return False
+
+        bugun = timezone.localdate()
+        return self.baslangic_tarihi <= bugun <= self.bitis_tarihi
+
+
+class TemizlikAtama(models.Model):
+    liste = models.ForeignKey(
+        TemizlikListesi,
+        on_delete=models.CASCADE,
+        related_name="atamalar",
+        verbose_name="Liste",
+    )
+    tarih = models.DateField(
+        verbose_name="Tarih",
+    )
+    alan = models.ForeignKey(
+        TemizlikAlani,
+        on_delete=models.PROTECT,
+        related_name="atamalar",
+        verbose_name="Alan",
+    )
+    talebe = models.ForeignKey(
+        Talebe,
+        on_delete=models.PROTECT,
+        related_name="temizlik_gorevleri",
+        verbose_name="Sorumlu talebe",
+        null=True,
+        blank=True,
+    )
+    manuel_duzenlendi = models.BooleanField(
+        default=False,
+        verbose_name="Manuel düzenlendi",
+    )
+
+    class Meta:
+        verbose_name = "Temizlik ataması"
+        verbose_name_plural = "Temizlik atamaları"
+        ordering = ["tarih", "alan__sira", "alan__ad"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["liste", "tarih", "alan"],
+                name="benzersiz_temizlik_liste_gun_alan",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.tarih} — {self.alan}: {self.talebe}"
+
+
+class TemizlikKati(models.Model):
+    liste = models.ForeignKey(
+        TemizlikListesi,
+        on_delete=models.CASCADE,
+        related_name="katlar",
+        verbose_name="Liste",
+    )
+    ad = models.CharField(max_length=120, verbose_name="Kat adı")
+    sira = models.PositiveSmallIntegerField(default=0, verbose_name="Sıra")
+    aktif = models.BooleanField(default=True, verbose_name="Aktif")
+
+    class Meta:
+        verbose_name = "Temizlik katı"
+        verbose_name_plural = "Temizlik katları"
+        ordering = ["sira", "ad"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["liste", "ad"],
+                name="benzersiz_temizlik_liste_kat",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return self.ad
+
+
+class TemizlikKatSorumlusu(models.Model):
+    kat = models.ForeignKey(
+        TemizlikKati,
+        on_delete=models.CASCADE,
+        related_name="sorumlular",
+        verbose_name="Kat",
+    )
+    personel = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="temizlik_kat_sorumluluklari",
+        verbose_name="Sorumlu personel",
+    )
+
+    class Meta:
+        verbose_name = "Kat sorumlusu"
+        verbose_name_plural = "Kat sorumluları"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["kat", "personel"],
+                name="benzersiz_temizlik_kat_sorumlu",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.kat.ad} — {self.personel}"
+
+
+class TemizlikMahalSorumlusu(models.Model):
+    alan = models.ForeignKey(
+        TemizlikAlani,
+        on_delete=models.CASCADE,
+        related_name="mahal_sorumlulari",
+        verbose_name="Mahal",
+    )
+    personel = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="temizlik_mahal_sorumluluklari",
+        verbose_name="Sorumlu personel",
+    )
+
+    class Meta:
+        verbose_name = "Mahal sorumlusu"
+        verbose_name_plural = "Mahal sorumluları"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["alan", "personel"],
+                name="benzersiz_temizlik_mahal_sorumlu",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.alan.ad} — {self.personel}"
+
+
+class TemizlikGorevlisi(models.Model):
+    liste = models.ForeignKey(
+        TemizlikListesi,
+        on_delete=models.CASCADE,
+        related_name="gorevliler",
+        verbose_name="Liste",
+    )
+    alan = models.ForeignKey(
+        TemizlikAlani,
+        on_delete=models.CASCADE,
+        related_name="gorevliler",
+        verbose_name="Mahal",
+    )
+    talebe = models.ForeignKey(
+        Talebe,
+        on_delete=models.CASCADE,
+        related_name="temizlik_mahal_gorevleri",
+        verbose_name="Görevli talebe",
+    )
+    olusturulma = models.DateTimeField(auto_now_add=True)
+    guncellenme = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Temizlik görevlisi"
+        verbose_name_plural = "Temizlik görevlileri"
+        ordering = ["alan__sira", "alan__ad", "talebe__ad_soyad"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["liste", "alan", "talebe"],
+                name="benzersiz_temizlik_liste_alan_gorevli",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.alan.ad} — {self.talebe.ad_soyad}"
+
+
+class TemizlikGunlukKontrol(models.Model):
+    class Durum(models.TextChoices):
+        BEKLIYOR = "bekliyor", "Bekliyor"
+        TAMAMLANDI = "tamamlandi", "Tamamlandı"
+        EKSIK = "eksik", "Eksik"
+        KONTROL = "kontrol", "Kontrol Edildi"
+
+    liste = models.ForeignKey(
+        TemizlikListesi,
+        on_delete=models.CASCADE,
+        related_name="gunluk_kontroller",
+        verbose_name="Liste",
+    )
+    alan = models.ForeignKey(
+        TemizlikAlani,
+        on_delete=models.CASCADE,
+        related_name="gunluk_kontroller",
+        verbose_name="Mahal",
+    )
+    tarih = models.DateField(verbose_name="Tarih")
+    durum = models.CharField(
+        max_length=12,
+        choices=Durum.choices,
+        default=Durum.BEKLIYOR,
+        verbose_name="Durum",
+    )
+    notu = models.CharField(max_length=255, blank=True, verbose_name="Not")
+    guncelleyen = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="temizlik_kontrolleri",
+        verbose_name="Güncelleyen",
+    )
+    guncellenme = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Temizlik günlük kontrol"
+        verbose_name_plural = "Temizlik günlük kontroller"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["liste", "alan", "tarih"],
+                name="benzersiz_temizlik_gun_kontrol",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.tarih} · {self.alan.ad} · {self.get_durum_display()}"
+
+
+class YemekOgun(models.Model):
+    ad = models.CharField(
+        max_length=120,
+        verbose_name="Öğün adı",
+    )
+    aciklama = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name="Açıklama",
+    )
+    sira = models.PositiveSmallIntegerField(
+        default=0,
+        verbose_name="Sıra",
+    )
+    aktif = models.BooleanField(
+        default=True,
+        verbose_name="Aktif",
+    )
+
+    class Meta:
+        verbose_name = "Yemek öğünü"
+        verbose_name_plural = "Yemek öğünleri"
+        ordering = ["sira", "ad"]
+
+    def __str__(self):
+        return self.ad
+
+
+class YemekciListesi(models.Model):
+    ad = models.CharField(
+        max_length=200,
+        verbose_name="Liste adı",
+    )
+    baslangic_tarihi = models.DateField(
+        verbose_name="Başlangıç tarihi",
+    )
+    bitis_tarihi = models.DateField(
+        verbose_name="Bitiş tarihi",
+    )
+    cumartesi_dahil = models.BooleanField(
+        default=True,
+        verbose_name="Cumartesi dahil",
+    )
+    pazar_dahil = models.BooleanField(
+        default=False,
+        verbose_name="Pazar dahil",
+    )
+    haric_tarihler = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name="Hariç tutulan günler",
+        help_text="ISO formatında tarih listesi (YYYY-MM-DD).",
+    )
+    ogunler = models.ManyToManyField(
+        YemekOgun,
+        blank=True,
+        related_name="yemekci_listeleri",
+        verbose_name="Öğünler",
+        help_text="Boş bırakılırsa tüm aktif öğünler kullanılır.",
+    )
+    talebe_havuzu = models.ManyToManyField(
+        Talebe,
+        blank=True,
+        related_name="yemekci_listeleri",
+        verbose_name="Talebe havuzu",
+        help_text="Boş bırakılırsa tüm aktif talebeler kullanılır.",
+    )
+    aktif = models.BooleanField(
+        default=True,
+        verbose_name="Aktif",
+    )
+    olusturan = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="olusturdugu_yemekci_listeleri",
+        verbose_name="Oluşturan",
+    )
+    olusturulma = models.DateTimeField(auto_now_add=True)
+    guncellenme = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Yemekçilik listesi"
+        verbose_name_plural = "Yemekçilik listeleri"
+        ordering = ["-baslangic_tarihi", "ad"]
+
+    def __str__(self):
+        return self.ad
+
+    def clean(self):
+        super().clean()
+
+        if (
+            self.baslangic_tarihi
+            and self.bitis_tarihi
+            and self.bitis_tarihi < self.baslangic_tarihi
+        ):
+            raise ValidationError(
+                {"bitis_tarihi": "Bitiş tarihi başlangıçtan önce olamaz."}
+            )
+
+    @property
+    def tarih_araligi_goster(self) -> str:
+        return (
+            f"{self.baslangic_tarihi.strftime('%d.%m.%Y')}"
+            f" – {self.bitis_tarihi.strftime('%d.%m.%Y')}"
+        )
+
+    @property
+    def yayinda_mi(self) -> bool:
+        if not self.aktif:
+            return False
+
+        bugun = timezone.localdate()
+        return self.baslangic_tarihi <= bugun <= self.bitis_tarihi
+
+
+class YemekciAtama(models.Model):
+    liste = models.ForeignKey(
+        YemekciListesi,
+        on_delete=models.CASCADE,
+        related_name="atamalar",
+        verbose_name="Liste",
+    )
+    tarih = models.DateField(
+        verbose_name="Tarih",
+    )
+    ogun = models.ForeignKey(
+        YemekOgun,
+        on_delete=models.PROTECT,
+        related_name="atamalar",
+        verbose_name="Öğün",
+    )
+    talebe = models.ForeignKey(
+        Talebe,
+        on_delete=models.PROTECT,
+        related_name="yemekci_gorevleri",
+        verbose_name="Sorumlu talebe",
+        null=True,
+        blank=True,
+    )
+    yardimci = models.ForeignKey(
+        Talebe,
+        on_delete=models.PROTECT,
+        related_name="yemekci_yardimci_gorevleri",
+        verbose_name="Yardımcı talebe",
+        null=True,
+        blank=True,
+    )
+    manuel_duzenlendi = models.BooleanField(
+        default=False,
+        verbose_name="Manuel düzenlendi",
+    )
+
+    class Meta:
+        verbose_name = "Yemekçilik ataması"
+        verbose_name_plural = "Yemekçilik atamaları"
+        ordering = ["tarih", "ogun__sira", "ogun__ad"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["liste", "tarih", "ogun"],
+                name="benzersiz_yemekci_liste_gun_ogun",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.tarih} — {self.ogun}: {self.talebe} / {self.yardimci}"
+
+
+from takip.wave0_models import (  # noqa: E402,F401
+    AuditLog,
+    Brans,
+    Ders,
+    DiniDersSeviyesi,
+    Donem,
+    EgitimYili,
+    KullaniciRol,
+    KullaniciYetkiOverride,
+    RolIslemYetki,
+    RolKapsam,
+    RolModulErisim,
+    Rol as YetkiRol,
+    TalebeDosyasi,
+    TalebeGenelDurum,
+    TalebePersonelNotu,
+    VeliHesap,
+    VeliKisi,
+    VeliTalebeBaglantisi,
+    YetkiIslem,
+    YetkiModul,
+)
+
+# PersonelProfili.rol FK hedefi — wave0_models.Rol ile aynı tablo
+Rol = YetkiRol
+
+from takip.ktt_models import KttSinav, KttSonucu  # noqa: E402,F401
+
+from takip.soru_takip_models import GunlukSoruDersSatiri, GunlukSoruKaydi  # noqa: E402,F401
+
+from takip.akademik_mudahale_models import AkademikMudahale, MudahaleTuru  # noqa: E402,F401
+from takip.namaz_yoklama_models import (  # noqa: E402,F401
+    NamazDurumu,
+    NamazVakti,
+    NamazYoklamaKaydi,
+    NamazYoklamaOturum,
+)
+
+from takip.deneme_models import (  # noqa: E402,F401
+    DenemeBransSonucu,
+    DenemeEslestirmeAlias,
+    DenemeSinavi,
+    DenemeSonucu,
+)
+
+from takip.etut_plan_models import (  # noqa: E402,F401
+    EtutFaaliyetHavuzu,
+    EtutGrupSaatBloku,
+    EtutHaftaPlani,
+    EtutPlanFaaliyet,
+)
+
+from takip.dini_ders_takip_models import (  # noqa: E402,F401
+    DiniDersKonu,
+    DiniDersKonuKaydi,
+    DiniDersTakipAlani,
+)
+
+from takip.ogretmen_odeme_models import (  # noqa: E402,F401
+    OgretmenOdemeDersKaydi,
+    OgretmenOdemeDonemi,
+    OgretmenOdemeGunKaydi,
+    OgretmenOdemeProfili,
+)
+
+from takip.veli_randevu_models import (  # noqa: E402,F401
+    RandevuMusaitlik,
+    RandevuPersonelAyar,
+    VeliRandevu,
+)
+
+from takip.mezun_models import (  # noqa: E402,F401
+    MezunBasari,
+    MezunEtkinlik,
+    MezunEtkinlikKatilim,
+    MezunGuncellemeGorevKayit,
+    MezunGuncellemeGorevi,
+    MezunIletisim,
+    MezunProfil,
+    MezunYolculukOlay,
+)
+
+from takip.aidat_models import (  # noqa: E402,F401
+    AidatTahsilat,
+    AidatTanim,
+    TalebeAidatKaydi,
+)
+
+from takip.finans_models import (  # noqa: E402,F401
+    FinansIndirim,
+    FinansIslemLog,
+    FinansKampanya,
+    FinansTahsilat,
+    FinansTaksit,
+    FinansUcretPolitikasi,
+    TalebeFinansDosyasi,
+)
+
+from takip.rehberlik_models import (  # noqa: E402,F401
+    GorusmeDosyasi,
+    GorusmeGorevi,
+    GorusmeTuru,
+    OgrenciGorusmesi,
+)
+
+from takip.disiplin_models import DisiplinKaydi, DisiplinOlayTuru  # noqa: E402,F401
+
+from takip.disiplin_kurul_models import (  # noqa: E402,F401
+    DisiplinKurulAyar,
+    DisiplinKurulGundem,
+    DisiplinKurulKarar,
+    DisiplinKurulKararNot,
+    DisiplinKurulKararTakip,
+    DisiplinKurulKatilimci,
+    DisiplinKurulVarsayilanGundem,
+    DisiplinKurulVarsayilanUye,
+    DisiplinKurulu,
+)
+
+from takip.gunluk_takip_models import GunlukTakipKaydi  # noqa: E402,F401
+
+from takip.yazili_takip_models import (  # noqa: E402,F401
+    YaziliKamp,
+    YaziliSinav,
+    YaziliSonuc,
+)
+
+from takip.talebe_panel_models import (  # noqa: E402,F401
+    TalebeEvGunu,
+    TalebeHesap,
+    TalebeKonumKaydi,
+)
+
+from takip.ogretmen_not_models import OgretmenSinavNotu  # noqa: E402,F401
+
+from takip.veli_goruntuleme_models import VeliIcerikGoruntuleme  # noqa: E402,F401
+
+from takip.dershane_program_models import (  # noqa: E402,F401
+    DershaneDersAtamasi,
+    DershaneEtutGrubu,
+    DershaneGrupDersOgretmen,
+    DershaneProgramGun,
+    DershaneProgramSablon,
+    DershaneProgramSurum,
+    DershaneProgrami,
+    DershaneSaatBloku,
+)

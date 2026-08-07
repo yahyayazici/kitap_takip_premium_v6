@@ -1,0 +1,97 @@
+{% extends "veli/base.html" %}
+{% block title %}{{ talebe.ad_soyad }} · Randevu{% endblock %}
+{% block content %}
+<div class="dash-home veli-dash">
+    {% include "veli/includes/talebe_layout_head.html" %}
+
+    <div class="veli-randevu-grid">
+        <section class="dash-panel">
+            <div class="dash-panel-head">
+                <div><p class="dash-eyebrow">Randevu</p><h2>Yeni Randevu Oluştur</h2></div>
+            </div>
+            <p class="muted">Görüşmek istediğiniz personeli seçin, ardından yalnızca müsait saatler listelenir. Onay beklemenize gerek yoktur.</p>
+
+            <form method="get" class="veli-randevu-step" style="margin-bottom:1rem">
+                <label>Personel seçin</label>
+                <select name="personel" class="veli-input" onchange="this.form.submit()">
+                    <option value="">— Seçin —</option>
+                    {% for p in form.fields.personel_id.queryset %}
+                    <option value="{{ p.pk }}" {% if secili_personel and secili_personel.pk == p.pk %}selected{% endif %}>
+                        {{ p.ad_soyad }} · {{ p.get_ana_rol_display }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </form>
+
+            {% if secili_personel %}
+            {% if secili_personel.randevu_ayari.aciklama %}
+            <p class="muted">{{ secili_personel.randevu_ayari.aciklama }}</p>
+            {% endif %}
+
+            <form method="post" class="veli-randevu-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="olustur">
+                <input type="hidden" name="personel_id" value="{{ secili_personel.pk }}">
+                <div class="veli-field">
+                    <label>Uygun saat ({{ slot_sayisi }} seçenek)</label>
+                    {{ form.slot }}
+                </div>
+                <div class="veli-field">
+                    <label>{{ form.konu.label }}</label>
+                    {{ form.konu }}
+                </div>
+                <button type="submit" class="dash-hero-btn">Randevu Oluştur</button>
+            </form>
+            {% elif form.fields.personel_id.queryset %}
+            <p class="muted">Randevu almak için önce personel seçin.</p>
+            {% else %}
+            <p class="muted">Şu an randevu alınabilecek personel tanımlı değil.</p>
+            {% endif %}
+        </section>
+
+        <section class="dash-panel">
+            <div class="dash-panel-head">
+                <div><p class="dash-eyebrow">Randevularım</p><h2>Geçmiş & Planlanan</h2></div>
+            </div>
+            <ul class="veli-randevu-list">
+                {% for r in randevular %}
+                <li class="veli-randevu-item">
+                    <div>
+                        <strong>{{ r.personel.ad_soyad }}</strong><br>
+                        <span>{{ r.tarih|date:"d F Y" }} · {{ r.baslangic|time:"H:i" }}</span>
+                        {% if r.konu %}<br><small>{{ r.konu }}</small>{% endif %}
+                    </div>
+                    <div>
+                        <span class="veli-randevu-durum veli-randevu-durum--{{ r.durum }}">{{ r.get_durum_display }}</span>
+                        {% if r.durum == "planlandi" %}
+                        <form method="post" style="margin-top:0.35rem">{% csrf_token %}
+                            <input type="hidden" name="action" value="iptal">
+                            <input type="hidden" name="randevu_id" value="{{ r.pk }}">
+                            <button type="submit" class="ghost-btn" style="font-size:0.75rem">İptal</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </li>
+                {% empty %}
+                <li class="muted">Henüz randevunuz yok.</li>
+                {% endfor %}
+            </ul>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.veli-randevu-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.25rem; }
+@media (max-width: 900px) { .veli-randevu-grid { grid-template-columns: 1fr; } }
+.veli-input { width: 100%; padding: 0.65rem 0.85rem; border-radius: 12px; border: 1px solid rgba(15,23,42,.1); }
+.veli-field { margin-bottom: 0.85rem; }
+.veli-field label { display: block; font-size: 0.78rem; font-weight: 600; color: #64748b; margin-bottom: 0.35rem; }
+.veli-randevu-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.65rem; }
+.veli-randevu-item { display: flex; justify-content: space-between; gap: 1rem; padding: 0.85rem; border: 1px solid rgba(15,23,42,.08); border-radius: 14px; }
+.veli-randevu-durum { font-size: 0.72rem; font-weight: 600; padding: 0.2rem 0.55rem; border-radius: 999px; background: #eff6ff; color: #2563eb; }
+.veli-randevu-durum--tamamlandi { background: #ecfdf5; color: #059669; }
+.veli-randevu-durum--iptal_veli, .veli-randevu-durum--iptal_personel { background: #f1f5f9; color: #64748b; }
+</style>
+{% endblock %}

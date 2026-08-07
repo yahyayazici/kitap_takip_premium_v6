@@ -1,0 +1,26 @@
+{% extends "yonetim/base.html" %}
+{% block title %}{{ baslik }}{% endblock %}
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">TALEBE</p>
+        <h1>{{ baslik }}</h1>
+    </div>
+    <a href="{% url 'yonetim:talebe_hesap_listesi' %}" class="ghost-btn">← Liste</a>
+</header>
+
+<section class="dashboard-card yonetim-form-card">
+    <form method="post" class="yonetim-form-layout">
+        {% csrf_token %}
+        <div class="yonetim-form-grid">
+            {% include "yonetim/includes/form_fields.html" %}
+        </div>
+        <div class="yonetim-form-actions">
+            <button type="submit" class="primary-btn">Kaydet</button>
+            <a href="{% url 'yonetim:talebe_hesap_listesi' %}" class="ghost-btn">İptal</a>
+        </div>
+    </form>
+</section>
+
+{% endblock %}

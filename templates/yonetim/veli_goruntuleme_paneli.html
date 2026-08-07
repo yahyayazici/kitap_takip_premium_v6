@@ -1,0 +1,93 @@
+{% extends "yonetim/base.html" %}
+{% load static %}
+{% block title %}Veli Görüntüleme{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/veli-goruntuleme-panel.css' %}">
+{% endblock %}
+{% block content %}
+<div class="yonetim-page vgp-page">
+    <header class="yonetim-page-head">
+        <div>
+            <p class="kicker">VELİ PANELİ</p>
+            <h1>Görüntüleme Kontrol Paneli</h1>
+            <p class="vgp-lead">Velilerin duyuru, KTT ve deneme içeriklerini görüp görmediğini takip edin.</p>
+        </div>
+        <div class="vgp-filters">
+            <a href="{% url 'yonetim:veli_goruntuleme_paneli' %}" class="vgp-filter{% if not sadece_eksik %} is-active{% endif %}">Tümü</a>
+            <a href="{% url 'yonetim:veli_goruntuleme_paneli' %}?filtre=eksik" class="vgp-filter{% if sadece_eksik %} is-active{% endif %}">Eksik / Giriş yok</a>
+        </div>
+    </header>
+
+    <section class="vgp-stats">
+        <article class="vgp-stat">
+            <span class="vgp-stat-label">Aktif veli</span>
+            <strong>{{ istatistik.toplam_veli }}</strong>
+        </article>
+        <article class="vgp-stat vgp-stat--warn">
+            <span class="vgp-stat-label">Okunmamış içerik</span>
+            <strong>{{ istatistik.eksik }}</strong>
+        </article>
+        <article class="vgp-stat vgp-stat--muted">
+            <span class="vgp-stat-label">Henüz giriş yok</span>
+            <strong>{{ istatistik.hic_giris }}</strong>
+        </article>
+        <article class="vgp-stat vgp-stat--ok">
+            <span class="vgp-stat-label">Güncel</span>
+            <strong>{{ istatistik.tamam }}</strong>
+        </article>
+    </section>
+
+    <section class="report-table-card yonetim-table-card">
+        <div class="card-heading">
+            <div>
+                <p class="card-kicker">VELİ TAKİP</p>
+                <h2>Görüntüleme Özeti</h2>
+            </div>
+            <span class="report-record-count">{{ ozetler|length }} veli</span>
+        </div>
+        <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table vgp-table">
+            <thead>
+                <tr>
+                    <th>Veli</th>
+                    <th>Öğrenciler</th>
+                    <th>Son aktivite</th>
+                    <th class="yonetim-center-col">Duyuru</th>
+                    <th class="yonetim-center-col">KTT</th>
+                    <th class="yonetim-center-col">Deneme</th>
+                    <th class="yonetim-center-col">Durum</th>
+                    <th class="yonetim-action-col">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in ozetler %}
+                <tr>
+                    <td>
+                        <strong>{{ o.veli.ad_soyad }}</strong>
+                        <small class="vgp-muted">{{ o.veli.user.username }}</small>
+                    </td>
+                    <td>
+                        {% for t in o.talebeler %}{{ t.ad_soyad }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}
+                    </td>
+                    <td>
+                        {% if o.son_aktivite %}
+                        {{ o.son_aktivite|date:"d.m.Y H:i" }}
+                        {% else %}
+                        <span class="vgp-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>{% include "yonetim/includes/veli_goruntuleme_bar.html" with ozet=o.duyuru %}</td>
+                    <td>{% include "yonetim/includes/veli_goruntuleme_bar.html" with ozet=o.ktt %}</td>
+                    <td>{% include "yonetim/includes/veli_goruntuleme_bar.html" with ozet=o.deneme %}</td>
+                    <td><span class="vgp-badge vgp-badge--{{ o.durum }}">{{ o.durum_etiketi }}</span></td>
+                    <td class="yonetim-action-col"><a href="{% url 'yonetim:veli_goruntuleme_detay' o.veli.pk %}" class="yonetim-link">Detay</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="report-empty">Kayıt bulunamadı.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

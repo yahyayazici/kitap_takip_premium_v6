@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}PDF Arşivi · Disiplin Kurulu{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/disiplin-kurul-premium.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dk-page">
+<header class="dk-head">
+    <div>
+        <p class="dk-eyebrow"><a href="{% url 'disiplin_kurul_panel' %}" style="color:inherit;text-decoration:none;">← Disiplin Kurulu</a></p>
+        <h1>PDF Arşivi</h1>
+        <p class="dk-sub">Sonuçlandırılmış kurul tutanakları kalıcı olarak saklanır.</p>
+    </div>
+</header>
+
+<section class="dk-card">
+    <div class="dk-card-body">
+        <div class="dk-kurul-list">
+            {% for k in kurullar %}
+            <article class="dk-kurul-item" style="grid-template-columns:1fr 1fr 1fr auto;">
+                <div><strong class="dk-kurul-no">{{ k.kurul_no }}</strong></div>
+                <div>{{ k.talebe.ad_soyad }}</div>
+                <div>{% if k.toplanti_tarihi %}{{ k.toplanti_tarihi|date:"d.m.Y" }}{% else %}—{% endif %}</div>
+                <div>
+                    <a href="{% url 'disiplin_kurul_pdf' k.pk %}" class="dk-btn dk-btn-sm" target="_blank">PDF İndir</a>
+                    <a href="{% url 'disiplin_kurul_detay' k.pk %}" class="dk-btn dk-btn-sm dk-btn-ghost">Detay</a>
+                </div>
+            </article>
+            {% empty %}
+            <p class="dk-empty">Arşivde kurul bulunamadı.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+</div>
+{% endblock %}

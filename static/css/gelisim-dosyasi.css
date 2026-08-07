@@ -1,0 +1,626 @@
+.gelisim-dosyasi {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+.gelisim-top-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
+    gap: 18px;
+}
+
+.gelisim-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.gelisim-panel--stack {
+    height: 100%;
+}
+
+.gelisim-kimlik-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 24px;
+    margin-top: 8px;
+}
+
+.gelisim-kimlik-grid dt {
+    font-size: 12px;
+    color: #718097;
+    font-weight: 500;
+}
+
+.gelisim-kimlik-grid dd {
+    margin: 0;
+    font-size: 14px;
+    color: #1a2744;
+}
+
+.gelisim-durum-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid transparent;
+}
+
+.gelisim-durum-card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    height: 100%;
+}
+
+.gelisim-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.gelisim-metric {
+    padding: 18px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: linear-gradient(180deg, #fff, #f8fafc);
+}
+
+.gelisim-metric span {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #718097;
+}
+
+.gelisim-metric strong {
+    display: block;
+    margin-top: 8px;
+    font-size: 24px;
+    color: #173b80;
+}
+
+.gelisim-metric small {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #64748b;
+}
+
+.gelisim-two-col {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    align-items: stretch;
+}
+
+.gelisim-two-col--balanced > .profile-card {
+    height: 100%;
+}
+
+.gelisim-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    min-height: 180px;
+    padding-top: 12px;
+}
+
+.gelisim-chart-bar {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.gelisim-chart-bar .bar {
+    width: 100%;
+    max-width: 48px;
+    border-radius: 10px 10px 4px 4px;
+    background: linear-gradient(180deg, #3b82f6, #173b80);
+    min-height: 8px;
+}
+
+.gelisim-chart-bar small {
+    font-size: 11px;
+    color: #64748b;
+    text-align: center;
+}
+
+.gelisim-chart-bar strong {
+    font-size: 12px;
+    color: #173b80;
+}
+
+.gelisim-progress-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.gelisim-progress-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 72px;
+    gap: 12px;
+    align-items: center;
+}
+
+.gelisim-progress-track {
+    height: 10px;
+    border-radius: 999px;
+    background: #e8eef7;
+    overflow: hidden;
+}
+
+.gelisim-progress-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #16a34a, #4ade80);
+}
+
+.gelisim-devam-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.gelisim-devam-item {
+    position: relative;
+    padding: 16px 14px 14px;
+    border-radius: 16px;
+    background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    overflow: hidden;
+}
+
+.gelisim-devam-item::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 14px;
+    right: 14px;
+    height: 3px;
+    border-radius: 0 0 999px 999px;
+    opacity: 0.85;
+}
+
+.gelisim-devam-item.tone-slate::before { background: #64748b; }
+.gelisim-devam-item.tone-amber::before { background: #f59e0b; }
+.gelisim-devam-item.tone-blue::before { background: #3b82f6; }
+.gelisim-devam-item.tone-teal::before { background: #14b8a6; }
+.gelisim-devam-item.tone-indigo::before { background: #6366f1; }
+.gelisim-devam-item.tone-rose::before { background: #f43f5e; }
+
+.gelisim-devam-item strong {
+    display: block;
+    font-size: 24px;
+    line-height: 1.1;
+    color: #173b80;
+    font-variant-numeric: tabular-nums;
+}
+
+.gelisim-devam-item span {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #64748b;
+}
+
+.gelisim-mini-bar {
+    margin-top: 10px;
+    height: 6px;
+    border-radius: 999px;
+    background: #e8eef7;
+    overflow: hidden;
+}
+
+.gelisim-mini-bar i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #14b8a6, #2dd4bf);
+}
+
+.gelisim-devam-item.tone-indigo .gelisim-mini-bar i {
+    background: linear-gradient(90deg, #6366f1, #818cf8);
+}
+
+.gelisim-segment {
+    display: inline-flex;
+    gap: 4px;
+    padding: 4px;
+    margin-bottom: 14px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+}
+
+.gelisim-tab-btn {
+    border: 0;
+    background: transparent;
+    color: #64748b;
+    padding: 8px 16px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.gelisim-tab-btn.is-active {
+    background: #fff;
+    color: #173b80;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+.gelisim-tab-panel {
+    display: none;
+    min-height: 120px;
+}
+
+.gelisim-tab-panel.is-active {
+    display: block;
+}
+
+.gelisim-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid #eef2f7;
+    border-radius: 14px;
+    background: #fafbfd;
+}
+
+.gelisim-list-item + .gelisim-list-item {
+    margin-top: 8px;
+}
+
+.gelisim-list-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.gelisim-list-icon {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: #eef3ff;
+    position: relative;
+}
+
+.gelisim-list-icon--clean::after {
+    content: "✦";
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: #2563eb;
+    font-size: 14px;
+}
+
+.gelisim-list-icon--food::after {
+    content: "◆";
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: #d97706;
+    font-size: 14px;
+}
+
+.gelisim-list-item strong {
+    display: block;
+    font-size: 14px;
+    color: #1a2744;
+}
+
+.gelisim-list-item small {
+    display: block;
+    margin-top: 2px;
+    font-size: 12px;
+    color: #718097;
+}
+
+.gelisim-scroll-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+    min-height: 120px;
+}
+
+.gelisim-note-item,
+.gelisim-file-item,
+.gelisim-gorusme-item {
+    padding: 14px 16px;
+    border: 1px solid #eef2f7;
+    border-radius: 16px;
+    background: linear-gradient(180deg, #fff 0%, #fafbfd 100%);
+}
+
+.gelisim-note-head,
+.gelisim-file-main,
+.gelisim-gorusme-main {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.gelisim-note-badge,
+.gelisim-file-badge,
+.gelisim-gorusme-badge {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: #f1f5f9;
+    font-size: 16px;
+}
+
+.gelisim-note-item small,
+.gelisim-file-item small,
+.gelisim-gorusme-item small {
+    display: block;
+    font-size: 12px;
+    color: #718097;
+}
+
+.gelisim-note-item strong,
+.gelisim-file-item strong,
+.gelisim-gorusme-item strong {
+    display: block;
+    margin-top: 2px;
+    font-size: 14px;
+    color: #1a2744;
+}
+
+.gelisim-note-item p,
+.gelisim-gorusme-item p {
+    margin: 8px 0 0 48px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: #4a5568;
+}
+
+.gelisim-gorusme-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.gelisim-gorusme-item + .gelisim-gorusme-item {
+    margin-top: 10px;
+}
+
+.gelisim-gorusme-author {
+    display: block;
+    margin-top: 6px !important;
+}
+
+.gelisim-file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.gelisim-file-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.gelisim-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 140px;
+    padding: 24px 20px;
+    border: 1px dashed #d8e3f0;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #fafbfd 0%, #f8fafc 100%);
+    text-align: center;
+}
+
+.gelisim-empty--compact {
+    min-height: 110px;
+    padding: 18px 16px;
+}
+
+.gelisim-empty-icon {
+    font-size: 28px;
+    line-height: 1;
+    opacity: 0.9;
+}
+
+.gelisim-empty strong {
+    font-size: 14px;
+    color: #334155;
+}
+
+.gelisim-empty p {
+    margin: 0;
+    max-width: 280px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #718097;
+}
+
+.gelisim-compose-form {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid #eef2f7;
+}
+
+.gelisim-compose-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.gelisim-compose-icon {
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    background: #eef3ff;
+    font-size: 18px;
+}
+
+.gelisim-compose-head strong {
+    display: block;
+    font-size: 14px;
+    color: #1a2744;
+}
+
+.gelisim-compose-head small {
+    display: block;
+    margin-top: 2px;
+    font-size: 12px;
+    color: #718097;
+}
+
+.gelisim-form-grid {
+    display: grid;
+    gap: 12px;
+}
+
+.gelisim-form-grid--fields {
+    gap: 14px;
+}
+
+.gelisim-form-grid--fields .exam-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.gelisim-form-grid--fields .exam-field label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.gelisim-form-grid--fields .input,
+.gelisim-form-grid--fields textarea,
+.gelisim-form-grid--fields select,
+.gelisim-form-grid--fields input[type="file"] {
+    width: 100%;
+    min-height: 42px;
+    padding: 10px 12px;
+    border: 1px solid #dbe3ef;
+    border-radius: 12px;
+    background: #fff;
+    font: inherit;
+    color: #1a2744;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.gelisim-form-grid--fields textarea {
+    min-height: 96px;
+    resize: vertical;
+}
+
+.gelisim-form-grid--fields .input:focus,
+.gelisim-form-grid--fields textarea:focus,
+.gelisim-form-grid--fields select:focus {
+    outline: none;
+    border-color: #93b4ff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.gelisim-check-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+}
+
+.gelisim-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    background: #f8fafc;
+    font-size: 12px;
+    color: #475569;
+    cursor: pointer;
+}
+
+.gelisim-check input {
+    margin: 0;
+}
+
+.gelisim-compose-btn {
+    width: 100%;
+    margin-top: 14px;
+    justify-content: center;
+}
+
+.gelisim-section-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.gelisim-table-wrap {
+    overflow-x: auto;
+}
+
+@media (max-width: 1100px) {
+    .gelisim-top-grid,
+    .gelisim-two-col {
+        grid-template-columns: 1fr;
+    }
+
+    .gelisim-metric-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    .gelisim-kimlik-grid,
+    .gelisim-metric-grid,
+    .gelisim-devam-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .gelisim-progress-row {
+        grid-template-columns: 1fr;
+    }
+
+    .gelisim-file-item,
+    .gelisim-gorusme-item {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .gelisim-note-item p,
+    .gelisim-gorusme-item p {
+        margin-left: 0;
+    }
+}

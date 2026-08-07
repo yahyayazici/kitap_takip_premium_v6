@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% load static filter_tags %}
+{% block title %}KTT Rapor · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}">
+{% endblock %}
+{% block content %}
+<div class="ktt-page ktt-report-page">
+    <div class="ktt-report-head">
+        <h1>☑ KTT Raporlama & Analiz</h1>
+        <div class="ktt-report-actions">
+            {% if excel_yetkisi %}
+            <a href="{{ excel_url }}" class="ktt-outline-btn green">Excel İndir</a>
+            {% endif %}
+            {% if pdf_yetkisi %}
+            <a href="{{ pdf_url }}" class="ktt-outline-btn red">PDF İndir</a>
+            {% endif %}
+            <a href="{% url 'ktt_listesi' %}" class="ktt-outline-btn muted">KTT Listesi</a>
+        </div>
+    </div>
+
+    <section class="ktt-report-card">
+        <p class="ktt-section-title">⏷ Filtrele</p>
+        <form method="get">
+            <div class="ktt-filter-grid">
+                <div>
+                    <label>Sınıf Seçimi</label>
+                    <select name="sinif_sube" class="ms-filter" multiple data-placeholder="Tüm sınıflar">
+                        {% for s in sinif_subeler %}
+                        <option value="{{ s.id }}" {% if s.id|in_filter:filtre.sinif_sube %}selected{% endif %}>{{ s.sinif }}-{{ s.sube }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label>Ders Seçimi</label>
+                    <select name="ders" class="ms-filter" multiple data-placeholder="Tüm dersler">
+                        {% for d in dersler %}
+                        <option value="{{ d.id }}" {% if d.id|in_filter:filtre.ders %}selected{% endif %}>{{ d.ad }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label>KTT Seçimi</label>
+                    <select name="ktt" class="ms-filter" multiple data-placeholder="Tüm KTT'ler">
+                        {% for k in ktt_sinavlari %}
+                        <option value="{{ k.id }}" {% if k.id|in_filter:filtre.ktt %}selected{% endif %}>{{ k.ad }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label>Öğrenci Seçimi</label>
+                    <select name="talebe" class="ms-filter" multiple data-placeholder="Tüm talebeler">
+                        {% for t in talebeler %}
+                        <option value="{{ t.id }}" {% if t.id|in_filter:filtre.talebe %}selected{% endif %}>{{ t.ad_soyad }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label>Başlangıç Tarihi</label>
+                    <input type="date" name="baslangic" value="{{ filtre.baslangic }}">
+                </div>
+                <div>
+                    <label>Bitiş Tarihi</label>
+                    <input type="date" name="bitis" value="{{ filtre.bitis }}">
+                </div>
+            </div>
+            <div style="margin-top:14px;">
+                <button type="submit" class="ktt-filter-submit">Filtrele</button>
+            </div>
+        </form>
+    </section>
+
+    <div class="ktt-kpi-row">
+        <article class="ktt-kpi-card blue">
+            <div>
+                <span>Toplam Sonuç Sayısı</span>
+                <strong>{{ istatistik.toplam_sonuc }}</strong>
+            </div>
+            <span class="ktt-kpi-icon">📋</span>
+        </article>
+        <article class="ktt-kpi-card green">
+            <div>
+                <span>Ortalama Puan / Net</span>
+                <strong>{{ istatistik.ortalama_puan }}</strong>
+                <small>Puan / {{ istatistik.ortalama_net }} Net</small>
+            </div>
+            <span class="ktt-kpi-icon">🧮</span>
+        </article>
+        <article class="ktt-kpi-card amber">
+            <div>
+                <span>En Yüksek Puan</span>
+                <strong>{{ istatistik.en_yuksek_puan }}</strong>
+                <small>/ 100</small>
+            </div>
+            <span class="ktt-kpi-icon">🏆</span>
+        </article>
+    </div>
+
+    {% if sonuclar %}
+    <section class="ktt-analiz-toggle-wrap">
+        <button
+            type="button"
+            class="ktt-analiz-toggle-btn"
+            id="kttAnalizToggle"
+            data-url="{{ analiz_url }}"
+            aria-expanded="false"
+        >
+            <span class="ktt-analiz-toggle-label">📊 Akademik Analiz</span>
+            <span class="ktt-analiz-chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="ktt-analiz-panel" id="kttAnalizPanel" hidden>
+            <p class="ktt-analiz-loading" id="kttAnalizLoading" hidden>Analiz hazırlanıyor…</p>
+            <div class="ktt-analiz-content" id="kttAnalizContent"></div>
+        </div>
+    </section>
+    {% endif %}
+
+    <section class="ktt-report-card">
+        <p class="ktt-section-title">▦ KTT Sonuç Listesi</p>
+        <div class="responsive-table">
+            <table class="ktt-table">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>KTT Sınavı</th>
+                        <th>Öğrenci</th>
+                        <th>Sınıf</th>
+                        <th>Ders</th>
+                        <th>D</th>
+                        <th>Y</th>
+                        <th>B</th>
+                        <th>Net</th>
+                        <th>Puan (100)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in sonuclar %}
+                    <tr>
+                        <td>{{ s.ktt.sinav_tarihi|date:"d.m.Y" }}</td>
+                        <td><strong>{{ s.ktt.ad }}</strong></td>
+                        <td>{{ s.talebe.ad_soyad }}</td>
+                        <td>{{ s.talebe.sinif_sube|default:s.ktt.sinif_goster }}</td>
+                        <td><span class="ktt-ders-pill">{{ s.ktt.ders.ad }}</span></td>
+                        <td>{{ s.dogru }}</td>
+                        <td>{{ s.yanlis }}</td>
+                        <td>{{ s.bos }}</td>
+                        <td><span class="ktt-net-pill">{{ s.net }}</span></td>
+                        <td><span class="ktt-score-pill">{{ s.puan }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="10" class="ktt-empty">Filtreye uygun sonuç bulunamadı.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+    const btn = document.getElementById("kttAnalizToggle");
+    const panel = document.getElementById("kttAnalizPanel");
+    const loading = document.getElementById("kttAnalizLoading");
+    const content = document.getElementById("kttAnalizContent");
+    if (!btn || !panel || !content) return;
+
+    let loaded = false;
+
+    btn.addEventListener("click", async function () {
+        const open = btn.getAttribute("aria-expanded") === "true";
+        if (open) {
+            panel.hidden = true;
+            btn.setAttribute("aria-expanded", "false");
+            btn.classList.remove("is-open");
+            return;
+        }
+
+        panel.hidden = false;
+        btn.setAttribute("aria-expanded", "true");
+        btn.classList.add("is-open");
+
+        if (loaded) return;
+
+        loading.hidden = false;
+        try {
+            const res = await fetch(btn.dataset.url, {
+                headers: { "X-Requested-With": "XMLHttpRequest" },
+            });
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            content.innerHTML = await res.text();
+            loaded = true;
+        } catch (err) {
+            content.innerHTML = '<p class="ktt-analiz-note">Analiz yüklenemedi. Sayfayı yenileyip tekrar deneyin.</p>';
+        } finally {
+            loading.hidden = true;
+        }
+    });
+})();
+</script>
+{% endblock %}

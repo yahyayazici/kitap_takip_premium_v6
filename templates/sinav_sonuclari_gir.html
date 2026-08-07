@@ -24,6 +24,8 @@
             <a
                 href="{% url 'sinav_sirali_sonuc_pdf' sinav.id %}"
                 class="result-secondary-button"
+                target="_blank"
+                rel="noopener"
             >
                 Sıralı Sonuç PDF
             </a>
@@ -157,6 +159,8 @@
                                         <a
                                             href="{% url 'sinav_karne_pdf' sinav.id satir.talebe.id %}"
                                             class="student-pdf-button"
+                                            target="_blank"
+                                            rel="noopener"
                                         >
                                             Karne PDF
                                         </a>
@@ -548,17 +552,21 @@
     }
 
     .ranking-number {
-        width: 38px;
-        height: 38px;
-        flex: 0 0 38px;
+        width: 40px;
+        flex: 0 0 40px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        border-radius: 11px;
-        color: #2459c8;
-        background: #eaf1ff;
-        font-size: 12px;
-        font-weight: 850;
+        border-radius: 0;
+        color: #465668;
+        background: transparent;
+        border-right: 1px solid #d2dce8;
+        padding-right: 14px;
+        margin-right: 2px;
+        font-size: 13px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -.02em;
     }
 
     .ranking-student {

@@ -1,0 +1,59 @@
+{% load static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Talebe Paneli · {{ panel_short }}{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'css/topnav-v3.css' %}">
+    <link rel="stylesheet" href="{% static 'css/premium-system-v5.css' %}">
+    <link rel="stylesheet" href="{% static 'css/premium-system-v6.css' %}">
+    <link rel="stylesheet" href="{% static 'css/nav-groups.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}">
+    <link rel="stylesheet" href="{% static 'css/panel-unified.css' %}">
+    <link rel="stylesheet" href="{% static 'css/talebe-panel.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="v3-body talebe-body">
+<header class="cs-v6-header talebe-header" style="position:relative;">
+    <div class="cs-v6-inner">
+        <a href="{% url 'talebe_dashboard' %}" class="cs-v6-brand v6-brand-block">
+            <span class="cs-v6-brand-mark v6-brand-mark">
+                <img src="{% static 'images/cinili-saray-logo-white.png' %}" alt="Çinili Saray">
+            </span>
+            <span class="v6-brand-divider" aria-hidden="true"></span>
+            <span class="v6-brand-copy">
+                <strong>{{ panel_short }}</strong>
+                <small>Talebe Paneli</small>
+            </span>
+        </a>
+        <nav class="cs-v6-nav">
+            <a href="{% url 'talebe_dashboard' %}" class="{% if request.resolver_match.url_name == 'talebe_dashboard' %}active{% endif %}">Ana Sayfa</a>
+            <a href="{% url 'talebe_okuma_soru' %}" class="{% if request.resolver_match.url_name == 'talebe_okuma_soru' %}active{% endif %}">Okuma & Soru</a>
+            <a href="{% url 'talebe_profil' %}" class="{% if request.resolver_match.url_name == 'talebe_profil' %}active{% endif %}">Profil</a>
+            <a href="{% url 'talebe_gorevler' %}" class="{% if request.resolver_match.url_name == 'talebe_gorevler' %}active{% endif %}">Görevler</a>
+        </nav>
+        <div class="cs-v6-actions">
+            <span style="color:rgba(255,255,255,.85);font-size:13px;margin-right:12px;">{{ talebe.ad_soyad|default:request.user.username }}</span>
+            <form method="post" action="{% url 'logout' %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="ghost-btn yonetim-ghost-light">Çıkış</button>
+            </form>
+        </div>
+    </div>
+</header>
+
+<main class="cs-v6-main">
+    {% if messages %}
+    <div class="yonetim-messages">
+        {% for message in messages %}
+        <div class="yonetim-message">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+</main>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Mezun Raporları · {{ panel_short }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/mezun-premium.css' %}">{% endblock %}
+{% block content %}
+<div class="mz-page">
+<header class="mz-head">
+    <div>
+        <p class="mz-crumb"><a href="{% url 'mezun_listesi' %}">Mezun Merkezi</a> › Raporlar</p>
+        <h1>Mezun Raporları</h1>
+    </div>
+    <a href="{% url 'mezun_listesi' %}" class="mz-btn">← Geri</a>
+</header>
+<section class="mz-card">
+    <form method="get" class="mz-filters">
+        <select name="yil" class="mz-select"><option value="">Mezuniyet yılı</option>{% for y in yillar %}<option value="{{ y }}">{{ y }}</option>{% endfor %}</select>
+        <input type="text" name="lise" placeholder="Lise" class="mz-input">
+        <input type="text" name="universite" placeholder="Üniversite" class="mz-input">
+        <select name="iletisim" class="mz-select"><option value="">İletişim</option>{% for kod, etiket in iletisim_secenekleri %}<option value="{{ kod }}">{{ etiket }}</option>{% endfor %}</select>
+        <select name="basari" class="mz-select"><option value="">Başarı kategorisi</option>{% for kod, etiket in basari_secenekleri %}<option value="{{ kod }}">{{ etiket }}</option>{% endfor %}</select>
+        <button type="submit" class="mz-btn mz-btn-sm">Filtrele</button>
+    </form>
+    <div class="mz-head-actions" style="margin-top:1rem">
+        <button type="button" class="mz-btn mz-btn-primary" disabled>PDF İndir</button>
+        <button type="button" class="mz-btn" disabled>Excel İndir</button>
+    </div>
+    <p class="mz-sub" style="margin-top:1rem">Toplam {{ ozet.toplam_mezun }} mezun · PDF/Excel dışa aktarma bir sonraki sürümde.</p>
+</section>
+</div>
+{% endblock %}

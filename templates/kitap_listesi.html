@@ -6,8 +6,7 @@
 
 <div class="library-page">
 
-    <header class="page-head">
-
+    <header class="page-head patterned-page-head library-page-head">
         <div>
             <p class="kicker">KÜTÜPHANE</p>
             <h1>Kitap Arşivi</h1>
@@ -15,654 +14,130 @@
                 Kurumda kullanılan bütün kitapları ve zimmet durumlarını görüntüleyin.
             </p>
         </div>
-
-        <a href="{% url 'kitap_ekle' %}" class="primary-btn">
-            Yeni Kitap
-        </a>
-
+        <a href="{% url 'kitap_ekle' %}" class="primary-btn">Yeni Kitap</a>
     </header>
 
-
-    <section class="library-summary">
-
-        <article class="library-summary-card">
+    <section class="metric-grid library-metrics">
+        <article class="metric-card tone-blue">
             <span>TOPLAM KİTAP</span>
             <strong>{{ kitaplar|length }}</strong>
             <small>Arşivde kayıtlı eser</small>
         </article>
-
-        <article class="library-summary-card">
+        <article class="metric-card tone-green">
             <span>TOPLAM ZİMMET</span>
-            <strong>
-                {% widthratio kitaplar|length 1 1 %}
-            </strong>
-            <small>Kitap hareketi</small>
+            <strong>{{ toplam_zimmet }}</strong>
+            <small>Kitap zimmetleri</small>
         </article>
-
-        <article class="library-summary-card">
-            <span>AKTİF ARŞİV</span>
-            <strong>{{ kitaplar|length }}</strong>
-            <small>Kullanıma açık kitap</small>
+        <article class="metric-card tone-purple">
+            <span>AKTİF OKUMA</span>
+            <strong>{{ aktif_okuma }}</strong>
+            <small>Şu an okunuyor</small>
         </article>
-
     </section>
 
-
-    <section class="library-panel">
-
-        <div class="library-panel-head">
-
+    <section class="report-table-card library-panel">
+        <div class="card-heading library-panel-head">
             <div>
+                <p class="card-kicker">KİTAP LİSTESİ</p>
                 <h2>Kitaplar</h2>
-                <p>Arşivdeki kitapları inceleyin.</p>
+                <p class="library-panel-desc">Arşivdeki kitapları inceleyin.</p>
             </div>
-
             <div class="library-search">
-                <svg viewBox="0 0 24 24">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
                     <circle cx="11" cy="11" r="7"></circle>
                     <path d="m20 20-3.5-3.5"></path>
                 </svg>
-
                 <input
                     type="search"
                     id="book-search"
                     placeholder="Kitap veya yazar ara..."
                 >
             </div>
-
         </div>
-
 
         <div class="library-grid" id="library-grid">
-
             {% for kitap in kitaplar %}
-
-                <article
-                    class="library-book-card"
-                    data-book="{{ kitap.ad|lower }} {{ kitap.yazar|default:''|lower }}"
-                >
-
-                    <div class="book-visual">
-
-                        <div class="book-cover">
-                            <span class="book-cover-letter">
-                                {{ kitap.ad|slice:":1"|upper }}
-                            </span>
-
-                            <div class="book-cover-lines">
-                                <i></i>
-                                <i></i>
-                                <i></i>
-                            </div>
-                        </div>
-
-                        <span class="book-count-badge">
-                            {{ kitap.zimmet_sayisi|default:0 }} zimmet
+            <article
+                class="library-book-card"
+                data-book="{{ kitap.ad|lower }} {{ kitap.yazar|default:''|lower }}"
+            >
+                <div class="book-visual">
+                    <div class="book-cover">
+                        <span class="book-cover-letter">
+                            {{ kitap.ad|slice:":1"|upper }}
                         </span>
-
+                        <div class="book-cover-lines">
+                            <i></i>
+                            <i></i>
+                            <i></i>
+                        </div>
                     </div>
-
-
-                    <div class="book-card-content">
-
-                        <div class="book-card-top">
-
-                            <div>
-                                <span class="book-category">KİTAP</span>
-                                <h3>{{ kitap.ad }}</h3>
-                                <p>{{ kitap.yazar|default:"Yazar bilgisi bulunmuyor" }}</p>
-                            </div>
-
-                            <button
-                                type="button"
-                                class="book-menu-button"
-                                aria-label="Kitap seçenekleri"
-                            >
-                                •••
-                            </button>
-
-                        </div>
-
-
-                        <div class="book-meta-grid">
-
-                            <div>
-                                <span>Sayfa</span>
-                                <strong>{{ kitap.toplam_sayfa|default:0 }}</strong>
-                            </div>
-
-                            <div>
-                                <span>Zimmet</span>
-                                <strong>{{ kitap.zimmet_sayisi|default:0 }}</strong>
-                            </div>
-
-                        </div>
-
-
-                        <div class="book-progress-area">
-
-                            <div class="book-progress-head">
-                                <span>Kullanım durumu</span>
-
-                                <strong>
-                                    {% if kitap.zimmet_sayisi %}
-                                        Aktif
-                                    {% else %}
-                                        Bekliyor
-                                    {% endif %}
-                                </strong>
-                            </div>
-
-                            <div class="book-progress">
-                                <i
-                                    style="width:
-                                    {% if kitap.zimmet_sayisi %}
-                                        72%
-                                    {% else %}
-                                        10%
-                                    {% endif %};"
-                                ></i>
-                            </div>
-
-                        </div>
-
-
-                        <div class="book-card-actions">
-
-                            <a
-                                href="{% url 'toplu_zimmet' %}"
-                                class="book-secondary-button"
-                            >
-                                Zimmetle
-                            </a>
-
-                            <a
-                                href="{% url 'raporlar' %}"
-                                class="book-primary-button"
-                            >
-                                Raporu Gör
-                            </a>
-
-                        </div>
-
-                    </div>
-
-                </article>
-
-            {% empty %}
-
-                <div class="library-empty">
-
-                    <div class="library-empty-icon">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M4 5.5A3.5 3.5 0 0 1 7.5 2H20v18H7.5A3.5 3.5 0 0 0 4 23Z"></path>
-                            <path d="M4 5.5v14A3.5 3.5 0 0 1 7.5 16H20"></path>
-                        </svg>
-                    </div>
-
-                    <strong>Arşivde kitap bulunmuyor.</strong>
-                    <span>İlk kitabı ekleyerek arşivi oluşturabilirsiniz.</span>
-
-                    <a href="{% url 'kitap_ekle' %}" class="primary-btn">
-                        İlk Kitabı Ekle
-                    </a>
-
+                    <span class="book-level-badge">
+                        {% if kitap.sinif_seviyesi %}
+                            {{ kitap.sinif_seviyesi }}
+                        {% else %}
+                            {{ kitap.zimmet_sayisi|default:0 }} zimmet
+                        {% endif %}
+                    </span>
                 </div>
 
+                <div class="book-card-content">
+                    <div class="book-card-top">
+                        <div>
+                            <span class="book-category">KİTAP</span>
+                            <h3>{{ kitap.ad }}</h3>
+                            <p>{{ kitap.yazar|default:"Yazar bilgisi bulunmuyor" }}</p>
+                        </div>
+                    </div>
+
+                    <div class="book-meta-grid">
+                        <div>
+                            <span>Sayfa</span>
+                            <strong>{{ kitap.toplam_sayfa|default:0 }}</strong>
+                        </div>
+                        <div>
+                            <span>Zimmet</span>
+                            <strong>{{ kitap.zimmet_sayisi|default:0 }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="book-progress-area">
+                        <div class="book-progress-head">
+                            <span>Kullanım durumu</span>
+                            {% if kitap.zimmet_sayisi %}
+                                <span class="status-pill status-okunuyor">Aktif</span>
+                            {% else %}
+                                <span class="status-pill status-sinav_bekliyor">Bekliyor</span>
+                            {% endif %}
+                        </div>
+                        <div class="book-progress">
+                            <i style="width:{% if kitap.zimmet_sayisi %}72{% else %}10{% endif %}%;"></i>
+                        </div>
+                    </div>
+
+                    <div class="book-card-actions">
+                        <a href="{% url 'toplu_zimmet' %}" class="ghost-btn book-action-btn">Zimmetle</a>
+                        <a href="{% url 'raporlar' %}" class="primary-btn book-action-btn">Raporu Gör</a>
+                    </div>
+                </div>
+            </article>
+            {% empty %}
+            <div class="library-empty">
+                <div class="library-empty-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M4 5.5A3.5 3.5 0 0 1 7.5 2H20v18H7.5A3.5 3.5 0 0 0 4 23Z"></path>
+                        <path d="M4 5.5v14A3.5 3.5 0 0 1 7.5 16H20"></path>
+                    </svg>
+                </div>
+                <strong>Arşivde kitap bulunmuyor.</strong>
+                <span>İlk kitabı ekleyerek arşivi oluşturabilirsiniz.</span>
+                <a href="{% url 'kitap_ekle' %}" class="primary-btn">İlk Kitabı Ekle</a>
+            </div>
             {% endfor %}
-
         </div>
-
     </section>
 
 </div>
-
-
-<style>
-
-.library-page {
-    max-width: 1540px;
-    margin: 0 auto;
-}
-
-.primary-btn {
-    min-height: 42px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 17px;
-    border-radius: 12px;
-    color: #ffffff;
-    background: linear-gradient(135deg, #2869ed, #6460ed);
-    box-shadow: 0 11px 26px rgba(42, 100, 225, .23);
-    font-size: 9px;
-    font-weight: 800;
-}
-
-.library-summary {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 15px;
-    margin-bottom: 17px;
-}
-
-.library-summary-card {
-    padding: 20px;
-    border: 1px solid #dfe6f0;
-    border-radius: 19px;
-    background: #ffffff;
-    box-shadow: 0 16px 45px rgba(26, 45, 84, .07);
-}
-
-.library-summary-card span {
-    display: block;
-    color: #7d8ba3;
-    font-size: 8px;
-    font-weight: 800;
-    letter-spacing: .1em;
-}
-
-.library-summary-card strong {
-    display: block;
-    margin-top: 7px;
-    color: #12213e;
-    font-size: 27px;
-    letter-spacing: -.05em;
-}
-
-.library-summary-card small {
-    display: block;
-    margin-top: 4px;
-    color: #9aa5b7;
-    font-size: 8px;
-}
-
-.library-panel {
-    padding: 21px;
-    border: 1px solid #dfe6f0;
-    border-radius: 21px;
-    background: #ffffff;
-    box-shadow: 0 16px 45px rgba(26, 45, 84, .07);
-}
-
-.library-panel-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 18px;
-    margin-bottom: 20px;
-}
-
-.library-panel-head h2 {
-    margin: 0;
-    color: #12213e;
-    font-size: 17px;
-    letter-spacing: -.035em;
-}
-
-.library-panel-head p {
-    margin: 5px 0 0;
-    color: #8490a5;
-    font-size: 8px;
-}
-
-.library-search {
-    width: min(320px, 100%);
-    height: 42px;
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    padding: 0 13px;
-    border: 1px solid #dde5f0;
-    border-radius: 12px;
-    background: #f9fbfe;
-}
-
-.library-search svg {
-    width: 16px;
-    height: 16px;
-    flex: 0 0 16px;
-    fill: none;
-    stroke: #8b98ac;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-}
-
-.library-search input {
-    width: 100%;
-    border: 0;
-    outline: 0;
-    color: #172641;
-    background: transparent;
-    font-size: 9px;
-}
-
-.library-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 17px;
-}
-
-.library-book-card {
-    overflow: hidden;
-    border: 1px solid #e0e7f1;
-    border-radius: 19px;
-    background: #ffffff;
-    box-shadow: 0 12px 30px rgba(31, 54, 95, .06);
-    transition:
-        transform 190ms ease,
-        box-shadow 190ms ease,
-        border-color 190ms ease;
-}
-
-.library-book-card:hover {
-    transform: translateY(-5px);
-    border-color: #c7d7f1;
-    box-shadow: 0 22px 45px rgba(31, 54, 95, .12);
-}
-
-.book-visual {
-    position: relative;
-    min-height: 180px;
-    display: grid;
-    place-items: center;
-    overflow: hidden;
-    background:
-        radial-gradient(
-            circle at 78% 15%,
-            rgba(255, 255, 255, .25),
-            transparent 28%
-        ),
-        linear-gradient(
-            145deg,
-            #183f83,
-            #3479ed 58%,
-            #7258e8
-        );
-}
-
-.book-visual::before,
-.book-visual::after {
-    content: "";
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, .08);
-}
-
-.book-visual::before {
-    width: 180px;
-    height: 180px;
-    top: -70px;
-    right: -45px;
-}
-
-.book-visual::after {
-    width: 120px;
-    height: 120px;
-    bottom: -50px;
-    left: -30px;
-}
-
-.book-cover {
-    position: relative;
-    z-index: 2;
-    width: 104px;
-    height: 138px;
-    display: grid;
-    place-items: center;
-    border: 1px solid rgba(255, 255, 255, .25);
-    border-radius: 9px 16px 16px 9px;
-    color: #ffffff;
-    background:
-        linear-gradient(
-            145deg,
-            rgba(255, 255, 255, .18),
-            rgba(255, 255, 255, .07)
-        );
-    box-shadow:
-        13px 16px 30px rgba(9, 26, 67, .3),
-        inset 6px 0 rgba(255, 255, 255, .08);
-    backdrop-filter: blur(10px);
-}
-
-.book-cover-letter {
-    font-size: 35px;
-    font-weight: 800;
-    letter-spacing: -.06em;
-}
-
-.book-cover-lines {
-    position: absolute;
-    right: 16px;
-    bottom: 17px;
-    left: 19px;
-    display: grid;
-    gap: 5px;
-}
-
-.book-cover-lines i {
-    height: 2px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, .32);
-}
-
-.book-cover-lines i:nth-child(2) {
-    width: 75%;
-}
-
-.book-cover-lines i:nth-child(3) {
-    width: 45%;
-}
-
-.book-count-badge {
-    position: absolute;
-    z-index: 3;
-    top: 13px;
-    right: 13px;
-    padding: 7px 9px;
-    border: 1px solid rgba(255, 255, 255, .18);
-    border-radius: 999px;
-    color: #ffffff;
-    background: rgba(6, 24, 58, .25);
-    backdrop-filter: blur(8px);
-    font-size: 7px;
-    font-weight: 800;
-}
-
-.book-card-content {
-    padding: 17px;
-}
-
-.book-card-top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.book-category {
-    display: block;
-    color: #3778ff;
-    font-size: 7px;
-    font-weight: 850;
-    letter-spacing: .13em;
-}
-
-.book-card-top h3 {
-    margin: 6px 0 0;
-    color: #12213e;
-    font-size: 14px;
-    letter-spacing: -.035em;
-}
-
-.book-card-top p {
-    margin: 5px 0 0;
-    color: #8490a5;
-    font-size: 8px;
-}
-
-.book-menu-button {
-    min-width: 29px;
-    height: 29px;
-    display: grid;
-    place-items: center;
-    cursor: pointer;
-    border-radius: 9px;
-    color: #8490a5;
-    background: #f4f7fb;
-    font-size: 13px;
-    letter-spacing: 1px;
-}
-
-.book-meta-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 9px;
-    margin-top: 15px;
-}
-
-.book-meta-grid > div {
-    padding: 10px;
-    border: 1px solid #edf1f6;
-    border-radius: 11px;
-    background: #fafcff;
-}
-
-.book-meta-grid span {
-    display: block;
-    color: #8a96a9;
-    font-size: 7px;
-}
-
-.book-meta-grid strong {
-    display: block;
-    margin-top: 4px;
-    color: #15233f;
-    font-size: 11px;
-}
-
-.book-progress-area {
-    margin-top: 15px;
-}
-
-.book-progress-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    color: #8390a4;
-    font-size: 7px;
-}
-
-.book-progress-head strong {
-    color: #23a474;
-}
-
-.book-progress {
-    height: 6px;
-    margin-top: 7px;
-    overflow: hidden;
-    border-radius: 999px;
-    background: #e9eef6;
-}
-
-.book-progress i {
-    display: block;
-    height: 100%;
-    border-radius: inherit;
-    background: linear-gradient(90deg, #3778ff, #7259e9);
-}
-
-.book-card-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 9px;
-    margin-top: 16px;
-}
-
-.book-secondary-button,
-.book-primary-button {
-    min-height: 38px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 11px;
-    font-size: 8px;
-    font-weight: 800;
-}
-
-.book-secondary-button {
-    border: 1px solid #dfe6f0;
-    color: #243554;
-    background: #ffffff;
-}
-
-.book-primary-button {
-    color: #ffffff;
-    background: linear-gradient(135deg, #2869ed, #6460ed);
-    box-shadow: 0 8px 20px rgba(42, 100, 225, .2);
-}
-
-.library-empty {
-    grid-column: 1 / -1;
-    display: grid;
-    justify-items: center;
-    gap: 8px;
-    padding: 65px 20px;
-    text-align: center;
-}
-
-.library-empty-icon {
-    width: 58px;
-    height: 58px;
-    display: grid;
-    place-items: center;
-    border-radius: 17px;
-    color: #3778ff;
-    background: #eaf1ff;
-}
-
-.library-empty-icon svg {
-    width: 26px;
-    height: 26px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.7;
-}
-
-.library-empty strong {
-    color: #14213d;
-    font-size: 13px;
-}
-
-.library-empty span {
-    color: #8490a5;
-    font-size: 8px;
-}
-
-@media (max-width: 1150px) {
-    .library-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
-
-@media (max-width: 760px) {
-    .library-summary,
-    .library-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .library-panel-head {
-        align-items: stretch;
-        flex-direction: column;
-    }
-
-    .library-search {
-        width: 100%;
-    }
-}
-
-</style>
-
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -674,19 +149,11 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     searchInput.addEventListener("input", function () {
-        const query = this.value
-            .trim()
-            .toLocaleLowerCase("tr-TR");
+        const query = this.value.trim().toLocaleLowerCase("tr-TR");
 
         cards.forEach(function (card) {
-            const searchable = (
-                card.dataset.book || ""
-            ).toLocaleLowerCase("tr-TR");
-
-            card.style.display =
-                searchable.includes(query)
-                    ? ""
-                    : "none";
+            const searchable = (card.dataset.book || "").toLocaleLowerCase("tr-TR");
+            card.style.display = searchable.includes(query) ? "" : "none";
         });
     });
 });

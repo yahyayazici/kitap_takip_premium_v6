@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Etüt Yoklaması · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/gunluk-takip-etut.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="gt-etut-page">
+
+<header class="gt-etut-head">
+    <div>
+        <p class="kicker">GÜNLÜK TAKİP</p>
+        <h1>Etüt Yoklaması</h1>
+        <p class="gt-etut-note">Tüm öğrenciler otomatik listelenir. Etüte <strong>gelmeyenleri</strong> işaretleyin — işaretsiz olanlar o gün etütte var sayılır.</p>
+    </div>
+    <a href="{% url 'gunluk_takip_panel' %}" class="ghost-btn">Kayıt Listesi</a>
+</header>
+
+{% if satirlar %}
+<form method="post" id="gt-etut-form">
+    {% csrf_token %}
+    <div class="gt-etut-toolbar">
+        <div>
+            <label for="gt-tarih" style="font-size:0.72rem;font-weight:600;color:#64748b;display:block;margin-bottom:0.25rem;">Tarih</label>
+            <input type="date" name="tarih" id="gt-tarih" value="{{ secili_tarih|date:'Y-m-d' }}" class="input" {% if not duzenleyebilir %}disabled{% endif %}>
+        </div>
+        {% if duzenleyebilir %}
+        <button type="button" class="ghost-btn" id="gt-tarih-git">Tarihi Göster</button>
+        {% endif %}
+        <div class="gt-etut-stats" aria-live="polite">
+            <span class="gt-stat-pill">{{ ozet.toplam }} öğrenci</span>
+            <span class="gt-stat-pill ok" data-stat-katilan>{{ ozet.katilan }} etütte</span>
+            <span class="gt-stat-pill bad" data-stat-devamsiz>{{ ozet.devamsiz }} devamsız</span>
+        </div>
+    </div>
+
+    <div class="gt-etut-grid">
+        {% for s in satirlar %}
+        <div class="gt-etut-row {% if s.devamsiz %}is-absent{% else %}is-present{% endif %}" data-etut-row>
+            <div class="gt-etut-info">
+                <strong>{{ s.talebe.ad_soyad }}</strong>
+                <span>{% if s.talebe.sinif_sube %}{{ s.talebe.sinif_sube }}{% else %}{{ s.talebe.sinif }}{% endif %} · {{ s.talebe.etut_hocasi.ad_soyad }}</span>
+            </div>
+            {% if duzenleyebilir %}
+            <label class="gt-devamsiz-toggle">
+                <input type="checkbox" name="devamsiz" value="{{ s.talebe.pk }}" {% if s.devamsiz %}checked{% endif %} data-devamsiz-check>
+                <span class="gt-devamsiz-label">Devamsız</span>
+            </label>
+            {% else %}
+            <span class="gt-present-badge">{% if s.katildi %}Etütte{% else %}Devamsız{% endif %}</span>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if duzenleyebilir %}
+    <div class="gt-etut-actions">
+        <button type="submit" class="primary-btn">Yoklamayı Kaydet</button>
+    </div>
+    {% endif %}
+</form>
+{% else %}
+<div class="gt-empty">Yetkiniz dahilinde aktif talebe bulunamadı.</div>
+{% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    var form = document.getElementById("gt-etut-form");
+    var tarihInput = document.getElementById("gt-tarih");
+    var tarihBtn = document.getElementById("gt-tarih-git");
+    if (tarihBtn && tarihInput) {
+        tarihBtn.addEventListener("click", function () {
+            window.location = "?tarih=" + encodeURIComponent(tarihInput.value);
+        });
+    }
+    if (!form) return;
+
+    function guncelle() {
+        var devamsiz = form.querySelectorAll("[data-devamsiz-check]:checked").length;
+        var toplam = form.querySelectorAll("[data-devamsiz-check]").length;
+        var katilanEl = form.querySelector("[data-stat-katilan]");
+        var devamsizEl = form.querySelector("[data-stat-devamsiz]");
+        if (katilanEl) katilanEl.textContent = (toplam - devamsiz) + " etütte";
+        if (devamsizEl) devamsizEl.textContent = devamsiz + " devamsız";
+        form.querySelectorAll("[data-etut-row]").forEach(function (row) {
+            var chk = row.querySelector("[data-devamsiz-check]");
+            if (!chk) return;
+            row.classList.toggle("is-absent", chk.checked);
+            row.classList.toggle("is-present", !chk.checked);
+        });
+    }
+
+    form.querySelectorAll("[data-devamsiz-check]").forEach(function (chk) {
+        chk.addEventListener("change", guncelle);
+    });
+})();
+</script>
+{% endblock %}

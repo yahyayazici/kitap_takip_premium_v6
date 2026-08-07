@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}KTT · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}">
+{% endblock %}
+{% block content %}
+<div class="ktt-page">
+    <header class="ktt-page-head ktt-page-head-row">
+        <div>
+            <p class="kicker">KAZANIM TARAMA TESTİ</p>
+            <h1>Konu Tarama Testleri (KTT)</h1>
+        </div>
+        <a href="{% url 'ktt_rapor' %}" class="ktt-outline-btn green">Rapor & Analiz</a>
+    </header>
+
+    <div class="ktt-split">
+        {% if olusturabilir and form %}
+        <aside class="ktt-form-card" id="yeni-ktt">
+            <div class="ktt-form-card-head">+ Yeni KTT Tanımla</div>
+            <div class="ktt-form-card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="ktt-field">
+                        <label for="{{ form.ad.id_for_label }}">KTT Sınav Adı</label>
+                        {{ form.ad }}
+                        {{ form.ad.errors }}
+                    </div>
+                    <div class="ktt-field">
+                        <label for="{{ form.sinav_tarihi.id_for_label }}">Sınav Tarihi</label>
+                        {{ form.sinav_tarihi }}
+                        {{ form.sinav_tarihi.errors }}
+                    </div>
+                    <div class="ktt-field">
+                        <label>Sınıf(lar)</label>
+                        <div class="ktt-checkbox-grid">
+                            {% for ss in sinif_secenekleri %}
+                            <label>
+                                <input type="checkbox" name="sinif_subeler" value="{{ ss.sinif }}-{{ ss.sube }}" checked>
+                                {{ ss.sinif }}-{{ ss.sube }}
+                            </label>
+                            {% empty %}
+                            <label>
+                                <input type="checkbox" name="sinif_subeler" value="7-A" checked>
+                                7-A
+                            </label>
+                            <label>
+                                <input type="checkbox" name="sinif_subeler" value="7-B">
+                                7-B
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="ktt-field">
+                        <label for="{{ form.ders.id_for_label }}">İlgili Ders</label>
+                        {{ form.ders }}
+                        {{ form.ders.errors }}
+                    </div>
+                    <div class="ktt-field">
+                        <label for="{{ form.soru_sayisi.id_for_label }}">Toplam Soru Sayısı</label>
+                        {{ form.soru_sayisi }}
+                        {{ form.soru_sayisi.errors }}
+                    </div>
+                    <div class="ktt-field">
+                        <label for="{{ form.aciklama.id_for_label }}">Açıklama (Opsiyonel)</label>
+                        {{ form.aciklama }}
+                    </div>
+                    {% if form.etut_hocasi %}
+                    <div class="ktt-field">
+                        <label for="{{ form.etut_hocasi.id_for_label }}">Etüt Hocası</label>
+                        {{ form.etut_hocasi }}
+                    </div>
+                    {% endif %}
+                    {% if form.veliye_goster %}
+                    <div class="ktt-field">
+                        <label>{{ form.veliye_goster }} Veli panelinde göster</label>
+                    </div>
+                    {% endif %}
+                    <button type="submit" class="ktt-create-btn">KTT Oluştur</button>
+                </form>
+            </div>
+        </aside>
+        {% endif %}
+
+        <section class="ktt-table-card">
+            <h2>Mevcut Konu Tarama Testleri (KTT)</h2>
+            <div class="responsive-table">
+                <table class="ktt-table">
+                    <thead>
+                        <tr>
+                            <th>KTT Adı</th>
+                            <th>Sınıf</th>
+                            <th>Ders</th>
+                            <th>Soru sayısı</th>
+                            <th>Tarih</th>
+                            <th>Katılım</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ktt in sinavlar %}
+                        <tr>
+                            <td><strong>{{ ktt.ad }}</strong></td>
+                            <td>{{ ktt.sinif_goster }}</td>
+                            <td><span class="ktt-ders-pill">{{ ktt.ders.ad }}</span></td>
+                            <td>{{ ktt.soru_sayisi }}</td>
+                            <td>{{ ktt.sinav_tarihi|date:"d.m.Y" }}</td>
+                            <td><span class="ktt-katilim">{{ ktt.sonuc_sayisi }} öğrenci</span></td>
+                            <td>
+                                <div class="ktt-actions">
+                                    <a href="{% url 'ktt_sonuc_gir' ktt.pk %}" class="ktt-btn ktt-btn-blue">Sonuçlar</a>
+                                    {% if silme_yetkisi %}
+                                    <form method="post" action="{% url 'ktt_sil' ktt.pk %}" style="display:inline;" onsubmit="return confirm('{{ ktt.ad }} silinsin mi?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="ktt-btn ktt-btn-red">Sil</button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="ktt-empty">Henüz KTT kaydı yok. Sol panelden yeni test tanımlayabilirsiniz.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

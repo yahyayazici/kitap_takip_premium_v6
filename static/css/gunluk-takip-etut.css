@@ -1,0 +1,157 @@
+/* Etüt yoklaması — günlük takip */
+
+.gt-etut-page {
+    --gt-line: rgba(15, 23, 42, 0.08);
+    --gt-navy: #071b3a;
+    --gt-muted: #64748b;
+    --gt-green: #16a34a;
+    --gt-red: #dc2626;
+    width: 100%;
+    max-width: none;
+}
+
+.gt-etut-card {
+    margin-bottom: 1.25rem;
+}
+
+.gt-date-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--gt-muted);
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.gt-etut-head {
+    margin-bottom: 1.25rem;
+}
+
+.gt-etut-head h1 {
+    margin: 0.15rem 0 0;
+    font-size: 1.45rem;
+    color: var(--gt-navy);
+}
+
+.gt-etut-note {
+    margin: 0.35rem 0 0;
+    color: var(--gt-muted);
+    font-size: 0.875rem;
+}
+
+.gt-etut-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    align-items: end;
+    padding: 1rem;
+    border-radius: 16px;
+    border: 1px solid var(--gt-line);
+    background: #f7f8fa;
+    margin-bottom: 1rem;
+}
+
+.gt-etut-stats {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+
+.gt-stat-pill {
+    padding: 0.35rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: #fff;
+    border: 1px solid var(--gt-line);
+}
+
+.gt-stat-pill.ok { color: var(--gt-green); border-color: #bbf7d0; background: #f0fdf4; }
+.gt-stat-pill.bad { color: var(--gt-red); border-color: #fecaca; background: #fef2f2; }
+
+.gt-etut-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 0.65rem;
+    margin-bottom: 1rem;
+}
+
+.gt-etut-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 0.9rem;
+    border-radius: 14px;
+    border: 1.5px solid var(--gt-line);
+    background: #fff;
+    transition: border-color 160ms ease, background 160ms ease;
+}
+
+.gt-etut-row.is-present {
+    border-color: #bbf7d0;
+    background: #fafdfa;
+}
+
+.gt-etut-row.is-absent {
+    border-color: #fecaca;
+    background: #fff5f5;
+}
+
+.gt-etut-info strong {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--gt-navy);
+}
+
+.gt-etut-info span {
+    font-size: 0.75rem;
+    color: var(--gt-muted);
+}
+
+.gt-devamsiz-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.gt-devamsiz-toggle input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--gt-red);
+    cursor: pointer;
+}
+
+.gt-devamsiz-label {
+    font-size: 0.75rem;
+    font-weight: 650;
+    color: var(--gt-muted);
+}
+
+.gt-etut-row.is-absent .gt-devamsiz-label {
+    color: var(--gt-red);
+}
+
+.gt-present-badge {
+    font-size: 0.68rem;
+    font-weight: 650;
+    color: var(--gt-green);
+    letter-spacing: 0.02em;
+}
+
+.gt-etut-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+}
+
+.gt-empty {
+    padding: 2rem;
+    text-align: center;
+    color: var(--gt-muted);
+    border-radius: 16px;
+    border: 1px dashed var(--gt-line);
+}

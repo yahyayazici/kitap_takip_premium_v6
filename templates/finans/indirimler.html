@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static finans_extras %}
+{% block title %}İndirim Yönetimi · Finans · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/finans-premium.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="fn-page">
+
+<header class="fn-head">
+    <div>
+        <p class="fn-crumb"><a href="{% url 'finans_panel' %}">Finans Yönetimi</a> › İndirimler & Kampanyalar</p>
+        <h1>İndirim Yönetimi</h1>
+        <p class="fn-sub">Kardeş, peşin, burs ve diğer indirim türlerini kart görünümünde yönetin.</p>
+    </div>
+    <div class="fn-head-actions">
+        <a href="{% url 'finans_politikalar' %}" class="fn-btn">Politikalar</a>
+        <a href="{% url 'finans_panel' %}" class="fn-btn">← Panele Dön</a>
+    </div>
+</header>
+
+<div class="fn-discount-grid">
+    {% for i in indirimler %}
+    <article class="fn-discount-card">
+        <h3>{{ i.ad }}</h3>
+        <div class="fn-discount-value">{{ i.deger_goster }}</div>
+        <p style="font-size:0.8125rem;color:var(--fn-muted);margin:0 0 0.5rem">
+            {% if i.gecerli_mi %}<span style="color:var(--fn-green)">Aktif</span>{% else %}<span style="color:var(--fn-muted)">Pasif</span>{% endif %}
+            {% if i.baslangic or i.bitis %} · {{ i.baslangic|date:"d.m.Y"|default:"—" }} – {{ i.bitis|date:"d.m.Y"|default:"—" }}{% endif %}
+        </p>
+        <a href="?duzenle={{ i.pk }}" class="fn-btn fn-btn-sm">Düzenle</a>
+    </article>
+    {% empty %}
+    <p class="fn-empty">İndirim tanımı yok.</p>
+    {% endfor %}
+</div>
+
+{% if form %}
+<section class="fn-card fn-modal" style="margin-top:1.25rem">
+    <div class="fn-section-head">
+        <h3>{% if duzenlenen %}{{ duzenlenen.ad }} düzenle{% else %}Yeni indirim{% endif %}</h3>
+    </div>
+    <form method="post" class="fn-form-grid">
+        {% csrf_token %}
+        {% if duzenlenen %}<input type="hidden" name="pk" value="{{ duzenlenen.pk }}">{% endif %}
+        <div class="fn-field-row">
+            <div class="fn-field"><label>Ad</label>{{ form.ad }}</div>
+            <div class="fn-field"><label>Kod</label>{{ form.kod }}</div>
+        </div>
+        <div class="fn-field-row">
+            <div class="fn-field"><label>Tür</label>{{ form.tur }}</div>
+            <div class="fn-field"><label>Değer</label>{{ form.deger }}</div>
+        </div>
+        <div class="fn-field-row">
+            <div class="fn-field"><label>Başlangıç</label>{{ form.baslangic }}</div>
+            <div class="fn-field"><label>Bitiş</label>{{ form.bitis }}</div>
+        </div>
+        <div class="fn-field"><label>Açıklama</label>{{ form.aciklama }}</div>
+        <label style="display:flex;align-items:center;gap:0.4rem">{{ form.aktif }} Aktif</label>
+        <button type="submit" class="fn-btn fn-btn-primary">Kaydet</button>
+    </form>
+</section>
+{% endif %}
+
+{% if kampanyalar %}
+<section class="fn-card" style="margin-top:1.25rem">
+    <div class="fn-section-head"><h3>Kampanyalar</h3></div>
+    <div class="fn-table-wrap">
+        <table class="fn-table">
+            <thead>
+                <tr>
+                    <th>Kampanya</th>
+                    <th>İndirim</th>
+                    <th>Başlangıç</th>
+                    <th>Bitiş</th>
+                    <th>Durum</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for k in kampanyalar %}
+                <tr>
+                    <td>{{ k.ad }}</td>
+                    <td>{{ k.indirim.deger_goster }}</td>
+                    <td>{{ k.baslangic|date:"d.m.Y" }}</td>
+                    <td>{{ k.bitis|date:"d.m.Y" }}</td>
+                    <td>{% if k.gecerli_mi %}<span class="fn-status fn-status--tamamlandi">Aktif</span>{% else %}<span class="fn-status fn-status--bekliyor">Pasif</span>{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+
+</div>
+{% endblock %}

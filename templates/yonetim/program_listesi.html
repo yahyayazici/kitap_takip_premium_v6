@@ -1,0 +1,84 @@
+{% extends "yonetim/base.html" %}
+
+{% block title %}Programlar{% endblock %}
+
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">PROGRAM YÖNETİMİ</p>
+        <h1>Program Planları</h1>
+        <p class="muted">Günlük program satırlarını tanımlayın, tarih aralığı ve PDF çıktısı alın.</p>
+    </div>
+    <div class="yonetim-page-head-actions">
+        <a href="{% url 'program_panel' %}" class="ghost-btn yonetim-head-ghost">Personel Görünümü</a>
+        <a href="{% url 'yonetim:program_ekle' %}" class="primary-btn">Program Ekle</a>
+    </div>
+</header>
+
+{% if bugun_program %}
+<section class="dashboard-card yonetim-highlight-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">BUGÜN</p>
+            <h2>{{ bugun_program.ad }}</h2>
+        </div>
+        <a href="{% url 'yonetim:program_duzenle' bugun_program.pk %}" class="yonetim-action-btn">Düzenle</a>
+    </div>
+    <p class="muted">{{ bugun_program.tarih_araligi_goster }} · {{ bugun_program.satirlar.count }} satır</p>
+</section>
+{% endif %}
+
+<section class="report-table-card yonetim-table-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">PROGRAM ARŞİVİ</p>
+            <h2>Tüm Planlar</h2>
+        </div>
+        <span class="report-record-count">{{ programlar|length }} program</span>
+    </div>
+
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <thead>
+                <tr>
+                    <th>Program</th>
+                    <th>Tarih Aralığı</th>
+                    <th>Satır</th>
+                    <th>Durum</th>
+                    <th class="yonetim-action-col">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for program in programlar %}
+                <tr>
+                    <td><strong>{{ program.ad }}</strong></td>
+                    <td>{{ program.tarih_araligi_goster }}</td>
+                    <td class="num-col">{{ program.satir_sayisi }}</td>
+                    <td>
+                        {% if program.yayinda_mi %}
+                            <span class="status-pill status-okunuyor">Yayında</span>
+                        {% elif program.aktif %}
+                            <span class="status-pill status-yarim">Planlı / Arşiv</span>
+                        {% else %}
+                            <span class="status-pill status-iade">Pasif</span>
+                        {% endif %}
+                    </td>
+                    <td class="yonetim-table-actions yonetim-action-col">
+                        <div class="yonetim-action-group">
+                            <a href="{% url 'yonetim:program_duzenle' program.pk %}" class="yonetim-action-btn">Düzenle</a>
+                            <a href="{% url 'yonetim:program_pdf' program.pk %}" class="yonetim-action-btn yonetim-action-btn-muted" target="_blank" rel="noopener">PDF</a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="report-empty">Henüz program kaydı yok.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

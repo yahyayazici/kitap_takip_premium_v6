@@ -1,0 +1,63 @@
+{% extends "veli/base.html" %}
+{% block title %}{{ talebe.ad_soyad }} · Dini Ders{% endblock %}
+{% block content %}
+<div class="dash-home veli-dash">
+    {% include "veli/includes/talebe_layout_head.html" %}
+
+    {% if mufredat %}
+    <section class="dash-panel">
+        <p class="veli-card-kicker">GENEL İLERLEME ÖZETİ</p>
+        <h2 style="margin:0 0 20px;font-size:17px;">Dini Ders İlerleme ve Müfredat Durumu</h2>
+
+        <div class="veli-dini-summary">
+            <div class="veli-dini-ring">
+                <strong>%{{ mufredat.genel_yuzde }}</strong>
+                <span>Genel Tamamlanma Oranı</span>
+                <p style="margin:12px 0 0;font-size:13px;color:#718097;">{{ mufredat.tamamlanan }} / {{ mufredat.toplam }} Konu</p>
+            </div>
+            <div>
+                {% for alan in mufredat.alanlar %}
+                <div class="veli-progress-row">
+                    <header><span>{{ alan.ad }}</span><strong>{{ alan.tamamlanan }} / {{ alan.toplam }} (%{{ alan.yuzde }})</strong></header>
+                    <div class="veli-progress-bar"><span style="width:{{ alan.yuzde }}%;"></span></div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <section class="dash-panel">
+        <p class="veli-card-kicker">MÜFREDAT DETAYLARI</p>
+        <h2 style="margin:0 0 14px;font-size:17px;">Konu Bazlı Durum</h2>
+
+        <div class="veli-alan-tabs">
+            {% for alan in mufredat.alanlar %}
+            <a href="?alan={{ alan.id }}" class="{% if secili_alan.id == alan.id %}active{% endif %}">{{ alan.ad }}</a>
+            {% endfor %}
+        </div>
+
+        {% if secili_alan %}
+        <div class="veli-konu-grid">
+            {% for konu in secili_alan.konular %}
+            <div class="veli-konu-item {% if konu.tamamlandi %}done{% endif %}">
+                <span class="icon">{% if konu.tamamlandi %}✓{% endif %}</span>
+                <span>{{ konu.ad }}</span>
+                <span class="status">{% if konu.tamamlandi %}Tamamlandı{% else %}İşlenmedi{% endif %}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </section>
+    {% else %}
+    <section class="dash-panel">
+        <p style="color:#718097;font-size:14px;margin:0;">
+            Öğrenciye henüz dini ders seviyesi atanmamış. Kurum yönetimi talebe kaydından seviye tanımlayabilir.
+        </p>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/panel_date_js.html" %}
+{% endblock %}

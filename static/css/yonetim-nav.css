@@ -1,0 +1,156 @@
+/* Yönetim merkezi — üst menü düzeni */
+
+.yonetim-v6-header {
+    overflow: visible !important;
+}
+
+.yonetim-v6-header .cs-v6-inner {
+    flex-wrap: wrap;
+    gap: 12px 18px;
+    min-height: 74px;
+}
+
+.yonetim-v6-header .cs-v6-nav {
+    flex: 1;
+    display: flex;
+    align-self: stretch;
+    align-items: stretch;
+    justify-content: center;
+    gap: 4px;
+    min-width: 0;
+}
+
+.yonetim-v6-header .v3-nav-link {
+    position: relative;
+    min-width: 82px;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+.yonetim-v6-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.yonetim-user-chip {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.yonetim-user-copy {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+    max-width: 110px;
+    color: #fff;
+}
+
+.yonetim-user-copy strong {
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.yonetim-user-copy small {
+    margin-top: 3px;
+    color: #c5d4ea;
+    font-size: 10px;
+}
+
+.yonetim-site-link {
+    padding: 8px 12px !important;
+    border-radius: 10px !important;
+    font-size: 12px !important;
+    white-space: nowrap;
+}
+
+.yonetim-logout {
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 10px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.yonetim-menu-toggle {
+    display: none;
+    width: 42px;
+    height: 42px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 10px;
+    cursor: pointer;
+}
+
+.yonetim-menu-toggle span {
+    display: block;
+    height: 2px;
+    margin: 4px 0;
+    background: #fff;
+    border-radius: 3px;
+}
+
+@media (max-width: 1180px) {
+    .yonetim-user-copy {
+        display: none;
+    }
+}
+
+@media (max-width: 980px) {
+    .yonetim-menu-toggle {
+        display: block;
+        margin-left: auto;
+    }
+
+    .yonetim-v6-header .cs-v6-nav {
+        display: none;
+        order: 4;
+        flex: 0 0 100%;
+        flex-direction: column;
+        align-self: auto;
+        padding: 8px 0 4px;
+        background: rgba(8, 27, 60, 0.35);
+        border-radius: 12px;
+    }
+
+    .yonetim-v6-header .cs-v6-nav.open {
+        display: flex;
+    }
+
+    .yonetim-v6-actions {
+        order: 3;
+        margin-left: auto;
+    }
+
+    .yonetim-site-link {
+        display: none;
+    }
+}
+
+@media (max-width: 700px) {
+    .yonetim-v6-header .cs-v6-inner {
+        padding-inline: 16px;
+    }
+
+    .yonetim-user-chip {
+        display: none;
+    }
+}

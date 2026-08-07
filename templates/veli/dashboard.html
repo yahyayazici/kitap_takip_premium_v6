@@ -1,0 +1,66 @@
+{% extends "veli/base.html" %}
+{% block title %}Veli Paneli · {{ panel_short }}{% endblock %}
+{% block content %}
+<div class="dash-home veli-dash">
+
+{% include "includes/panel_hero.html" with title="Hoş geldiniz, "|add:veli.ad_soyad meta="Veli · Öğrenci gelişim özeti" show_date=True %}
+
+{% if duyurular %}
+<section class="dash-panel" aria-label="Duyurular">
+    <div class="dash-panel-head">
+        <div>
+            <p class="dash-eyebrow">Duyurular</p>
+            <h2>Son bildirimler</h2>
+        </div>
+        <a href="{% url 'veli_duyurular' %}" class="dash-text-btn">Tümü</a>
+    </div>
+    <div class="dash-feed">
+        {% for d in duyurular|slice:":3" %}
+        <article class="dash-feed-item dash-accent-navy">
+            <span class="dash-feed-tag">Genel</span>
+            <h3>{{ d.baslik }}</h3>
+            <p>{{ d.ozet|truncatechars:140 }}</p>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<section class="dash-panel">
+    <div class="dash-panel-head">
+        <div>
+            <p class="dash-eyebrow">Veli</p>
+            <h2>Öğrenci seçin</h2>
+        </div>
+    </div>
+    <div class="veli-student-picker">
+        {% for kart in kartlar %}
+        <a href="{% url 'veli_talebe_dashboard' kart.talebe.id %}" class="veli-student-card">
+            <h3>{{ kart.talebe.ad_soyad }}</h3>
+            <p class="veli-student-meta">
+                {% if kart.talebe.sinif_sube %}{{ kart.talebe.sinif_sube }}{% else %}{{ kart.talebe.sinif }}{% endif %}
+                · Dini ders %{{ kart.dini_ders_yuzde }}
+            </p>
+            <div class="dash-metrics veli-student-metrics">
+                <article class="dash-stat dash-stat-green">
+                    <span class="dash-stat-label">Haftalık soru</span>
+                    <strong class="dash-stat-value">{{ kart.haftalik_soru.toplam_soru }}</strong>
+                </article>
+                <article class="dash-stat dash-stat-blue">
+                    <span class="dash-stat-label">Net</span>
+                    <strong class="dash-stat-value">{{ kart.haftalik_soru.toplam_net }}</strong>
+                </article>
+            </div>
+        </a>
+        {% empty %}
+        <p class="og-empty-note">Henüz bağlı öğrenci yok.</p>
+        {% endfor %}
+    </div>
+</section>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/panel_date_js.html" %}
+{% endblock %}

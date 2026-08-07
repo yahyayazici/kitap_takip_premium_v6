@@ -1,0 +1,514 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Dershane Programı · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dershane-program-premium.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dp-page" data-dp-panel data-program="{{ program.pk }}" data-gun="{{ gun }}">
+
+<header class="dp-head">
+    <div>
+        <p class="dp-eyebrow">Program</p>
+        <h1>Dershane Programı</h1>
+        <p class="dp-sub">Gün, saat ve grup bazlı ders programı oluşturma ve yönetim sistemi.</p>
+    </div>
+    {% if duzenleyebilir %}
+    <div class="dp-actions">
+        <button type="button" class="dp-btn dp-btn-ghost" data-dp-open="sablon">Şablon Kaydet</button>
+        <a href="{% url 'dershane_program_pdf' %}?program={{ program.pk }}&gun={{ gun }}" class="dp-btn dp-btn-ghost" target="_blank">PDF</a>
+        <a href="{% url 'dershane_program_excel' %}?program={{ program.pk }}" class="dp-btn dp-btn-ghost">Excel</a>
+        <form method="post" style="display:inline;">
+            {% csrf_token %}
+            <input type="hidden" name="program" value="{{ program.pk }}">
+            <input type="hidden" name="gun" value="{{ gun }}">
+            <button type="submit" name="action" value="program_kaydet" class="dp-btn dp-btn-primary">Kaydet</button>
+        </form>
+    </div>
+    {% else %}
+    <div class="dp-actions">
+        <a href="{% url 'dershane_program_pdf' %}?program={{ program.pk }}&gun={{ gun }}" class="dp-btn dp-btn-ghost" target="_blank">PDF</a>
+        <a href="{% url 'dershane_program_excel' %}?program={{ program.pk }}" class="dp-btn dp-btn-ghost">Excel</a>
+    </div>
+    {% endif %}
+</header>
+
+<nav class="dp-steps" aria-label="İşlem adımları">
+    {% for adim in adimlar %}
+    <div class="dp-step {% if adim.aktif %}active{% elif adim.no|add:'0' < 4 %}done{% endif %}">
+        <span class="dp-step-no">{% if adim.no|add:'0' < 4 and not adim.aktif %}✓{% else %}{{ adim.no }}{% endif %}</span>
+        <strong>{{ adim.baslik }}</strong>
+        <span>{{ adim.aciklama }}</span>
+    </div>
+    {% endfor %}
+</nav>
+
+<section class="dp-builder">
+    <article class="dp-card">
+        <div class="dp-card-head"><h2>1. Gün Seçimi</h2></div>
+        <div class="dp-card-body">
+            <div class="dp-day-list">
+                {% for gun_item in gunler %}
+                <a href="?program={{ program.pk }}&gun={{ gun_item.gun }}" class="dp-day-item {% if gun_item.secili %}active{% endif %}">
+                    <span>{{ gun_item.ad }}</span>
+                    {% if gun_item.secili %}<span class="dp-day-check">✓</span>{% endif %}
+                </a>
+                {% endfor %}
+            </div>
+            <div class="dp-day-info">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                <div>
+                    <span>Seçili Gün</span>
+                    <strong>{{ gun_adi }}</strong>
+                </div>
+            </div>
+        </div>
+    </article>
+
+    <article class="dp-card">
+        <div class="dp-card-head">
+            <h2>2. Saat Blokları — {{ gun_adi }}</h2>
+            {% if duzenleyebilir %}
+            <button type="button" class="dp-btn dp-btn-sm dp-btn-primary" data-dp-open="saat">+ Saat Bloğu Ekle</button>
+            {% endif %}
+        </div>
+        <div class="dp-card-body">
+            <div class="dp-block-table-wrap">
+                <table class="dp-block-table">
+                    <thead>
+                        <tr>
+                            <th>Saat</th>
+                            <th>Tür</th>
+                            <th>Açıklama</th>
+                            {% if duzenleyebilir %}<th>İşlem</th>{% endif %}
+                        </tr>
+                    </thead>
+                    <tbody data-dp-block-list>
+                        {% for blok in saat_bloklari %}
+                        <tr class="dp-block-row" draggable="{% if duzenleyebilir %}true{% else %}false{% endif %}" data-blok-id="{{ blok.id }}">
+                            <td>{{ blok.saat }}</td>
+                            <td><span class="dp-badge {{ blok.tur_sinif }}">{{ blok.tur_etiket }}</span></td>
+                            <td>{{ blok.aciklama }}</td>
+                            {% if duzenleyebilir %}
+                            <td>
+                                <button type="button" class="dp-icon-btn" data-dp-edit-block='{"id":{{ blok.id }},"baslangic":"{{ blok.baslangic }}","bitis":"{{ blok.bitis }}","tur":"{{ blok.tur }}","aciklama":"{{ blok.aciklama|escapejs }}"}' title="Düzenle">✎</button>
+                                <form method="post" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="program" value="{{ program.pk }}">
+                                    <input type="hidden" name="gun" value="{{ gun }}">
+                                    <input type="hidden" name="blok_id" value="{{ blok.id }}">
+                                    <button type="submit" name="action" value="saat_sil" class="dp-icon-btn" title="Sil" onclick="return confirm('Saat bloğu silinsin mi?');">🗑</button>
+                                </form>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4">Henüz saat bloğu eklenmemiş.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if duzenleyebilir %}
+            <p class="dp-hint">Saat bloklarını sürükleyerek sıralayabilirsiniz.</p>
+            {% endif %}
+        </div>
+    </article>
+
+    <article class="dp-card">
+        <div class="dp-card-head"><h2>Kontrol Merkezi</h2></div>
+        <div class="dp-card-body">
+            <div class="dp-control-grid">
+                <div class="dp-control-item {% if ozet.ogretmen_cakisma %}alert{% else %}ok{% endif %}">
+                    <span>Öğretmen Çakışması</span>
+                    <strong>{{ ozet.ogretmen_cakisma }}</strong>
+                </div>
+                <div class="dp-control-item {% if ozet.bos_hucre %}alert{% else %}ok{% endif %}">
+                    <span>Boş Ders Hücresi</span>
+                    <strong>{{ ozet.bos_hucre }}</strong>
+                </div>
+                <div class="dp-control-item ok">
+                    <span>Programlanan Ders</span>
+                    <strong>{{ ozet.planlanan_ders }}</strong>
+                </div>
+                <div class="dp-control-item ok">
+                    <span>Toplam Ders Saati</span>
+                    <strong>{{ ozet.toplam_ders_saati }}</strong>
+                </div>
+            </div>
+            <div class="dp-control-item ok" style="margin-top:10px;">
+                <span>Tamamlanan Gün</span>
+                <strong>{{ ozet.tamamlanan_gun }}/7</strong>
+            </div>
+            {% if duzenleyebilir %}
+            <button type="button" class="dp-btn dp-btn-sm dp-btn-ghost" style="margin-top:12px;" data-dp-open="kopyala">Gün Programını Kopyala</button>
+            {% endif %}
+        </div>
+    </article>
+</section>
+
+<article class="dp-card dp-matrix-card">
+    <div class="dp-card-head">
+        <h2>3. Ders Atama — {{ gun_adi }}</h2>
+    </div>
+    <form method="get" class="dp-filter-bar">
+        <input type="hidden" name="program" value="{{ program.pk }}">
+        <input type="hidden" name="gun" value="{{ gun }}">
+        <div class="dp-field">
+            <label for="filtre-sinif">Sınıf</label>
+            <select id="filtre-sinif" name="sinif">
+                <option value="">Tümü</option>
+                {% for sinif in siniflar %}
+                <option value="{{ sinif }}" {% if filtre.sinif == sinif %}selected{% endif %}>{{ sinif }}. Sınıf</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="dp-field">
+            <label for="filtre-etut">Etüt Grubu</label>
+            <select id="filtre-etut" name="etut_grubu">
+                <option value="">Tümü</option>
+                {% for grup in etut_gruplari %}
+                <option value="{{ grup.pk }}" {% if filtre.etut_grubu == grup.pk|stringformat:"s" %}selected{% endif %}>{{ grup.etiket }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="dp-field">
+            <label for="filtre-ders">Ders</label>
+            <select id="filtre-ders" name="ders">
+                <option value="">Tümü</option>
+                {% for ders in dersler %}
+                <option value="{{ ders.ad }}" {% if filtre.ders == ders.ad %}selected{% endif %}>{{ ders.ad }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="dp-field">
+            <label for="filtre-ogretmen">Öğretmen</label>
+            <select id="filtre-ogretmen" name="ogretmen">
+                <option value="">Tümü</option>
+                {% for ogretmen in ogretmenler %}
+                <option value="{{ ogretmen.ad_soyad }}" {% if filtre.ogretmen == ogretmen.ad_soyad %}selected{% endif %}>{{ ogretmen.ad_soyad }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="dp-filter-toggles">
+            <label class="dp-toggle"><input type="checkbox" name="atanmamis" value="1" {% if filtre.atanmamis %}checked{% endif %}> Atanmamışları Göster</label>
+            <button type="submit" class="dp-btn dp-btn-sm dp-btn-ghost">Filtrele</button>
+        </div>
+    </form>
+
+    {% if duzenleyebilir and ders_paleti %}
+    <div class="dp-ders-palette" aria-label="Ders paleti">
+        <p class="dp-palette-hint">Dersi sürükleyip hücreye, sınıf şeridine veya saat satırına bırakın. Her şubeye o dersin kendi öğretmeni otomatik yazılır.</p>
+        <div class="dp-ders-chips">
+            {% for ders in ders_paleti %}
+            <div class="dp-ders-chip"
+                 draggable="true"
+                 data-ders-id="{{ ders.id }}"
+                 data-ders-ad="{{ ders.ad }}"
+                 data-ders-renk="{{ ders.renk }}"
+                 style="--chip-color: {{ ders.renk }};">
+                <strong>{{ ders.ad }}</strong>
+                {% if ders.brans %}<small>{{ ders.brans }}</small>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="dp-matrix-scroll" data-dp-matrix data-atama-url="{% url 'dershane_program_atama_surukle' %}?program={{ program.pk }}&gun={{ gun }}">
+        <table class="dp-matrix">
+            <thead>
+                <tr>
+                    <th class="dp-time-col" rowspan="2">Saat / Tür</th>
+                    {% for item in sinif_gruplari_list %}
+                    <th colspan="{{ item.colspan }}" class="dp-sinif-head">{{ item.sinif }}. Sınıf</th>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    {% for grup in gruplar %}
+                    <th>{{ grup.etiket }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for satir in matris %}
+                {% if satir.birlestirilmis %}
+                <tr>
+                    <td class="dp-time-col">
+                        <span class="dp-time-main">{{ satir.saat }}</span>
+                        <span class="dp-badge {{ satir.tur_sinif }} dp-time-sub">{{ satir.tur_etiket }}</span>
+                    </td>
+                    <td colspan="{{ gruplar|length }}" class="dp-merged-row {% if satir.tur == 'namaz' %}dp-merged-namaz{% elif satir.tur == 'yemek' %}dp-merged-yemek{% endif %}">
+                        {{ satir.birlestirilmis_metin }}
+                    </td>
+                </tr>
+                {% else %}
+                <tr class="dp-matrix-block" data-blok-id="{{ satir.blok_id }}">
+                    <td class="dp-time-col dp-drop-row {% if duzenleyebilir %}dp-droppable{% endif %}" rowspan="2"
+                        {% if duzenleyebilir %}data-blok-id="{{ satir.blok_id }}" data-tum-gruplar="1" title="Tüm gruplara sürükleyin"{% endif %}>
+                        <span class="dp-time-main">{{ satir.saat }}</span>
+                        <span class="dp-badge {{ satir.tur_sinif }} dp-time-sub">{{ satir.tur_etiket }}</span>
+                        {% if duzenleyebilir %}<small class="dp-drop-hint">↴ satır</small>{% endif %}
+                    </td>
+                    {% for item in sinif_gruplari_list %}
+                    <td colspan="{{ item.colspan }}"
+                        class="dp-sinif-drop {% if duzenleyebilir %}dp-droppable{% endif %}"
+                        {% if duzenleyebilir %}data-blok-id="{{ satir.blok_id }}" data-sinif="{{ item.sinif }}" title="{{ item.sinif }}. sınıfa sürükleyin"{% endif %}>
+                        <span class="dp-sinif-drop-label">{{ item.sinif }}. sınıf → sürükle</span>
+                    </td>
+                    {% endfor %}
+                </tr>
+                <tr class="dp-matrix-cells" data-blok-id="{{ satir.blok_id }}">
+                    {% for hucre in satir.hucreler %}
+                    <td>
+                        {% if duzenleyebilir %}
+                        <div class="dp-cell dp-droppable {% if hucre.bos %}dp-cell-empty{% endif %}"
+                            style="background: {% if hucre.bos %}#fff{% else %}{{ hucre.renk }}{% endif %};"
+                            data-blok-id="{{ satir.blok_id }}"
+                            data-grup-id="{{ hucre.grup_id }}"
+                            role="button"
+                            tabindex="0"
+                            data-dp-assign='{"blok":{{ satir.blok_id }},"grup":{{ hucre.grup_id }},"ders":"{{ hucre.ders|escapejs }}","ogretmen":"{{ hucre.ogretmen|escapejs }}"}'>
+                            {% if hucre.bos %}
+                            <span class="dp-cell-placeholder">+</span>
+                            {% else %}
+                            <strong class="dp-cell-ders">{{ hucre.ders }}</strong>
+                            <span class="dp-cell-ogretmen">{{ hucre.ogretmen }}</span>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <div class="dp-cell" style="background: {{ hucre.renk }};">
+                            {% if not hucre.bos %}
+                            <strong class="dp-cell-ders">{{ hucre.ders }}</strong>
+                            <span class="dp-cell-ogretmen">{{ hucre.ogretmen }}</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endif %}
+                {% empty %}
+                <tr><td colspan="{{ gruplar|length|add:1 }}">Bu gün için program matrisi oluşturmak üzere saat blokları ekleyin.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</article>
+
+<div class="dp-bottom">
+    <article class="dp-card">
+        <div class="dp-card-head"><h2>4. Diğer Günlerin Özeti</h2></div>
+        <div class="dp-card-body">
+            {% for item in gun_ozeti %}
+            <div class="dp-day-summary-row">
+                <div>
+                    <strong>{{ item.ad }}</strong>
+                    <span class="dp-status {{ item.durum_sinif }}">{{ item.durum_etiket }}</span>
+                </div>
+                <a href="?program={{ program.pk }}&gun={{ item.gun }}" class="dp-btn dp-btn-sm dp-btn-ghost">{% if item.secili %}Düzenle{% else %}Görüntüle{% endif %}</a>
+            </div>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="dp-card">
+        <div class="dp-card-head"><h2>5. Görüntüleme Seçenekleri</h2></div>
+        <div class="dp-card-body">
+            <div class="dp-view-grid">
+                {% for kart in goruntuleme_kartlari %}
+                <div class="dp-view-card">
+                    <div class="dp-view-icon" aria-hidden="true">
+                        {% if kart.ikon == "grid" %}▦{% elif kart.ikon == "layers" %}☰{% elif kart.ikon == "users" %}👥{% else %}👤{% endif %}
+                    </div>
+                    <strong>{{ kart.baslik }}</strong>
+                    <p>{{ kart.aciklama }}</p>
+                    <a href="{% url 'dershane_program_goruntule' kart.key %}?program={{ program.pk }}&gun={{ gun }}" class="dp-btn dp-btn-sm dp-btn-ghost">Görüntüle</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </article>
+
+    <article class="dp-card">
+        <div class="dp-card-head"><h2>6. Çıktı ve Paylaşım</h2></div>
+        <div class="dp-card-body dp-export-list">
+            <div class="dp-export-item">
+                <strong>PDF Olarak İndir</strong>
+                <p>Programı kurumsal PDF formatında indir.</p>
+                <a href="{% url 'dershane_program_pdf' %}?program={{ program.pk }}" class="dp-btn dp-btn-sm dp-btn-ghost" target="_blank">PDF İndir</a>
+            </div>
+            <div class="dp-export-item">
+                <strong>Excel'e Aktar</strong>
+                <p>Programı Excel/CSV formatında indir.</p>
+                <a href="{% url 'dershane_program_excel' %}?program={{ program.pk }}" class="dp-btn dp-btn-sm dp-btn-ghost">Excel İndir</a>
+            </div>
+            <div class="dp-export-item">
+                <strong>Paylaş</strong>
+                <p>Program bağlantısını oluştur / kopyala.</p>
+                <button type="button" class="dp-btn dp-btn-sm dp-btn-ghost" data-dp-share>Linki Kopyala</button>
+            </div>
+            {% if surumler %}
+            <div class="dp-export-item">
+                <strong>Geçmiş Sürümler</strong>
+                {% for surum in surumler %}
+                <form method="post" style="margin-top:8px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="program" value="{{ program.pk }}">
+                    <input type="hidden" name="gun" value="{{ gun }}">
+                    <input type="hidden" name="surum_id" value="{{ surum.pk }}">
+                    <button type="submit" name="action" value="surum_yukle" class="dp-btn dp-btn-sm dp-btn-ghost" onclick="return confirm('{{ surum.etiket }} sürümüne dönülsün mü?');">{{ surum.etiket }}</button>
+                </form>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </article>
+</div>
+
+{% if duzenleyebilir %}
+<div class="dp-modal-backdrop" data-dp-modal="atama">
+    <div class="dp-modal" role="dialog" aria-labelledby="dp-atama-title">
+        <div class="dp-modal-head">
+            <h3 id="dp-atama-title">Ders Ataması</h3>
+            <button type="button" class="dp-icon-btn" data-dp-close>×</button>
+        </div>
+        <form method="post" class="dp-modal-body">
+            {% csrf_token %}
+            <input type="hidden" name="program" value="{{ program.pk }}">
+            <input type="hidden" name="gun" value="{{ gun }}">
+            <input type="hidden" name="action" value="atama_kaydet">
+            <input type="hidden" name="saat_bloku_id" id="dp-atama-blok">
+            <input type="hidden" name="etut_grubu_id" id="dp-atama-grup">
+            <div class="dp-field">
+                <label for="dp-atama-ders">Ders</label>
+                <select name="ders_id" id="dp-atama-ders">
+                    <option value="">— Seçin —</option>
+                    {% for ders in dersler %}
+                    <option value="{{ ders.pk }}">{{ ders.ad }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="dp-field">
+                <label for="dp-atama-ogretmen">Öğretmen</label>
+                <select name="ogretmen_id" id="dp-atama-ogretmen">
+                    <option value="">— Seçin —</option>
+                    {% for ogretmen in ogretmenler %}
+                    <option value="{{ ogretmen.pk }}">{{ ogretmen.ad_soyad }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="dp-modal-actions">
+                <button type="button" class="dp-btn dp-btn-ghost" data-dp-close>İptal</button>
+                <button type="submit" class="dp-btn dp-btn-primary">Kaydet</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="dp-modal-backdrop" data-dp-modal="saat">
+    <div class="dp-modal" role="dialog" aria-labelledby="dp-saat-title">
+        <div class="dp-modal-head">
+            <h3 id="dp-saat-title">Saat Bloğu</h3>
+            <button type="button" class="dp-icon-btn" data-dp-close>×</button>
+        </div>
+        <form method="post" class="dp-modal-body" id="dp-saat-form">
+            {% csrf_token %}
+            <input type="hidden" name="program" value="{{ program.pk }}">
+            <input type="hidden" name="gun" value="{{ gun }}">
+            <input type="hidden" name="action" value="saat_ekle">
+            <input type="hidden" name="blok_id" id="dp-saat-blok-id" value="">
+            <div class="dp-field"><label>Başlangıç</label><input type="time" name="baslangic" id="dp-saat-bas" required></div>
+            <div class="dp-field"><label>Bitiş</label><input type="time" name="bitis" id="dp-saat-bit" required></div>
+            <div class="dp-field">
+                <label>Tür</label>
+                <select name="tur" id="dp-saat-tur">
+                    <option value="ders">Ders</option>
+                    <option value="namaz">Namaz</option>
+                    <option value="yemek">Yemek</option>
+                    <option value="mola">Mola</option>
+                    <option value="etut">Etüt</option>
+                    <option value="rehberlik">Rehberlik</option>
+                </select>
+            </div>
+            <div class="dp-field"><label>Açıklama</label><input type="text" name="aciklama" id="dp-saat-aciklama" placeholder="Örn. 1. Ders Saati"></div>
+            <div class="dp-modal-actions">
+                <button type="button" class="dp-btn dp-btn-ghost" data-dp-close>İptal</button>
+                <button type="submit" class="dp-btn dp-btn-primary">Kaydet</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="dp-modal-backdrop" data-dp-modal="kopyala">
+    <div class="dp-modal" role="dialog" aria-labelledby="dp-kopya-title">
+        <div class="dp-modal-head">
+            <h3 id="dp-kopya-title">Gün Programını Kopyala</h3>
+            <button type="button" class="dp-icon-btn" data-dp-close>×</button>
+        </div>
+        <form method="post" class="dp-modal-body">
+            {% csrf_token %}
+            <input type="hidden" name="program" value="{{ program.pk }}">
+            <input type="hidden" name="action" value="gun_kopyala">
+            <input type="hidden" name="kaynak_gun" value="{{ gun }}">
+            <div class="dp-field">
+                <label>Hedef Gün</label>
+                <select name="hedef_gun">
+                    {% for gun_item in gunler %}
+                    {% if not gun_item.secili %}
+                    <option value="{{ gun_item.gun }}">{{ gun_item.ad }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <label class="dp-toggle"><input type="checkbox" name="kopya_saat" value="1" checked> Saat blokları</label>
+            <label class="dp-toggle"><input type="checkbox" name="kopya_ders" value="1" checked> Dersler</label>
+            <label class="dp-toggle"><input type="checkbox" name="kopya_ogretmen" value="1" checked> Öğretmenler</label>
+            <div class="dp-modal-actions">
+                <button type="button" class="dp-btn dp-btn-ghost" data-dp-close>İptal</button>
+                <button type="submit" class="dp-btn dp-btn-primary">Kopyala</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="dp-modal-backdrop" data-dp-modal="sablon">
+    <div class="dp-modal" role="dialog" aria-labelledby="dp-sablon-title">
+        <div class="dp-modal-head">
+            <h3 id="dp-sablon-title">Şablon Kaydet / Yükle</h3>
+            <button type="button" class="dp-icon-btn" data-dp-close>×</button>
+        </div>
+        <div class="dp-modal-body">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="program" value="{{ program.pk }}">
+                <input type="hidden" name="gun" value="{{ gun }}">
+                <input type="hidden" name="action" value="sablon_kaydet">
+                <div class="dp-field"><label>Şablon Adı</label><input type="text" name="sablon_ad" placeholder="2026 Yaz Programı"></div>
+                <div class="dp-field"><label>Açıklama</label><input type="text" name="sablon_aciklama" placeholder="Opsiyonel"></div>
+                <button type="submit" class="dp-btn dp-btn-primary">Şablon Kaydet</button>
+            </form>
+            {% if sablonlar %}
+            <hr style="border:none;border-top:1px solid var(--dp-line);margin:12px 0;">
+            {% for sablon in sablonlar %}
+            <form method="post" style="margin-bottom:8px;">
+                {% csrf_token %}
+                <input type="hidden" name="program" value="{{ program.pk }}">
+                <input type="hidden" name="gun" value="{{ gun }}">
+                <input type="hidden" name="action" value="sablon_yukle">
+                <input type="hidden" name="sablon_id" value="{{ sablon.pk }}">
+                <button type="submit" class="dp-btn dp-btn-sm dp-btn-ghost" onclick="return confirm('{{ sablon.ad }} şablonu yüklensin mi?');">{{ sablon.ad }}</button>
+            </form>
+            {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/dershane-program-panel.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}{{ ktt.ad }}{% endblock %}
+{% block content %}
+<div class="result-entry-page">
+    <header class="result-entry-header">
+        <div>
+            <p class="result-kicker">{{ ktt.sinav_tarihi|date:"d.m.Y" }}</p>
+            <h1>{{ ktt.ad }}</h1>
+            <p class="result-description">{{ ktt.ders.ad }} · {{ ktt.sinif_seviyesi }}. sınıf · {{ ktt.soru_sayisi }} soru</p>
+        </div>
+        <div class="result-header-actions">
+            {% if sonuc_girebilir %}
+            <a href="{% url 'ktt_sonuc_gir' ktt.pk %}" class="primary-btn">Sonuç Girişi</a>
+            {% endif %}
+            {% if pdf_yetkisi %}
+            <a href="{% url 'ktt_detay_pdf' ktt.pk %}" class="result-secondary-button" target="_blank" rel="noopener">PDF İndir</a>
+            {% endif %}
+            <a href="{% url 'ktt_excel_indir' ktt.pk %}" class="result-secondary-button">Excel</a>
+            {% if duzenleyebilir %}
+            <a href="{% url 'ktt_duzenle' ktt.pk %}" class="ghost-btn">Düzenle</a>
+            {% endif %}
+            <a href="{% url 'ktt_listesi' %}" class="result-back-button">Listeye Dön</a>
+        </div>
+    </header>
+
+    <section class="result-card">
+        <div class="responsive-table">
+            <table class="report-data-table">
+                <thead>
+                    <tr>
+                        <th>Talebe</th>
+                        <th>D</th>
+                        <th>Y</th>
+                        <th>B</th>
+                        <th>Net</th>
+                        <th>Puan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sonuc in sonuclar %}
+                    <tr>
+                        <td>{{ sonuc.talebe.ad_soyad }}</td>
+                        <td class="num-col">{{ sonuc.dogru }}</td>
+                        <td class="num-col">{{ sonuc.yanlis }}</td>
+                        <td class="num-col">{{ sonuc.bos }}</td>
+                        <td class="num-col">{{ sonuc.net }}</td>
+                        <td class="num-col profile-score">{{ sonuc.puan }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="report-empty">Sonuç girilmemiş.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

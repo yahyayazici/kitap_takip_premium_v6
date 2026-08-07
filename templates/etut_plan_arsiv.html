@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Etüt Plan Arşivi · {{ panel_short }}{% endblock %}
+{% block content %}
+<div class="library-page">
+    <header class="page-head patterned-page-head library-page-head">
+        <div>
+            <p class="kicker">HAFTALIK ETÜT PLANI</p>
+            <h1>Arşiv</h1>
+            <p class="library-panel-desc">Tamamlanan haftalık planlar</p>
+        </div>
+        <a href="{% url 'etut_plan_panel' %}" class="ghost-btn">Bu Hafta</a>
+    </header>
+    <section class="library-panel">
+        <div class="responsive-table">
+            <table class="report-data-table">
+                <thead>
+                    <tr>
+                        <th>Hafta</th>
+                        <th>Etüt hocası</th>
+                        <th>Faaliyet</th>
+                        <th>Tamamlanan</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for plan in planlar %}
+                    <tr>
+                        <td>{{ plan.hafta_goster }}</td>
+                        <td>{{ plan.etut_hocasi.ad_soyad }}</td>
+                        <td class="num-col">{{ plan.toplam_faaliyet }}</td>
+                        <td class="num-col">{{ plan.tamamlanan_sayisi }}</td>
+                        <td><a href="{% url 'etut_plan_detay' plan.pk %}" class="ghost-btn">Görüntüle</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="report-empty">Arşivde plan yok.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

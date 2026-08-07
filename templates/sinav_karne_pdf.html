@@ -1,626 +1,190 @@
+{% load pdf_extras static %}
 <!doctype html>
 <html lang="tr">
 <head>
     <meta charset="utf-8">
-
     <title>{{ talebe.ad_soyad }} · Bireysel Karne</title>
-
     <style>
-        @page {
-            size: A4;
-            margin: 10mm 12mm 13mm;
-
-            @bottom-left {
-                content: "Çinili Saray Proje";
-                color: #7f8aa0;
-                font-size: 8px;
-            }
-
-            @bottom-right {
-                content: "Sayfa " counter(page) " / " counter(pages);
-                color: #7f8aa0;
-                font-size: 8px;
-            }
+        {% include "includes/pdf_karne_fonts.html" %}
+        {% include "includes/pdf_karne_a4_css.html" %}
+        .pdf-karne .rank-text { font-size: 8px; font-weight: 600; color: #17243a; margin-top: 2px; }
+        .pdf-karne .rank-note { margin-top: 2px; font-size: 6px; color: #9aa5b5; }
+        .pdf-karne .info-panel-accent,
+        .pdf-karne .rank-panel-accent {
+            position: absolute;
+            top: 0;
+            left: 10px;
+            right: 10px;
+            height: 2px;
+            border-radius: 0 0 999px 999px;
+            background: #3778ff;
+            opacity: 0.5;
         }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            color: #10203d;
-            background: #ffffff;
-            font-family: "DejaVu Sans", Arial, sans-serif;
-            font-size: 10.5px;
-        }
-
-        .report {
-            width: 100%;
-        }
-
-        .topbar {
-            width: 100%;
-            margin-bottom: 10px;
-            border-collapse: collapse;
-        }
-
-        .topbar td {
-            vertical-align: middle;
-        }
-
-        .brand-mark-cell {
-            width: 44px;
-        }
-
-        .brand-mark {
-            width: 38px;
-            height: 38px;
-            border-radius: 10px;
-            color: #ffffff;
-            background: #0c2f66;
-            font-size: 12px;
-            font-weight: 800;
-            text-align: center;
-            vertical-align: middle;
-        }
-
-        .brand-copy {
-            padding-left: 9px;
-        }
-
-        .brand-name {
-            color: #0d2347;
-            font-size: 12.5px;
-            font-weight: 800;
-        }
-
-        .brand-subtitle {
-            margin-top: 2px;
-            color: #7e8aa0;
-            font-size: 7px;
-            font-weight: 700;
-            letter-spacing: .7px;
-        }
-
-        .document-label {
-            color: #446086;
-            font-size: 7px;
-            font-weight: 800;
-            text-align: right;
-            letter-spacing: .9px;
-        }
-
-        .hero {
-            padding: 17px 18px;
-            border-radius: 14px;
-            color: #ffffff;
-            background: linear-gradient(
-                135deg,
-                #071f4a 0%,
-                #123b7c 60%,
-                #2a67d7 100%
-            );
-        }
-
-        .hero-kicker {
-            color: #bfd4ff;
-            font-size: 7px;
-            font-weight: 800;
-            letter-spacing: .9px;
-        }
-
-        .hero-title {
-            margin-top: 7px;
-            font-size: 22px;
-            font-weight: 800;
-            line-height: 1.12;
-            letter-spacing: -.4px;
-        }
-
-        .hero-description {
-            margin-top: 6px;
-            max-width: 82%;
-            color: #d8e5fb;
-            font-size: 8.2px;
-            line-height: 1.48;
-        }
-
-        .student-card {
-            width: 100%;
-            margin-top: 9px;
-            border: 1px solid #dfe6ef;
-            border-radius: 12px;
-            border-collapse: separate;
-            border-spacing: 0;
-            background: #ffffff;
-        }
-
-        .student-card td {
-            padding: 13px 14px;
-            vertical-align: middle;
-        }
-
-        .student-avatar-cell {
-            width: 60px;
-        }
-
-        .student-avatar {
-            width: 46px;
-            height: 46px;
-            border-radius: 13px;
-            color: #2458c7;
-            background: #eaf1ff;
-            font-size: 17px;
-            font-weight: 850;
-            text-align: center;
-            vertical-align: middle;
-        }
-
-        .student-label {
-            color: #2563eb;
-            font-size: 7px;
-            font-weight: 800;
-            letter-spacing: .8px;
-        }
-
-        .student-name {
-            margin-top: 4px;
-            color: #10203d;
-            font-size: 18px;
-            font-weight: 850;
-            line-height: 1.2;
-        }
-
-        .student-meta {
-            margin-top: 4px;
-            color: #7e8aa0;
-            font-size: 8px;
-        }
-
-        .meta-strip {
-            width: 100%;
-            margin-top: 7px;
-            border-collapse: separate;
-            border-spacing: 5px;
-        }
-
-        .meta-strip td {
-            width: 33.333%;
-            padding: 9px 10px;
-            border: 1px solid #dfe6ef;
-            border-radius: 9px;
-            background: #ffffff;
-            vertical-align: top;
-        }
-
-        .meta-label {
-            color: #7d899d;
-            font-size: 7px;
-            font-weight: 800;
-            letter-spacing: .55px;
-        }
-
-        .meta-value {
-            margin-top: 4px;
-            color: #10203d;
-            font-size: 10px;
-            font-weight: 800;
-            line-height: 1.3;
-        }
-
-        .score-strip {
-            width: 100%;
-            margin-top: 5px;
-            border-collapse: separate;
-            border-spacing: 5px;
-        }
-
-        .score-strip td {
-            width: 20%;
-            padding: 12px 8px;
-            border: 1px solid #dfe6ef;
-            border-radius: 10px;
-            background: #ffffff;
-            text-align: center;
-            vertical-align: middle;
-        }
-
-        .score-label {
-            color: #738198;
-            font-size: 7px;
-            font-weight: 800;
-            letter-spacing: .65px;
-        }
-
-        .score-value {
-            margin-top: 6px;
-            color: #10203d;
-            font-size: 20px;
-            font-weight: 850;
-        }
-
-        .score-note {
-            margin-top: 4px;
-            color: #98a2b2;
-            font-size: 6.8px;
-        }
-
-        .score-main {
-            border-color: #cfdcf6 !important;
-            background: #edf3ff !important;
-        }
-
-        .score-main .score-value {
-            color: #1d56c7;
-            font-size: 23px;
-        }
-
-        .rank-card {
-            margin-top: 9px;
-            padding: 14px 15px;
-            border: 1px solid #dfe6ef;
-            border-radius: 12px;
-            background: #f8fafd;
-        }
-
-        .rank-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .rank-table td {
-            vertical-align: middle;
-        }
-
-        .rank-left {
-            width: 72%;
-        }
-
-        .rank-kicker {
-            color: #2563eb;
-            font-size: 7px;
-            font-weight: 800;
-            letter-spacing: .8px;
-        }
-
-        .rank-title {
-            margin-top: 4px;
-            color: #10203d;
-            font-size: 13px;
-            font-weight: 800;
-        }
-
-        .rank-text {
-            margin-top: 4px;
-            color: #748197;
-            font-size: 8px;
-            line-height: 1.5;
-        }
-
-        .rank-number {
-            width: 60px;
-            height: 60px;
-            border-radius: 16px;
-            color: #7a4b00;
-            background: #fff0bd;
-            font-size: 24px;
-            font-weight: 850;
-            text-align: center;
-            vertical-align: middle;
-        }
-
-        .evaluation-grid {
-            width: 100%;
-            margin-top: 9px;
-            border-collapse: separate;
-            border-spacing: 5px;
-        }
-
-        .evaluation-grid td {
-            width: 50%;
-            min-height: 102px;
-            padding: 13px 14px;
-            border: 1px solid #dfe6ef;
-            border-radius: 11px;
-            vertical-align: top;
-        }
-
-        .evaluation-title {
-            color: #16365f;
-            font-size: 9px;
-            font-weight: 800;
-        }
-
-        .evaluation-text {
-            margin-top: 7px;
-            color: #5f6f86;
-            font-size: 8.4px;
-            line-height: 1.62;
-        }
-
-        .success-panel {
-            margin-top: 10px;
-            padding: 14px 15px;
-            border-radius: 12px;
-            color: #ffffff;
-            background: #0c2f66;
-        }
-
-        .success-panel table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .success-panel td {
-            vertical-align: middle;
-        }
-
-        .success-label {
-            color: #bfd4ff;
-            font-size: 7px;
-            font-weight: 800;
-            letter-spacing: .8px;
-        }
-
-        .success-title {
-            margin-top: 4px;
-            font-size: 14px;
-            font-weight: 800;
-        }
-
-        .success-text {
-            margin-top: 5px;
-            color: #d8e5fb;
-            font-size: 8px;
-            line-height: 1.5;
-        }
-
-        .success-score {
-            width: 90px;
-            color: #ffffff;
-            font-size: 26px;
-            font-weight: 850;
-            text-align: right;
-        }
-
-        .footer-note {
-            margin-top: 10px;
-            padding: 10px 12px;
-            border-left: 4px solid #2d6be7;
-            border-radius: 9px;
-            color: #5f6e84;
-            background: #f4f7fc;
-            font-size: 8px;
-            line-height: 1.5;
-        }
-
-        .footer-note strong {
-            color: #17355f;
-        }
+        .pdf-karne .info-panel,
+        .pdf-karne .rank-panel { position: relative; overflow: hidden; }
     </style>
 </head>
+<body class="pdf-karne density-s">
 
-<body>
+{% widthratio sonuc.dogru sinav.soru_sayisi 100 as basari_yuzde %}
 
-<div class="report">
+<div class="pdf-sheet">
+<table class="layout">
+    <tr>
+        <td>
+            <table class="header-table" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="header-logo-cell">
+                        <div class="brand-logo-wrap">
+                            <img class="brand-logo" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="Çinili Saray">
+                        </div>
+                    </td>
+                    <td class="header-text-cell">
+                        <div class="brand-name">{{ panel_org }}</div>
+                        <div class="brand-sub">{{ panel_name }}</div>
+                    </td>
+                    <td class="header-right">
+                        <div class="doc-title">Bireysel Sınav Sonuç Karnesi</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
 
-    <table class="topbar">
-        <tr>
-            <td class="brand-mark-cell">
-                <table>
+    <tr><td class="gap6"></td></tr>
+
+    <tr>
+        <td class="hero">
+            <svg class="hero-deco" width="80" height="48" viewBox="0 0 120 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M72 8C72 8 88 6 96 14V58C88 52 72 54 72 54V8Z" fill="#FFFFFF" opacity="0.9"/>
+                <path d="M28 18C28 18 42 16 48 22V62C42 58 28 60 28 60V18Z" fill="#FFFFFF" opacity="0.75"/>
+            </svg>
+            <div class="hero-inner">
+                <div class="hero-tag">Kitap Sınavı</div>
+                <div class="hero-title">{% if sinav.kitap %}{{ sinav.kitap.ad }}{% else %}{{ sinav.ad }}{% endif %}</div>
+                <div class="hero-meta">
+                    {{ talebe.ad_soyad }} · {{ talebe.sinif }}{% if talebe.sube %} / {{ talebe.sube }}{% endif %} ·
+                    {{ sinav.sinav_tarihi|date:"d.m.Y" }} · {{ sinav.soru_sayisi }} soru
+                </div>
+            </div>
+        </td>
+    </tr>
+
+    <tr><td class="gap6"></td></tr>
+
+    <tr>
+        <td>
+            <table class="stats-table" cellpadding="0">
+                <tr>
+                    <td width="20%" class="stat-cell tone-blue">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">Doğru</div>
+                        <div class="stat-metric">{{ sonuc.dogru }}</div>
+                        <div class="stat-sub">soru</div>
+                    </td>
+                    <td width="20%" class="stat-cell tone-orange">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">Yanlış</div>
+                        <div class="stat-metric">{{ sonuc.yanlis }}</div>
+                        <div class="stat-sub">soru</div>
+                    </td>
+                    <td width="20%" class="stat-cell tone-green">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">Boş</div>
+                        <div class="stat-metric">{{ sonuc.bos }}</div>
+                        <div class="stat-sub">soru</div>
+                    </td>
+                    <td width="20%" class="stat-cell tone-blue">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">Puan</div>
+                        <div class="stat-metric">{{ sonuc.puan|pdf_puan }}</div>
+                        <div class="stat-sub">100 üzerinden</div>
+                    </td>
+                    <td width="20%" class="stat-cell tone-purple">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">Derece</div>
+                        <div class="stat-metric">{{ derece }}</div>
+                        <div class="stat-sub">{{ toplam_talebe }} talebe</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+
+    <tr><td class="gap6"></td></tr>
+
+    <tr>
+        <td>
+            <div class="info-panel">
+                <div class="info-panel-accent"></div>
+                <div class="section-kicker">Performans</div>
+                <div class="section-title">Doğru Cevap Oranı</div>
+                <table class="progress-track" width="100%" cellspacing="0" cellpadding="0">
                     <tr>
-                        <td class="brand-mark">ÇS</td>
+                        <td width="{{ basari_yuzde }}%" class="progress-fill-cell">&nbsp;</td>
+                        <td class="progress-rest-cell">&nbsp;</td>
                     </tr>
                 </table>
-            </td>
+                <div class="progress-note">{{ sonuc.dogru }} / {{ sinav.soru_sayisi }} soru · {{ basari_yuzde }}%</div>
+            </div>
+        </td>
+    </tr>
 
-            <td class="brand-copy">
-                <div class="brand-name">Çinili Saray Proje</div>
-                <div class="brand-subtitle">KİTAP TAKİP SİSTEMİ</div>
-            </td>
+    <tr><td class="gap6"></td></tr>
 
-            <td class="document-label">
-                BİREYSEL SINAV SONUÇ KARNESİ
-            </td>
-        </tr>
-    </table>
-
-    <section class="hero">
-        <div class="hero-kicker">KİTAP SINAVI</div>
-
-        <div class="hero-title">
-            {% if sinav.kitap %}
-                {{ sinav.kitap.ad }}
-            {% else %}
-                {{ sinav.ad }}
-            {% endif %}
-            <br>
-            Bireysel Sonuç Karnesi
-        </div>
-
-        <div class="hero-description">
-            Talebenin kitap okuma, anlama ve değerlendirme sürecine ait
-            sınav neticesi ile grup içerisindeki derecesi.
-        </div>
-    </section>
-
-    <table class="student-card">
-        <tr>
-            <td class="student-avatar-cell">
-                <table>
+    <tr>
+        <td>
+            <div class="rank-panel">
+                <div class="rank-panel-accent"></div>
+                <table class="layout" cellpadding="0" cellspacing="0">
                     <tr>
-                        <td class="student-avatar">
-                            {{ talebe.ad_soyad|slice:":1"|upper }}
+                        <td valign="middle">
+                            <div class="section-kicker">Grup Sıralaması</div>
+                            <div class="rank-text">{{ toplam_talebe }} talebe arasında {{ derece }}. sırada</div>
+                            <div class="rank-note">Eşit puan aynı derece</div>
+                        </td>
+                        <td width="52" align="right" valign="middle">
+                            <span class="rank-badge">{{ derece }}</span>
                         </td>
                     </tr>
                 </table>
-            </td>
+            </div>
+        </td>
+    </tr>
 
-            <td>
-                <div class="student-label">TALEBE</div>
+    <tr><td class="gap6"></td></tr>
 
-                <div class="student-name">
-                    {{ talebe.ad_soyad }}
-                </div>
+    <tr>
+        <td>
+            <table class="evaluation-table" cellpadding="0">
+                <tr>
+                    <td width="50%" class="eval-cell">
+                        <div class="eval-title">Genel Değerlendirme</div>
+                        <div class="eval-body">{{ degerlendirme }}</div>
+                    </td>
+                    <td width="50%" class="eval-cell">
+                        <div class="eval-title">Gelişim Takibi</div>
+                        <div class="eval-body">
+                            Talebemizin çıkarım, ayrıntı ve bağlam temelli sorulara yönelik
+                            çalışmalarını sürdürmesi tavsiye edilmektedir.
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
 
-                <div class="student-meta">
-                    {{ talebe.sinif }}
-                    {% if talebe.sube %}
-                        / {{ talebe.sube }}
-                    {% endif %}
-                </div>
-            </td>
-        </tr>
-    </table>
-
-    <table class="meta-strip">
-        <tr>
-            <td>
-                <div class="meta-label">SINAV ADI</div>
-                <div class="meta-value">{{ sinav.ad }}</div>
-            </td>
-
-            <td>
-                <div class="meta-label">SINAV TARİHİ</div>
-                <div class="meta-value">
-                    {{ sinav.sinav_tarihi|date:"d.m.Y" }}
-                </div>
-            </td>
-
-            <td>
-                <div class="meta-label">SORU SAYISI</div>
-                <div class="meta-value">{{ sinav.soru_sayisi }}</div>
-            </td>
-        </tr>
-    </table>
-
-    <table class="score-strip">
-        <tr>
-            <td>
-                <div class="score-label">DOĞRU</div>
-                <div class="score-value">{{ sonuc.dogru }}</div>
-                <div class="score-note">Soru</div>
-            </td>
-
-            <td>
-                <div class="score-label">YANLIŞ</div>
-                <div class="score-value">{{ sonuc.yanlis }}</div>
-                <div class="score-note">Soru</div>
-            </td>
-
-            <td>
-                <div class="score-label">BOŞ</div>
-                <div class="score-value">{{ sonuc.bos }}</div>
-                <div class="score-note">Soru</div>
-            </td>
-
-            <td class="score-main">
-                <div class="score-label">PUAN</div>
-                <div class="score-value">
-                    {{ sonuc.puan|floatformat:2 }}
-                </div>
-                <div class="score-note">100 üzerinden</div>
-            </td>
-
-            <td>
-                <div class="score-label">DERECE</div>
-                <div class="score-value">{{ derece }}</div>
-                <div class="score-note">
-                    {{ toplam_talebe }} talebe
-                </div>
-            </td>
-        </tr>
-    </table>
-
-    <div class="rank-card">
-        <table class="rank-table">
-            <tr>
-                <td class="rank-left">
-                    <div class="rank-kicker">GRUP SIRALAMASI</div>
-
-                    <div class="rank-title">
-                        {{ toplam_talebe }} talebe arasında
-                        {{ derece }}. sırada
-                    </div>
-
-                    <div class="rank-text">
-                        Sıralama puan üstünlüğüne göre hesaplanmıştır.
-                        Eşit puan alan talebeler aynı dereceyi paylaşır.
-                    </div>
-                </td>
-
-                <td>
-                    <table>
-                        <tr>
-                            <td class="rank-number">
-                                {{ derece }}
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-        </table>
-    </div>
-
-    <table class="evaluation-grid">
-        <tr>
-            <td>
-                <div class="evaluation-title">
-                    Genel Değerlendirme
-                </div>
-
-                <div class="evaluation-text">
-                    {{ degerlendirme }}
-                </div>
-            </td>
-
-            <td>
-                <div class="evaluation-title">
-                    Gelişim Takibi
-                </div>
-
-                <div class="evaluation-text">
-                    Talebemizin çıkarım, ayrıntı ve bağlam temelli
-                    sorulara yönelik çalışmalarını sürdürmesi;
-                    sonraki kitap sürecinde okuma notları ve bölüm
-                    özetleri hazırlaması tavsiye edilmektedir.
-                </div>
-            </td>
-        </tr>
-    </table>
-
-    <div class="success-panel">
-        <table>
-            <tr>
-                <td>
-                    <div class="success-label">GENEL BAŞARI</div>
-
-                    <div class="success-title">
-                        Kitap sınavı başarı sonucu
-                    </div>
-
-                    <div class="success-text">
-                        Netice, doğru cevap sayısının toplam soru
-                        sayısına oranlanmasıyla 100 puan üzerinden
-                        hesaplanmıştır.
-                    </div>
-                </td>
-
-                <td class="success-score">
-                    {{ sonuc.puan|floatformat:2 }}
-                </td>
-            </tr>
-        </table>
-    </div>
-
-    <div class="footer-note">
-        <strong>Bilgilendirme:</strong>
-        Bu belge, talebenin kitap sınavı neticesini ve grup içerisindeki
-        derecesini göstermektedir. Çinili Saray Proje Kitap Takip Sistemi
-        üzerinden oluşturulmuştur.
-    </div>
-
+    <tr>
+        <td>
+            <table class="footer-table" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="footer-left">{{ panel_org }}</td>
+                    <td class="footer-right">{{ panel_footer }}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
 </div>
 
 </body>

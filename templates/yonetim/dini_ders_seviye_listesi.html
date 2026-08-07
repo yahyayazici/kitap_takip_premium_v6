@@ -1,0 +1,64 @@
+{% extends "yonetim/base.html" %}
+{% load static %}
+{% block title %}Dini Ders Seviyeleri{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}">
+{% endblock %}
+{% block content %}
+<div class="yonetim-page dd-yonetim-page">
+    {% include "includes/dini_ders_yonetim_shell.html" %}
+
+    <section class="dd-card">
+        <div class="dd-panel-head">
+            <h2>Seviye Listesi</h2>
+        </div>
+        <div class="dd-table-wrap">
+            <table class="dd-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Seviye Adı</th>
+                        <th>Atanmış Hocalar</th>
+                        <th>Durum</th>
+                        <th>İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for seviye in seviyeler %}
+                    <tr>
+                        <td>{{ seviye.id }}</td>
+                        <td><strong>{{ seviye.ad }}</strong></td>
+                        <td>
+                            <div class="dd-tag-list">
+                                {% for h in seviye.hocalar.all %}
+                                <span class="dd-tag">{{ h.ad_soyad }}</span>
+                                {% empty %}
+                                <span class="dd-desc">—</span>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td>
+                            {% if seviye.aktif %}
+                            <span class="dd-pill dd-pill-green">Aktif</span>
+                            {% else %}
+                            <span class="dd-pill dd-pill-gray">Pasif</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if duzenleyebilir %}
+                            <div class="dd-row-actions">
+                                <a href="{% url 'yonetim:dini_ders_seviye_duzenle' seviye.pk %}" class="dd-btn dd-btn-sm dd-btn-outline-amber">Hoca Ata</a>
+                                <a href="{% url 'yonetim:dini_ders_seviye_duzenle' seviye.pk %}" class="dd-icon-btn" title="Düzenle">✎</a>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="dd-empty">Seviye tanımlı değil.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

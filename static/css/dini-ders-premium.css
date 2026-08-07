@@ -1,0 +1,817 @@
+/* Dini Ders Takip — premium panel & yönetim */
+
+.dd-page,
+.dd-yonetim-page {
+    --dd-bg: #ffffff;
+    --dd-surface: #f7f8fa;
+    --dd-line: rgba(15, 23, 42, 0.08);
+    --dd-navy: #071b3a;
+    --dd-text: #1e293b;
+    --dd-muted: #64748b;
+    --dd-accent: #2563eb;
+    --dd-green: #059669;
+    --dd-amber: #d97706;
+    --dd-radius: 18px;
+    --dd-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.dd-page {
+    max-width: none;
+    width: 100%;
+    margin: 0;
+    padding: 0 0 2.5rem;
+}
+
+.dd-yonetim-page {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+}
+
+.dd-page *,
+.dd-yonetim-page * {
+    box-sizing: border-box;
+}
+
+.dd-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+}
+
+.dd-head h1 {
+    margin: 0;
+    font-size: clamp(1.45rem, 2.4vw, 1.85rem);
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    color: var(--dd-navy);
+}
+
+.dd-eyebrow {
+    margin: 0 0 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--dd-muted);
+}
+
+.dd-desc {
+    margin: 0.35rem 0 0;
+    color: var(--dd-muted);
+    font-size: 0.92rem;
+}
+
+.dd-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.dd-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.62rem 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--dd-line);
+    background: var(--dd-bg);
+    color: var(--dd-navy);
+    font-size: 0.875rem;
+    font-weight: 550;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.dd-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+    color: var(--dd-navy) !important;
+    background: var(--dd-bg) !important;
+}
+
+.dd-btn-primary {
+    background: var(--dd-accent) !important;
+    border-color: var(--dd-accent) !important;
+    color: #fff !important;
+}
+
+.dd-btn-primary:hover {
+    background: #1d4ed8 !important;
+    border-color: #1d4ed8 !important;
+    color: #fff !important;
+}
+
+.dd-card {
+    background: var(--dd-bg);
+    border: 1px solid var(--dd-line);
+    border-radius: var(--dd-radius);
+    box-shadow: var(--dd-shadow);
+    padding: 1.25rem 1.35rem;
+}
+
+.dd-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.85rem;
+    align-items: end;
+}
+
+.dd-field label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--dd-muted);
+}
+
+.dd-field select,
+.dd-field input {
+    width: 100%;
+    min-height: 42px;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--dd-line);
+    border-radius: 12px;
+    background: var(--dd-bg);
+    font: inherit;
+    color: var(--dd-text);
+}
+
+.dd-help {
+    margin-bottom: 1rem;
+    padding: 0.85rem 1rem;
+    border-radius: 14px;
+    border: 1px solid rgba(37, 99, 235, 0.15);
+    background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%);
+    font-size: 0.84rem;
+    line-height: 1.55;
+    color: #475569;
+}
+
+.dd-help summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--dd-navy);
+}
+
+.dd-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 1rem;
+    align-items: start;
+}
+
+.dd-matrix-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+.dd-matrix-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.1rem;
+    border-bottom: 1px solid var(--dd-line);
+}
+
+.dd-matrix-head h2 {
+    margin: 0.15rem 0 0;
+    font-size: 1.05rem;
+    font-weight: 650;
+    color: var(--dd-navy);
+}
+
+.dd-matrix-wrap {
+    overflow: auto;
+    max-height: min(72vh, 820px);
+}
+
+.dd-matrix {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 640px;
+}
+
+.dd-matrix thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 0.55rem 0.35rem;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--dd-muted);
+    background: var(--dd-surface);
+    border-bottom: 1px solid var(--dd-line);
+    vertical-align: bottom;
+}
+
+.dd-matrix thead th.dd-sticky-col {
+    left: 0;
+    z-index: 3;
+    text-align: left;
+    padding-left: 1rem;
+    min-width: 210px;
+}
+
+.dd-matrix thead th.dd-topic-col {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    min-width: 42px;
+    max-width: 52px;
+    height: 130px;
+    white-space: nowrap;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--dd-text);
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.dd-matrix tbody td {
+    padding: 0.35rem;
+    border-top: 1px solid rgba(15, 23, 42, 0.05);
+    text-align: center;
+    vertical-align: middle;
+}
+
+.dd-matrix tbody td.dd-sticky-col {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    text-align: left;
+    padding: 0.55rem 0.75rem 0.55rem 1rem;
+    background: var(--dd-bg);
+    border-right: 1px solid var(--dd-line);
+}
+
+.dd-student-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 0;
+}
+
+.dd-student-no {
+    flex-shrink: 0;
+    width: 1.35rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--dd-muted);
+    text-align: right;
+}
+
+.dd-student-name {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--dd-text);
+    line-height: 1.25;
+}
+
+.dd-status {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    border: 2px solid #cbd5e1;
+    background: #fff;
+    color: transparent;
+    font-size: 0.75rem;
+}
+
+.dd-status-tamam {
+    border-color: #34d399;
+    background: #ecfdf5;
+    color: var(--dd-green);
+}
+
+.dd-status-devam {
+    border-color: #fcd34d;
+    background: #fffbeb;
+    color: var(--dd-amber);
+}
+
+.dd-cell-check {
+    display: inline-grid;
+    place-items: center;
+}
+
+.dd-cell-check input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--dd-green);
+    cursor: pointer;
+}
+
+.dd-form-foot {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 1.1rem;
+    border-top: 1px solid var(--dd-line);
+    background: var(--dd-surface);
+}
+
+.dd-aside {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.dd-stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.55rem;
+}
+
+.dd-stat {
+    padding: 0.75rem 0.85rem;
+    border-radius: 14px;
+    border: 1px solid var(--dd-line);
+    background: var(--dd-surface);
+}
+
+.dd-stat span {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--dd-muted);
+}
+
+.dd-stat strong {
+    display: block;
+    margin-top: 0.2rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--dd-navy);
+    font-variant-numeric: tabular-nums;
+}
+
+.dd-progress {
+    margin-top: 0.75rem;
+}
+
+.dd-progress-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.35rem;
+    font-size: 0.78rem;
+    color: var(--dd-muted);
+}
+
+.dd-progress-bar {
+    height: 8px;
+    border-radius: 999px;
+    background: #e2e8f0;
+    overflow: hidden;
+}
+
+.dd-progress-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #059669, #34d399);
+}
+
+.dd-recent-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.dd-recent-list li {
+    padding: 0.55rem 0;
+    border-top: 1px solid var(--dd-line);
+    font-size: 0.8125rem;
+    line-height: 1.4;
+}
+
+.dd-recent-list li:first-child {
+    border-top: 0;
+    padding-top: 0;
+}
+
+.dd-recent-list strong {
+    display: block;
+    color: var(--dd-text);
+}
+
+.dd-recent-list small {
+    color: var(--dd-muted);
+}
+
+.dd-empty {
+    padding: 2rem 1.25rem;
+    text-align: center;
+    color: var(--dd-muted);
+    font-size: 0.92rem;
+    line-height: 1.6;
+}
+
+.dd-empty a {
+    color: var(--dd-accent);
+}
+
+.dd-report-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.dd-report-stat {
+    padding: 1rem;
+    border-radius: 16px;
+    border: 1px solid var(--dd-line);
+    background: var(--dd-bg);
+    box-shadow: var(--dd-shadow);
+}
+
+.dd-report-stat span {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--dd-muted);
+}
+
+.dd-report-stat strong {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--dd-navy);
+}
+
+/* Yönetim */
+
+.dd-yonetim-hero {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    padding: 1.75rem 1.85rem;
+    border-radius: var(--dd-radius);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background:
+        radial-gradient(circle at 85% 10%, rgba(255, 255, 255, 0.14), transparent 35%),
+        linear-gradient(135deg, #071f46 0%, #0d3c82 58%, #2c6cdc 100%);
+    box-shadow: 0 18px 48px rgba(16, 55, 126, 0.18);
+    color: #fff;
+}
+
+.dd-yonetim-hero .dd-eyebrow {
+    color: #bed3fa;
+}
+
+.dd-yonetim-hero h1 {
+    margin: 0.15rem 0 0;
+    font-size: clamp(1.45rem, 2.4vw, 1.85rem);
+    font-weight: 650;
+    color: #fff !important;
+}
+
+.dd-yonetim-hero .dd-desc {
+    color: #d7e4fa;
+    max-width: 56ch;
+}
+
+.dd-yonetim-hero .dd-btn {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-color: transparent !important;
+    color: #15427f !important;
+}
+
+.dd-yonetim-hero .dd-btn:hover {
+    background: #fff !important;
+    color: #0f2f5c !important;
+}
+
+.dd-yonetim-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.dd-yonetim-head h1 {
+    margin: 0.15rem 0 0;
+    font-size: clamp(1.35rem, 2.2vw, 1.65rem);
+    font-weight: 650;
+    color: var(--dd-navy);
+}
+
+.dd-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding: 0.35rem;
+    border-radius: 14px;
+    background: var(--dd-surface);
+    border: 1px solid var(--dd-line);
+}
+
+.dd-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.6rem 1rem;
+    border-radius: 11px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--dd-accent) !important;
+    font-size: 0.84rem;
+    font-weight: 600;
+    text-decoration: none !important;
+    transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dd-tab:hover {
+    background: #fff !important;
+    color: #1d4ed8 !important;
+    border-color: var(--dd-line) !important;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+.dd-tab.is-active,
+.dd-tab.is-active:hover {
+    background: var(--dd-accent) !important;
+    border-color: var(--dd-accent) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28);
+}
+
+.dd-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.85rem;
+}
+
+.dd-panel-head h2 {
+    margin: 0;
+    font-size: 0.98rem;
+    font-weight: 650;
+    color: var(--dd-navy);
+}
+
+.dd-table-wrap {
+    overflow-x: auto;
+    border-radius: 14px;
+    border: 1px solid var(--dd-line);
+}
+
+.dd-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--dd-bg);
+}
+
+.dd-table th,
+.dd-table td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--dd-line);
+    text-align: left;
+    font-size: 0.875rem;
+    color: var(--dd-text);
+}
+
+.dd-table tbody tr:hover td {
+    background: #f8fbff;
+}
+
+.dd-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.dd-table th {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--dd-muted);
+    background: var(--dd-surface);
+}
+
+.dd-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.18rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.dd-pill-green {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.dd-pill-gray {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.dd-pill-blue {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.dd-tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.dd-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    background: #f8fafc;
+    border: 1px solid var(--dd-line);
+    font-size: 0.75rem;
+    color: var(--dd-text);
+}
+
+.dd-row-actions {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+}
+
+.dd-icon-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    border: 1px solid var(--dd-line);
+    background: #fff;
+    color: var(--dd-accent) !important;
+    text-decoration: none !important;
+    font-size: 0.85rem;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.dd-icon-btn:hover {
+    background: #eff6ff !important;
+    border-color: #bfdbfe !important;
+    color: #1d4ed8 !important;
+}
+
+.dd-icon-btn-danger {
+    color: #dc2626;
+}
+
+.dd-btn-sm {
+    padding: 0.38rem 0.65rem;
+    font-size: 0.78rem;
+    border-radius: 10px;
+}
+
+.dd-btn-outline-amber {
+    border-color: #fcd34d !important;
+    color: #b45309 !important;
+    background: #fffbeb !important;
+}
+
+.dd-btn-outline-amber:hover {
+    background: #fef3c7 !important;
+    color: #92400e !important;
+}
+
+/* Konu grupları — kart tabanlı liste */
+.dd-group-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.dd-group-card {
+    border: 1px solid var(--dd-line);
+    border-radius: 16px;
+    background: var(--dd-surface);
+    overflow: hidden;
+}
+
+.dd-group-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    background: linear-gradient(180deg, #fff, #f8fafc);
+    border-bottom: 1px solid var(--dd-line);
+}
+
+.dd-group-head h3 {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 650;
+    color: var(--dd-navy);
+}
+
+.dd-topic-list {
+    list-style: none;
+    margin: 0;
+    padding: 0.35rem;
+    display: grid;
+    gap: 0.35rem;
+}
+
+.dd-topic-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.65rem 0.75rem;
+    border-radius: 12px;
+    background: #fff;
+    border: 1px solid transparent;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dd-topic-row:hover {
+    border-color: #dbeafe;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.06);
+}
+
+.dd-topic-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--dd-text);
+}
+
+.dd-topic-meta {
+    font-size: 0.75rem;
+    color: var(--dd-muted);
+}
+
+/* Yönetim form */
+.dd-yonetim-page .yonetim-form p {
+    margin-bottom: 1rem;
+}
+
+.dd-yonetim-page .yonetim-form label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--dd-muted);
+}
+
+.dd-yonetim-page .yonetim-form input,
+.dd-yonetim-page .yonetim-form select,
+.dd-yonetim-page .yonetim-form textarea {
+    width: 100%;
+    min-height: 42px;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--dd-line);
+    border-radius: 12px;
+    background: #fff;
+    font: inherit;
+    color: var(--dd-text);
+}
+
+.dd-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--dd-line);
+}
+
+@media (max-width: 1024px) {
+    .dd-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .dd-report-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .dd-report-stats {
+        grid-template-columns: 1fr;
+    }
+}

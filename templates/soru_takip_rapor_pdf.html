@@ -1,0 +1,378 @@
+{% load static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>{% if talebe %}{{ talebe.ad_soyad }} · {% endif %}Soru Takip Raporu</title>
+    <style>
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-Regular.ttf' %}") format("truetype");
+            font-weight: 400;
+        }
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-Medium.ttf' %}") format("truetype");
+            font-weight: 500;
+        }
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-SemiBold.ttf' %}") format("truetype");
+            font-weight: 600;
+        }
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-Bold.ttf' %}") format("truetype");
+            font-weight: 700;
+        }
+
+        @page { size: A4; margin: 11mm 12mm 10mm; }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Poppins", sans-serif;
+            font-size: 7px;
+            color: #64738A;
+            background: #FFFFFF;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        table.layout { width: 100%; border-collapse: collapse; }
+        .gap8  { height: 8px;  font-size: 0; line-height: 0; }
+        .gap16 { height: 16px; font-size: 0; line-height: 0; }
+
+        .header-table { width: 100%; border-collapse: collapse; }
+        .header-logo-cell { width: 1%; padding: 0; vertical-align: middle; white-space: nowrap; }
+        .header-text-cell { padding: 0 0 0 8px; vertical-align: middle; text-align: left; white-space: nowrap; }
+        .header-right { text-align: right; vertical-align: bottom; padding: 0 0 0 16px; white-space: nowrap; }
+        .brand-logo { display: block; width: 36px; height: 36px; object-fit: contain; }
+        .brand-name { font-size: 13px; font-weight: 600; color: #183F78; line-height: 1.15; }
+        .brand-sub { margin-top: 3px; font-size: 7px; font-weight: 500; letter-spacing: 0.45px; color: #98A4B5; text-transform: uppercase; }
+        .doc-title { font-size: 6.5px; font-weight: 600; letter-spacing: 0.5px; color: #8B98AA; text-transform: uppercase; text-align: right; }
+
+        .hero {
+            border-radius: 14px;
+            background: linear-gradient(128deg, #1A4FA8 0%, #2B6FD4 42%, #173B73 100%);
+            color: #FFFFFF;
+            padding: 16px 18px;
+        }
+        .hero-tag { font-size: 6.5px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: rgba(255,255,255,0.72); }
+        .hero-title { margin-top: 8px; font-size: 20px; font-weight: 700; line-height: 1.2; letter-spacing: -0.25px; color: #FFFFFF; }
+        .hero-meta { margin-top: 8px; font-size: 7px; line-height: 1.45; color: rgba(255,255,255,0.76); }
+
+        .student-panel, .meta-panel, .table-panel {
+            border: 1px solid #DFE6F0;
+            border-radius: 16px;
+            background: #FFFFFF;
+            box-shadow: 0 8px 24px rgba(26, 45, 84, 0.04);
+            padding: 14px 18px;
+        }
+        .student-name { font-size: 16px; font-weight: 700; color: #17243A; }
+        .student-class { margin-top: 6px; font-size: 8px; color: #9AA5B5; }
+
+        .meta-table { width: 100%; border-collapse: collapse; }
+        .meta-item { width: 25%; padding: 0 14px; vertical-align: top; border-right: 1px solid #EEF2F6; }
+        .meta-item:first-child { padding-left: 0; }
+        .meta-item:last-child { padding-right: 0; border-right: none; }
+        .meta-label { font-size: 6.5px; font-weight: 600; letter-spacing: 0.6px; color: #8B98AA; text-transform: uppercase; }
+        .meta-value { margin-top: 6px; font-size: 10px; font-weight: 600; color: #14213D; }
+
+        .stats-table { width: calc(100% + 16px); margin-left: -8px; border-collapse: separate; border-spacing: 8px 0; }
+        .stat-cell {
+            position: relative;
+            padding: 14px 12px;
+            min-height: 78px;
+            border-radius: 16px;
+            background: #FFFFFF;
+            border: 1px solid #DFE6F0;
+            vertical-align: top;
+        }
+        .stat-accent { position: absolute; top: 0; left: 12px; right: 12px; height: 2px; border-radius: 999px; opacity: 0.7; }
+        .tone-blue .stat-accent { background: #3778FF; }
+        .tone-green .stat-accent { background: #1AA477; }
+        .tone-orange .stat-accent { background: #EE8A24; }
+        .tone-purple .stat-accent { background: #7657E8; }
+        .stat-label { font-size: 6.5px; font-weight: 600; letter-spacing: 0.55px; color: #68778F; text-transform: uppercase; }
+        .stat-metric { margin-top: 8px; font-size: 22px; font-weight: 700; line-height: 1; color: #14213D; font-variant-numeric: tabular-nums; }
+        .stat-sub { margin-top: 5px; font-size: 6.5px; color: #929DAF; }
+
+        .progress-track { margin-top: 10px; border-radius: 999px; overflow: hidden; background: #EEF2F6; height: 5px; }
+        .progress-fill { height: 5px; background: linear-gradient(90deg, #1A4FA8 0%, #2B6FD4 100%); }
+        .progress-note { margin-top: 8px; font-size: 8px; font-weight: 500; color: #4A5568; }
+
+        .table-panel-accent { height: 2px; border-radius: 999px; background: #3778FF; opacity: 0.55; margin-bottom: 12px; }
+        .section-kicker { font-size: 6.5px; font-weight: 600; letter-spacing: 0.85px; color: #35659C; text-transform: uppercase; }
+        .section-title { margin-top: 3px; font-size: 13px; font-weight: 700; color: #17243A; }
+
+        table.results { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        table.results th {
+            padding: 8px 6px;
+            font-size: 6.5px;
+            font-weight: 600;
+            letter-spacing: 0.45px;
+            text-transform: uppercase;
+            color: #68778F;
+            border-bottom: 1px solid #E7EBF1;
+            text-align: center;
+        }
+        table.results th.left, table.results td.left { text-align: left; }
+        table.results td {
+            padding: 8px 6px;
+            font-size: 7.5px;
+            color: #334155;
+            border-bottom: 1px solid #EEF2F6;
+            text-align: center;
+            vertical-align: middle;
+        }
+        table.results tr:last-child td { border-bottom: none; }
+        .num-cell { font-variant-numeric: tabular-nums; font-weight: 600; color: #1D4F91; }
+
+        .footer-table { width: 100%; border-collapse: collapse; margin-top: 16px; border-top: 1px solid #E7EBF1; }
+        .footer-table td { padding-top: 10px; font-size: 6.5px; font-weight: 500; color: #9AA6B7; }
+        .footer-left { text-align: left; width: 50%; }
+        .footer-right { text-align: right; width: 50%; }
+    </style>
+</head>
+<body>
+
+<table class="layout">
+    <tr>
+        <td>
+            <table class="header-table" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="header-logo-cell">
+                        <img class="brand-logo" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="Çinili Saray">
+                    </td>
+                    <td class="header-text-cell">
+                        <div class="brand-name">{{ panel_org }}</div>
+                        <div class="brand-sub">{{ panel_name }}</div>
+                    </td>
+                    <td class="header-right">
+                        <div class="doc-title">Günlük Soru Takip Raporu</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+
+    <tr><td class="gap16"></td></tr>
+
+    <tr>
+        <td class="hero">
+            <div class="hero-tag">Günlük Soru Takip</div>
+            <div class="hero-title">
+                {% if talebe %}{{ talebe.ad_soyad }}{% else %}Kurum Soru Takip Raporu{% endif %}
+            </div>
+            <div class="hero-meta">{{ donem_baslik }} · {{ filtre.tarih }}</div>
+        </td>
+    </tr>
+
+    <tr><td class="gap16"></td></tr>
+
+    {% if talebe %}
+    <tr>
+        <td>
+            <div class="student-panel">
+                <div class="student-name">{{ talebe.ad_soyad }}</div>
+                <div class="student-class">
+                    {% if talebe.sinif_sube %}{{ talebe.sinif_sube }}{% elif talebe.sinif %}{{ talebe.sinif }}{% if talebe.sube %} / {{ talebe.sube }}{% endif %}{% else %}—{% endif %}
+                    {% if talebe.etut_hocasi %} · {{ talebe.etut_hocasi.ad_soyad }}{% endif %}
+                </div>
+            </div>
+        </td>
+    </tr>
+    <tr><td class="gap16"></td></tr>
+    {% endif %}
+
+    <tr>
+        <td>
+            <div class="meta-panel">
+                <table class="meta-table" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td class="meta-item">
+                            <div class="meta-label">Dönem</div>
+                            <div class="meta-value">{{ filtre.donem }}</div>
+                        </td>
+                        <td class="meta-item">
+                            <div class="meta-label">Talebe</div>
+                            <div class="meta-value">{{ filtre.talebe }}</div>
+                        </td>
+                        <td class="meta-item">
+                            <div class="meta-label">Ders</div>
+                            <div class="meta-value">{{ filtre.ders }}</div>
+                        </td>
+                        <td class="meta-item">
+                            <div class="meta-label">Tarih Aralığı</div>
+                            <div class="meta-value">{{ filtre.tarih }}</div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </td>
+    </tr>
+
+    <tr><td class="gap16"></td></tr>
+
+    <tr>
+        <td>
+            <table class="stats-table" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="stat-cell tone-blue" width="25%">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">Toplam Soru</div>
+                        <div class="stat-metric">{{ istatistik.toplam_soru }}</div>
+                        <div class="stat-sub">{{ istatistik.kayit_sayisi }} kayıt günü</div>
+                    </td>
+                    <td class="stat-cell tone-green" width="25%">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">Toplam Net</div>
+                        <div class="stat-metric">{{ istatistik.toplam_net }}</div>
+                        <div class="stat-sub">D + Y/4 formülü</div>
+                    </td>
+                    <td class="stat-cell tone-orange" width="25%">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">Doğru</div>
+                        <div class="stat-metric">{{ istatistik.dogru }}</div>
+                        <div class="stat-sub">Y: {{ istatistik.yanlis }} · B: {{ istatistik.bos }}</div>
+                    </td>
+                    <td class="stat-cell tone-purple" width="25%">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">Başarı</div>
+                        <div class="stat-metric">%{{ istatistik.basari_orani }}</div>
+                        <div class="stat-sub">Doğru / toplam soru</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+
+    <tr><td class="gap8"></td></tr>
+
+    <tr>
+        <td>
+            <div class="meta-panel">
+                <div class="meta-label">Başarı Oranı</div>
+                <div class="progress-track">
+                    <div class="progress-fill" style="width: {{ istatistik.basari_orani }}%;"></div>
+                </div>
+                <div class="progress-note">Seçili dönemde %{{ istatistik.basari_orani }} başarı · {{ istatistik.talebe_sayisi }} talebe</div>
+            </div>
+        </td>
+    </tr>
+
+    <tr><td class="gap16"></td></tr>
+
+    {% if ders_ozeti %}
+    <tr>
+        <td>
+            <div class="table-panel">
+                <div class="table-panel-accent"></div>
+                <div class="section-kicker">Ders Bazlı Özet</div>
+                <div class="section-title">Branş performansı</div>
+                <table class="results">
+                    <thead>
+                        <tr>
+                            <th class="left">Ders</th>
+                            <th>Soru</th>
+                            <th>D</th>
+                            <th>Y</th>
+                            <th>B</th>
+                            <th>Net</th>
+                            <th>Başarı</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for satir in ders_ozeti %}
+                        <tr>
+                            <td class="left">{{ satir.ders }}</td>
+                            <td class="num-cell">{{ satir.toplam_soru }}</td>
+                            <td class="num-cell">{{ satir.dogru }}</td>
+                            <td class="num-cell">{{ satir.yanlis }}</td>
+                            <td class="num-cell">{{ satir.bos }}</td>
+                            <td class="num-cell">{{ satir.net }}</td>
+                            <td class="num-cell">%{{ satir.basari_orani }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </td>
+    </tr>
+    <tr><td class="gap16"></td></tr>
+    {% endif %}
+
+    <tr>
+        <td>
+            <div class="table-panel">
+                <div class="table-panel-accent"></div>
+                <div class="section-kicker">{% if bireysel %}Günlük Döküm{% else %}Talebe Özeti{% endif %}</div>
+                <div class="section-title">{% if bireysel %}Gün bazında kayıtlar{% else %}Talebe performans tablosu{% endif %}</div>
+                <table class="results">
+                    <thead>
+                        {% if bireysel %}
+                        <tr>
+                            <th>Tarih</th>
+                            <th>Soru</th>
+                            <th>Net</th>
+                            <th>Başarı</th>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <th class="left">Talebe</th>
+                            <th>Sınıf</th>
+                            <th>Gün</th>
+                            <th>Soru</th>
+                            <th>Net</th>
+                            <th>Başarı</th>
+                        </tr>
+                        {% endif %}
+                    </thead>
+                    <tbody>
+                        {% if bireysel %}
+                        {% for kayit in kayitlar %}
+                        <tr>
+                            <td>{{ kayit.tarih|date:"d.m.Y" }}</td>
+                            <td class="num-cell">{{ kayit.toplam_soru }}</td>
+                            <td class="num-cell">{{ kayit.toplam_net }}</td>
+                            <td class="num-cell">%{{ kayit.basari_orani }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="left">Kayıt bulunamadı.</td></tr>
+                        {% endfor %}
+                        {% else %}
+                        {% for satir in talebe_satirlari %}
+                        <tr>
+                            <td class="left">{{ satir.ad_soyad }}</td>
+                            <td>{{ satir.sinif_goster }}</td>
+                            <td class="num-cell">{{ satir.gun_sayisi }}</td>
+                            <td class="num-cell">{{ satir.toplam_soru }}</td>
+                            <td class="num-cell">{{ satir.toplam_net }}</td>
+                            <td class="num-cell">%{{ satir.basari_orani }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="left">Kayıt bulunamadı.</td></tr>
+                        {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </td>
+    </tr>
+
+    <tr>
+        <td>
+            <table class="footer-table" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="footer-left">{{ panel_org }}</td>
+                    <td class="footer-right">{{ panel_footer }} · {{ olusturma_tarihi|date:"d.m.Y" }}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

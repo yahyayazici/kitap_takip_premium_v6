@@ -1,0 +1,90 @@
+{% extends "yonetim/base.html" %}
+
+{% block title %}Excel ile Talebe Yükle{% endblock %}
+
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">TOPLU KAYIT</p>
+        <h1>Excel ile Talebe Yükle</h1>
+        <p class="muted">Mevcut listeyi indirin, veli/TC bilgilerini doldurun ve yükleyin. Eksik alanlar kabul edilir.</p>
+    </div>
+    <div class="yonetim-page-head-actions">
+        <a href="{% url 'yonetim:talebe_excel_mevcut_indir' %}" class="primary-btn">Mevcut Listeyi İndir</a>
+        <a href="{% url 'yonetim:talebe_excel_sablon_indir' %}" class="ghost-btn">Boş Şablon</a>
+        <a href="{% url 'yonetim:talebe_listesi' %}" class="ghost-btn">Listeye Dön</a>
+    </div>
+</header>
+
+<section class="dashboard-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">EXCEL SÜTUNLARI</p>
+            <h2>Şablon rehberi</h2>
+        </div>
+    </div>
+    <ul class="yonetim-guide-list">
+        <li><strong>Talebe No / Ad Soyad</strong> — mevcut kaydı eşleştirmek için</li>
+        <li><strong>Talebe TC</strong> — veli panel kullanıcı adı (şifre: son 4 hane)</li>
+        <li><strong>Anne / Baba Ad Soyad &amp; Telefon</strong> — isteğe bağlı, tek veli paneli</li>
+        <li><strong>Sınıf / Şube / Etüt Hocası</strong> — yalnızca yeni talebe eklerken zorunlu</li>
+    </ul>
+</section>
+
+<section class="dashboard-card yonetim-form-card">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="yonetim-form-errors">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        {% for field in form %}
+        <div class="yonetim-field">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            <div class="yonetim-field-control">{{ field }}</div>
+            {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+            {% for error in field.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+        </div>
+        {% endfor %}
+
+        <div class="yonetim-form-actions">
+            <button type="submit" class="primary-btn">Excel'i Yükle</button>
+        </div>
+    </form>
+</section>
+
+{% if sonuc and sonuc.bilgi %}
+<section class="dashboard-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">BİLGİ</p>
+            <h2>İşlem notları</h2>
+        </div>
+    </div>
+    <ul class="yonetim-guide-list">
+        {% for mesaj in sonuc.bilgi %}
+        <li>{{ mesaj }}</li>
+        {% endfor %}
+    </ul>
+</section>
+{% endif %}
+
+{% if sonuc and sonuc.hatalar %}
+<section class="dashboard-card yonetim-error-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">İŞLEM DETAYI</p>
+            <h2>{{ sonuc.eklenen }} eklendi · {{ sonuc.guncellenen }} güncellendi · {{ sonuc.atlanan }} atlandı</h2>
+        </div>
+    </div>
+    <ul class="yonetim-error-list">
+        {% for hata in sonuc.hatalar %}
+        <li>{{ hata }}</li>
+        {% endfor %}
+    </ul>
+</section>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Haftalık Etüt Saat Şablonu · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/etut-plan-premium.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="ep-page ep-admin-page">
+<header class="ep-head">
+    <div>
+        <p class="ep-eyebrow">Admin · Etüt Yönetimi</p>
+        <h1>Haftalık Etüt Saat Şablonu</h1>
+        <p class="ep-sub">Kurum saatlerini tek yerden tanımlayın; tüm etüt gruplarına otomatik yansır. Personel yalnızca içerik planlar.</p>
+    </div>
+    <div class="ep-actions">
+        <a href="{% url 'etut_plan_panel' %}" class="ep-btn ep-btn-ghost">Planlama Paneli</a>
+    </div>
+</header>
+
+<nav class="ep-admin-tabs" aria-label="Etüt yönetim sekmeleri">
+    <a href="?sekme=sablon" class="ep-admin-tab{% if aktif_sekme == 'sablon' %} is-active{% endif %}">Haftalık Saat Blokları</a>
+    <a href="?sekme=havuz" class="ep-admin-tab{% if aktif_sekme == 'havuz' %} is-active{% endif %}">Etkinlik Havuzu</a>
+</nav>
+
+{% if aktif_sekme == 'havuz' %}
+<section class="ep-card">
+    <div class="ep-card-head"><h2>Hazır Etkinlik Havuzu</h2></div>
+    <div class="ep-card-body">
+        <div class="ep-pool-grid ep-pool-grid-wide">
+            {% for kart in havuz %}
+            <article class="ep-pool-card" style="--ep-kart-renk: {{ kart.renk }}">
+                <strong>{{ kart.baslik }}</strong>
+                {% if kart.varsayilan_hedef %}<span>{{ kart.varsayilan_hedef }}</span>{% endif %}
+            </article>
+            {% endfor %}
+        </div>
+        <form method="post" class="ep-admin-add-form">
+            {% csrf_token %}
+            <input type="hidden" name="aksiyon" value="havuz_kaydet">
+            <h3>Yeni Havuz Kartı</h3>
+            <div class="ep-form-row">
+                <label>Başlık<input type="text" name="baslik" class="ep-input" required></label>
+                <label>Hedef<input type="text" name="hedef" class="ep-input"></label>
+                <label>Renk<input type="color" name="renk" value="#eff6ff"></label>
+                <button type="submit" class="ep-btn ep-btn-primary">Ekle</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+{% elif hoca and hafta_grid %}
+<div class="ep-admin-layout">
+    <section class="ep-card ep-week-card">
+        <div class="ep-card-head">
+            <div>
+                <h2>Kurum Haftalık Saat Blokları</h2>
+                <p class="ep-muted">{{ hafta_grid.stats.toplam }} hücre · {{ grup_sayisi }} etüt grubuna otomatik yansır</p>
+            </div>
+            <div class="ep-bulk-actions">
+                <form method="post" class="ep-inline-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="aksiyon" value="tum_haftaya_uygula">
+                    <input type="hidden" name="kaynak_gun" value="0">
+                    <button type="submit" class="ep-btn ep-btn-primary ep-btn-sm">Tüm Haftaya Uygula</button>
+                </form>
+                <form method="post" class="ep-inline-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="aksiyon" value="sablon_uygula">
+                    <input type="hidden" name="sablon_tip" value="hafta_ici">
+                    <button type="submit" class="ep-btn ep-btn-sm ep-btn-ghost">Hafta İçi</button>
+                </form>
+                <form method="post" class="ep-inline-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="aksiyon" value="sablon_uygula">
+                    <input type="hidden" name="sablon_tip" value="cumartesi">
+                    <button type="submit" class="ep-btn ep-btn-sm ep-btn-ghost">Cumartesi</button>
+                </form>
+                <form method="post" class="ep-inline-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="aksiyon" value="sablon_uygula">
+                    <input type="hidden" name="sablon_tip" value="pazar">
+                    <button type="submit" class="ep-btn ep-btn-sm ep-btn-ghost">Pazar</button>
+                </form>
+            </div>
+        </div>
+
+        {% if cakismalar %}
+        <div class="ep-alert">
+            {% for u in cakismalar %}<p>{{ u }}</p>{% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="ep-week-stage">
+        <div class="ep-week-grid-wrap">
+            <table class="ep-week-grid">
+                <thead>
+                    <tr>
+                        <th class="ep-time-col">Saat</th>
+                        {% for gun in hafta_grid.gunler %}
+                        <th>{{ gun.label }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for satir in hafta_grid.satirlar %}
+                    <tr>
+                        <td class="ep-time-col">{{ satir.saat.goster }}</td>
+                        {% for hucre in satir.hucreler %}
+                        <td class="ep-week-cell ep-week-aktif">
+                            {% if hucre.blok %}
+                            <div class="ep-week-slot">
+                                <span class="ep-slot-label">{{ hucre.blok.baslangic_saati|time:"H:i" }}–{{ hucre.blok.bitis_saati|time:"H:i" }}</span>
+                                <div class="ep-slot-actions">
+                                    <form method="post" class="ep-inline-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="blok_id" value="{{ hucre.blok.id }}">
+                                        <button type="submit" name="aksiyon" value="saat_sil" class="ep-btn ep-btn-xs ep-btn-ghost" title="Sil">×</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% else %}
+                            <span class="ep-muted">—</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="ep-empty">Henüz saat tanımlı değil. Toplu şablon butonlarını kullanın.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        </div>
+
+        <footer class="ep-week-foot">
+            <p class="ep-muted ep-week-foot-note">Her değişiklik kaydedildiğinde tüm etüt gruplarına otomatik uygulanır.</p>
+            <form method="post" class="ep-inline-form ep-add-row-form">
+                {% csrf_token %}
+                <input type="hidden" name="aksiyon" value="saat_satir_ekle">
+                <label>Başlangıç<input type="time" name="baslangic" class="ep-input ep-input-sm" required></label>
+                <label>Bitiş<input type="time" name="bitis" class="ep-input ep-input-sm" required></label>
+                <button type="submit" class="ep-btn ep-btn-sm ep-btn-primary">Tüm Günlere Saat Ekle</button>
+            </form>
+        </footer>
+    </section>
+
+    <aside class="ep-card ep-admin-aside">
+        <div class="ep-card-head"><h2>Otomatik Senkron</h2></div>
+        <div class="ep-card-body">
+            <p class="ep-muted">Burada tanımladığınız saatler <strong>{{ grup_sayisi }}</strong> aktif etüt grubunun planlama tablosuna aynen yansır. Personel saat açmaz; yalnızca etkinlik içeriği girer.</p>
+            <form method="post" style="margin-top:0.75rem;">
+                {% csrf_token %}
+                <input type="hidden" name="aksiyon" value="tum_gruplara_yay">
+                <button type="submit" class="ep-btn ep-btn-block ep-btn-primary">Tüm Gruplara Yeniden Uygula</button>
+            </form>
+        </div>
+        <div class="ep-card-body" style="border-top:1px solid var(--ep-line);">
+            <p class="ep-help-title">Kullanım</p>
+            <ol class="ep-help-list">
+                <li>Hafta içi veya hafta sonu şablonunu tek tıkla oluşturun.</li>
+                <li>Pazartesi düzenleyip <em>Tüm Haftaya Uygula</em> deyin.</li>
+                <li>Etüt hocaları planlama panelinden içerik doldurur.</li>
+            </ol>
+        </div>
+    </aside>
+</div>
+
+{% elif hoca %}
+<section class="ep-empty-card">
+    <h2>Henüz kurum saat şablonu yok</h2>
+    <p>Hafta içi veya hafta sonu şablon butonlarıyla hızlıca başlayın; tüm gruplara otomatik yansır.</p>
+    <form method="post" class="ep-inline-form">
+        {% csrf_token %}
+        <input type="hidden" name="aksiyon" value="sablon_uygula">
+        <input type="hidden" name="sablon_tip" value="hafta_ici">
+        <button type="submit" class="ep-btn ep-btn-primary">Hafta İçi Şablonu Oluştur</button>
+    </form>
+</section>
+
+{% else %}
+<section class="ep-empty-card">
+    <h2>Etüt hocası tanımlı değil</h2>
+    <p>Saat şablonu oluşturmak için en az bir aktif etüt hocası ekleyin.</p>
+</section>
+{% endif %}
+</div>
+{% endblock %}

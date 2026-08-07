@@ -1,0 +1,169 @@
+{% load static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>{{ liste.ad }} · Temizlik</title>
+    <style>
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-Regular.ttf' %}") format("truetype");
+            font-weight: 400;
+        }
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-Medium.ttf' %}") format("truetype");
+            font-weight: 500;
+        }
+        @page {
+            size: {{ pdf_format|upper }} {{ pdf_orientation }};
+            margin: 10mm 12mm;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Poppins", sans-serif;
+            font-size: 8px;
+            color: #546173;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-bottom: 2px solid #173b80;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .logo {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: #173b80;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            font-size: 10px;
+        }
+        .head h1 { margin: 0; font-size: 16px; font-weight: 500; color: #10213d; }
+        .head p { margin: 4px 0 0; font-size: 8px; }
+        .meta { text-align: right; font-size: 8px; }
+        .stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 12px;
+            font-size: 8px;
+        }
+        .stats span { color: #173b80; font-weight: 500; }
+        .kat-block {
+            margin-bottom: 14px;
+            page-break-inside: avoid;
+        }
+        .kat-head {
+            background: #173b80;
+            color: #fff;
+            padding: 6px 10px;
+            font-size: 9px;
+            font-weight: 500;
+            border-radius: 4px 4px 0 0;
+        }
+        .kat-staff {
+            background: #f3f7fc;
+            padding: 4px 10px;
+            font-size: 7px;
+            border: 1px solid #e3eaf3;
+            border-top: none;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td {
+            border: 1px solid #e3eaf3;
+            padding: 5px 7px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background: #f3f7fc;
+            color: #173b80;
+            font-weight: 500;
+            font-size: 7px;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+        td strong { color: #10213d; font-weight: 500; }
+        .foot {
+            margin-top: 10px;
+            font-size: 7px;
+            color: #718097;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <div class="head">
+        <div class="brand">
+            <div class="logo">CS</div>
+            <div>
+                <h1>{{ liste.ad }}</h1>
+                <p>Temizlik Görev Organizasyonu · {{ bugun|date:"d.m.Y" }}</p>
+            </div>
+        </div>
+        <div class="meta">
+            <div>{{ panel_org }}</div>
+            <div>{{ pdf_format|upper }} · {% if pdf_orientation == "landscape" %}Yatay{% else %}Dikey{% endif %}</div>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div>Kat <span>{{ stats.toplam_kat }}</span></div>
+        <div>Mahal <span>{{ stats.toplam_mahal }}</span></div>
+        <div>Görevli <span>{{ stats.gorevli_talebe }}</span></div>
+        <div>Boş mahal <span>{{ stats.bos_mahal }}</span></div>
+    </div>
+
+    {% for kart in kat_kartlari %}
+    <section class="kat-block">
+        <div class="kat-head">{{ kart.kat.ad }}</div>
+        <div class="kat-staff">
+            Sorumlu:
+            {% for s in kart.sorumlular %}{{ s.ad }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:32%">Mahal</th>
+                    <th style="width:48%">Görevli Talebeler</th>
+                    <th style="width:20%">Durum</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in kart.mahaller %}
+                <tr>
+                    <td><strong>{{ row.alan.ad }}</strong>{% if row.alan.aciklama %}<br><span style="color:#94a3b8">{{ row.alan.aciklama }}</span>{% endif %}</td>
+                    <td>{% for g in row.gorevliler %}{{ g.ad_soyad }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</td>
+                    <td>{% if row.kontrol %}{{ row.kontrol.get_durum_display }}{% else %}Bekliyor{% endif %}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3">Mahal tanımlı değil.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    {% empty %}
+    <p>Kat tanımlanmamış.</p>
+    {% endfor %}
+
+    <div class="foot">
+        <span>{{ stats.toplam_mahal }} mahal · {{ stats.gorevli_talebe }} görevli talebe</span>
+        <span>{{ panel_name }}</span>
+    </div>
+</body>
+</html>

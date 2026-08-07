@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}{{ program.ad }}{% endblock %}
+
+{% block content %}
+<div class="program-page">
+
+<header class="page-head patterned-page-head profile-head">
+    <div>
+        <p class="kicker">PROGRAM DETAYI</p>
+        <h1>{{ program.ad }}</h1>
+        <p class="muted">{{ program.tarih_araligi_goster }}</p>
+    </div>
+    <div class="profile-head-actions">
+        <a href="{% url 'program_pdf' program.pk %}" class="primary-btn" target="_blank">PDF İndir</a>
+        <a href="{% url 'program_panel' %}?program={{ program.pk }}" class="ghost-btn">Program Merkezine Dön</a>
+    </div>
+</header>
+
+{% include "includes/program_schedule_table.html" with satirlar=satirlar %}
+
+</div>
+{% endblock %}

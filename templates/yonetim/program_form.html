@@ -1,0 +1,88 @@
+{% extends "yonetim/base.html" %}
+
+{% block title %}{{ program.ad }} · Düzenle{% endblock %}
+
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">PROGRAM DÜZENLEME</p>
+        <h1>{{ program.ad }}</h1>
+        <p class="muted">Saat aralığı girildiğinde süre otomatik hesaplanır.</p>
+    </div>
+    <div class="yonetim-page-head-actions">
+        <a href="{% url 'yonetim:program_pdf' program.pk %}" class="ghost-btn yonetim-head-ghost" target="_blank">PDF İndir</a>
+        <a href="{% url 'yonetim:program_listesi' %}" class="ghost-btn">Listeye Dön</a>
+    </div>
+</header>
+
+<form method="post" class="program-edit-form">
+    {% csrf_token %}
+
+    <section class="dashboard-card yonetim-form-card">
+        <div class="card-heading"><div><p class="card-kicker">PLAN BİLGİSİ</p><h2>Genel Ayarlar</h2></div></div>
+        {% if form.non_field_errors %}<div class="yonetim-form-errors">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="yonetim-form-grid">
+            {% for field in form %}
+            <div class="yonetim-field{% if field.name == 'aciklama' %} yonetim-field-full{% endif %}">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                <div class="yonetim-field-control">{{ field }}</div>
+                {% for error in field.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="report-table-card yonetim-table-card program-lines-card">
+        <div class="card-heading">
+            <div>
+                <p class="card-kicker">GÜNLÜK SATIRLAR</p>
+                <h2>Program Akışı</h2>
+            </div>
+        </div>
+
+        {{ formset.management_form }}
+        {% if formset.non_form_errors %}<div class="yonetim-form-errors">{{ formset.non_form_errors }}</div>{% endif %}
+
+        <div class="responsive-table">
+            <table class="report-data-table yonetim-data-table program-lines-table">
+                <thead>
+                    <tr>
+                        <th>Sıra</th>
+                        <th>Başlangıç</th>
+                        <th>Bitiş</th>
+                        <th>Tür</th>
+                        <th>Faaliyet</th>
+                        <th>Program Adı</th>
+                        <th>Durum</th>
+                        <th>Sil</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for satir_form in formset %}
+                    <tr>
+                        {% for hidden in satir_form.hidden_fields %}{{ hidden }}{% endfor %}
+                        <td>{{ satir_form.sira }}</td>
+                        <td>{{ satir_form.baslangic_saati }}</td>
+                        <td>{{ satir_form.bitis_saati }}</td>
+                        <td>{{ satir_form.faaliyet_turu }}</td>
+                        <td>{{ satir_form.faaliyet_adi }}</td>
+                        <td>{{ satir_form.program_adi }}</td>
+                        <td>{{ satir_form.faaliyet_durumu }}</td>
+                        <td>{% if satir_form.DELETE %}{{ satir_form.DELETE }}{% endif %}</td>
+                    </tr>
+                    {% if satir_form.errors %}
+                    <tr><td colspan="8" class="yonetim-field-error">{{ satir_form.errors }}</td></tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <div class="yonetim-form-actions program-form-actions">
+        <button type="submit" class="primary-btn">Kaydet</button>
+    </div>
+</form>
+
+{% endblock %}

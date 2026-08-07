@@ -1,0 +1,17 @@
+{% extends "yonetim/base.html" %}
+{% block title %}{{ baslik }}{% endblock %}
+{% block content %}
+<div class="yonetim-page">
+    <header class="yonetim-page-head">
+        <h1>{{ baslik }}</h1>
+        <a href="{% url 'yonetim:deneme_listesi' %}" class="ghost-btn">Geri</a>
+    </header>
+    <section class="yonetim-card">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="primary-btn">Kaydet</button>
+        </form>
+    </section>
+</div>
+{% endblock %}

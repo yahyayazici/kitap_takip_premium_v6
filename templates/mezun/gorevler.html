@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Güncelleme Görevleri · {{ panel_short }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/mezun-premium.css' %}">{% endblock %}
+{% block content %}
+<div class="mz-page">
+<header class="mz-head">
+    <div>
+        <p class="mz-crumb"><a href="{% url 'mezun_listesi' %}">Mezun Merkezi</a> › Görevler</p>
+        <h1>Bilgi Güncelleme Görevleri</h1>
+        <p class="mz-sub">Personele mezun bilgi toplama görevleri atayın.</p>
+    </div>
+    <a href="{% url 'mezun_listesi' %}" class="mz-btn">← Geri</a>
+</header>
+<div class="mz-split">
+    <section class="mz-card">
+        {% for g in gorevler %}
+        <article style="padding:0.85rem 0;border-bottom:1px solid var(--mz-border)">
+            <strong>{{ g.baslik }}</strong>
+            {% if g.tamamlandi %}<span class="mz-status mz-status--duzenli">Tamamlandı</span>{% endif %}<br>
+            <small>Sorumlu: {{ g.sorumlu.get_full_name|default:g.sorumlu.username }} · Son: {{ g.son_tarih|date:"d.m.Y" }}</small>
+            <div style="margin-top:0.5rem"><a href="{% url 'mezun_gorev_detay' g.pk %}" class="mz-btn mz-btn-sm">Göreve Git →</a></div>
+        </article>
+        {% empty %}<p class="mz-empty">Görev yok.</p>{% endfor %}
+    </section>
+    {% if form %}
+    <section class="mz-card">
+        <div class="mz-section-head"><h3>Yeni Görev</h3></div>
+        <form method="post" class="mz-form-grid">{% csrf_token %}
+            <div class="mz-field"><label>Başlık</label>{{ form.baslik }}</div>
+            <div class="mz-field"><label>Açıklama</label>{{ form.aciklama }}</div>
+            <div class="mz-field"><label>Sorumlu</label>{{ form.sorumlu }}</div>
+            <div class="mz-field-row"><div class="mz-field"><label>Son tarih</label>{{ form.son_tarih }}</div><div class="mz-field"><label>Mezuniyet yılı</label>{{ form.mezuniyet_yili }}</div></div>
+            <div class="mz-field"><label>Talep edilen bilgiler</label>{{ form.talep_edilen_alanlar }}</div>
+            <button type="submit" class="mz-btn mz-btn-primary">Görev Oluştur</button>
+        </form>
+    </section>
+    {% endif %}
+</div>
+</div>
+{% endblock %}

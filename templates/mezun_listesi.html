@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Mezunlar · {{ panel_short }}{% endblock %}
+{% block content %}
+<header class="page-head patterned-page-head">
+    <div>
+        <p class="kicker">KURUM</p>
+        <h1>Mezunlar</h1>
+        <p class="muted">Mezun talebe profilleri ve arama.</p>
+    </div>
+</header>
+
+<section class="dashboard-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">FİLTRE</p>
+            <h2>Mezun Ara</h2>
+        </div>
+    </div>
+    <form method="get" class="filter-row">
+        <input type="search" name="q" value="{{ filtre_q }}" placeholder="Ad, numara veya lise..." class="input">
+        <select name="yil" class="input">
+            <option value="">Tüm yıllar</option>
+            {% for y in yillar %}
+            <option value="{{ y }}" {% if filtre_yil == y|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="ghost-btn">Ara</button>
+    </form>
+</section>
+
+<section class="dashboard-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">LİSTE</p>
+            <h2>Mezun Profilleri</h2>
+        </div>
+    </div>
+    <div class="responsive-table">
+        <table class="report-data-table">
+            <thead>
+                <tr>
+                    <th>Talebe</th>
+                    <th>Mezuniyet</th>
+                    <th>Lise</th>
+                    <th>LGS</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in mezunlar %}
+                <tr>
+                    <td>{{ m.talebe.ad_soyad }}{% if m.talebe.talebe_no %} <span class="muted">({{ m.talebe.talebe_no }})</span>{% endif %}</td>
+                    <td>{% if m.mezuniyet_tarihi %}{{ m.mezuniyet_tarihi|date:"d.m.Y" }}{% endif %}{% if m.mezuniyet_yili %} · {{ m.mezuniyet_yili }}{% endif %}</td>
+                    <td>{{ m.yerlestigi_lise|default:"—" }}</td>
+                    <td>{% if m.lgs_puani %}{{ m.lgs_puani }}{% else %}—{% endif %}</td>
+                    <td><a href="{% url 'mezun_detay' m.pk %}">Detay</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5">Mezun kaydı bulunamadı.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

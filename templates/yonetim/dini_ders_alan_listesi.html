@@ -1,0 +1,49 @@
+{% extends "yonetim/base.html" %}
+{% load static %}
+{% block title %}Takip Alanları{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}">
+{% endblock %}
+{% block content %}
+<div class="yonetim-page dd-yonetim-page">
+    {% include "includes/dini_ders_yonetim_shell.html" %}
+
+    <section class="dd-card">
+        <div class="dd-panel-head">
+            <h2>Takip Alanları (Sure Ezberi, İlmihal vb.)</h2>
+            {% if duzenleyebilir %}
+            <a href="{% url 'yonetim:dini_ders_alan_ekle' %}" class="dd-btn dd-btn-primary dd-btn-sm">+ Yeni Takip Alanı Ekle</a>
+            {% endif %}
+        </div>
+        <div class="dd-table-wrap">
+            <table class="dd-table">
+                <thead>
+                    <tr><th>ID</th><th>Alan Adı</th><th>Durum</th><th>İşlemler</th></tr>
+                </thead>
+                <tbody>
+                    {% for alan in alanlar %}
+                    <tr>
+                        <td>{{ alan.id }}</td>
+                        <td><strong>{{ alan.ad }}</strong></td>
+                        <td>
+                            {% if alan.aktif %}
+                            <span class="dd-pill dd-pill-green">Aktif</span>
+                            {% else %}
+                            <span class="dd-pill dd-pill-gray">Pasif</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if duzenleyebilir %}
+                            <a href="{% url 'yonetim:dini_ders_alan_duzenle' alan.pk %}" class="dd-icon-btn" title="Düzenle">✎</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="dd-empty">Alan tanımlı değil.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

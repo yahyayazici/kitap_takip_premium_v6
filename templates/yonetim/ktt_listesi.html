@@ -1,0 +1,48 @@
+{% extends "yonetim/base.html" %}
+{% block title %}KTT Arşivi{% endblock %}
+{% block content %}
+<section class="yonetim-page-head">
+    <div>
+        <p class="kicker">KTT</p>
+        <h1>Tüm KTT Arşivi</h1>
+    </div>
+    <a href="{% url 'ktt_listesi' %}" class="ghost-btn">Personel Paneli</a>
+</section>
+
+<section class="yonetim-panel">
+    <div class="responsive-table">
+        <table class="report-data-table">
+            <thead>
+                <tr>
+                    <th>Tarih</th>
+                    <th>KTT</th>
+                    <th>Ders</th>
+                    <th>Etüt</th>
+                    <th>Veli</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ktt in sinavlar %}
+                <tr>
+                    <td>{{ ktt.sinav_tarihi|date:"d.m.Y" }}</td>
+                    <td>{{ ktt.ad }}</td>
+                    <td>{{ ktt.ders.ad }}</td>
+                    <td>{{ ktt.etut_hocasi.ad_soyad }}</td>
+                    <td>{% if ktt.veliye_goster %}Açık{% else %}Gizli{% endif %}</td>
+                    <td>
+                        <a href="{% url 'ktt_detay' ktt.pk %}" class="ghost-btn">Görüntüle</a>
+                        <a href="{% url 'yonetim:ktt_veli_toggle' ktt.pk %}" class="ghost-btn">Veli</a>
+                        {% if silme_yetkisi %}
+                        <a href="{% url 'yonetim:ktt_sil' ktt.pk %}" class="ghost-btn" onclick="return confirm('Silinsin mi?');">Sil</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6">Kayıt yok.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

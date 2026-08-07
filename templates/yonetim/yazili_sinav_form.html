@@ -1,0 +1,35 @@
+{% extends "yonetim/base.html" %}
+{% block title %}{{ baslik }}{% endblock %}
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">{{ kamp.ad|upper }}</p>
+        <h1>{{ baslik }}</h1>
+    </div>
+    <div class="yonetim-page-head-actions">
+        <a href="{% url 'yonetim:yazili_kamp_detay' kamp.pk %}" class="ghost-btn yonetim-head-ghost">← Kamp</a>
+    </div>
+</header>
+
+<section class="dashboard-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">FORM</p>
+            <h2>Sınav Bilgileri</h2>
+        </div>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="yonetim-field" style="margin-bottom:16px;">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {{ field.errors }}
+        </div>
+        {% endfor %}
+        <button type="submit" class="primary-btn">Kaydet</button>
+    </form>
+</section>
+
+{% endblock %}

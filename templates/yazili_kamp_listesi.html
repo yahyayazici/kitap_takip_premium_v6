@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Yazılı Takip · {{ panel_short }}{% endblock %}
+{% block content %}
+<div class="library-page">
+    <header class="page-head patterned-page-head library-page-head">
+        <div>
+            <p class="kicker">YAZILI TAKİP</p>
+            <h1>Yazılı Kamplar</h1>
+            <p class="muted">Kamp dönemi yazılı sınav sonuçları.</p>
+        </div>
+    </header>
+    <section class="dashboard-card">
+        <div class="responsive-table">
+            <table class="report-data-table">
+                <thead>
+                    <tr>
+                        <th>Kamp</th>
+                        <th>Sınıf</th>
+                        <th>Dönem</th>
+                        <th>Sınav</th>
+                        <th>Sonuç</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for k in kamplar %}
+                    <tr>
+                        <td><strong>{{ k.ad }}</strong></td>
+                        <td>{{ k.sinif_seviyesi }}. sınıf</td>
+                        <td>{{ k.baslangic|date:"d.m.Y" }} — {{ k.bitis|date:"d.m.Y" }}</td>
+                        <td>{{ k.sinav_sayisi }}</td>
+                        <td>{{ k.sonuc_sayisi }} kayıt</td>
+                        <td><a href="{% url 'yazili_kamp_detay' k.pk %}" class="ghost-btn">Detay</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="report-empty">Aktif yazılı kamp bulunmuyor.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

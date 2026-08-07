@@ -1,0 +1,50 @@
+{% extends "yonetim/base.html" %}
+{% block title %}Talebe Hesapları{% endblock %}
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">TALEBE PANELİ</p>
+        <h1>Talebe Hesapları</h1>
+        <p class="muted">Talebe paneli giriş hesaplarını yönetin.</p>
+    </div>
+    <a href="{% url 'yonetim:talebe_hesap_ekle' %}" class="primary-btn">Yeni Hesap</a>
+</header>
+
+<section class="report-table-card yonetim-table-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">HESAPLAR</p>
+            <h2>Kayıtlı Talebe Hesapları</h2>
+        </div>
+        <span class="report-record-count">{{ hesaplar|length }} hesap</span>
+    </div>
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <thead>
+                <tr>
+                    <th>Talebe</th>
+                    <th>Kullanıcı</th>
+                    <th class="yonetim-center-col">Aktif</th>
+                    <th class="yonetim-action-col">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for h in hesaplar %}
+                <tr>
+                    <td><strong>{{ h.talebe.ad_soyad }}</strong></td>
+                    <td>{{ h.user.username }}</td>
+                    <td class="yonetim-center-col">{% if h.aktif %}<span class="status-pill status-okunuyor">Evet</span>{% else %}<span class="status-pill status-iade">Hayır</span>{% endif %}</td>
+                    <td class="yonetim-action-col">
+                        <a href="{% url 'yonetim:talebe_hesap_duzenle' h.pk %}" class="yonetim-link">Düzenle</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="report-empty">Talebe hesabı yok.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

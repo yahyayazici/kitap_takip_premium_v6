@@ -1,17 +1,104 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block title %}{{ baslik }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/quick-form-page.css' %}">
+{% endblock %}
+
 {% block content %}
-<header class="page-head"><div><p class="kicker">HIZLI İŞLEM</p><h1>{{ baslik }}</h1><p class="muted">{{ aciklama }}</p></div></header>
-<section class="form-card">
-<form method="post" class="form-grid">{% csrf_token %}
-  {% for field in form %}
-  <label class="{% if field.name == 'aciklama' or field.name == 'degerlendirme' %}full{% endif %}">
-    <span>{{ field.label }}</span>{{ field }}
-    {% for error in field.errors %}<small class="error">{{ error }}</small>{% endfor %}
-  </label>
-  {% endfor %}
-  {% if form.non_field_errors %}<div class="error full">{{ form.non_field_errors }}</div>{% endif %}
-  <div class="form-actions full"><a class="ghost-btn" href="javascript:history.back()">Vazgeç</a><button class="primary-btn">Kaydet</button></div>
-</form>
-</section>
+<div class="quick-form-page">
+
+    <header class="page-head patterned-page-head quick-form-head">
+        <div>
+            <p class="kicker">{{ kicker|default:"HIZLI İŞLEM" }}</p>
+            <h1>{{ baslik }}</h1>
+            <p class="muted">{{ aciklama }}</p>
+        </div>
+        {% if geri_url %}
+        <a href="{{ geri_url }}" class="ghost-btn">{{ geri_etiket|default:"Geri" }}</a>
+        {% endif %}
+    </header>
+
+    <section class="quick-form-layout">
+        <form method="post" class="exam-form-card quick-form-card">
+            {% csrf_token %}
+
+            <div class="exam-form-head">
+                <div class="exam-form-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h2>Kitap Bilgileri</h2>
+                    <p>Temel alanları doldurarak arşive yeni eser ekleyin.</p>
+                </div>
+            </div>
+
+            {% if form.non_field_errors %}
+            <div class="exam-form-alert">
+                {% for error in form.non_field_errors %}
+                <span>{{ error }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="exam-form-grid quick-form-grid">
+                {% for field in form %}
+                <div class="exam-field{% if field.name == 'aciklama' or field.name == 'degerlendirme' %} exam-field-full{% endif %}">
+                    <label for="{{ field.id_for_label }}">
+                        {{ field.label }}{% if field.field.required %} <span class="exam-required">*</span>{% endif %}
+                    </label>
+                    {{ field }}
+                    {% if field.errors %}
+                    <small class="exam-field-error">{{ field.errors|striptags }}</small>
+                    {% elif field.name == "ad" %}
+                    <small class="exam-field-help">Kitabın tam adını yazın.</small>
+                    {% elif field.name == "yazar" %}
+                    <small class="exam-field-help">Yazar adı zorunlu değil; boş bırakılabilir.</small>
+                    {% elif field.name == "toplam_sayfa" %}
+                    <small class="exam-field-help">Sayfa sayısı okuma takibi için kullanılır.</small>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <footer class="exam-form-footer">
+                <a href="{% if geri_url %}{{ geri_url }}{% else %}javascript:history.back(){% endif %}" class="ghost-btn">Vazgeç</a>
+                <button type="submit" class="primary-btn">{{ buton_metni|default:"Kaydet" }}</button>
+            </footer>
+        </form>
+
+        <aside class="exam-process-card quick-form-aside">
+            <p class="exam-process-kicker">KÜTÜPHANE</p>
+            <h2>Kitap arşivine hızlı ekleme</h2>
+            <div class="exam-process-list">
+                <div class="exam-process-step">
+                    <span>1</span>
+                    <div>
+                        <strong>Kitap adını net yazın</strong>
+                        <small>Aynı eser farklı yazımla tekrar eklenmesin.</small>
+                    </div>
+                </div>
+                <div class="exam-process-step">
+                    <span>2</span>
+                    <div>
+                        <strong>Sayfa sayısını doğru girin</strong>
+                        <small>Okuma ilerlemesi ve raporlar buna göre hesaplanır.</small>
+                    </div>
+                </div>
+                <div class="exam-process-step">
+                    <span>3</span>
+                    <div>
+                        <strong>Zimmet ve sınav</strong>
+                        <small>Kayıt sonrası talebelere zimmetleyebilirsiniz.</small>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </section>
+</div>
 {% endblock %}

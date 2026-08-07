@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Mezun Takip Merkezi · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/mezun-premium.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="mz-page">
+
+<header class="mz-head">
+    <div>
+        <p class="mz-eyebrow">Kurum Hafızası · Mezun Ağı</p>
+        <h1>Mezun Takip Merkezi</h1>
+        <p class="mz-sub">Mezunlarımızın eğitim yolculuğunu, başarılarını ve kurumla olan bağlarını tek merkezden takip edin.</p>
+    </div>
+    <div class="mz-head-actions">
+        {% if yonetebilir %}
+        <a href="{% url 'mezun_ekle' %}" class="mz-btn mz-btn-primary">+ Mezun Ekle</a>
+        <a href="{% url 'mezun_gorevler' %}" class="mz-btn">Toplu Güncelleme</a>
+        {% endif %}
+        <a href="{% url 'mezun_etkinlikler' %}" class="mz-btn">Etkinlikler</a>
+        <a href="{% url 'mezun_raporlar' %}" class="mz-btn">Raporlar</a>
+    </div>
+</header>
+
+<div class="mz-kpi-grid">
+    <article class="mz-kpi">
+        <span class="mz-kpi-icon">◎</span>
+        <strong class="mz-kpi-value">{{ ozet.toplam_mezun }}</strong>
+        <span class="mz-kpi-label">Toplam Mezun</span>
+    </article>
+    <article class="mz-kpi mz-kpi--purple">
+        <span class="mz-kpi-icon">◉</span>
+        <strong class="mz-kpi-value">{{ ozet.bu_yil_mezun }}</strong>
+        <span class="mz-kpi-label">Bu Yıl Mezun Olan</span>
+    </article>
+    <article class="mz-kpi mz-kpi--gold">
+        <span class="mz-kpi-icon">★</span>
+        <strong class="mz-kpi-value">{{ ozet.ilk_1 }}</strong>
+        <span class="mz-kpi-label">İlk %1</span>
+    </article>
+    <article class="mz-kpi mz-kpi--gold">
+        <span class="mz-kpi-icon">★</span>
+        <strong class="mz-kpi-value">{{ ozet.ilk_5 }}</strong>
+        <span class="mz-kpi-label">İlk %5</span>
+    </article>
+    <article class="mz-kpi mz-kpi--gold">
+        <span class="mz-kpi-icon">★</span>
+        <strong class="mz-kpi-value">{{ ozet.ilk_10 }}</strong>
+        <span class="mz-kpi-label">İlk %10</span>
+    </article>
+    <article class="mz-kpi mz-kpi--green">
+        <span class="mz-kpi-icon">🎓</span>
+        <strong class="mz-kpi-value">{{ ozet.universite_yerlesen }}</strong>
+        <span class="mz-kpi-label">Üniversiteye Yerleşen</span>
+    </article>
+    <article class="mz-kpi mz-kpi--green">
+        <span class="mz-kpi-icon">✉</span>
+        <strong class="mz-kpi-value">{{ ozet.iletisimde }}</strong>
+        <span class="mz-kpi-label">İletişimde Olan</span>
+    </article>
+</div>
+
+{% if yil_ozet %}
+<nav class="mz-yil-strip" aria-label="Mezuniyet yılları">
+    <a href="?" class="mz-yil-chip{% if not filtre_yil %} is-active{% endif %}">Tümü</a>
+    {% for y in yil_ozet %}
+    <a href="?yil={{ y.yil }}" class="mz-yil-chip{% if filtre_yil == y.yil|stringformat:'s' %} is-active{% endif %}">{{ y.yil }} · {{ y.adet }}</a>
+    {% endfor %}
+</nav>
+{% endif %}
+
+<div class="mz-main-grid">
+    <section>
+        <div class="mz-card">
+            <div class="mz-section-head"><h2>Mezunlar</h2></div>
+            <form method="get" class="mz-filters">
+                <input type="search" name="q" value="{{ filtre_q }}" placeholder="Ad, lise, üniversite, bölüm..." class="mz-input" style="min-width:200px">
+                <select name="yil" class="mz-select">
+                    <option value="">Mezuniyet yılı</option>
+                    {% for y in yillar %}
+                    <option value="{{ y }}" {% if filtre_yil == y|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+                <input type="text" name="lise" value="{{ filtre_lise }}" placeholder="Lise" class="mz-input">
+                <input type="text" name="universite" value="{{ filtre_universite }}" placeholder="Üniversite" class="mz-input">
+                <input type="text" name="bolum" value="{{ filtre_bolum }}" placeholder="Bölüm" class="mz-input">
+                <select name="iletisim" class="mz-select">
+                    <option value="">İletişim durumu</option>
+                    {% for kod, etiket in iletisim_secenekleri %}
+                    <option value="{{ kod }}" {% if filtre_iletisim == kod %}selected{% endif %}>{{ etiket }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="mz-btn mz-btn-sm">Ara</button>
+            </form>
+
+            <div class="mz-alumni-list">
+                {% for m in mezunlar %}
+                <article class="mz-alumni-row">
+                    <div class="mz-alumni-main">
+                        <span class="mz-avatar">{{ m.talebe.ad_soyad|slice:":1"|upper }}</span>
+                        <div>
+                            <h3 class="mz-alumni-name">{{ m.talebe.ad_soyad }}</h3>
+                            <div class="mz-meta-grid">
+                                <span>Mezuniyet: <strong>{{ m.mezuniyet_yili|default:"—" }}</strong></span>
+                                {% if m.lgs_puani %}<span>LGS: <strong>{{ m.lgs_puani }}</strong></span>{% endif %}
+                                {% if m.lgs_yuzdelik %}<span>Yüzdelik: <strong>{{ m.yuzdelik_goster }}</strong></span>{% endif %}
+                                {% if m.yerlestigi_lise %}<span>Lise: <strong>{{ m.yerlestigi_lise|truncatechars:28 }}</strong></span>{% endif %}
+                                {% if m.universite %}<span>Üni: <strong>{{ m.universite|truncatechars:22 }}</strong></span>{% endif %}
+                            </div>
+                            <div style="margin-top:0.5rem;display:flex;gap:0.45rem;flex-wrap:wrap">
+                                <span class="mz-status mz-status--{{ m.iletisim_durumu }}">{{ m.get_iletisim_durumu_display }}</span>
+                                <span class="mz-bagi{% if m.kurum_bagi == 'etkinlik_katilimci' %} mz-bagi--etkinlik{% elif m.kurum_bagi == 'uzun_sure' %} mz-bagi--uzun{% endif %}">{{ m.get_kurum_bagi_display }}</span>
+                            </div>
+                            <small style="color:var(--mz-muted);font-size:0.75rem">Son güncelleme: {{ m.guncellenme|date:"d F Y" }}</small>
+                        </div>
+                    </div>
+                    <a href="{% url 'mezun_detay' m.pk %}" class="mz-btn mz-btn-sm">Profili Gör →</a>
+                </article>
+                {% empty %}
+                <p class="mz-empty">Mezun kaydı bulunamadı.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <aside class="mz-side-stack">
+        <div class="mz-card mz-card-muted">
+            <div class="mz-section-head"><h3>Mezun Merkezi</h3></div>
+            <h4 style="margin:0 0 0.5rem;font-size:0.85rem;color:var(--mz-navy)">Yaklaşan Etkinlikler</h4>
+            <ul class="mz-mini-list">
+                {% for e in sag.yaklasan_etkinlikler %}
+                <li><span>{{ e.ad|truncatechars:22 }}</span><strong>{{ e.tarih|date:"d M" }}</strong></li>
+                {% empty %}<li><span class="mz-empty" style="padding:0">Etkinlik yok</span></li>{% endfor %}
+            </ul>
+        </div>
+
+        <div class="mz-card">
+            <h4 style="margin:0 0 0.5rem;font-size:0.85rem">Güncellenmesi Gereken</h4>
+            <ul class="mz-mini-list">
+                {% for m in sag.guncellenmesi_gereken %}
+                <li><a href="{% url 'mezun_detay' m.pk %}" style="color:inherit;text-decoration:none">{{ m.talebe.ad_soyad|truncatechars:20 }}</a></li>
+                {% empty %}<li><span class="mz-empty" style="padding:0">Tam profiller</span></li>{% endfor %}
+            </ul>
+        </div>
+
+        <div class="mz-card">
+            <h4 style="margin:0 0 0.5rem;font-size:0.85rem">Uzun Süredir Görüşülmeyen</h4>
+            <ul class="mz-mini-list">
+                {% for m in sag.gorusulmeyen %}
+                <li><span>{{ m.talebe.ad_soyad|truncatechars:18 }}</span></li>
+                {% empty %}<li><span class="mz-empty" style="padding:0">—</span></li>{% endfor %}
+            </ul>
+        </div>
+
+        <div class="mz-card">
+            <h4 style="margin:0 0 0.5rem;font-size:0.85rem">Bu Ay Eklenen Başarılar</h4>
+            <ul class="mz-mini-list">
+                {% for b in sag.bu_ay_basarilar %}
+                <li><span>{{ b.baslik|truncatechars:20 }}</span></li>
+                {% empty %}<li><span class="mz-empty" style="padding:0">—</span></li>{% endfor %}
+            </ul>
+        </div>
+
+        <div class="mz-card mz-card-muted">
+            <h4 style="margin:0 0 0.75rem;font-size:0.85rem">Hızlı İşlemler</h4>
+            <div class="mz-quick-actions">
+                <a href="{% url 'mezun_gorevler' %}" class="mz-btn mz-btn-sm">Görev Ata</a>
+                <a href="{% url 'mezun_etkinlikler' %}" class="mz-btn mz-btn-sm">Etkinlik Oluştur</a>
+                <a href="{% url 'mezun_istatistik' %}" class="mz-btn mz-btn-sm">İstatistik Merkezi</a>
+            </div>
+        </div>
+    </aside>
+</div>
+
+</div>
+{% endblock %}

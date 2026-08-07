@@ -1,0 +1,59 @@
+{% extends "yonetim/base.html" %}
+{% block title %}Yazılı Kamplar{% endblock %}
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">YAZILI TAKİP</p>
+        <h1>Yazılı Kamplar</h1>
+        <p class="muted">Kamp dönemi yazılı sınav tanımları ve sonuç takibi.</p>
+    </div>
+    <div class="yonetim-page-head-actions">
+        {% if olusturabilir %}
+        <a href="{% url 'yonetim:yazili_kamp_ekle' %}" class="primary-btn">Yeni Kamp</a>
+        {% endif %}
+    </div>
+</header>
+
+<section class="report-table-card yonetim-table-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">KAMPLAR</p>
+            <h2>Tüm Kamplar</h2>
+        </div>
+    </div>
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <thead>
+                <tr>
+                    <th>Kamp</th>
+                    <th>Sınıf</th>
+                    <th>Dönem</th>
+                    <th>Aktif</th>
+                    <th>Veli</th>
+                    <th>Sınav</th>
+                    <th>Sonuç</th>
+                    <th class="yonetim-action-col">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for k in kamplar %}
+                <tr>
+                    <td><strong>{{ k.ad }}</strong></td>
+                    <td>{{ k.sinif_seviyesi }}</td>
+                    <td>{{ k.baslangic|date:"d.m.Y" }} — {{ k.bitis|date:"d.m.Y" }}</td>
+                    <td>{% if k.aktif %}Evet{% else %}Hayır{% endif %}</td>
+                    <td>{% if k.veli_goster %}Evet{% else %}Hayır{% endif %}</td>
+                    <td>{{ k.sinav_sayisi }}</td>
+                    <td>{{ k.sonuc_sayisi }}</td>
+                    <td class="yonetim-action-col"><a href="{% url 'yonetim:yazili_kamp_detay' k.pk %}" class="yonetim-link">Yönet</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="report-empty">Kamp kaydı yok.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

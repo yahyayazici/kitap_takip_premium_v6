@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ gorev.baslik }} · Görev{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/mezun-premium.css' %}">{% endblock %}
+{% block content %}
+<div class="mz-page">
+<header class="mz-head">
+    <div>
+        <p class="mz-crumb"><a href="{% url 'mezun_gorevler' %}">Görevler</a> › Detay</p>
+        <h1>{{ gorev.baslik }}</h1>
+        <p class="mz-sub">Son tarih: {{ gorev.son_tarih|date:"d F Y" }} · Sorumlu: {{ gorev.sorumlu.get_full_name|default:gorev.sorumlu.username }}</p>
+    </div>
+</header>
+<section class="mz-card">
+    {% if gorev.aciklama %}<p>{{ gorev.aciklama }}</p>{% endif %}
+    <p style="margin:0.75rem 0 0"><strong>Talep edilen bilgiler:</strong></p>
+    <div class="mz-yil-strip" style="margin-top:0.5rem">
+        {% for etiket in talep_etiketleri %}
+        <span class="mz-yil-chip">{{ etiket }}</span>
+        {% endfor %}
+    </div>
+</section>
+<section class="mz-card" style="margin-top:1rem">
+    <div class="mz-section-head"><h3>Mezun Listesi</h3></div>
+    {% for k in kayitlar %}
+    <article class="mz-alumni-row" style="margin-bottom:0.65rem">
+        <div>
+            <strong>{{ k.profil.talebe.ad_soyad }}</strong>
+            {% if k.tamamlandi %}<span class="mz-status mz-status--duzenli">Tamam</span>{% endif %}
+        </div>
+        <div style="display:flex;gap:0.5rem">
+            <a href="{% url 'mezun_detay' k.profil.pk %}#guncelle" class="mz-btn mz-btn-sm">Profil</a>
+            {% if not k.tamamlandi %}
+            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="tamamla"><input type="hidden" name="kayit_id" value="{{ k.pk }}"><button type="submit" class="mz-btn mz-btn-sm mz-btn-primary">Tamamla</button></form>
+            {% endif %}
+        </div>
+    </article>
+    {% empty %}<p class="mz-empty">Kayıt yok.</p>{% endfor %}
+</section>
+</div>
+{% endblock %}

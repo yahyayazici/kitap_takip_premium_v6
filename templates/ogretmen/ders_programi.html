@@ -1,0 +1,46 @@
+{% extends "ogretmen/base.html" %}
+{% block title %}Haftalık Ders Programım · Öğretmen Paneli{% endblock %}
+
+{% block content %}
+<div class="dash-home ogretmen-dash">
+
+{% include "includes/panel_hero.html" with title="Haftalık ders programım" meta="Gün ve saat bazlı ders dağılımı" show_date=True %}
+
+    <section class="ogretmen-program-page dash-panel">
+        <div class="dash-panel-head">
+            <div>
+                <p class="dash-eyebrow">Program</p>
+                <h2>Haftalık ders planı</h2>
+            </div>
+            <a href="{% url 'ogretmen_ders_programi_pdf' %}" class="dash-text-btn" target="_blank">PDF indir</a>
+        </div>
+        {% for gun in gunler %}
+        <div class="og-program-day-block">
+            <div class="og-program-day-label">{{ gun.gun|upper }}</div>
+            <table class="og-program-table">
+                <thead>
+                    <tr>
+                        <th>Saat Aralığı</th>
+                        <th>Sınıf / Etüt Grubu</th>
+                        <th>Ders</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in gun.dersler %}
+                    <tr>
+                        <td>{{ d.saat }}</td>
+                        <td><span class="og-class-pill">[{{ d.sinif }}]</span></td>
+                        <td>{{ d.ders }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endfor %}
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/panel_date_js.html" %}
+{% endblock %}

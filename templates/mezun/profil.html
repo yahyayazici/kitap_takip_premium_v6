@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ talebe.ad_soyad }} · Mezun · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/mezun-premium.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="mz-page">
+
+<header class="mz-head">
+    <div>
+        <p class="mz-crumb"><a href="{% url 'mezun_listesi' %}">Mezun Takip Merkezi</a> › Profil</p>
+        <h1>{{ talebe.ad_soyad }}</h1>
+        <p class="mz-sub">{{ profil.mezuniyet_yili|default:"—" }} mezunu · Kurum hafızası ve başarı arşivi</p>
+    </div>
+    <div class="mz-head-actions">
+        <a href="{% url 'mezun_listesi' %}" class="mz-btn">← Merkeze Dön</a>
+        <a href="{% url 'talebe_detay' talebe.pk %}?sekme=gelisim" class="mz-btn">Gelişim Dosyası</a>
+        <a href="{% url 'talebe_profil_karne_pdf' talebe.pk %}" class="mz-btn mz-btn-primary" target="_blank">Kitap Karnesi PDF</a>
+    </div>
+</header>
+
+<section class="mz-card mz-hero">
+    <span class="mz-avatar mz-avatar-lg">{{ talebe.ad_soyad|slice:":1"|upper }}</span>
+    <div>
+        <h2 style="margin:0 0 0.75rem;color:var(--mz-navy)">{{ talebe.ad_soyad }}</h2>
+        <div class="mz-info-grid">
+            <div class="mz-info-box"><span>Mezuniyet Yılı</span><strong>{{ profil.mezuniyet_yili|default:"—" }}</strong></div>
+            <div class="mz-info-box"><span>Eski Etüt Grubu</span><strong>{{ talebe.etut_hocasi.ad_soyad|default:"—" }}</strong></div>
+            <div class="mz-info-box"><span>Numara</span><strong>{{ talebe.talebe_no|default:"—" }}</strong></div>
+            <div class="mz-info-box"><span>LGS Puanı</span><strong>{{ profil.lgs_puani|default:"—" }}</strong></div>
+            <div class="mz-info-box"><span>Yüzdelik Dilim</span><strong>{{ profil.yuzdelik_goster }}</strong></div>
+            <div class="mz-info-box"><span>Yerleştiği Lise</span><strong>{{ profil.yerlestigi_lise|default:"—" }}</strong></div>
+            <div class="mz-info-box"><span>Üniversite</span><strong>{{ profil.universite|default:"—" }}</strong></div>
+            <div class="mz-info-box"><span>Bölüm</span><strong>{{ profil.bolum|default:"—" }}</strong></div>
+            <div class="mz-info-box"><span>YKS Puanı</span><strong>{{ profil.yks_puani|default:"—" }}</strong></div>
+        </div>
+    </div>
+    <div>
+        <span class="mz-status mz-status--{{ profil.iletisim_durumu }}">{{ profil.get_iletisim_durumu_display }}</span>
+        <div style="margin-top:0.65rem">
+            <span class="mz-bagi{% if profil.kurum_bagi == 'etkinlik_katilimci' %} mz-bagi--etkinlik{% elif profil.kurum_bagi == 'uzun_sure' %} mz-bagi--uzun{% endif %}">Kurum Bağı: {{ profil.get_kurum_bagi_display }}</span>
+        </div>
+        <div class="mz-info-box" style="margin-top:0.75rem"><span>Son Görüşme</span><strong>{{ profil.son_gorusme_tarihi|date:"d.m.Y"|default:"—" }}</strong></div>
+        <div class="mz-info-box" style="margin-top:0.5rem"><span>Son Güncelleme</span><strong>{{ profil.guncellenme|date:"d.m.Y" }}</strong></div>
+    </div>
+</section>
+
+<div class="mz-split">
+    <section class="mz-card">
+        <div class="mz-section-head"><h3>Mezun Yolculuğu</h3></div>
+        <ul class="mz-timeline">
+            {% for o in yolculuk %}
+            <li>
+                <div class="mz-timeline-year">{{ o.yil }}</div>
+                <strong>{{ o.baslik }}</strong>
+                {% if o.aciklama %}<br><small style="color:var(--mz-muted)">{{ o.aciklama }}</small>{% endif %}
+            </li>
+            {% empty %}
+            <li class="mz-empty">Yolculuk kaydı henüz oluşturulmadı.</li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <section class="mz-card">
+        <div class="mz-section-head"><h3>Eğitim Yolculuğu</h3></div>
+        <div class="mz-info-grid" style="grid-template-columns:1fr">
+            <div class="mz-info-box"><span>Lise</span><strong>{{ profil.yerlestigi_lise|default:"—" }}</strong><br><small>{{ profil.lise_yerlesme_yili|default:"" }} · LGS {{ profil.lgs_puani|default:"—" }} · {{ profil.yuzdelik_goster }}</small></div>
+            <div class="mz-info-box"><span>Üniversite</span><strong>{{ profil.universite|default:"—" }}{% if profil.bolum %} — {{ profil.bolum }}{% endif %}</strong><br><small>{{ profil.universite_yerlesme_yili|default:"" }} · YKS {{ profil.yks_puani|default:"—" }}{% if profil.yks_sira %} · Sıra {{ profil.yks_sira }}{% endif %}</small></div>
+            {% if profil.meslek or profil.calistigi_kurum %}
+            <div class="mz-info-box"><span>Kariyer</span><strong>{{ profil.meslek|default:"—" }}</strong><br><small>{{ profil.calistigi_kurum|default:"" }}{% if profil.sehir %} · {{ profil.sehir }}{% endif %}</small></div>
+            {% endif %}
+        </div>
+    </section>
+</div>
+
+<section class="mz-card" style="margin-top:1.25rem">
+    <div class="mz-section-head"><h3>Kurumdaki Akademik Geçmiş</h3><small style="color:var(--mz-muted)">Salt okunur arşiv</small></div>
+    <div class="mz-arsiv-grid">
+        {% for a in arsiv %}
+        <div class="mz-arsiv-card">
+            <span>{{ a.ikon }}</span>
+            <strong>{{ a.deger }}</strong>
+            <small>{{ a.etiket }}</small>
+        </div>
+        {% endfor %}
+    </div>
+    <p style="margin:1rem 0 0;font-size:0.8125rem;color:var(--mz-muted)">Deneme, KTT, rehberlik ve gelişim verileri talebe profilinde arşivlenmiştir; mezuniyet sonrası silinmez.</p>
+</section>
+
+<div class="mz-split" style="margin-top:1.25rem">
+    <section class="mz-card">
+        <div class="mz-section-head"><h3>İletişim Geçmişi</h3></div>
+        <ul class="mz-timeline">
+            {% for i in iletisimler %}
+            <li>
+                <div class="mz-timeline-year">{{ i.tarih|date:"d F Y" }}</div>
+                <strong>{{ i.get_tur_display }}</strong><br>
+                {{ i.aciklama }}
+                {% if i.kaydeden %}<br><small style="color:var(--mz-muted)">{{ i.kaydeden.get_full_name|default:i.kaydeden.username }}</small>{% endif %}
+            </li>
+            {% empty %}
+            <li class="mz-empty">İletişim kaydı yok.</li>
+            {% endfor %}
+        </ul>
+        {% if iletisim_form %}
+        <form method="post" class="mz-form-grid" style="margin-top:1rem;border-top:1px solid var(--mz-border);padding-top:1rem">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="iletisim">
+            <div class="mz-field-row">
+                <div class="mz-field"><label>Tür</label>{{ iletisim_form.tur }}</div>
+                <div class="mz-field"><label>Tarih</label>{{ iletisim_form.tarih }}</div>
+            </div>
+            <div class="mz-field"><label>Açıklama</label>{{ iletisim_form.aciklama }}</div>
+            <button type="submit" class="mz-btn mz-btn-primary mz-btn-sm">İletişim Kaydı Ekle</button>
+        </form>
+        {% endif %}
+    </section>
+
+    <section class="mz-card">
+        <div class="mz-section-head"><h3>Başarı Arşivi</h3></div>
+        <ul class="mz-mini-list">
+            {% for b in basarilar %}
+            <li>
+                <span><strong>{{ b.baslik }}</strong><br><small>{{ b.get_kategori_display }} · {{ b.tarih|date:"d.m.Y" }}</small></span>
+                {% if b.arsivde_goster %}<span class="mz-bagi mz-bagi--etkinlik">Arşiv</span>{% endif %}
+            </li>
+            {% empty %}
+            <li class="mz-empty">Başarı kaydı yok.</li>
+            {% endfor %}
+        </ul>
+        {% if basari_form %}
+        <form method="post" class="mz-form-grid" style="margin-top:1rem;border-top:1px solid var(--mz-border);padding-top:1rem">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="basari">
+            <div class="mz-field"><label>Başlık</label>{{ basari_form.baslik }}</div>
+            <div class="mz-field-row">
+                <div class="mz-field"><label>Kategori</label>{{ basari_form.kategori }}</div>
+                <div class="mz-field"><label>Tarih</label>{{ basari_form.tarih }}</div>
+            </div>
+            <div class="mz-field"><label>Açıklama</label>{{ basari_form.aciklama }}</div>
+            <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.8125rem">{{ basari_form.arsivde_goster }} Başarı arşivinde göster</label>
+            <button type="submit" class="mz-btn mz-btn-primary mz-btn-sm">Başarı Ekle</button>
+        </form>
+        {% endif %}
+    </section>
+</div>
+
+{% if duzenleyebilir and profil_form %}
+<section class="mz-card" style="margin-top:1.25rem" id="guncelle">
+    <div class="mz-section-head"><h3>Bilgileri Güncelle</h3></div>
+    <form method="post" class="mz-form-grid">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="profil_guncelle">
+        <div class="mz-field-row">
+            <div class="mz-field"><label>Telefon</label>{{ profil_form.iletisim_telefon }}</div>
+            <div class="mz-field"><label>E-posta</label>{{ profil_form.iletisim_eposta }}</div>
+        </div>
+        <div class="mz-field-row">
+            <div class="mz-field"><label>Lise</label>{{ profil_form.yerlestigi_lise }}</div>
+            <div class="mz-field"><label>Üniversite</label>{{ profil_form.universite }}</div>
+        </div>
+        <div class="mz-field-row">
+            <div class="mz-field"><label>Bölüm</label>{{ profil_form.bolum }}</div>
+            <div class="mz-field"><label>Meslek</label>{{ profil_form.meslek }}</div>
+        </div>
+        <div class="mz-field-row">
+            <div class="mz-field"><label>Çalıştığı Kurum</label>{{ profil_form.calistigi_kurum }}</div>
+            <div class="mz-field"><label>Şehir</label>{{ profil_form.sehir }}</div>
+        </div>
+        <button type="submit" class="mz-btn mz-btn-primary">Kaydet</button>
+    </form>
+</section>
+{% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Randevu Raporları{% endblock %}
+{% block content %}
+<header class="page-head patterned-page-head">
+    <div><p class="kicker">RAPOR</p><h1>Veli Randevu Raporları</h1></div>
+    <a href="{% url 'randevu_panel' %}" class="ghost-btn">← Panel</a>
+</header>
+
+<form method="get" class="filter-row">
+    <select name="periyot" class="input">
+        <option value="gun" {% if periyot == "gun" %}selected{% endif %}>Bugün</option>
+        <option value="hafta" {% if periyot == "hafta" %}selected{% endif %}>Bu hafta</option>
+        <option value="ay" {% if periyot == "ay" %}selected{% endif %}>Bu ay</option>
+        <option value="ozel" {% if periyot == "ozel" %}selected{% endif %}>Tarih aralığı</option>
+    </select>
+    <input type="date" name="baslangic" value="{{ baslangic|date:'Y-m-d' }}" class="input">
+    <input type="date" name="bitis" value="{{ bitis|date:'Y-m-d' }}" class="input">
+    <select name="personel" class="input"><option value="">Tüm personel</option>{% for p in personeller %}<option value="{{ p.pk }}" {% if request.GET.personel == p.pk|stringformat:'s' %}selected{% endif %}>{{ p.ad_soyad }}</option>{% endfor %}</select>
+    <button type="submit" class="ghost-btn">Filtrele</button>
+</form>
+
+<section class="dashboard-card" style="margin-top:1rem">
+    <p>Toplam {{ ozet.toplam }} · Planlandı {{ ozet.planlandi }} · Tamamlandı {{ ozet.tamamlandi }} · İptal {{ ozet.iptal }}</p>
+    <div class="responsive-table">
+        <table class="report-data-table">
+            <thead><tr><th>Tarih</th><th>Saat</th><th>Personel</th><th>Öğrenci</th><th>Veli</th><th>Durum</th></tr></thead>
+            <tbody>
+                {% for r in kayitlar %}
+                <tr>
+                    <td>{{ r.tarih|date:"d.m.Y" }}</td>
+                    <td>{{ r.baslangic|time:"H:i" }}</td>
+                    <td>{{ r.personel.ad_soyad }}</td>
+                    <td>{{ r.talebe.ad_soyad }}</td>
+                    <td>{{ r.veli.ad_soyad|default:"—" }}</td>
+                    <td>{{ r.get_durum_display }}</td>
+                </tr>
+                {% empty %}<tr><td colspan="6">Kayıt yok</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{{ ktt.ad }} · Sonuç{% endblock %}
+{% block content %}
+<div class="result-entry-page">
+    <header class="result-entry-header">
+        <div>
+            <p class="result-kicker">{{ ktt.sinav_tarihi|date:"d F Y"|upper }}</p>
+            <h1>{{ ktt.ad }}</h1>
+            <p class="result-description">{{ toplam_soru }} soru · Net = Doğru − Yanlış/4</p>
+        </div>
+        <div class="result-header-actions">
+            <a href="{% url 'ktt_detay' ktt.pk %}" class="result-secondary-button">Sonuç Tablosu</a>
+            {% if pdf_yetkisi %}
+            <a href="{% url 'ktt_detay_pdf' ktt.pk %}" class="result-secondary-button" target="_blank" rel="noopener">PDF İndir</a>
+            {% endif %}
+            <a href="{% url 'ktt_listesi' %}" class="result-back-button">KTT Listesi</a>
+        </div>
+    </header>
+
+    <form method="post">
+        {% csrf_token %}
+        <section class="result-card">
+            <div class="responsive-table">
+                <table class="report-data-table">
+                    <thead>
+                        <tr>
+                            <th>Talebe</th>
+                            <th>Doğru</th>
+                            <th>Yanlış</th>
+                            <th>Boş</th>
+                            <th>Net</th>
+                            <th>Puan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for satir in satirlar %}
+                        <tr>
+                            <td><strong>{{ satir.talebe.ad_soyad }}</strong></td>
+                            <td><input type="number" min="0" max="{{ toplam_soru }}" name="dogru_{{ satir.talebe.id }}" value="{{ satir.dogru }}" class="input" style="width:70px;"></td>
+                            <td><input type="number" min="0" max="{{ toplam_soru }}" name="yanlis_{{ satir.talebe.id }}" value="{{ satir.yanlis }}" class="input" style="width:70px;"></td>
+                            <td><input type="number" min="0" max="{{ toplam_soru }}" name="bos_{{ satir.talebe.id }}" value="{{ satir.bos }}" class="input" style="width:70px;"></td>
+                            <td class="num-col">{{ satir.net }}</td>
+                            <td class="num-col">{{ satir.puan }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div style="margin-top:20px;">
+                <button type="submit" class="primary-btn">Sonuçları Kaydet</button>
+            </div>
+        </section>
+    </form>
+</div>
+{% endblock %}

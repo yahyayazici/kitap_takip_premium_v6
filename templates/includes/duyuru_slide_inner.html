@@ -1,0 +1,33 @@
+<div class="duyuru-slide-media {{ duyuru.ton_sinifi }}">
+    {% if duyuru.gorsel %}
+    <img src="{{ duyuru.gorsel.url }}" alt="{{ duyuru.baslik }}" loading="lazy">
+    {% elif duyuru.video_var_mi and duyuru.video_gomme_url %}
+        {% if duyuru.video_gomme_mi %}
+        <iframe src="{{ duyuru.video_gomme_url }}" title="{{ duyuru.baslik }}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        {% else %}
+        <video src="{{ duyuru.video_gomme_url }}" controls playsinline preload="metadata"></video>
+        {% endif %}
+    {% else %}
+    <div class="duyuru-slide-media-fallback" aria-hidden="true">
+        <span class="duyuru-slide-media-icon">
+            {% if duyuru.kategori == 'egitim' %}📘{% elif duyuru.kategori == 'program' %}📅{% elif duyuru.kategori == 'kurum' %}🏛{% else %}📣{% endif %}
+        </span>
+    </div>
+    {% endif %}
+</div>
+<div class="duyuru-slide-copy">
+    <div class="duyuru-slide-copy-head">
+        <span class="duyuru-slide-tag">{{ duyuru.kategori_etiketi }}</span>
+        <strong>{{ duyuru.baslik }}</strong>
+    </div>
+    <ul class="duyuru-slide-list">
+        {% for madde in duyuru.ozet_maddeleri %}
+        <li>{{ madde }}</li>
+        {% empty %}
+        <li>{{ duyuru.ozet|truncatechars:96 }}</li>
+        {% endfor %}
+    </ul>
+    {% if duyuru.dis_link %}
+    <span class="duyuru-slide-link-label">Detay →</span>
+    {% endif %}
+</div>

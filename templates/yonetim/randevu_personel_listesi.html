@@ -1,0 +1,53 @@
+{% extends "yonetim/base.html" %}
+{% block title %}Veli Randevu Personel{% endblock %}
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">YÖNETİM</p>
+        <h1>Veli Randevu — Personel Yetkileri</h1>
+        <p class="muted">Personel randevu erişimi, süre ve müsaitlik ayarları.</p>
+    </div>
+</header>
+
+<section class="report-table-card yonetim-table-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">PERSONEL</p>
+            <h2>Randevu Yetkileri</h2>
+        </div>
+        <span class="report-record-count">{{ personeller|length }} personel</span>
+    </div>
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <thead>
+                <tr>
+                    <th>Personel</th>
+                    <th>Rol</th>
+                    <th class="yonetim-center-col">Randevu</th>
+                    <th class="yonetim-center-col">Süre</th>
+                    <th class="yonetim-center-col">Müsaitlik</th>
+                    <th class="yonetim-action-col">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in personeller %}
+                <tr>
+                    <td><strong>{{ p.ad_soyad }}</strong></td>
+                    <td>{{ p.get_ana_rol_display }}</td>
+                    <td class="yonetim-center-col">{% if p.randevu_ayari.aktif %}<span class="status-pill status-okunuyor">Aktif</span>{% else %}<span class="status-pill status-iade">Kapalı</span>{% endif %}</td>
+                    <td class="num-col yonetim-center-col">{{ p.randevu_ayari.sure_dk }} dk</td>
+                    <td class="num-col yonetim-center-col">{{ p.randevu_musaitlikleri.count }} aralık</td>
+                    <td class="yonetim-action-col">
+                        <a href="{% url 'yonetim:randevu_personel_ayar' p.pk %}" class="yonetim-link">Ayarla</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="report-empty">Personel kaydı yok.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

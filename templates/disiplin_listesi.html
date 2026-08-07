@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Disiplin · {{ panel_short }}{% endblock %}
+{% block content %}
+<header class="page-head patterned-page-head">
+    <div>
+        <p class="kicker">DİSİPLİN</p>
+        <h1>Disiplin Kayıtları</h1>
+        <p class="muted">Olay ve sonuç takibi.</p>
+    </div>
+</header>
+
+{% if duzenleyebilir and form %}
+<section class="dashboard-card">
+    <div class="card-heading"><div><p class="card-kicker">YENİ</p><h2>Kayıt Ekle</h2></div></div>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="primary-btn">Kaydet</button>
+    </form>
+</section>
+{% endif %}
+
+<section class="dashboard-card">
+    <div class="card-heading"><div><p class="card-kicker">LİSTE</p><h2>Kayıtlar</h2></div></div>
+    <form method="get" class="filter-row">
+        <input type="search" name="q" value="{{ filtre_q }}" class="input" placeholder="Ara...">
+        <select name="tur" class="input">
+            <option value="">Tüm türler</option>
+            {% for t in turler %}<option value="{{ t.id }}" {% if filtre_tur == t.id|stringformat:"s" %}selected{% endif %}>{{ t.ad }}</option>{% endfor %}
+        </select>
+        <button type="submit" class="ghost-btn">Filtrele</button>
+    </form>
+    <div class="responsive-table">
+        <table class="report-data-table">
+            <thead><tr><th>Tarih</th><th>Talebe</th><th>Tür</th><th>Açıklama</th><th></th></tr></thead>
+            <tbody>
+                {% for k in kayitlar %}
+                <tr>
+                    <td>{{ k.tarih|date:"d.m.Y" }}</td>
+                    <td>{{ k.talebe.ad_soyad }}</td>
+                    <td>{{ k.tur.ad }}</td>
+                    <td>{{ k.aciklama|truncatechars:60 }}</td>
+                    <td><a href="{% url 'disiplin_detay' k.pk %}">Detay</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5">Kayıt yok.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

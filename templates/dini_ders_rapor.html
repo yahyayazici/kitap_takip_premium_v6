@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Dini Ders Rapor · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}">
+{% endblock %}
+{% block content %}
+<div class="dd-page">
+    <header class="dd-head">
+        <div>
+            <p class="dd-eyebrow">Dini Ders Takip</p>
+            <h1>İlerleme Raporu</h1>
+            <p class="dd-desc">Seviye ve alana göre talebe ilerlemesini görüntüleyin.</p>
+        </div>
+        <div class="dd-actions">
+            <a href="{% url 'dini_ders_panel' %}{% if seviye and alan %}?seviye={{ seviye.id }}&alan={{ alan.id }}{% endif %}" class="dd-btn">Çizelge</a>
+            <a href="{% url 'dashboard' %}" class="dd-btn">Ana Sayfa</a>
+        </div>
+    </header>
+
+    <section class="dd-card" style="margin-bottom:1rem;">
+        <form method="get" class="dd-filter-grid">
+            <div class="dd-field">
+                <label for="dd-seviye">Seviye</label>
+                <select id="dd-seviye" name="seviye">
+                    <option value="">Tümü</option>
+                    {% for s in seviyeler %}
+                    <option value="{{ s.id }}" {% if seviye and seviye.id == s.id %}selected{% endif %}>{{ s.ad }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="dd-field">
+                <label for="dd-alan">Alan</label>
+                <select id="dd-alan" name="alan">
+                    <option value="">Tümü</option>
+                    {% for a in alanlar %}
+                    <option value="{{ a.id }}" {% if alan and alan.id == a.id %}selected{% endif %}>{{ a.ad }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="dd-field" style="display:flex;gap:0.5rem;align-items:end;">
+                <button type="submit" class="dd-btn dd-btn-primary">Filtrele</button>
+                <a href="?{% if seviye %}seviye={{ seviye.id }}&{% endif %}{% if alan %}alan={{ alan.id }}&{% endif %}format=excel" class="dd-btn">Excel</a>
+            </div>
+        </form>
+    </section>
+
+    <div class="dd-report-stats">
+        <article class="dd-report-stat"><span>Talebe</span><strong>{{ ozet.talebe_sayisi }}</strong></article>
+        <article class="dd-report-stat"><span>Konu</span><strong>{{ ozet.konu_sayisi }}</strong></article>
+        <article class="dd-report-stat"><span>Tamamlanan</span><strong>{{ ozet.tamamlanan }}/{{ ozet.beklenen }}</strong></article>
+        <article class="dd-report-stat"><span>İlerleme</span><strong>%{{ ozet.yuzde }}</strong></article>
+    </div>
+
+    <section class="dd-card">
+        <div class="dd-table-wrap">
+            <table class="dd-table">
+                <thead>
+                    <tr>
+                        <th>Talebe</th>
+                        <th>Seviye</th>
+                        <th>Tamamlanan</th>
+                        <th>Toplam</th>
+                        <th>%</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for satir in satirlar %}
+                    <tr>
+                        <td><strong>{{ satir.talebe.ad_soyad }}</strong></td>
+                        <td>{{ satir.talebe.dini_ders_seviyesi }}</td>
+                        <td>{{ satir.tamamlanan }}</td>
+                        <td>{{ satir.toplam }}</td>
+                        <td>%{{ satir.yuzde }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="dd-empty">
+                            Henüz ilerleme kaydı yok. Önce talebelere dini ders seviyesi atayın,
+                            ardından <a href="{% url 'dini_ders_panel' %}">toplu çizelge</a>den konu işaretleyin.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "yonetim/base.html" %}
+{% block title %}Denemeler{% endblock %}
+{% block content %}
+<div class="yonetim-page">
+    <header class="yonetim-page-head">
+        <div>
+            <p class="kicker">DENEME AKTARIM</p>
+            <h1>Deneme Sınavları</h1>
+        </div>
+        <div>
+            {% if yukleyebilir %}
+            <a href="{% url 'yonetim:deneme_ekle' %}" class="primary-btn">Yeni Deneme</a>
+            {% endif %}
+            <a href="{% url 'yonetim:deneme_rapor' %}" class="ghost-btn">Rapor</a>
+        </div>
+    </header>
+    <section class="yonetim-card">
+        <table class="yonetim-table">
+            <thead>
+                <tr>
+                    <th>Tarih</th>
+                    <th>Deneme</th>
+                    <th>Sınıf</th>
+                    <th>Durum</th>
+                    <th>Sonuç</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in denemeler %}
+                <tr>
+                    <td>{{ d.sinav_tarihi|date:"d.m.Y" }}</td>
+                    <td><strong>{{ d.ad }}</strong></td>
+                    <td>{{ d.sinif_seviyesi }}</td>
+                    <td>{{ d.get_durum_display }}</td>
+                    <td>{{ d.sonuc_sayisi }}</td>
+                    <td><a href="{% url 'yonetim:deneme_detay' d.pk %}">Yönet</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6">Deneme kaydı yok.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</div>
+{% endblock %}

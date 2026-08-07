@@ -1,0 +1,23 @@
+<div class="duyuru-scene {{ duyuru.ton_sinifi }} duyuru-scene--{{ duyuru.oto_gorsel_sahne }}" role="img" aria-label="{{ duyuru.baslik }} duyuru görseli">
+    <div class="duyuru-scene-bg" aria-hidden="true">
+        <span class="duyuru-scene-orb duyuru-scene-orb-a"></span>
+        <span class="duyuru-scene-orb duyuru-scene-orb-b"></span>
+        <span class="duyuru-scene-orb duyuru-scene-orb-c"></span>
+        <span class="duyuru-scene-grid"></span>
+        <span class="duyuru-scene-ring" aria-hidden="true"></span>
+    </div>
+
+    <div class="duyuru-scene-art" aria-hidden="true">
+        {% if duyuru.oto_gorsel_sahne == "asistan" %}
+        {% include "includes/duyuru_scenes/asistan.html" %}
+        {% elif duyuru.oto_gorsel_sahne == "egitim" %}
+        {% include "includes/duyuru_scenes/egitim.html" %}
+        {% elif duyuru.oto_gorsel_sahne == "program" %}
+        {% include "includes/duyuru_scenes/program.html" %}
+        {% elif duyuru.oto_gorsel_sahne == "kurum" %}
+        {% include "includes/duyuru_scenes/kurum.html" %}
+        {% else %}
+        {% include "includes/duyuru_scenes/genel.html" %}
+        {% endif %}
+    </div>
+</div>

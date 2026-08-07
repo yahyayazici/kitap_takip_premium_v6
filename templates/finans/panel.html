@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+{% load static finans_extras %}
+{% block title %}Finans Yönetimi · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/finans-premium.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="fn-page">
+
+<header class="fn-head">
+    <div>
+        <p class="fn-eyebrow">Kurum İçi · Finans Merkezi</p>
+        <h1>Finans Yönetimi</h1>
+        <p class="fn-sub">Ücret politikalarını, tahsilatları, ödeme planlarını ve finans süreçlerini tek merkezden yönetin.</p>
+    </div>
+    <div class="fn-head-actions">
+        {% if yonetebilir and yeni_form %}
+        <button type="button" class="fn-btn fn-btn-primary" onclick="document.getElementById('fn-yeni-kayit').scrollIntoView({behavior:'smooth'})">+ Yeni Kayıt</button>
+        {% endif %}
+        <a href="{% url 'finans_raporlar' %}" class="fn-btn">Raporlar</a>
+        {% if yonetebilir %}
+        <a href="{% url 'finans_politikalar' %}" class="fn-btn">Finans Ayarları</a>
+        {% endif %}
+    </div>
+</header>
+
+<div class="fn-kpi-grid" aria-label="Finans özeti">
+    <article class="fn-kpi">
+        <span class="fn-kpi-icon">₺</span>
+        <strong class="fn-kpi-value">{{ ozet.toplam_alacak|para }}</strong>
+        <span class="fn-kpi-label">Toplam Alacak</span>
+        <div class="fn-kpi-spark">{% for g in grafik|slice:":5" %}<span style="height:{{ g.yuzde|default:20 }}%"></span>{% endfor %}</div>
+    </article>
+    <article class="fn-kpi fn-kpi--green">
+        <span class="fn-kpi-icon">✓</span>
+        <strong class="fn-kpi-value">{{ ozet.tahsil_edilen|para }}</strong>
+        <span class="fn-kpi-label">Tahsil Edilen</span>
+        <div class="fn-kpi-spark">{% for g in grafik|slice:":5" %}<span style="height:{{ g.yuzde|default:20 }}%;background:rgba(5,150,105,.25)"></span>{% endfor %}</div>
+    </article>
+    <article class="fn-kpi fn-kpi--orange">
+        <span class="fn-kpi-icon">◷</span>
+        <strong class="fn-kpi-value">{{ ozet.bekleyen|para }}</strong>
+        <span class="fn-kpi-label">Bekleyen Tahsilat</span>
+        <div class="fn-kpi-spark"><span style="height:55%"></span><span style="height:70%"></span><span style="height:45%"></span></div>
+    </article>
+    <article class="fn-kpi fn-kpi--red">
+        <span class="fn-kpi-icon">!</span>
+        <strong class="fn-kpi-value">{{ ozet.vadesi_gecen|para }}</strong>
+        <span class="fn-kpi-label">Vadesi Geçmiş</span>
+        <div class="fn-kpi-spark"><span style="height:80%;background:rgba(220,38,38,.22)"></span><span style="height:60%;background:rgba(220,38,38,.22)"></span></div>
+    </article>
+    <article class="fn-kpi">
+        <span class="fn-kpi-icon">◉</span>
+        <strong class="fn-kpi-value">{{ ozet.bu_ay_tahsilat|para }}</strong>
+        <span class="fn-kpi-label">Bu Ay Tahsilat</span>
+        <div class="fn-kpi-spark">{% for g in grafik|slice:"-3:" %}<span style="height:{{ g.yuzde|default:30 }}%"></span>{% endfor %}</div>
+    </article>
+    <article class="fn-kpi fn-kpi--green">
+        <span class="fn-kpi-icon">%</span>
+        <strong class="fn-kpi-value">%{{ ozet.tahsilat_orani }}</strong>
+        <span class="fn-kpi-label">Tahsilat Oranı</span>
+        <div class="fn-kpi-spark"><span style="height:{{ ozet.tahsilat_orani }}%;background:rgba(5,150,105,.25)"></span></div>
+    </article>
+    <article class="fn-kpi fn-kpi--orange">
+        <span class="fn-kpi-icon">→</span>
+        <strong class="fn-kpi-value">{{ ozet.yaklasan_taksit }}</strong>
+        <span class="fn-kpi-label">Yaklaşan Taksit</span>
+        <div class="fn-kpi-spark"><span style="height:40%"></span><span style="height:65%"></span><span style="height:50%"></span></div>
+    </article>
+</div>
+
+<div class="fn-main-grid">
+    <section>
+        <div class="fn-card">
+            <div class="fn-section-head">
+                <h2>Öğrenci Finans Listesi</h2>
+                {% if yil %}<span class="fn-sub" style="margin:0">{{ yil.ad }}</span>{% endif %}
+            </div>
+
+            <form method="get" class="fn-filters">
+                <input type="search" name="q" value="{{ filtre_q }}" placeholder="Öğrenci ara..." class="fn-input">
+                <select name="sinif" class="fn-select">
+                    <option value="">Tüm sınıflar</option>
+                    {% for ss in sinif_subeler %}
+                    <option value="{{ ss.pk }}" {% if filtre_sinif == ss.pk|stringformat:"s" %}selected{% endif %}>{{ ss }}</option>
+                    {% endfor %}
+                </select>
+                <select name="durum" class="fn-select">
+                    <option value="">Ödeme durumu</option>
+                    {% for kod, etiket in durum_secenekleri %}
+                    <option value="{{ kod }}" {% if filtre_durum == kod %}selected{% endif %}>{{ etiket }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="fn-btn fn-btn-sm">Ara</button>
+            </form>
+
+            <div class="fn-table-wrap">
+                <table class="fn-table">
+                    <thead>
+                        <tr>
+                            <th>Öğrenci</th>
+                            <th>Sınıf</th>
+                            <th>Toplam</th>
+                            <th>İndirim</th>
+                            <th>Net</th>
+                            <th>Ödenen</th>
+                            <th>Kalan</th>
+                            <th>Durum</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in dosyalar %}
+                        <tr>
+                            <td>
+                                <div class="fn-student-cell">
+                                    <span class="fn-avatar">{{ d.talebe.ad_soyad|slice:":1"|upper }}</span>
+                                    <div>
+                                        <strong>{{ d.talebe.ad_soyad }}</strong><br>
+                                        <small style="color:var(--fn-muted)">{{ d.talebe.talebe_no|default:"—" }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{% if d.talebe.sinif_sube %}{{ d.talebe.sinif_sube }}{% else %}{{ d.talebe.sinif }}{% endif %}</td>
+                            <td>{{ d.toplam_ucret|para }}</td>
+                            <td>{{ d.indirim_tutari|para }}</td>
+                            <td><strong>{{ d.net_ucret|para }}</strong></td>
+                            <td>{{ d.odenen_tutar|para }}</td>
+                            <td>{{ d.kalan_tutar|para }}</td>
+                            <td>
+                                <span class="fn-status fn-status--{{ d.durum }}">{{ d.get_durum_display }}</span>
+                            </td>
+                            <td><a href="{% url 'finans_ogrenci' d.pk %}" class="fn-btn fn-btn-sm">Detay</a></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="9" class="fn-empty">Henüz finans kaydı yok. Yeni kayıt oluşturun.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% if yonetebilir and yeni_form %}
+        <div class="fn-card fn-modal" id="fn-yeni-kayit">
+            <div class="fn-section-head"><h3>Yeni Finans Kaydı</h3></div>
+            <form method="post" class="fn-form-grid">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="yeni_kayit">
+                <div class="fn-field-row">
+                    <div class="fn-field">
+                        <label>Öğrenci</label>
+                        {{ yeni_form.talebe_id }}
+                    </div>
+                    <div class="fn-field">
+                        <label>{{ yeni_form.indirim_tutari.label }}</label>
+                        {{ yeni_form.indirim_tutari }}
+                    </div>
+                </div>
+                <div class="fn-field-row">
+                    <div class="fn-field">
+                        <label>{{ yeni_form.pesinat.label }}</label>
+                        {{ yeni_form.pesinat }}
+                    </div>
+                    <div class="fn-field">
+                        <label>{{ yeni_form.taksit_sayisi.label }}</label>
+                        {{ yeni_form.taksit_sayisi }}
+                    </div>
+                </div>
+                <button type="submit" class="fn-btn fn-btn-primary">Kayıt Oluştur</button>
+            </form>
+        </div>
+        {% endif %}
+
+        <div class="fn-analiz-grid">
+            {% for a in analiz %}
+            <div class="fn-analiz-item">
+                <span>{{ a.etiket }}</span>
+                <strong>{{ a.deger }}</strong>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <aside class="fn-side-stack">
+        <div class="fn-card fn-card-muted">
+            <div class="fn-section-head"><h3>Finans Özeti</h3></div>
+            <ul class="fn-mini-list">
+                <li><span>Bugün tahsil edilen</span><strong>{{ sag.bugun_tahsilat|para }}</strong></li>
+                <li><span>Bu ay tahsilat</span><strong>{{ sag.bu_ay_tahsilat|para }}</strong></li>
+                <li><span>Tahsilat oranı</span><strong>%{{ sag.tahsilat_orani }}</strong></li>
+            </ul>
+        </div>
+
+        <div class="fn-card">
+            <div class="fn-side-block">
+                <h4>Yaklaşan Taksitler</h4>
+                <ul class="fn-mini-list">
+                    {% for t in sag.yaklasan_taksitler %}
+                    <li>
+                        <span>{{ t.dosya.talebe.ad_soyad }} · {{ t.vade|date:"d M" }}</span>
+                        <strong>{{ t.kalan|para }}</strong>
+                    </li>
+                    {% empty %}
+                    <li><span class="fn-empty" style="padding:0">Yaklaşan taksit yok</span></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="fn-card">
+            <div class="fn-side-block">
+                <h4>Geciken Ödemeler</h4>
+                <ul class="fn-mini-list">
+                    {% for t in sag.geciken_taksitler %}
+                    <li>
+                        <span>{{ t.dosya.talebe.ad_soyad }}</span>
+                        <strong style="color:var(--fn-red)">{{ t.kalan|para }}</strong>
+                    </li>
+                    {% empty %}
+                    <li><span class="fn-empty" style="padding:0">Geciken ödeme yok</span></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="fn-card">
+            <div class="fn-side-block">
+                <h4>Son Tahsilatlar</h4>
+                <ul class="fn-mini-list">
+                    {% for th in sag.son_tahsilatlar %}
+                    <li>
+                        <span>{{ th.dosya.talebe.ad_soyad|truncatechars:18 }} · {{ th.get_yontem_display }}</span>
+                        <strong>{{ th.tutar|para }}</strong>
+                    </li>
+                    {% empty %}
+                    <li><span class="fn-empty" style="padding:0">Tahsilat kaydı yok</span></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="fn-card fn-card-muted">
+            <div class="fn-side-block">
+                <h4>Hızlı İşlemler</h4>
+                <div class="fn-quick-actions">
+                    {% if yonetebilir %}
+                    <a href="{% url 'finans_politikalar' %}" class="fn-btn fn-btn-sm">Ücret Politikaları</a>
+                    <a href="{% url 'finans_indirimler' %}" class="fn-btn fn-btn-sm">İndirim Yönetimi</a>
+                    {% endif %}
+                    <a href="{% url 'finans_raporlar' %}" class="fn-btn fn-btn-sm">Raporlar</a>
+                </div>
+            </div>
+        </div>
+    </aside>
+</div>
+
+</div>
+{% endblock %}

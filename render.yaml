@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: cinili-saray-proje
+    runtime: python
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PANEL_NAME
+        value: "Çinili Saray Proje"
+      - key: PANEL_SHORT
+        value: "Çinili Saray Proje"
+      - key: PANEL_ORG
+        value: "Çinili Saray Proje"
+      - key: PANEL_FOOTER
+        value: "Çinili Saray Proje"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cinili-saray-db
+          property: connectionString
+
+databases:
+  - name: cinili-saray-db
+    plan: free

@@ -1,64 +1,34 @@
 {% extends "yonetim/base.html" %}
 
 {% block title %}{{ sayfa_basligi }}{% endblock %}
-{% block page_title %}{{ sayfa_basligi }}{% endblock %}
 
 {% block content %}
 
-<section class="cs-form-layout">
-
-    <div class="cs-form-intro">
-        <span class="cs-card-label">KAYIT FORMU</span>
-        <h2>{{ sayfa_basligi }}</h2>
-        <p>{{ sayfa_aciklama }}</p>
-
-        <a
-            href="{% url geri_url %}"
-            class="cs-btn cs-btn-ghost"
-        >
-            Listeye Dön
-        </a>
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">KAYIT FORMU</p>
+        <h1>{{ sayfa_basligi }}</h1>
+        <p class="muted">{{ sayfa_aciklama }}</p>
     </div>
+    <a href="{% url geri_url %}" class="ghost-btn">Listeye Dön</a>
+</header>
 
-    <form method="post" class="cs-card cs-form-card">
+<section class="dashboard-card yonetim-form-card">
+    <form method="post" class="yonetim-form-layout"{% if form_multipart %} enctype="multipart/form-data"{% endif %}>
         {% csrf_token %}
 
         {% if form.non_field_errors %}
-            <div class="cs-form-errors">
-                {{ form.non_field_errors }}
-            </div>
+        <div class="yonetim-form-errors">{{ form.non_field_errors }}</div>
         {% endif %}
 
-        {% for field in form %}
-            <div class="cs-field">
-                <label for="{{ field.id_for_label }}">
-                    {{ field.label }}
-                </label>
+        <div class="yonetim-form-grid">
+            {% include "yonetim/includes/form_fields.html" %}
+        </div>
 
-                <div class="cs-field-control">
-                    {{ field }}
-                </div>
-
-                {% if field.help_text %}
-                    <small>{{ field.help_text }}</small>
-                {% endif %}
-
-                {% for error in field.errors %}
-                    <span class="cs-field-error">{{ error }}</span>
-                {% endfor %}
-            </div>
-        {% endfor %}
-
-        <div class="cs-form-actions">
-            <button
-                type="submit"
-                class="cs-btn cs-btn-primary"
-            >
-                Kaydet
-            </button>
+        <div class="yonetim-form-actions">
+            <button type="submit" class="primary-btn">Kaydet</button>
         </div>
     </form>
-
 </section>
 
 {% endblock %}

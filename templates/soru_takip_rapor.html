@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Soru Takip Rapor · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/soru-takip-premium.css' %}">
+{% endblock %}
+{% block content %}
+<div class="library-page st-report-page">
+    <header class="page-head patterned-page-head library-page-head">
+        <div>
+            <p class="kicker">GÜNLÜK SORU TAKİP</p>
+            <h1>Rapor</h1>
+            <p class="library-panel-desc">{{ donem_baslik }} · PDF veya Excel olarak indirin.</p>
+        </div>
+        <a href="{% url 'soru_takip_panel' %}" class="ghost-btn">Soru Takip</a>
+    </header>
+
+    <section class="metric-grid library-metrics st-report-metrics">
+        <article class="metric-card tone-blue">
+            <span>TOPLAM SORU</span>
+            <strong>{{ istatistik.toplam_soru }}</strong>
+            <small>Seçili dönem</small>
+        </article>
+        <article class="metric-card tone-green">
+            <span>TOPLAM NET</span>
+            <strong>{{ istatistik.toplam_net }}</strong>
+            <small>Net puan</small>
+        </article>
+        <article class="metric-card tone-purple">
+            <span>BAŞARI</span>
+            <strong>%{{ istatistik.basari_orani }}</strong>
+            <small>Doğru oranı</small>
+        </article>
+        <article class="metric-card tone-amber">
+            <span>KAYIT</span>
+            <strong>{{ istatistik.kayit_sayisi }}</strong>
+            <small>{{ istatistik.talebe_sayisi }} talebe</small>
+        </article>
+    </section>
+
+    <section class="library-panel st-report-filter">
+        <form method="get" class="st-report-form">
+            <label>
+                Dönem
+                <select name="donem" class="input" id="st-donem">
+                    <option value="gunluk" {% if filtre.donem == "gunluk" %}selected{% endif %}>Günlük</option>
+                    <option value="haftalik" {% if filtre.donem == "haftalik" %}selected{% endif %}>Haftalık</option>
+                    <option value="aylik" {% if filtre.donem == "aylik" %}selected{% endif %}>Aylık</option>
+                    <option value="yillik" {% if filtre.donem == "yillik" %}selected{% endif %}>Yıllık</option>
+                    <option value="ozel" {% if filtre.donem == "ozel" %}selected{% endif %}>Özel aralık</option>
+                </select>
+            </label>
+            <label class="st-ref-field">
+                Referans tarih
+                <input type="date" name="referans" value="{{ filtre.referans|default:bitis|date:'Y-m-d' }}" class="input">
+            </label>
+            <label>
+                Talebe
+                <select name="talebe" class="input">
+                    <option value="">Tümü</option>
+                    {% for t in talebeler %}
+                    <option value="{{ t.id }}" {% if filtre.talebe == t.id|stringformat:"s" %}selected{% endif %}>{{ t.ad_soyad }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>
+                Ders
+                <select name="ders" class="input">
+                    <option value="">Tümü</option>
+                    {% for d in dersler %}
+                    <option value="{{ d.id }}" {% if filtre.ders == d.id|stringformat:"s" %}selected{% endif %}>{{ d.ad }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="st-range-field">
+                Başlangıç
+                <input type="date" name="baslangic" value="{{ filtre.baslangic|default:baslangic|date:'Y-m-d' }}" class="input">
+            </label>
+            <label class="st-range-field">
+                Bitiş
+                <input type="date" name="bitis" value="{{ filtre.bitis|default:bitis|date:'Y-m-d' }}" class="input">
+            </label>
+            <div class="st-report-actions">
+                <button type="submit" class="primary-btn">Filtrele</button>
+                {% if pdf_yetki %}
+                <a href="{% url 'soru_takip_rapor' %}?format=pdf{{ export_tail }}" class="primary-btn" target="_blank" rel="noopener">PDF İndir</a>
+                {% endif %}
+                {% if excel_yetki %}
+                <a href="{% url 'soru_takip_rapor' %}?format=excel{{ export_tail }}" class="ghost-btn">Excel İndir</a>
+                {% endif %}
+            </div>
+        </form>
+    </section>
+
+    <section class="library-panel">
+        <div class="card-heading library-panel-head">
+            <div>
+                <p class="card-kicker">KAYIT LİSTESİ</p>
+                <h2>{{ baslangic|date:"d.m.Y" }} – {{ bitis|date:"d.m.Y" }}</h2>
+            </div>
+        </div>
+        <div class="responsive-table">
+            <table class="report-data-table">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Talebe</th>
+                        <th>Sınıf</th>
+                        <th>Toplam Soru</th>
+                        <th>Net</th>
+                        <th>Başarı</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for kayit in kayitlar %}
+                    <tr>
+                        <td>{{ kayit.tarih|date:"d.m.Y" }}</td>
+                        <td><strong>{{ kayit.talebe.ad_soyad }}</strong></td>
+                        <td>{{ kayit.talebe.sinif_sube|default:kayit.talebe.sinif|default:"—" }}</td>
+                        <td class="num-col">{{ kayit.toplam_soru }}</td>
+                        <td class="num-col">{{ kayit.toplam_net }}</td>
+                        <td class="num-col">%{{ kayit.basari_orani }}</td>
+                        <td><a href="{% url 'soru_takip_detay' kayit.pk %}" class="ghost-btn">Detay</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="report-empty">Kayıt bulunamadı.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

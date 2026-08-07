@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Soru Takip · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/soru-takip-premium.css' %}">
+{% endblock %}
+{% block content %}
+<div class="st-page">
+    <header class="st-head">
+        <div>
+            <p class="st-eyebrow">Günlük Soru Takip</p>
+            <h1>Soru Takip</h1>
+            <p class="st-desc">Talebe başına günde bir kayıt · Net = Doğru − Yanlış/4</p>
+        </div>
+        <div class="st-actions">
+            <a href="{% url 'soru_takip_rapor' %}" class="st-btn">Rapor</a>
+            <a href="{% url 'dashboard' %}" class="st-btn">Ana Sayfa</a>
+        </div>
+    </header>
+
+    <section class="st-card" style="margin-bottom:1rem;">
+        <form method="get" class="st-filter-grid">
+            <div class="st-field">
+                <label for="st-sinif">Sınıf / Şube</label>
+                <select id="st-sinif" name="sinif_sube" onchange="this.form.submit()">
+                    <option value="">Tümü</option>
+                    {% for sid, sinif, sube in sinif_subeler %}
+                    <option value="{{ sid }}" {% if sinif_sube_id == sid|stringformat:"s" %}selected{% endif %}>{{ sinif }} / {{ sube }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="st-field">
+                <label for="st-talebe">Talebe</label>
+                <select id="st-talebe" name="talebe" required onchange="this.form.submit()">
+                    <option value="">Seçin…</option>
+                    {% for t in talebeler %}
+                    <option value="{{ t.id }}" {% if talebe and talebe.id == t.id %}selected{% endif %}>{{ t.ad_soyad }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="st-field">
+                <label for="st-tarih">Tarih</label>
+                <input id="st-tarih" type="date" name="tarih" value="{{ tarih|date:'Y-m-d' }}" onchange="this.form.submit()">
+            </div>
+        </form>
+    </section>
+
+    {% if talebe %}
+    <div class="st-layout">
+        <section class="st-card">
+            {% if duzenleyebilir %}
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="talebe_id" value="{{ talebe.id }}">
+                <input type="hidden" name="tarih" value="{{ tarih|date:'Y-m-d' }}">
+
+                <div class="st-form-head">
+                    <p class="st-form-date">{{ tarih|date:"d F Y"|upper }}</p>
+                    <h2>{{ talebe.ad_soyad }}</h2>
+                    <p class="st-meta">
+                        {% if talebe.sinif_sube %}{{ talebe.sinif_sube }}{% else %}Sınıf atanmamış{% endif %}
+                    </p>
+                </div>
+
+                <div class="st-table-wrap">
+                    <table class="st-table">
+                        <thead>
+                            <tr>
+                                <th>Ders</th>
+                                <th>Toplam</th>
+                                <th>Doğru</th>
+                                <th>Yanlış</th>
+                                <th>Boş</th>
+                                <th>Net</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for satir in satirlar %}
+                            <tr>
+                                <td>{{ satir.ders.ad }}</td>
+                                <td><input type="number" min="0" name="ders_{{ satir.ders.id }}_toplam" value="{{ satir.toplam_soru }}" class="st-num-input"></td>
+                                <td><input type="number" min="0" name="ders_{{ satir.ders.id }}_dogru" value="{{ satir.dogru }}" class="st-num-input"></td>
+                                <td><input type="number" min="0" name="ders_{{ satir.ders.id }}_yanlis" value="{{ satir.yanlis }}" class="st-num-input"></td>
+                                <td><input type="number" min="0" name="ders_{{ satir.ders.id }}_bos" value="{{ satir.bos }}" class="st-num-input"></td>
+                                <td><span class="st-net">{{ satir.net }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="st-note-block st-field">
+                    <label for="st-not">Günlük not (personel)</label>
+                    <textarea id="st-not" name="gunluk_not" rows="3">{{ kayit.gunluk_not|default:"" }}</textarea>
+                </div>
+
+                <div class="st-form-actions">
+                    <button type="submit" class="st-btn st-btn-primary">Kaydet</button>
+                    {% if kayit and silebilir %}
+                    <a href="{% url 'soru_takip_sil' kayit.pk %}" class="st-btn" onclick="return confirm('Bu günün kaydı silinsin mi?');">Sil</a>
+                    {% endif %}
+                </div>
+            </form>
+            {% else %}
+            <p class="st-empty">Bu kaydı görüntüleme yetkiniz var; düzenleme yetkiniz yok.</p>
+            {% endif %}
+        </section>
+
+        <aside class="st-aside">
+            <article class="st-stat st-stat-blue">
+                <span class="st-stat-label">Günlük Toplam</span>
+                <strong class="st-stat-value">{{ gunluk_ozet.toplam_soru }}</strong>
+                <span class="st-stat-sub">soru · Net {{ gunluk_ozet.toplam_net }}</span>
+            </article>
+            <article class="st-stat st-stat-green">
+                <span class="st-stat-label">Günlük Başarı</span>
+                <strong class="st-stat-value">%{{ gunluk_ozet.basari_orani }}</strong>
+                <span class="st-stat-sub">doğru / toplam soru</span>
+            </article>
+            {% if aylik_ozet %}
+            <article class="st-stat st-stat-purple">
+                <span class="st-stat-label">Aylık Özet</span>
+                <strong class="st-stat-value">{{ aylik_ozet.toplam_soru }}</strong>
+                <span class="st-stat-sub">{{ aylik_ozet.gun_sayisi }} gün · Net {{ aylik_ozet.toplam_net }}</span>
+            </article>
+            {% endif %}
+
+            <section class="st-card">
+                <p class="st-recent-head">Son Kayıtlar</p>
+                <table class="st-recent-table">
+                    <thead>
+                        <tr><th>Talebe</th><th>Tarih</th><th class="st-num">Soru</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for k in son_kayitlar %}
+                        <tr>
+                            <td><a href="{% url 'soru_takip_panel' %}?talebe={{ k.talebe_id }}&tarih={{ k.tarih|date:'Y-m-d' }}">{{ k.talebe.ad_soyad }}</a></td>
+                            <td>{{ k.tarih|date:"d.m.Y" }}</td>
+                            <td class="st-num">{{ k.toplam_soru }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3" class="st-empty" style="padding:1rem 0;">Kayıt yok.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </section>
+        </aside>
+    </div>
+    {% else %}
+    <section class="st-card">
+        <p class="st-empty">Kayıt girmek için yukarıdan talebe seçin.</p>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,546 @@
+{% load static %}
+<div class="gelisim-dosyasi">
+    {% with g=gelisim gor=gelisim.gorunum kim=gelisim.kimlik gd=gelisim.genel_durum %}
+
+    {% if gor.kimlik %}
+    <div class="gelisim-top-grid">
+        <section class="profile-card">
+            <div class="card-heading gelisim-section-head">
+                <div>
+                    <p class="card-kicker">KİMLİK KARTI</p>
+                    <h2>{{ kim.ad_soyad }}</h2>
+                </div>
+                <div class="profile-avatar">{{ kim.ad_soyad|slice:":1" }}</div>
+            </div>
+            <dl class="gelisim-kimlik-grid">
+                <dt>Öğrenci no</dt><dd>{{ kim.talebe_no }}</dd>
+                <dt>Okul sınıfı</dt><dd>{{ kim.sinif }}</dd>
+                <dt>Dini ders seviyesi</dt><dd>{{ kim.dini_seviye }}</dd>
+                <dt>Etüt hocası</dt><dd>{{ kim.etut_hocasi }}</dd>
+                <dt>Dini ders hocası</dt><dd>{{ kim.dini_hocasi }}</dd>
+                <dt>Kayıt tarihi</dt><dd>{% if kim.kayit_tarihi %}{{ kim.kayit_tarihi|date:"d.m.Y" }}{% else %}—{% endif %}</dd>
+                <dt>Doğum tarihi</dt><dd>{% if kim.dogum_tarihi %}{{ kim.dogum_tarihi|date:"d.m.Y" }}{% else %}—{% endif %}</dd>
+                <dt>Öğrenci durumu</dt><dd>{{ kim.durum }}</dd>
+            </dl>
+        </section>
+
+        {% if gor.genel_durum %}
+        <section class="profile-card gelisim-durum-card">
+            <div class="card-heading">
+                <div>
+                    <p class="card-kicker">GENEL DURUM</p>
+                    <h2>Yönetim değerlendirmesi</h2>
+                </div>
+            </div>
+            <span class="gelisim-durum-badge" style="color:{{ gd.renk }};background:{{ gd.bg }};border-color:{{ gd.renk }}33;">
+                {{ gd.etiket }}
+            </span>
+            {% if gd.ozet %}
+            <p style="margin:0;font-size:14px;color:#4a5568;line-height:1.6;">{{ gd.ozet|linebreaksbr }}</p>
+            {% endif %}
+            {% if gd.guncellenme %}
+            <small style="color:#718097;">Son güncelleme: {{ gd.guncellenme|date:"d.m.Y H:i" }}</small>
+            {% endif %}
+            <form method="post" class="gelisim-form-grid">
+                {% csrf_token %}
+                <input type="hidden" name="aksiyon" value="genel_durum">
+                {{ genel_durum_form.durum_kodu }}
+                {{ genel_durum_form.ozet }}
+                <button type="submit" class="primary-btn">Durumu Kaydet</button>
+            </form>
+        </section>
+        {% else %}
+        <section class="profile-card gelisim-durum-card">
+            <div class="card-heading">
+                <div>
+                    <p class="card-kicker">GENEL DURUM</p>
+                    <h2>Yönetim değerlendirmesi</h2>
+                </div>
+            </div>
+            <span class="gelisim-durum-badge" style="color:{{ gd.renk }};background:{{ gd.bg }};border-color:{{ gd.renk }}33;">
+                {{ gd.etiket }}
+            </span>
+            {% if gd.ozet %}<p style="margin:0;font-size:14px;color:#4a5568;">{{ gd.ozet|linebreaksbr }}</p>{% endif %}
+        </section>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if gor.akademik_ozet and gelisim.akademik_kartlar %}
+    <section class="profile-card">
+        <div class="card-heading">
+            <div>
+                <p class="card-kicker">AKADEMİK ÖZET</p>
+                <h2>Performans göstergeleri</h2>
+            </div>
+        </div>
+        <div class="gelisim-metric-grid">
+            {% for kart in gelisim.akademik_kartlar %}
+            <article class="gelisim-metric">
+                <span>{{ kart.etiket }}</span>
+                <strong>{{ kart.deger }}</strong>
+                <small>{{ kart.alt }}</small>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if gor.deneme_grafik and gelisim.deneme_grafik %}
+    <section class="profile-card">
+        <div class="card-heading gelisim-section-head">
+            <div>
+                <p class="card-kicker">DENEME PERFORMANSI</p>
+                <h2>Son denemeler — net gelişimi</h2>
+            </div>
+            <a href="?sekme=egitim" class="ghost-btn">Tüm deneme arşivi</a>
+        </div>
+        <div class="gelisim-chart">
+            {% for bar in gelisim.deneme_grafik %}
+            <div class="gelisim-chart-bar" title="{{ bar.baslik }}">
+                <strong>{{ bar.net }}</strong>
+                <div class="bar" style="height:{{ bar.net_yuzde }}%;"></div>
+                <small>{{ bar.etiket }}</small>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <div class="gelisim-two-col gelisim-two-col--balanced">
+        {% if gor.devam and gelisim.devam %}
+        <section class="profile-card gelisim-panel">
+            <div class="card-heading">
+                <div>
+                    <p class="card-kicker">DEVAM DURUMU</p>
+                    <h2>{{ gelisim.devam.ay_baslangic|date:"F Y" }} özeti</h2>
+                </div>
+            </div>
+            <div class="gelisim-devam-grid">
+                <article class="gelisim-devam-item tone-slate">
+                    <strong>{{ gelisim.devam.devamsizlik }}</strong>
+                    <span>Devamsızlık</span>
+                </article>
+                <article class="gelisim-devam-item tone-amber">
+                    <strong>{{ gelisim.devam.gec_kalma }}</strong>
+                    <span>Geç kalma</span>
+                </article>
+                <article class="gelisim-devam-item tone-blue">
+                    <strong>{{ gelisim.devam.izinli }}</strong>
+                    <span>İzinli gün</span>
+                </article>
+                <article class="gelisim-devam-item tone-teal gelisim-devam-pct">
+                    <strong>%{{ gelisim.devam.namaz_katilim_orani }}</strong>
+                    <span>Namaz katılım</span>
+                    <div class="gelisim-mini-bar" aria-hidden="true"><i style="width:{{ gelisim.devam.namaz_katilim_orani }}%;"></i></div>
+                </article>
+                <article class="gelisim-devam-item tone-indigo gelisim-devam-pct">
+                    <strong>%{{ gelisim.devam.etut_katilim_orani }}</strong>
+                    <span>Etüt katılım</span>
+                    <div class="gelisim-mini-bar" aria-hidden="true"><i style="width:{{ gelisim.devam.etut_katilim_orani }}%;"></i></div>
+                </article>
+                <article class="gelisim-devam-item tone-rose">
+                    <strong>{{ gelisim.devam.etut_kaçirma }}</strong>
+                    <span>Etüt kaçırma</span>
+                </article>
+            </div>
+        </section>
+        {% endif %}
+
+        {% if gor.dini and gelisim.dini_ilerleme %}
+        <section class="profile-card">
+            <div class="card-heading gelisim-section-head">
+                <div>
+                    <p class="card-kicker">DİNİ EĞİTİM</p>
+                    <h2>İlerleme özeti</h2>
+                </div>
+                {% if talebe.dini_ders_seviyesi_id %}
+                <a href="{% url 'dini_ders_panel' %}?seviye={{ talebe.dini_ders_seviyesi_id }}" class="ghost-btn">Detay</a>
+                {% endif %}
+            </div>
+            <div class="gelisim-progress-list">
+                {% for alan in gelisim.dini_ilerleme %}
+                <div class="gelisim-progress-row">
+                    <span>{{ alan.alan }}</span>
+                    <div class="gelisim-progress-track">
+                        <div class="gelisim-progress-fill" style="width:{{ alan.yuzde }}%;"></div>
+                    </div>
+                    <strong style="font-size:13px;color:#173b80;">{{ alan.tamamlanan }} / {{ alan.toplam }}</strong>
+                </div>
+                {% empty %}
+                <p class="profile-empty">Dini ders ilerleme kaydı yok.</p>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+    </div>
+
+    {% if gor.gorevler %}
+    <section class="profile-card gelisim-panel">
+        <div class="card-heading">
+            <div>
+                <p class="card-kicker">GÖREV GEÇMİŞİ</p>
+                <h2>Kurum içi görevler</h2>
+            </div>
+        </div>
+        <div class="gelisim-tabs gelisim-segment" data-gelisim-tabs role="tablist">
+            <button type="button" class="gelisim-tab-btn is-active" data-tab="temizlik" role="tab">Temizlik</button>
+            <button type="button" class="gelisim-tab-btn" data-tab="yemek" role="tab">Yemekçilik</button>
+        </div>
+        <div class="gelisim-tab-panel is-active" data-panel="temizlik" role="tabpanel">
+            {% for gorev in gelisim.gorevler.temizlik %}
+            <article class="gelisim-list-item">
+                <div class="gelisim-list-main">
+                    <span class="gelisim-list-icon gelisim-list-icon--clean" aria-hidden="true"></span>
+                    <div>
+                        <strong>{{ gorev.baslik }}</strong>
+                        <small>{{ gorev.tarih|date:"d.m.Y" }}</small>
+                    </div>
+                </div>
+                <span class="status-pill status-tamamlandi">{{ gorev.durum }}</span>
+            </article>
+            {% empty %}
+            <div class="gelisim-empty">
+                <span class="gelisim-empty-icon" aria-hidden="true">🧹</span>
+                <strong>Temizlik görevi kaydı yok</strong>
+                <p>Atanan temizlik görevleri burada görünür.</p>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="gelisim-tab-panel" data-panel="yemek" role="tabpanel">
+            {% for gorev in gelisim.gorevler.yemek %}
+            <article class="gelisim-list-item">
+                <div class="gelisim-list-main">
+                    <span class="gelisim-list-icon gelisim-list-icon--food" aria-hidden="true"></span>
+                    <div>
+                        <strong>{{ gorev.baslik }}</strong>
+                        <small>{{ gorev.tarih|date:"d.m.Y" }}</small>
+                    </div>
+                </div>
+                <span class="status-pill status-tamamlandi">{{ gorev.durum }}</span>
+            </article>
+            {% empty %}
+            <div class="gelisim-empty">
+                <span class="gelisim-empty-icon" aria-hidden="true">🍽</span>
+                <strong>Yemekçilik görevi kaydı yok</strong>
+                <p>Yemek servisi görevleri burada görünür.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <div class="gelisim-two-col gelisim-two-col--balanced">
+        {% if gor.notlar %}
+        <section class="profile-card gelisim-panel gelisim-panel--stack">
+            <div class="card-heading">
+                <div>
+                    <p class="card-kicker">PERSONEL NOTLARI</p>
+                    <h2>Özel gözlemler</h2>
+                </div>
+            </div>
+            <div class="gelisim-scroll-list">
+                {% for not in personel_notlari %}
+                <article class="gelisim-note-item">
+                    <div class="gelisim-note-head">
+                        <span class="gelisim-note-badge" aria-hidden="true">📝</span>
+                        <div>
+                            <small>{{ not.olusturulma|date:"d.m.Y H:i" }} · {{ not.yazar.get_full_name|default:"—" }}</small>
+                            <strong>{{ not.baslik }}</strong>
+                        </div>
+                    </div>
+                    <p>{{ not.icerik|linebreaksbr }}</p>
+                </article>
+                {% empty %}
+                <div class="gelisim-empty gelisim-empty--compact">
+                    <span class="gelisim-empty-icon" aria-hidden="true">📝</span>
+                    <strong>Henüz personel notu yok</strong>
+                    <p>İlk gözlemi aşağıdaki formdan ekleyebilirsiniz.</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% if gor.not_ekle %}
+            <form method="post" class="gelisim-compose-form">
+                {% csrf_token %}
+                <input type="hidden" name="aksiyon" value="not_ekle">
+                <div class="gelisim-compose-head">
+                    <span class="gelisim-compose-icon" aria-hidden="true">✏️</span>
+                    <div>
+                        <strong>Yeni not</strong>
+                        <small>Personel gözlemi ekleyin</small>
+                    </div>
+                </div>
+                <div class="gelisim-form-grid gelisim-form-grid--fields">
+                    <div class="exam-field">
+                        <label for="{{ not_form.baslik.id_for_label }}">{{ not_form.baslik.label }}</label>
+                        {{ not_form.baslik }}
+                    </div>
+                    <div class="exam-field exam-field-full">
+                        <label for="{{ not_form.icerik.id_for_label }}">{{ not_form.icerik.label }}</label>
+                        {{ not_form.icerik }}
+                    </div>
+                    <div class="gelisim-check-row">
+                        <label class="gelisim-check" for="{{ not_form.staff_only.id_for_label }}">
+                            {{ not_form.staff_only }} {{ not_form.staff_only.label }}
+                        </label>
+                        <label class="gelisim-check" for="{{ not_form.veliye_goster.id_for_label }}">
+                            {{ not_form.veliye_goster }} {{ not_form.veliye_goster.label }}
+                        </label>
+                    </div>
+                </div>
+                <button type="submit" class="primary-btn gelisim-compose-btn">Not Ekle</button>
+            </form>
+            {% endif %}
+        </section>
+        {% endif %}
+
+        {% if gor.dosyalar %}
+        <section class="profile-card gelisim-panel gelisim-panel--stack">
+            <div class="card-heading">
+                <div>
+                    <p class="card-kicker">DOSYALAR</p>
+                    <h2>Öğrenci evrakları</h2>
+                </div>
+            </div>
+            <div class="gelisim-scroll-list">
+                {% for dosya in dosyalar %}
+                <article class="gelisim-file-item">
+                    <div class="gelisim-file-main">
+                        <span class="gelisim-file-badge" aria-hidden="true">📎</span>
+                        <div>
+                            <strong>{{ dosya.aciklama|default:"Dosya" }}</strong>
+                            <small>{{ dosya.olusturulma|date:"d.m.Y H:i" }} · {{ dosya.yukleyen.get_full_name|default:"—" }}</small>
+                        </div>
+                    </div>
+                    <div class="gelisim-file-actions">
+                        <a href="{{ dosya.dosya.url }}" class="ghost-btn" target="_blank" rel="noopener">Görüntüle</a>
+                        {% if gor.dosya_sil %}
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="aksiyon" value="dosya_sil">
+                            <input type="hidden" name="dosya_id" value="{{ dosya.id }}">
+                            <button type="submit" class="yonetim-link-btn yonetim-link-danger" onclick="return confirm('Dosya silinsin mi?');">Sil</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </article>
+                {% empty %}
+                <div class="gelisim-empty gelisim-empty--compact">
+                    <span class="gelisim-empty-icon" aria-hidden="true">📁</span>
+                    <strong>Yüklenmiş dosya yok</strong>
+                    <p>Veli evrakları ve belgeler burada saklanır.</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% if gor.dosya_yukle %}
+            <form method="post" enctype="multipart/form-data" class="gelisim-compose-form">
+                {% csrf_token %}
+                <input type="hidden" name="aksiyon" value="dosya_yukle">
+                <div class="gelisim-compose-head">
+                    <span class="gelisim-compose-icon" aria-hidden="true">⬆️</span>
+                    <div>
+                        <strong>Dosya yükle</strong>
+                        <small>PDF, görsel veya belge ekleyin</small>
+                    </div>
+                </div>
+                <div class="gelisim-form-grid gelisim-form-grid--fields">
+                    <div class="exam-field exam-field-full">
+                        <label for="{{ dosya_form.dosya.id_for_label }}">{{ dosya_form.dosya.label }}</label>
+                        {{ dosya_form.dosya }}
+                    </div>
+                    <div class="exam-field exam-field-full">
+                        <label for="{{ dosya_form.aciklama.id_for_label }}">{{ dosya_form.aciklama.label }}</label>
+                        {{ dosya_form.aciklama }}
+                    </div>
+                </div>
+                <button type="submit" class="primary-btn gelisim-compose-btn">Dosya Yükle</button>
+            </form>
+            {% endif %}
+        </section>
+        {% endif %}
+    </div>
+
+    {% if gor.gorusmeler %}
+    <section class="profile-card gelisim-panel">
+        <div class="card-heading">
+            <div>
+                <p class="card-kicker">REHBERLİK & GÖRÜŞMELER</p>
+                <h2>Veli ve öğrenci görüşmeleri</h2>
+            </div>
+        </div>
+        {% for gorusme in gelisim.gorusmeler %}
+        <article class="gelisim-gorusme-item">
+            <div class="gelisim-gorusme-main">
+                <span class="gelisim-gorusme-badge" aria-hidden="true">💬</span>
+                <div>
+                    <small>{{ gorusme.tarih|date:"d.m.Y" }} · {{ gorusme.tur }} · {{ gorusme.alan_etiket }}</small>
+                    <strong>{{ gorusme.ozet }}</strong>
+                    {% if gorusme.detay %}<p>{{ gorusme.detay }}</p>{% endif %}
+                    <small class="gelisim-gorusme-author">{{ gorusme.kaydeden }}</small>
+                </div>
+            </div>
+            {% if gorusme.alan == "rehberlik" %}
+            <a href="{% url 'rehberlik_detay' gorusme.pk %}" class="ghost-btn">Detay</a>
+            {% else %}
+            <a href="{% url 'iletisim_detay' gorusme.pk %}" class="ghost-btn">Detay</a>
+            {% endif %}
+        </article>
+        {% empty %}
+        <div class="gelisim-empty">
+            <span class="gelisim-empty-icon" aria-hidden="true">💬</span>
+            <strong>Görüşme kaydı yok</strong>
+            <p>Rehberlik ve iletişim görüşmeleri burada listelenir.</p>
+        </div>
+        {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if gor.deneme_tablo and gelisim.deneme_tablo %}
+    <section class="profile-card">
+        <div class="card-heading gelisim-section-head">
+            <div>
+                <p class="card-kicker">SON DENEME SONUÇLARI</p>
+                <h2>Branş bazlı özet</h2>
+            </div>
+            <a href="?sekme=egitim" class="ghost-btn">Tüm arşiv</a>
+        </div>
+        <div class="gelisim-table-wrap responsive-table">
+            <table class="report-data-table profile-data-table">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Deneme</th>
+                        {% for kod, etiket in gelisim.deneme_tablo.brans_etiketleri.items %}
+                        <th class="num-col">{{ etiket }}</th>
+                        {% endfor %}
+                        <th class="num-col">Net</th>
+                        <th class="num-col">Puan</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for satir in gelisim.deneme_tablo.satirlar %}
+                    <tr>
+                        <td>{{ satir.tarih|date:"d.m.Y" }}</td>
+                        <td><strong>{{ satir.ad }}</strong></td>
+                        {% for net in satir.brans_netleri %}
+                        <td class="num-col">{% if net is not None %}{{ net }}{% else %}—{% endif %}</td>
+                        {% endfor %}
+                        <td class="num-col profile-score">{{ satir.toplam_net }}</td>
+                        <td class="num-col">{{ satir.puan }}</td>
+                        <td><a href="{% url 'deneme_detay' satir.deneme_id %}" class="ghost-btn">Detay</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="12" class="profile-empty">Deneme sonucu yok.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if gor.mudahaleler %}
+    <section class="profile-card">
+        <div class="card-heading gelisim-section-head">
+            <div>
+                <p class="card-kicker">AKADEMİK MÜDAHALELER</p>
+                <h2>Destek ve takip kayıtları</h2>
+            </div>
+            <a href="{% url 'akademik_mudahale_listesi' %}?talebe={{ talebe.id }}" class="ghost-btn">Tümü</a>
+        </div>
+        <div class="gelisim-table-wrap responsive-table">
+            <table class="report-data-table profile-data-table">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Ders</th>
+                        <th>Konu</th>
+                        <th>Tür</th>
+                        <th>Sorumlu</th>
+                        <th>Durum</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in gelisim.mudahaleler %}
+                    <tr>
+                        <td>{{ m.tarih|date:"d.m.Y" }}</td>
+                        <td>{{ m.ders }}</td>
+                        <td>{{ m.konu }}</td>
+                        <td>{{ m.tur }}</td>
+                        <td>{{ m.sorumlu }}</td>
+                        <td>{{ m.durum }}</td>
+                        <td><a href="{% url 'akademik_mudahale_detay' m.pk %}" class="ghost-btn">Detay</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="profile-empty">Müdahale kaydı yok.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if disiplin_kurul_erisim %}
+    <section class="profile-card">
+        <div class="card-heading">
+            <div>
+                <p class="card-kicker">KURUM İÇİ — GİZLİ</p>
+                <h2>Kurul geçmişi</h2>
+            </div>
+        </div>
+        {% for k in kurul_gecmisi %}
+        <article class="gelisim-list-item">
+            <div>
+                <strong style="color:#2563eb;">{{ k.kurul_no }}</strong>
+                <span style="margin-left:8px;color:#718097;">{{ k.tur }}</span><br>
+                <small style="color:#718097;">{{ k.tarih }} · {{ k.karar_sayisi }} karar · {{ k.durum }}</small>
+            </div>
+            <a href="{{ k.url }}" class="ghost-btn">Detay</a>
+        </article>
+        {% empty %}
+        <p class="profile-empty">Kurul kaydı bulunmuyor.</p>
+        {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if gor.timeline %}
+    <section class="profile-card">
+        <div class="card-heading">
+            <div>
+                <p class="card-kicker">ZAMAN ÇİZELGESİ</p>
+                <h2>Son kayıtlar</h2>
+            </div>
+        </div>
+        {% for oge in timeline %}
+        <article class="gelisim-note-item">
+            <small style="color:#718097;">{{ oge.tarih|date:"d.m.Y H:i" }} · {{ oge.kaynak }}</small>
+            <strong style="display:block;margin-top:4px;">{{ oge.baslik }}</strong>
+            <p style="margin:4px 0 0;font-size:13px;color:#4a5568;">{{ oge.ozet }}</p>
+        </article>
+        {% empty %}
+        <p class="profile-empty">Henüz kayıt yok. Modüller eklendikçe zaman çizelgesi dolacak.</p>
+        {% endfor %}
+    </section>
+    {% endif %}
+
+    {% endwith %}
+</div>
+
+<script>
+(function () {
+    var root = document.querySelector("[data-gelisim-tabs]");
+    if (!root) return;
+    var buttons = root.querySelectorAll(".gelisim-tab-btn");
+    var panels = root.parentElement.querySelectorAll(".gelisim-tab-panel");
+    buttons.forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            var tab = btn.getAttribute("data-tab");
+            buttons.forEach(function (b) { b.classList.toggle("is-active", b === btn); });
+            panels.forEach(function (panel) {
+                panel.classList.toggle("is-active", panel.getAttribute("data-panel") === tab);
+            });
+        });
+    });
+})();
+</script>

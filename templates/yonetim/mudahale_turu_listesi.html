@@ -1,0 +1,58 @@
+{% extends "yonetim/base.html" %}
+{% block title %}Müdahale Türleri{% endblock %}
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">AKADEMİK MÜDAHALE</p>
+        <h1>Müdahale Türleri</h1>
+        <p class="muted">Etüt ve gelişim müdahale türlerini yönetin.</p>
+    </div>
+    {% if duzenleyebilir %}
+    <a href="{% url 'yonetim:mudahale_turu_ekle' %}" class="primary-btn">Yeni Tür</a>
+    {% endif %}
+</header>
+
+<section class="report-table-card yonetim-table-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">TÜRLER</p>
+            <h2>Tanımlı Müdahale Türleri</h2>
+        </div>
+        <span class="report-record-count">{{ turler|length }} tür</span>
+    </div>
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <thead>
+                <tr>
+                    <th class="yonetim-center-col">Sıra</th>
+                    <th>Tür</th>
+                    <th>Renk</th>
+                    <th class="yonetim-center-col">Aktif</th>
+                    <th class="yonetim-center-col">Ek Alan</th>
+                    <th class="yonetim-action-col">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tur in turler %}
+                <tr>
+                    <td class="num-col yonetim-center-col">{{ tur.sira }}</td>
+                    <td><strong>{{ tur.ikon }} {{ tur.ad }}</strong></td>
+                    <td><span style="color:{{ tur.renk }}">●</span> {{ tur.renk }}</td>
+                    <td class="yonetim-center-col">{% if tur.aktif %}<span class="status-pill status-okunuyor">Evet</span>{% else %}<span class="status-pill status-iade">Hayır</span>{% endif %}</td>
+                    <td class="num-col yonetim-center-col">{{ tur.form_semasi|length }}</td>
+                    <td class="yonetim-action-col">
+                        {% if duzenleyebilir %}
+                        <a href="{% url 'yonetim:mudahale_turu_duzenle' tur.pk %}" class="yonetim-link">Düzenle</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="report-empty">Tür tanımlı değil.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

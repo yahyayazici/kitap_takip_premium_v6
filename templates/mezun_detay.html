@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ profil.talebe.ad_soyad }} · Mezun{% endblock %}
+{% block content %}
+<header class="page-head patterned-page-head">
+    <div>
+        <p class="kicker">MEZUN</p>
+        <h1>{{ profil.talebe.ad_soyad }}</h1>
+        <p class="muted">Mezun profil detayı.</p>
+    </div>
+    <div class="page-head-actions">
+        <a href="{% url 'mezun_listesi' %}" class="ghost-btn">← Mezunlar</a>
+    </div>
+</header>
+
+<section class="dashboard-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">PROFİL</p>
+            <h2>Mezuniyet Bilgileri</h2>
+        </div>
+    </div>
+    <dl class="detail-grid">
+        <dt>Mezuniyet tarihi</dt><dd>{{ profil.mezuniyet_tarihi|date:"d.m.Y"|default:"—" }}</dd>
+        <dt>Mezuniyet yılı</dt><dd>{{ profil.mezuniyet_yili|default:"—" }}</dd>
+        <dt>Dönem</dt><dd>{{ profil.donem|default:"—" }}</dd>
+        <dt>Yerleştiği lise</dt><dd>{{ profil.yerlestigi_lise|default:"—" }}</dd>
+        <dt>LGS puanı / sıra</dt><dd>{% if profil.lgs_puani %}{{ profil.lgs_puani }}{% if profil.lgs_sira %} ({{ profil.lgs_sira }}){% endif %}{% else %}—{% endif %}</dd>
+        <dt>YKS puanı</dt><dd>{{ profil.yks_puani|default:"—" }}</dd>
+        <dt>Telefon</dt><dd>{{ profil.iletisim_telefon|default:"—" }}</dd>
+        <dt>E-posta</dt><dd>{{ profil.iletisim_eposta|default:"—" }}</dd>
+        <dt>Adres</dt><dd>{{ profil.iletisim_adres|default:"—"|linebreaksbr }}</dd>
+        <dt>Notlar</dt><dd>{{ profil.notlar|default:"—"|linebreaksbr }}</dd>
+    </dl>
+</section>
+{% endblock %}

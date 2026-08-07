@@ -1,0 +1,23 @@
+{% extends "yonetim/base.html" %}
+{% load static %}
+{% block title %}{{ baslik }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}">
+{% endblock %}
+{% block content %}
+<div class="yonetim-page dd-yonetim-page">
+    {% include "includes/dini_ders_yonetim_shell.html" %}
+
+    <section class="dd-card">
+        <div class="dd-panel-head"><h2>{{ baslik }}</h2></div>
+        <form method="post" class="yonetim-form">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="dd-form-actions">
+                <button type="submit" class="dd-btn dd-btn-primary">Kaydet</button>
+                <a href="{% url 'yonetim:dini_ders_konu_listesi' %}" class="dd-btn">İptal</a>
+            </div>
+        </form>
+    </section>
+</div>
+{% endblock %}

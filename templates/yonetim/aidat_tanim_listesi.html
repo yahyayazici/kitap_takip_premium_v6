@@ -1,0 +1,44 @@
+{% extends "yonetim/base.html" %}
+{% block title %}Aidat Tanımları{% endblock %}
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">AİDAT</p>
+        <h1>Aidat Tanımları</h1>
+        <p class="muted">Eğitim yılı bazlı aidat tanımları ve tutarlar.</p>
+    </div>
+    <div class="yonetim-page-head-actions">
+        {% if duzenleyebilir %}<a href="{% url 'yonetim:aidat_tanim_ekle' %}" class="primary-btn">Yeni Tanım</a>{% endif %}
+    </div>
+</header>
+
+<section class="report-table-card yonetim-table-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">TANIMLAR</p>
+            <h2>Aidat Listesi</h2>
+        </div>
+    </div>
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <thead><tr><th>Ad</th><th>Eğitim Yılı</th><th>Tutar</th><th>Vade</th><th>Aktif</th><th class="yonetim-action-col">İşlem</th></tr></thead>
+            <tbody>
+                {% for t in tanimlar %}
+                <tr>
+                    <td><strong>{{ t.ad }}</strong></td>
+                    <td>{{ t.egitim_yili.ad }}</td>
+                    <td>{{ t.tutar }} ₺</td>
+                    <td>{{ t.vade|date:"d.m.Y" }}</td>
+                    <td>{% if t.aktif %}Evet{% else %}Hayır{% endif %}</td>
+                    <td class="yonetim-action-col">{% if duzenleyebilir %}<a href="{% url 'yonetim:aidat_tanim_duzenle' t.pk %}" class="yonetim-link">Düzenle</a>{% endif %}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="report-empty">Tanım yok.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

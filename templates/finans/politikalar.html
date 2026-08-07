@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load static finans_extras %}
+{% block title %}Ücret Politikaları · Finans · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/finans-premium.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="fn-page">
+
+<header class="fn-head">
+    <div>
+        <p class="fn-crumb"><a href="{% url 'finans_panel' %}">Finans Yönetimi</a> › Ücret Politikaları</p>
+        <h1>Ücret Politikaları</h1>
+        <p class="fn-sub">Eğitim yılı bazında sınıf ücretlerini tanımlayın. Yeni yıl geldiğinde tek tıkla kopyalayın.</p>
+    </div>
+    <div class="fn-head-actions">
+        <a href="{% url 'finans_indirimler' %}" class="fn-btn">İndirimler</a>
+        <a href="{% url 'finans_panel' %}" class="fn-btn">← Panele Dön</a>
+    </div>
+</header>
+
+<div class="fn-filters">
+    <form method="get">
+        <select name="yil" class="fn-select" onchange="this.form.submit()">
+            {% for y in yillar %}
+            <option value="{{ y.pk }}" {% if secili_yil and secili_yil.pk == y.pk %}selected{% endif %}>{{ y.ad }}</option>
+            {% endfor %}
+        </select>
+    </form>
+    {% if secili_yil and yillar|length > 1 %}
+    <form method="post" class="fn-filters">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="kopyala">
+        <select name="hedef_yil" class="fn-select" required>
+            <option value="">Yeni yıla kopyala...</option>
+            {% for y in yillar %}
+            {% if not secili_yil or y.pk != secili_yil.pk %}
+            <option value="{{ y.pk }}">{{ y.ad }}</option>
+            {% endif %}
+            {% endfor %}
+        </select>
+        <button type="submit" class="fn-btn fn-btn-primary fn-btn-sm">Tek Tıkla Kopyala</button>
+    </form>
+    {% endif %}
+</div>
+
+{% if secili_yil %}
+<div class="fn-discount-grid">
+    {% for p in politikalar %}
+    <article class="fn-discount-card">
+        <h3>{{ p.etiket }}</h3>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="kaydet">
+            <input type="hidden" name="sinif_seviyesi" value="{{ p.sinif_seviyesi }}">
+            <div class="fn-discount-value">
+                <input type="number" name="tutar" value="{{ p.tutar }}" step="0.01" class="fn-input" style="font-size:1.2rem;font-weight:700;border:0;padding:0;width:100%">
+            </div>
+            <label style="display:flex;align-items:center;gap:0.4rem;font-size:0.8125rem;margin:0.5rem 0">
+                <input type="checkbox" name="aktif" {% if p.aktif %}checked{% endif %}> Aktif
+            </label>
+            <button type="submit" class="fn-btn fn-btn-sm fn-btn-primary">Kaydet</button>
+        </form>
+    </article>
+    {% endfor %}
+</div>
+{% else %}
+<p class="fn-empty">Eğitim yılı seçin.</p>
+{% endif %}
+
+</div>
+{% endblock %}

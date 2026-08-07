@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static finans_extras %}
+{% block title %}Finans Raporları · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/finans-premium.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="fn-page">
+
+<header class="fn-head">
+    <div>
+        <p class="fn-crumb"><a href="{% url 'finans_panel' %}">Finans Yönetimi</a> › Raporlar</p>
+        <h1>Finans Raporları</h1>
+        <p class="fn-sub">Öğrenci, sınıf ve ödeme durumuna göre filtreleyerek PDF veya Excel çıktısı alın.</p>
+    </div>
+    <div class="fn-head-actions">
+        <a href="{% url 'finans_panel' %}" class="fn-btn">← Panele Dön</a>
+    </div>
+</header>
+
+<div class="fn-kpi-grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+    <article class="fn-kpi">
+        <span class="fn-kpi-icon">#</span>
+        <strong class="fn-kpi-value">{{ dosya_sayisi }}</strong>
+        <span class="fn-kpi-label">Finans Dosyası</span>
+    </article>
+    <article class="fn-kpi fn-kpi--green">
+        <span class="fn-kpi-icon">✓</span>
+        <strong class="fn-kpi-value">{{ ozet.tahsil_edilen|para }}</strong>
+        <span class="fn-kpi-label">Toplam Tahsilat</span>
+    </article>
+    <article class="fn-kpi fn-kpi--orange">
+        <span class="fn-kpi-icon">◷</span>
+        <strong class="fn-kpi-value">{{ ozet.bekleyen|para }}</strong>
+        <span class="fn-kpi-label">Bekleyen</span>
+    </article>
+</div>
+
+<section class="fn-card">
+    <div class="fn-section-head"><h3>Rapor Filtreleri</h3></div>
+    <form method="get" class="fn-filters">
+        <input type="search" name="q" placeholder="Öğrenci ara..." class="fn-input">
+        <select name="sinif" class="fn-select">
+            <option value="">Sınıf</option>
+            {% for ss in sinif_subeler %}
+            <option value="{{ ss.pk }}">{{ ss }}</option>
+            {% endfor %}
+        </select>
+        <select name="durum" class="fn-select">
+            <option value="">Ödeme durumu</option>
+            {% for kod, etiket in durum_secenekleri %}
+            <option value="{{ kod }}">{{ etiket }}</option>
+            {% endfor %}
+        </select>
+        <input type="date" name="baslangic" class="fn-input">
+        <input type="date" name="bitis" class="fn-input">
+        <button type="submit" class="fn-btn fn-btn-sm">Filtrele</button>
+    </form>
+    <div class="fn-head-actions" style="margin-top:1rem">
+        <button type="button" class="fn-btn fn-btn-primary" disabled title="Yakında">PDF İndir</button>
+        <button type="button" class="fn-btn" disabled title="Yakında">Excel İndir</button>
+    </div>
+    <p class="fn-sub" style="margin-top:1rem">PDF ve Excel dışa aktarma bir sonraki sürümde eklenecektir. Filtreler ana panel ile aynı veri kümesini kullanır.</p>
+</section>
+
+</div>
+{% endblock %}

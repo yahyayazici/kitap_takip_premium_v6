@@ -1,0 +1,64 @@
+{% load static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>KTT Raporu</title>
+    <style>
+        @page { size: A4 landscape; margin: 12mm; }
+        body { font-family: sans-serif; font-size: 9px; color: #334155; }
+        h1 { font-size: 16px; margin: 0 0 8px; color: #0f172a; }
+        .meta { margin-bottom: 12px; color: #64748b; }
+        .kpi { display: flex; gap: 12px; margin-bottom: 14px; }
+        .kpi div { flex: 1; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px; }
+        .kpi strong { display: block; font-size: 14px; color: #0f172a; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #e2e8f0; padding: 5px 6px; text-align: left; }
+        th { background: #f8fafc; font-size: 8px; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+    <h1>KTT Raporlama & Analiz</h1>
+    <p class="meta">{{ panel_name }} · Kazanım Tarama Testi Sonuç Özeti</p>
+
+    <div class="kpi">
+        <div><span>Toplam Sonuç</span><strong>{{ istatistik.toplam_sonuc }}</strong></div>
+        <div><span>Ort. Puan</span><strong>{{ istatistik.ortalama_puan }}</strong></div>
+        <div><span>Ort. Net</span><strong>{{ istatistik.ortalama_net }}</strong></div>
+        <div><span>En Yüksek Puan</span><strong>{{ istatistik.en_yuksek_puan }}</strong></div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Tarih</th>
+                <th>KTT</th>
+                <th>Öğrenci</th>
+                <th>Sınıf</th>
+                <th>Ders</th>
+                <th>D</th>
+                <th>Y</th>
+                <th>B</th>
+                <th>Net</th>
+                <th>Puan</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in sonuclar %}
+            <tr>
+                <td>{{ s.ktt.sinav_tarihi|date:"d.m.Y" }}</td>
+                <td>{{ s.ktt.ad }}</td>
+                <td>{{ s.talebe.ad_soyad }}</td>
+                <td>{{ s.talebe.sinif_sube|default:s.ktt.sinif_goster }}</td>
+                <td>{{ s.ktt.ders.ad }}</td>
+                <td>{{ s.dogru }}</td>
+                <td>{{ s.yanlis }}</td>
+                <td>{{ s.bos }}</td>
+                <td>{{ s.net }}</td>
+                <td>{{ s.puan }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

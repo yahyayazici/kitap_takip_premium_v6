@@ -1,26 +1,476 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}{{ talebe.ad_soyad }}{% endblock %}
 
-{% block content %}
+{% block extra_css %}
+{% if gelisim_erisim and aktif_sekme == 'gelisim' %}
+<link rel="stylesheet" href="{% static 'css/gelisim-dosyasi.css' %}">
+{% endif %}
+{% endblock %}
 
-<div class="page-head">
-    <div>
-        <p class="kicker">TALEBE PROFİLİ</p>
-        <h1>{{ talebe.ad_soyad }}</h1>
-        <p class="muted">
-            {{ talebe.sinif }}/{{ talebe.sube }}
-        </p>
+{% block content %}
+<div class="profile-page">
+
+    <header class="page-head patterned-page-head profile-head">
+        <div class="profile-head-main">
+            <div class="profile-avatar">{{ talebe.ad_soyad|slice:":1" }}</div>
+            <div>
+                <p class="kicker">TALEBE PROFİLİ</p>
+                <h1>{{ talebe.ad_soyad }}</h1>
+                <p class="profile-meta">
+                    {% if talebe.sinif_sube %}
+                        <span>{{ talebe.sinif_sube }}</span>
+                    {% else %}
+                        <span>{{ talebe.sinif }}{% if talebe.sube %} / {{ talebe.sube }}{% endif %}</span>
+                    {% endif %}
+                    <span class="profile-meta-dot">·</span>
+                    <span>No: {{ talebe.talebe_no|default:"—" }}</span>
+                    <span class="profile-meta-dot">·</span>
+                    <span>Etüt: {{ talebe.etut_hocasi.ad_soyad }}</span>
+                    {% if not talebe.zimmet_hocalari_ayni %}
+                    <span class="profile-meta-dot">·</span>
+                    <span>Dini Ders: {{ talebe.dini_ders_hocasi.ad_soyad }}</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        <div class="profile-head-actions">
+            {% if talebe.durum == "aktif" %}
+                <span class="status-pill status-okunuyor">Aktif Talebe</span>
+            {% elif talebe.durum == "mezun" %}
+                <span class="status-pill status-tamamlandi">Mezun</span>
+                {% if mezun_profil %}
+                <a href="{% url 'mezun_detay' mezun_profil.pk %}" class="ghost-btn">Mezun Profili</a>
+                {% endif %}
+            {% else %}
+                <span class="status-pill status-iade">{{ talebe.get_durum_display }}</span>
+            {% endif %}
+            {% if mezun_etkin %}
+            <a href="{% url 'mezun_ekle' %}?talebe={{ talebe.pk }}" class="primary-btn">Mezun Et</a>
+            {% endif %}
+            <a href="{% url 'talebe_profil_karne_pdf' talebe.id %}" class="primary-btn" target="_blank" rel="noopener">Kitap Karnesi PDF</a>
+            <a href="{% url 'talebe_listesi' %}" class="ghost-btn">Talebe Listesine Dön</a>
+        </div>
+    </header>
+
+    {% if gelisim_erisim %}
+    <nav class="profile-tab-nav" style="display:flex;gap:8px;margin-bottom:8px;">
+        <a href="?sekme=egitim" class="ghost-btn"{% if aktif_sekme == 'egitim' %} style="background:#eef3ff;color:#173b80;"{% endif %}>Eğitim & Kitap</a>
+        <a href="?sekme=gelisim" class="ghost-btn"{% if aktif_sekme == 'gelisim' %} style="background:#eef3ff;color:#173b80;"{% endif %}>Gelişim Dosyası</a>
+        <a href="?sekme=kimlik" class="ghost-btn"{% if aktif_sekme == 'kimlik' %} style="background:#eef3ff;color:#173b80;"{% endif %}>Kimlik & Veli</a>
+    </nav>
+    {% endif %}
+
+    {% if aktif_sekme == 'egitim' or not gelisim_erisim %}
+
+    <section class="metric-grid profile-metrics">
+        <p class="card-kicker" style="grid-column:1/-1;margin:0 0 4px;">KİTAP KARNESİ</p>
+        <article class="metric-card tone-blue">
+            <span>TOPLAM OKUNAN</span>
+            <strong>{{ toplam_okunan|default:0 }}</strong>
+            <small>Sayfa</small>
+        </article>
+        <article class="metric-card tone-green">
+            <span>KİTAP ZİMMETİ</span>
+            <strong>{{ zimmetler|length }}</strong>
+            <small>Toplam kayıt</small>
+        </article>
+        <article class="metric-card tone-orange">
+            <span>OKUMA KAYDI</span>
+            <strong>{{ kayitlar|length }}</strong>
+            <small>Günlük giriş</small>
+        </article>
+        <article class="metric-card tone-purple">
+            <span>SINAV SONUCU</span>
+            <strong>{{ sinav_sonuclari|length }}</strong>
+            <small>Toplam sınav</small>
+        </article>
+    </section>
+
+    {% for z in zimmetler %}
+        {% if z.durum == "okunuyor" %}
+        {% widthratio z.okunan_toplam z.kitap.toplam_sayfa 100 as aktif_yuzde %}
+        <section class="profile-active-card">
+            <div class="profile-active-copy">
+                <p class="card-kicker">AKTİF KİTAP</p>
+                <h2>{{ z.kitap.ad }}</h2>
+                <p class="profile-active-meta">
+                    {{ z.okunan_toplam }} / {{ z.kitap.toplam_sayfa }} sayfa okundu
+                    · Zimmet: {{ z.zimmet_tarihi|date:"d.m.Y" }}
+                </p>
+            </div>
+            <div class="profile-active-progress">
+                <div class="profile-progress-label">
+                    <span>İlerleme</span>
+                    <strong>%{{ aktif_yuzde }}</strong>
+                </div>
+                <div class="profile-progress-track">
+                    <div class="profile-progress-fill" style="width: {{ aktif_yuzde }}%;"></div>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+    {% endfor %}
+
+    <div class="profile-main-grid">
+        <section class="profile-card">
+            <div class="card-heading">
+                <div>
+                    <p class="card-kicker">KİTAP GEÇMİŞİ</p>
+                    <h2>Zimmet Kayıtları</h2>
+                </div>
+                <span class="report-record-count">{{ zimmetler|length }} kitap</span>
+            </div>
+            <div class="responsive-table">
+                <table class="report-data-table profile-data-table">
+                    <thead>
+                        <tr>
+                            <th>Kitap</th>
+                            <th>Durum</th>
+                            <th>Okunan</th>
+                            <th>Toplam</th>
+                            <th>İlerleme</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for z in zimmetler %}
+                        {% widthratio z.okunan_toplam z.kitap.toplam_sayfa 100 as z_yuzde %}
+                        <tr>
+                            <td>
+                                <strong>{{ z.kitap.ad }}</strong>
+                                <small>{{ z.zimmet_tarihi|date:"d.m.Y" }}</small>
+                            </td>
+                            <td>
+                                <span class="status-pill status-{{ z.durum }}">{{ z.get_durum_display }}</span>
+                            </td>
+                            <td class="num-col">{{ z.okunan_toplam }}</td>
+                            <td class="num-col">{{ z.kitap.toplam_sayfa }}</td>
+                            <td>
+                                <div class="profile-mini-progress">
+                                    <div class="profile-mini-fill" style="width: {{ z_yuzde }}%;"></div>
+                                </div>
+                                <small class="profile-mini-label">%{{ z_yuzde }}</small>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="report-empty">Henüz kitap zimmeti bulunmuyor.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="profile-card">
+            <div class="card-heading">
+                <div>
+                    <p class="card-kicker">GÜNLÜK OKUMA</p>
+                    <h2>Son Kayıtlar</h2>
+                </div>
+                <span class="report-record-count">{{ kayitlar|length }} kayıt</span>
+            </div>
+            <div class="profile-reading-list">
+                {% for kayit in kayitlar|slice:":8" %}
+                <article class="profile-reading-row">
+                    <div class="profile-reading-date">
+                        <strong>{{ kayit.tarih|date:"d" }}</strong>
+                        <span>{{ kayit.tarih|date:"M Y" }}</span>
+                    </div>
+                    <div class="profile-reading-copy">
+                        <strong>{{ kayit.zimmet.kitap.ad }}</strong>
+                        <small>Sayfa {{ kayit.son_sayfa }} · +{{ kayit.okunan_miktar }} sayfa</small>
+                    </div>
+                    <span class="profile-reading-badge">+{{ kayit.okunan_miktar }}</span>
+                </article>
+                {% empty %}
+                <div class="profile-empty">Okuma kaydı bulunmuyor.</div>
+                {% endfor %}
+            </div>
+        </section>
     </div>
 
-    <a href="{% url 'talebe_listesi' %}" class="ghost-btn">
-        Talebe Listesine Dön
-    </a>
+    <section class="profile-card profile-exam-card">
+        <div class="card-heading">
+            <div>
+                <p class="card-kicker">SINAV PERFORMANSI</p>
+                <h2>Sınav Sonuçları</h2>
+            </div>
+            <span class="report-record-count">{{ sinav_sonuclari|length }} sınav</span>
+        </div>
+        <div class="responsive-table">
+            <table class="report-data-table profile-data-table">
+                <thead>
+                    <tr>
+                        <th>Sınav</th>
+                        <th>Kitap</th>
+                        <th>Tarih</th>
+                        <th>Doğru</th>
+                        <th>Yanlış</th>
+                        <th>Boş</th>
+                        <th>Puan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sonuc in sinav_sonuclari %}
+                    <tr>
+                        <td><strong>{{ sonuc.sinav.ad }}</strong></td>
+                        <td>{{ sonuc.sinav.kitap.ad }}</td>
+                        <td>{{ sonuc.sinav.sinav_tarihi|date:"d.m.Y" }}</td>
+                        <td class="num-col">{{ sonuc.dogru }}</td>
+                        <td class="num-col">{{ sonuc.yanlis }}</td>
+                        <td class="num-col">{{ sonuc.bos }}</td>
+                        <td class="num-col profile-score">{{ sonuc.puan|floatformat:2 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="report-empty">Sınav sonucu bulunmuyor.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    {% if ktt_sonuclari %}
+    <section class="profile-card profile-exam-card">
+        <div class="card-heading">
+            <div>
+                <p class="card-kicker">KTT SONUÇLARI</p>
+                <h2>Kazanım Tarama Testleri</h2>
+            </div>
+            <span class="report-record-count">{{ ktt_sonuclari|length }} kayıt</span>
+        </div>
+        <div class="responsive-table">
+            <table class="report-data-table profile-data-table">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>KTT</th>
+                        <th>Ders</th>
+                        <th>D</th>
+                        <th>Y</th>
+                        <th>B</th>
+                        <th>Net</th>
+                        <th>Puan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sonuc in ktt_sonuclari %}
+                    <tr>
+                        <td>{{ sonuc.ktt.sinav_tarihi|date:"d.m.Y" }}</td>
+                        <td><strong>{{ sonuc.ktt.ad }}</strong></td>
+                        <td>{{ sonuc.ktt.ders.ad }}</td>
+                        <td class="num-col">{{ sonuc.dogru }}</td>
+                        <td class="num-col">{{ sonuc.yanlis }}</td>
+                        <td class="num-col">{{ sonuc.bos }}</td>
+                        <td class="num-col">{{ sonuc.net }}</td>
+                        <td class="num-col profile-score">{{ sonuc.puan }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if soru_kayitlari %}
+    <section class="profile-card profile-exam-card">
+        <div class="card-heading">
+            <div>
+                <p class="card-kicker">GÜNLÜK SORU TAKİP</p>
+                <h2>Son Kayıtlar</h2>
+            </div>
+            <span class="report-record-count">{{ soru_kayitlari|length }} kayıt</span>
+        </div>
+        <div class="responsive-table">
+            <table class="report-data-table profile-data-table">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Toplam Soru</th>
+                        <th>Net</th>
+                        <th>Başarı</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for kayit in soru_kayitlari %}
+                    <tr>
+                        <td>{{ kayit.tarih|date:"d.m.Y" }}</td>
+                        <td class="num-col">{{ kayit.toplam_soru }}</td>
+                        <td class="num-col">{{ kayit.toplam_net }}</td>
+                        <td class="num-col">%{{ kayit.basari_orani }}</td>
+                        <td><a href="{% url 'soru_takip_detay' kayit.pk %}" class="ghost-btn">Detay</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if akademik_ozet.toplam %}
+    <section class="profile-card profile-exam-card">
+        <div class="card-heading">
+            <div>
+                <p class="card-kicker">AKADEMİK MÜDAHALE ÖZETİ</p>
+                <h2>Gelişim Takibi</h2>
+            </div>
+            <a href="{% url 'akademik_mudahale_listesi' %}?talebe={{ talebe.id }}" class="ghost-btn">Tümü</a>
+        </div>
+        <div class="daily-stat-grid" style="margin-bottom:16px;">
+            <article class="daily-stat-card"><div><span>TOPLAM</span><strong>{{ akademik_ozet.toplam }}</strong></div></article>
+            <article class="daily-stat-card"><div><span>BU AY</span><strong>{{ akademik_ozet.bu_ay }}</strong></div></article>
+            <article class="daily-stat-card"><div><span>GEÇEN AY</span><strong>{{ akademik_ozet.gecen_ay }}</strong></div></article>
+            <article class="daily-stat-card"><div><span>EN ÇOK DERS</span><strong>{{ akademik_ozet.en_cok_ders|default:"—" }}</strong></div></article>
+        </div>
+        {% if akademik_mudahaleler %}
+        <div class="responsive-table">
+            <table class="report-data-table profile-data-table">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Tür</th>
+                        <th>Ders</th>
+                        <th>Konu</th>
+                        <th>Süre</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in akademik_mudahaleler %}
+                    <tr>
+                        <td>{{ m.tarih|date:"d.m.Y" }}</td>
+                        <td>{{ m.mudahale_turu.ikon }} {{ m.mudahale_turu.ad }}</td>
+                        <td>{{ m.ders.ad|default:"—" }}</td>
+                        <td>{{ m.konu|default:"—" }}</td>
+                        <td class="num-col">{% if m.sure_dakika %}{{ m.sure_dakika }} dk{% else %}—{% endif %}</td>
+                        <td><a href="{% url 'akademik_mudahale_detay' m.pk %}" class="ghost-btn">Detay</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </section>
+    {% endif %}
+
+    {% if dini_ders_ozet %}
+    <section class="profile-card profile-exam-card">
+        <div class="card-heading">
+            <div>
+                <p class="card-kicker">DİNİ DERS TAKİP</p>
+                <h2>İlerleme Özeti</h2>
+            </div>
+            <a href="{% url 'dini_ders_panel' %}?seviye={{ talebe.dini_ders_seviyesi_id }}" class="ghost-btn">Çizelge</a>
+        </div>
+        <div class="daily-stat-grid" style="margin-bottom:0;">
+            {% for oge in dini_ders_ozet %}
+            <article class="daily-stat-card">
+                <div>
+                    <span>{{ oge.alan|upper }}</span>
+                    <strong>{{ oge.tamamlanan }}/{{ oge.toplam }}</strong>
+                    <small>%{{ oge.yuzde }}</small>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if deneme_sonuclari %}
+    <section class="profile-card profile-exam-card">
+        <div class="card-heading">
+            <div>
+                <p class="card-kicker">DENEME ARŞİVİ</p>
+                <h2>Deneme Sonuçları</h2>
+            </div>
+            <span class="report-record-count">{{ deneme_sonuclari|length }} kayıt</span>
+        </div>
+        <div class="responsive-table">
+            <table class="report-data-table profile-data-table">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Deneme</th>
+                        <th>Toplam Net</th>
+                        <th>Puan</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sonuc in deneme_sonuclari %}
+                    <tr>
+                        <td>{{ sonuc.deneme.sinav_tarihi|date:"d.m.Y" }}</td>
+                        <td><strong>{{ sonuc.deneme.ad }}</strong></td>
+                        <td class="num-col profile-score">{{ sonuc.toplam_net }}</td>
+                        <td class="num-col">{{ sonuc.puan }}</td>
+                        <td><a href="{% url 'deneme_detay' sonuc.deneme_id %}" class="ghost-btn">Sıralama</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+
+    {% endif %}
+
+    {% if gelisim_erisim and aktif_sekme == 'gelisim' %}
+    {% include "includes/gelisim_dosyasi.html" %}
+    {% endif %}
+
+    {% if gelisim_erisim and aktif_sekme == 'kimlik' %}
+    <section class="profile-card">
+        <div class="card-heading">
+            <div>
+                <p class="card-kicker">KİMLİK</p>
+                <h2>Öğrenci Bilgileri</h2>
+            </div>
+        </div>
+        <dl style="display:grid;grid-template-columns:160px 1fr;gap:8px 16px;font-size:14px;">
+            <dt>Durum</dt><dd>{{ talebe.get_durum_display }}</dd>
+            <dt>Doğum tarihi</dt><dd>{{ talebe.dogum_tarihi|date:"d.m.Y"|default:"—" }}</dd>
+            <dt>Telefon</dt><dd>{{ talebe.telefon|default:"—" }}</dd>
+            <dt>E-posta</dt><dd>{{ talebe.eposta|default:"—" }}</dd>
+            <dt>Dini ders seviyesi</dt><dd>{{ talebe.dini_ders_seviyesi|default:"—" }}</dd>
+        </dl>
+    </section>
+    <section class="profile-card">
+        <div class="card-heading">
+            <div>
+                <p class="card-kicker">VELİ</p>
+                <h2>İletişim Kişileri</h2>
+            </div>
+        </div>
+        <div class="responsive-table">
+            <table class="report-data-table profile-data-table">
+                <thead>
+                    <tr>
+                        <th>Yakınlık</th>
+                        <th>Ad Soyad</th>
+                        <th>Telefon</th>
+                        <th>E-posta</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for veli in veli_kisileri %}
+                    <tr>
+                        <td>{{ veli.get_yakinlik_display }}{% if veli.birincil %} ★{% endif %}</td>
+                        <td>{{ veli.ad_soyad }}</td>
+                        <td>{{ veli.telefon|default:"—" }}</td>
+                        <td>{{ veli.eposta|default:"—" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="report-empty">Veli kaydı yok — yönetim panelinden eklenebilir.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+
 </div>
-
-<section class="panel">
-    <h2>Profil kontrolü</h2>
-    <p>Toplam okunan: {{ toplam_okunan|default:0 }} sayfa</p>
-</section>
-
 {% endblock %}

@@ -1,0 +1,49 @@
+{% load static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>{{ program.ad }} · Dershane Programı</title>
+    <style>
+        @page { size: A4 landscape; margin: 10mm 12mm; }
+        body { font-family: "Poppins", sans-serif; font-size: 8px; color: #546173; margin: 0; }
+        h1 { margin: 0; font-size: 16px; color: #10213d; }
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+        th, td { border: 1px solid #e3eaf3; padding: 5px 6px; text-align: center; vertical-align: top; }
+        th { background: #f3f7fc; color: #173b80; font-size: 7px; text-transform: uppercase; }
+        .merged { background: #ecfdf5; font-weight: 600; letter-spacing: 0.04em; }
+        .merged-yemek { background: #fff7ed; }
+    </style>
+</head>
+<body>
+    <h1>{{ program.ad }}</h1>
+    <p>{{ program.tarih_araligi_goster }} · {{ gun_adi }}</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Saat</th>
+                {% for grup in gruplar %}
+                <th>{{ grup.etiket }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for satir in matris %}
+            {% if satir.birlestirilmis %}
+            <tr>
+                <td>{{ satir.saat }}</td>
+                <td colspan="{{ gruplar|length }}" class="merged {% if satir.tur == 'yemek' %}merged-yemek{% endif %}">{{ satir.birlestirilmis_metin }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td>{{ satir.saat }}</td>
+                {% for hucre in satir.hucreler %}
+                <td>{% if not hucre.bos %}<strong>{{ hucre.ders }}</strong><br>{{ hucre.ogretmen }}{% endif %}</td>
+                {% endfor %}
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

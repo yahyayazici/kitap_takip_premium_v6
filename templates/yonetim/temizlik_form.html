@@ -1,0 +1,130 @@
+{% extends "yonetim/base.html" %}
+{% load static %}
+
+{% block title %}{{ liste.ad }} · Düzenle{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/temizlik-premium.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">TEMİZLİK DÜZENLEME</p>
+        <h1>{{ liste.ad }}</h1>
+        <p class="muted">Talebe havuzunu güncelleyin; kat ve mahalleri görev panelinden yönetin.</p>
+    </div>
+    <div class="yonetim-page-head-actions">
+        <a href="{% url 'yonetim:temizlik_gorev_panel' liste.pk %}" class="primary-btn">Görev Yönetimi</a>
+        <a href="{% url 'yonetim:temizlik_pdf' liste.pk %}" class="ghost-btn yonetim-head-ghost" target="_blank">PDF İndir</a>
+        <a href="{% url 'yonetim:temizlik_listesi' %}" class="ghost-btn">Listeye Dön</a>
+    </div>
+</header>
+
+<form method="post" class="program-edit-form">
+    {% csrf_token %}
+
+    <section class="dashboard-card yonetim-form-card tz-form-page">
+        <div class="card-heading"><div><p class="card-kicker">LİSTE BİLGİSİ</p><h2>Genel Ayarlar</h2></div></div>
+        {% if form.non_field_errors %}<div class="yonetim-form-errors">{{ form.non_field_errors }}</div>{% endif %}
+
+        <div class="yonetim-form-grid">
+            <div class="yonetim-field">
+                <label for="{{ form.ad.id_for_label }}">{{ form.ad.label }}</label>
+                <div class="yonetim-field-control">{{ form.ad }}</div>
+            </div>
+            <div class="yonetim-field">
+                <label for="{{ form.baslangic_tarihi.id_for_label }}">{{ form.baslangic_tarihi.label }}</label>
+                <div class="yonetim-field-control">{{ form.baslangic_tarihi }}</div>
+            </div>
+            <div class="yonetim-field">
+                <label for="{{ form.bitis_tarihi.id_for_label }}">{{ form.bitis_tarihi.label }}</label>
+                <div class="yonetim-field-control">{{ form.bitis_tarihi }}</div>
+            </div>
+        </div>
+
+        <div class="tz-inline-toggles yonetim-field-full">
+            <label class="tz-toggle-chip">{{ form.cumartesi_dahil }} {{ form.cumartesi_dahil.label }}</label>
+            <label class="tz-toggle-chip">{{ form.pazar_dahil }} {{ form.pazar_dahil.label }}</label>
+            <label class="tz-toggle-chip">{{ form.aktif }} {{ form.aktif.label }}</label>
+        </div>
+
+        <div class="yonetim-field yonetim-field-full">
+            <label for="{{ form.haric_tarihler_metin.id_for_label }}">{{ form.haric_tarihler_metin.label }}</label>
+            <div class="yonetim-field-control">{{ form.haric_tarihler_metin }}</div>
+            {% if form.haric_tarihler_metin.help_text %}<p class="muted yonetim-field-help">{{ form.haric_tarihler_metin.help_text }}</p>{% endif %}
+        </div>
+
+        <div class="yonetim-field yonetim-field-full">
+            <div class="tz-field-head">
+                <label for="{{ form.talebe_havuzu.id_for_label }}">{{ form.talebe_havuzu.label }}</label>
+                <button type="button" class="tz-link-btn" data-select-all="talebe_havuzu">Tümünü seç</button>
+            </div>
+            {% if form.talebe_havuzu.help_text %}<p class="muted yonetim-field-help">{{ form.talebe_havuzu.help_text }}</p>{% endif %}
+            <div class="tz-select-grid" data-chip-group="talebe_havuzu">
+                <div class="yonetim-field-control">{{ form.talebe_havuzu }}</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="report-table-card yonetim-table-card program-lines-card">
+        <div class="card-heading">
+            <div>
+                <p class="card-kicker">ALAN-GÜN ATAMALARI</p>
+                <h2>Temizlik Takvimi</h2>
+            </div>
+            <button type="submit" name="action" value="redistribute" class="ghost-btn yonetim-head-ghost" formnovalidate>Otomatik Yeniden Dağıt</button>
+        </div>
+
+        {{ formset.management_form }}
+        {% if formset.non_form_errors %}<div class="yonetim-form-errors">{{ formset.non_form_errors }}</div>{% endif %}
+
+        <div class="responsive-table">
+            <table class="report-data-table yonetim-data-table program-lines-table">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Gün</th>
+                        <th>Alan</th>
+                        <th>Sorumlu Talebe</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for atama_form in formset %}
+                    <tr>
+                        {% for hidden in atama_form.hidden_fields %}{{ hidden }}{% endfor %}
+                        <td>{{ atama_form.tarih }}</td>
+                        <td>{{ atama_form.instance.tarih|date:"l" }}</td>
+                        <td>{{ atama_form.instance.alan.ad }}</td>
+                        <td>{{ atama_form.talebe }}</td>
+                    </tr>
+                    {% if atama_form.errors %}
+                    <tr><td colspan="4" class="yonetim-field-error">{{ atama_form.errors }}</td></tr>
+                    {% endif %}
+                    {% empty %}
+                    <tr><td colspan="4" class="report-empty">Henüz atama yok. Kaydedip otomatik dağıtım yapın.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <div class="yonetim-form-actions program-form-actions">
+        <button type="submit" class="primary-btn">Kaydet</button>
+    </div>
+</form>
+
+<script>
+(function () {
+    document.querySelectorAll("[data-select-all]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            var group = btn.getAttribute("data-select-all");
+            document.querySelectorAll('[data-chip-group="' + group + '"] input[type="checkbox"]').forEach(function (cb) {
+                cb.checked = true;
+            });
+        });
+    });
+})();
+</script>
+
+{% endblock %}

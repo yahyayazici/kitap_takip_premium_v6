@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Veli Randevuları · {{ panel_short }}{% endblock %}
+{% block content %}
+<header class="page-head patterned-page-head">
+    <div>
+        <p class="kicker">İLETİŞİM</p>
+        <h1>Veli Randevuları</h1>
+        <p class="muted">Planlanan görüşmeleriniz ve görüşme notları.</p>
+    </div>
+    <div class="page-head-actions">
+        {% if user.is_superuser %}<a href="{% url 'randevu_raporlar' %}" class="ghost-btn">Raporlar</a>{% endif %}
+    </div>
+</header>
+
+<section class="dashboard-card">
+    <div class="card-heading"><div><p class="card-kicker">YAKLAŞAN</p><h2>Randevular</h2></div></div>
+    <div class="responsive-table">
+        <table class="report-data-table">
+            <thead><tr><th>Tarih</th><th>Saat</th><th>Öğrenci</th><th>Veli</th>{% if admin_gorunum %}<th>Personel</th>{% endif %}<th>Konu</th><th>Durum</th><th></th></tr></thead>
+            <tbody>
+                {% for r in yaklasan %}
+                <tr>
+                    <td>{{ r.tarih|date:"d.m.Y" }}</td>
+                    <td>{{ r.baslangic|time:"H:i" }}</td>
+                    <td>{{ r.talebe.ad_soyad }}</td>
+                    <td>{{ r.veli.ad_soyad|default:r.veli.user.username }}</td>
+                    {% if admin_gorunum %}<td>{{ r.personel.ad_soyad }}</td>{% endif %}
+                    <td>{{ r.konu|default:"—" }}</td>
+                    <td>{{ r.get_durum_display }}</td>
+                    <td><a href="{% url 'randevu_detay' r.pk %}">Detay</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8">Yaklaşan randevu yok.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

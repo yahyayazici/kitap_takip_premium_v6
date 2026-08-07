@@ -1,0 +1,406 @@
+/* Öğretmen Paneli — dash-home ile uyumlu */
+
+.ogretmen-body,
+.veli-body {
+    background: #f5f5f7;
+    min-height: 100vh;
+}
+
+.ogretmen-v6-header .cs-v6-inner {
+    min-height: 88px;
+}
+
+.ogretmen-user-chip {
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 13px;
+    margin-right: 12px;
+}
+
+.ogretmen-main {
+    padding-top: 0;
+}
+
+.ogretmen-messages {
+    width: 100%;
+    max-width: none;
+    margin: 16px 0 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.ogretmen-message {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+    padding: 10px 14px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+}
+
+.og-week-strip {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.og-week-title {
+    margin: 4px 0 0;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--dash-text);
+    letter-spacing: -0.01em;
+}
+
+.og-dash-grid {
+    align-items: start;
+}
+
+.og-side-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.og-count-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--dash-accent);
+    background: #eff6ff;
+}
+
+.og-program-panel {
+    min-height: 360px;
+}
+
+.og-day-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+
+.og-day-tab {
+    border: none;
+    background: #f5f5f7;
+    color: var(--dash-secondary);
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.og-day-tab.active {
+    background: #15427f;
+    color: #fff;
+}
+
+.og-day-panel {
+    background: #f8fafc;
+    border-radius: var(--dash-radius-sm);
+    padding: 14px 16px;
+    min-height: 180px;
+}
+
+.og-day-empty {
+    margin: 0;
+    padding: 36px 12px;
+    text-align: center;
+    font-size: 14px;
+    color: var(--dash-secondary);
+}
+
+.og-mini-lesson {
+    display: grid;
+    grid-template-columns: 88px 72px 1fr;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 13px;
+}
+
+.og-mini-lesson + .og-mini-lesson {
+    margin-top: 8px;
+}
+
+.og-mini-lesson span {
+    color: var(--dash-secondary);
+}
+
+.og-mini-lesson strong {
+    color: #1d4ed8;
+    font-weight: 600;
+}
+
+.og-mini-lesson em {
+    font-style: normal;
+    color: var(--dash-text);
+}
+
+/* Alt sayfalar */
+.ogretmen-page-title {
+    margin: 0 0 14px;
+    font-size: clamp(22px, 3vw, 28px);
+}
+
+.ogretmen-week-info {
+    background: #f0f6ff;
+    border: 1px solid rgba(21, 66, 127, 0.1);
+    border-radius: var(--dash-radius-sm);
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    color: #15427f;
+}
+
+.ogretmen-select-card,
+.ogretmen-attendance-card,
+.ogretmen-lesson-card,
+.ogretmen-program-page {
+    padding: 22px 24px;
+    border-radius: var(--dash-radius);
+    background: var(--dash-surface, #fff);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
+    margin-bottom: 16px;
+}
+
+.ogretmen-select-card h2,
+.ogretmen-program-page > h2 {
+    margin: 0 0 12px;
+    font-size: 16px;
+}
+
+.ogretmen-class-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.ogretmen-class-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    text-decoration: none;
+    color: #1d4ed8;
+    font-weight: 600;
+    background: #f8fafc;
+}
+
+.ogretmen-class-tab.active {
+    background: #eff6ff;
+    border-color: #93c5fd;
+}
+
+.og-count-badge {
+    background: #4a5568;
+    color: #fff;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-weight: 500;
+}
+
+.ogretmen-empty-select {
+    text-align: center;
+    padding: 80px 20px;
+    color: #1d4ed8;
+    background: #fff;
+    border-radius: var(--dash-radius);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.og-attendance-head {
+    background: #dc2626;
+    color: #fff;
+    padding: 12px 16px;
+    font-weight: 700;
+    border-radius: var(--dash-radius-sm) var(--dash-radius-sm) 0 0;
+    margin: -22px -24px 0;
+}
+
+.og-attendance-note {
+    padding: 12px 0 0;
+    margin: 0;
+    font-size: 13px;
+    color: var(--dash-secondary, #6e6e73);
+}
+
+.og-attendance-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+    padding: 16px 0;
+}
+
+.og-attendance-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    padding: 8px 10px;
+    background: #f8fafc;
+    border-radius: 8px;
+}
+
+.og-attendance-item em {
+    color: #dc2626;
+    font-style: normal;
+    font-size: 11px;
+}
+
+.og-lesson-head {
+    background: #15427f;
+    color: #fff;
+    padding: 12px 16px;
+    font-weight: 700;
+    border-radius: var(--dash-radius-sm) var(--dash-radius-sm) 0 0;
+    margin: -22px -24px 0;
+}
+
+.og-topic-row {
+    padding: 16px 0;
+    display: grid;
+    gap: 8px;
+}
+
+.og-topic-row input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 8px;
+}
+
+.og-table-wrap {
+    overflow-x: auto;
+    padding: 0 0 16px;
+}
+
+.og-grade-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.og-grade-table th,
+.og-grade-table td {
+    padding: 10px 8px;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.og-grade-table th {
+    background: #f8fafc;
+    font-size: 12px;
+    color: var(--dash-secondary, #6e6e73);
+}
+
+.og-grade-table tbody tr + tr td {
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.og-grade-table input {
+    width: 100%;
+    min-width: 80px;
+    padding: 8px 10px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 8px;
+}
+
+.ogretmen-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 24px;
+}
+
+.ogretmen-save-btn {
+    background: #15427f;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.ogretmen-page-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.ogretmen-page-head h1 {
+    margin: 0;
+    font-size: clamp(22px, 3vw, 28px);
+}
+
+.ogretmen-page-head p {
+    margin: 6px 0 0;
+    color: var(--dash-secondary, #6e6e73);
+}
+
+.og-program-day-block {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 12px;
+    margin-bottom: 18px;
+    align-items: start;
+}
+
+.og-program-day-label {
+    color: #15427f;
+    font-weight: 700;
+    padding-top: 10px;
+}
+
+.og-program-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.og-program-table th,
+.og-program-table td {
+    padding: 10px 8px;
+    text-align: left;
+    font-size: 13px;
+}
+
+.og-program-table th {
+    color: var(--dash-secondary, #6e6e73);
+    font-weight: 600;
+}
+
+.og-program-table tbody tr + tr td {
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.og-class-pill {
+    background: #f5f5f7;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+@media (max-width: 900px) {
+    .og-dash-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .og-program-day-block {
+        grid-template-columns: 1fr;
+    }
+}

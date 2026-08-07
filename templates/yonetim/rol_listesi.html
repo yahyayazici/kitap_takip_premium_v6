@@ -1,0 +1,49 @@
+{% extends "yonetim/base.html" %}
+{% block title %}Roller · Yönetim{% endblock %}
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">YETKİ YÖNETİMİ</p>
+        <h1>Roller</h1>
+        <p class="muted">Modül ve işlem bazlı yetkileri rol düzeyinde yönetin.</p>
+    </div>
+</header>
+
+<section class="report-table-card yonetim-table-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">ROLLER</p>
+            <h2>Tanımlı Roller</h2>
+        </div>
+        <span class="report-record-count">{{ roller|length }} rol</span>
+    </div>
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <thead>
+                <tr>
+                    <th>Rol</th>
+                    <th>Kod</th>
+                    <th>Sistem</th>
+                    <th class="yonetim-action-col">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rol in roller %}
+                <tr>
+                    <td><strong>{{ rol.ad }}</strong></td>
+                    <td><code>{{ rol.slug }}</code></td>
+                    <td>{% if rol.sistem_rolu %}Evet{% else %}—{% endif %}</td>
+                    <td class="yonetim-action-col">
+                        <a href="{% url 'yonetim:rol_duzenle' rol.pk %}" class="yonetim-link">Yetkileri Düzenle</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="report-empty">Henüz rol tanımı yok. <code>seed_wave0</code> komutunu çalıştırın.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

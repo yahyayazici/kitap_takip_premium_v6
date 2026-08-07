@@ -1,0 +1,189 @@
+{% load static pdf_extras %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>KTT Raporu</title>
+    <style>
+        {% include "includes/pdf_rapor_landscape_css.html" %}
+    </style>
+</head>
+<body>
+
+<table class="layout">
+    <tr>
+        <td colspan="3">
+            <table class="header-table" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="header-logo-cell">
+                        <div class="brand-logo-wrap">
+                            <img class="brand-logo" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="Çinili Saray">
+                        </div>
+                    </td>
+                    <td class="header-text-cell">
+                        <div class="brand-name">{{ panel_org }}</div>
+                        <div class="brand-sub">KTT Raporu</div>
+                    </td>
+                    <td class="header-right"></td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+
+    <tr><td colspan="3" class="gap16"></td></tr>
+
+    <tr>
+        <td colspan="3" class="hero">
+            <svg class="hero-deco" width="120" height="72" viewBox="0 0 120 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="18" y="10" width="72" height="52" rx="8" fill="#FFFFFF" opacity="0.85"/>
+                <rect x="28" y="22" width="52" height="4" rx="2" fill="#FFFFFF" opacity="0.55"/>
+                <rect x="38" y="32" width="32" height="4" rx="2" fill="#FFFFFF" opacity="0.4"/>
+            </svg>
+            <div class="hero-inner">
+                <div class="hero-tag">Analiz Merkezi</div>
+                <div class="hero-title">KTT Raporlama &amp; Analiz</div>
+                <div class="hero-meta">
+                    {{ kapsam }} · {{ kayit_sayisi }} kayıt ·
+                    {{ filtre.sinif }} · {{ filtre.ders }} · {{ filtre.baslangic }} — {{ filtre.bitis }}
+                </div>
+            </div>
+        </td>
+    </tr>
+
+    <tr><td colspan="3" class="gap16"></td></tr>
+
+    <tr>
+        <td colspan="3">
+            <div class="meta-panel">
+                <table class="meta-table" cellspacing="0" cellpadding="0">
+                    <tr>
+                        <td class="meta-item">
+                            <div class="meta-label">Kapsam</div>
+                            <div class="meta-value">{{ kapsam }}</div>
+                        </td>
+                        <td class="meta-item">
+                            <div class="meta-label">Tarih Aralığı</div>
+                            <div class="meta-value">{{ filtre.baslangic }} — {{ filtre.bitis }}</div>
+                        </td>
+                        <td class="meta-item">
+                            <div class="meta-label">Sınıf</div>
+                            <div class="meta-value">{{ filtre.sinif }}</div>
+                        </td>
+                        <td class="meta-item">
+                            <div class="meta-label">Ders / KTT</div>
+                            <div class="meta-value">{{ filtre.ders }}</div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </td>
+    </tr>
+
+    <tr><td colspan="3" class="gap16"></td></tr>
+
+    <tr>
+        <td colspan="3">
+            <table class="stats-table" cellpadding="0">
+                <tr>
+                    <td width="25%" class="stat-cell tone-blue">
+                        <div class="stat-accent"></div>
+                        <div class="stat-deco"></div>
+                        <div class="stat-label">Toplam Sonuç</div>
+                        <div class="stat-metric">{{ istatistik.toplam_sonuc }}</div>
+                        <div class="stat-sub">Kayıt</div>
+                    </td>
+                    <td width="25%" class="stat-cell tone-green">
+                        <div class="stat-accent"></div>
+                        <div class="stat-deco"></div>
+                        <div class="stat-label">Ort. Puan</div>
+                        <div class="stat-metric">{{ istatistik.ortalama_puan }}</div>
+                        <div class="stat-sub">100 üzerinden</div>
+                    </td>
+                    <td width="25%" class="stat-cell tone-orange">
+                        <div class="stat-accent"></div>
+                        <div class="stat-deco"></div>
+                        <div class="stat-label">Ort. Net</div>
+                        <div class="stat-metric">{{ istatistik.ortalama_net }}</div>
+                        <div class="stat-sub">Ortalama</div>
+                    </td>
+                    <td width="25%" class="stat-cell tone-purple">
+                        <div class="stat-accent"></div>
+                        <div class="stat-deco"></div>
+                        <div class="stat-label">En Yüksek</div>
+                        <div class="stat-metric">{{ istatistik.en_yuksek_puan }}</div>
+                        <div class="stat-sub">Puan</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+
+    <tr><td colspan="3" class="gap20"></td></tr>
+
+    <tr>
+        <td colspan="3">
+            <div class="table-panel">
+                <div class="table-panel-accent"></div>
+                <div class="table-panel-head">
+                    <div class="section-kicker">Detaylı Döküm</div>
+                    <div class="section-title">KTT Sonuç Kayıtları</div>
+                </div>
+                <table class="results" style="margin-top:10px;">
+                    <thead>
+                        <tr>
+                            <th style="width:8%;">Tarih</th>
+                            <th class="left" style="width:16%;">KTT</th>
+                            <th class="left" style="width:16%;">Talebe</th>
+                            <th style="width:7%;">Sınıf</th>
+                            <th style="width:9%;">Ders</th>
+                            <th style="width:6%;">D</th>
+                            <th style="width:6%;">Y</th>
+                            <th style="width:6%;">B</th>
+                            <th style="width:7%;">Net</th>
+                            <th style="width:7%;">Puan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in sonuclar %}
+                        <tr>
+                            <td>{{ s.ktt.sinav_tarihi|date:"d.m.Y" }}</td>
+                            <td class="left"><div class="ktt-name">{{ s.ktt.ad }}</div></td>
+                            <td class="left">
+                                <div class="student-name">{{ s.talebe.ad_soyad }}</div>
+                                <div class="student-meta">{{ s.talebe.talebe_no|default:"—" }}</div>
+                            </td>
+                            <td>{{ s.talebe.sinif_sube|default:s.ktt.sinif_goster }}</td>
+                            <td>{{ s.ktt.ders.ad }}</td>
+                            <td class="num-cell">{{ s.dogru }}</td>
+                            <td class="num-cell">{{ s.yanlis }}</td>
+                            <td class="num-cell">{{ s.bos }}</td>
+                            <td class="num-cell">{{ s.net }}</td>
+                            <td class="num-cell">{{ s.puan }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="10" class="left" style="padding:18px;">Seçilen filtrelerde kayıt bulunamadı.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </td>
+    </tr>
+
+    {% include "includes/ktt_analiz_pdf.html" %}
+
+    <tr>
+        <td colspan="3">
+            <table class="footer-table" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="footer-left">{{ panel_org }} · {{ olusturma_tarihi|date:"d.m.Y H:i" }}</td>
+                    <td class="footer-right">{{ panel_footer }}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

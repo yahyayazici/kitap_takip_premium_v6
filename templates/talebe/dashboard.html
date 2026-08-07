@@ -1,0 +1,94 @@
+{% extends "talebe/base.html" %}
+{% block title %}Ana Sayfa · Talebe Paneli{% endblock %}
+{% block content %}
+<div class="dash-home talebe-dash">
+
+{% include "includes/panel_hero.html" with title=talebe.ad_soyad meta="Talebe · Haftalık özet" show_date=True %}
+
+<section class="dash-panel">
+    <div class="dash-panel-head">
+        <div>
+            <p class="dash-eyebrow">Bugün</p>
+            <h2>{{ konum_etiket }}</h2>
+        </div>
+        {% if okuma_soru_acik %}
+        <a href="{% url 'talebe_okuma_soru' %}" class="primary-btn">Okuma & soru gir</a>
+        {% endif %}
+    </div>
+    <p class="talebe-konum-note">
+        {% if okuma_soru_acik %}
+        Ev veya izin günündesiniz — günlük okuma ve soru kaydı girebilirsiniz.
+        {% else %}
+        Kurs günündesiniz — okuma/soru girişi yalnızca ev ve izin günlerinde açılır.
+        {% endif %}
+    </p>
+</section>
+
+<section class="dash-panel">
+    <div class="dash-panel-head">
+        <div>
+            <p class="dash-eyebrow">Haftalık konum</p>
+            <h2>7 günlük takvim</h2>
+        </div>
+    </div>
+    <div class="talebe-konum-grid">
+        {% for gun in haftalik_konum %}
+        <article class="talebe-konum-card {% if gun.bugun %}today{% endif %} mod-{{ gun.mod }}">
+            <span class="talebe-konum-gun">{{ gun.gun_adi }}</span>
+            <strong>{{ gun.tarih|date:"d.m" }}</strong>
+            <span class="talebe-konum-mod">{{ gun.mod_etiket }}</span>
+            {% if gun.aciklama %}<small>{{ gun.aciklama }}</small>{% endif %}
+        </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="dash-panel">
+    <div class="dash-panel-head">
+        <div>
+            <p class="dash-eyebrow">Son 7 gün</p>
+            <h2>Soru & okuma</h2>
+        </div>
+    </div>
+    <div class="dash-metrics">
+        <article class="dash-stat dash-stat-green">
+            <span class="dash-stat-label">Toplam soru</span>
+            <strong class="dash-stat-value">{{ haftalik_soru.toplam_soru }}</strong>
+        </article>
+        <article class="dash-stat dash-stat-blue">
+            <span class="dash-stat-label">Net</span>
+            <strong class="dash-stat-value">{{ haftalik_soru.toplam_net }}</strong>
+        </article>
+        <article class="dash-stat dash-stat-navy">
+            <span class="dash-stat-label">Başarı</span>
+            <strong class="dash-stat-value">%{{ haftalik_soru.basari_orani }}</strong>
+        </article>
+    </div>
+</section>
+
+{% if duyurular %}
+<section class="dash-panel" aria-label="Duyurular">
+    <div class="dash-panel-head">
+        <div>
+            <p class="dash-eyebrow">Duyurular</p>
+            <h2>Son bildirimler</h2>
+        </div>
+    </div>
+    <div class="dash-feed">
+        {% for d in duyurular %}
+        <article class="dash-feed-item dash-accent-navy">
+            <span class="dash-feed-tag">Genel</span>
+            <h3>{{ d.baslik }}</h3>
+            <p>{{ d.ozet|truncatechars:140 }}</p>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/panel_date_js.html" %}
+{% endblock %}

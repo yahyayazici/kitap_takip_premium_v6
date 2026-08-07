@@ -1,60 +1,293 @@
 {% extends "base.html" %}
-{% block title %}Genel Bakış{% endblock %}
+{% load static %}
+{% block title %}Ana Sayfa · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/duyuru-carousel.css' %}">
+{% if etut_plani_onizleme %}
+<link rel="stylesheet" href="{% static 'css/etut-plan-premium.css' %}">
+{% endif %}
+{% endblock %}
+
 {% block content %}
-<div class="dashboard-page">
-<section class="welcome-panel">
-    <div class="welcome-copy">
-        <p class="welcome-kicker">KİTAP TAKİP SİSTEMİ</p>
+<div class="dashboard-page dash-home">
 
-        <h1 class="welcome-title">
-            <span class="welcome-script">Hoş geldiniz,</span>
-            <span class="welcome-name">
-                {% if request.user.first_name %}
-                    {{ request.user.first_name }}
-                {% else %}
-                    {{ request.user.username|title }}
-                {% endif %}
+{% with hero_name=request.user.first_name|default:request.user.username|title %}
+{% include "includes/panel_hero.html" with title="Hoş geldiniz, "|add:hero_name meta=panel_rol|add:" · Kurum yönetim paneli" show_date=True %}
+{% endwith %}
+
+{% include "includes/duyuru_carousel.html" %}
+
+{% if egitim_modulu %}
+<section class="dash-metrics-shell" aria-label="Özet istatistikler">
+    <div class="dash-metrics">
+        <article class="dash-stat dash-stat-blue">
+            <span class="dash-stat-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
             </span>
-        </h1>
+            <span class="dash-stat-label">Talebe</span>
+            <strong class="dash-stat-value">{{ talebe_sayisi|default:0 }}</strong>
+            <span class="dash-stat-note">Aktif kayıt</span>
+        </article>
+        <article class="dash-stat dash-stat-green">
+            <span class="dash-stat-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            </span>
+            <span class="dash-stat-label">Bugün okunan</span>
+            <strong class="dash-stat-value">{{ toplam_okunan|default:0 }}</strong>
+            <span class="dash-stat-note">Toplam sayfa</span>
+        </article>
+        <article class="dash-stat dash-stat-amber">
+            <span class="dash-stat-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            </span>
+            <span class="dash-stat-label">Okuma kaydı</span>
+            <strong class="dash-stat-value">{{ bugunku_kayit|default:0 }}</strong>
+            <span class="dash-stat-note">{% if bekleyen %}{{ bekleyen }} zimmet bekliyor{% else %}Kayıt tamam{% endif %}</span>
+        </article>
+        <article class="dash-stat dash-stat-violet">
+            <span class="dash-stat-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+            </span>
+            <span class="dash-stat-label">Sınav</span>
+            <strong class="dash-stat-value">{{ bugunku_sinav|default:0 }}</strong>
+            <span class="dash-stat-note">{% if sinav_bekleyen %}{{ sinav_bekleyen }} sonuç bekliyor{% else %}Bugünkü sınav{% endif %}</span>
+        </article>
+    </div>
+</section>
 
-        <p class="welcome-description">
-            Okuma, kitap ve sınav süreçlerini tek merkezden yönetin.
-        </p>
+<section class="dash-panel dash-panel-lined">
+    <div class="dash-panel-head">
+        <div>
+            <p class="dash-eyebrow dash-accent-eyebrow-blue">Panel</p>
+            <h2>Kısayollar</h2>
+        </div>
     </div>
+    <nav class="dash-shortcuts-grid" aria-label="Kısayollar">
+        {% for shortcut in kisayollar %}
+        <a href="{{ shortcut.url }}" class="dash-shortcut-card">
+            <span class="dash-shortcut-icon dash-shortcut-icon-{{ shortcut.icon }}" aria-hidden="true">
+                {% include "includes/dashboard_shortcut_icon.html" with icon=shortcut.icon %}
+            </span>
+            <span class="dash-shortcut-copy">
+                <strong>{{ shortcut.title }}{% if shortcut.badge %}<em class="dash-shortcut-badge">{{ shortcut.badge }}</em>{% endif %}</strong>
+                <span>{{ shortcut.subtitle }}</span>
+            </span>
+        </a>
+        {% empty %}
+        <p class="dash-empty-note">Bu rol için kısayol tanımlı değil.</p>
+        {% endfor %}
+    </nav>
+</section>
 
-    <div class="welcome-date">
-        <span>Bugün</span>
-        <strong id="current-date"></strong>
+{% if gunluk_gorevler.imam or gunluk_gorevler.yemek or gunluk_gorevler.temizlik %}
+<section class="dash-panel dash-panel-lined dash-gunluk-gorev">
+    <div class="dash-panel-head">
+        <div>
+            <p class="dash-eyebrow dash-accent-eyebrow-teal">Günlük görevler</p>
+            <h2>Bugünün görev dağılımı</h2>
+        </div>
+    </div>
+    <div class="dash-gorev-grid">
+        {% if gunluk_gorevler.imam %}
+        <article class="dash-gorev-card">
+            <p class="dash-gorev-label">{{ gunluk_gorevler.imam.baslik }}</p>
+            <strong>{{ gunluk_gorevler.imam.deger }}</strong>
+            {% if gunluk_gorevler.imam.url %}
+            <a href="{{ gunluk_gorevler.imam.url }}" class="dash-text-btn">Detay</a>
+            {% endif %}
+        </article>
+        {% endif %}
+        {% if gunluk_gorevler.yemek %}
+        <article class="dash-gorev-card">
+            <p class="dash-gorev-label">Günün yemekçileri</p>
+            <ul class="dash-gorev-list">
+                {% for satir in gunluk_gorevler.yemek %}
+                <li><span>{{ satir.baslik }}</span><strong>{{ satir.deger }}</strong></li>
+                {% endfor %}
+            </ul>
+            {% if gunluk_gorevler.yemek.0.url %}
+            <a href="{{ gunluk_gorevler.yemek.0.url }}" class="dash-text-btn">Yemek listesi</a>
+            {% endif %}
+        </article>
+        {% endif %}
+        {% if gunluk_gorevler.temizlik %}
+        <article class="dash-gorev-card">
+            <p class="dash-gorev-label">Temizlik — {% if gunluk_gorevler.kat_sorumlusu %}sizin katınız{% else %}bugün{% endif %}</p>
+            {% if gunluk_gorevler.temizlik_katlari %}
+            <p class="dash-gorev-meta">{{ gunluk_gorevler.temizlik_katlari|join:", " }}</p>
+            {% endif %}
+            <ul class="dash-gorev-list">
+                {% for satir in gunluk_gorevler.temizlik %}
+                <li><span>{{ satir.baslik }}</span><strong>{{ satir.deger }}</strong></li>
+                {% endfor %}
+            </ul>
+            {% if gunluk_gorevler.temizlik.0.url %}
+            <a href="{{ gunluk_gorevler.temizlik.0.url }}" class="dash-text-btn">Temizlik paneli</a>
+            {% endif %}
+        </article>
+        {% endif %}
     </div>
 </section>
-<section class="metric-grid">
-  <article class="metric-card tone-blue"><span>BUGÜN OKUNAN</span><strong>{{ toplam_okunan|default:0 }}</strong><small>Toplam sayfa</small></article>
-  <article class="metric-card tone-green"><span>AKTİF KİTAP</span><strong>{{ devam_eden|default:0 }}</strong><small>Okuma sürecinde</small></article>
-  <article class="metric-card tone-orange"><span>SINAV BEKLEYEN</span><strong>{{ sinav_bekleyen|default:0 }}</strong><small>Sonuç bekliyor</small></article>
-  <article class="metric-card tone-purple"><span>SINAV SAYISI</span><strong>{{ sinav_sayisi|default:0 }}</strong><small>Toplam sınav</small></article>
-  <article class="metric-card tone-cyan"><span>TALEBE</span><strong>{{ talebe_sayisi|default:0 }}</strong><small>Aktif grupta</small></article>
-</section>
-<section class="dashboard-main-grid">
-  <article class="dashboard-card quick-main-card">
-    <div class="card-heading"><div><p class="card-kicker">HIZLI ERİŞİM</p><h2>Hızlı İşlemler</h2></div></div>
-    <div class="quick-actions quick-actions-large">
-      <a href="{% url 'toplu_zimmet' %}" class="quick-action qa-blue"><b>01</b><div><strong>Kitap Zimmetle</strong><small>Talebelere toplu kitap tanımla</small></div></a>
-      <a href="{% url 'toplu_gunluk_okuma' %}" class="quick-action qa-green"><b>02</b><div><strong>Günlük Okuma</strong><small>Sayfa kayıtlarını tek ekrandan gir</small></div></a>
-      <a href="{% url 'sinav_ekle_panel' %}" class="quick-action qa-orange"><b>03</b><div><strong>Sınav Oluştur</strong><small>Yeni kitap sınavı tanımla</small></div></a>
-      <a href="{% url 'sinav_sonuc_paneli' %}" class="quick-action qa-purple"><b>04</b><div><strong>Sonuç Girişi</strong><small>Sınav sonuçlarını kaydet</small></div></a>
-      <a href="{% url 'raporlar' %}" class="quick-action qa-cyan"><b>05</b><div><strong>Rapor Merkezi</strong><small>Filtrele ve PDF raporu al</small></div></a>
-      {% if request.user.is_superuser %}<a href="{% url 'yonetim:dashboard' %}" class="quick-action qa-navy"><b>06</b><div><strong>Yönetim Merkezi</strong><small>Sınıf, talebe ve personeli yönet</small></div></a>{% endif %}
+{% endif %}
+
+{% if etut_plani_onizleme %}
+<section class="dash-panel dash-panel-lined dash-etut-widget">
+    <div class="dash-panel-head">
+        <div>
+            <p class="dash-eyebrow dash-accent-eyebrow-indigo">Etüt</p>
+            <h2>Bu Haftaki Etüt Planım</h2>
+        </div>
+        <a href="{% url 'etut_plan_panel' %}" class="dash-text-btn">Planı Aç</a>
     </div>
-  </article>
-  <article class="dashboard-card class-access-card">
-    <div class="card-heading"><div><p class="card-kicker">SINIFLAR</p><h2>Sınıflara Hızlı Geçiş</h2></div></div>
-    <div class="class-access-grid">{% for sinif in siniflar %}<a href="{% url 'talebe_listesi' %}?sinif={{ sinif.id }}" class="class-access-item"><strong>{{ sinif }}</strong><span>{{ sinif.talebe_sayisi }} talebe</span></a>{% empty %}<div class="dashboard-empty">Sınıf kaydı bulunmuyor.</div>{% endfor %}</div>
-  </article>
+    {% if etut_plani_onizleme.plan %}
+    <div class="dash-etut-stats">
+        <span>Planlanan<strong>{{ etut_plani_onizleme.ozet.planlanan }}</strong></span>
+        <span>Tamamlanan<strong>{{ etut_plani_onizleme.ozet.tamamlandi }}</strong></span>
+        <span>Bekleyen<strong>{{ etut_plani_onizleme.ozet.bekliyor }}</strong></span>
+        <span>Boş saat<strong>{{ etut_plani_onizleme.ozet.bos_saat }}</strong></span>
+    </div>
+    <div class="dash-etut-days">
+        {% for gun in etut_plani_onizleme.gunler %}
+        <article class="dash-etut-day">
+            <strong>{{ gun.label }}</strong>
+            {% for satir in gun.satirlar %}
+            <div class="dash-etut-row {{ satir.ton }}">
+                <time>{% if satir.saat %}{{ satir.saat }}{% endif %}</time>
+                <span>{% if satir.ton == 'tamam' %}✓ {% endif %}{{ satir.baslik }}</span>
+            </div>
+            {% empty %}
+            <p class="ep-muted" style="margin:0;font-size:0.75rem;">Plan yok</p>
+            {% endfor %}
+        </article>
+        {% empty %}
+        <p class="dash-empty-note">Bu hafta henüz etkinlik planlanmadı.</p>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="dash-empty-note" style="padding:0 16px 16px;">Bu hafta için plan oluşturulmadı veya saatler tanımlanmadı.</p>
+    {% endif %}
 </section>
-<section class="dashboard-bottom-grid">
-  <article class="dashboard-card"><div class="card-heading"><div><p class="card-kicker">BUGÜN</p><h2>Günlük Okuma Durumu</h2></div><a href="{% url 'toplu_gunluk_okuma' %}" class="small-button">Kayıt Gir</a></div><div class="reading-state"><div class="reading-ring"><strong>{{ bugunku_kayit|default:0 }}</strong><span>Kayıt</span></div><div class="reading-state-details"><div><i class="state-dot state-green"></i><span>Kaydı tamamlanan</span><strong>{{ bugunku_kayit|default:0 }}</strong></div><div><i class="state-dot state-orange"></i><span>Kayıt bekleyen</span><strong>{{ bekleyen|default:0 }}</strong></div><div><i class="state-dot state-blue"></i><span>Toplam talebe</span><strong>{{ talebe_sayisi|default:0 }}</strong></div></div></div></article>
-  <article class="dashboard-card"><div class="card-heading"><div><p class="card-kicker">KİTAPLAR</p><h2>Aktif Kitaplar</h2></div><a href="{% url 'kitap_listesi' %}" class="small-button">Arşivi Aç</a></div><div class="active-books-list">{% for zimmet in zimmetler|slice:":6" %}{% if zimmet.durum == 'okunuyor' %}<div class="active-book-row"><span class="mini-book-cover">{{ zimmet.kitap.ad|slice:":1" }}</span><div><strong>{{ zimmet.kitap.ad }}</strong><small>{{ zimmet.talebe.ad_soyad }}</small></div><span class="mini-book-page">{{ zimmet.son_sayfa|default:0 }}/{{ zimmet.kitap.toplam_sayfa }}</span></div>{% endif %}{% empty %}<div class="dashboard-empty">Aktif kitap yok.</div>{% endfor %}</div></article>
+{% endif %}
+
+<div class="dash-widgets">
+    <section class="dash-panel dash-panel-lined">
+        <div class="dash-panel-head">
+            <div>
+                <p class="dash-eyebrow dash-accent-eyebrow-blue">Akış</p>
+                <h2>Son aktiviteler</h2>
+            </div>
+        </div>
+        <div class="dash-activity-list">
+            {% for aktivite in son_aktiviteler %}
+            <article class="dash-activity-row dash-activity-{{ aktivite.ton }}">
+                <span class="dash-activity-avatar" aria-hidden="true">{{ aktivite.bas_harf }}</span>
+                <div class="dash-activity-copy">
+                    <strong>{{ aktivite.baslik }}</strong>
+                    <span>{{ aktivite.meta }}</span>
+                </div>
+                <time class="dash-activity-time">{{ aktivite.zaman_etiketi }}</time>
+            </article>
+            {% empty %}
+            <p class="dash-empty-note">Henüz aktivite kaydı yok.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="dash-panel dash-panel-lined">
+        <div class="dash-panel-head">
+            <div>
+                <p class="dash-eyebrow dash-accent-eyebrow-violet">Rehberlik</p>
+                <h2>Son rehberlik görüşmeleri</h2>
+            </div>
+            {% if son_gorusmeler %}
+            <a href="{% url 'rehberlik_listesi' %}" class="dash-text-btn">Tümü</a>
+            {% endif %}
+        </div>
+        <div class="dash-gorusme-list">
+            {% for gorusme in son_gorusmeler %}
+            <a href="{{ gorusme.url }}" class="dash-gorusme-row">
+                <div class="dash-gorusme-copy">
+                    <strong>{{ gorusme.baslik }}</strong>
+                    <span>{{ gorusme.ozet|truncatechars:72 }}</span>
+                    <em>{{ gorusme.talebe }}</em>
+                </div>
+                <div class="dash-gorusme-meta">
+                    {% if gorusme.saat %}<time>{{ gorusme.saat }}</time>{% endif %}
+                    <span class="dash-gorusme-tag">{{ gorusme.tur }}</span>
+                </div>
+            </a>
+            {% empty %}
+            <p class="dash-empty-note">Henüz rehberlik kaydı yok.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="dash-panel dash-panel-lined">
+        <div class="dash-panel-head">
+            <div>
+                <p class="dash-eyebrow dash-accent-eyebrow-teal">İletişim</p>
+                <h2>Son veli & talebe görüşmeleri</h2>
+            </div>
+            {% if son_iletisim %}
+            <a href="{% url 'iletisim_listesi' %}" class="dash-text-btn">Tümü</a>
+            {% endif %}
+        </div>
+        <div class="dash-gorusme-list">
+            {% for gorusme in son_iletisim %}
+            <a href="{{ gorusme.url }}" class="dash-gorusme-row">
+                <div class="dash-gorusme-copy">
+                    <strong>{{ gorusme.baslik }}</strong>
+                    <span>{{ gorusme.ozet|truncatechars:72 }}</span>
+                    <em>{{ gorusme.talebe }}</em>
+                </div>
+                <div class="dash-gorusme-meta">
+                    {% if gorusme.saat %}<time>{{ gorusme.saat }}</time>{% endif %}
+                    <span class="dash-gorusme-tag">{{ gorusme.tur }}</span>
+                </div>
+            </a>
+            {% empty %}
+            <p class="dash-empty-note">Henüz iletişim kaydı yok.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="dash-panel dash-panel-lined dash-panel-events">
+        <div class="dash-panel-head">
+            <div>
+                <p class="dash-eyebrow dash-accent-eyebrow-amber">Takvim</p>
+                <h2>Yaklaşan etkinlikler</h2>
+            </div>
+        </div>
+        <div class="dash-event-list">
+            {% for etkinlik in yaklasan_etkinlikler %}
+            <a href="{{ etkinlik.url }}" class="dash-event-row dash-event-{{ etkinlik.ton }}">
+                <span class="dash-event-date">
+                    <strong>{{ etkinlik.gun_etiketi }}</strong>
+                </span>
+                <span class="dash-event-copy">
+                    <strong>{{ etkinlik.baslik }}</strong>
+                    <span>{{ etkinlik.alt }}</span>
+                </span>
+            </a>
+            {% empty %}
+            <p class="dash-empty-note">Yaklaşan etkinlik bulunmuyor.</p>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% else %}
+<section class="dash-panel">
+    <p class="dash-hero-meta">{{ panel_rol }} · Eğitim modülüne erişiminiz bulunmuyor.</p>
+    {% if yonetim_modulu %}
+    <a href="{% url 'yonetim:dashboard' %}" class="dash-text-btn dash-text-btn-strong">Yönetim merkezine git</a>
+    {% endif %}
 </section>
+{% endif %}
+
 </div>
 {% endblock %}
-{% block extra_js %}<script>document.addEventListener('DOMContentLoaded',()=>{const e=document.getElementById('current-date');if(e)e.textContent=new Intl.DateTimeFormat('tr-TR',{day:'2-digit',month:'long',year:'numeric',weekday:'long'}).format(new Date())});</script>{% endblock %}
+
+{% block extra_js %}
+{% include "includes/panel_date_js.html" %}
+<script src="{% static 'js/duyuru-carousel.js' %}"></script>
+{% endblock %}

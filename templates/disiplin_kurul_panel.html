@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ kurul_adi|default:"İstişare ve Disiplin Kurulu" }} · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/disiplin-kurul-premium.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dk-page">
+
+<header class="dk-head">
+    <div>
+        <p class="dk-eyebrow">Kurum Yönetimi</p>
+        <h1>{{ kurul_adi|default:"İstişare ve Disiplin Kurulu" }}</h1>
+        <p class="dk-sub">Gündem hazırlayın, toplantıları yönetin, kararları ve uygulama süreçlerini takip edin.</p>
+    </div>
+    <div class="dk-actions">
+        {% if duzenleyebilir %}
+        <a href="{% url 'disiplin_kurul_olustur' %}" class="dk-btn dk-btn-ghost">+ Yeni Kurul</a>
+        {% endif %}
+        {% if tam_yetki %}
+        <a href="{% url 'disiplin_kurul_ayarlar' %}" class="dk-btn dk-btn-ghost">Kurul Ayarları</a>
+        {% endif %}
+        <a href="{% url 'disiplin_kurul_arsiv' %}" class="dk-btn dk-btn-ghost">PDF Arşivi</a>
+        <a href="{% url 'disiplin_kurul_rapor' %}" class="dk-btn dk-btn-ghost">Raporlar</a>
+        {% if duzenleyebilir %}
+        <a href="{% url 'disiplin_kurul_olustur' %}" class="dk-btn dk-btn-primary">Kurul Oluştur</a>
+        {% endif %}
+    </div>
+</header>
+
+<div class="dk-stats" aria-label="Kurul istatistikleri">
+    {% for s in istatistikler %}
+    <article class="dk-stat">
+        <span class="dk-stat-icon">{{ s.ikon|slice:":2"|upper }}</span>
+        <strong class="dk-stat-value">{{ s.deger }}</strong>
+        <span class="dk-stat-label">{{ s.etiket }}</span>
+        {% if s.trend != "—" %}<span class="dk-stat-trend">{{ s.trend }}</span>{% endif %}
+    </article>
+    {% endfor %}
+</div>
+
+<div class="dk-layout">
+    <section class="dk-card">
+        <div class="dk-card-head"><h2>Aktif Kurullar</h2></div>
+        <div class="dk-card-body">
+            <form method="get" class="dk-filters">
+                <select name="talebe" class="dk-select" onchange="this.form.submit()">
+                    <option value="">Öğrenci</option>
+                    {% for t in filtreler.talebeler %}
+                    <option value="{{ t.pk }}" {% if secili.talebe == t.pk|stringformat:"s" %}selected{% endif %}>{{ t.ad_soyad }}</option>
+                    {% endfor %}
+                </select>
+                <select name="sinif" class="dk-select" onchange="this.form.submit()">
+                    <option value="">Sınıf</option>
+                    {% for s in filtreler.siniflar %}
+                    <option value="{{ s.pk }}" {% if secili.sinif == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.sinif }}-{{ s.sube }}</option>
+                    {% endfor %}
+                </select>
+                <select name="etut" class="dk-select" onchange="this.form.submit()">
+                    <option value="">Etüt</option>
+                    {% for e in filtreler.etut_hocalari %}
+                    <option value="{{ e.pk }}" {% if secili.etut == e.pk|stringformat:"s" %}selected{% endif %}>{{ e.ad_soyad }}</option>
+                    {% endfor %}
+                </select>
+                <select name="tur" class="dk-select" onchange="this.form.submit()">
+                    <option value="">Kurul Türü</option>
+                    {% for val, label in filtreler.kurul_turleri %}
+                    <option value="{{ val }}" {% if secili.tur == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <select name="durum" class="dk-select" onchange="this.form.submit()">
+                    <option value="">Durum</option>
+                    {% for val, label in filtreler.durumlar %}
+                    <option value="{{ val }}" {% if secili.durum == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <input type="search" name="q" class="dk-input" placeholder="Ara…" value="{{ secili.q|default:'' }}">
+            </form>
+
+            <div class="dk-kurul-list">
+                {% for k in kurullar %}
+                <article class="dk-kurul-item">
+                    <div><span class="label">Kurul No</span><strong class="dk-kurul-no">{{ k.kurul_no }}</strong></div>
+                    <div><span class="label">Öğrenci</span><strong>{{ k.talebe }}</strong><br><small>{{ k.sinif }}</small></div>
+                    <div><span class="label">Kurul Türü</span><strong>{{ k.kurul_turu }}</strong></div>
+                    <div><span class="label">Toplantı</span><strong>{{ k.toplanti_tarihi }}</strong></div>
+                    <div><span class="label">Başkan</span><strong>{{ k.baskan }}</strong></div>
+                    <div><span class="label">Karar</span><strong>{{ k.karar_sayisi }}</strong></div>
+                    <div><span class="label">Kontrol</span><strong>{{ k.sonraki_kontrol }}</strong></div>
+                    <div>
+                        <span class="dk-badge" style="color:{{ k.durum_renk }};background:{{ k.durum_bg }};border-color:{{ k.durum_renk }}33;">{{ k.durum_etiket }}</span>
+                        <a href="{{ k.detay_url }}" class="dk-btn dk-btn-sm" style="margin-top:8px;display:block;text-align:center;">Detay</a>
+                    </div>
+                </article>
+                {% empty %}
+                <p class="dk-empty">Henüz kurul kaydı yok.{% if duzenleyebilir %} <a href="{% url 'disiplin_kurul_olustur' %}">İlk kurulu oluşturun</a>.{% endif %}</p>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <aside class="dk-side-stack">
+        <article class="dk-card">
+            <div class="dk-card-head"><h2>Kontrol Merkezi</h2></div>
+            <div class="dk-card-body">
+                <div class="dk-mini-stats">
+                    <div class="dk-mini-stat"><strong>{{ kontrol.bugun_sayisi }}</strong><span>Bugün Kontrol</span></div>
+                    <div class="dk-mini-stat"><strong class="dk-late">{{ kontrol.geciken_sayisi }}</strong><span>Geciken Karar</span></div>
+                    <div class="dk-mini-stat"><strong>{{ kontrol.yaklasan_sayisi }}</strong><span>Yaklaşan Kontrol</span></div>
+                    <div class="dk-mini-stat"><strong>{{ kontrol.bu_hafta_kurul_sayisi }}</strong><span>Bu Hafta Kurul</span></div>
+                </div>
+            </div>
+        </article>
+
+        <article class="dk-card">
+            <div class="dk-card-head"><h2>Yaklaşan Kontroller</h2></div>
+            <div class="dk-card-body">
+                <ul class="dk-alert-list">
+                    {% for item in kontrol.yaklasan_liste %}
+                    <li>
+                        <a href="{{ item.kurul_url }}">{{ item.karar_no }}</a>
+                        — {{ item.talebe }}<br>
+                        <small>{{ item.kontrol_tarihi }} · {{ item.kategori }}</small>
+                    </li>
+                    {% empty %}
+                    <li class="dk-empty" style="padding:1rem 0;">Yaklaşan kontrol yok.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </article>
+
+        {% if kontrol.geciken_liste %}
+        <article class="dk-card">
+            <div class="dk-card-head"><h2>Geciken Kararlar</h2></div>
+            <div class="dk-card-body">
+                <ul class="dk-alert-list">
+                    {% for item in kontrol.geciken_liste %}
+                    <li class="dk-late">
+                        <a href="{{ item.kurul_url }}">{{ item.karar_no }}</a> — {{ item.talebe }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </article>
+        {% endif %}
+    </aside>
+</div>
+</div>
+{% endblock %}

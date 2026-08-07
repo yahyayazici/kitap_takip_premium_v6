@@ -1,0 +1,417 @@
+/* Soru Takip — premium günlük giriş */
+
+.st-page {
+    --st-bg: #ffffff;
+    --st-surface: #f7f8fa;
+    --st-line: rgba(15, 23, 42, 0.08);
+    --st-navy: #071b3a;
+    --st-text: #1e293b;
+    --st-muted: #64748b;
+    --st-radius: 18px;
+    --st-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06);
+    max-width: none;
+    width: 100%;
+    margin: 0;
+    padding: 0 0 2.5rem;
+}
+
+.st-page * {
+    box-sizing: border-box;
+}
+
+.st-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+}
+
+.st-head h1 {
+    margin: 0;
+    font-size: clamp(1.5rem, 2.4vw, 1.75rem);
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    color: var(--st-navy);
+}
+
+.st-eyebrow {
+    margin: 0 0 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--st-muted);
+}
+
+.st-desc {
+    margin: 0.35rem 0 0;
+    color: var(--st-muted);
+    font-size: 0.92rem;
+}
+
+.st-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.st-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.62rem 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--st-line);
+    background: var(--st-bg);
+    color: var(--st-navy);
+    font-size: 0.875rem;
+    font-weight: 550;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.st-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+}
+
+.st-btn-primary {
+    background: var(--st-navy);
+    color: #fff;
+    border-color: transparent;
+}
+
+.st-btn-primary:hover {
+    background: #0a2552;
+}
+
+.st-card {
+    background: var(--st-bg);
+    border: 1px solid var(--st-line);
+    border-radius: var(--st-radius);
+    padding: 1.25rem 1.35rem;
+    box-shadow: var(--st-shadow);
+}
+
+.st-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.85rem;
+    align-items: end;
+}
+
+.st-field label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--st-muted);
+}
+
+.st-field select,
+.st-field input[type="date"],
+.st-field input[type="number"],
+.st-field textarea {
+    width: 100%;
+    min-height: 42px;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--st-line);
+    border-radius: 12px;
+    background: var(--st-bg);
+    color: var(--st-text);
+    font: inherit;
+    font-size: 0.875rem;
+}
+
+.st-field textarea {
+    min-height: 88px;
+    resize: vertical;
+}
+
+.st-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 1rem;
+    align-items: start;
+}
+
+.st-form-head {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--st-line);
+}
+
+.st-form-head h2 {
+    margin: 0.15rem 0 0;
+    font-size: 1.25rem;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    color: var(--st-navy);
+}
+
+.st-form-date {
+    margin: 0;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--st-muted);
+}
+
+.st-meta {
+    margin: 0.35rem 0 0;
+    font-size: 0.875rem;
+    color: var(--st-muted);
+}
+
+.st-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--st-line);
+    border-radius: 14px;
+}
+
+.st-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.st-table thead th {
+    padding: 0.65rem 0.75rem;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--st-muted);
+    background: var(--st-surface);
+    border-bottom: 1px solid var(--st-line);
+}
+
+.st-table thead th:first-child {
+    text-align: left;
+    padding-left: 1rem;
+}
+
+.st-table tbody td {
+    padding: 0.45rem 0.5rem;
+    border-top: 1px solid rgba(15, 23, 42, 0.05);
+    vertical-align: middle;
+    text-align: center;
+}
+
+.st-table tbody td:first-child {
+    text-align: left;
+    padding-left: 1rem;
+    font-weight: 600;
+    color: var(--st-text);
+    white-space: nowrap;
+}
+
+.st-table tbody tr:first-child td {
+    border-top: none;
+}
+
+.st-num-input {
+    width: 68px;
+    min-height: 36px;
+    padding: 0.35rem 0.45rem;
+    border: 1px solid var(--st-line);
+    border-radius: 10px;
+    background: var(--st-bg);
+    text-align: center;
+    font: inherit;
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.st-net {
+    font-size: 0.9375rem;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    color: var(--st-navy);
+}
+
+.st-note-block {
+    margin-top: 1.1rem;
+}
+
+.st-form-actions {
+    display: flex;
+    gap: 0.65rem;
+    align-items: center;
+    margin-top: 1.1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--st-line);
+}
+
+.st-aside {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.st-stat {
+    padding: 1rem 1.1rem;
+    border-radius: 16px;
+    border: 1px solid var(--st-line);
+    background: var(--st-bg);
+    box-shadow: var(--st-shadow);
+}
+
+.st-stat-label {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--st-muted);
+}
+
+.st-stat-value {
+    display: block;
+    margin-top: 0.55rem;
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--st-navy);
+}
+
+.st-stat-sub {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 0.8125rem;
+    color: var(--st-muted);
+}
+
+.st-stat-blue .st-stat-value { color: #1d4ed8; }
+.st-stat-green .st-stat-value { color: #15803d; }
+.st-stat-purple .st-stat-value { color: #7e22ce; }
+
+.st-recent-head {
+    margin: 0 0 0.75rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--st-muted);
+}
+
+.st-recent-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+}
+
+.st-recent-table th {
+    padding: 0.35rem 0;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-align: left;
+    color: var(--st-muted);
+    border-bottom: 1px solid var(--st-line);
+}
+
+.st-recent-table td {
+    padding: 0.55rem 0;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+    vertical-align: middle;
+}
+
+.st-recent-table tr:last-child td {
+    border-bottom: none;
+}
+
+.st-recent-table a {
+    color: var(--st-navy);
+    text-decoration: none;
+    font-weight: 550;
+}
+
+.st-recent-table a:hover {
+    text-decoration: underline;
+}
+
+.st-num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+}
+
+.st-empty {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: var(--st-muted);
+    font-size: 0.9375rem;
+}
+
+@media (max-width: 960px) {
+    .st-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .st-filter-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Rapor sayfası */
+.st-report-page {
+    max-width: none;
+    width: 100%;
+}
+
+.st-report-metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.st-report-filter {
+    padding: 22px 24px;
+}
+
+.st-report-form {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    align-items: end;
+}
+
+.st-report-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+    padding-top: 4px;
+}
+
+.st-report-form label {
+    display: grid;
+    gap: 6px;
+    font-size: 0.78rem;
+    color: var(--st-muted);
+}
+
+@media (max-width: 1100px) {
+    .st-report-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .st-report-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .st-report-form,
+    .st-report-metrics {
+        grid-template-columns: 1fr;
+    }
+}

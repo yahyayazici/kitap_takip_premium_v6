@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Rehberlik · {{ gorusme.talebe.ad_soyad }}{% endblock %}
+{% block content %}
+<header class="page-head patterned-page-head">
+    <div>
+        <p class="kicker">REHBERLİK</p>
+        <h1>{{ gorusme.talebe.ad_soyad }}</h1>
+        <p class="muted">{{ gorusme.tur.ad }} · {{ gorusme.tarih|date:"d.m.Y" }}</p>
+    </div>
+    <div class="page-head-actions">
+        <a href="{% url 'rehberlik_listesi' %}" class="ghost-btn">← Liste</a>
+        {% if duzenleyebilir %}<a href="{% url 'rehberlik_duzenle' gorusme.pk %}" class="ghost-btn">Düzenle</a>{% endif %}
+    </div>
+</header>
+<section class="dashboard-card">
+    <div class="card-heading"><div><p class="card-kicker">DETAY</p><h2>{{ gorusme.ozet }}</h2></div></div>
+    <dl class="detail-grid">
+        <dt>Detay</dt><dd>{{ gorusme.detay|default:"—"|linebreaksbr }}</dd>
+        <dt>Kararlar</dt><dd>{{ gorusme.kararlar|default:"—"|linebreaksbr }}</dd>
+        <dt>Veliye göster</dt><dd>{% if gorusme.veli_goster %}Evet{% else %}Hayır{% endif %}</dd>
+    </dl>
+</section>
+{% endblock %}

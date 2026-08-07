@@ -49,10 +49,12 @@ body {
     line-height: 1.65 !important;
 }
 
-/* Genel alanı daha rafine ve daha dar tut */
+/* Genel alan — tam genişlik */
 .v3-header-inner,
 .v3-main .page-content {
-    width: min(100%, 1460px) !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin-inline: 0 !important;
 }
 
 .v3-main .page-content {
@@ -65,8 +67,8 @@ body {
 .daily-reading-page,
 .exam-page,
 .report-page {
-    max-width: 1400px !important;
-    margin-inline: auto !important;
+    max-width: none !important;
+    margin-inline: 0 !important;
 }
 
 /* Üst navigasyon: daha ince, ferah */
@@ -342,7 +344,9 @@ h1, h2, h3,
 .report-layout,
 .exam-layout,
 .form-card {
-    max-width: 1400px !important;
+    max-width: none !important;
+    width: 100% !important;
+    margin-inline: 0 !important;
     margin-inline: auto !important;
 }
 .library-grid {
@@ -358,7 +362,7 @@ h1, h2, h3,
 .small-button,
 .student-detail-btn,
 .cs-btn,
-button:not(.v3-menu-toggle):not(.v3-toast-close),
+button:not(.v3-menu-toggle):not(.v3-toast-close):not(.v3-nav-trigger):not(.yonetim-link-btn),
 input[type="submit"] {
     appearance: none !important;
     min-height: 40px !important;
@@ -373,7 +377,7 @@ input[type="submit"] {
 }
 .primary-btn,
 .cs-btn-primary,
-button[type="submit"] {
+button[type="submit"]:not(.yonetim-link-btn) {
     color: #fff !important;
     border-color: transparent !important;
     background: linear-gradient(135deg, #316ff1, #6558e7) !important;

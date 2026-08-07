@@ -1,0 +1,48 @@
+{% extends "yonetim/base.html" %}
+
+{% block title %}Öğretmen Ödeme Profilleri{% endblock %}
+
+{% block content %}
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">FİNANS AYARLARI</p>
+        <h1>Öğretmen Ödeme Profilleri</h1>
+        <p class="muted">Saatlik ücret ve branş tanımları — yalnızca admin görür.</p>
+    </div>
+</header>
+
+<section class="report-table-card yonetim-table-card">
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <thead>
+                <tr>
+                    <th>Öğretmen</th>
+                    <th>Branş</th>
+                    <th>Saatlik Ücret</th>
+                    <th>Durum</th>
+                    <th class="yonetim-action-col">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for hoca in hocalar %}
+                <tr>
+                    <td><strong>{{ hoca.ad_soyad }}</strong></td>
+                    <td>{{ hoca.odeme_profili_kayit.brans.ad|default:"—" }}</td>
+                    <td class="num-col">{{ hoca.odeme_profili_kayit.saatlik_ucret }} ₺</td>
+                    <td>{% if hoca.odeme_profili_kayit.aktif %}Aktif{% else %}Pasif{% endif %}</td>
+                    <td class="yonetim-table-actions">
+                        <div class="yonetim-action-group">
+                            <a href="{% url 'yonetim:ogretmen_odeme_profil_duzenle' hoca.pk %}" class="yonetim-action-btn">Düzenle</a>
+                            <form method="post" action="{% url 'yonetim:ogretmen_odeme_profil_sil' hoca.pk %}" class="yonetim-inline-action" onsubmit="return confirm('{{ hoca.ad_soyad|escapejs }} pasif edilsin mi? Öğretmen panele giriş yapamaz.');">
+                                {% csrf_token %}
+                                <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger">Sil</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

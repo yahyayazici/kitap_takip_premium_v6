@@ -1,0 +1,1444 @@
+/* Tüm paneller — dash-home ile uyumlu global yüzey */
+
+:root {
+    --dash-bg: #f5f5f7;
+    --dash-surface: #ffffff;
+    --dash-line: rgba(0, 0, 0, 0.08);
+    --dash-text: #1d1d1f;
+    --dash-secondary: #6e6e73;
+    --dash-tertiary: #86868b;
+    --dash-accent: #0071e3;
+    --dash-radius: 18px;
+    --dash-radius-sm: 12px;
+    --dash-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
+    --dash-hero-bg:
+        radial-gradient(circle 280px at 12% 20%, rgba(130, 178, 255, 0.22), transparent 68%),
+        radial-gradient(circle 320px at 88% 75%, rgba(160, 140, 255, 0.16), transparent 70%),
+        linear-gradient(118deg, #15427f 0%, #1f5a9e 42%, #2a6cb8 100%);
+    --v6-shell-max: 100%;
+    --v6-page-gutter: clamp(10px, 1.2vw, 20px);
+}
+
+body.v3-body,
+body.yonetim-body,
+body.ogretmen-body,
+body.veli-body {
+    background: var(--dash-bg) !important;
+    color: var(--dash-text);
+}
+
+.v3-main .page-content {
+    width: 100% !important;
+    max-width: none !important;
+    margin-inline: 0 !important;
+    padding: 18px var(--v6-page-gutter) 44px !important;
+    box-sizing: border-box;
+}
+
+/* Sayfa iskeleti */
+.library-page,
+.report-page,
+.profile-page,
+.yonetim-page,
+.daily-page,
+.exam-create-page,
+.result-entry-page,
+.result-panel-page,
+.dashboard-page:not(.dash-home),
+.assignment-page,
+.ny-page,
+.at-page,
+.ktt-page {
+    display: flex;
+    flex-direction: column;
+    gap: 20px !important;
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+    box-sizing: border-box;
+}
+
+/* —— Navy hero: tüm sayfa başlıkları —— */
+.page-head,
+.patterned-page-head,
+.yonetim-page-head,
+.welcome-panel,
+.at-page-head,
+.ktt-page-head,
+.result-page-header,
+.result-entry-header,
+.daily-header,
+.exam-page-head,
+.page-hero,
+.ogretmen-page-head,
+.ny-head {
+    position: relative !important;
+    overflow: hidden !important;
+    isolation: isolate;
+    display: flex !important;
+    flex-wrap: wrap;
+    justify-content: space-between !important;
+    align-items: flex-end !important;
+    gap: 16px !important;
+    padding: 28px 32px !important;
+    margin-bottom: 0 !important;
+    border-radius: var(--dash-radius) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: var(--dash-hero-bg) !important;
+    background-size: 160% 160% !important;
+    animation: v6HeaderBg 24s ease-in-out infinite alternate;
+    box-shadow: 0 18px 48px rgba(21, 66, 127, 0.22) !important;
+    color: #f0f4fc !important;
+    min-height: auto !important;
+    max-width: none !important;
+    width: 100% !important;
+}
+
+.page-head::before,
+.patterned-page-head::before,
+.yonetim-page-head::before,
+.welcome-panel::before,
+.at-page-head::before,
+.ktt-page-head::before,
+.result-page-header::before,
+.result-entry-header::before,
+.daily-header::before,
+.exam-page-head::before,
+.page-hero::before,
+.ogretmen-page-head::before,
+.ny-head::before {
+    content: "" !important;
+    position: absolute;
+    inset: -15%;
+    pointer-events: none;
+    z-index: 0;
+    background:
+        radial-gradient(circle 300px at 10% 30%, rgba(130, 178, 255, 0.22), transparent 68%),
+        radial-gradient(circle 360px at 90% 70%, rgba(160, 140, 255, 0.16), transparent 70%);
+    animation: v6HeaderGlow 18s ease-in-out infinite alternate;
+}
+
+.page-head::after,
+.patterned-page-head::after,
+.welcome-panel::after {
+    display: none !important;
+}
+
+.page-head > *,
+.patterned-page-head > *,
+.yonetim-page-head > *,
+.welcome-panel > *,
+.at-page-head > *,
+.ktt-page-head > *,
+.result-page-header > *,
+.result-entry-header > *,
+.daily-header > *,
+.exam-page-head > *,
+.page-hero > *,
+.ogretmen-page-head > *,
+.ny-head > * {
+    position: relative;
+    z-index: 2;
+}
+
+.page-head h1,
+.patterned-page-head h1,
+.yonetim-page-head h1,
+.welcome-panel h1,
+.welcome-title,
+.at-page-head h1,
+.ktt-page-head h1,
+.result-page-header h1,
+.result-entry-header h1,
+.daily-header h1,
+.exam-page-head h1,
+.page-hero h1,
+.ogretmen-page-head h1,
+.ny-head h1,
+.ogretmen-page-title {
+    margin: 4px 0 0 !important;
+    font-size: clamp(24px, 3vw, 34px) !important;
+    font-weight: 650 !important;
+    letter-spacing: -0.022em !important;
+    color: #fff !important;
+    line-height: 1.15 !important;
+}
+
+.page-head .kicker,
+.patterned-page-head .kicker,
+.yonetim-page-head .kicker,
+.welcome-kicker,
+.at-page-head .kicker,
+.ktt-page-head .kicker,
+.result-kicker,
+.daily-kicker,
+.exam-page-head .kicker,
+.ny-head .kicker,
+.card-kicker {
+    margin: 0 !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.06em !important;
+    text-transform: uppercase !important;
+}
+
+.page-head .kicker,
+.patterned-page-head .kicker,
+.yonetim-page-head .kicker,
+.welcome-kicker,
+.at-page-head .kicker,
+.ktt-page-head .kicker,
+.result-kicker,
+.daily-kicker,
+.exam-page-head .kicker,
+.ny-head .kicker {
+    color: rgba(255, 255, 255, 0.72) !important;
+}
+
+.page-head .muted,
+.page-head p:not(.kicker),
+.patterned-page-head .muted,
+.yonetim-page-head p:not(.kicker),
+.welcome-description,
+.result-description,
+.daily-description,
+.ogretmen-page-head p,
+.ny-head p {
+    margin: 10px 0 0 !important;
+    font-size: 15px !important;
+    font-weight: 400 !important;
+    color: rgba(255, 255, 255, 0.88) !important;
+}
+
+.welcome-script,
+.welcome-name {
+    font-family: inherit !important;
+    font-size: inherit !important;
+    font-weight: inherit !important;
+    text-shadow: none !important;
+    display: inline !important;
+}
+
+.welcome-title {
+    display: block !important;
+}
+
+.welcome-panel.yonetim-welcome {
+    padding: 28px 32px !important;
+}
+
+.page-head-actions,
+.yonetim-page-head-actions,
+.result-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Hero içi butonlar */
+.page-head .primary-btn,
+.patterned-page-head .primary-btn,
+.yonetim-page-head .primary-btn,
+.welcome-panel .primary-btn,
+.result-page-header .result-primary-button,
+.result-entry-header .primary-btn,
+.daily-header .primary-btn,
+.exam-page-head .primary-btn,
+.page-hero .primary-btn,
+.ogretmen-page-head .dash-text-btn {
+    background: rgba(255, 255, 255, 0.95) !important;
+    color: #15427f !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.page-head .ghost-btn,
+.patterned-page-head .ghost-btn,
+.yonetim-page-head .ghost-btn,
+.welcome-panel .ghost-btn,
+.result-back-button,
+.result-secondary-button,
+.page-hero .ghost-btn {
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: #fff !important;
+    border: 1px solid rgba(255, 255, 255, 0.22) !important;
+    backdrop-filter: blur(12px);
+}
+
+/* —— Kart yüzeyleri —— */
+.library-panel,
+.report-table-card,
+.report-filter-card,
+.profile-card,
+.profile-exam-card,
+.dashboard-card,
+.dash-panel,
+.yonetim-card,
+.yonetim-table-card,
+.yonetim-dash-card,
+.yonetim-section-card,
+.exam-form-card,
+.bulk-assign-card,
+.result-card,
+.result-list-card,
+.result-exam-card,
+.veli-card,
+.ogretmen-select-card,
+.ogretmen-attendance-card,
+.ogretmen-lesson-card,
+.ogretmen-program-page,
+.daily-table-card,
+.student-select-card,
+.student-card,
+.yonetim-empty-card,
+.quick-action,
+.active-book-row {
+    padding: 22px 24px !important;
+    border-radius: var(--dash-radius) !important;
+    background: var(--dash-surface) !important;
+    border: 1px solid var(--dash-line) !important;
+    box-shadow: var(--dash-shadow) !important;
+}
+
+.card-heading,
+.dash-panel-head,
+.library-panel-head,
+.exam-form-head,
+.profile-card .card-heading {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+    margin-bottom: 18px !important;
+    padding-bottom: 0 !important;
+    border-bottom: none !important;
+}
+
+.card-heading h2,
+.dash-panel-head h2,
+.library-panel-head h2,
+.exam-form-head h2,
+.profile-card h2 {
+    margin: 4px 0 0 !important;
+    font-size: 22px !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.022em !important;
+    color: var(--dash-text) !important;
+}
+
+.library-panel-desc,
+.card-heading p,
+.muted:not(.page-head .muted) {
+    color: var(--dash-secondary) !important;
+    font-size: 13px !important;
+}
+
+/* —— Metrik kartları —— */
+.metric-grid,
+.result-summary-grid,
+.daily-stat-grid,
+.yonetim-metrics {
+    display: grid !important;
+    gap: 12px !important;
+    margin: 0 !important;
+}
+
+.metric-card,
+.result-summary-card,
+.daily-stat-card {
+    position: relative;
+    min-height: auto !important;
+    padding: 20px 22px !important;
+    border-radius: var(--dash-radius-sm) !important;
+    background: var(--dash-surface) !important;
+    border: 1px solid var(--dash-line) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+    color: var(--dash-text) !important;
+}
+
+.metric-card::before,
+.result-summary-card::before,
+.daily-stat-card::before {
+    display: none !important;
+}
+
+.metric-card span,
+.result-summary-card span,
+.daily-stat-card span {
+    display: block;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase !important;
+    color: var(--dash-tertiary) !important;
+}
+
+.metric-card strong,
+.result-summary-card strong,
+.daily-stat-card strong {
+    display: block;
+    margin-top: 12px;
+    font-size: 32px !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.03em !important;
+    line-height: 1 !important;
+}
+
+.metric-card.tone-blue strong,
+.result-summary-card .icon-blue + div strong { color: #1d4ed8; }
+.metric-card.tone-green strong,
+.result-summary-card .icon-green + div strong { color: #15803d; }
+.metric-card.tone-purple strong,
+.result-summary-card .icon-purple + div strong { color: #7e22ce; }
+.metric-card.tone-amber strong { color: #c2410c; }
+
+.metric-card small,
+.daily-stat-card small {
+    display: block;
+    margin-top: 8px;
+    font-size: 12px !important;
+    color: var(--dash-secondary) !important;
+}
+
+/* —— Listeler: çizgi yerine boşluk —— */
+.yonetim-list-row,
+.profile-reading-row {
+    border-top: none !important;
+    border-radius: var(--dash-radius-sm);
+    background: #f8fafc;
+    margin-bottom: 8px;
+    padding: 12px 14px !important;
+}
+
+.yonetim-list-row:last-child,
+.profile-reading-row:last-child {
+    margin-bottom: 0;
+}
+
+.yonetim-class-card {
+    border-radius: var(--dash-radius-sm) !important;
+    border: 1px solid var(--dash-line) !important;
+    background: #f8fafc !important;
+}
+
+.yonetim-class-accent {
+    display: none;
+}
+
+/* Veli kart alias */
+.veli-card {
+    margin-bottom: 0 !important;
+}
+
+.veli-card-head h2 {
+    font-size: 22px !important;
+}
+
+/* Öğretmen alt sayfa başlığı */
+.ogretmen-dash > .ogretmen-page-title:first-child {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    padding: 28px 32px;
+    margin: 0 0 0;
+    border-radius: var(--dash-radius);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--dash-hero-bg);
+    background-size: 160% 160%;
+    box-shadow: 0 18px 48px rgba(21, 66, 127, 0.22);
+    color: #fff !important;
+}
+
+/* Tablo satırları */
+.report-data-table tbody tr + tr td,
+.yonetim-data-table tbody tr + tr td,
+.veli-table tbody tr + tr td,
+.og-grade-table tbody tr + tr td {
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.report-data-table thead th,
+.yonetim-data-table thead th {
+    border-bottom: none !important;
+    background: #f8fafc !important;
+    color: var(--dash-tertiary) !important;
+    font-size: 11px !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.small-button,
+.yonetim-link {
+    color: var(--dash-accent) !important;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+.yonetim-action-group {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.yonetim-table-actions {
+    white-space: nowrap;
+    width: 1%;
+    padding-left: 12px !important;
+    padding-right: 20px !important;
+}
+
+.yonetim-table-actions .yonetim-action-group {
+    justify-content: flex-start;
+}
+
+.yonetim-data-table th.yonetim-action-col,
+.yonetim-data-table td.yonetim-action-col,
+.yonetim-data-table td.yonetim-table-actions {
+    width: 1%;
+    white-space: nowrap;
+    min-width: 200px;
+    padding-left: 12px !important;
+    padding-right: 20px !important;
+}
+
+.yonetim-data-table td.yonetim-action-col,
+.yonetim-data-table td.yonetim-table-actions {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.yonetim-data-table td.yonetim-action-col .yonetim-action-group,
+.yonetim-data-table td.yonetim-table-actions .yonetim-action-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.yonetim-action-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--panel-btn-min-h, 46px) !important;
+    height: auto !important;
+    padding: 0 18px !important;
+    border: 1px solid #d8e3f0 !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+    box-shadow: 0 2px 8px rgba(23, 59, 128, 0.06) !important;
+    color: #173b80 !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+    text-decoration: none !important;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+}
+
+.yonetim-action-btn:hover {
+    border-color: #93b4f5 !important;
+    background: #f8fbff !important;
+    color: #1d4ed8 !important;
+}
+
+.yonetim-action-btn-danger {
+    border-color: #fecaca !important;
+    background: #fff5f5 !important;
+    color: #b91c1c !important;
+}
+
+.yonetim-action-btn-danger:hover {
+    border-color: #fca5a5 !important;
+    background: #fee2e2 !important;
+    color: #991b1b !important;
+}
+
+.yonetim-action-btn-muted {
+    border-color: #e2e8f0 !important;
+    background: #f8fafc !important;
+    color: #475569 !important;
+}
+
+.yonetim-action-btn-muted:hover {
+    border-color: #cbd5e1 !important;
+    background: #f1f5f9 !important;
+    color: #1e293b !important;
+}
+
+/* Eski küçük linkler — işlem sütunlarında buton boyutu */
+.yonetim-action-group .yonetim-link,
+.yonetim-action-col .yonetim-link,
+.yonetim-table-actions .yonetim-link {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--panel-btn-min-h, 46px) !important;
+    height: auto !important;
+    padding: 0 18px !important;
+    border: 1px solid #d8e3f0 !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+    box-shadow: 0 2px 8px rgba(23, 59, 128, 0.06) !important;
+    color: #173b80 !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+    text-decoration: none !important;
+    white-space: nowrap;
+}
+
+.yonetim-action-group .yonetim-link:hover,
+.yonetim-action-col .yonetim-link:hover,
+.yonetim-table-actions .yonetim-link:hover {
+    border-color: #93b4f5 !important;
+    background: #f8fbff !important;
+    color: #1d4ed8 !important;
+}
+
+.yonetim-action-col .yonetim-link-btn,
+.yonetim-action-group .yonetim-link-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--panel-btn-min-h, 46px) !important;
+    padding: 0 18px !important;
+    border: 1px solid #fecaca !important;
+    border-radius: 10px !important;
+    background: #fff5f5 !important;
+    color: #b91c1c !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+}
+
+.card-heading .yonetim-action-btn,
+.card-heading .ghost-btn,
+.card-heading .small-button {
+    flex-shrink: 0;
+}
+
+.yonetim-action-sep {
+    margin: 0 8px;
+    color: #94a3b8;
+    font-size: 13px;
+    user-select: none;
+}
+
+.yonetim-inline-action {
+    display: inline-flex;
+    margin: 0;
+    padding: 0;
+}
+
+.yonetim-link-btn {
+    appearance: none !important;
+    display: inline !important;
+    min-height: auto !important;
+    height: auto !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    line-height: inherit !important;
+    cursor: pointer;
+    font-family: inherit;
+    text-decoration: none !important;
+}
+
+.yonetim-link-btn.yonetim-link-danger {
+    color: #b74450 !important;
+}
+
+.yonetim-link-btn.yonetim-link-danger:hover {
+    text-decoration: underline !important;
+}
+
+@media (max-width: 640px) {
+    .page-head,
+    .patterned-page-head,
+    .welcome-panel,
+    .yonetim-page-head,
+    .result-page-header,
+    .result-entry-header {
+        padding: 22px 20px !important;
+    }
+}
+
+/* Tam genişlik — header ve içerik aynı hizada */
+.v3-header-inner,
+.cs-v6-inner,
+.v3-main .page-content,
+.page-content,
+.cs-v6-main,
+.dashboard-page,
+.library-page,
+.bulk-assign-page,
+.daily-reading-page,
+.exam-page,
+.report-page,
+.profile-page,
+.yonetim-page,
+.daily-page,
+.exam-create-page,
+.result-panel-page,
+.dash-home,
+.dash-home.yonetim-dash,
+.dash-home.veli-dash,
+.dash-home.ogretmen-dash,
+.veli-shell,
+.talebe-shell,
+.ogretmen-messages,
+.at-page,
+.ktt-page,
+.ny-page {
+    width: 100% !important;
+    max-width: none !important;
+    margin-inline: 0 !important;
+    padding-inline: var(--v6-page-gutter) !important;
+    box-sizing: border-box;
+}
+
+.v3-header-inner,
+.cs-v6-inner {
+    padding-block: 0 !important;
+}
+
+/* Yönetim merkezi — tam genişlik, çift padding yok */
+body.yonetim-body {
+    --v6-shell-max: 100%;
+}
+
+body.yonetim-body .cs-v6-header {
+    width: 100% !important;
+}
+
+body.yonetim-body .cs-v6-inner,
+body.yonetim-body .cs-v6-main,
+body.yonetim-body .yonetim-page,
+body.yonetim-body .yonetim-messages,
+body.yonetim-body .dash-home.yonetim-dash {
+    width: 100% !important;
+    max-width: none !important;
+    margin-inline: 0 !important;
+}
+
+body.yonetim-body .cs-v6-inner {
+    padding-inline: var(--v6-page-gutter) !important;
+    padding-block: 0 !important;
+}
+
+body.yonetim-body .cs-v6-main {
+    padding: 18px var(--v6-page-gutter) 44px !important;
+}
+
+body.veli-body .cs-v6-main,
+body.ogretmen-body .cs-v6-main,
+body.talebe-body .cs-v6-main {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 18px var(--v6-page-gutter) 44px !important;
+    box-sizing: border-box;
+}
+
+body.yonetim-body .yonetim-page,
+body.yonetim-body .yonetim-messages,
+body.yonetim-body .dash-home.yonetim-dash {
+    padding: 0 !important;
+}
+
+body.yonetim-body .yonetim-page {
+    gap: 20px !important;
+}
+
+/* ============================================================
+   Global shell — tüm paneller: tam genişlik, yakın menü
+   ============================================================ */
+:root {
+    --v3-header-height: 88px;
+}
+
+.v3-header-inner,
+.cs-v6-inner {
+    min-height: var(--v3-header-height) !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin-inline: 0 !important;
+    padding-inline: var(--v6-page-gutter) !important;
+    gap: clamp(14px, 2vw, 24px) !important;
+    box-sizing: border-box;
+}
+
+.v3-main,
+.cs-v6-main,
+.ogretmen-main {
+    width: 100% !important;
+    max-width: none !important;
+}
+
+.v3-main .page-content,
+.cs-v6-main > :not(.yonetim-messages):not(.ogretmen-messages),
+.ogretmen-main > :not(.ogretmen-messages) {
+    width: 100% !important;
+    max-width: none !important;
+    margin-inline: 0 !important;
+}
+
+/* İç sayfa sarmalayıcıları — çift yatay padding olmasın */
+.v3-main .page-content > .ktt-page,
+.v3-main .page-content > .at-page,
+.v3-main .page-content > .ny-page,
+.v3-main .page-content > .dashboard-page,
+.v3-main .page-content > .report-page,
+.v3-main .page-content > .library-page,
+.v3-main .page-content > .profile-page,
+.v3-main .page-content > .yonetim-page,
+.v3-main .page-content > .daily-page,
+.v3-main .page-content > .exam-create-page,
+.v3-main .page-content > .result-panel-page,
+.v3-main .page-content > .assignment-page,
+.cs-v6-main > .dash-home,
+.cs-v6-main > .veli-shell,
+.cs-v6-main > .talebe-shell,
+.cs-v6-main > .ogretmen-dash,
+.cs-v6-main > .yonetim-page {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* Üst menü — daha büyük, okunaklı */
+.v3-header .v3-nav-link,
+.v3-header .v3-nav-trigger,
+.cs-v6-header .v3-nav-link,
+.cs-v6-header .v3-nav-trigger,
+.cs-v6-header .cs-v6-nav a,
+.yonetim-v6-header .v3-nav-link,
+.yonetim-v6-header .v3-nav-trigger {
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    min-height: var(--v3-header-height) !important;
+    padding-inline: 18px !important;
+}
+
+.v3-brand-copy strong,
+.cs-v6-brand .v6-brand-copy strong,
+.v3-brand-copy.v6-brand-copy strong {
+    font-size: 17px !important;
+}
+
+.v3-brand-copy small,
+.cs-v6-brand .v6-brand-copy small,
+.v3-brand-copy.v6-brand-copy small {
+    font-size: 11px !important;
+}
+
+.v3-user-copy strong,
+.cs-v6-actions span {
+    font-size: 14px !important;
+}
+
+.v3-logout,
+.cs-v6-actions .ghost-btn,
+.yonetim-ghost-light {
+    font-size: 13px !important;
+    padding: 9px 14px !important;
+}
+
+/* Eski max-width kısıtlarını geçersiz kıl */
+.page-head,
+.patterned-page-head,
+.page-content,
+.library-page,
+.report-page,
+.profile-page,
+.exam-create-page,
+.yonetim-page,
+.dashboard-page,
+.dash-home,
+.veli-shell,
+.talebe-shell,
+.ogretmen-dash,
+.at-page,
+.ktt-page,
+.ny-page,
+.cs-content,
+.cs-dashboard-shell {
+    max-width: none !important;
+    width: 100% !important;
+    margin-inline: 0 !important;
+}
+
+/* Modül premium dosyalarındaki dar kutular */
+.st-page,
+.mz-page,
+.fn-page,
+.rh-page,
+.dd-page,
+.soru-takip-page {
+    max-width: none !important;
+    width: 100% !important;
+    margin-inline: 0 !important;
+}
+
+/* ============================================================
+   Dropdown / açılır paneller — hero altına taşabilsin
+   ============================================================ */
+.page-head,
+.patterned-page-head,
+.yonetim-page-head,
+.welcome-panel,
+.at-page-head,
+.ktt-page-head,
+.result-page-header,
+.result-entry-header,
+.daily-header,
+.exam-page-head,
+.page-hero,
+.ogretmen-page-head,
+.ny-head,
+.page-header,
+.list-page-head,
+.report-page-head,
+.cs-page-head {
+    overflow: visible !important;
+    z-index: 10;
+}
+
+.page-head-actions,
+.yonetim-page-head-actions,
+.result-header-actions,
+.welcome-actions {
+    position: relative;
+    z-index: 12;
+    overflow: visible;
+}
+
+/* Talebe listesi — Rapor Al açılır paneli */
+.talebe-rapor-wrap {
+    position: relative;
+}
+
+.talebe-rapor-ac {
+    min-height: 46px !important;
+    padding: 12px 20px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+}
+
+.talebe-rapor-panel {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 10px);
+    z-index: 1200;
+    width: min(380px, calc(100vw - 32px));
+    padding: 14px;
+    border: 1px solid var(--dash-line);
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 22px 48px rgba(22, 52, 94, 0.18);
+    display: grid;
+    gap: 12px;
+}
+
+.talebe-rapor-panel[hidden] {
+    display: none !important;
+}
+
+.talebe-rapor-card {
+    padding: 16px;
+    border: 1px solid #e8eef5;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #fff, #f8fbff);
+}
+
+.talebe-rapor-card strong {
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--dash-text);
+}
+
+.talebe-rapor-card p {
+    margin: 8px 0 14px;
+    font-size: 13px;
+    color: var(--dash-secondary);
+    line-height: 1.5;
+}
+
+.talebe-rapor-form {
+    display: grid;
+    gap: 10px;
+}
+
+.talebe-rapor-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #40506a;
+}
+
+.talebe-rapor-select {
+    width: 100%;
+    min-height: 46px;
+    padding: 0 14px;
+    border: 1px solid var(--dash-line);
+    border-radius: 12px;
+    background: #fff;
+    font: inherit;
+    font-size: 14px;
+    color: var(--dash-text);
+}
+
+.talebe-rapor-btn {
+    width: 100%;
+    min-height: 46px !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-size: 14px !important;
+}
+
+@media (max-width: 700px) {
+    .talebe-rapor-panel {
+        right: auto;
+        left: 0;
+    }
+}
+
+/* ============================================================
+   Global okunabilirlik — buton, form, tablo, kart metinleri
+   ============================================================ */
+:root {
+    --panel-btn-min-h: 46px;
+    --panel-btn-font: 14px;
+    --panel-input-min-h: 46px;
+    --panel-input-font: 14px;
+    --panel-label-font: 13px;
+    --panel-body-font: 14px;
+    --panel-table-head: 12px;
+    --panel-table-cell: 14px;
+}
+
+.primary-btn,
+.ghost-btn,
+.small-button,
+.report-button,
+.student-detail-btn,
+.daily-primary-button,
+.daily-secondary-button,
+.result-primary-button,
+.result-secondary-button,
+.report-pdf-btn,
+.yonetim-search-btn,
+.yonetim-head-ghost,
+.yonetim-ghost-light,
+.ktt-outline-btn,
+.ktt-create-btn,
+.ktt-filter-submit,
+button[type="submit"]:not(.v3-menu-toggle):not(.v3-nav-trigger):not(.yonetim-link-btn):not(.yonetim-action-btn):not(.duyuru-carousel-dots button),
+a.primary-btn,
+a.ghost-btn,
+a.small-button {
+    min-height: var(--panel-btn-min-h) !important;
+    padding: 12px 20px !important;
+    font-size: var(--panel-btn-font) !important;
+    font-weight: 600 !important;
+    line-height: 1.25 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px;
+    box-sizing: border-box;
+    white-space: nowrap;
+}
+
+.page-head .primary-btn,
+.page-head .ghost-btn,
+.patterned-page-head .primary-btn,
+.patterned-page-head .ghost-btn,
+.yonetim-page-head .primary-btn,
+.yonetim-page-head .ghost-btn,
+.welcome-panel .primary-btn,
+.welcome-panel .ghost-btn,
+.result-page-header .primary-btn,
+.result-page-header .ghost-btn,
+.daily-header .primary-btn,
+.daily-header .ghost-btn,
+.exam-page-head .primary-btn,
+.exam-page-head .ghost-btn,
+.ktt-report-head .ktt-outline-btn {
+    min-height: var(--panel-btn-min-h) !important;
+    padding: 12px 22px !important;
+    font-size: var(--panel-btn-font) !important;
+    font-weight: 600 !important;
+}
+
+.page-head .ghost-btn,
+.patterned-page-head .ghost-btn,
+.yonetim-page-head .ghost-btn,
+.welcome-panel .ghost-btn,
+.result-page-header .ghost-btn,
+.daily-header .ghost-btn,
+.exam-page-head .ghost-btn {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: #fff !important;
+    border: 1px solid rgba(255, 255, 255, 0.42) !important;
+    backdrop-filter: blur(10px);
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="file"]),
+select,
+textarea,
+.search-box input,
+.library-search input,
+.yonetim-input,
+.exam-field input,
+.exam-field select,
+.exam-field textarea,
+.report-filter-card input,
+.report-filter-card select,
+.ktt-field input,
+.ktt-field select,
+.ktt-field textarea {
+    min-height: var(--panel-input-min-h) !important;
+    font-size: var(--panel-input-font) !important;
+    padding: 10px 14px !important;
+    box-sizing: border-box;
+}
+
+textarea,
+.ktt-field textarea,
+.exam-field textarea,
+.yonetim-field textarea {
+    min-height: 96px !important;
+    padding-block: 12px !important;
+    line-height: 1.5;
+}
+
+label,
+.form-label,
+.field-label,
+.exam-field label,
+.yonetim-field > label,
+.ktt-field label,
+.report-filter-card label {
+    font-size: var(--panel-label-font) !important;
+    font-weight: 600 !important;
+}
+
+.report-data-table thead th,
+.yonetim-data-table thead th,
+.yonetim-table-card .yonetim-data-table thead th,
+.veli-table thead th,
+.og-grade-table thead th,
+.daily-table th,
+table thead th {
+    font-size: var(--panel-table-head) !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.05em !important;
+    padding: 14px 16px !important;
+}
+
+.report-data-table tbody td,
+.yonetim-data-table tbody td,
+.yonetim-table-card .yonetim-data-table tbody td,
+.veli-table tbody td,
+.og-grade-table tbody td,
+.daily-table td,
+table tbody td {
+    font-size: var(--panel-table-cell) !important;
+    padding: 14px 16px !important;
+    line-height: 1.45;
+}
+
+.card-heading h2,
+.library-panel .card-heading h2,
+.yonetim-table-card .card-heading h2,
+.dashboard-card .card-heading h2 {
+    font-size: clamp(20px, 2.2vw, 24px) !important;
+}
+
+.library-panel-desc,
+.card-heading p,
+.muted:not(.page-head .muted):not(.patterned-page-head .muted) {
+    font-size: var(--panel-body-font) !important;
+    line-height: 1.5;
+}
+
+/* Talebe listesi kartları */
+.student-list-head strong {
+    font-size: 17px !important;
+}
+
+.student-list-head span {
+    font-size: 13px !important;
+}
+
+.search-box input {
+    width: min(360px, 100%);
+    min-height: var(--panel-input-min-h) !important;
+    font-size: var(--panel-input-font) !important;
+}
+
+.student-info h3 {
+    font-size: 16px !important;
+}
+
+.student-info p {
+    font-size: 13px !important;
+}
+
+.student-meta span {
+    font-size: 11px !important;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.student-meta strong {
+    font-size: 13px !important;
+}
+
+.student-detail-btn {
+    font-size: 14px !important;
+    min-height: 44px !important;
+    padding: 12px !important;
+}
+
+.student-card {
+    padding: 20px !important;
+}
+
+.panel,
+.library-panel,
+.student-select-card {
+    padding: 24px 26px !important;
+    border-radius: var(--dash-radius) !important;
+    background: var(--dash-surface) !important;
+    border: 1px solid var(--dash-line) !important;
+    box-shadow: var(--dash-shadow) !important;
+}
+
+.student-list-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+}
+
+.student-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.student-card-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.student-avatar {
+    width: 50px;
+    height: 50px;
+    flex: 0 0 50px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    color: var(--dash-accent);
+    background: #eaf0ff;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.student-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 18px;
+    padding: 14px;
+    border-radius: 13px;
+    background: #f8faff;
+}
+
+.student-meta-rich {
+    grid-template-columns: 1fr 1fr !important;
+}
+
+.active-text { color: #167457; }
+.passive-text { color: #a53640; }
+
+.empty-state {
+    grid-column: 1 / -1;
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    padding: 50px;
+    text-align: center;
+}
+
+.empty-state span {
+    color: var(--dash-secondary);
+    font-size: 14px;
+}
+
+.search-box input:focus {
+    border-color: #83a1e8;
+    box-shadow: 0 0 0 4px rgba(40, 91, 212, 0.08);
+    outline: none;
+}
+
+@media (max-width: 1100px) {
+    .student-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    .student-list-head {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .search-box input {
+        width: 100%;
+    }
+
+    .student-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .page-head-actions,
+    .yonetim-page-head-actions,
+    .result-header-actions {
+        width: 100%;
+    }
+
+    .page-head-actions .primary-btn,
+    .page-head-actions .ghost-btn,
+    .page-head-actions .talebe-rapor-ac {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+}
+
+/* Modül premium — küçük butonları büyüt */
+.ep-btn,
+.ep-btn-sm,
+.dp-btn,
+.dp-btn-sm,
+.dk-btn,
+.dk-btn-sm,
+.im-btn,
+.im-btn-sm,
+.tz-btn,
+.tz-btn-sm,
+.st-btn,
+.st-btn-sm,
+.dd-btn,
+.dd-tab,
+.rh-btn,
+.mz-btn,
+.fn-btn {
+    min-height: var(--panel-btn-min-h) !important;
+    padding: 10px 18px !important;
+    font-size: var(--panel-btn-font) !important;
+    font-weight: 600 !important;
+}
+
+.ep-input,
+.ep-input-sm,
+.dp-input,
+.dk-input,
+.im-input,
+.tz-input,
+.st-input,
+.dd-input {
+    min-height: var(--panel-input-min-h) !important;
+    font-size: var(--panel-input-font) !important;
+}
+
+.dash-quick-add {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin: -6px 0 8px;
+}
+
+.dash-quick-add span {
+    font-size: 14px;
+    color: var(--dash-secondary, #6e6e73);
+}
+
+/* Yönetim + panel — çoklu seçim kutuları yatay grid */
+.yonetim-field-checkbox-grid .yonetim-field-control > ul,
+.yonetim-form-card ul:has(> li > label > input[type="checkbox"]),
+.yonetim-form-grid .yonetim-field-control > ul:has(input[type="checkbox"]),
+.yonetim-form ul:has(input[type="checkbox"]),
+.yk-checkbox-grid ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 8px;
+}
+
+.yonetim-field-checkbox-grid .yonetim-field-control > ul > li,
+.yonetim-form-card ul:has(> li > label > input[type="checkbox"]) > li,
+.yonetim-form ul:has(input[type="checkbox"]) > li {
+    margin: 0;
+}
+
+.yonetim-field-checkbox-grid .yonetim-field-control > ul > li > label,
+.yonetim-form-card ul:has(> li > label > input[type="checkbox"]) > li > label,
+.yonetim-form ul:has(input[type="checkbox"]) > li > label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 8px 12px;
+    border: 1px solid #d8e3f0;
+    border-radius: 10px;
+    background: #fff;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    cursor: pointer;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.yonetim-field-checkbox-grid .yonetim-field-control > ul > li > label:has(input:checked),
+.yonetim-form-card ul:has(> li > label > input[type="checkbox"]) > li > label:has(input:checked),
+.yonetim-form ul:has(input[type="checkbox"]) > li > label:has(input:checked) {
+    border-color: #93c5fd;
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.yonetim-field-checkbox-grid .yonetim-field-control input[type="checkbox"],
+.yonetim-form-card ul:has(> li > label > input[type="checkbox"]) input[type="checkbox"],
+.yonetim-form ul:has(input[type="checkbox"]) input[type="checkbox"] {
+    accent-color: #2563eb;
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+}
+
+@media (max-width: 640px) {
+    .yonetim-field-checkbox-grid .yonetim-field-control > ul,
+    .yonetim-form-card ul:has(> li > label > input[type="checkbox"]),
+    .yonetim-form ul:has(input[type="checkbox"]),
+    .yk-checkbox-grid ul {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Akademik Müdahale · {{ mudahale.talebe.ad_soyad }}{% endblock %}
+{% block content %}
+<div class="result-entry-page">
+    <header class="result-entry-header">
+        <div>
+            <p class="result-kicker">{{ mudahale.tarih|date:"d F Y"|upper }}</p>
+            <h1>{{ mudahale.talebe.ad_soyad }}</h1>
+            <p class="result-description">
+                {{ mudahale.mudahale_turu.ikon }} {{ mudahale.mudahale_turu.ad }}
+                {% if mudahale.ders %} · {{ mudahale.ders.ad }}{% endif %}
+                {% if mudahale.sure_dakika %} · {{ mudahale.sure_dakika }} dk{% endif %}
+            </p>
+        </div>
+        <div class="result-header-actions">
+            {% if duzenleyebilir %}
+            <a href="{% url 'akademik_mudahale_duzenle' mudahale.pk %}" class="result-secondary-button">Düzenle</a>
+            {% endif %}
+            <a href="{% url 'akademik_mudahale_listesi' %}" class="result-back-button">Liste</a>
+        </div>
+    </header>
+
+    <section class="result-card">
+        {% if mudahale.konu %}
+        <p><strong>Konu:</strong> {{ mudahale.konu }}</p>
+        {% endif %}
+
+        {% if mudahale.ek_alanlar %}
+        <div style="margin-top:16px;">
+            <p class="card-kicker">EK BİLGİLER</p>
+            <ul>
+                {% for key, val in mudahale.ek_alanlar.items %}
+                <li><strong>{{ key }}:</strong> {{ val }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {% if mudahale.degerlendirme_notu %}
+        <div style="margin-top:16px;">
+            <p class="card-kicker">DEĞERLENDİRME NOTU (PERSONEL)</p>
+            <p>{{ mudahale.degerlendirme_notu|linebreaksbr }}</p>
+        </div>
+        {% endif %}
+
+        <p style="margin-top:16px;color:#64748B;font-size:14px;">
+            Kaydeden: {{ mudahale.olusturan.get_full_name|default:mudahale.olusturan.username|default:"—" }}
+            · Veliye göster: {% if mudahale.veliye_goster %}Evet{% else %}Hayır{% endif %}
+        </p>
+
+        {% if silebilir %}
+        <div style="margin-top:20px;">
+            <a href="{% url 'akademik_mudahale_sil' mudahale.pk %}" class="ghost-btn" onclick="return confirm('Kayıt silinsin mi?');">Sil</a>
+        </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

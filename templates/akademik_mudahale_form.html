@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}{{ baslik }} · {{ panel_short }}{% endblock %}
+{% block content %}
+<div class="result-entry-page">
+    <header class="result-entry-header">
+        <div>
+            <p class="result-kicker">AKADEMİK MÜDAHALE</p>
+            <h1>{{ baslik }}</h1>
+        </div>
+        <a href="{% url 'akademik_mudahale_listesi' %}" class="result-back-button">Listeye Dön</a>
+    </header>
+
+    <form method="post" class="result-card">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+        <div class="report-empty">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            {% for field in form %}
+            {% if field.name != "degerlendirme_notu" and field.name != "veliye_goster" %}
+            <label{% if field.name == "mudahale_turu" %} style="grid-column:1/-1;"{% endif %}>
+                {{ field.label }}
+                {{ field }}
+                {{ field.errors }}
+            </label>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+        <div id="ek-alanlar" style="margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;"></div>
+
+        <label style="display:block;margin-top:20px;">
+            {{ form.degerlendirme_notu.label }} (personel — veli görmez)
+            {{ form.degerlendirme_notu }}
+            {{ form.degerlendirme_notu.errors }}
+        </label>
+
+        <label style="display:flex;align-items:center;gap:8px;margin-top:12px;">
+            {{ form.veliye_goster }}
+            {{ form.veliye_goster.label }}
+        </label>
+
+        <div style="margin-top:20px;">
+            <button type="submit" class="primary-btn">Kaydet</button>
+        </div>
+    </form>
+</div>
+
+<script>
+(function () {
+    const semalar = {{ tur_semalari_json|safe }};
+    const mevcut = {{ mevcut_ek_json|safe }};
+    const turSelect = document.getElementById("id_mudahale_turu");
+    const container = document.getElementById("ek-alanlar");
+
+    function renderEkAlanlar() {
+        container.innerHTML = "";
+        const turId = turSelect && turSelect.value;
+        if (!turId || !semalar[turId]) return;
+        semalar[turId].forEach(function (alan) {
+            const label = document.createElement("label");
+            const input = document.createElement("input");
+            input.name = "ek_" + alan.key;
+            input.className = "input";
+            input.placeholder = alan.label;
+            if (alan.type === "number") input.type = "number";
+            else input.type = "text";
+            if (mevcut[alan.key]) input.value = mevcut[alan.key];
+            label.textContent = alan.label;
+            label.appendChild(document.createElement("br"));
+            label.appendChild(input);
+            container.appendChild(label);
+        });
+    }
+
+    if (turSelect) {
+        turSelect.addEventListener("change", renderEkAlanlar);
+        renderEkAlanlar();
+    }
+})();
+</script>
+{% endblock %}

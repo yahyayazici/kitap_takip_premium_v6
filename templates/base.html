@@ -5,22 +5,33 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#071b3a">
-    <title>{% block title %}Çinili Saray Kitap Takip Sistemi{% endblock %}</title>
+    <title>{% block title %}{{ panel_name }}{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/app.css' %}">
     <link rel="stylesheet" href="{% static 'css/topnav-v3.css' %}">
     <link rel="stylesheet" href="{% static 'css/premium-typography-v4.css' %}">
     <link rel="stylesheet" href="{% static 'css/premium-system-v5.css' %}">
     <link rel="stylesheet" href="{% static 'css/premium-system-v6.css' %}">
+    <link rel="stylesheet" href="{% static 'css/nav-groups.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}">
+    <link rel="stylesheet" href="{% static 'css/panel-unified.css' %}">
+    <link rel="stylesheet" href="{% static 'css/multi-select-filter.css' %}">
+    {% if asistan_aktif %}
+    <link rel="stylesheet" href="{% static 'css/asistan.css' %}">
+    {% endif %}
     {% block extra_css %}{% endblock %}
 </head>
 <body class="v3-body">
 <header class="v3-header">
+    {% include "includes/v6_header_books.html" %}
     <div class="v3-header-inner">
-        <a href="{% url 'dashboard' %}" class="v3-brand">
-            <span class="v3-brand-mark">ÇS</span>
-            <span class="v3-brand-copy">
-                <strong>Çinili Saray</strong>
-                <small>Kitap Takip Sistemi</small>
+        <a href="{% url 'dashboard' %}" class="v3-brand v6-brand-block">
+            <span class="v3-brand-mark v6-brand-mark">
+                <img src="{% static 'images/cinili-saray-logo-white.png' %}" alt="Çinili Saray">
+            </span>
+            <span class="v6-brand-divider" aria-hidden="true"></span>
+            <span class="v3-brand-copy v6-brand-copy">
+                <strong>{{ panel_short }}</strong>
+                <small>{{ panel_module_label }}</small>
             </span>
         </a>
 
@@ -29,23 +40,14 @@
         </button>
 
         <nav class="v3-nav" id="v3-nav">
-            <a href="{% url 'dashboard' %}" class="v3-nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Ana Sayfa</a>
-            <a href="{% url 'talebe_listesi' %}" class="v3-nav-link {% if request.resolver_match.url_name == 'talebe_listesi' or request.resolver_match.url_name == 'talebe_detay' %}active{% endif %}">Talebeler</a>
-            <a href="{% url 'kitap_listesi' %}" class="v3-nav-link {% if request.resolver_match.url_name == 'kitap_listesi' or request.resolver_match.url_name == 'kitap_ekle' %}active{% endif %}">Kitaplar</a>
-            <a href="{% url 'toplu_zimmet' %}" class="v3-nav-link {% if request.resolver_match.url_name == 'toplu_zimmet' %}active{% endif %}">Zimmetler</a>
-            <a href="{% url 'toplu_gunluk_okuma' %}" class="v3-nav-link {% if request.resolver_match.url_name == 'toplu_gunluk_okuma' %}active{% endif %}">Okuma Takibi</a>
-            <a href="{% url 'sinav_ekle_panel' %}" class="v3-nav-link {% if request.resolver_match.url_name == 'sinav_ekle_panel' or request.resolver_match.url_name == 'sinav_sonuc_paneli' or request.resolver_match.url_name == 'sinav_sonuclari_gir' %}active{% endif %}">Sınavlar</a>
-            <a href="{% url 'raporlar' %}" class="v3-nav-link {% if request.resolver_match.url_name == 'raporlar' %}active{% endif %}">Raporlar</a>
-            {% if request.user.is_superuser %}
-            <a href="{% url 'yonetim:dashboard' %}" class="v3-nav-link">Yönetim</a>
-            {% endif %}
+            {% include "includes/panel_nav.html" %}
         </nav>
 
         <div class="v3-user-area">
             <span class="v3-user-avatar">{{ request.user.username|slice:":1"|upper }}</span>
             <span class="v3-user-copy">
                 <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
-                <small>{% if request.user.is_superuser %}Yönetici{% else %}Etüt Hocası{% endif %}</small>
+                <small>{{ panel_rol_etiketi }}</small>
             </span>
             <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
@@ -73,21 +75,13 @@
     </div>
 </main>
 
-<script>
-(function () {
-    const toggle = document.getElementById('v3-menu-toggle');
-    const nav = document.getElementById('v3-nav');
-    if (toggle && nav) {
-        toggle.addEventListener('click', function () {
-            const open = nav.classList.toggle('open');
-            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-        });
-    }
-    document.querySelectorAll('.v3-toast-close').forEach(function (button) {
-        button.addEventListener('click', function () { button.parentElement.remove(); });
-    });
-})();
-</script>
+{% if asistan_aktif %}
+{% include "includes/asistan_widget.html" %}
+<script src="{% static 'js/asistan.js' %}"></script>
+{% endif %}
+
+<script src="{% static 'js/nav-dropdown.js' %}"></script>
+<script src="{% static 'js/multi-select-filter.js' %}"></script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

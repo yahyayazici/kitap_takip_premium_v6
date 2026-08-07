@@ -1,3 +1,84 @@
-{% load static %}<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{% block title %}Çinili Saray Yönetim{% endblock %}</title><link rel="stylesheet" href="{% static 'yonetim/css/yonetim.css' %}"><link rel="stylesheet" href="{% static 'css/premium-system-v5.css' %}"><link rel="stylesheet" href="{% static 'css/premium-system-v6.css' %}"></head><body>
-<header class="cs-v6-header"><div class="cs-v6-inner"><a href="{% url 'yonetim:dashboard' %}" class="cs-v6-brand"><span class="cs-v6-brand-mark">ÇS</span><span><strong>Çinili Saray</strong><small>Yönetim Merkezi</small></span></a><nav class="cs-v6-nav"><a href="{% url 'yonetim:dashboard' %}">Genel Bakış</a><a href="{% url 'yonetim:sinif_listesi' %}">Sınıf ve Şubeler</a><a href="{% url 'yonetim:personel_listesi' %}">Etüt Hocaları</a><a href="{% url 'yonetim:talebe_listesi' %}">Talebeler</a><a href="/kitaplar/">Kitaplar</a><a href="/sinav-sonuclari/">Sınav Sonuçları</a><a href="/raporlar/">Raporlar</a></nav><div class="cs-v6-actions"><a href="{% url 'dashboard' %}">Siteye Dön</a></div></div></header>
-<main class="cs-v6-main"><header class="cs-topbar"><div><span class="cs-kicker">ÇİNİLİ SARAY PROJE</span><h1>{% block page_title %}Yönetim Merkezi{% endblock %}</h1></div></header>{% if messages %}<div class="cs-messages">{% for message in messages %}<div class="cs-message">{{ message }}</div>{% endfor %}</div>{% endif %}{% block content %}{% endblock %}</main></body></html>
+{% load static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{{ panel_name }} · Yönetim{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'yonetim/css/yonetim.css' %}">
+    <link rel="stylesheet" href="{% static 'css/premium-system-v5.css' %}">
+    <link rel="stylesheet" href="{% static 'css/premium-system-v6.css' %}">
+    <link rel="stylesheet" href="{% static 'css/nav-groups.css' %}">
+    <link rel="stylesheet" href="{% static 'css/yonetim-nav.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}">
+    <link rel="stylesheet" href="{% static 'css/panel-unified.css' %}">
+    <link rel="stylesheet" href="{% static 'css/yonetim-premium.css' %}">
+    <link rel="stylesheet" href="{% static 'css/multi-select-filter.css' %}">
+    {% if asistan_aktif %}
+    <link rel="stylesheet" href="{% static 'css/asistan.css' %}">
+    {% endif %}
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="yonetim-body">
+
+<header class="cs-v6-header yonetim-v6-header">
+    {% include "includes/v6_header_books.html" %}
+    <div class="cs-v6-inner">
+        <a href="{% url 'yonetim:dashboard' %}" class="cs-v6-brand v6-brand-block">
+            <span class="cs-v6-brand-mark v6-brand-mark">
+                <img src="{% static 'images/cinili-saray-logo-white.png' %}" alt="Çinili Saray">
+            </span>
+            <span class="v6-brand-divider" aria-hidden="true"></span>
+            <span class="v6-brand-copy">
+                <strong>{{ panel_short }}</strong>
+                <small>Yönetim Merkezi</small>
+            </span>
+        </a>
+
+        <button class="v3-menu-toggle yonetim-menu-toggle" id="yonetim-menu-toggle" type="button" aria-label="Menüyü aç" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
+
+        <nav class="cs-v6-nav v3-nav" id="yonetim-nav">
+            {% include "yonetim/includes/nav.html" %}
+        </nav>
+
+        <div class="cs-v6-actions yonetim-v6-actions">
+            <span class="yonetim-user-chip">{{ request.user.username|slice:":1"|upper }}</span>
+            <span class="yonetim-user-copy">
+                <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+                <small>{{ panel_rol_etiketi|default:"Yönetici" }}</small>
+            </span>
+            <a href="{% url 'dashboard' %}" class="yonetim-site-link">Siteye Dön</a>
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="yonetim-logout">Çıkış</button>
+            </form>
+        </div>
+    </div>
+</header>
+
+<main class="cs-v6-main">
+    {% if messages %}
+    <div class="yonetim-messages">
+        {% for message in messages %}
+        <div class="yonetim-message">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="yonetim-page">
+        {% block content %}{% endblock %}
+    </div>
+</main>
+
+{% if asistan_aktif %}
+{% include "includes/asistan_widget.html" %}
+<script src="{% static 'js/asistan.js' %}"></script>
+{% endif %}
+
+<script src="{% static 'js/nav-dropdown.js' %}"></script>
+<script src="{% static 'js/multi-select-filter.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

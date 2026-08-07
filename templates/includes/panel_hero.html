@@ -1,0 +1,35 @@
+<header class="dash-hero">
+    <div class="dash-hero-scene" aria-hidden="true">
+        <span class="dash-orb dash-orb-1"></span>
+        <span class="dash-orb dash-orb-2"></span>
+        <span class="dash-orb dash-orb-3"></span>
+        <span class="dash-float dash-float-book dash-float-1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </span>
+        <span class="dash-float dash-float-star dash-float-2"></span>
+        <span class="dash-float dash-float-ring dash-float-3"></span>
+        <span class="dash-float dash-float-dot dash-float-4"></span>
+        <span class="dash-float dash-float-dot dash-float-5"></span>
+        <span class="dash-grid-lines"></span>
+    </div>
+    <div class="dash-hero-copy">
+        <p class="dash-eyebrow">{{ eyebrow|default:panel_short }}</p>
+        <h1>{{ title }}</h1>
+        {% if meta %}<p class="dash-hero-meta">{{ meta }}</p>{% endif %}
+    </div>
+    {% if action_url %}
+    <div class="dash-hero-date dash-hero-action">
+        <a href="{{ action_url }}" class="dash-hero-btn">{{ action_label }}</a>
+    </div>
+    {% elif date_text %}
+    <div class="dash-hero-date">
+        <span class="dash-eyebrow">Bugün</span>
+        <time>{{ date_text }}</time>
+    </div>
+    {% elif show_date %}
+    <div class="dash-hero-date">
+        <span class="dash-eyebrow">Bugün</span>
+        <time id="{% if date_id %}{{ date_id }}{% else %}current-date{% endif %}"></time>
+    </div>
+    {% endif %}
+</header>

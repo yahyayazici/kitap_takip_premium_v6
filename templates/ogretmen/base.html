@@ -1,0 +1,58 @@
+{% load static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Öğretmen Paneli · {{ panel_short }}{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'css/topnav-v3.css' %}">
+    <link rel="stylesheet" href="{% static 'css/premium-system-v5.css' %}">
+    <link rel="stylesheet" href="{% static 'css/premium-system-v6.css' %}">
+    <link rel="stylesheet" href="{% static 'css/nav-groups.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}">
+    <link rel="stylesheet" href="{% static 'css/panel-unified.css' %}">
+    <link rel="stylesheet" href="{% static 'css/ogretmen-panel.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="v3-body ogretmen-body">
+<header class="cs-v6-header ogretmen-v6-header">
+    <div class="cs-v6-inner">
+        <a href="{% url 'ogretmen_dashboard' %}" class="cs-v6-brand v6-brand-block">
+            <span class="cs-v6-brand-mark v6-brand-mark">
+                <img src="{% static 'images/cinili-saray-logo-white.png' %}" alt="Çinili Saray">
+            </span>
+            <span class="v6-brand-divider" aria-hidden="true"></span>
+            <span class="v6-brand-copy">
+                <strong>{{ panel_short }}</strong>
+                <small>Öğretmen Paneli</small>
+            </span>
+        </a>
+        <nav class="cs-v6-nav">
+            <a href="{% url 'ogretmen_dashboard' %}" class="{% if request.resolver_match.url_name == 'ogretmen_dashboard' %}active{% endif %}">Ana Sayfa</a>
+            <a href="{% url 'ogretmen_not_girisi' %}" class="{% if 'ogretmen_not' in request.resolver_match.url_name %}active{% endif %}">Not Girişi</a>
+            <a href="{% url 'ogretmen_ders_programi' %}" class="{% if 'ogretmen_ders' in request.resolver_match.url_name %}active{% endif %}">Ders Programı</a>
+        </nav>
+        <div class="cs-v6-actions">
+            <span class="ogretmen-user-chip">{{ hoca.ad_soyad }}</span>
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="ghost-btn yonetim-ghost-light">Çıkış</button>
+            </form>
+        </div>
+    </div>
+</header>
+
+<main class="cs-v6-main ogretmen-main">
+    {% if messages %}
+    <div class="ogretmen-messages">
+        {% for message in messages %}
+        <div class="ogretmen-message">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+</main>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

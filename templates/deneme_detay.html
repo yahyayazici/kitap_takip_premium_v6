@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ deneme.ad }}{% endblock %}
+{% block content %}
+<div class="result-entry-page">
+    <header class="result-entry-header">
+        <div>
+            <p class="result-kicker">{{ deneme.sinav_tarihi|date:"d F Y"|upper }}</p>
+            <h1>{{ deneme.ad }}</h1>
+            <p class="result-description">{{ deneme.sinif_seviyesi }}. sınıf · {{ sonuclar|length }} sonuç</p>
+        </div>
+        <a href="{% url 'deneme_listesi' %}" class="result-back-button">Denemeler</a>
+    </header>
+    <section class="result-card">
+        <div class="responsive-table">
+            <table class="report-data-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Talebe</th>
+                        <th>Sınıf</th>
+                        <th>Toplam Net</th>
+                        <th>Puan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sonuc in sonuclar %}
+                    <tr>
+                        <td class="num-col">{{ forloop.counter }}</td>
+                        <td><strong>{{ sonuc.talebe.ad_soyad }}</strong></td>
+                        <td>{{ sonuc.talebe.sinif_sube }}</td>
+                        <td class="num-col profile-score">{{ sonuc.toplam_net }}</td>
+                        <td class="num-col">{{ sonuc.puan }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="report-empty">Sonuç bulunamadı.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

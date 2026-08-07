@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}İmam / Müezzin{% endblock %}
+
+{% block content %}
+<div class="program-page">
+
+<header class="page-head patterned-page-head">
+    <div>
+        <p class="kicker">GÖREV MODÜLÜ</p>
+        <h1>İmam / Müezzin</h1>
+        <p class="muted">{{ bugun|date:"d F Y, l" }} · Günlük namaz görev listesi</p>
+    </div>
+    <div class="profile-head-actions">
+        {% if secili_liste %}
+        <a href="{% url 'imam_muezzin_pdf' secili_liste.pk %}" class="primary-btn" target="_blank">PDF İndir</a>
+        {% endif %}
+        {% if yonetim_modulu %}
+        <a href="{% url 'yonetim:imam_listesi' %}" class="ghost-btn">Yönetim</a>
+        {% endif %}
+    </div>
+</header>
+
+{% if bugun_gorev %}
+<section class="dashboard-card yonetim-highlight-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">BUGÜNÜN GÖREVİ</p>
+            <h2>{{ bugun_gorev.imam.ad_soyad }} · {{ bugun_gorev.muezzin.ad_soyad }}</h2>
+        </div>
+        <span class="status-pill status-okunuyor">Bugün</span>
+    </div>
+    <p class="muted">{{ bugun_gorev.liste.ad }} · İmam ve müezzin ataması</p>
+</section>
+{% endif %}
+
+<section class="program-selector-card dashboard-card">
+    <div class="card-heading">
+        <div><p class="card-kicker">SEÇİM</p><h2>Liste Seç</h2></div>
+    </div>
+    <form method="get" class="program-selector-form">
+        <label for="liste-select">Görüntülenecek liste</label>
+        <select id="liste-select" name="liste" class="cs-input" onchange="this.form.submit()">
+            {% for liste in listeler %}
+            <option value="{{ liste.pk }}" {% if secili_liste and secili_liste.pk == liste.pk %}selected{% endif %}>{{ liste.ad }} · {{ liste.tarih_araligi_goster }}</option>
+            {% empty %}
+            <option value="">Liste yok</option>
+            {% endfor %}
+        </select>
+    </form>
+</section>
+
+{% if secili_liste %}
+<section class="report-table-card program-schedule-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">{{ secili_liste.tarih_araligi_goster }}</p>
+            <h2>{{ secili_liste.ad }}</h2>
+        </div>
+        {% if secili_liste.yayinda_mi %}
+        <span class="status-pill status-okunuyor">Bugün geçerli</span>
+        {% endif %}
+    </div>
+
+    <div class="responsive-table">
+        <table class="report-data-table program-table">
+            <thead>
+                <tr>
+                    <th>Tarih</th>
+                    <th>Gün</th>
+                    <th>İmam</th>
+                    <th>Müezzin</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for atama in atamalar %}
+                <tr{% if atama.tarih == bugun %} class="program-row-today"{% endif %}>
+                    <td><strong>{{ atama.tarih|date:"d.m.Y" }}</strong></td>
+                    <td>{{ atama.tarih|date:"l" }}</td>
+                    <td>{{ atama.imam.ad_soyad|default:"—" }}</td>
+                    <td>{{ atama.muezzin.ad_soyad|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="report-empty">Bu listeye henüz atama yapılmamış.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% else %}
+<section class="dashboard-card"><div class="report-empty">Aktif imam / müezzin listesi bulunamadı.</div></section>
+{% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,104 @@
+{% load static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>İMAM - MÜEZZİN GÖREV LİSTESİ {{ ay_baslik }}</title>
+    <style>
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-Regular.ttf' %}") format("truetype");
+            font-weight: 400;
+        }
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-Medium.ttf' %}") format("truetype");
+            font-weight: 500;
+        }
+        @page { size: A4 portrait; margin: 10mm 12mm; }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Poppins", sans-serif;
+            font-size: 9px;
+            color: #334155;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .org {
+            text-align: center;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            color: #10213d;
+            margin-bottom: 6px;
+        }
+        .title {
+            text-align: center;
+            font-size: 13px;
+            font-weight: 500;
+            color: #10213d;
+            margin: 0 0 14px;
+            letter-spacing: 0.03em;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #cbd5e1;
+            padding: 5px 7px;
+            text-align: left;
+            vertical-align: middle;
+        }
+        th {
+            background: #f1f5f9;
+            color: #1e3a8a;
+            font-weight: 500;
+            font-size: 8px;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+        }
+        td strong { color: #0f172a; font-weight: 500; }
+        .foot {
+            margin-top: 10px;
+            font-size: 7px;
+            color: #64748b;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <div class="org">{{ panel_org }}</div>
+    <h1 class="title">İMAM - MÜEZZİN GÖREV LİSTESİ {{ ay_baslik }}</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:18%">Tarih</th>
+                <th style="width:16%">Gün</th>
+                <th style="width:33%">İmam</th>
+                <th style="width:33%">Müezzin</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for satir in atama_satirlari %}
+            <tr>
+                <td><strong>{{ satir.tarih_goster }}</strong></td>
+                <td>{{ satir.gun }}</td>
+                <td>{{ satir.imam }}</td>
+                <td>{{ satir.muezzin }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">Atama tanımlanmamış. Listeyi oluşturun.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="foot">
+        <span>{{ atama_satirlari|length }} gün · {{ liste.tarih_araligi_goster }}</span>
+        <span>{{ panel_name }}</span>
+    </div>
+</body>
+</html>

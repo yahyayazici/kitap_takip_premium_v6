@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}{{ baslik }}{% endblock %}
+{% block content %}
+<header class="page-head patterned-page-head">
+    <div><p class="kicker">REHBERLİK</p><h1>{{ baslik }}</h1></div>
+    <div class="page-head-actions"><a href="{% url 'rehberlik_detay' gorusme.pk %}" class="ghost-btn">← Geri</a></div>
+</header>
+<section class="dashboard-card">
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="primary-btn">Kaydet</button>
+    </form>
+</section>
+{% endblock %}

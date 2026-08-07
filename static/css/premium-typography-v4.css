@@ -64,7 +64,15 @@ h1, h2, h3,
 }
 
 /* Üst menü */
-.v3-nav-link,
+.v3-header .v3-nav-link,
+.v3-header .v3-nav-trigger,
+.cs-v6-header .v3-nav-link,
+.cs-v6-header .v3-nav-trigger {
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.02em !important;
+}
+
 .v3-user-copy strong,
 .v3-logout {
     font-size: 14px !important;
@@ -275,8 +283,8 @@ textarea:focus {
     outline: none !important;
 }
 
-/* Butonlar */
-button,
+/* Butonlar — üst menü dropdown tetikleyicileri hariç */
+button:not(.v3-nav-trigger),
 .btn,
 .button,
 .cs-btn,
@@ -291,7 +299,7 @@ button,
 }
 
 /* Düz tarayıcı butonu gibi kalanları premiumlaştır */
-button:not(.v3-menu-toggle):not(.v3-toast-close),
+button:not(.v3-menu-toggle):not(.v3-toast-close):not(.v3-nav-trigger),
 input[type="submit"],
 input[type="button"] {
     padding: 9px 15px;

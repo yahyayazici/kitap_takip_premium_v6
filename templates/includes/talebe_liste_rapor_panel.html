@@ -1,0 +1,78 @@
+{% load filter_tags %}
+<div class="talebe-rapor-wrap">
+    <button type="button" class="ghost-btn talebe-rapor-ac" aria-expanded="false" aria-controls="talebe-rapor-panel">
+        Rapor Al
+    </button>
+    <div class="talebe-rapor-panel" id="talebe-rapor-panel" hidden>
+        <div class="talebe-rapor-card">
+            <strong>Sınıf Bazlı Liste</strong>
+            <p>Bir veya birden fazla sınıf seçerek talebe isim listesi PDF'i alın.</p>
+            <form method="get" action="{{ rapor_pdf_url }}" target="_blank" class="talebe-rapor-form">
+                <input type="hidden" name="tur" value="sinif">
+                <label class="talebe-rapor-label" for="talebe-rapor-sinif">Sınıf</label>
+                <select id="talebe-rapor-sinif" name="sinif_sube" class="talebe-rapor-select ms-filter" multiple data-placeholder="Sınıf seçin">
+                    {% for sinif in rapor_siniflar %}
+                    <option value="{{ sinif.id }}">{{ sinif.sinif }}-{{ sinif.sube }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="primary-btn talebe-rapor-btn">PDF İndir</button>
+            </form>
+            <script>
+            (function () {
+                const form = document.querySelector('#talebe-rapor-panel .talebe-rapor-form');
+                if (!form) return;
+                form.addEventListener('submit', function (event) {
+                    const select = form.querySelector('select[name="sinif_sube"]');
+                    const secili = select && Array.from(select.selectedOptions).some(function (o) { return o.value; });
+                    if (!secili) {
+                        event.preventDefault();
+                        alert('En az bir sınıf seçin.');
+                    }
+                });
+            })();
+            </script>
+        </div>
+
+        {% if kurum_raporu_goster %}
+        <div class="talebe-rapor-card">
+            <strong>Kurum Geneli Liste</strong>
+            <p>Tüm sınıflar kendi başlığı altında, yalnızca isimler.</p>
+            <a href="{{ rapor_pdf_url }}?tur=kurum" target="_blank" rel="noopener" class="primary-btn talebe-rapor-btn talebe-rapor-link">
+                PDF İndir
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+(function () {
+    document.querySelectorAll('.talebe-rapor-wrap').forEach(function (wrap) {
+        const ac = wrap.querySelector('.talebe-rapor-ac');
+        const panel = wrap.querySelector('.talebe-rapor-panel');
+        if (!ac || !panel) return;
+
+        ac.addEventListener('click', function (event) {
+            event.stopPropagation();
+            const open = panel.hasAttribute('hidden');
+            if (open) {
+                panel.removeAttribute('hidden');
+                ac.setAttribute('aria-expanded', 'true');
+                if (window.initMultiSelectFilters) {
+                    window.initMultiSelectFilters(wrap);
+                }
+            } else {
+                panel.setAttribute('hidden', '');
+                ac.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!wrap.contains(event.target)) {
+                panel.setAttribute('hidden', '');
+                ac.setAttribute('aria-expanded', 'false');
+            }
+        });
+    });
+})();
+</script>

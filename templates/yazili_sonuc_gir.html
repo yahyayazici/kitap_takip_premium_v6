@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}{{ sinav.ad }} · Sonuç Girişi{% endblock %}
+{% block content %}
+<div class="result-entry-page">
+    <header class="page-head patterned-page-head">
+        <div>
+            <p class="kicker">{{ kamp.ad|upper }}</p>
+            <h1>{{ sinav.ad }}</h1>
+            <p class="muted">
+                {{ sinav.sinav_tarihi|date:"d F Y" }} · {{ sinav.ders_goster }} ·
+                {{ toplam_soru }} soru · Net = Doğru − Yanlış/4
+            </p>
+        </div>
+        <div class="result-header-actions">
+            <a href="{% url 'yazili_kamp_detay' kamp.pk %}?sinav={{ sinav.pk }}" class="result-secondary-button">Sonuç Tablosu</a>
+            <a href="{% url 'yazili_kamp_listesi' %}" class="result-back-button">Kamplar</a>
+        </div>
+    </header>
+
+    <form method="post">
+        {% csrf_token %}
+        <section class="dashboard-card">
+            <div class="responsive-table">
+                <table class="report-data-table">
+                    <thead>
+                        <tr>
+                            <th>Talebe</th>
+                            <th>Doğru</th>
+                            <th>Yanlış</th>
+                            <th>Boş</th>
+                            <th>Net</th>
+                            <th>Puan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for satir in satirlar %}
+                        <tr>
+                            <td><strong>{{ satir.talebe.ad_soyad }}</strong></td>
+                            <td><input type="number" min="0" max="{{ toplam_soru }}" name="dogru_{{ satir.talebe.id }}" value="{{ satir.dogru }}" class="input" style="width:70px;"></td>
+                            <td><input type="number" min="0" max="{{ toplam_soru }}" name="yanlis_{{ satir.talebe.id }}" value="{{ satir.yanlis }}" class="input" style="width:70px;"></td>
+                            <td><input type="number" min="0" max="{{ toplam_soru }}" name="bos_{{ satir.talebe.id }}" value="{{ satir.bos }}" class="input" style="width:70px;"></td>
+                            <td class="num-col">{{ satir.net }}</td>
+                            <td class="num-col">{{ satir.puan }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="report-empty">Bu sınıf seviyesinde talebe bulunamadı.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if satirlar %}
+            <div style="margin-top:20px;">
+                <button type="submit" class="primary-btn">Sonuçları Kaydet</button>
+            </div>
+            {% endif %}
+        </section>
+    </form>
+</div>
+{% endblock %}

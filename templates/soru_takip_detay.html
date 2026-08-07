@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Soru Kaydı · {{ kayit.talebe.ad_soyad }}{% endblock %}
+{% block content %}
+<div class="result-entry-page">
+    <header class="result-entry-header">
+        <div>
+            <p class="result-kicker">{{ kayit.tarih|date:"d F Y"|upper }}</p>
+            <h1>{{ kayit.talebe.ad_soyad }}</h1>
+            <p class="result-description">
+                Toplam {{ kayit.toplam_soru }} soru · Net {{ kayit.toplam_net }} · Başarı %{{ kayit.basari_orani }}
+            </p>
+        </div>
+        <div class="result-header-actions">
+            <a href="{% url 'soru_takip_panel' %}?talebe={{ kayit.talebe_id }}&tarih={{ kayit.tarih|date:'Y-m-d' }}" class="result-secondary-button">Düzenle</a>
+            <a href="{% url 'soru_takip_panel' %}" class="result-back-button">Soru Takip</a>
+        </div>
+    </header>
+
+    <section class="result-card">
+        <div class="responsive-table">
+            <table class="report-data-table">
+                <thead>
+                    <tr>
+                        <th>Ders</th>
+                        <th>Toplam</th>
+                        <th>D</th>
+                        <th>Y</th>
+                        <th>B</th>
+                        <th>Net</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for satir in satirlar %}
+                    {% if satir.toplam_soru %}
+                    <tr>
+                        <td><strong>{{ satir.ders.ad }}</strong></td>
+                        <td class="num-col">{{ satir.toplam_soru }}</td>
+                        <td class="num-col">{{ satir.dogru }}</td>
+                        <td class="num-col">{{ satir.yanlis }}</td>
+                        <td class="num-col">{{ satir.bos }}</td>
+                        <td class="num-col">{{ satir.net }}</td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if kayit.gunluk_not %}
+        <div style="margin-top:20px;">
+            <p><strong>Not:</strong> {{ kayit.gunluk_not|linebreaksbr }}</p>
+        </div>
+        {% endif %}
+
+        {% if silebilir %}
+        <div style="margin-top:20px;">
+            <a href="{% url 'soru_takip_sil' kayit.pk %}" class="ghost-btn" onclick="return confirm('Kayıt silinsin mi?');">Kaydı Sil</a>
+        </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "veli/base.html" %}
+{% block title %}{{ talebe.ad_soyad }} · Profil{% endblock %}
+{% block content %}
+<div class="dash-home veli-dash">
+    {% include "veli/includes/talebe_layout_head.html" %}
+
+    <div class="veli-two-col">
+        <section class="dash-panel">
+            <p class="veli-card-kicker">ÖĞRENCİ BİLGİLERİ</p>
+            <h2 style="margin:0 0 16px;font-size:17px;">Kimlik Kartı</h2>
+            <dl class="veli-info-dl">
+                <dt>Ad Soyad</dt><dd>{{ talebe.ad_soyad }}</dd>
+                <dt>Öğrenci No</dt><dd>{{ talebe.talebe_no|default:"—" }}</dd>
+                <dt>Sınıf</dt><dd>{{ sinif_goster }}</dd>
+                <dt>Dini Seviye</dt><dd>{{ talebe.dini_ders_seviyesi|default:"—" }}</dd>
+                <dt>Etüt Hocası</dt><dd>{{ talebe.etut_hocasi.ad_soyad|default:"—" }}</dd>
+                <dt>Dini Ders Hocası</dt><dd>{{ talebe.dini_ders_hocasi.ad_soyad|default:"—" }}</dd>
+                <dt>Yakınlık</dt><dd>{{ yakinlik }}</dd>
+            </dl>
+        </section>
+
+        <section class="dash-panel">
+            <p class="veli-card-kicker">GELİŞİM ÖZETİ</p>
+            <h2 style="margin:0 0 16px;font-size:17px;">Akademik & Dini Takip</h2>
+            {% for o in dini_ders_ozet %}
+            <div class="veli-progress-row">
+                <header><span>{{ o.alan }}</span><strong>{{ o.tamamlanan }}/{{ o.toplam }} (%{{ o.yuzde }})</strong></header>
+                <div class="veli-progress-bar"><span style="width:{{ o.yuzde }}%;"></span></div>
+            </div>
+            {% empty %}
+            <p style="color:#718097;font-size:14px;">Dini ders seviyesi atanmamış.</p>
+            {% endfor %}
+            <div class="veli-progress-row" style="margin-top:18px;">
+                <header><span>Bu Hafta Soru</span><strong>{{ haftalik_soru.toplam_soru }} soru · Net {{ haftalik_soru.toplam_net }}</strong></header>
+                <div class="veli-progress-bar"><span style="width:{{ haftalik_soru.basari_orani }}%;"></span></div>
+            </div>
+            <div class="veli-progress-row">
+                <header><span>Bu Ay Soru</span><strong>{{ aylik_soru.toplam_soru }} soru</strong></header>
+                <div class="veli-progress-bar"><span style="width:{% if aylik_soru.toplam_soru %}100{% else %}0{% endif %}%;"></span></div>
+            </div>
+        </section>
+    </div>
+
+    {% if mudahaleler %}
+    <section class="dash-panel">
+        <p class="veli-card-kicker">AKADEMİK DESTEK</p>
+        <h2 style="margin:0 0 12px;font-size:17px;">Son Çalışmalar</h2>
+        <table class="veli-table">
+            <thead><tr><th>Tarih</th><th>Tür</th><th>Özet</th></tr></thead>
+            <tbody>
+                {% for m in mudahaleler %}
+                <tr>
+                    <td>{{ m.tarih|date:"d.m.Y" }}</td>
+                    <td>{{ m.mudahale_turu.ad }}</td>
+                    <td>{{ m.veli_ozet }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/panel_date_js.html" %}
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Günlük Takip · {{ kayit.talebe.ad_soyad }}{% endblock %}
+{% block content %}
+<header class="page-head patterned-page-head">
+    <div>
+        <p class="kicker">TAKİP</p>
+        <h1>{{ kayit.talebe.ad_soyad }}</h1>
+        <p class="muted">{{ kayit.tarih|date:"d.m.Y" }} · {{ kayit.get_devam_display }}</p>
+    </div>
+    <div class="page-head-actions">
+        <a href="{% url 'gunluk_takip_panel' %}" class="ghost-btn">← Panel</a>
+        {% if duzenleyebilir %}<a href="{% url 'gunluk_takip_duzenle' kayit.pk %}" class="ghost-btn">Düzenle</a>{% endif %}
+    </div>
+</header>
+<section class="dashboard-card">
+    <dl class="detail-grid">
+        <dt>Devam</dt><dd>{{ kayit.get_devam_display }}</dd>
+        <dt>Etüt katılım</dt><dd>{% if kayit.etut_katilim %}Evet{% else %}Hayır{% endif %}</dd>
+        <dt>Not</dt><dd>{{ kayit.not_alani|default:"—"|linebreaksbr }}</dd>
+    </dl>
+</section>
+{% endblock %}

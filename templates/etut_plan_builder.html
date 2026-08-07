@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Haftalık Etüt Planı · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/etut-plan-premium.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="ep-page" data-ep-panel
+     data-plan="{{ plan.pk|default:'' }}"
+     data-hoca="{{ hoca.pk }}"
+     data-duzenle="{% if duzenleyebilir %}1{% else %}0{% endif %}">
+
+<header class="ep-head">
+    <div>
+        <p class="ep-eyebrow">Haftalık Etüt Planı</p>
+        <h1>Etüt İçerik Planlama</h1>
+        <p class="ep-sub">Saatler admin tarafından tanımlı · Siz yalnızca etkinlik planlayın · {{ hafta_baslangic|date:"d F" }} – {{ hafta_bitis|date:"d F Y" }}</p>
+    </div>
+    <div class="ep-actions">
+        {% if hocalar %}
+        <form method="get" class="ep-hoca-select">
+            <select name="hoca" class="ep-input" onchange="this.form.submit()">
+                {% for h in hocalar %}
+                <option value="{{ h.id }}" {% if hoca.id == h.id %}selected{% endif %}>{{ h.ad_soyad }}</option>
+                {% endfor %}
+            </select>
+        </form>
+        {% endif %}
+        <a href="{% url 'etut_plan_arsiv' %}" class="ep-btn ep-btn-ghost">Arşiv</a>
+        {% if saat_yonetebilir %}
+        <a href="{% url 'etut_plan_yonetim' %}" class="ep-btn ep-btn-ghost">Saat Şablonu (Admin)</a>
+        {% endif %}
+        {% if plan %}
+        <a href="{% url 'etut_plan_pdf' %}?hoca={{ hoca.id }}" class="ep-btn ep-btn-ghost" target="_blank">PDF</a>
+        {% endif %}
+    </div>
+</header>
+
+{% if not grid.toplam_saat %}
+<section class="ep-empty-card">
+    <h2>Etüt saatleri henüz tanımlanmadı</h2>
+    <p>Admin, etüt grupları için haftalık saat bloklarını oluşturduktan sonra burada planlama yapabilirsiniz.</p>
+    {% if saat_yonetebilir %}
+    <a href="{% url 'etut_plan_yonetim' %}" class="ep-btn ep-btn-primary">Saatleri Oluştur</a>
+    {% endif %}
+</section>
+{% else %}
+
+<div class="ep-layout ep-layout-plan">
+    <main class="ep-main">
+        <section class="ep-card ep-grid-card">
+            <div class="ep-card-head">
+                <h2>Haftalık Etüt Planı</h2>
+                {% if ozet %}
+                <div class="ep-mini-stats">
+                    <span>{{ ozet.planlanan }}/{{ ozet.toplam_saat }} planlı</span>
+                    <span>{{ ozet.bos_saat }} boş</span>
+                </div>
+                {% endif %}
+            </div>
+            <div class="ep-grid-wrap">
+                <table class="ep-grid" data-ep-grid>
+                    <thead>
+                        <tr>
+                            <th class="ep-time-col">Saat</th>
+                            {% for gun in grid.gunler %}
+                            <th>{{ gun.label }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for satir in grid.satirlar %}
+                        <tr>
+                            <td class="ep-time-col">{{ satir.saat.goster }}</td>
+                            {% for hucre in satir.hucreler %}
+                            <td class="ep-cell {% if hucre.bos %}ep-cell-empty{% endif %}"
+                                data-blok-id="{{ hucre.blok_id|default:'' }}"
+                                data-drop="1">
+                                {% if hucre.faaliyet %}
+                                <article class="ep-activity"
+                                         data-faaliyet-id="{{ hucre.faaliyet.id }}"
+                                         style="--ep-kart-renk: {{ hucre.faaliyet.renk|default:'#eff6ff' }}">
+                                    <div class="ep-activity-head">
+                                        <strong>{{ hucre.faaliyet.baslik }}</strong>
+                                        {% if duzenleyebilir %}
+                                        <button type="button" class="ep-icon-btn" data-ep-remove="{{ hucre.faaliyet.id }}" aria-label="Kaldır">×</button>
+                                        {% endif %}
+                                    </div>
+                                    {% if hucre.faaliyet.hedef %}<span class="ep-activity-hedef">{{ hucre.faaliyet.hedef }}</span>{% endif %}
+                                    <div class="ep-activity-foot">
+                                        <select class="ep-durum-select" data-ep-durum="{{ hucre.faaliyet.id }}" {% if not duzenleyebilir %}disabled{% endif %}>
+                                            {% for val, label in durum_secenekleri %}
+                                            <option value="{{ val }}" {% if hucre.faaliyet.uygulama_durumu == val %}selected{% endif %}>{{ label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </article>
+                                {% elif duzenleyebilir %}
+                                <button type="button" class="ep-add-btn" data-ep-cell-add>+ Etkinlik Ekle</button>
+                                {% else %}
+                                <span class="ep-muted">Boş</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="ep-card ep-dershane-preview">
+            <div class="ep-card-head"><h2>Dershane Programı Önizlemesi</h2><span class="ep-badge">Salt okunur</span></div>
+            <div class="ep-dershane-days">
+                {% for gun in dershane_onizleme %}
+                <article class="ep-dershane-day">
+                    <strong>{{ gun.label }}</strong>
+                    <div class="ep-dershane-tags">
+                        {% for ders in gun.dersler %}
+                        <span>{{ ders }}</span>
+                        {% endfor %}
+                    </div>
+                </article>
+                {% empty %}
+                <p class="ep-muted">Aktif dershane programı veya grup eşleşmesi bulunamadı.</p>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+
+    <aside class="ep-pool ep-card">
+        <div class="ep-card-head">
+            <h2>Hazır Etkinlik Havuzu</h2>
+            {% if duzenleyebilir %}
+            <button type="button" class="ep-btn ep-btn-sm" data-ep-open="ozel-kart">+ Özel</button>
+            {% endif %}
+        </div>
+        <p class="ep-pool-hint">Kartı sürükleyip saat hücresine bırakın · Boş hücreye çift tıklayın</p>
+        <div class="ep-pool-grid" data-ep-pool>
+            {% for kart in havuz %}
+            <article class="ep-pool-card"
+                     draggable="{% if duzenleyebilir %}true{% else %}false{% endif %}"
+                     data-havuz-id="{{ kart.id }}"
+                     data-baslik="{{ kart.baslik }}"
+                     data-hedef="{{ kart.varsayilan_hedef }}"
+                     data-renk="{{ kart.renk }}"
+                     style="--ep-kart-renk: {{ kart.renk }}">
+                <strong>{{ kart.baslik }}</strong>
+                {% if kart.varsayilan_hedef %}<span>{{ kart.varsayilan_hedef }}</span>{% endif %}
+            </article>
+            {% endfor %}
+        </div>
+        {% if ozet %}
+        <div class="ep-sidebar-summary">
+            <ul class="ep-summary-list">
+                <li><span>Toplam saat</span><strong>{{ ozet.toplam_saat }}</strong></li>
+                <li><span>Planlanan</span><strong>{{ ozet.planlanan }}</strong></li>
+                <li><span>Boş</span><strong>{{ ozet.bos_saat }}</strong></li>
+                <li><span>Tamamlanan</span><strong>{{ ozet.tamamlandi }}</strong></li>
+            </ul>
+            {% if duzenleyebilir and plan %}
+            <button type="button" class="ep-btn ep-btn-ghost ep-btn-block" data-ep-kopyala>Geçen Haftayı Kopyala</button>
+            {% endif %}
+        </div>
+        {% endif %}
+    </aside>
+</div>
+{% endif %}
+
+{% csrf_token %}
+</div>
+
+{% if duzenleyebilir %}
+<div class="ep-modal" data-ep-modal="hucre" hidden>
+    <div class="ep-modal-card">
+        <header><h3>Etkinlik Ekle</h3><button type="button" data-ep-close>×</button></header>
+        <form data-ep-hucre-form>
+            <input type="hidden" name="blok_id" id="ep-blok-id">
+            <label>Başlık<input type="text" name="baslik" class="ep-input" required></label>
+            <label>Açıklama<textarea name="aciklama" class="ep-input" rows="2"></textarea></label>
+            <label>Hedef<input type="text" name="hedef" class="ep-input" placeholder="40 soru"></label>
+            <label>Renk<input type="color" name="renk" value="#eff6ff"></label>
+            <footer>
+                <button type="button" class="ep-btn ep-btn-ghost" data-ep-close>İptal</button>
+                <button type="submit" class="ep-btn ep-btn-primary">Kaydet</button>
+            </footer>
+        </form>
+    </div>
+</div>
+
+<div class="ep-modal" data-ep-modal="ozel-kart" hidden>
+    <div class="ep-modal-card">
+        <header><h3>Özel Etkinlik Kartı</h3><button type="button" data-ep-close>×</button></header>
+        <form data-ep-ozel-form>
+            <label>Başlık<input type="text" name="baslik" class="ep-input" required></label>
+            <label>Hedef<input type="text" name="hedef" class="ep-input"></label>
+            <label>Renk<input type="color" name="renk" value="#eff6ff"></label>
+            <footer>
+                <button type="button" class="ep-btn ep-btn-ghost" data-ep-close>İptal</button>
+                <button type="submit" class="ep-btn ep-btn-primary">Oluştur</button>
+            </footer>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/etut-plan-panel.js' %}"></script>
+{% endblock %}

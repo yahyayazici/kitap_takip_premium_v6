@@ -1,0 +1,271 @@
+{% extends "yonetim/base.html" %}
+{% load static %}
+
+{% block title %}Temizlik Yönetimi · {{ liste.ad }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/temizlik-premium.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="tz-page tz-merkez" data-tz-panel data-liste-id="{{ liste.pk }}">
+
+<header class="tz-head">
+    <div>
+        <p class="tz-crumb">
+            <a href="{% url 'yonetim:temizlik_listesi' %}">Temizlik</a> › {{ liste.ad }}
+        </p>
+        <h1>Temizlik Yönetimi</h1>
+        <p class="tz-sub">Katları, mahalleri ve görevli talebeleri tek merkezden yönetin.</p>
+    </div>
+    <div class="tz-head-actions">
+        <button type="button" class="tz-btn tz-btn-primary" data-tz-open="kat-ekle">+ Yeni Kat</button>
+        <a href="{% url 'yonetim:temizlik_pdf' liste.pk %}" class="tz-btn" target="_blank" rel="noopener">PDF</a>
+        <a href="{% url 'yonetim:temizlik_pdf' liste.pk %}?format=a3&amp;orientation=landscape" class="tz-btn" target="_blank" rel="noopener">A3 Yazdır</a>
+        <a href="{% url 'yonetim:temizlik_rapor' liste.pk %}" class="tz-btn">Raporlar</a>
+        <a href="{% url 'temizlik_panel' %}?liste={{ liste.pk }}" class="tz-btn">Personel Görünümü</a>
+    </div>
+</header>
+
+<div class="tz-stats-grid">
+    <article class="tz-stat-card tz-stat-blue"><span class="tz-stat-icon">🏢</span><strong>{{ stats.toplam_kat }}</strong><span>Toplam Kat</span></article>
+    <article class="tz-stat-card tz-stat-green"><span class="tz-stat-icon">📍</span><strong>{{ stats.toplam_mahal }}</strong><span>Toplam Mahal</span></article>
+    <article class="tz-stat-card tz-stat-violet"><span class="tz-stat-icon">👥</span><strong>{{ stats.gorevli_talebe }}</strong><span>Görevli Talebe</span></article>
+    <article class="tz-stat-card tz-stat-amber tz-stat-warn"><span class="tz-stat-icon">○</span><strong>{{ stats.bos_mahal }}</strong><span>Boş Mahal</span></article>
+    <article class="tz-stat-card tz-stat-amber"><span class="tz-stat-icon">!</span><strong>{{ stats.eksik_atama }}</strong><span>Eksik Atama</span></article>
+    <article class="tz-stat-card tz-stat-violet"><span class="tz-stat-icon">↻</span><strong>{{ stats.hafta_degisim }}</strong><span>Bu Hafta Değişen</span></article>
+</div>
+
+<div class="tz-toolbar">
+    <button type="button" class="tz-btn tz-btn-primary" data-tz-open="toplu-dagit">Toplu Görev Dağıt</button>
+    {% if dengesiz %}
+    <form method="post" class="tz-inline-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="gorevleri_dengele">
+        <button type="submit" class="tz-btn tz-btn-warn">⚠ Görevleri Dengele</button>
+    </form>
+    {% endif %}
+    <form method="post" class="tz-inline-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="otomatik_rotasyon">
+        <button type="submit" class="tz-btn">Otomatik Görev Döndür</button>
+    </form>
+</div>
+
+{% if dengesiz and yuk_analizi %}
+<section class="tz-alert">
+    <strong>Görev dağılımı dengesiz.</strong>
+    {% for row in yuk_analizi|slice:":5" %}
+    <span>{{ row.ad_soyad }} · {{ row.sayi }} görev{% if not forloop.last %} · {% endif %}</span>
+    {% endfor %}
+</section>
+{% endif %}
+
+<div class="tz-merkez-layout">
+    <div class="tz-merkez-main">
+        {% for kart in kat_kartlari %}
+        <section class="tz-kat-card" id="kat-{{ kart.kat.pk }}">
+            <header class="tz-kat-card-head">
+                <div>
+                    <h2>{{ kart.kat.ad }}</h2>
+                    <div class="tz-staff-chips">
+                        <span class="tz-staff-label">Sorumlu Personeller</span>
+                        {% for s in kart.sorumlular %}
+                        <span class="tz-person-chip">
+                            👤 {{ s.ad }}
+                            <form method="post" class="tz-chip-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="sorumlu_sil">
+                                <input type="hidden" name="kat_id" value="{{ kart.kat.pk }}">
+                                <input type="hidden" name="personel_id" value="{{ s.personel_id }}">
+                                <button type="submit" title="Kaldır">×</button>
+                            </form>
+                        </span>
+                        {% empty %}
+                        <span class="tz-muted">Atanmadı</span>
+                        {% endfor %}
+                        <form method="post" class="tz-inline-form tz-add-staff">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="sorumlu_ekle">
+                            <input type="hidden" name="kat_id" value="{{ kart.kat.pk }}">
+                            <select name="personel_id" required>
+                                <option value="">+ Personel</option>
+                                {% for p in personeller %}
+                                <option value="{{ p.id }}">{{ p.ad }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="tz-link-btn">Ekle</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="tz-kat-actions">
+                    <button type="button" class="tz-btn tz-btn-sm" data-tz-mahal-ekle="{{ kart.kat.pk }}">Mahal Ekle</button>
+                    <button type="button" class="tz-btn tz-btn-sm" data-tz-open="toplu-dagit">Görev Dağıt</button>
+                    <form method="post" onsubmit="return confirm('Kat silinsin mi?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="kat_sil">
+                        <input type="hidden" name="kat_id" value="{{ kart.kat.pk }}">
+                        <button type="submit" class="tz-btn tz-btn-sm tz-btn-danger">Sil</button>
+                    </form>
+                </div>
+            </header>
+
+            <div class="tz-mahal-list">
+                {% for row in kart.mahaller %}
+                <article class="tz-mahal-card{% if row.bos %} is-empty{% endif %}"
+                         data-mahal-id="{{ row.alan.pk }}"
+                         data-drop="1">
+                    <div class="tz-mahal-main">
+                        <span class="tz-mahal-icon" aria-hidden="true">⌂</span>
+                        <div>
+                            <strong>{{ row.alan.ad }}</strong>
+                            {% if row.alan.aciklama %}<small>{{ row.alan.aciklama }}</small>{% endif %}
+                        </div>
+                    </div>
+                    <div class="tz-chip-row" data-chip-row>
+                        {% for g in row.gorevliler %}
+                        <span class="tz-talebe-chip" draggable="true"
+                              data-gorevli-id="{{ g.id }}"
+                              data-talebe-id="{{ g.talebe_id }}">
+                            👤 {{ g.ad_soyad|truncatechars:18 }}
+                            <form method="post" class="tz-chip-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="gorevli_sil">
+                                <input type="hidden" name="gorevli_id" value="{{ g.id }}">
+                                <button type="submit" title="Kaldır">×</button>
+                            </form>
+                        </span>
+                        {% endfor %}
+                        <button type="button" class="tz-add-chip" data-tz-gorevli-ekle="{{ row.alan.pk }}">+ Görevli</button>
+                    </div>
+                    <div class="tz-mahal-controls">
+                        <form method="post" class="tz-kontrol-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="kontrol_guncelle">
+                            <input type="hidden" name="alan_id" value="{{ row.alan.pk }}">
+                            <select name="durum" onchange="this.form.submit()">
+                                {% for val, label in kontrol_secenekleri %}
+                                <option value="{{ val }}" {% if row.kontrol and row.kontrol.durum == val %}selected{% elif not row.kontrol and val == 'bekliyor' %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </form>
+                        <form method="post" onsubmit="return confirm('Mahal silinsin mi?');">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="mahal_sil">
+                            <input type="hidden" name="alan_id" value="{{ row.alan.pk }}">
+                            <button type="submit" class="tz-link-btn tz-link-danger">Sil</button>
+                        </form>
+                    </div>
+                </article>
+                {% empty %}
+                <p class="tz-empty">Bu katta mahal yok. Mahal Ekle ile başlayın.</p>
+                {% endfor %}
+            </div>
+
+            <footer class="tz-kat-foot">
+                <span>Mahal <strong>{{ kart.ozet.mahal }}</strong></span>
+                <span>Görevli <strong>{{ kart.ozet.gorevli }}</strong></span>
+                <span>Boş <strong>{{ kart.ozet.bos_mahal }}</strong></span>
+                <span>Eksik <strong>{{ kart.ozet.eksik_atama }}</strong></span>
+            </footer>
+        </section>
+        {% empty %}
+        <section class="tz-empty-card">
+            <h2>Henüz kat yok</h2>
+            <p>+ Yeni Kat ile başlayın veya sayfayı yenileyin.</p>
+        </section>
+        {% endfor %}
+    </div>
+
+    <aside class="tz-side-panel">
+        <h3>Kontrol Paneli</h3>
+        <ul class="tz-side-list">
+            <li><span>Bugün eksik atama</span><strong>{{ sidebar.bugun_eksik }}</strong></li>
+            <li><span>Boş mahal</span><strong>{{ sidebar.bos_mahal }}</strong></li>
+            <li><span>En yoğun talebe</span><strong>{% if sidebar.en_yogun %}{{ sidebar.en_yogun.ad_soyad|truncatechars:16 }} ({{ sidebar.en_yogun.sayi }}){% else %}—{% endif %}</strong></li>
+            <li><span>En az görev</span><strong>{% if sidebar.en_az %}{{ sidebar.en_az.ad_soyad|truncatechars:16 }} ({{ sidebar.en_az.sayi }}){% else %}—{% endif %}</strong></li>
+            <li><span>Son düzenleme</span><strong>{% if sidebar.son_duzenleme %}{{ sidebar.son_duzenleme|date:"d.m.Y H:i" }}{% else %}—{% endif %}</strong></li>
+        </ul>
+        {% if yuk_analizi %}
+        <h4>Talebe yük analizi</h4>
+        <ul class="tz-yuk-list">
+            {% for row in yuk_analizi|slice:":8" %}
+            <li><span>{{ row.ad_soyad|truncatechars:20 }}</span><strong>{{ row.sayi }}</strong></li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </aside>
+</div>
+
+{% csrf_token %}
+
+<div class="tz-modal" data-tz-modal="gorevli-ekle" hidden>
+    <div class="tz-modal-card">
+        <header><h3>Görevli Ekle</h3><button type="button" data-tz-close>×</button></header>
+        <input type="hidden" id="tz-alan-id">
+        <label>Talebe Ara<input type="search" id="tz-talebe-ara" class="tz-input" placeholder="Ad veya numara…" autocomplete="off"></label>
+        <ul id="tz-talebe-sonuc" class="tz-search-results"></ul>
+    </div>
+</div>
+
+<div class="tz-modal" data-tz-modal="kat-ekle" hidden>
+    <div class="tz-modal-card">
+        <header><h3>Yeni Kat</h3><button type="button" data-tz-close>×</button></header>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="kat_ekle">
+            <label>Kat adı<input type="text" name="kat_ad" class="tz-input" required maxlength="120" placeholder="-1. Kat"></label>
+            <footer><button type="button" class="tz-btn" data-tz-close>İptal</button><button type="submit" class="tz-btn tz-btn-primary">Oluştur</button></footer>
+        </form>
+    </div>
+</div>
+
+<div class="tz-modal" data-tz-modal="mahal-ekle" hidden>
+    <div class="tz-modal-card">
+        <header><h3>Mahal Ekle</h3><button type="button" data-tz-close>×</button></header>
+        <form method="post" id="tz-mahal-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="mahal_ekle">
+            <input type="hidden" name="kat_id" id="tz-mahal-kat-id">
+            <label>Mahal adı<input type="text" name="mahal_ad" class="tz-input" required maxlength="120"></label>
+            <label>Açıklama<input type="text" name="mahal_aciklama" class="tz-input" maxlength="255"></label>
+            <footer><button type="button" class="tz-btn" data-tz-close>İptal</button><button type="submit" class="tz-btn tz-btn-primary">Ekle</button></footer>
+        </form>
+    </div>
+</div>
+
+<div class="tz-modal tz-modal-wide" data-tz-modal="toplu-dagit" hidden>
+    <div class="tz-modal-card">
+        <header><h3>Toplu Görev Dağıtımı</h3><button type="button" data-tz-close>×</button></header>
+        <p class="tz-muted">Talebe kartını sürükleyip mahale bırakın.</p>
+        <div class="tz-bulk-layout">
+            <div class="tz-bulk-talebeler">
+                <h4>Talebeler</h4>
+                {% for t in talebeler %}
+                <span class="tz-talebe-chip tz-bulk-chip" draggable="true" data-talebe-id="{{ t.pk }}">👤 {{ t.ad_soyad }}</span>
+                {% endfor %}
+            </div>
+            <div class="tz-bulk-mahaller">
+                <h4>Mahaller</h4>
+                {% for kart in kat_kartlari %}
+                {% for row in kart.mahaller %}
+                <div class="tz-bulk-drop" data-mahal-id="{{ row.alan.pk }}" data-drop="1">
+                    <strong>{{ kart.kat.ad }} · {{ row.alan.ad }}</strong>
+                    <div class="tz-chip-row">
+                        {% for g in row.gorevliler %}
+                        <span class="tz-talebe-chip">{{ g.ad_soyad|truncatechars:14 }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/temizlik-yonetim.js' %}"></script>
+{% endblock %}

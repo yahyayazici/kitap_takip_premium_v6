@@ -1,74 +1,89 @@
 {% extends "yonetim/base.html" %}
 
-{% block title %}Etüt Hocaları{% endblock %}
-{% block page_title %}Etüt Hocası Yönetimi{% endblock %}
+{% block title %}Personel{% endblock %}
 
 {% block content %}
 
-<section class="cs-page-head">
+<header class="page-head patterned-page-head yonetim-page-head">
     <div>
-        <span class="cs-card-label">PERSONEL YÖNETİMİ</span>
-        <h2>Etüt Hocaları</h2>
-        <p>Kullanıcı hesaplarını ve sınıf yetkilerini yönetin.</p>
+        <p class="kicker">PERSONEL YÖNETİMİ</p>
+        <h1>Kurum Personeli</h1>
+        <p class="muted">Rol, kullanıcı hesabı ve yetkileri yönetin.</p>
+    </div>
+    <a href="{% url 'yonetim:personel_ekle' %}" class="primary-btn">Personel Ekle</a>
+</header>
+
+<section class="report-table-card yonetim-table-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">PERSONEL LİSTESİ</p>
+            <h2>Kayıtlı Personel</h2>
+        </div>
+        <span class="report-record-count">{{ personeller|length }} personel</span>
     </div>
 
-    <a
-        href="{% url 'yonetim:personel_ekle' %}"
-        class="cs-btn cs-btn-primary"
-    >
-        Etüt Hocası Ekle
-    </a>
-</section>
-
-<section class="cs-card">
-    <div class="cs-table-wrap">
-        <table class="cs-table">
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <colgroup>
+                <col style="width:20%">
+                <col style="width:12%">
+                <col style="width:14%">
+                <col style="width:22%">
+                <col style="width:8%">
+                <col style="width:10%">
+                <col style="width:10%">
+            </colgroup>
             <thead>
                 <tr>
                     <th>Ad Soyad</th>
                     <th>Kullanıcı Adı</th>
+                    <th>Rol</th>
                     <th>Sorumlu Sınıflar</th>
                     <th>Talebe</th>
                     <th>Durum</th>
-                    <th></th>
+                    <th class="yonetim-action-col">İşlem</th>
                 </tr>
             </thead>
-
             <tbody>
                 {% for personel in personeller %}
-                    <tr>
-                        <td><strong>{{ personel.ad_soyad }}</strong></td>
-                        <td>{{ personel.user.username }}</td>
-                        <td>
-                            {% for grup in personel.sorumlu_sinif_subeler.all %}
-                                <span class="cs-chip">{{ grup }}</span>
-                            {% empty %}
-                                <span class="cs-muted">Sınıf atanmamış</span>
-                            {% endfor %}
-                        </td>
-                        <td>{{ personel.talebe_sayisi }}</td>
-                        <td>
-                            {% if personel.aktif %}
-                                <span class="cs-status">Aktif</span>
+                <tr>
+                    <td>
+                        <div class="yonetim-person-cell">
+                            <span class="yonetim-avatar yonetim-avatar-dark">{{ personel.ad_soyad|slice:":1"|upper }}</span>
+                            <strong>{{ personel.ad_soyad }}</strong>
+                        </div>
+                    </td>
+                    <td><span class="yonetim-username">{{ personel.user.username }}</span></td>
+                    <td><span class="yonetim-chip yonetim-chip-role">{{ personel.rol_etiketi }}</span></td>
+                    <td>
+                        <div class="yonetim-chip-group">
+                            {% if personel.etut_hocasi %}
+                                {% for grup in personel.etut_hocasi.sorumlu_sinif_subeler.all %}
+                                    <span class="yonetim-chip">{{ grup }}</span>
+                                {% empty %}
+                                    <span class="muted-inline">Sınıf atanmamış</span>
+                                {% endfor %}
                             {% else %}
-                                <span class="cs-status is-passive">Pasif</span>
+                                <span class="muted-inline">—</span>
                             {% endif %}
-                        </td>
-                        <td>
-                            <a
-                                href="{% url 'yonetim:personel_duzenle' personel.pk %}"
-                                class="cs-table-link"
-                            >
-                                Düzenle
-                            </a>
-                        </td>
-                    </tr>
+                        </div>
+                    </td>
+                    <td class="num-col">{% if personel.etut_hocasi %}{{ personel.talebe_sayisi }}{% else %}—{% endif %}</td>
+                    <td>
+                        {% if personel.aktif %}
+                            <span class="status-pill status-okunuyor">Aktif</span>
+                        {% else %}
+                            <span class="status-pill status-iade">Pasif</span>
+                        {% endif %}
+                    </td>
+                    <td class="yonetim-action-col">
+                        <a href="{% url 'yonetim:personel_duzenle' personel.pk %}" class="yonetim-link">Düzenle</a>
+                    </td>
+                </tr>
                 {% empty %}
-                    <tr>
-                        <td colspan="6" class="cs-empty">
-                            Henüz etüt hocası kaydı yok.
-                        </td>
-                    </tr>
+                <tr>
+                    <td colspan="7" class="report-empty">Henüz personel kaydı yok.</td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>

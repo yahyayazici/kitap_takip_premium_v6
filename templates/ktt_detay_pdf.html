@@ -1,0 +1,157 @@
+{% load static pdf_extras %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>{{ ktt.ad }} · KTT Sonuç Tablosu</title>
+    <style>
+        {% include "includes/pdf_karne_fonts.html" %}
+        {% include "includes/pdf_karne_a4_css.html" %}
+    </style>
+</head>
+<body class="pdf-karne {{ sonuclar|length|pdf_density_class }}">
+
+<div class="pdf-sheet">
+<table class="layout">
+    <tr>
+        <td>
+            <table class="header-table" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="header-logo-cell">
+                        <div class="brand-logo-wrap">
+                            <img class="brand-logo" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="Çinili Saray">
+                        </div>
+                    </td>
+                    <td class="header-text-cell">
+                        <div class="brand-name">{{ panel_org }}</div>
+                        <div class="brand-sub">{{ panel_name }}</div>
+                    </td>
+                    <td class="header-right">
+                        <div class="doc-title">KTT Sonuç Tablosu</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+
+    <tr><td class="gap6"></td></tr>
+
+    <tr>
+        <td class="hero">
+            <svg class="hero-deco" width="80" height="48" viewBox="0 0 120 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="18" y="10" width="72" height="52" rx="8" fill="#FFFFFF" opacity="0.85"/>
+                <rect x="28" y="22" width="52" height="4" rx="2" fill="#FFFFFF" opacity="0.55"/>
+                <rect x="28" y="32" width="42" height="4" rx="2" fill="#FFFFFF" opacity="0.45"/>
+            </svg>
+            <div class="hero-inner">
+                <div class="hero-tag">Kazanım Tarama Testi</div>
+                <div class="hero-title">{{ ktt.ad }}</div>
+                <div class="hero-meta">
+                    {{ ktt.ders.ad }} · {{ ktt.sinif_goster }} · {{ ktt.soru_sayisi }} soru ·
+                    {{ ktt.sinav_tarihi|date:"d.m.Y" }} · Net = Doğru − Yanlış/4
+                </div>
+            </div>
+        </td>
+    </tr>
+
+    <tr><td class="gap6"></td></tr>
+
+    <tr>
+        <td>
+            <table class="stats-table" cellpadding="0">
+                <tr>
+                    <td width="25%" class="stat-cell tone-blue">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">Öğrenci</div>
+                        <div class="stat-metric">{{ ozet.ogrenci_sayisi }}</div>
+                        <div class="stat-sub">Katılım</div>
+                    </td>
+                    <td width="25%" class="stat-cell tone-green">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">Ort. Net</div>
+                        <div class="stat-metric">{{ ozet.ortalama_net }}</div>
+                        <div class="stat-sub">Ortalama</div>
+                    </td>
+                    <td width="25%" class="stat-cell tone-orange">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">Ort. Puan</div>
+                        <div class="stat-metric">{{ ozet.ortalama_puan }}</div>
+                        <div class="stat-sub">100 üzerinden</div>
+                    </td>
+                    <td width="25%" class="stat-cell tone-purple">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">En Yüksek</div>
+                        <div class="stat-metric">{{ ozet.en_yuksek_puan }}</div>
+                        <div class="stat-sub">Puan</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+
+    <tr><td class="gap8"></td></tr>
+
+    <tr>
+        <td>
+            <div class="table-panel">
+                <div class="table-panel-accent"></div>
+                <div class="table-panel-head">
+                    <div class="section-kicker">Sonuç Listesi</div>
+                    <div class="section-title">KTT Sonuç Tablosu</div>
+                </div>
+                <div class="results-wrap">
+                    <table class="results">
+                        <thead>
+                            <tr>
+                                <th class="left" style="width:36%;">Talebe</th>
+                                <th style="width:11%;">Doğru</th>
+                                <th style="width:11%;">Yanlış</th>
+                                <th style="width:11%;">Boş</th>
+                                <th style="width:11%;">Net</th>
+                                <th style="width:11%;">Puan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sonuc in sonuclar %}
+                            <tr>
+                                <td class="left">
+                                    <div class="student-name">{{ sonuc.talebe.ad_soyad }}</div>
+                                    <div class="student-meta">{{ sonuc.talebe.sinif_sube|default:"—" }}</div>
+                                </td>
+                                <td class="num-cell">{{ sonuc.dogru }}</td>
+                                <td class="num-cell">{{ sonuc.yanlis }}</td>
+                                <td class="num-cell">{{ sonuc.bos }}</td>
+                                <td class="num-cell">{{ sonuc.net }}</td>
+                                <td class="num-cell">{{ sonuc.puan }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="left" style="padding:10px;">Sonuç girilmemiş.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </td>
+    </tr>
+
+    <tr><td class="gap8"></td></tr>
+
+    {% include "includes/ktt_analiz_pdf.html" %}
+
+    <tr>
+        <td>
+            <table class="footer-table" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="footer-left">{{ panel_org }} · {{ olusturma_tarihi|date:"d.m.Y H:i" }}</td>
+                    <td class="footer-right">{{ panel_footer }}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</div>
+
+</body>
+</html>

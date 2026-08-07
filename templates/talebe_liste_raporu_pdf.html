@@ -1,0 +1,253 @@
+{% load static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>{{ baslik }}</title>
+    <style>
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-Regular.ttf' %}") format("truetype");
+            font-weight: 400;
+        }
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-Medium.ttf' %}") format("truetype");
+            font-weight: 500;
+        }
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-SemiBold.ttf' %}") format("truetype");
+            font-weight: 600;
+        }
+
+        @page {
+            size: A4 portrait;
+            margin: 12mm 14mm 10mm;
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+
+        body {
+            font-family: "Poppins", sans-serif;
+            font-size: var(--isim-font, 10px);
+            font-weight: 400;
+            color: #334155;
+            line-height: 1.35;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .pdf-shell {
+            display: flex;
+            flex-direction: column;
+            min-height: 267mm;
+            max-height: 267mm;
+            overflow: hidden;
+        }
+
+        .pdf-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 16px;
+            flex-shrink: 0;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #173b80;
+        }
+
+        .brand-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #183f78;
+            line-height: 1.15;
+        }
+
+        .brand-sub {
+            margin-top: 3px;
+            font-size: 7px;
+            font-weight: 500;
+            letter-spacing: 0.45px;
+            color: #98a4b5;
+            text-transform: uppercase;
+        }
+
+        .pdf-meta {
+            text-align: right;
+            font-size: 8px;
+            color: #64748b;
+            white-space: nowrap;
+        }
+
+        .pdf-title {
+            flex-shrink: 0;
+            margin: 0 0 10px;
+            text-align: center;
+            font-size: var(--baslik-font, 16px);
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            color: #0f172a;
+        }
+
+        .pdf-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .name-grid {
+            column-gap: var(--kolon-bosluk, 18px);
+            row-gap: 0;
+        }
+
+        .name-grid.sinif {
+            column-count: var(--kolon-sayisi, 2);
+        }
+
+        .name-grid.kurum {
+            column-count: var(--kolon-sayisi, 3);
+        }
+
+        .name-item {
+            break-inside: avoid;
+            page-break-inside: avoid;
+            padding: var(--satir-padding, 2px) 0;
+            border-bottom: 1px solid #eef2f7;
+            color: #10213d;
+            font-size: var(--isim-font, 10px);
+        }
+
+        .sinif-bolum {
+            break-inside: avoid;
+            page-break-inside: avoid;
+            margin-bottom: var(--bolum-bosluk, 10px);
+        }
+
+        .sinif-bolum h2 {
+            margin: 0 0 4px;
+            padding-bottom: 3px;
+            border-bottom: 1px solid #cbd5e1;
+            font-size: var(--sinif-baslik-font, 9.5px);
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            color: #173b80;
+        }
+
+        .pdf-foot {
+            flex-shrink: 0;
+            margin-top: auto;
+            padding-top: 8px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            font-size: 8px;
+            color: #64748b;
+        }
+
+        /* Tek sayfa — talebe sayısına göre sıkıştırma */
+        .yogunluk-normal {
+            --baslik-font: 16px;
+            --isim-font: 10px;
+            --sinif-baslik-font: 9.5px;
+            --kolon-sayisi: 3;
+            --kolon-bosluk: 20px;
+            --satir-padding: 3px;
+            --bolum-bosluk: 12px;
+        }
+
+        .yogunluk-normal.sinif-mod {
+            --kolon-sayisi: 2;
+        }
+
+        .yogunluk-sik {
+            --baslik-font: 14px;
+            --isim-font: 9px;
+            --sinif-baslik-font: 8.5px;
+            --kolon-sayisi: 3;
+            --kolon-bosluk: 14px;
+            --satir-padding: 2px;
+            --bolum-bosluk: 8px;
+        }
+
+        .yogunluk-sik.sinif-mod {
+            --kolon-sayisi: 2;
+        }
+
+        .yogunluk-xs {
+            --baslik-font: 13px;
+            --isim-font: 8px;
+            --sinif-baslik-font: 8px;
+            --kolon-sayisi: 4;
+            --kolon-bosluk: 12px;
+            --satir-padding: 1px;
+            --bolum-bosluk: 6px;
+        }
+
+        .yogunluk-xs.sinif-mod {
+            --kolon-sayisi: 3;
+        }
+
+        .yogunluk-xxs {
+            --baslik-font: 12px;
+            --isim-font: 7.2px;
+            --sinif-baslik-font: 7.5px;
+            --kolon-sayisi: 4;
+            --kolon-bosluk: 10px;
+            --satir-padding: 0;
+            --bolum-bosluk: 5px;
+        }
+
+        .yogunluk-xxs.sinif-mod {
+            --kolon-sayisi: 3;
+        }
+    </style>
+</head>
+<body class="{{ yogunluk }}{% if rapor_turu == 'sinif' %} sinif-mod{% endif %}">
+<div class="pdf-shell">
+    <header class="pdf-head">
+        <div>
+            <div class="brand-name">{{ panel_org }}</div>
+            <div class="brand-sub">Talebe Listesi Raporu</div>
+        </div>
+        <div class="pdf-meta">
+            <div>{{ tarih|date:"d.m.Y" }}</div>
+        </div>
+    </header>
+
+    <h1 class="pdf-title">{{ baslik }}</h1>
+
+    <div class="pdf-body">
+        {% if rapor_turu == "sinif" %}
+        <div class="name-grid sinif">
+            {% for isim in talebeler %}
+            <div class="name-item">{{ isim }}</div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="name-grid kurum">
+            {% for bolum in bolumler %}
+            <section class="sinif-bolum">
+                <h2>{{ bolum.baslik }}</h2>
+                {% for isim in bolum.talebeler %}
+                <div class="name-item">{{ isim }}</div>
+                {% endfor %}
+            </section>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <footer class="pdf-foot">
+        <span>{{ toplam }} talebe</span>
+        <span>{{ panel_org }} · Yazdırmaya uygun resmi liste</span>
+    </footer>
+</div>
+</body>
+</html>

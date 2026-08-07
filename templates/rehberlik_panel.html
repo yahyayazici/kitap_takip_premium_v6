@@ -1,0 +1,438 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Rehberlik · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/rehberlik-premium.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="rh-page" data-rehberlik-panel>
+
+<header class="rh-head">
+    <div>
+        <p class="rh-eyebrow">Rehberlik & Öğrenci Takip</p>
+        <h1>{% if talebe %}{{ talebe.ad_soyad }}{% else %}Öğrenci Seçin{% endif %}</h1>
+        <p class="rh-muted">Görüşme geçmişi, takip ve yeni kayıt — tek ekranda.</p>
+    </div>
+    {% if talebe %}
+    <form method="get" class="rh-picker-search-wrap">
+        <select name="talebe" class="rh-picker-search" onchange="this.form.submit()">
+            {% for t in talebeler %}
+            <option value="{{ t.pk }}" {% if t.pk == talebe.pk %}selected{% endif %}>{{ t.ad_soyad }}{% if t.sinif_sube %} · {{ t.sinif_sube }}{% endif %}</option>
+            {% endfor %}
+        </select>
+    </form>
+    {% endif %}
+</header>
+
+{% if not talebe %}
+<section class="rh-card rh-picker">
+    <p class="rh-muted">Rehberlik paneline devam etmek için bir öğrenci seçin.</p>
+    <input type="search" class="rh-picker-search" placeholder="Öğrenci ara..." data-rh-search>
+    <div class="rh-picker-grid" data-rh-picker-grid>
+        {% for t in talebeler %}
+        <a href="?talebe={{ t.pk }}" class="rh-picker-item" data-rh-name="{{ t.ad_soyad|lower }}">
+            <span class="rh-avatar">{{ t.ad_soyad|slice:":1"|upper }}</span>
+            <span>
+                <strong>{{ t.ad_soyad }}</strong><br>
+                <small class="rh-muted">{% if t.sinif_sube %}{{ t.sinif_sube }}{% else %}{{ t.sinif }}{% if t.sube %} / {{ t.sube }}{% endif %}{% endif %}</small>
+            </span>
+        </a>
+        {% empty %}
+        <p class="rh-empty">Yetkili olduğunuz öğrenci bulunamadı.</p>
+        {% endfor %}
+    </div>
+</section>
+
+{% else %}
+
+{# 1) Öğrenci bilgi kartı #}
+<section class="rh-card rh-student-card">
+    <span class="rh-avatar">{{ talebe.ad_soyad|slice:":1"|upper }}</span>
+    <div class="rh-student-meta">
+        <h2>{{ talebe.ad_soyad }}</h2>
+        <div class="rh-info-grid">
+            <div class="rh-info-row"><span>Sınıf</span><strong>{% if talebe.sinif_sube %}{{ talebe.sinif_sube }}{% else %}{{ talebe.sinif }}{% if talebe.sube %} / {{ talebe.sube }}{% endif %}{% endif %}</strong></div>
+            <div class="rh-info-row"><span>Etüt Grubu</span><strong>{{ talebe.etut_hocasi.ad_soyad }}</strong></div>
+            <div class="rh-info-row"><span>Akademik Seviye</span><strong>Takip altında</strong></div>
+            <div class="rh-info-row"><span>Dini Eğitim</span><strong>{{ talebe.dini_ders_seviyesi|default:"—" }}</strong></div>
+            <div class="rh-info-row"><span>Etüt Hocası</span><strong>{{ talebe.etut_hocasi.ad_soyad }}</strong></div>
+            <div class="rh-info-row"><span>Rehber Öğretmeni</span><strong>{% if panel.yapanlar %}{{ panel.yapanlar.0.ad }}{% else %}—{% endif %}</strong></div>
+        </div>
+        <div class="rh-link-row">
+            <a href="{% url 'talebe_detay' talebe.pk %}?sekme=gelisim" class="rh-btn rh-btn-sm">Bütün Öğrenci Dosyası</a>
+            {% if panel.veli_gorusme_sayisi %}
+            <a href="?talebe={{ talebe.pk }}{% if panel.veli_tur_id %}&tur={{ panel.veli_tur_id }}{% endif %}" class="rh-btn rh-btn-sm rh-btn-ghost">Veli geçmişi ({{ panel.veli_gorusme_sayisi }})</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="rh-status-stack">
+        <span class="rh-status-pill" style="color:{{ panel.durum.renk }};background:{{ panel.durum.arka_plan }};border-color:{{ panel.durum.renk }}22;">
+            <span class="rh-status-dot" style="background:{{ panel.durum.renk }};"></span>
+            {{ panel.durum.etiket }}
+        </span>
+    </div>
+</section>
+
+{# 2) İstatistik kartları #}
+<div class="rh-stats" aria-label="Görüşme istatistikleri">
+    {% for s in panel.istatistikler %}
+    <article class="rh-stat">
+        <span class="rh-stat-icon" aria-hidden="true">{{ s.ikon }}</span>
+        <strong class="rh-stat-value">{{ s.deger }}</strong>
+        <span class="rh-stat-label">{{ s.etiket }}</span>
+    </article>
+    {% endfor %}
+</div>
+
+{# 3) Yeni görüşme + detay — üstte #}
+<div class="rh-bottom">
+    {% if duzenleyebilir and form %}
+    <section class="rh-card rh-card-white" id="rh-yeni-gorusme">
+        <div class="rh-section-head"><h3>Yeni Görüşme Kaydı</h3></div>
+        <form method="post" enctype="multipart/form-data" class="rh-form-grid">
+            {% csrf_token %}
+            {{ form.talebe.as_hidden }}
+            {% if form.non_field_errors %}<ul class="errorlist">{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+
+            <div class="rh-field">
+                <label>Görüşme Türü</label>
+                <div class="rh-type-grid" data-rh-type-grid>
+                    {% for t in turler %}
+                    <label class="rh-type-card" style="--type-color:{{ t.renk }};">
+                        <input type="radio" name="tur" value="{{ t.pk }}" {% if form.tur.value|stringformat:"s" == t.pk|stringformat:"s" %}checked{% elif forloop.first and not form.tur.value %}checked{% endif %}>
+                        <span><em>{{ t.ikon }}</em>{{ t.ad }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+                {% if form.tur.errors %}<ul class="errorlist">{% for e in form.tur.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+
+            <div class="rh-field-row">
+                <div class="rh-field">
+                    <label for="{{ form.tarih.id_for_label }}">Tarih</label>
+                    {{ form.tarih }}
+                </div>
+                <div class="rh-field">
+                    <label for="{{ form.saat.id_for_label }}">Saat</label>
+                    {{ form.saat }}
+                </div>
+            </div>
+
+            <div class="rh-field-row">
+                <div class="rh-field">
+                    <label for="{{ form.genel_durum.id_for_label }}">Genel durum</label>
+                    {{ form.genel_durum }}
+                </div>
+                <div class="rh-field">
+                    <label for="{{ form.etiketler_metin.id_for_label }}">Etiketler</label>
+                    {{ form.etiketler_metin }}
+                    <div class="rh-chip-wrap" data-rh-chips style="margin-top:0.5rem;">
+                        {% for e in etiket_onerileri %}
+                        <button type="button" class="rh-chip" data-rh-chip="{{ e }}">{{ e }}</button>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="rh-field">
+                <label for="{{ form.ozet.id_for_label }}">Görüşme Özeti</label>
+                {{ form.ozet }}
+            </div>
+
+            <div class="rh-field-row">
+                <div class="rh-field">
+                    <label for="{{ form.kararlar.id_for_label }}">Alınan Kararlar</label>
+                    {{ form.kararlar }}
+                </div>
+                <div class="rh-field">
+                    <label for="{{ form.yapilacaklar_metin.id_for_label }}">Yapılacaklar</label>
+                    {{ form.yapilacaklar_metin }}
+                </div>
+            </div>
+
+            <div class="rh-field-row">
+                <div class="rh-field">
+                    <label for="{{ form.sonraki_gorusme.id_for_label }}">Tekrar Görüşme Tarihi</label>
+                    {{ form.sonraki_gorusme }}
+                </div>
+                <div class="rh-field">
+                    <label for="{{ form.sonraki_gorusme_saat.id_for_label }}">Saat</label>
+                    {{ form.sonraki_gorusme_saat }}
+                </div>
+            </div>
+
+            <div class="rh-field-row">
+                <label class="rh-check-item" style="align-items:center;">
+                    {{ form.takip_gerekiyor }}
+                    <span>Takip gerekiyor</span>
+                </label>
+                <label class="rh-check-item" style="align-items:center;">
+                    {{ form.veli_goster }}
+                    <span>Veli panelinde göster</span>
+                </label>
+            </div>
+
+            <div class="rh-field-row">
+                <div class="rh-field">
+                    <label for="id_ek_dosya">Dosya ekle</label>
+                    <input type="file" name="ek_dosya" id="id_ek_dosya" class="input">
+                </div>
+                <div class="rh-field">
+                    <label for="id_dosya_turu">Dosya türü</label>
+                    <select name="dosya_turu" id="id_dosya_turu" class="input">
+                        <option value="pdf">PDF</option>
+                        <option value="foto">Fotoğraf</option>
+                        <option value="ses">Ses Kaydı</option>
+                        <option value="diger">Diğer</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="rh-form-actions">
+                <a href="?talebe={{ talebe.pk }}" class="rh-btn rh-btn-ghost">İptal</a>
+                <button type="submit" class="rh-btn rh-btn-primary">Kaydet</button>
+            </div>
+        </form>
+    </section>
+    {% elif not duzenleyebilir %}
+    <section class="rh-card">
+        <p class="rh-empty">Yeni görüşme eklemek için düzenleme yetkisi gerekir.</p>
+    </section>
+    {% endif %}
+
+    <section class="rh-card rh-card-white">
+        <div class="rh-section-head"><h3>Görüşme Detayı</h3></div>
+        {% if secili %}
+        <div class="rh-detail-hero">
+            <span class="rh-detail-icon" style="color:{{ secili.tur.renk }};">{{ secili.tur.ikon }}</span>
+            <div class="rh-detail-meta">
+                <h3>{{ secili.tur.ad }}</h3>
+                <p>{{ secili.tarih|date:"d.m.Y" }}{% if secili.saat %} · {{ secili.saat|time:"H:i" }}{% endif %} · {% if secili.kaydeden %}{{ secili.kaydeden.get_full_name|default:secili.kaydeden.username }}{% else %}—{% endif %}</p>
+                {% if secili.etiketler %}
+                <div class="rh-tags">
+                    {% for tag in secili.etiketler %}
+                    <span class="rh-tag">{{ tag }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            <div class="rh-status-stack">
+                {% if secili.takip_gerekiyor %}
+                <span class="rh-status-pill" style="color:#ea580c;background:#fff7ed;">Takip Gerektiriyor</span>
+                {% else %}
+                <span class="rh-status-pill" style="color:#16a34a;background:#f0fdf4;">Tamamlandı</span>
+                {% endif %}
+                {% if secili.sonraki_gorusme %}
+                <small class="rh-muted">Sonraki: {{ secili.sonraki_gorusme|date:"d.m.Y" }}</small>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="rh-detail-block">
+            <h4>Görüşme Özeti</h4>
+            <p>{{ secili.ozet }}</p>
+        </div>
+
+        {% if kararlar_listesi %}
+        <div class="rh-detail-block">
+            <h4>Alınan Kararlar</h4>
+            <ul>
+                {% for k in kararlar_listesi %}
+                <li>{{ k }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {% if yapilacaklar_listesi %}
+        <div class="rh-detail-block">
+            <h4>Yapılacaklar</h4>
+            <div class="rh-checklist">
+                {% for item in yapilacaklar_listesi %}
+                <div class="rh-check-item{% if item.tamamlandi %} is-done{% endif %}">
+                    <span class="rh-check-box"></span>
+                    <span>{{ item.metin }}{% if item.sorumlu %} · {{ item.sorumlu }}{% endif %}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% with gorevler=secili.gorevler.all %}
+        {% if gorevler %}
+        <div class="rh-detail-block">
+            <h4>Sorumlular</h4>
+            <div class="rh-mini-list">
+                {% for g in gorevler %}
+                <div class="rh-mini-row">
+                    <span>{{ g.baslik }}</span>
+                    <span>{{ g.sorumlu|default:"—" }}</span>
+                    <span class="rh-badge {% if g.durum == 'tamam' %}rh-badge-done{% elif g.durum == 'devam' %}rh-badge-progress{% else %}rh-badge-wait{% endif %}">{{ g.get_durum_display }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% if secili.detay %}
+        <div class="rh-detail-block">
+            <h4>Ek Notlar</h4>
+            <p>{{ secili.detay }}</p>
+        </div>
+        {% endif %}
+
+        {% with dosyalar=secili.dosyalar.all %}
+        {% if dosyalar %}
+        <div class="rh-detail-block">
+            <h4>Dosyalar</h4>
+            <div class="rh-files">
+                {% for d in dosyalar %}
+                <a href="{{ d.dosya.url }}" class="rh-file-pill" target="_blank" rel="noopener">{{ d.get_tur_display }} · {{ d.ad|default:d.dosya.name }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% if duzenleyebilir %}
+        <div class="rh-link-row">
+            <a href="{% url 'rehberlik_duzenle' secili.pk %}" class="rh-btn rh-btn-sm">Düzenle</a>
+        </div>
+        {% endif %}
+        {% else %}
+        <p class="rh-empty">Detay görmek için alttaki geçmişten bir görüşme seçin.</p>
+        {% endif %}
+    </section>
+</div>
+
+{# 4) Yan widget'lar #}
+<div class="rh-main rh-main-compact">
+    <aside class="rh-side-stack rh-widgets-row">
+        <section class="rh-card">
+            <div class="rh-section-head"><h3>Etiket Dağılımı</h3></div>
+            {% if panel.etiket_dagilimi %}
+            <div class="rh-donut-wrap">
+                <div class="rh-donut" style="background:{{ panel.donut_stil }};"></div>
+                <div class="rh-legend">
+                    {% for item in panel.etiket_dagilimi %}
+                    <div class="rh-legend-item">
+                        <span class="rh-legend-dot" style="background:{{ item.renk }};"></span>
+                        {{ item.etiket }} · {{ item.adet }} (%{{ item.yuzde }})
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <p class="rh-empty">Henüz etiket verisi yok.</p>
+            {% endif %}
+        </section>
+
+        <section class="rh-card">
+            <div class="rh-section-head"><h3>Takip Edilen Konular</h3></div>
+            <div class="rh-checklist">
+                {% for konu in panel.takip_konulari %}
+                <div class="rh-check-item{% if konu.durum == 'Tamamlandı' %} is-done{% endif %}">
+                    <span class="rh-check-box"></span>
+                    <span>{{ konu.baslik }}<br><small class="rh-muted">{{ konu.sorumlu }}</small></span>
+                </div>
+                {% empty %}
+                <p class="rh-empty">Açık takip konusu yok.</p>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="rh-card">
+            <div class="rh-section-head"><h3>Bir Sonraki Görüşme</h3></div>
+            {% if panel.sonraki_gorusme %}
+            <div class="rh-info-grid rh-info-grid-stack">
+                <div class="rh-info-row"><span>Tarih</span><strong>{{ panel.sonraki_gorusme.tarih|date:"d.m.Y" }}</strong></div>
+                <div class="rh-info-row"><span>Saat</span><strong>{% if panel.sonraki_gorusme.saat %}{{ panel.sonraki_gorusme.saat|time:"H:i" }}{% else %}—{% endif %}</strong></div>
+                <div class="rh-info-row"><span>Durum</span><strong>{{ panel.sonraki_gorusme.durum }}</strong></div>
+            </div>
+            {% else %}
+            <p class="rh-empty">Planlanmış görüşme yok.</p>
+            {% endif %}
+        </section>
+
+        <section class="rh-card">
+            <div class="rh-section-head"><h3>Görüşmeyi Yapanlar</h3></div>
+            <div class="rh-mini-list">
+                {% for p in panel.yapanlar %}
+                <div class="rh-mini-row">
+                    <span class="rh-avatar rh-avatar-sm">{{ p.bas_harf }}</span>
+                    <span>{{ p.ad }}</span>
+                    <span>{{ p.adet }} görüşme</span>
+                </div>
+                {% empty %}
+                <p class="rh-empty">Kayıt yok.</p>
+                {% endfor %}
+            </div>
+        </section>
+    </aside>
+</div>
+
+{# 5) Görüşme geçmişi — altta #}
+<section class="rh-card rh-card-white rh-history">
+    <div class="rh-section-head">
+        <h3>Görüşme Geçmişi</h3>
+    </div>
+    <form method="get" class="rh-filters">
+        <input type="hidden" name="talebe" value="{{ talebe.pk }}">
+        <input type="search" name="q" value="{{ filtre_q }}" placeholder="Ara...">
+        <select name="tur">
+            <option value="">Tüm türler</option>
+            {% for t in turler %}
+            <option value="{{ t.pk }}" {% if filtre_tur == t.pk|stringformat:"s" %}selected{% endif %}>{{ t.ad }}</option>
+            {% endfor %}
+        </select>
+        <select name="etiket">
+            <option value="">Tüm etiketler</option>
+            {% for e in etiket_onerileri %}
+            <option value="{{ e }}" {% if filtre_etiket == e %}selected{% endif %}>{{ e }}</option>
+            {% endfor %}
+        </select>
+        <select name="takip">
+            <option value="">Tüm durumlar</option>
+            <option value="1" {% if filtre_takip == "1" %}selected{% endif %}>Takip gerekiyor</option>
+        </select>
+        <button type="submit" class="rh-btn rh-btn-sm">Filtrele</button>
+    </form>
+    <div class="rh-timeline">
+        {% for g in panel.gorusmeler %}
+        <a href="?talebe={{ talebe.pk }}&detay={{ g.pk }}{% if filtre_q %}&q={{ filtre_q|urlencode }}{% endif %}{% if filtre_tur %}&tur={{ filtre_tur }}{% endif %}{% if filtre_etiket %}&etiket={{ filtre_etiket|urlencode }}{% endif %}{% if filtre_takip %}&takip={{ filtre_takip }}{% endif %}"
+           class="rh-timeline-row{% if secili and secili.pk == g.pk %} is-active{% endif %}">
+            <span class="rh-timeline-date">{{ g.tarih|date:"d M" }}<br>{{ g.tarih|date:"Y" }}</span>
+            <div class="rh-timeline-body">
+                <span class="rh-timeline-icon" style="color:{{ g.tur.renk }};">{{ g.tur.ikon }}</span>
+                <div class="rh-timeline-copy">
+                    <strong>{{ g.tur.ad }}</strong>
+                    <p>{{ g.ozet }}</p>
+                    {% if g.etiketler %}
+                    <div class="rh-tags">
+                        {% for tag in g.etiketler|slice:":3" %}
+                        <span class="rh-tag">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <span class="rh-timeline-side">
+                <span>{% if g.saat %}{{ g.saat|time:"H:i" }}{% else %}—{% endif %}<br>{% if g.kaydeden %}{{ g.kaydeden.get_full_name|default:g.kaydeden.username }}{% else %}—{% endif %}</span>
+                <svg class="rh-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+            </span>
+        </a>
+        {% empty %}
+        <p class="rh-empty">Bu filtrelerle görüşme bulunamadı.</p>
+        {% endfor %}
+    </div>
+</section>
+
+{% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/rehberlik-panel.js' %}"></script>
+{% endblock %}

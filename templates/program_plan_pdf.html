@@ -1,0 +1,117 @@
+{% load static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>{{ program.ad }} · Program</title>
+    <style>
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-Regular.ttf' %}") format("truetype");
+            font-weight: 400;
+        }
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-Medium.ttf' %}") format("truetype");
+            font-weight: 500;
+        }
+        @page { size: A4 landscape; margin: 10mm 12mm; }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Poppins", sans-serif;
+            font-size: 8px;
+            color: #546173;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-bottom: 1px solid #d8e3f0;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .head h1 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 500;
+            color: #10213d;
+        }
+        .head p { margin: 4px 0 0; font-size: 8px; }
+        .meta { text-align: right; font-size: 8px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #e3eaf3;
+            padding: 6px 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background: #f3f7fc;
+            color: #173b80;
+            font-weight: 500;
+            font-size: 7px;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+        td strong { color: #10213d; font-weight: 500; }
+        .passive { color: #94a3b8; }
+        .foot {
+            margin-top: 10px;
+            font-size: 7px;
+            color: #718097;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <div class="head">
+        <div>
+            <h1>{{ program.ad }}</h1>
+            <p>{{ program.tarih_araligi_goster }}{% if program.aciklama %} · {{ program.aciklama }}{% endif %}</p>
+        </div>
+        <div class="meta">
+            <div>{{ panel_org }}</div>
+            <div>Günlük Program Planı</div>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:14%">Saat</th>
+                <th style="width:10%">Süre</th>
+                <th style="width:12%">Tür</th>
+                <th style="width:28%">Faaliyet</th>
+                <th style="width:22%">Program</th>
+                <th style="width:10%">Durum</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for satir in satirlar %}
+            <tr{% if satir.faaliyet_durumu == 'pasif' %} class="passive"{% endif %}>
+                <td><strong>{{ satir.baslangic_saati|time:"H:i" }} – {{ satir.bitis_saati|time:"H:i" }}</strong></td>
+                <td>{{ satir.sure_goster }}</td>
+                <td>{{ satir.get_faaliyet_turu_display }}</td>
+                <td>{{ satir.faaliyet_adi }}</td>
+                <td>{{ satir.gorunen_program_adi }}</td>
+                <td>{{ satir.get_faaliyet_durumu_display }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6">Program satırı tanımlanmamış.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="foot">
+        <span>{{ satirlar|length }} faaliyet · Toplam {{ toplam_dakika }} dk</span>
+        <span>{{ panel_name }}</span>
+    </div>
+</body>
+</html>

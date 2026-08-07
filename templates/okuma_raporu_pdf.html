@@ -1,0 +1,183 @@
+{% load static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>Kitap Okuma Raporu</title>
+    <style>
+        {% include "includes/pdf_rapor_landscape_css.html" %}
+    </style>
+</head>
+<body>
+
+<table class="layout">
+
+    <tr>
+        <td colspan="3">
+            <table class="header-table" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="header-logo-cell">
+                        <div class="brand-logo-wrap">
+                            <img class="brand-logo" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="Çinili Saray">
+                        </div>
+                    </td>
+                    <td class="header-text-cell">
+                        <div class="brand-name">{{ panel_org }}</div>
+                        <div class="brand-sub">{{ panel_name }}</div>
+                    </td>
+                    <td class="header-right">
+                        <div class="doc-title">Kitap Okuma Raporu</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+
+    <tr><td colspan="3" class="gap16"></td></tr>
+
+    <tr>
+        <td colspan="3" class="hero">
+            <svg class="hero-books" width="120" height="72" viewBox="0 0 120 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M72 8C72 8 88 6 96 14V58C88 52 72 54 72 54V8Z" fill="#FFFFFF" opacity="0.9"/>
+                <path d="M68 10C68 10 52 8 44 16V60C52 54 68 56 68 56V10Z" fill="#FFFFFF" opacity="0.55"/>
+                <path d="M28 18C28 18 42 16 48 22V62C42 58 28 60 28 60V18Z" fill="#FFFFFF" opacity="0.75"/>
+                <path d="M24 20C24 20 10 18 4 24V64C10 60 24 62 24 62V20Z" fill="#FFFFFF" opacity="0.45"/>
+            </svg>
+            <div class="hero-inner">
+                <div class="hero-tag">Analiz Merkezi</div>
+                <div class="hero-title">Okuma Raporları</div>
+                <div class="hero-meta">{{ kapsam }} · {{ kayit_sayisi }} kayıt · Seçilen filtrelerle oluşturuldu</div>
+            </div>
+        </td>
+    </tr>
+
+    <tr><td colspan="3" class="gap16"></td></tr>
+
+    <tr>
+        <td colspan="3">
+            <div class="meta-panel">
+                <table class="meta-table" cellspacing="0" cellpadding="0">
+                    <tr>
+                        <td class="meta-item">
+                            <div class="meta-label">Kapsam</div>
+                            <div class="meta-value">{{ kapsam }}</div>
+                        </td>
+                        <td class="meta-item">
+                            <div class="meta-label">Tarih Aralığı</div>
+                            <div class="meta-value">{{ filtre.baslangic }} — {{ filtre.bitis }}</div>
+                        </td>
+                        <td class="meta-item">
+                            <div class="meta-label">Sınıf / Şube</div>
+                            <div class="meta-value">{{ filtre.sinif }}</div>
+                        </td>
+                        <td class="meta-item">
+                            <div class="meta-label">Kitap Durumu</div>
+                            <div class="meta-value">{{ filtre.durum }}</div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </td>
+    </tr>
+
+    <tr><td colspan="3" class="gap16"></td></tr>
+
+    <tr>
+        <td colspan="3">
+            <table class="stats-table" cellpadding="0">
+                <tr>
+                    <td width="25%" class="stat-cell tone-blue">
+                        <div class="stat-accent"></div>
+                        <div class="stat-deco"></div>
+                        <div class="stat-label">Toplam Okunan</div>
+                        <div class="stat-metric">{{ toplam_okunan }}</div>
+                        <div class="stat-sub">Sayfa</div>
+                    </td>
+                    <td width="25%" class="stat-cell tone-green">
+                        <div class="stat-accent"></div>
+                        <div class="stat-deco"></div>
+                        <div class="stat-label">Aktif Kitap</div>
+                        <div class="stat-metric">{{ devam_eden }}</div>
+                        <div class="stat-sub">Kitap</div>
+                    </td>
+                    <td width="25%" class="stat-cell tone-orange">
+                        <div class="stat-accent"></div>
+                        <div class="stat-deco"></div>
+                        <div class="stat-label">Geçmiş Kitap</div>
+                        <div class="stat-metric">{{ tamamlanan }}</div>
+                        <div class="stat-sub">Kayıt</div>
+                    </td>
+                    <td width="25%" class="stat-cell tone-purple">
+                        <div class="stat-accent"></div>
+                        <div class="stat-deco"></div>
+                        <div class="stat-label">Sınavlar</div>
+                        <div class="stat-metric">{{ sinav_sayisi }}</div>
+                        <div class="stat-sub">Toplam</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+
+    <tr><td colspan="3" class="gap20"></td></tr>
+
+    <tr>
+        <td colspan="3">
+            <div class="table-panel">
+                <div class="table-panel-accent"></div>
+                <div class="table-panel-head">
+                    <div class="section-kicker">Detaylı Döküm</div>
+                    <div class="section-title">Kitap Okuma Kayıtları</div>
+                </div>
+                <table class="results" style="margin-top:10px;">
+                    <thead>
+                        <tr>
+                            <th class="left" style="width:18%;">Talebe</th>
+                            <th style="width:8%;">Sınıf</th>
+                            <th class="left" style="width:22%;">Kitap</th>
+                            <th class="left" style="width:16%;">Etüt Hocası</th>
+                            <th style="width:12%;">Durum</th>
+                            <th style="width:8%;">Okunan</th>
+                            <th style="width:8%;">Toplam</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for z in zimmetler %}
+                        <tr>
+                            <td class="left">
+                                <div class="student-name">{{ z.talebe.ad_soyad }}</div>
+                                <div class="student-meta">{{ z.talebe.talebe_no|default:"—" }}</div>
+                            </td>
+                            <td>{{ z.talebe.sinif_sube|default:"—" }}</td>
+                            <td class="left"><div class="book-name">{{ z.kitap.ad }}</div></td>
+                            <td class="left">{{ z.etut_hocasi.ad_soyad }}</td>
+                            <td><span class="status-pill status-{{ z.durum }}">{{ z.get_durum_display }}</span></td>
+                            <td class="num-cell">{{ z.okunan_toplam }}</td>
+                            <td class="num-cell">{{ z.kitap.toplam_sayfa }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="left" style="padding:18px;">Seçilen filtrelerde kayıt bulunamadı.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </td>
+    </tr>
+
+    <tr>
+        <td colspan="3">
+            <table class="footer-table" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="footer-left">{{ panel_org }}</td>
+                    <td class="footer-right">{{ panel_footer }}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+
+</table>
+
+</body>
+</html>

@@ -1,0 +1,261 @@
+/* Yönetim — hızlı ekle sayfası */
+
+.yk-page {
+    gap: 20px;
+}
+
+.yk-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.yk-tab {
+    display: inline-flex;
+    align-items: center;
+    min-height: 46px;
+    padding: 0 22px;
+    border: 1px solid var(--dash-line, #d2dce8);
+    border-radius: 12px;
+    background: #fff;
+    color: #173b80;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(22, 52, 94, 0.05);
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.yk-tab:hover {
+    border-color: #93b4f5;
+    background: #f8fbff;
+}
+
+.yk-tab.is-active {
+    border-color: #2563eb;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #fff;
+    box-shadow: 0 10px 24px rgba(37, 99, 235, 0.25);
+}
+
+.yk-card {
+    position: relative;
+    overflow: hidden;
+    padding: 28px 30px !important;
+    border: 1px solid #e2e8f0 !important;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%) !important;
+    box-shadow: 0 10px 32px rgba(15, 23, 42, 0.06) !important;
+}
+
+.yk-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, #2563eb, #60a5fa);
+    border-radius: 18px 0 0 18px;
+}
+
+.yk-section-veli {
+    padding: 22px;
+    border: 1px solid #dbeafe;
+    border-left: 3px solid #2563eb;
+    border-radius: 16px;
+    background: linear-gradient(180deg, #fafcff, #f4f8ff);
+}
+
+.yk-card-head {
+    margin-bottom: 24px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #eef2f7;
+}
+
+.yk-card-head h2 {
+    margin: 4px 0 0;
+    font-size: clamp(22px, 2.4vw, 26px);
+    font-weight: 600;
+    color: var(--dash-text, #1d1d1f);
+}
+
+.yk-card-desc {
+    margin: 8px 0 0;
+    font-size: 14px;
+    color: var(--dash-secondary, #6e6e73);
+    line-height: 1.5;
+}
+
+.yk-form {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+.yk-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.yk-section-title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #173b80;
+}
+
+.yk-section-note {
+    margin: -6px 0 0;
+    font-size: 13px;
+    color: #66768c;
+    line-height: 1.5;
+}
+
+.yk-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px 18px;
+}
+
+.yk-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.yk-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.yk-field-wide {
+    grid-column: 1 / -1;
+}
+
+.yk-field-check {
+    justify-content: center;
+}
+
+.yk-field label,
+.yk-check-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #40506a;
+}
+
+.yk-check-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.yk-field input:not([type="checkbox"]),
+.yk-field select,
+.yk-field textarea {
+    width: 100%;
+    min-height: 46px;
+    padding: 10px 14px;
+    border: 1px solid #cad7e7;
+    border-radius: 12px;
+    font: inherit;
+    font-size: 14px;
+    color: var(--dash-text, #1d1d1f);
+    background: #fff;
+    box-sizing: border-box;
+}
+
+.yk-field small {
+    font-size: 12px;
+    color: #8793a6;
+    line-height: 1.45;
+}
+
+.yk-checkbox-grid ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 10px;
+}
+
+.yk-checkbox-grid li label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid #d8e3f0;
+    border-radius: 12px;
+    background: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.yk-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    padding-top: 8px;
+    border-top: 1px solid #eef2f7;
+}
+
+.yk-submit {
+    min-width: 160px;
+}
+
+.yk-section-excel {
+    margin-top: 8px;
+    padding-top: 24px;
+    border-top: 1px dashed #d8e2ef;
+}
+
+.yk-excel-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.yk-excel-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 14px;
+    margin-top: 14px;
+}
+
+.yk-excel-submit {
+    min-height: 46px;
+}
+
+.yk-excel-info {
+    margin: 14px 0 0;
+    padding-left: 18px;
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+@media (max-width: 980px) {
+    .yk-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .yk-grid,
+    .yk-grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .yk-tab {
+        flex: 1 1 calc(50% - 8px);
+        justify-content: center;
+    }
+}

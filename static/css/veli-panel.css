@@ -1,0 +1,385 @@
+/* Veli Paneli — dash-home ile uyumlu */
+
+.veli-shell,
+.dash-home.veli-dash {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0 0 48px;
+    box-sizing: border-box;
+}
+
+.veli-breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    font-size: 13px;
+    color: var(--dash-secondary, #6e6e73);
+    margin-bottom: 16px;
+}
+
+.veli-breadcrumb a {
+    color: var(--dash-accent, #0071e3);
+    text-decoration: none;
+}
+
+.veli-breadcrumb span.sep {
+    opacity: 0.5;
+}
+
+.veli-subnav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding: 6px;
+    background: #fff;
+    border-radius: var(--dash-radius-sm, 12px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.veli-subnav a {
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--dash-secondary, #6e6e73);
+    text-decoration: none;
+}
+
+.veli-subnav a:hover {
+    background: #f5f5f7;
+    color: #15427f;
+}
+
+.veli-subnav a.active {
+    background: #15427f;
+    color: #fff;
+}
+
+.veli-student-picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+}
+
+.veli-student-card {
+    display: block;
+    padding: 20px 22px;
+    background: #f8fafc;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: var(--dash-radius-sm, 12px);
+    text-decoration: none !important;
+    color: inherit;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.veli-student-card:hover {
+    border-color: rgba(21, 66, 127, 0.25);
+    box-shadow: 0 8px 24px rgba(21, 66, 127, 0.08);
+}
+
+.veli-student-card h3 {
+    margin: 0 0 6px;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--dash-text, #1d1d1f);
+}
+
+.veli-student-meta {
+    margin: 0 0 14px;
+    color: var(--dash-secondary, #6e6e73);
+    font-size: 14px;
+}
+
+.veli-student-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin: 0;
+}
+
+.veli-student-metrics .dash-stat {
+    padding: 14px 16px;
+}
+
+.veli-student-metrics .dash-stat-value {
+    font-size: 24px;
+    margin-top: 8px;
+}
+
+.veli-card {
+    padding: 22px 24px;
+    border-radius: var(--dash-radius, 18px);
+    background: var(--dash-surface, #fff);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
+    margin-bottom: 18px;
+}
+
+.veli-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.veli-card-head h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.022em;
+}
+
+.veli-card-kicker {
+    margin: 0 0 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--dash-tertiary, #86868b);
+}
+
+.veli-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.veli-info-dl {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 10px 16px;
+    font-size: 14px;
+}
+
+.veli-info-dl dt {
+    color: var(--dash-secondary, #6e6e73);
+    margin: 0;
+}
+
+.veli-info-dl dd {
+    margin: 0;
+    font-weight: 500;
+}
+
+.veli-progress-row {
+    margin-bottom: 14px;
+}
+
+.veli-progress-row header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+.veli-progress-bar {
+    height: 8px;
+    background: #eef2f7;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.veli-progress-bar span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #15427f, #2a6cb8);
+}
+
+.veli-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.veli-table th,
+.veli-table td {
+    padding: 12px 10px;
+    text-align: left;
+}
+
+.veli-table th {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--dash-tertiary, #86868b);
+    font-weight: 600;
+}
+
+.veli-table tbody tr + tr td {
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.veli-pill {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+}
+
+.veli-pill.blue { background: #dbeafe; color: #1d4ed8; }
+.veli-pill.green { background: #d1fae5; color: #047857; }
+.veli-pill.red { background: #fee2e2; color: #b91c1c; }
+
+.veli-score-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 130px;
+}
+
+.veli-score-bar .bar {
+    flex: 1;
+    height: 8px;
+    background: #eef2f7;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.veli-score-bar .bar span {
+    display: block;
+    height: 100%;
+    background: #059669;
+}
+
+.veli-tab-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.veli-tab-row a {
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--dash-secondary, #6e6e73);
+    text-decoration: none;
+    background: #f8fafc;
+}
+
+.veli-tab-row a.active {
+    background: #eff6ff;
+    color: #15427f;
+    font-weight: 600;
+}
+
+.veli-duyuru-item + .veli-duyuru-item {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: none;
+}
+
+.veli-dini-summary {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 24px;
+}
+
+.veli-dini-ring {
+    text-align: center;
+    padding: 20px;
+    background: #f8fafc;
+    border-radius: var(--dash-radius-sm, 12px);
+}
+
+.veli-dini-ring strong {
+    display: block;
+    font-size: 42px;
+    color: #15427f;
+}
+
+.veli-alan-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.veli-alan-tabs a {
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    color: var(--dash-secondary, #6e6e73);
+    text-decoration: none;
+    background: #f8fafc;
+}
+
+.veli-alan-tabs a.active {
+    background: #15427f;
+    border-color: #15427f;
+    color: #fff;
+}
+
+.veli-konu-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.veli-konu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    font-size: 14px;
+    background: #fff;
+}
+
+.veli-konu-item.done {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+}
+
+.veli-konu-item .icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid #cbd5e1;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    font-size: 11px;
+}
+
+.veli-konu-item.done .icon {
+    background: #10b981;
+    border-color: #10b981;
+    color: #fff;
+}
+
+.veli-konu-item .status {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--dash-secondary, #6e6e73);
+}
+
+.veli-konu-item.done .status {
+    color: #047857;
+    font-weight: 600;
+}
+
+@media (max-width: 900px) {
+    .veli-two-col {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    .veli-dini-summary {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .veli-konu-grid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load filter_tags %}
+{% block title %}Akademik Müdahale Rapor · {{ panel_short }}{% endblock %}
+{% block content %}
+<div class="library-page">
+    <header class="page-head patterned-page-head library-page-head">
+        <div>
+            <p class="kicker">AKADEMİK MÜDAHALE</p>
+            <h1>Rapor & İstatistik</h1>
+        </div>
+        <a href="{% url 'akademik_mudahale_listesi' %}" class="ghost-btn">Listeye Dön</a>
+    </header>
+
+    <section class="daily-stat-grid" style="margin-bottom:20px;">
+        <article class="daily-stat-card">
+            <div><span>TOPLAM MÜDAHALE</span><strong>{{ istatistik.toplam_mudahale }}</strong></div>
+        </article>
+        <article class="daily-stat-card">
+            <div><span>ÖĞRENCİ BAŞINA ORT.</span><strong>{{ istatistik.ortalama_mudahale }}</strong></div>
+        </article>
+        <article class="daily-stat-card">
+            <div><span>EN ÇOK DERS</span><strong>{{ istatistik.en_cok_ders|default:"—" }}</strong></div>
+        </article>
+        <article class="daily-stat-card">
+            <div><span>EN ÇOK KONU</span><strong>{{ istatistik.en_cok_konu|default:"—" }}</strong></div>
+        </article>
+    </section>
+
+    <section class="library-panel" style="margin-bottom:20px;">
+        <form method="get" style="display:flex;flex-wrap:wrap;gap:12px;align-items:end;">
+            <label>Talebe<select name="talebe" class="input ms-filter" multiple data-placeholder="Tüm talebeler">{% for t in talebeler %}<option value="{{ t.id }}" {% if t.id|in_filter:filtre.talebe %}selected{% endif %}>{{ t.ad_soyad }}</option>{% endfor %}</select></label>
+            <label>Sınıf<select name="sinif_sube" class="input ms-filter" multiple data-placeholder="Tüm sınıflar">{% for s in sinif_subeler %}<option value="{{ s.id }}" {% if s.id|in_filter:filtre.sinif_sube %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></label>
+            <label>Ders<select name="ders" class="input ms-filter" multiple data-placeholder="Tüm dersler">{% for d in dersler %}<option value="{{ d.id }}" {% if d.id|in_filter:filtre.ders %}selected{% endif %}>{{ d.ad }}</option>{% endfor %}</select></label>
+            <label>Tür<select name="tur" class="input ms-filter" multiple data-placeholder="Tüm türler">{% for tur in turler %}<option value="{{ tur.id }}" {% if tur.id|in_filter:filtre.tur %}selected{% endif %}>{{ tur.ad }}</option>{% endfor %}</select></label>
+            <label>Konu<input type="text" name="konu" value="{{ filtre.konu }}" class="input"></label>
+            <label>Personel<select name="olusturan" class="input ms-filter" multiple data-placeholder="Tüm personel">{% for u in olusturanlar %}<option value="{{ u.id }}" {% if u.id|in_filter:filtre.olusturan %}selected{% endif %}>{{ u.get_full_name|default:u.username }}</option>{% endfor %}</select></label>
+            <label>Başlangıç<input type="date" name="baslangic" value="{{ filtre.baslangic }}" class="input"></label>
+            <label>Bitiş<input type="date" name="bitis" value="{{ filtre.bitis }}" class="input"></label>
+            <button type="submit" class="primary-btn">Filtrele</button>
+            <a href="{% url 'akademik_mudahale_excel' %}?{{ request.GET.urlencode }}" class="ghost-btn">Excel</a>
+        </form>
+    </section>
+
+    <section class="library-panel">
+        <div class="responsive-table">
+            <table class="report-data-table">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Talebe</th>
+                        <th>Ders</th>
+                        <th>Konu</th>
+                        <th>Tür</th>
+                        <th>Süre</th>
+                        <th>Personel</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for kayit in kayitlar %}
+                    <tr>
+                        <td>{{ kayit.tarih|date:"d.m.Y" }}</td>
+                        <td>{{ kayit.talebe.ad_soyad }}</td>
+                        <td>{{ kayit.ders.ad|default:"—" }}</td>
+                        <td>{{ kayit.konu|default:"—" }}</td>
+                        <td>{{ kayit.mudahale_turu.ad }}</td>
+                        <td class="num-col">{{ kayit.sure_dakika }}</td>
+                        <td>{{ kayit.olusturan.get_full_name|default:kayit.olusturan.username|default:"—" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="report-empty">Kayıt bulunamadı.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

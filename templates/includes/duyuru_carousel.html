@@ -1,0 +1,60 @@
+<section class="duyuru-carousel-shell" aria-label="Duyurular"{% if duyurular %} data-duyuru-carousel{% endif %}>
+
+    {% if duyurular %}
+    <div class="duyuru-split">
+        <div class="duyuru-media-pane" aria-live="polite">
+            {% for duyuru in duyurular %}
+            <article class="duyuru-media-slide{% if forloop.first %} is-active{% endif %}" data-duyuru-media-slide>
+                {% include "includes/duyuru_slide_media.html" %}
+            </article>
+            {% endfor %}
+        </div>
+
+        <div class="duyuru-copy-pane">
+            <div class="duyuru-copy-pane-head">
+                <div>
+                    <p class="duyuru-eyebrow">Duyurular</p>
+                    <h2>Son duyurular</h2>
+                </div>
+                <div class="duyuru-carousel-head-actions">
+                    {% if duyurular|length > 1 %}
+                    <div class="duyuru-carousel-nav">
+                        <button type="button" class="duyuru-nav-btn" data-duyuru-prev aria-label="Önceki duyuru">‹</button>
+                        <button type="button" class="duyuru-nav-btn" data-duyuru-next aria-label="Sonraki duyuru">›</button>
+                    </div>
+                    {% endif %}
+                    {% if yonetim_modulu %}
+                    <a href="{% url 'yonetim:duyuru_listesi' %}" class="dash-text-btn">Yönet</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="duyuru-copy-body">
+                {% for duyuru in duyurular %}
+                <article class="duyuru-copy-slide{% if forloop.first %} is-active{% endif %}" data-duyuru-copy-slide>
+                    {% include "includes/duyuru_slide_copy.html" %}
+                </article>
+                {% endfor %}
+            </div>
+
+            {% if duyurular|length > 1 %}
+            <div class="duyuru-carousel-dots" id="duyuru-carousel-dots">
+                {% for duyuru in duyurular %}
+                <button type="button" class="{% if forloop.first %}is-active{% endif %}" data-duyuru-dot aria-label="Duyuru {{ forloop.counter }}"></button>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="duyuru-empty-wrap">
+        <div class="duyuru-empty-state">
+            <strong>Henüz duyuru yok</strong>
+            <span>{% if yonetim_modulu %}Yönetim merkezinden fotoğraf veya video ekleyerek duyuru oluşturabilirsiniz.{% else %}Yeni duyurular burada görünecek.{% endif %}</span>
+            {% if yonetim_modulu %}
+            <a href="{% url 'yonetim:duyuru_ekle' %}" class="dash-text-btn dash-text-btn-strong">Duyuru Ekle</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</section>

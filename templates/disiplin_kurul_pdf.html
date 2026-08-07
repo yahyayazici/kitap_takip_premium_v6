@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>{{ kurul.kurul_no }} — Kurul Tutanağı</title>
+<style>
+@page { size: A4; margin: 18mm 16mm; }
+body { font-family: "DejaVu Sans", sans-serif; font-size: 10pt; color: #111; line-height: 1.45; }
+h1 { font-size: 16pt; margin: 0 0 4px; color: #071b3a; }
+h2 { font-size: 11pt; margin: 18px 0 8px; color: #071b3a; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; }
+.meta { color: #64748b; font-size: 9pt; margin-bottom: 16px; }
+table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+th, td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: left; vertical-align: top; }
+th { background: #f1f5f9; font-size: 9pt; }
+.karar { margin-bottom: 10px; padding: 8px; border: 1px solid #e2e8f0; }
+.signatures { margin-top: 32px; display: table; width: 100%; }
+.signatures div { display: table-cell; width: 33%; text-align: center; padding-top: 40px; border-top: 1px solid #111; font-size: 9pt; }
+</style>
+</head>
+<body>
+
+<h1>KURUL TUTANAĞI</h1>
+<p class="meta">{{ kurum_adi }} · {{ panel_adi }} · Tarih: {{ bugun }}</p>
+
+<h2>Kurum Bilgileri</h2>
+<p><strong>Kurum:</strong> {{ kurum_adi }}<br>
+<strong>Kurul No:</strong> {{ kurul.kurul_no }}<br>
+<strong>Kurul Türü:</strong> {{ kurul.get_kurul_turu_display }}<br>
+<strong>Durum:</strong> {{ kurul.get_durum_display }}</p>
+
+<h2>Öğrenci Bilgileri</h2>
+<p><strong>Ad Soyad:</strong> {{ talebe.ad_soyad }}<br>
+<strong>Sınıf:</strong> {{ sinif }}<br>
+<strong>Etüt:</strong> {{ etut }}<br>
+<strong>Numara:</strong> {{ talebe.talebe_no|default:"—" }}</p>
+
+<h2>Toplantı Bilgileri</h2>
+<p><strong>Tarih:</strong> {% if kurul.toplanti_tarihi %}{{ kurul.toplanti_tarihi|date:"d.m.Y" }}{% else %}—{% endif %}<br>
+<strong>Saat:</strong> {% if kurul.toplanti_saati %}{{ kurul.toplanti_saati|time:"H:i" }}{% else %}—{% endif %}<br>
+<strong>Yer:</strong> {{ kurul.toplanti_yeri|default:"—" }}</p>
+
+<h2>Katılımcılar</h2>
+<table>
+<tr><th>Ad Soyad</th><th>Kurum Görevi</th><th>Kurul Görevi</th></tr>
+{% for p in katilimcilar %}
+<tr><td>{{ p.ad }}</td><td>{{ p.kurum_gorevi }}</td><td>{{ p.kurul_gorevi }}</td></tr>
+{% empty %}
+<tr><td colspan="3">—</td></tr>
+{% endfor %}
+</table>
+
+<h2>Gündem</h2>
+<ol>
+{% for g in gundem %}
+<li>{{ g.baslik }} ({{ g.durum_etiket }})</li>
+{% endfor %}
+</ol>
+
+<h2>Alınan Kararlar</h2>
+{% for karar in kararlar %}
+<div class="karar">
+<strong>{{ karar.karar_no }}</strong> — {{ karar.kategori }}<br>
+{{ karar.metin }}<br>
+<small>Sorumlu: {{ karar.sorumlu }} · Kontrol: {{ karar.kontrol }} · Modül: {{ karar.modul }}</small>
+</div>
+{% empty %}
+<p>Karar kaydı yok.</p>
+{% endfor %}
+
+<h2>Genel Değerlendirme</h2>
+<p>{{ kurul.genel_degerlendirme|default:kurul.genel_aciklama|default:"—" }}</p>
+
+<h2>Sonuç</h2>
+<p>{{ kurul.sonuc_metni|default:kurul.get_durum_display }}</p>
+
+<div class="signatures">
+<div>Kurul Başkanı</div>
+<div>Raportör</div>
+<div>Etüt Mesulü</div>
+</div>
+
+</body>
+</html>

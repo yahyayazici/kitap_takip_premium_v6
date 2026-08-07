@@ -135,6 +135,15 @@
 
                 <table class="daily-table">
 
+                    <colgroup>
+                        <col style="width:24%">
+                        <col style="width:22%">
+                        <col style="width:10%">
+                        <col style="width:20%">
+                        <col style="width:12%">
+                        <col style="width:12%">
+                    </colgroup>
+
                     <thead>
                     <tr>
                         <th>Talebe</th>
@@ -209,7 +218,7 @@
                             </td>
 
 
-                            <td>
+                            <td class="daily-input-cell">
 
                                 <div class="daily-input-group">
 
@@ -226,7 +235,7 @@
                                         autocomplete="off"
                                     >
 
-                                    <span>
+                                    <span class="daily-input-total">
                                         / {{ satir.zimmet.kitap.toplam_sayfa|default:0 }}
                                     </span>
 
@@ -342,7 +351,7 @@
 
 .daily-page {
     width: 100%;
-    max-width: 1480px;
+    max-width: none;
     margin: 0 auto;
 }
 
@@ -556,12 +565,13 @@
 
 .daily-table {
     width: 100%;
-    min-width: 1120px;
+    min-width: 1180px;
     border-collapse: collapse;
+    table-layout: fixed;
 }
 
 .daily-table th {
-    padding: 16px 18px;
+    padding: 18px 22px;
     color: #5f6e85;
     background: #f5f8fc;
     font-size: 10px;
@@ -571,8 +581,8 @@
 }
 
 .daily-table td {
-    height: 88px;
-    padding: 17px 18px;
+    height: 92px;
+    padding: 18px 22px;
     border-top: 1px solid #edf1f5;
     vertical-align: middle;
 }
@@ -685,11 +695,17 @@
 
 /* GİRİŞ ALANI */
 
+.daily-input-cell {
+    min-width: 280px;
+}
+
 .daily-input-group {
-    width: 180px;
-    height: 48px;
-    display: flex;
-    align-items: center;
+    width: fit-content;
+    min-width: 252px;
+    max-width: 100%;
+    height: 50px;
+    display: inline-flex;
+    align-items: stretch;
     overflow: hidden;
     border: 1px solid #dbe4f0;
     border-radius: 12px;
@@ -712,31 +728,43 @@
 }
 
 .daily-page-input {
-    width: 100%;
-    min-width: 0;
+    flex: 0 1 96px;
+    width: 96px;
+    min-width: 72px;
+    max-width: 120px;
     height: 100%;
-    padding: 0 14px;
+    padding: 0 12px 0 16px;
     border: 0;
     outline: 0;
     color: #182641;
     background: transparent;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 750;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
 }
 
-.daily-input-group span {
+.daily-input-total {
     flex: 0 0 auto;
-    padding-right: 13px;
+    display: inline-flex;
+    align-items: center;
+    min-width: 96px;
+    padding: 0 16px;
+    border-left: 1px solid #dbe4f0;
     color: #7e8a9e;
-    font-size: 10px;
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: .03em;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
 }
 
 .daily-input-error {
-    min-height: 15px;
+    min-height: 16px;
     display: block;
-    margin-top: 6px;
+    margin-top: 8px;
     color: #d64848;
-    font-size: 9px;
+    font-size: 10px;
 }
 
 

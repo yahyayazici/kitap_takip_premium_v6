@@ -1,57 +1,42 @@
 {% extends "yonetim/base.html" %}
 
 {% block title %}Sınıf ve Şubeler{% endblock %}
-{% block page_title %}Sınıf ve Şube Yönetimi{% endblock %}
 
 {% block content %}
 
-<section class="cs-page-head">
+<header class="page-head patterned-page-head yonetim-page-head">
     <div>
-        <span class="cs-card-label">SINIF YÖNETİMİ</span>
-        <h2>Sınıf ve Şubeler</h2>
-        <p>Admin istediği sınıfı ve şubeyi serbestçe tanımlayabilir.</p>
+        <p class="kicker">SINIF YÖNETİMİ</p>
+        <h1>Sınıf ve Şubeler</h1>
+        <p class="muted">Admin istediği sınıfı ve şubeyi serbestçe tanımlayabilir.</p>
     </div>
+    <a href="{% url 'yonetim:sinif_ekle' %}" class="primary-btn">Yeni Sınıf</a>
+</header>
 
-    <a
-        href="{% url 'yonetim:sinif_ekle' %}"
-        class="cs-btn cs-btn-primary"
-    >
-        Yeni Sınıf
-    </a>
-</section>
-
-<div class="cs-class-grid cs-class-grid-large">
+<div class="yonetim-class-grid">
     {% for sinif in siniflar %}
-        <article class="cs-class-card cs-class-card-large">
-            <div>
-                <span class="cs-card-label">SINIF / ŞUBE</span>
-                <strong>{{ sinif }}</strong>
-            </div>
-
-            <div class="cs-class-meta">
-                <span>{{ sinif.talebe_sayisi }} talebe</span>
-                <span>{{ sinif.hoca_sayisi }} etüt hocası</span>
-            </div>
-
-            <div class="cs-class-actions">
-                {% if sinif.aktif %}
-                    <span class="cs-status">Aktif</span>
-                {% else %}
-                    <span class="cs-status is-passive">Pasif</span>
-                {% endif %}
-
-                <a
-                    href="{% url 'yonetim:sinif_duzenle' sinif.pk %}"
-                    class="cs-table-link"
-                >
-                    Düzenle
-                </a>
-            </div>
-        </article>
-    {% empty %}
-        <div class="cs-card cs-empty">
-            Henüz sınıf ve şube eklenmedi.
+    <article class="yonetim-class-card">
+        <div class="yonetim-class-accent"></div>
+        <div class="yonetim-class-deco"></div>
+        <div>
+            <span class="card-kicker">SINIF / ŞUBE</span>
+            <strong class="yonetim-class-name">{{ sinif }}</strong>
         </div>
+        <div class="yonetim-class-meta">
+            <span>{{ sinif.talebe_sayisi }} talebe</span>
+            <span>{{ sinif.hoca_sayisi }} etüt hocası</span>
+        </div>
+        <div class="yonetim-class-actions">
+            {% if sinif.aktif %}
+                <span class="status-pill status-okunuyor">Aktif</span>
+            {% else %}
+                <span class="status-pill status-iade">Pasif</span>
+            {% endif %}
+            <a href="{% url 'yonetim:sinif_duzenle' sinif.pk %}" class="yonetim-link">Düzenle</a>
+        </div>
+    </article>
+    {% empty %}
+    <div class="yonetim-empty-card">Henüz sınıf ve şube eklenmedi.</div>
     {% endfor %}
 </div>
 

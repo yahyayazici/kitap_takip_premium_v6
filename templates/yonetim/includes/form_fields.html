@@ -1,0 +1,12 @@
+{% for field in form %}
+<div class="yonetim-field">
+    {% if field.field.widget.input_type == 'checkbox' and not field.field.widget.allow_multiple_selected %}
+    <label class="yonetim-check-label">{{ field }} {{ field.label }}</label>
+    {% else %}
+    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+    <div class="yonetim-field-control">{{ field }}</div>
+    {% endif %}
+    {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+    {% for error in field.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+</div>
+{% endfor %}

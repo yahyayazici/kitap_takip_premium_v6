@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}{{ kamp.ad }} · Yazılı Takip{% endblock %}
+{% block content %}
+<div class="result-entry-page">
+    <header class="page-head patterned-page-head">
+        <div>
+            <p class="kicker">YAZILI KAMP</p>
+            <h1>{{ kamp.ad }}</h1>
+            <p class="muted">
+                {{ kamp.sinif_seviyesi }}. sınıf ·
+                {{ kamp.baslangic|date:"d.m.Y" }} — {{ kamp.bitis|date:"d.m.Y" }} ·
+                {{ istatistik.sinav_sayisi }} sınav
+            </p>
+        </div>
+        <div class="result-header-actions">
+            {% if pdf_yetkisi %}
+            <a href="{% url 'yazili_kamp_pdf' kamp.pk %}" class="result-secondary-button">PDF</a>
+            {% endif %}
+            <a href="{% url 'yazili_kamp_listesi' %}" class="result-back-button">Kamplar</a>
+        </div>
+    </header>
+
+    <section class="dashboard-card">
+        <div class="card-heading">
+            <div>
+                <p class="card-kicker">SINAVLAR</p>
+                <h2>Sınav Listesi</h2>
+            </div>
+        </div>
+        <div class="responsive-table">
+            <table class="report-data-table">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Sınav</th>
+                        <th>Ders</th>
+                        <th>Soru</th>
+                        <th>Durum</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in sinavlar %}
+                    <tr{% if secili_sinav and secili_sinav.pk == s.pk %} style="background:#f0f9ff;"{% endif %}>
+                        <td>{{ s.sinav_tarihi|date:"d.m.Y" }}</td>
+                        <td><strong>{{ s.ad }}</strong></td>
+                        <td>{{ s.ders_goster }}</td>
+                        <td>{{ s.soru_sayisi }}</td>
+                        <td>{{ s.get_durum_display }}</td>
+                        <td>
+                            <a href="?sinav={{ s.pk }}" class="ghost-btn">Sonuçlar</a>
+                            {% if sonuc_girebilir %}
+                            <a href="{% url 'yazili_sonuc_gir' s.pk %}" class="ghost-btn">Giriş</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="report-empty">Bu kampta sınav tanımlı değil.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    {% if secili_sinav %}
+    <section class="dashboard-card">
+        <div class="card-heading">
+            <div>
+                <p class="card-kicker">SONUÇLAR</p>
+                <h2>{{ secili_sinav.ad }} — Sonuç Tablosu</h2>
+            </div>
+        </div>
+        <div class="responsive-table">
+            <table class="report-data-table">
+                <thead>
+                    <tr>
+                        <th>Sıra</th>
+                        <th>Talebe</th>
+                        <th>Sınıf</th>
+                        <th>D</th>
+                        <th>Y</th>
+                        <th>B</th>
+                        <th>Net</th>
+                        <th>Puan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for satir in sonuc_satirlari %}
+                    <tr>
+                        <td class="num-col">{{ satir.sira }}</td>
+                        <td>{{ satir.sonuc.talebe.ad_soyad }}</td>
+                        <td>{{ satir.sonuc.talebe.sinif_sube|default:"—" }}</td>
+                        <td class="num-col">{{ satir.sonuc.dogru }}</td>
+                        <td class="num-col">{{ satir.sonuc.yanlis }}</td>
+                        <td class="num-col">{{ satir.sonuc.bos }}</td>
+                        <td class="num-col">{{ satir.sonuc.net }}</td>
+                        <td class="num-col profile-score">{{ satir.sonuc.puan }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="8" class="report-empty">Sonuç girilmemiş.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

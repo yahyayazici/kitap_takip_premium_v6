@@ -1,0 +1,16 @@
+{% extends "talebe/base.html" %}
+{% block title %}Profil · Talebe Paneli{% endblock %}
+{% block content %}
+<div class="dash-home talebe-dash">
+{% include "includes/panel_hero.html" with title="Profil" meta=talebe.ad_soyad show_date=False %}
+<section class="dash-panel">
+    <div class="dash-panel-head"><div><p class="dash-eyebrow">Öğrenci</p><h2>Kişisel bilgiler</h2></div></div>
+    <dl class="talebe-profil-dl">
+        <dt>Ad soyad</dt><dd>{{ talebe.ad_soyad }}</dd>
+        <dt>Talebe no</dt><dd>{{ talebe.talebe_no|default:"—" }}</dd>
+        <dt>Sınıf</dt><dd>{{ sinif_goster }}</dd>
+        <dt>Etüt hocası</dt><dd>{{ talebe.etut_hocasi|default:"—" }}</dd>
+    </dl>
+</section>
+</div>
+{% endblock %}

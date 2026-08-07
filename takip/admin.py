@@ -3,22 +3,76 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from django.db import transaction
 
+from config.branding import PANEL_NAME, PANEL_SHORT
+
 from .models import (
+    Duyuru,
     EtutHocasi,
+    ImamMuezzinAtama,
+    ImamMuezzinListesi,
     Kitap,
     KitapSinavi,
     OkumaKaydi,
+    PersonelProfili,
+    ProgramPlan,
+    ProgramSatir,
     Sinav,
     SinavSonucu,
     SinifSube,
     Talebe,
+    TemizlikAlani,
+    TemizlikAtama,
+    TemizlikListesi,
+    YemekciAtama,
+    YemekciListesi,
+    YemekOgun,
     Zimmet,
+    Rol,
+    YetkiModul,
+    VeliKisi,
+    EgitimYili,
+    Brans,
+    Ders,
+    DiniDersSeviyesi,
+    KttSinav,
+    KttSonucu,
+    GunlukSoruKaydi,
+    GunlukSoruDersSatiri,
+    MudahaleTuru,
+    AkademikMudahale,
+    DenemeSinavi,
+    DenemeSonucu,
+    DenemeBransSonucu,
+    DenemeEslestirmeAlias,
+    EtutHaftaPlani,
+    EtutPlanFaaliyet,
 )
 
 
-admin.site.site_header = "Çinili Saray Yönetim Merkezi"
-admin.site.site_title = "Çinili Saray Yönetim"
+admin.site.site_header = f"{PANEL_SHORT} · Yönetim Merkezi"
+admin.site.site_title = PANEL_SHORT
 admin.site.index_title = "Sistem Yönetimi"
+
+
+# =========================================================
+# PERSONEL PROFİLLERİ
+# =========================================================
+
+@admin.register(PersonelProfili)
+class PersonelProfiliAdmin(admin.ModelAdmin):
+    list_display = (
+        "ad_soyad",
+        "ana_rol",
+        "kullanici_adi_goster",
+        "aktif",
+    )
+    list_filter = ("ana_rol", "aktif")
+    search_fields = ("ad_soyad", "user__username")
+    ordering = ("ad_soyad",)
+
+    @admin.display(description="Kullanıcı adı")
+    def kullanici_adi_goster(self, obj):
+        return obj.user.username
 
 
 # =========================================================
@@ -163,6 +217,7 @@ class TalebeAdminForm(forms.ModelForm):
             "talebe_no",
             "sinif_sube",
             "etut_hocasi",
+            "dini_ders_hocasi",
             "aktif",
         ]
         widgets = {
@@ -192,6 +247,174 @@ class TalebeAdminForm(forms.ModelForm):
             .prefetch_related("sorumlu_sinif_subeler")
             .order_by("ad_soyad")
         )
+        self.fields["dini_ders_hocasi"].queryset = (
+            EtutHocasi.objects.filter(aktif=True)
+            .prefetch_related("sorumlu_sinif_subeler")
+            .order_by("ad_soyad")
+        )
+
+
+# =========================================================
+# PROGRAMLAR
+# =========================================================
+
+class ProgramSatirInline(admin.TabularInline):
+    model = ProgramSatir
+    extra = 1
+
+
+@admin.register(ProgramPlan)
+class ProgramPlanAdmin(admin.ModelAdmin):
+    list_display = ("ad", "baslangic_tarihi", "bitis_tarihi", "aktif")
+    list_filter = ("aktif",)
+    search_fields = ("ad",)
+    inlines = [ProgramSatirInline]
+
+
+# =========================================================
+# İMAM / MÜEZZİN
+# =========================================================
+
+class ImamMuezzinAtamaInline(admin.TabularInline):
+    model = ImamMuezzinAtama
+    extra = 0
+    autocomplete_fields = ("imam", "muezzin")
+
+
+@admin.register(ImamMuezzinListesi)
+class ImamMuezzinListesiAdmin(admin.ModelAdmin):
+    list_display = (
+        "ad",
+        "baslangic_tarihi",
+        "bitis_tarihi",
+        "aktif",
+        "cumartesi_dahil",
+        "pazar_dahil",
+    )
+    list_filter = ("aktif", "cumartesi_dahil", "pazar_dahil")
+    search_fields = ("ad",)
+    filter_horizontal = ("talebe_havuzu",)
+    inlines = [ImamMuezzinAtamaInline]
+
+
+@admin.register(ImamMuezzinAtama)
+class ImamMuezzinAtamaAdmin(admin.ModelAdmin):
+    list_display = ("liste", "tarih", "imam", "muezzin", "manuel_duzenlendi")
+    list_filter = ("liste", "manuel_duzenlendi")
+    search_fields = ("liste__ad", "imam__ad_soyad", "muezzin__ad_soyad")
+    autocomplete_fields = ("imam", "muezzin")
+
+
+# =========================================================
+# TEMİZLİK
+# =========================================================
+
+class TemizlikAtamaInline(admin.TabularInline):
+    model = TemizlikAtama
+    extra = 0
+    autocomplete_fields = ("talebe",)
+
+
+@admin.register(TemizlikAlani)
+class TemizlikAlaniAdmin(admin.ModelAdmin):
+    list_display = ("ad", "sira", "aktif")
+    list_filter = ("aktif",)
+    search_fields = ("ad",)
+    ordering = ("sira", "ad")
+
+
+@admin.register(TemizlikListesi)
+class TemizlikListesiAdmin(admin.ModelAdmin):
+    list_display = (
+        "ad",
+        "baslangic_tarihi",
+        "bitis_tarihi",
+        "aktif",
+    )
+    list_filter = ("aktif",)
+    search_fields = ("ad",)
+    filter_horizontal = ("alanlar", "talebe_havuzu")
+    inlines = [TemizlikAtamaInline]
+
+
+@admin.register(TemizlikAtama)
+class TemizlikAtamaAdmin(admin.ModelAdmin):
+    list_display = ("liste", "tarih", "alan", "talebe", "manuel_duzenlendi")
+    list_filter = ("liste", "manuel_duzenlendi", "alan")
+    search_fields = ("liste__ad", "alan__ad", "talebe__ad_soyad")
+    autocomplete_fields = ("talebe",)
+
+
+# =========================================================
+# YEMEKÇİLİK
+# =========================================================
+
+class YemekciAtamaInline(admin.TabularInline):
+    model = YemekciAtama
+    extra = 0
+    autocomplete_fields = ("talebe", "yardimci")
+
+
+@admin.register(YemekOgun)
+class YemekOgunAdmin(admin.ModelAdmin):
+    list_display = ("ad", "sira", "aktif")
+    list_filter = ("aktif",)
+    search_fields = ("ad",)
+    ordering = ("sira", "ad")
+
+
+@admin.register(YemekciListesi)
+class YemekciListesiAdmin(admin.ModelAdmin):
+    list_display = (
+        "ad",
+        "baslangic_tarihi",
+        "bitis_tarihi",
+        "aktif",
+    )
+    list_filter = ("aktif",)
+    search_fields = ("ad",)
+    filter_horizontal = ("ogunler", "talebe_havuzu")
+    inlines = [YemekciAtamaInline]
+
+
+@admin.register(YemekciAtama)
+class YemekciAtamaAdmin(admin.ModelAdmin):
+    list_display = (
+        "liste",
+        "tarih",
+        "ogun",
+        "talebe",
+        "yardimci",
+        "manuel_duzenlendi",
+    )
+    list_filter = ("liste", "manuel_duzenlendi", "ogun")
+    search_fields = (
+        "liste__ad",
+        "ogun__ad",
+        "talebe__ad_soyad",
+        "yardimci__ad_soyad",
+    )
+    autocomplete_fields = ("talebe", "yardimci")
+
+
+# =========================================================
+# DUYURULAR
+# =========================================================
+
+@admin.register(Duyuru)
+class DuyuruAdmin(admin.ModelAdmin):
+    list_display = (
+        "sira",
+        "baslik",
+        "kategori",
+        "hedef_kitle",
+        "baslangic",
+        "bitis",
+        "aktif",
+    )
+    list_filter = ("kategori", "hedef_kitle", "aktif", "ton")
+    search_fields = ("baslik", "ozet")
+    ordering = ("sira", "-baslangic")
 
 
 # =========================================================
@@ -324,12 +547,14 @@ class TalebeAdmin(admin.ModelAdmin):
         "ad_soyad",
         "sinif_sube_goster",
         "etut_hocasi",
+        "dini_ders_hocasi",
         "aktif",
     )
 
     list_filter = (
         "sinif_sube",
         "etut_hocasi",
+        "dini_ders_hocasi",
         "aktif",
     )
 
@@ -354,6 +579,7 @@ class TalebeAdmin(admin.ModelAdmin):
                     "talebe_no",
                     "sinif_sube",
                     "etut_hocasi",
+                    "dini_ders_hocasi",
                     "aktif",
                 )
             },
@@ -557,3 +783,181 @@ class SinavSonucuAdmin(admin.ModelAdmin):
         "kayit_tarihi",
         "guncellenme_tarihi",
     )
+
+
+@admin.register(Rol)
+class RolAdmin(admin.ModelAdmin):
+    list_display = ("ad", "slug", "aktif", "sistem_rolu", "sira")
+    search_fields = ("ad", "slug")
+    ordering = ("sira", "ad")
+
+
+@admin.register(YetkiModul)
+class YetkiModulAdmin(admin.ModelAdmin):
+    list_display = ("ad", "kod", "sira", "aktif")
+    ordering = ("sira",)
+
+
+@admin.register(EgitimYili)
+class EgitimYiliAdmin(admin.ModelAdmin):
+    list_display = ("ad", "baslangic", "bitis", "aktif")
+
+
+@admin.register(Brans)
+class BransAdmin(admin.ModelAdmin):
+    list_display = ("ad", "sira", "aktif")
+
+
+@admin.register(Ders)
+class DersAdmin(admin.ModelAdmin):
+    list_display = ("ad", "brans", "sira", "aktif")
+    list_filter = ("brans",)
+
+
+@admin.register(DiniDersSeviyesi)
+class DiniDersSeviyesiAdmin(admin.ModelAdmin):
+    list_display = ("ad", "sira", "aktif")
+    filter_horizontal = ("hocalar",)
+
+
+from takip.dini_ders_takip_models import (  # noqa: E402
+    DiniDersKonu,
+    DiniDersKonuKaydi,
+    DiniDersTakipAlani,
+)
+
+
+@admin.register(DiniDersTakipAlani)
+class DiniDersTakipAlaniAdmin(admin.ModelAdmin):
+    list_display = ("ad", "sira", "aktif")
+
+
+@admin.register(DiniDersKonu)
+class DiniDersKonuAdmin(admin.ModelAdmin):
+    list_display = ("ad", "alan", "seviye", "sira", "aktif")
+    list_filter = ("alan", "seviye", "aktif")
+
+
+@admin.register(DiniDersKonuKaydi)
+class DiniDersKonuKaydiAdmin(admin.ModelAdmin):
+    list_display = ("talebe", "konu", "tamamlandi", "guncellenme")
+    list_filter = ("tamamlandi", "konu__alan")
+
+
+@admin.register(VeliKisi)
+class VeliKisiAdmin(admin.ModelAdmin):
+    list_display = ("ad_soyad", "talebe", "yakinlik", "telefon", "birincil")
+    list_filter = ("yakinlik", "birincil")
+    search_fields = ("ad_soyad", "talebe__ad_soyad")
+
+
+@admin.register(KttSinav)
+class KttSinavAdmin(admin.ModelAdmin):
+    list_display = (
+        "ad",
+        "ders",
+        "sinif_seviyesi",
+        "sinav_tarihi",
+        "etut_hocasi",
+        "veliye_goster",
+        "aktif",
+    )
+    list_filter = ("sinif_seviyesi", "veliye_goster", "aktif")
+    search_fields = ("ad", "etut_hocasi__ad_soyad")
+
+
+@admin.register(KttSonucu)
+class KttSonucuAdmin(admin.ModelAdmin):
+    list_display = (
+        "talebe",
+        "ktt",
+        "dogru",
+        "yanlis",
+        "bos",
+        "net",
+        "puan",
+    )
+    list_filter = ("ktt__ders",)
+    search_fields = ("talebe__ad_soyad", "ktt__ad")
+
+
+class GunlukSoruDersSatiriInline(admin.TabularInline):
+    model = GunlukSoruDersSatiri
+    extra = 0
+    readonly_fields = ("net",)
+
+
+@admin.register(GunlukSoruKaydi)
+class GunlukSoruKaydiAdmin(admin.ModelAdmin):
+    list_display = (
+        "talebe",
+        "tarih",
+        "kitap_okunan_sayfa",
+        "kaydeden",
+        "guncellenme",
+    )
+    list_filter = ("tarih",)
+    search_fields = ("talebe__ad_soyad",)
+    inlines = [GunlukSoruDersSatiriInline]
+
+
+@admin.register(MudahaleTuru)
+class MudahaleTuruAdmin(admin.ModelAdmin):
+    list_display = ("ad", "ikon", "renk", "sira", "aktif")
+    list_filter = ("aktif",)
+
+
+@admin.register(AkademikMudahale)
+class AkademikMudahaleAdmin(admin.ModelAdmin):
+    list_display = (
+        "talebe",
+        "tarih",
+        "mudahale_turu",
+        "ders",
+        "konu",
+        "sure_dakika",
+        "olusturan",
+    )
+    list_filter = ("mudahale_turu", "tarih")
+    search_fields = ("talebe__ad_soyad", "konu")
+
+
+@admin.register(DenemeSinavi)
+class DenemeSinaviAdmin(admin.ModelAdmin):
+    list_display = ("ad", "sinav_tarihi", "sinif_seviyesi", "durum", "yukleyen")
+    list_filter = ("durum", "sinif_seviyesi")
+
+
+class DenemeBransSonucuInline(admin.TabularInline):
+    model = DenemeBransSonucu
+    extra = 0
+
+
+@admin.register(DenemeSonucu)
+class DenemeSonucuAdmin(admin.ModelAdmin):
+    list_display = ("talebe", "deneme", "toplam_net", "puan")
+    list_filter = ("deneme",)
+    inlines = [DenemeBransSonucuInline]
+
+
+@admin.register(DenemeEslestirmeAlias)
+class DenemeEslestirmeAliasAdmin(admin.ModelAdmin):
+    list_display = ("excel_adi", "talebe")
+    search_fields = ("excel_adi", "talebe__ad_soyad")
+
+
+class EtutPlanFaaliyetInline(admin.TabularInline):
+    model = EtutPlanFaaliyet
+    extra = 0
+
+
+@admin.register(EtutHaftaPlani)
+class EtutHaftaPlaniAdmin(admin.ModelAdmin):
+    list_display = (
+        "etut_hocasi",
+        "hafta_baslangic",
+        "hafta_bitis",
+        "durum",
+    )
+    list_filter = ("durum",)
+    inlines = [EtutPlanFaaliyetInline]

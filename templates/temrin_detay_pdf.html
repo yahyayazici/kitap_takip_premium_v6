@@ -1,0 +1,138 @@
+{% load static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>{{ ktt.ad }} · KTT Sonuç Tablosu</title>
+    <style>
+        @page { size: A4 portrait; margin: 12mm; }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: sans-serif;
+            font-size: 10px;
+            color: #334155;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .hero {
+            border-radius: 14px;
+            padding: 16px 18px;
+            background: linear-gradient(128deg, #1a4fa8 0%, #2b6fd4 42%, #173b73 100%);
+            color: #fff;
+            margin-bottom: 14px;
+        }
+        .hero-kicker {
+            margin: 0;
+            font-size: 8px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.75);
+        }
+        .hero h1 {
+            margin: 6px 0 0;
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .hero-meta {
+            margin: 8px 0 0;
+            font-size: 9px;
+            color: rgba(255,255,255,0.82);
+        }
+        .kpi-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .kpi {
+            flex: 1;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 8px 10px;
+            background: #f8fafc;
+        }
+        .kpi span {
+            display: block;
+            font-size: 8px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .kpi strong {
+            display: block;
+            margin-top: 4px;
+            font-size: 14px;
+            color: #0f172a;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 7px 8px;
+            text-align: left;
+        }
+        th {
+            background: #f8fafc;
+            font-size: 8px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #64748b;
+        }
+        td.num { text-align: right; font-variant-numeric: tabular-nums; }
+        tr:nth-child(even) td { background: #fcfdff; }
+        .footer {
+            margin-top: 12px;
+            font-size: 8px;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <p class="hero-kicker">{{ ktt.sinav_tarihi|date:"d F Y"|upper }}</p>
+        <h1>{{ ktt.ad }}</h1>
+        <p class="hero-meta">
+            {{ ktt.ders.ad }} · {{ ktt.sinif_goster }} · {{ ktt.soru_sayisi }} soru · Net = Doğru − Yanlış/4
+        </p>
+    </div>
+
+    <div class="kpi-row">
+        <div class="kpi"><span>Öğrenci</span><strong>{{ ozet.ogrenci_sayisi }}</strong></div>
+        <div class="kpi"><span>Ort. Net</span><strong>{{ ozet.ortalama_net }}</strong></div>
+        <div class="kpi"><span>Ort. Puan</span><strong>{{ ozet.ortalama_puan }}</strong></div>
+        <div class="kpi"><span>En Yüksek</span><strong>{{ ozet.en_yuksek_puan }}</strong></div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:42%">Talebe</th>
+                <th class="num">Doğru</th>
+                <th class="num">Yanlış</th>
+                <th class="num">Boş</th>
+                <th class="num">Net</th>
+                <th class="num">Puan</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sonuc in sonuclar %}
+            <tr>
+                <td>{{ sonuc.talebe.ad_soyad }}</td>
+                <td class="num">{{ sonuc.dogru }}</td>
+                <td class="num">{{ sonuc.yanlis }}</td>
+                <td class="num">{{ sonuc.bos }}</td>
+                <td class="num">{{ sonuc.net }}</td>
+                <td class="num">{{ sonuc.puan }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6">Sonuç girilmemiş.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p class="footer">{{ panel_name }} · KTT Sonuç Tablosu · {{ olusturma_tarihi|date:"d.m.Y H:i" }}</p>
+</body>
+</html>

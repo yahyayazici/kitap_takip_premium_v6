@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Disiplin · {{ kayit.talebe.ad_soyad }}{% endblock %}
+{% block content %}
+<header class="page-head patterned-page-head">
+    <div>
+        <p class="kicker">DİSİPLİN</p>
+        <h1>{{ kayit.talebe.ad_soyad }}</h1>
+        <p class="muted">{{ kayit.tur.ad }} · {{ kayit.tarih|date:"d.m.Y" }}</p>
+    </div>
+    <div class="page-head-actions">
+        <a href="{% url 'disiplin_listesi' %}" class="ghost-btn">← Liste</a>
+        {% if duzenleyebilir %}<a href="{% url 'disiplin_duzenle' kayit.pk %}" class="ghost-btn">Düzenle</a>{% endif %}
+    </div>
+</header>
+<section class="dashboard-card">
+    <dl class="detail-grid">
+        <dt>Açıklama</dt><dd>{{ kayit.aciklama|linebreaksbr }}</dd>
+        <dt>Sonuç</dt><dd>{{ kayit.sonuc|default:"—"|linebreaksbr }}</dd>
+    </dl>
+</section>
+{% endblock %}

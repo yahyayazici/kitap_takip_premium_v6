@@ -1,0 +1,92 @@
+{% extends "yonetim/base.html" %}
+{% block title %}{{ personel.ad_soyad }} · Randevu Ayarları{% endblock %}
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">YÖNETİM</p>
+        <h1>{{ personel.ad_soyad }}</h1>
+        <p class="muted">Müsait gün/saat ve görüşme süresi tanımlayın.</p>
+    </div>
+    <a href="{% url 'yonetim:randevu_personel_listesi' %}" class="ghost-btn">← Liste</a>
+</header>
+
+<section class="dashboard-card yonetim-form-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">AYARLAR</p>
+            <h2>Genel Ayarlar</h2>
+        </div>
+    </div>
+    <form method="post" class="yonetim-form-layout">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="ayar">
+        <div class="yonetim-form-grid">
+            {% with form=ayar_form %}{% include "yonetim/includes/form_fields.html" %}{% endwith %}
+        </div>
+        <div class="yonetim-form-actions">
+            <button type="submit" class="primary-btn">Kaydet</button>
+        </div>
+    </form>
+</section>
+
+<section class="report-table-card yonetim-table-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">MÜSAİTLİK</p>
+            <h2>Müsaitlik Aralıkları</h2>
+        </div>
+    </div>
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <thead>
+                <tr>
+                    <th>Gün</th>
+                    <th>Başlangıç</th>
+                    <th>Bitiş</th>
+                    <th class="yonetim-center-col">Aktif</th>
+                    <th class="yonetim-action-col">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in musaitlikler %}
+                <tr>
+                    <td><strong>{{ m.get_hafta_gunu_display }}</strong></td>
+                    <td>{{ m.baslangic|time:"H:i" }}</td>
+                    <td>{{ m.bitis|time:"H:i" }}</td>
+                    <td class="yonetim-center-col">{% if m.aktif %}<span class="status-pill status-okunuyor">Evet</span>{% else %}<span class="status-pill status-iade">Hayır</span>{% endif %}</td>
+                    <td class="yonetim-action-col">
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="musait_sil">
+                            <input type="hidden" name="musait_id" value="{{ m.pk }}">
+                            <button type="submit" class="yonetim-link yonetim-action-btn-danger">Sil</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="report-empty">Henüz müsaitlik tanımlı değil.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card-heading" style="margin-top:24px">
+        <div>
+            <p class="card-kicker">YENİ</p>
+            <h2>Aralık Ekle</h2>
+        </div>
+    </div>
+    <form method="post" class="yonetim-form-layout">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="musait_ekle">
+        <div class="yonetim-form-grid">
+            {% with form=musait_form %}{% include "yonetim/includes/form_fields.html" %}{% endwith %}
+        </div>
+        <div class="yonetim-form-actions">
+            <button type="submit" class="primary-btn">Ekle</button>
+        </div>
+    </form>
+</section>
+
+{% endblock %}

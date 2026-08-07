@@ -1,0 +1,88 @@
+{% extends "veli/base.html" %}
+{% block title %}{{ talebe.ad_soyad }} · Dashboard{% endblock %}
+{% block content %}
+<div class="dash-home veli-dash">
+    {% include "veli/includes/talebe_layout_head.html" %}
+
+    <section class="dash-metrics">
+        <article class="dash-stat dash-stat-blue">
+            <span class="dash-stat-label">Son deneme neti</span>
+            {% if kpi.son_deneme %}
+            <strong class="dash-stat-value">{{ kpi.son_deneme.toplam_net }}</strong>
+            <span class="dash-stat-note">{{ kpi.son_deneme.deneme.ad|truncatechars:28 }}</span>
+            {% else %}
+            <strong class="dash-stat-value">—</strong>
+            <span class="dash-stat-note">Henüz deneme kaydı yok</span>
+            {% endif %}
+        </article>
+        <article class="dash-stat dash-stat-violet">
+            <span class="dash-stat-label">Son KTT puanı</span>
+            {% if kpi.son_ktt %}
+            <strong class="dash-stat-value">{{ kpi.son_ktt.puan }}</strong>
+            <span class="dash-stat-note">{{ kpi.son_ktt.ktt.ders.ad }} · {{ kpi.son_ktt.ktt.ad|truncatechars:24 }}</span>
+            {% else %}
+            <strong class="dash-stat-value">—</strong>
+            <span class="dash-stat-note">Henüz KTT kaydı yok</span>
+            {% endif %}
+        </article>
+        <article class="dash-stat dash-stat-green">
+            <span class="dash-stat-label">Haftalık soru neti</span>
+            <strong class="dash-stat-value">{{ kpi.haftalik_soru.toplam_net }}</strong>
+            <span class="dash-stat-note">{{ kpi.haftalik_soru.toplam_soru }} soru · {{ kpi.haftalik_soru.gun_sayisi }} gün</span>
+        </article>
+        <article class="dash-stat dash-stat-amber">
+            <span class="dash-stat-label">Dini ders</span>
+            <strong class="dash-stat-value">%{{ kpi.dini_ders_yuzde }}</strong>
+            <span class="dash-stat-note">Müfredat tamamlanma</span>
+        </article>
+    </section>
+
+    <div class="dash-split">
+        <section class="dash-panel">
+            <div class="dash-panel-head">
+                <div>
+                    <p class="dash-eyebrow">Duyurular</p>
+                    <h2>Güncel bildirimler</h2>
+                </div>
+                <a href="{% url 'veli_duyurular' %}" class="dash-text-btn">Tümü</a>
+            </div>
+            <div class="dash-feed og-feed-stack">
+                {% for d in duyurular %}
+                <article class="dash-feed-item dash-accent-teal">
+                    <span class="dash-feed-tag">Genel</span>
+                    <h3>{{ d.baslik }}</h3>
+                    <p>{{ d.ozet|truncatechars:120 }}</p>
+                </article>
+                {% empty %}
+                <p class="og-empty-note">Yeni duyuru yok.</p>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="dash-panel">
+            <div class="dash-panel-head">
+                <div>
+                    <p class="dash-eyebrow">Özet</p>
+                    <h2>Son 30 gün</h2>
+                </div>
+            </div>
+            <div class="veli-progress-row">
+                <header><span>Dini ders tamamlanma</span><strong>%{{ kpi.dini_ders_yuzde }}</strong></header>
+                <div class="veli-progress-bar"><span style="width:{{ kpi.dini_ders_yuzde }}%;"></span></div>
+            </div>
+            <div class="veli-progress-row">
+                <header><span>Haftalık soru başarısı</span><strong>%{{ kpi.haftalik_soru.basari_orani }}</strong></header>
+                <div class="veli-progress-bar"><span style="width:{{ kpi.haftalik_soru.basari_orani }}%;"></span></div>
+            </div>
+            <div class="veli-progress-row">
+                <header><span>Akademik destek kaydı</span><strong>{{ kpi.mudahale_sayisi }}</strong></header>
+                <div class="veli-progress-bar"><span style="width:{% if kpi.mudahale_sayisi %}100{% else %}0{% endif %}%;"></span></div>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/panel_date_js.html" %}
+{% endblock %}

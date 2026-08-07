@@ -1,0 +1,59 @@
+{% extends "yonetim/base.html" %}
+{% load static %}
+{% block title %}Dini Ders Konuları{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}">
+{% endblock %}
+{% block content %}
+<div class="yonetim-page dd-yonetim-page">
+    {% include "includes/dini_ders_yonetim_shell.html" %}
+
+    <section class="dd-card">
+        <div class="dd-panel-head">
+            <h2>Seviye ve Alan Konuları</h2>
+            {% if duzenleyebilir %}
+            <a href="{% url 'yonetim:dini_ders_konu_ekle' %}" class="dd-btn dd-btn-primary dd-btn-sm">+ Yeni Konu Ekle</a>
+            {% endif %}
+        </div>
+
+        {% regroup konular by seviye as seviye_gruplari %}
+        <div class="dd-group-grid">
+            {% for seviye_grup in seviye_gruplari %}
+            {% regroup seviye_grup.list by alan as alan_gruplari %}
+            {% for alan_grup in alan_gruplari %}
+            <article class="dd-group-card">
+                <header class="dd-group-head">
+                    <h3>{{ seviye_grup.grouper.ad }} · {{ alan_grup.grouper.ad }}</h3>
+                    <span class="dd-pill dd-pill-gray">{{ alan_grup.list|length }} konu</span>
+                </header>
+                <ul class="dd-topic-list">
+                    {% for konu in alan_grup.list %}
+                    <li class="dd-topic-row">
+                        <div>
+                            <span class="dd-topic-name">{{ konu.ad }}</span>
+                            <span class="dd-topic-meta">Sıra {{ konu.sira }}</span>
+                        </div>
+                        <div>
+                            {% if konu.aktif %}
+                            <span class="dd-pill dd-pill-green">Aktif</span>
+                            {% else %}
+                            <span class="dd-pill dd-pill-gray">Pasif</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            {% if duzenleyebilir %}
+                            <a href="{% url 'yonetim:dini_ders_konu_duzenle' konu.pk %}" class="dd-icon-btn" title="Düzenle">✎</a>
+                            {% endif %}
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </article>
+            {% endfor %}
+            {% empty %}
+            <p class="dd-empty">Konu tanımlı değil. + Yeni Konu Ekle ile başlayın.</p>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

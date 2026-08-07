@@ -1,0 +1,38 @@
+{% extends "veli/base.html" %}
+{% block title %}{{ talebe.ad_soyad }} · Aidat{% endblock %}
+{% block content %}
+<div class="dash-home veli-dash">
+    {% include "veli/includes/talebe_layout_head.html" %}
+
+    <section class="dash-panel">
+        <div class="dash-panel-head">
+            <div><p class="dash-eyebrow">Aidat</p><h2>Borç Özeti</h2></div>
+        </div>
+        <dl class="detail-grid">
+            <dt>Toplam borç</dt><dd>{{ aidat_ozet.toplam_borc }} ₺</dd>
+            <dt>Toplam ödenen</dt><dd>{{ aidat_ozet.toplam_odenen }} ₺</dd>
+            <dt>Gecikmiş kayıt</dt><dd>{{ aidat_ozet.gecikmis_sayisi }}</dd>
+        </dl>
+        <div class="responsive-table">
+            <table class="report-data-table">
+                <thead><tr><th>Aidat</th><th>Tutar</th><th>Ödenen</th><th>Kalan</th><th>Durum</th><th>Vade</th></tr></thead>
+                <tbody>
+                    {% for k in aidat_ozet.kayitlar %}
+                    <tr>
+                        <td>{{ k.tanim.ad }}</td>
+                        <td>{{ k.tanim.tutar }} ₺</td>
+                        <td>{{ k.odenen_tutar }} ₺</td>
+                        <td>{{ k.borc_tutari }} ₺</td>
+                        <td>{{ k.get_durum_display }}</td>
+                        <td>{{ k.tanim.vade|date:"d.m.Y" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6">Aidat kaydı yok.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <p class="muted">Online ödeme bu ekranda yapılamaz; kurum muhasebesi ile iletişime geçin.</p>
+    </section>
+</div>
+{% endblock %}
