@@ -1,4 +1,4 @@
-"""Kitap Takip Premium — rol tanımları, menü ve yetki kontrolü."""
+"""Çinili Saray Panel — rol tanımları, menü ve yetki kontrolü."""
 
 from __future__ import annotations
 

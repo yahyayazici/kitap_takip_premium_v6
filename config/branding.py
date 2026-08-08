@@ -1,15 +1,15 @@
-"""Kitap Takip Premium — marka ve modül ayarları."""
+"""Çinili Saray Proje — marka ve modül ayarları."""
 
 from __future__ import annotations
 
 import os
 
-PANEL_NAME = os.environ.get("PANEL_NAME", "Kitap Takip Premium")
-PANEL_SHORT = os.environ.get("PANEL_SHORT", "Kitap Takip Premium")
-PANEL_MOBILE_SHORT = os.environ.get("PANEL_MOBILE_SHORT", "Kitap Premium")
+PANEL_NAME = os.environ.get("PANEL_NAME", "Çinili Saray Proje")
+PANEL_SHORT = os.environ.get("PANEL_SHORT", "Çinili Saray Proje")
+PANEL_MOBILE_SHORT = os.environ.get("PANEL_MOBILE_SHORT", "Çinili Saray")
 PANEL_MODULE_LABEL = os.environ.get("PANEL_MODULE_LABEL", "Eğitim Modülü")
-PANEL_ORG = os.environ.get("PANEL_ORG", "Kitap Takip Premium")
-PANEL_FOOTER = os.environ.get("PANEL_FOOTER", "Kitap Takip Premium")
+PANEL_ORG = os.environ.get("PANEL_ORG", "Çinili Saray Proje")
+PANEL_FOOTER = os.environ.get("PANEL_FOOTER", "Çinili Saray Proje")
 
 
 def panel_branding_context() -> dict[str, str]:

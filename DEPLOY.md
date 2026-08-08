@@ -1,57 +1,84 @@
-# Kitap Takip Premium — Render yayın rehberi
+# Çinili Saray Proje — Render + cinilisarayproje.com
 
-## 1. GitHub'a gönder
+Canlı panel: **https://cinilisarayproje.com**  
+Render yedek adres: **https://kitap-takip-premium-v6.onrender.com**
 
-Terminalde proje klasöründe:
+## 1. Kodu GitHub'a gönder
 
 ```bash
 git add .
-git commit -m "Kitap Takip Premium marka ve Render yayın ayarları"
+git commit -m "cinilisarayproje.com domain ayarları"
 git push origin main
 ```
 
-## 2. Render'da servis
+Push sonrası Render otomatik deploy eder.
 
-1. https://render.com adresine gir, GitHub hesabını bağla.
-2. **New +** → **Blueprint** (veya **Web Service**).
-3. Repo: `yahyayazici/kitap_takip_premium_v6`
-4. Branch: `main`
-5. Blueprint kullanıyorsan `render.yaml` otomatik okunur:
-   - Web servisi: `kitap-takip-premium-v6`
-   - PostgreSQL: `kitap-takip-db`
+## 2. Render — özel domain ekle
 
-## 3. Ortam değişkenleri (Render panel)
+1. https://dashboard.render.com → servis **kitap-takip-premium-v6**
+2. **Settings** → **Custom Domains** → **Add Custom Domain**
+3. Sırayla ekle:
+   - `cinilisarayproje.com`
+   - `www.cinilisarayproje.com`
+4. Render her domain için DNS kayıtlarını gösterir — Namecheap'e aynen gir.
+
+## 3. Namecheap DNS kayıtları
+
+Namecheap → **Domain List** → `cinilisarayproje.com` → **Manage** → **Advanced DNS**
+
+| Tür | Host | Değer | TTL |
+|-----|------|-------|-----|
+| **CNAME** | `www` | `kitap-takip-premium-v6.onrender.com` | Automatic |
+| **URL Redirect** veya **A Record** | `@` | Render'ın verdiği IP (Custom Domains ekranında) | Automatic |
+
+**Kök domain (@) için iki seçenek:**
+
+**A) Render A kaydı (önerilen)**  
+Custom Domains ekranında `cinilisarayproje.com` için gösterilen **A record IP**'yi Namecheap'te `@` host'una ekle.
+
+**B) www yönlendirmesi**  
+Kök domain'i Namecheap **URL Redirect Record** ile `https://www.cinilisarayproje.com` adresine yönlendir; `www` CNAME'i Render'a bağla.
+
+> DNS yayılımı 5–30 dakika (bazen 24 saat) sürebilir.
+
+## 4. Render ortam değişkenleri
+
+**Environment** sekmesinde şunlar olmalı:
 
 | Değişken | Değer |
 |----------|--------|
+| `CUSTOM_DOMAIN` | `cinilisarayproje.com,www.cinilisarayproje.com` |
+| `CANONICAL_HOST` | `cinilisarayproje.com` |
+| `PANEL_PUBLIC_URL` | `https://cinilisarayproje.com` |
+| `PANEL_NAME` | `Çinili Saray Proje` |
+| `PANEL_SHORT` | `Çinili Saray Proje` |
 | `DEBUG` | `False` |
-| `SECRET_KEY` | Render otomatik üretir |
-| `DATABASE_URL` | PostgreSQL bağlantısı (Blueprint ile gelir) |
-| `PANEL_NAME` | `Kitap Takip Premium` |
-| `PANEL_SHORT` | `Kitap Takip Premium` |
-| `PANEL_PUBLIC_URL` | `https://kitap-takip-premium-v6.onrender.com` |
 
-**Not:** `CUSTOM_DOMAIN` ve `CANONICAL_HOST` tanımlıysa Render panelinden silin; aksi halde cinilisarayproje.com yönlendirmesi devam eder.
+`render.yaml` bu değerleri Blueprint ile otomatik ayarlar; elle değiştirdiysen yukarıdakilerle eşleştir.
 
-## 4. İlk admin kullanıcı
+## 5. SSL (HTTPS)
 
-Deploy bittikten sonra Render → **Shell**:
+Render, DNS doğrulandıktan sonra Let's Encrypt sertifikasını otomatik verir. Custom Domains ekranında **Verified** yeşil olmalı.
 
-```bash
-python manage.py createsuperuser
-```
+## 6. Test
 
-## 5. Canlı adres
+DNS yayıldıktan sonra:
 
-`https://kitap-takip-premium-v6.onrender.com`
+- https://cinilisarayproje.com/giris/
+- https://www.cinilisarayproje.com/giris/ (www de eklediysen)
+- https://kitap-takip-premium-v6.onrender.com → otomatik `cinilisarayproje.com`'a yönlendirilmeli
 
-Bu adres otomatik `ALLOWED_HOSTS` ve CSRF ayarlarına eklenir.
-
-## 6. Yerel geliştirme
-
-`.env.example` dosyasını `.env` olarak kopyala ve yerel değerleri gir.
+## 7. Yerel geliştirme
 
 ```bash
 cp .env.example .env
 python manage.py runserver
+```
+
+## 8. İlk admin
+
+Render Shell:
+
+```bash
+python manage.py createsuperuser
 ```
