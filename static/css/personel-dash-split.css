@@ -92,6 +92,15 @@
     white-space: nowrap;
 }
 
+/* Takvim gövdesi — mobilde “uzaktan büyük kareler” */
+.personel-yct-cal-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 0;
+}
+
 .personel-yct-grid {
     width: 100%;
     border-collapse: separate;
@@ -273,7 +282,74 @@
         min-height: 180px !important;
         aspect-ratio: 16 / 9 !important;
     }
+}
 
+/* Mobil — tüm ay ekranda, kare kare, hafif “uzak ama büyük” derinlik */
+@media (max-width: 640px) {
+    .personel-yct-card {
+        padding: 14px 10px 12px;
+        gap: 10px;
+    }
+
+    .personel-yct-cal-wrap {
+        perspective: 900px;
+        perspective-origin: 50% 20%;
+        margin: 2px 0 0;
+        padding: 2px 0 6px;
+    }
+
+    .personel-yct-grid {
+        border-spacing: 5px;
+        transform: scale(0.97);
+        transform-origin: top center;
+        filter: drop-shadow(0 10px 22px rgba(37, 99, 235, 0.07));
+    }
+
+    .personel-yct-grid th {
+        font-size: 9px;
+        padding-bottom: 2px;
+    }
+
+    .personel-yct-grid td {
+        aspect-ratio: 1;
+        height: auto;
+        min-height: 0;
+        padding: 5px 3px 4px;
+        border-radius: 11px;
+        box-shadow: 0 2px 6px rgba(15, 39, 68, 0.05);
+    }
+
+    .personel-yct-grid td.has-event {
+        box-shadow: 0 3px 10px rgba(37, 99, 235, 0.12);
+    }
+
+    .personel-yct-grid td .day {
+        min-width: 22px;
+        height: 22px;
+        font-size: 12px;
+        border-radius: 7px;
+        margin-bottom: 4px;
+    }
+
+    .personel-yct-cell-events {
+        min-height: 22px;
+        gap: 3px;
+    }
+
+    .personel-yct-chip {
+        font-size: 9px;
+        font-weight: 700;
+        padding: 2px 4px;
+        border-radius: 6px;
+        letter-spacing: -0.01em;
+    }
+
+    .personel-yct-more {
+        font-size: 9px;
+    }
+}
+
+@media (max-width: 900px) and (min-width: 641px) {
     .personel-yct-grid td {
         min-height: 52px;
         padding: 4px 3px;
