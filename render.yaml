@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: cinili-saray-proje
+    name: kitap-takip-premium-v6
     runtime: python
     plan: free
     buildCommand: "./build.sh"
@@ -14,23 +14,21 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: PANEL_NAME
-        value: "Çinili Saray Proje"
+        value: "Kitap Takip Premium"
       - key: PANEL_SHORT
-        value: "Çinili Saray Proje"
+        value: "Kitap Takip Premium"
       - key: PANEL_MOBILE_SHORT
-        value: "Çinili Saray"
+        value: "Kitap Premium"
       - key: PANEL_ORG
-        value: "Çinili Saray Proje"
+        value: "Kitap Takip Premium"
       - key: PANEL_FOOTER
-        value: "Çinili Saray Proje"
+        value: "Kitap Takip Premium"
       - key: PANEL_MODULE_LABEL
         value: "Eğitim Modülü"
+      - key: PANEL_PUBLIC_URL
+        value: "https://kitap-takip-premium-v6.onrender.com"
       - key: RUN_SEED_WAVE0
         value: "true"
-      - key: CUSTOM_DOMAIN
-        value: "cinilisarayproje.com,www.cinilisarayproje.com"
-      - key: CANONICAL_HOST
-        value: "cinilisarayproje.com"
       - key: DATABASE_URL
         fromDatabase:
           name: kitap-takip-db

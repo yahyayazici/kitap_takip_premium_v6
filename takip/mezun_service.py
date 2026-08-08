@@ -10,6 +10,7 @@ from django.db import transaction
 from django.db.models import Count, Q, QuerySet
 from django.utils import timezone
 
+from config.branding import PANEL_SHORT
 from takip.mezun_models import (
     MezunBasari,
     MezunEtkinlik,
@@ -224,7 +225,7 @@ def mezun_yolculuk_olustur(profil: MezunProfil) -> None:
     _yolculuk_ekle(
         profil,
         yil=yil,
-        baslik="Çinili Saray'dan Mezun Oldu",
+        baslik=f"{PANEL_SHORT}'dan Mezun Oldu",
         tur=MezunYolculukOlay.Tur.MEZUNIYET,
         tarih=profil.mezuniyet_tarihi,
     )

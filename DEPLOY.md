@@ -1,4 +1,4 @@
-# Çinili Saray Proje — Render yayın rehberi
+# Kitap Takip Premium — Render yayın rehberi
 
 ## 1. GitHub'a gönder
 
@@ -6,21 +6,19 @@ Terminalde proje klasöründe:
 
 ```bash
 git add .
-git commit -m "Çinili Saray Proje adı ve Render yayın ayarları"
-git push origin feature/cinili-saray-panel
+git commit -m "Kitap Takip Premium marka ve Render yayın ayarları"
+git push origin main
 ```
 
-İstersen `main` branch'ine merge edip onu da push edebilirsin.
-
-## 2. Render'da yeni servis
+## 2. Render'da servis
 
 1. https://render.com adresine gir, GitHub hesabını bağla.
 2. **New +** → **Blueprint** (veya **Web Service**).
 3. Repo: `yahyayazici/kitap_takip_premium_v6`
-4. Branch: `main` veya `feature/cinili-saray-panel`
+4. Branch: `main`
 5. Blueprint kullanıyorsan `render.yaml` otomatik okunur:
-   - Web servisi: `cinili-saray-proje`
-   - PostgreSQL: `cinili-saray-db`
+   - Web servisi: `kitap-takip-premium-v6`
+   - PostgreSQL: `kitap-takip-db`
 
 ## 3. Ortam değişkenleri (Render panel)
 
@@ -29,8 +27,11 @@ git push origin feature/cinili-saray-panel
 | `DEBUG` | `False` |
 | `SECRET_KEY` | Render otomatik üretir |
 | `DATABASE_URL` | PostgreSQL bağlantısı (Blueprint ile gelir) |
-| `PANEL_NAME` | `Çinili Saray Proje` |
-| `PANEL_SHORT` | `Çinili Saray Proje` |
+| `PANEL_NAME` | `Kitap Takip Premium` |
+| `PANEL_SHORT` | `Kitap Takip Premium` |
+| `PANEL_PUBLIC_URL` | `https://kitap-takip-premium-v6.onrender.com` |
+
+**Not:** `CUSTOM_DOMAIN` ve `CANONICAL_HOST` tanımlıysa Render panelinden silin; aksi halde cinilisarayproje.com yönlendirmesi devam eder.
 
 ## 4. İlk admin kullanıcı
 
@@ -42,9 +43,7 @@ python manage.py createsuperuser
 
 ## 5. Canlı adres
 
-Render size şuna benzer bir adres verir:
-
-`https://cinili-saray-proje.onrender.com`
+`https://kitap-takip-premium-v6.onrender.com`
 
 Bu adres otomatik `ALLOWED_HOSTS` ve CSRF ayarlarına eklenir.
 

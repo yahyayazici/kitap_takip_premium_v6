@@ -1,19 +1,19 @@
-{% extends "admin/base.html" %}
+﻿{% extends "admin/base.html" %}
 {% load static %}
 
 {% block title %}
     {% if subtitle %}{{ subtitle }} · {% endif %}
-    {{ title }} · Çinili Saray Yönetim Merkezi
+    {{ title }} · {{ panel_short }} Yönetim Merkezi
 {% endblock %}
 
 {% block branding %}
 <a href="{% url 'admin:index' %}" class="cs-brand">
     <span class="cs-brand-mark">
-        <img src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="Çinili Saray">
+        <img src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="{{ panel_short }}">
     </span>
 
     <span class="cs-brand-copy">
-        <strong>Çinili Saray</strong>
+        <strong>{{ panel_short }}</strong>
         <small>Yönetim Merkezi</small>
     </span>
 </a>

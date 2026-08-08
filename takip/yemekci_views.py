@@ -14,6 +14,7 @@ from django.utils.text import slugify
 from django.utils.timezone import localdate
 from django.views.decorators.http import require_POST
 
+from config.branding import PANEL_SHORT
 from takip.panel_permissions import yemekcilik_modulu_erisimi_var, yonetim_erisimi_var
 from takip.pdf_utils import html_to_pdf, make_pdf_response, pdf_engine_status
 from takip.yemekci_service import (
@@ -135,7 +136,7 @@ def yemekcilik_pdf(request, pk=None):
             "boyut": boyut,
             "sinif_etiket": SINIF_ETIKET,
             "sinif_renkleri": SINIF_RENKLERI,
-            "panel_short": "Çinili Saray",
+            "panel_short": PANEL_SHORT,
         },
         request=request,
     )
