@@ -30,19 +30,29 @@ if RENDER_EXTERNAL_HOSTNAME:
     if render_origin not in CSRF_TRUSTED_ORIGINS:
         CSRF_TRUSTED_ORIGINS.append(render_origin)
 
-# Özel domain — Render Environment: CUSTOM_DOMAIN=panel.ornek.com
-for _domain in os.environ.get("CUSTOM_DOMAIN", "").split(","):
-    host = _domain.strip().lower()
-    if not host:
-        continue
-    if host not in ALLOWED_HOSTS:
-        ALLOWED_HOSTS.append(host)
-    if not host.startswith("."):
-        https_origin = f"https://{host}"
-        if https_origin not in CSRF_TRUSTED_ORIGINS:
-            CSRF_TRUSTED_ORIGINS.append(https_origin)
+
+def _register_custom_domains(domain_csv: str) -> None:
+    """CUSTOM_DOMAIN veya sabit canlı domain → ALLOWED_HOSTS + CSRF."""
+    for _domain in domain_csv.split(","):
+        host = _domain.strip().lower()
+        if not host:
+            continue
+        if host not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(host)
+        if not host.startswith("."):
+            https_origin = f"https://{host}"
+            if https_origin not in CSRF_TRUSTED_ORIGINS:
+                CSRF_TRUSTED_ORIGINS.append(https_origin)
+
+
+_register_custom_domains(os.environ.get("CUSTOM_DOMAIN", ""))
+# Render Environment boş olsa bile cinilisarayproje.com 400 vermesin
+if not DEBUG:
+    _register_custom_domains("cinilisarayproje.com,www.cinilisarayproje.com")
 
 CANONICAL_HOST = os.environ.get("CANONICAL_HOST", "").strip().lower()
+if not CANONICAL_HOST and not DEBUG:
+    CANONICAL_HOST = "cinilisarayproje.com"
 
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
@@ -157,6 +167,8 @@ DEFAULT_FROM_EMAIL = os.environ.get(
     EMAIL_HOST_USER or "noreply@cinili-saray.local",
 )
 PANEL_PUBLIC_URL = os.environ.get("PANEL_PUBLIC_URL", "").strip()
+if not PANEL_PUBLIC_URL and not DEBUG:
+    PANEL_PUBLIC_URL = "https://cinilisarayproje.com"
 
 if EMAIL_HOST:
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
