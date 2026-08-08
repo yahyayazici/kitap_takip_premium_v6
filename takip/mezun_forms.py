@@ -96,7 +96,9 @@ class MezunEtkinlikForm(forms.ModelForm):
 class MezunGorevForm(forms.ModelForm):
     talep_edilen_alanlar = forms.MultipleChoiceField(
         choices=[(k, v) for k, v in ALAN_ETIKETLERI.items()],
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.CheckboxSelectMultiple(
+            attrs={"class": "choice-chip-grid choice-chip-grid--wide"}
+        ),
         label="Talep edilen bilgiler",
     )
     sorumlu = forms.ModelChoiceField(

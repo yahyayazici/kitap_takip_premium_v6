@@ -1,0 +1,1124 @@
+/* Apple-grade polish — öğretmen + veli panelleri
+   dash-home / panel dilini tüm kutu, tablo ve formlara yayar */
+
+.ogretmen-body,
+.veli-body {
+    background: #f5f5f7 !important;
+    color: #1d1d1f;
+    -webkit-font-smoothing: antialiased;
+}
+
+.ogretmen-body .cs-v6-main,
+.veli-body .cs-v6-main {
+    padding-bottom: 56px;
+    /* Kenarlarda sadece ufak boşluk — sayfa dolsun */
+    padding-inline: clamp(12px, 1.4vw, 22px) !important;
+    display: block;
+}
+
+/* İçerik tam genişlik (küçük gutter dışında) */
+.ogretmen-body .cs-v6-main > .dash-home,
+.veli-body .cs-v6-main > .dash-home,
+.veli-body .cs-v6-main > .veli-shell,
+.ogretmen-body .dash-home,
+.veli-body .dash-home,
+.ogretmen-body .dash-home.ogretmen-dash,
+.veli-body .dash-home.veli-dash,
+.ogretmen-body .cs-v6-main > *,
+.veli-body .cs-v6-main > :not(.yonetim-messages):not(.ogretmen-messages) {
+    width: 100% !important;
+    max-width: none !important;
+    margin-inline: 0 !important;
+    box-sizing: border-box !important;
+}
+
+.ogretmen-body .cs-v6-main > .yonetim-messages,
+.veli-body .cs-v6-main > .yonetim-messages,
+.ogretmen-body .cs-v6-main > .ogretmen-messages {
+    max-width: none !important;
+}
+
+/* —— Kartlar —— */
+.ogretmen-body .dash-panel,
+.veli-body .dash-panel,
+.ogretmen-select-card,
+.ogretmen-attendance-card,
+.ogretmen-lesson-card,
+.ogretmen-program-page,
+.og-yoklama-card,
+.og-ders-card,
+.og-week-active-banner,
+.veli-card,
+.veli-student-card {
+    border: 1px solid #cdd6e4 !important;
+    border-radius: 16px !important;
+    box-shadow:
+        0 1px 2px rgba(15, 40, 80, 0.04),
+        0 8px 20px rgba(15, 40, 80, 0.05) !important;
+    background: #fff !important;
+}
+
+.ogretmen-body .dash-panel-head,
+.veli-body .dash-panel-head {
+    padding: 18px 22px 14px !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.045);
+    background: linear-gradient(180deg, #fbfbfd 0%, #fff 100%);
+}
+
+.ogretmen-body .dash-panel-head h2,
+.veli-body .dash-panel-head h2 {
+    font-size: 20px !important;
+    font-weight: 650 !important;
+    letter-spacing: -0.025em !important;
+}
+
+.ogretmen-body .dash-eyebrow,
+.veli-body .dash-eyebrow,
+.veli-card-kicker {
+    color: #86868b !important;
+    font-size: 11px !important;
+    letter-spacing: 0.07em !important;
+}
+
+/* —— Hafta / bölüm şeridi —— */
+.og-week-active-banner {
+    padding: 18px 22px !important;
+    background: linear-gradient(180deg, #f7faff 0%, #fff 70%) !important;
+    border-color: #b8c9e0 !important;
+}
+
+.og-week-active-banner strong {
+    font-size: 18px !important;
+    letter-spacing: -0.03em !important;
+    color: #12386b !important;
+}
+
+.og-section-head {
+    padding: 18px 22px 14px !important;
+    background: linear-gradient(180deg, #fbfbfd 0%, #fff 100%) !important;
+    border-bottom: 1px solid #dde4ef !important;
+}
+
+.og-section-head-warn {
+    background: linear-gradient(180deg, #fff7f7 0%, #fff 100%) !important;
+}
+
+.og-section-head h2 {
+    font-size: 19px !important;
+}
+
+.ogretmen-select-card.dash-panel,
+.ogretmen-program-page.dash-panel {
+    padding: 0 !important;
+}
+
+.ogretmen-select-card .ogretmen-class-tabs {
+    padding: 4px 22px 20px;
+}
+
+
+.ogretmen-class-tab {
+    border: 1px solid #c5d4ea !important;
+    border-radius: 12px !important;
+    padding: 10px 16px !important;
+    background: #f4f8ff !important;
+    color: #1e3a6e !important;
+    font-size: 13px !important;
+    font-weight: 650 !important;
+    letter-spacing: -0.01em;
+    box-shadow: none;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.ogretmen-class-tab:hover {
+    background: #e8f0fe !important;
+    border-color: #93b4e0 !important;
+    transform: translateY(-1px);
+}
+
+.ogretmen-class-tab.active {
+    background: linear-gradient(160deg, #1e4f9c, #2f6fd1) !important;
+    color: #fff !important;
+    border-color: #1e4f9c !important;
+    box-shadow: 0 6px 16px rgba(30, 79, 156, 0.28);
+}
+
+.ogretmen-class-tab.active .og-count-badge {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: #fff !important;
+}
+
+.og-count-badge {
+    background: #dbeafe !important;
+    color: #1d4ed8 !important;
+    font-size: 11px !important;
+    font-weight: 650 !important;
+    padding: 3px 9px !important;
+    border-radius: 999px;
+}
+
+.og-count-pill {
+    background: #eff6ff !important;
+    color: #1d4ed8 !important;
+    border-radius: 999px !important;
+    font-weight: 650 !important;
+}
+
+/* —— Tablolar: net çizgi + renk + simetri —— */
+.og-table-wrap,
+.responsive-table {
+    margin: 12px 18px 18px;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid #d8dee8;
+}
+
+.og-grade-table,
+.og-program-table,
+.veli-table {
+    width: 100%;
+    border-collapse: collapse !important;
+    border-spacing: 0;
+    font-size: 13.5px !important;
+    table-layout: fixed;
+}
+
+.og-grade-table thead th,
+.og-program-table thead th,
+.veli-table thead th {
+    background: #eef3fb !important;
+    color: #3b4d6b !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.06em !important;
+    text-transform: uppercase !important;
+    padding: 12px 14px !important;
+    border: 1px solid #d8dee8 !important;
+    white-space: nowrap;
+    text-align: left;
+}
+
+.og-grade-table tbody td,
+.og-program-table tbody td,
+.veli-table tbody td {
+    padding: 12px 14px !important;
+    border: 1px solid #e4e9f1 !important;
+    color: #1d1d1f;
+    background: #fff;
+    vertical-align: middle;
+}
+
+.og-grade-table tbody tr:nth-child(even) td,
+.og-program-table tbody tr:nth-child(even) td,
+.veli-table tbody tr:nth-child(even) td {
+    background: #f7f9fc !important;
+}
+
+.og-grade-table tbody tr:hover td,
+.veli-table tbody tr:hover td,
+.og-program-table tbody tr:hover td {
+    background: #eef6ff !important;
+}
+
+.og-grade-table tbody td strong,
+.veli-table tbody td strong {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #12386b;
+}
+
+.og-ogrenci-ad,
+.og-grade-table .og-ogrenci-ad {
+    font-weight: 700 !important;
+    letter-spacing: -0.015em;
+    color: #12386b !important;
+}
+
+.og-empty-note,
+.veli-table .og-empty-note,
+td.og-empty-note {
+    color: #6e6e73 !important;
+    font-size: 13.5px !important;
+    text-align: center !important;
+    padding: 28px 14px !important;
+    background: #f5f7fb !important;
+}
+
+
+/* —— Form inputları —— */
+.og-grade-table input[type="number"],
+.og-grade-table input[type="text"],
+.og-konu-row input,
+.og-topic-row input,
+.veli-body input[type="text"],
+.veli-body input[type="number"],
+.veli-body select,
+.veli-body textarea {
+    appearance: none;
+    background: #f5f5f7 !important;
+    border: 1px solid transparent !important;
+    border-radius: 12px !important;
+    padding: 10px 12px !important;
+    font-size: 14px !important;
+    color: #1d1d1f !important;
+    transition: background 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.og-grade-table input:focus,
+.og-konu-row input:focus,
+.veli-body input:focus,
+.veli-body select:focus,
+.veli-body textarea:focus {
+    outline: none !important;
+    background: #fff !important;
+    border-color: rgba(0, 113, 227, 0.35) !important;
+    box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.12) !important;
+}
+
+.og-konu-row {
+    padding: 16px 22px 8px !important;
+}
+
+.og-konu-row label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #86868b;
+    margin-bottom: 8px;
+}
+
+/* —— Yoklama —— */
+.og-yoklama-note {
+    margin: 14px 22px 10px !important;
+    color: #6e6e73 !important;
+}
+
+.og-yoklama-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 10px;
+    padding: 8px 22px 22px !important;
+}
+
+.og-yoklama-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px !important;
+    border-radius: 14px !important;
+    background: #f5f5f7 !important;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.og-yoklama-item:hover {
+    background: #eeeef2 !important;
+}
+
+.og-yoklama-item:has(input:checked) {
+    background: #fff5f5 !important;
+    border-color: rgba(220, 38, 38, 0.18) !important;
+}
+
+.og-yoklama-name {
+    font-size: 13px !important;
+    font-weight: 650 !important;
+    letter-spacing: -0.01em;
+}
+
+.og-yoklama-yok {
+    margin-left: auto;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: #dc2626;
+    opacity: 0.55;
+}
+
+.og-yoklama-item:has(input:checked) .og-yoklama-yok {
+    opacity: 1;
+}
+
+/* —— Butonlar —— */
+.ogretmen-save-btn,
+.og-save-all {
+    background: linear-gradient(180deg, #2a2a2c 0%, #1d1d1f 100%) !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 14px !important;
+    padding: 14px 22px !important;
+    font-size: 14px !important;
+    font-weight: 650 !important;
+    letter-spacing: -0.01em;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ogretmen-save-btn:hover,
+.og-save-all:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+}
+
+.ogretmen-form-actions {
+    padding: 4px 4px 8px;
+}
+
+.dash-text-btn,
+.dash-text-btn-strong {
+    font-weight: 650 !important;
+    letter-spacing: -0.01em;
+}
+
+.ogretmen-empty-select {
+    border-radius: 20px !important;
+    padding: 64px 24px !important;
+    background: #fff !important;
+    border: 1px dashed rgba(0, 0, 0, 0.1) !important;
+    color: #6e6e73 !important;
+    box-shadow: none !important;
+}
+
+/* —— Day tabs / program —— */
+.og-day-tab {
+    border: none !important;
+    background: #f2f2f7 !important;
+    border-radius: 999px !important;
+    padding: 8px 14px !important;
+}
+
+.og-day-tab.active {
+    background: #1d1d1f !important;
+    color: #fff !important;
+}
+
+.og-day-panel {
+    background: #f5f5f7 !important;
+    border-radius: 16px !important;
+    padding: 14px !important;
+}
+
+.og-mini-lesson {
+    background: #fff !important;
+    border-radius: 12px !important;
+    padding: 12px 14px !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.og-class-pill {
+    background: #f2f2f7 !important;
+    border: none !important;
+}
+
+/* —— Veli subnav / tabs —— */
+.veli-subnav,
+.veli-tab-row {
+    background: #fff !important;
+    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+    border-radius: 16px !important;
+    padding: 6px !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 8px 20px rgba(15, 23, 42, 0.04) !important;
+    gap: 4px !important;
+    margin-bottom: 18px;
+}
+
+.veli-tab-row {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.veli-subnav a,
+.veli-tab-row a {
+    border: none !important;
+    border-radius: 999px !important;
+    padding: 9px 14px !important;
+    font-size: 12.5px !important;
+    font-weight: 650 !important;
+    letter-spacing: -0.01em;
+    color: #6e6e73 !important;
+    background: transparent !important;
+    text-decoration: none !important;
+}
+
+.veli-subnav a:hover,
+.veli-tab-row a:hover {
+    background: #f2f2f7 !important;
+    color: #1d1d1f !important;
+}
+
+.veli-subnav a.active,
+.veli-tab-row a.active {
+    background: #1d1d1f !important;
+    color: #fff !important;
+}
+
+/* —— Veli KPI —— */
+.veli-kpi-grid {
+    gap: 14px !important;
+}
+
+a.veli-kpi-link,
+.veli-kpi-grid .dash-stat {
+    border-radius: 18px !important;
+    border: 1px solid rgba(0, 0, 0, 0.05) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 10px 24px rgba(15, 23, 42, 0.05) !important;
+    padding: 18px 18px 20px !important;
+}
+
+a.veli-kpi-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 32px rgba(15, 23, 42, 0.1) !important;
+}
+
+.veli-kpi-grid .dash-stat-label {
+    font-size: 11px !important;
+    letter-spacing: 0.06em !important;
+}
+
+.veli-kpi-grid .dash-stat-value {
+    font-size: 30px !important;
+    font-weight: 650 !important;
+    letter-spacing: -0.035em !important;
+}
+
+.veli-kpi-grid .dash-stat-note {
+    color: #6e6e73 !important;
+}
+
+.veli-panel-body {
+    padding: 8px 22px 22px;
+}
+
+.veli-progress-gap {
+    margin-top: 18px;
+}
+
+.veli-student-picker {
+    padding: 8px 22px 22px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+}
+
+.veli-student-card {
+    background: linear-gradient(180deg, #fff 0%, #fbfbfd 100%) !important;
+    padding: 22px 24px !important;
+}
+
+.veli-student-card h3 {
+    font-size: 22px !important;
+    font-weight: 650 !important;
+    letter-spacing: -0.03em !important;
+}
+
+/* Metrics shell on detail pages */
+.veli-dash > .dash-metrics:not(.veli-kpi-grid) {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 20px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 10px 28px rgba(15, 23, 42, 0.05);
+    overflow: hidden;
+    gap: 0;
+}
+
+.veli-dash > .dash-metrics:not(.veli-kpi-grid) .dash-stat {
+    padding: 20px 22px;
+}
+
+/* Dini ders */
+.veli-dini-summary {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 22px;
+    padding: 8px 22px 22px;
+    align-items: start;
+}
+
+.veli-dini-ring {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 22px 16px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #eff6ff 0%, #fff 100%);
+    border: 1px solid rgba(0, 113, 227, 0.08);
+}
+
+.veli-dini-ring strong {
+    font-size: 36px;
+    font-weight: 650;
+    letter-spacing: -0.04em;
+    color: #0071e3;
+}
+
+.veli-dini-ring span {
+    font-size: 12px;
+    color: #6e6e73;
+    margin-top: 4px;
+}
+
+.veli-alan-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 22px 14px;
+}
+
+.veli-alan-tabs a {
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: #f2f2f7;
+    color: #1d1d1f;
+    text-decoration: none;
+    font-size: 12.5px;
+    font-weight: 650;
+}
+
+.veli-alan-tabs a.active {
+    background: #1d1d1f;
+    color: #fff;
+}
+
+.veli-konu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+    padding: 0 22px 22px;
+}
+
+.veli-konu-item {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 4px 10px;
+    padding: 14px;
+    border-radius: 14px;
+    background: #f5f5f7;
+    border: 1px solid transparent;
+}
+
+.veli-konu-item.done {
+    background: #ecfdf5;
+    border-color: rgba(16, 185, 129, 0.15);
+}
+
+.veli-konu-item .icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    color: #10b981;
+    font-weight: 700;
+    grid-row: span 2;
+}
+
+.veli-konu-item .status {
+    grid-column: 2;
+    font-size: 11px;
+    color: #86868b;
+    font-weight: 650;
+}
+
+.veli-konu-item.done .status {
+    color: #047857;
+}
+
+.dash-feed,
+.og-feed-stack {
+    padding: 8px 22px 22px;
+    display: grid;
+    gap: 12px;
+}
+
+.dash-feed-item,
+.og-duyuru-card {
+    padding: 16px 18px !important;
+    border-radius: 16px !important;
+    background: #f5f5f7 !important;
+    border: 1px solid rgba(0, 0, 0, 0.04) !important;
+}
+
+@media (max-width: 760px) {
+    .veli-dini-summary {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+.veli-info-dl {
+    gap: 12px 18px !important;
+}
+
+.veli-info-dl dt {
+    color: #86868b !important;
+    font-size: 13px;
+}
+
+.veli-info-dl dd {
+    font-weight: 600 !important;
+    letter-spacing: -0.01em;
+}
+
+.veli-progress-bar {
+    height: 10px !important;
+    background: #f2f2f7 !important;
+    border-radius: 999px !important;
+}
+
+.veli-progress-bar span {
+    background: linear-gradient(90deg, #0071e3, #64b5ff) !important;
+    border-radius: 999px;
+}
+
+.veli-pill,
+.veli-pill.blue,
+span.veli-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 650;
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.veli-pill.green,
+.veli-pill-green {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.veli-pill.red,
+.veli-pill-warn {
+    background: #fff1f2;
+    color: #be123c;
+}
+
+.veli-score-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.veli-score-bar .bar {
+    flex: 1;
+    height: 8px;
+    background: #f2f2f7;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.veli-score-bar .bar span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #0071e3, #64b5ff);
+    border-radius: 999px;
+}
+
+.veli-score-bar small {
+    font-weight: 650;
+    color: #1d1d1f;
+    min-width: 28px;
+}
+
+/* —— Sohbet / boş durumlar —— */
+.veli-body .dash-panel > p,
+.ogretmen-body .dash-panel > p {
+    color: #6e6e73;
+}
+
+.veli-week-picker-menu {
+    border-radius: 16px !important;
+    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12) !important;
+}
+
+.veli-week-picker-menu a.active {
+    background: #1d1d1f !important;
+    color: #fff !important;
+}
+
+/* —— Hero kompakt + logo metin yüksekliğine hizalı —— */
+.ogretmen-body .dash-hero,
+.veli-body .dash-hero,
+.dash-home > .dash-hero {
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 14px 18px !important;
+    gap: 12px 16px !important;
+    align-items: center !important;
+    border-radius: 16px !important;
+}
+
+.ogretmen-body .dash-hero-brand,
+.veli-body .dash-hero-brand,
+.dash-home .dash-hero-brand {
+    align-items: stretch !important;
+    gap: 12px !important;
+    align-self: center !important;
+}
+
+.ogretmen-body .dash-hero-logo-wrap,
+.veli-body .dash-hero-logo-wrap,
+.dash-home .dash-hero-logo-wrap {
+    position: relative !important;
+    align-self: stretch !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    aspect-ratio: 1 / 1 !important;
+    height: auto !important;
+    width: auto !important;
+}
+
+.ogretmen-body .dash-hero-logo,
+.veli-body .dash-hero-logo,
+.dash-home .dash-hero-logo {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    object-fit: contain !important;
+    flex: none !important;
+}
+
+.ogretmen-body .dash-hero-copy h1,
+.veli-body .dash-hero-copy h1,
+.dash-home .dash-hero-copy h1 {
+    margin: 4px 0 !important;
+    font-size: clamp(18px, 2vw, 24px) !important;
+    line-height: 1.2 !important;
+}
+
+.ogretmen-body .dash-hero-copy .dash-hero-meta,
+.veli-body .dash-hero-copy .dash-hero-meta,
+.dash-home .dash-hero-copy .dash-hero-meta {
+    margin: 0 !important;
+    font-size: 13px !important;
+}
+
+.ogretmen-body .dash-hero-date,
+.veli-body .dash-hero-date,
+.dash-home .dash-hero-date {
+    padding: 6px 10px 6px 6px !important;
+    gap: 8px !important;
+    border-radius: 12px !important;
+}
+
+.ogretmen-body .dash-hero-date-num,
+.veli-body .dash-hero-date-num,
+.dash-home .dash-hero-date-num {
+    min-width: 38px !important;
+    height: 38px !important;
+    font-size: 18px !important;
+    border-radius: 9px !important;
+}
+
+.ogretmen-body .dash-hero-scene .dash-float,
+.veli-body .dash-hero-scene .dash-float,
+.dash-home .dash-hero-scene .dash-float {
+    display: none !important;
+}
+
+.ogretmen-body .dash-hero-scene .dash-orb,
+.veli-body .dash-hero-scene .dash-orb {
+    opacity: 0.35 !important;
+    filter: blur(28px) !important;
+}
+
+/* —— Logout butonu —— */
+.panel-logout-btn {
+    border-radius: 12px !important;
+    padding: 9px 14px !important;
+    font-weight: 600 !important;
+}
+
+@media (max-width: 760px) {
+    .ogretmen-class-tabs {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .og-yoklama-grid {
+        grid-template-columns: 1fr;
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
+
+    .og-table-wrap,
+    .responsive-table {
+        margin-left: 12px;
+        margin-right: 12px;
+    }
+
+    .og-program-day-block {
+        grid-template-columns: 1fr !important;
+    }
+
+    .og-program-day-label {
+        width: 100%;
+        text-align: left;
+    }
+}
+
+/* =========================================================
+   Yapı + çizgi + renk (program / dashboard / not girişi)
+   ========================================================= */
+
+/* Metrics: çerçeveli + renkli */
+.ogretmen-dash .dash-metrics-shell {
+    width: 100%;
+}
+
+.ogretmen-dash .dash-metrics {
+    display: grid !important;
+    grid-template-columns: repeat(var(--dash-metric-cols, 3), minmax(0, 1fr)) !important;
+    gap: 0 !important;
+}
+
+.ogretmen-dash .dash-shortcuts-grid {
+    width: 100%;
+}
+
+.ogretmen-dash > .dash-metrics {
+    display: grid !important;
+    grid-template-columns: repeat(var(--dash-metric-cols, 3), minmax(0, 1fr));
+    gap: 14px !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.ogretmen-dash > .dash-metrics .dash-stat {
+    border-radius: 18px !important;
+    border: 1px solid #d8dee8 !important;
+    background: #fff !important;
+    box-shadow: 0 6px 18px rgba(15, 40, 80, 0.05);
+    padding: 18px 20px !important;
+}
+
+.ogretmen-dash > .dash-metrics .dash-stat + .dash-stat::before {
+    display: none !important;
+}
+
+.ogretmen-dash .dash-stat-blue {
+    background: linear-gradient(180deg, #eef5ff 0%, #fff 70%) !important;
+    border-color: #bdd4f6 !important;
+}
+.ogretmen-dash .dash-stat-green {
+    background: linear-gradient(180deg, #eefbf3 0%, #fff 70%) !important;
+    border-color: #b7e4c7 !important;
+}
+
+.og-week-strip {
+    border: 1px solid #c9daf5 !important;
+    background: linear-gradient(90deg, #eef5ff, #fff) !important;
+    padding: 16px 20px !important;
+    border-radius: 16px !important;
+}
+
+/* Program gün kartları — simetrik grid */
+.ogretmen-program-page .og-program-day-block {
+    display: grid !important;
+    grid-template-columns: 120px 1fr !important;
+    gap: 14px !important;
+    align-items: stretch;
+    margin: 0 18px 16px !important;
+    padding: 14px !important;
+    border: 1px solid #d8dee8 !important;
+    border-radius: 16px !important;
+    background: #f7f9fc !important;
+}
+
+.og-program-day-label {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 15px !important;
+    font-weight: 750 !important;
+    letter-spacing: -0.02em;
+    color: #fff !important;
+    background: linear-gradient(160deg, #1e4f9c, #2f6fd1) !important;
+    border-radius: 12px !important;
+    padding: 16px 10px !important;
+    min-height: 100%;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.og-program-day-block:nth-child(odd) .og-program-day-label {
+    background: linear-gradient(160deg, #1e4f9c, #2f6fd1) !important;
+}
+.og-program-day-block:nth-child(even) .og-program-day-label {
+    background: linear-gradient(160deg, #0f766e, #14b8a6) !important;
+}
+
+.og-program-day-block .og-program-table {
+    background: #fff;
+    border: 1px solid #d8dee8 !important;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.og-program-table col.saat,
+.og-program-table th:nth-child(1),
+.og-program-table td:nth-child(1) {
+    width: 28%;
+}
+.og-program-table th:nth-child(2),
+.og-program-table td:nth-child(2) {
+    width: 32%;
+}
+.og-program-table th:nth-child(3),
+.og-program-table td:nth-child(3) {
+    width: 40%;
+}
+
+.og-program-table td:nth-child(1) {
+    font-weight: 700;
+    color: #1d4ed8 !important;
+    font-variant-numeric: tabular-nums;
+}
+.og-program-table td:nth-child(3) {
+    font-weight: 650;
+    color: #12386b !important;
+}
+
+.og-class-pill {
+    background: #e8f0fe !important;
+    color: #1d4ed8 !important;
+    border: 1px solid #bdd4f6 !important;
+    border-radius: 999px !important;
+    padding: 4px 10px !important;
+    font-weight: 700 !important;
+}
+
+/* Dashboard mini program satırları — 3 kolon + çizgi */
+.og-day-tabs {
+    padding: 0 18px 10px !important;
+}
+
+.og-day-panel {
+    margin: 0 18px 18px !important;
+    padding: 10px !important;
+    border: 1px solid #d8dee8 !important;
+    border-radius: 14px !important;
+    background: #f3f6fb !important;
+    display: grid;
+    gap: 8px;
+}
+
+.og-mini-lesson {
+    display: grid !important;
+    grid-template-columns: 110px 70px 1fr !important;
+    align-items: center;
+    gap: 10px !important;
+    padding: 12px 14px !important;
+    border: 1px solid #d8dee8 !important;
+    border-radius: 12px !important;
+    background: #fff !important;
+    box-shadow: 0 1px 2px rgba(15, 40, 80, 0.03);
+}
+
+.og-mini-lesson span {
+    font-weight: 700 !important;
+    color: #1d4ed8 !important;
+    font-variant-numeric: tabular-nums;
+}
+
+.og-mini-lesson strong {
+    display: inline-flex;
+    justify-content: center;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: #e8f0fe;
+    border: 1px solid #bdd4f6;
+    color: #1d4ed8 !important;
+    font-size: 12px;
+}
+
+.og-mini-lesson em {
+    font-style: normal !important;
+    font-weight: 650 !important;
+    color: #12386b !important;
+}
+
+/* Sınıf listesi satırları */
+.ogretmen-dash .dash-shortcuts {
+    margin: 0 12px 14px;
+    border: 1px solid #d8dee8;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.ogretmen-dash .dash-shortcut {
+    border-bottom: 1px solid #e4e9f1 !important;
+    padding: 14px 16px !important;
+    background: #fff;
+}
+
+.ogretmen-dash .dash-shortcut:last-child {
+    border-bottom: none !important;
+}
+
+.ogretmen-dash .dash-shortcut:hover {
+    background: #eef5ff !important;
+}
+
+.ogretmen-dash .dash-shortcut-icon {
+    background: #e8f0fe !important;
+    color: #1d4ed8 !important;
+    border: 1px solid #bdd4f6 !important;
+}
+
+.og-empty-note-tight,
+.og-side-stack .og-empty-note {
+    margin: 0 18px 12px !important;
+}
+
+/* Not girişi tablosu kolon simetrisi */
+.og-haftalik-table {
+    table-layout: fixed !important;
+}
+.og-haftalik-table th:nth-child(1),
+.og-haftalik-table td:nth-child(1) { width: 22%; }
+.og-haftalik-table th:nth-child(2),
+.og-haftalik-table td:nth-child(2),
+.og-haftalik-table th:nth-child(3),
+.og-haftalik-table td:nth-child(3),
+.og-haftalik-table th:nth-child(4),
+.og-haftalik-table td:nth-child(4) { width: 14%; }
+.og-haftalik-table th:nth-child(5),
+.og-haftalik-table td:nth-child(5) { width: 36%; }
+
+.og-grade-table input[type="number"],
+.og-grade-table input[type="text"] {
+    border: 1px solid #c9d5e8 !important;
+    background: #fff !important;
+}
+
+.og-yoklama-item {
+    border: 1px solid #d8dee8 !important;
+    background: #fff !important;
+}
+
+.og-yoklama-item:has(input:checked) {
+    background: #fff1f2 !important;
+    border-color: #fecaca !important;
+}
+
+.og-ders-card .og-table-wrap,
+.og-yoklama-card .og-table-wrap {
+    margin: 12px 18px 18px;
+}
+

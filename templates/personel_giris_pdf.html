@@ -5,202 +5,65 @@
     <meta charset="utf-8">
     <title>{{ ad_soyad }} · Giriş Bilgileri</title>
     <style>
-        @font-face {
-            font-family: "Poppins";
-            src: url("{% static 'fonts/Poppins-Regular.ttf' %}") format("truetype");
-            font-weight: 400;
-        }
-        @font-face {
-            font-family: "Poppins";
-            src: url("{% static 'fonts/Poppins-Medium.ttf' %}") format("truetype");
-            font-weight: 500;
-        }
-        @font-face {
-            font-family: "Poppins";
-            src: url("{% static 'fonts/Poppins-SemiBold.ttf' %}") format("truetype");
-            font-weight: 600;
-        }
-
-        @page {
-            size: A4 portrait;
-            margin: 16mm;
-        }
-
-        * { box-sizing: border-box; }
-
-        body {
-            margin: 0;
-            font-family: "Poppins", sans-serif;
-            color: #334155;
-            background: #f8fafc;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
-
-        .page {
-            min-height: 265mm;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12mm 0;
-        }
-
-        .card {
-            width: 100%;
-            max-width: 520px;
-            border: 1px solid #dbe4f0;
-            border-radius: 22px;
-            overflow: hidden;
-            background: #fff;
-            box-shadow: 0 18px 40px rgba(23, 59, 128, 0.08);
-        }
-
-        .card-head {
-            padding: 28px 32px 22px;
-            background: linear-gradient(135deg, #173b80 0%, #2563eb 100%);
-            color: #fff;
-        }
-
-        .brand-name {
-            font-size: 18px;
-            font-weight: 600;
-            line-height: 1.2;
-        }
-
-        .brand-sub {
-            margin-top: 6px;
-            font-size: 10px;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.78);
-        }
-
-        .card-body {
-            padding: 28px 32px 32px;
-        }
-
-        .person-name {
-            margin: 0 0 6px;
-            font-size: 24px;
-            font-weight: 600;
-            color: #0f172a;
-        }
-
-        .person-role {
-            margin: 0 0 24px;
-            font-size: 13px;
-            color: #64748b;
-        }
-
-        .info-grid {
-            display: grid;
-            gap: 14px;
-            margin-bottom: 24px;
-        }
-
-        .info-box {
-            padding: 16px 18px;
-            border: 1px solid #e2e8f0;
-            border-radius: 14px;
-            background: #f8fbff;
-        }
-
-        .info-box.highlight {
-            border-color: #93c5fd;
-            background: #eff6ff;
-        }
-
-        .info-label {
-            display: block;
-            margin-bottom: 6px;
-            font-size: 10px;
-            font-weight: 600;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: #64748b;
-        }
-
-        .info-value {
-            font-size: 18px;
-            font-weight: 600;
-            color: #10213d;
-            word-break: break-all;
-        }
-
-        .info-value.mono {
-            font-family: "Courier New", monospace;
-            letter-spacing: 0.04em;
-        }
-
-        .url-box {
-            padding: 14px 16px;
-            border-radius: 12px;
-            background: #f1f5f9;
-            font-size: 12px;
-            color: #475569;
-            word-break: break-all;
-            line-height: 1.5;
-        }
-
-        .note {
-            margin-top: 22px;
-            padding-top: 18px;
-            border-top: 1px solid #e2e8f0;
-            font-size: 11px;
-            line-height: 1.55;
-            color: #64748b;
-        }
-
-        .card-foot {
-            display: flex;
-            justify-content: space-between;
-            gap: 12px;
-            padding: 14px 32px 18px;
-            border-top: 1px solid #eef2f7;
-            font-size: 9px;
-            color: #94a3b8;
-        }
+        {% include "includes/pdf_kart_belge_css.html" %}
     </style>
 </head>
 <body>
-<div class="page">
-    <div class="card">
-        <div class="card-head">
-            <div class="brand-name">{{ panel_org }}</div>
-            <div class="brand-sub">{{ belge_baslik|default:"Personel Giriş Bilgileri" }}</div>
-        </div>
+<table class="kart-wrap" cellpadding="0" cellspacing="0">
+    <tr>
+        <td class="kart-head">
+            <div class="kart-brand">{{ panel_org }}</div>
+            <div class="kart-sub">{{ belge_baslik|default:"Personel Giriş Bilgileri" }}</div>
+        </td>
+    </tr>
+    <tr>
+        <td class="kart-body">
+            <h1 class="kart-name">{{ ad_soyad }}</h1>
+            <p class="kart-role">{{ rol_etiket }}</p>
 
-        <div class="card-body">
-            <h1 class="person-name">{{ ad_soyad }}</h1>
-            <p class="person-role">{{ rol_etiket }}</p>
+            <table class="info-table" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="info-cell">
+                        <table class="info-box" cellpadding="0" cellspacing="0"><tr><td>
+                            <span class="info-label">Kullanıcı adı</span>
+                            <div class="info-value mono">{{ kullanici_adi }}</div>
+                        </td></tr></table>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="info-cell">
+                        <table class="info-box" cellpadding="0" cellspacing="0"><tr><td>
+                            <span class="info-label">Şifre</span>
+                            <div class="info-value mono">{{ sifre }}</div>
+                        </td></tr></table>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="info-cell">
+                        <table class="info-box soft" cellpadding="0" cellspacing="0"><tr><td>
+                            <span class="info-label">Panel giriş adresi</span>
+                            <div class="url-inner">{{ panel_giris_url }}</div>
+                        </td></tr></table>
+                    </td>
+                </tr>
+            </table>
 
-            <div class="info-grid">
-                <div class="info-box highlight">
-                    <span class="info-label">Kullanıcı adı</span>
-                    <div class="info-value mono">{{ kullanici_adi }}</div>
-                </div>
-                <div class="info-box highlight">
-                    <span class="info-label">Şifre</span>
-                    <div class="info-value mono">{{ sifre }}</div>
-                </div>
-            </div>
-
-            <div class="info-box">
-                <span class="info-label">Panel giriş adresi</span>
-                <div class="url-box">{{ panel_giris_url }}</div>
-            </div>
-
-            <p class="note">
+            <p class="kart-note">
                 Bu belge yalnızca size özeldir. Giriş bilgilerinizi kimseyle paylaşmayın.
                 İlk girişten sonra şifrenizi değiştirmeniz önerilir.
             </p>
-        </div>
-
-        <div class="card-foot">
-            <span>{{ panel_short }}</span>
-            <span>{{ tarih|date:"d.m.Y" }}</span>
-        </div>
-    </div>
-</div>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <table class="kart-foot" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="left">{{ panel_short }}</td>
+                    <td class="right">{{ tarih|date:"d.m.Y" }}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
 </body>
 </html>

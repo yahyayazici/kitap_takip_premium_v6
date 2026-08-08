@@ -2,7 +2,7 @@
 {% load static filter_tags %}
 {% block title %}KTT Rapor · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}">
+<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=nizam2">
 {% endblock %}
 {% block content %}
 <div class="ktt-page ktt-report-page">
@@ -13,7 +13,7 @@
             <a href="{{ excel_url }}" class="ktt-outline-btn green">Excel İndir</a>
             {% endif %}
             {% if pdf_yetkisi %}
-            <a href="{{ pdf_url }}" class="ktt-outline-btn red">PDF İndir</a>
+            {% include "includes/pdf_sayfa_secici.html" with pdf_href=pdf_url pdf_sayfa=pdf_sayfa pdf_btn_class="ktt-outline-btn red" pdf_btn_label="PDF İndir" %}
             {% endif %}
             <a href="{% url 'ktt_listesi' %}" class="ktt-outline-btn muted">KTT Listesi</a>
         </div>

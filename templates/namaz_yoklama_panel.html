@@ -1,28 +1,30 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Namaz Yoklaması · {{ panel_short }}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/namaz-yoklama.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/namaz-yoklama.css' %}?v=ny-cards-4">{% endblock %}
 {% block content %}
-<div class="ny-page">
+<div class="ny-page" data-ny-panel data-odak="{{ odak_vakit }}">
     <header class="ny-head">
-        <h1>☪ Namaz Yoklaması</h1>
-        <p>Gelmedileri <strong class="g">G</strong>, takke & tesbih eksiklerini <strong class="tt">T&amp;T</strong>, izinlileri <strong class="i">İ</strong> olarak işaretleyin.</p>
+        <div>
+            <p class="ny-eyebrow">Yoklama</p>
+            <h1>Namaz Yoklaması</h1>
+            <p class="ny-sub">İsim okunur · Gelen boş kalır · Gelmeyen <strong class="g">G</strong> · Takke/tesbih <strong class="tt">T&amp;T</strong> · İzin <strong class="i">İ</strong></p>
+        </div>
+        <div class="ny-head-actions">
+            {% if tam_yetki %}
+            <a href="?tarih={{ tarih|date:'Y-m-d' }}&vakit={{ odak_vakit }}&etudum=1" class="ny-chip{% if etudum %} is-on{% endif %}">Etüdüm</a>
+            <a href="?tarih={{ tarih|date:'Y-m-d' }}&vakit={{ odak_vakit }}" class="ny-chip{% if not etudum %} is-on{% endif %}">Tümü</a>
+            {% endif %}
+            <a href="{% url 'namaz_yoklama_rapor' %}" class="ny-chip">Rapor</a>
+        </div>
     </header>
-
-    <div class="ny-toolbar">
-        {% if tam_yetki %}
-        <a href="?tarih={{ tarih|date:'Y-m-d' }}&etudum=1" class="ny-btn ny-btn-green outline">★ Etüdüm</a>
-        <a href="?tarih={{ tarih|date:'Y-m-d' }}" class="ny-btn ny-btn-ghost">Tüm Talebeler</a>
-        {% endif %}
-        <a href="{% url 'namaz_yoklama_rapor' %}" class="ny-btn ny-btn-ghost">Rapor & PDF</a>
-    </div>
 
     {% if etut_bildirimleri and not tam_yetki %}
     <section class="ny-etut-alert">
-        <strong>Etüt Paneli — Bugün Namaza Gelmeyenler</strong>
+        <strong>Bugün namaza gelmeyenler</strong>
         {% for b in etut_bildirimleri %}
-        <div style="margin-top:8px;">
-            <span style="font-weight:700;">{{ b.etiket }}:</span>
+        <div class="ny-etut-line">
+            <em>{{ b.etiket }}</em>
             {% for t in b.talebeler %}{{ t.ad_soyad }}{% if not forloop.last %}, {% endif %}{% endfor %}
         </div>
         {% endfor %}
@@ -30,17 +32,17 @@
     {% endif %}
 
     {% if herhangi_oturum_kayitli %}
-    <section class="ny-absent-card">
-        <div class="ny-absent-head">
-            <h2>⚠ {% if tam_yetki %}Namazda Olmayanlar{% else %}Etüdümden Namaza Gelmeyenler{% endif %} — {{ tarih|date:"d.m.Y" }}</h2>
-        </div>
+    <details class="ny-summary">
+        <summary>
+            <span>Gelmeyen özeti — {{ tarih|date:"d.m.Y" }}</span>
+            <span class="ny-summary-hint">Aç</span>
+        </summary>
         <div class="ny-vakit-cards">
             {% for ozet in gelmedi_ozetleri %}
             {% if ozet.oturum %}
             <article class="ny-vakit-card {{ ozet.vakit }}">
                 <span>{{ ozet.vakit_label }}</span>
                 <strong>{{ ozet.sayi }}</strong>
-                <span>{% if ozet.sayi %}gelmeyen{% else %}Gelmeyen yok ✓{% endif %}</span>
             </article>
             {% endif %}
             {% endfor %}
@@ -48,101 +50,174 @@
         {% for ozet in gelmedi_ozetleri %}
         {% if ozet.oturum and ozet.gelmeyenler %}
         <div class="ny-gelmedi-list">
-            <strong>{{ ozet.vakit_label }} — Gelmedi (G):</strong>
-            <ul>
-                {% for kayit in ozet.gelmeyenler %}
-                <li>{{ kayit.talebe.ad_soyad }} ({{ kayit.talebe.sinif_sube|default:kayit.talebe.sinif }})</li>
-                {% endfor %}
-            </ul>
+            <strong>{{ ozet.vakit_label }}:</strong>
+            {% for kayit in ozet.gelmeyenler %}
+            {{ kayit.talebe.ad_soyad }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
         </div>
         {% endif %}
         {% endfor %}
-    </section>
+    </details>
     {% endif %}
 
-    <form method="post" class="ny-table-card">
+    <form method="post" class="ny-board" data-ny-form>
         {% csrf_token %}
         <input type="hidden" name="tarih" value="{{ tarih|date:'Y-m-d' }}">
+        <input type="hidden" name="odak_vakit" id="ny-odak-vakit" value="{{ odak_vakit }}">
+        <input type="hidden" name="sadece_odak" value="1">
         {% if etudum %}<input type="hidden" name="etudum" value="1">{% endif %}
+        {% if secili_sinif %}<input type="hidden" name="sinif_sube" value="{{ secili_sinif }}">{% endif %}
 
-        <div class="ny-table-head">
-            <h2>Yoklama Girişi — {{ tarih|date:"d.m.Y" }}</h2>
-            <span class="ny-badge">{{ talebe_sayisi }} talebe</span>
-        </div>
-
-        <div class="ny-filter-row">
-            <label>Tarih <input type="date" name="tarih_goster" value="{{ tarih|date:'Y-m-d' }}" onchange="location='?tarih='+this.value{% if etudum %}+'&etudum=1'{% endif %}"></label>
-            {% if tam_yetki %}
-            <label>Sınıf
-                <select onchange="location='?tarih={{ tarih|date:'Y-m-d' }}&sinif_sube='+this.value">
-                    <option value="">Tümü</option>
-                    {% for ss in sinif_subeler %}
-                    <option value="{{ ss.id }}">{{ ss.sinif }}-{{ ss.sube }}</option>
-                    {% endfor %}
-                </select>
-            </label>
-            {% endif %}
-        </div>
-
-        <p class="ny-legend"><span class="g">G</span> Gelmedi · <span class="tt">T&amp;T</span> Takke&amp;Tesbih · <span class="i">İ</span> İzinli</p>
-
-        <div class="ny-table-wrap">
-            <table class="ny-table">
-                <thead>
-                    <tr>
-                        <th class="talebe-col">Talebe</th>
-                        {% for v, label in vakit_basliklari %}
-                        <th>{{ label }}</th>
+        <div class="ny-controls">
+            <div class="ny-controls-main">
+                <label class="ny-field">
+                    <span>Tarih</span>
+                    <input type="date" value="{{ tarih|date:'Y-m-d' }}"
+                           onchange="location='?tarih='+this.value+'&vakit={{ odak_vakit }}{% if etudum %}&etudum=1{% endif %}{% if secili_sinif %}&sinif_sube={{ secili_sinif }}{% endif %}'">
+                </label>
+                {% if tam_yetki %}
+                <label class="ny-field">
+                    <span>Sınıf</span>
+                    <select onchange="location='?tarih={{ tarih|date:'Y-m-d' }}&vakit={{ odak_vakit }}&sinif_sube='+this.value">
+                        <option value="">Tümü</option>
+                        {% for ss in sinif_subeler %}
+                        <option value="{{ ss.id }}" {% if secili_sinif == ss.id|stringformat:'s' %}selected{% endif %}>{{ ss.sinif }}-{{ ss.sube }}</option>
                         {% endfor %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for grup in gruplar %}
-                    <tr class="ny-class-row"><td colspan="{{ vakit_basliklari|length|add:1 }}">{{ grup.sinif }} Sınıfı</td></tr>
+                    </select>
+                </label>
+                {% endif %}
+                <label class="ny-field ny-search-field">
+                    <span>Ara</span>
+                    <input type="search" placeholder="İsim yaz…" data-ny-search autocomplete="off">
+                </label>
+            </div>
+            <div class="ny-view-toggle" role="tablist" aria-label="Görünüm">
+                <button type="button" class="ny-view-btn is-on" data-ny-view="roll" role="tab">Yoklama</button>
+                <button type="button" class="ny-view-btn" data-ny-view="table" role="tab">Tablo</button>
+            </div>
+        </div>
+
+        <nav class="ny-vakit-tabs" aria-label="Namaz vakti">
+            {% for v, label in vakit_basliklari %}
+            <button type="button"
+                    class="ny-vakit-tab{% if v == odak_vakit %} is-on{% endif %}"
+                    data-ny-vakit="{{ v }}"
+                    data-label="{{ label }}">
+                <span>{{ label }}</span>
+                <em data-ny-count-for="{{ v }}">0</em>
+            </button>
+            {% endfor %}
+        </nav>
+
+        <div class="ny-mode-hint">
+            <strong data-ny-odak-label>{{ odak_vakit_label }}</strong>
+            <span>· İsim isim okuyun · Geleni geçin · Gelmeyene <em>G</em></span>
+            <span class="ny-live" data-ny-live>0 işaret</span>
+        </div>
+
+        {# Roll-call — primary #}
+        <div class="ny-roll" data-ny-mode="roll">
+            <div class="ny-roll-body">
+                {% for grup in gruplar %}
+                <div class="ny-roll-group" data-ny-group>
+                    <div class="ny-roll-group-title">{{ grup.sinif }}</div>
                     {% for talebe in grup.talebeler %}
-                    <tr>
-                        <td class="talebe-col ny-student-name">
-                            <strong>{{ talebe.ad_soyad }}</strong>
-                            <small>{{ grup.sinif }}</small>
-                        </td>
-                        {% for hucre in talebe.vakit_hucreleri %}
-                        <td>
-                            <div class="ny-pills">
-                                <label class="ny-pill g"><input type="radio" name="k_{{ talebe.id }}_{{ hucre.vakit }}" value="G" {% if hucre.secili == 'G' %}checked{% endif %}>G</label>
-                                <label class="ny-pill tt"><input type="radio" name="k_{{ talebe.id }}_{{ hucre.vakit }}" value="TT" {% if hucre.secili == 'TT' %}checked{% endif %}>T&amp;T</label>
-                                <label class="ny-pill i"><input type="radio" name="k_{{ talebe.id }}_{{ hucre.vakit }}" value="I" {% if hucre.secili == 'I' %}checked{% endif %}>İ</label>
+                    <article class="ny-roll-row{% if talebe.odak_secili %} is-marked{% endif %}"
+                         data-ny-row
+                         data-name="{{ talebe.ad_soyad|lower }}"
+                         data-talebe="{{ talebe.id }}">
+                        <div class="ny-roll-main">
+                            <span class="ny-roll-no">{{ forloop.counter }}</span>
+                            <div class="ny-roll-name">
+                                <strong>{{ talebe.ad_soyad }}</strong>
+                                <small>{{ grup.sinif }}</small>
                             </div>
-                        </td>
+                        </div>
+                        <div class="ny-roll-marks">
+                            {% for hucre in talebe.vakit_hucreleri %}
+                            <div class="ny-mark-set{% if hucre.vakit == odak_vakit %} is-active{% endif %}"
+                                 data-vakit="{{ hucre.vakit }}">
+                                <label class="ny-mark g">
+                                    <input type="radio" name="k_{{ talebe.id }}_{{ hucre.vakit }}" value="G" {% if hucre.secili == 'G' %}checked{% endif %}>
+                                    <span>G</span>
+                                </label>
+                                <label class="ny-mark tt">
+                                    <input type="radio" name="k_{{ talebe.id }}_{{ hucre.vakit }}" value="TT" {% if hucre.secili == 'TT' %}checked{% endif %}>
+                                    <span>T&amp;T</span>
+                                </label>
+                                <label class="ny-mark i">
+                                    <input type="radio" name="k_{{ talebe.id }}_{{ hucre.vakit }}" value="I" {% if hucre.secili == 'I' %}checked{% endif %}>
+                                    <span>İ</span>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+                {% empty %}
+                <p class="ny-empty">Talebe bulunamadı.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        {# Sticky overview table — marks mirror roll radios via JS #}
+        <div class="ny-table-shell" data-ny-mode="table" hidden>
+            <div class="ny-table-wrap">
+                <table class="ny-table">
+                    <thead>
+                        <tr>
+                            <th class="ny-sticky-corner">Talebe</th>
+                            {% for v, label in vakit_basliklari %}
+                            <th class="ny-sticky-top" data-col-vakit="{{ v }}">{{ label }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for grup in gruplar %}
+                        <tr class="ny-class-row">
+                            <td class="ny-sticky-left ny-class-cell" colspan="{{ vakit_basliklari|length|add:1 }}">{{ grup.sinif }}</td>
+                        </tr>
+                        {% for talebe in grup.talebeler %}
+                        <tr data-ny-row data-name="{{ talebe.ad_soyad|lower }}" data-talebe="{{ talebe.id }}">
+                            <td class="ny-sticky-left ny-student-name">
+                                <strong>{{ talebe.ad_soyad }}</strong>
+                                <small>{{ grup.sinif }}</small>
+                            </td>
+                            {% for hucre in talebe.vakit_hucreleri %}
+                            <td data-cell-vakit="{{ hucre.vakit }}">
+                                <div class="ny-pills" data-ny-table-pills data-talebe="{{ talebe.id }}" data-vakit="{{ hucre.vakit }}">
+                                    <button type="button" class="ny-pill g" data-val="G" aria-pressed="false">G</button>
+                                    <button type="button" class="ny-pill tt" data-val="TT" aria-pressed="false">T&amp;T</button>
+                                    <button type="button" class="ny-pill i" data-val="I" aria-pressed="false">İ</button>
+                                </div>
+                            </td>
+                            {% endfor %}
+                        </tr>
                         {% endfor %}
-                    </tr>
-                    {% endfor %}
-                    {% empty %}
-                    <tr><td colspan="6" style="text-align:center;padding:24px;color:#94a3b8;">Talebe bulunamadı.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                        {% empty %}
+                        <tr><td colspan="6" class="ny-empty">Talebe bulunamadı.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <p class="ny-table-note">Sağa kaydırınca <strong>isim</strong>, aşağı inince <strong>vakit</strong> başlıkları sabit kalır.</p>
         </div>
 
         {% if kaydedebilir %}
         <div class="ny-save-bar">
-            <button type="submit" class="ny-btn ny-btn-blue">Yoklamayı Kaydet</button>
+            <div class="ny-save-meta">
+                <strong data-ny-odak-label>{{ odak_vakit_label }}</strong>
+                <span data-ny-live-bar>0 işaretli</span>
+                <span class="ny-muted">· {{ talebe_sayisi }} talebe</span>
+            </div>
+            <button type="submit" class="ny-btn-save">Bu Vakti Kaydet</button>
         </div>
         {% endif %}
     </form>
 </div>
+{% endblock %}
 
-<script>
-document.querySelectorAll('.ny-pills').forEach(function (wrap) {
-    wrap.querySelectorAll('.ny-pill').forEach(function (pill) {
-        pill.addEventListener('click', function (e) {
-            var input = pill.querySelector('input');
-            if (input && input.checked && e.target === input) return;
-            if (input && input.checked) {
-                input.checked = false;
-                e.preventDefault();
-            }
-        });
-    });
-});
-</script>
+{% block extra_js %}
+<script src="{% static 'js/namaz-yoklama.js' %}?v=mark2"></script>
 {% endblock %}

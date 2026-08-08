@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
+from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
+from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 
 from takip.etut_plan_service import (
@@ -27,6 +29,8 @@ from takip.etut_plan_service import (
     kurum_saat_kaynak_hoca,
     kurum_saatlerini_tum_gruplara_yay,
     mevcut_hafta_plani,
+    havuz_kartlari_sirala,
+    havuz_karti_sil,
     ozel_havuz_karti_olustur,
     plan_duzenleyebilir,
     plan_olustur,
@@ -38,6 +42,7 @@ from takip.etut_plan_service import (
     saat_bloku_kaydet,
     saat_bloku_sil,
     saat_satir_ekle,
+    saat_satir_sil,
     saat_yonetebilir,
     yetkili_etut_planlari,
 )
@@ -54,7 +59,13 @@ from takip.user_helpers import etut_hocasi_for_user
 
 
 def _secili_hoca(request) -> EtutHocasi | None:
-    hoca_id = request.GET.get("hoca") or request.POST.get("etut_hocasi_id")
+    hoca_id = request.GET.get("hoca") or request.POST.get("etut_hocasi_id") or request.POST.get("hoca_id")
+    if not hoca_id and request.content_type and "application/json" in request.content_type:
+        try:
+            body = json.loads(request.body.decode() or "{}")
+            hoca_id = body.get("hoca_id") or body.get("etut_hocasi_id")
+        except json.JSONDecodeError:
+            hoca_id = None
     if hoca_id and tum_talebe_kapsami_var(request.user):
         return EtutHocasi.objects.filter(pk=hoca_id, aktif=True).first()
     return etut_hocasi_for_user(request.user)
@@ -135,6 +146,16 @@ def etut_plan_arsiv(request):
     return render(request, "etut_plan_arsiv.html", {"planlar": planlar})
 
 
+def _yonetim_redirect(*, fragment: str = "", **params):
+    url = reverse("etut_plan_yonetim")
+    clean = {k: v for k, v in params.items() if v is not None and v != ""}
+    if clean:
+        url = f"{url}?{urlencode(clean)}"
+    if fragment:
+        url = f"{url}#{fragment}"
+    return redirect(url)
+
+
 @login_required
 @require_permission("etut_plani", "edit")
 def etut_plan_yonetim(request):
@@ -149,6 +170,9 @@ def etut_plan_yonetim(request):
         if not hoca:
             messages.error(request, "Aktif etüt hocası bulunamadı.")
             return redirect("etut_plan_yonetim")
+
+        odak_gun = request.POST.get("gun")
+        redirect_params: dict[str, str] = {"sekme": "sablon"}
 
         def _senkron_mesaj(ek: str = "") -> None:
             grup = kurum_saat_islem_sonrasi(hoca)
@@ -190,6 +214,13 @@ def etut_plan_yonetim(request):
                 _senkron_mesaj(f"{adet} yeni saat hücresi eklendi.")
             except (ValueError, TypeError):
                 messages.error(request, "Geçersiz saat bilgisi.")
+        elif aksiyon == "saat_satir_sil":
+            try:
+                bas = datetime.strptime(request.POST.get("baslangic", ""), "%H:%M").time()
+                adet = saat_satir_sil(hoca, baslangic=bas)
+                _senkron_mesaj(f"{adet} hücre silindi (tüm günler).")
+            except (ValueError, TypeError):
+                messages.error(request, "Geçersiz saat bilgisi.")
         elif aksiyon == "saat_kaydet":
             try:
                 bas = datetime.strptime(request.POST.get("baslangic", ""), "%H:%M").time()
@@ -197,19 +228,31 @@ def etut_plan_yonetim(request):
                 blok_id = request.POST.get("blok_id") or None
                 if blok_id:
                     blok_id = int(blok_id)
+                gun = int(request.POST.get("gun", 0))
                 saat_bloku_kaydet(
                     hoca,
                     blok_id=blok_id,
-                    gun=int(request.POST.get("gun", 0)),
+                    gun=gun,
                     baslangic=bas,
                     bitis=bit,
                 )
+                odak_gun = str(gun)
                 _senkron_mesaj("Saat bloğu kaydedildi.")
             except (ValueError, TypeError):
                 messages.error(request, "Geçersiz saat bilgisi.")
         elif aksiyon == "saat_sil":
-            saat_bloku_sil(hoca, int(request.POST.get("blok_id")))
-            _senkron_mesaj("Saat bloğu silindi.")
+            try:
+                blok_id = int(request.POST.get("blok_id"))
+                if odak_gun is None or odak_gun == "":
+                    mevcut = EtutGrupSaatBloku.objects.filter(
+                        pk=blok_id, etut_hocasi=hoca
+                    ).first()
+                    if mevcut:
+                        odak_gun = str(mevcut.gun)
+                saat_bloku_sil(hoca, blok_id)
+                _senkron_mesaj("Saat bloğu yalnızca bu günden silindi.")
+            except (TypeError, ValueError):
+                messages.error(request, "Silinecek saat bloğu bulunamadı.")
         elif aksiyon == "havuz_kaydet":
             from takip.models import EtutFaaliyetHavuzu
 
@@ -225,12 +268,19 @@ def etut_plan_yonetim(request):
             kart.aktif = request.POST.get("aktif") == "1"
             kart.save()
             messages.success(request, "Havuz kartı kaydedildi.")
+            return _yonetim_redirect(sekme="havuz")
 
-        return redirect("/etut-plani/yonetim/")
+        if odak_gun is not None and odak_gun != "":
+            redirect_params["odak_gun"] = str(odak_gun)
+        fragment = ""
+        if aksiyon in {"saat_satir_ekle", "saat_satir_sil", "saat_kaydet", "saat_sil"}:
+            fragment = "ep-saat-ekle"
+        return _yonetim_redirect(fragment=fragment, **redirect_params)
 
     context = admin_yonetim_baglami(request.user)
     context["cakismalar"] = cakisma_kontrol(hoca) if hoca else []
     context["aktif_sekme"] = request.GET.get("sekme", "sablon")
+    context["odak_gun"] = request.GET.get("odak_gun", "")
     return render(request, "etut_plan_admin.html", context)
 
 
@@ -339,6 +389,41 @@ def etut_plan_havuz_ekle(request):
 @login_required
 @require_POST
 @require_permission("etut_plani", "edit")
+def etut_plan_havuz_sil(request):
+    payload = _json_body(request)
+    hoca = _secili_hoca(request)
+    if not hoca and payload.get("hoca_id"):
+        hoca = EtutHocasi.objects.filter(pk=payload.get("hoca_id"), aktif=True).first()
+    try:
+        kart_id = int(payload.get("havuz_id"))
+    except (TypeError, ValueError):
+        return JsonResponse({"ok": False, "hata": "Geçersiz kart."}, status=400)
+    kart = havuz_karti_sil(request.user, hoca, kart_id)
+    if not kart:
+        return JsonResponse({"ok": False, "hata": "Kart silinemedi."}, status=403)
+    return JsonResponse({"ok": True})
+
+
+@login_required
+@require_POST
+@require_permission("etut_plani", "edit")
+def etut_plan_havuz_sirala(request):
+    payload = _json_body(request)
+    hoca = _secili_hoca(request)
+    if not hoca and payload.get("hoca_id"):
+        hoca = EtutHocasi.objects.filter(pk=payload.get("hoca_id"), aktif=True).first()
+    try:
+        kart_ids = [int(x) for x in (payload.get("havuz_ids") or [])]
+    except (TypeError, ValueError):
+        return JsonResponse({"ok": False, "hata": "Geçersiz sıra."}, status=400)
+    if not havuz_kartlari_sirala(request.user, hoca, kart_ids):
+        return JsonResponse({"ok": False, "hata": "Sıra kaydedilemedi."}, status=403)
+    return JsonResponse({"ok": True})
+
+
+@login_required
+@require_POST
+@require_permission("etut_plani", "edit")
 def etut_plan_kopyala(request):
     payload = _json_body(request)
     plan = get_object_or_404(yetkili_etut_planlari(request.user), pk=payload.get("plan_id"))
@@ -376,12 +461,18 @@ def etut_plan_pdf(request):
     if not plan:
         messages.error(request, "Plan bulunamadı.")
         return redirect("etut_plan_panel")
-    if pdf_engine_status() != "ok":
-        return pdf_error_response(request)
+    if pdf_engine_status() == "none":
+        return pdf_error_response(
+            f"PDF motoru bulunamadı. (Motor: {pdf_engine_status()})"
+        )
 
     context = builder_baglami(request.user, hoca=hoca, plan=plan)
     context["gun_gruplari"] = faaliyetler_gun_gruplu(plan)
     html = render_to_string("etut_plan_pdf.html", context, request=request)
-    pdf = html_to_pdf(html)
+    pdf = html_to_pdf(html, base_url=request.build_absolute_uri("/"))
+    if not pdf:
+        return pdf_error_response(
+            f"PDF oluşturulamadı. (Motor: {pdf_engine_status()})"
+        )
     dosya = f"etut_plani_{hoca.ad_soyad.replace(' ', '_')}_{plan.hafta_baslangic:%Y%m%d}.pdf"
     return make_pdf_response(pdf, dosya)

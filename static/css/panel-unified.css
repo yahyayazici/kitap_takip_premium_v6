@@ -78,7 +78,7 @@ body.veli-body {
     display: flex !important;
     flex-wrap: wrap;
     justify-content: space-between !important;
-    align-items: flex-end !important;
+    align-items: center !important;
     gap: 16px !important;
     padding: 28px 32px !important;
     margin-bottom: 0 !important;
@@ -187,18 +187,21 @@ body.veli-body {
 .yonetim-page-head .kicker,
 .welcome-kicker,
 .at-page-head .kicker,
+.at-page-head .at-kicker,
 .ktt-page-head .kicker,
 .result-kicker,
 .daily-kicker,
 .exam-page-head .kicker,
 .ny-head .kicker {
-    color: rgba(255, 255, 255, 0.72) !important;
+    color: rgba(255, 255, 255, 0.82) !important;
 }
 
 .page-head .muted,
 .page-head p:not(.kicker),
 .patterned-page-head .muted,
 .yonetim-page-head p:not(.kicker),
+.at-page-head p:not(.kicker):not(.at-kicker),
+.at-page-head .muted,
 .welcome-description,
 .result-description,
 .daily-description,
@@ -207,7 +210,7 @@ body.veli-body {
     margin: 10px 0 0 !important;
     font-size: 15px !important;
     font-weight: 400 !important;
-    color: rgba(255, 255, 255, 0.88) !important;
+    color: rgba(255, 255, 255, 0.92) !important;
 }
 
 .welcome-script,
@@ -264,6 +267,20 @@ body.veli-body {
     color: #fff !important;
     border: 1px solid rgba(255, 255, 255, 0.22) !important;
     backdrop-filter: blur(12px);
+}
+
+.page-head .pdf-sayfa-sec-label,
+.patterned-page-head .pdf-sayfa-sec-label,
+.yonetim-page-head .pdf-sayfa-sec-label,
+.ktt-page-head .pdf-sayfa-sec-label,
+.result-page-header .pdf-sayfa-sec-label,
+.result-entry-header .pdf-sayfa-sec-label,
+.daily-header .pdf-sayfa-sec-label,
+.exam-page-head .pdf-sayfa-sec-label,
+.profile-head-actions .pdf-sayfa-sec-label {
+    color: #ffffff !important;
+    opacity: 1 !important;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
 }
 
 /* —— Kart yüzeyleri —— */
@@ -349,13 +366,20 @@ body.veli-body {
 .daily-stat-card {
     position: relative;
     min-height: auto !important;
+    min-width: 0;
     padding: 20px 22px !important;
     border-radius: var(--dash-radius-sm) !important;
     background: var(--dash-surface) !important;
     border: 1px solid var(--dash-line) !important;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
     color: var(--dash-text) !important;
+    overflow: hidden;
 }
+
+.metric-card.tone-blue { border-top: 3px solid #3778ff !important; }
+.metric-card.tone-green { border-top: 3px solid #1aa477 !important; }
+.metric-card.tone-purple { border-top: 3px solid #7657e8 !important; }
+.metric-card.tone-amber { border-top: 3px solid #ee8a24 !important; }
 
 .metric-card::before,
 .result-summary-card::before,
@@ -383,6 +407,20 @@ body.veli-body {
     font-weight: 600 !important;
     letter-spacing: -0.03em !important;
     line-height: 1 !important;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: left;
+}
+
+.metric-card input,
+.metric-card textarea,
+.panel-field-input,
+.oo-rate-input {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .metric-card.tone-blue strong,
@@ -912,10 +950,20 @@ body.yonetim-body .yonetim-page {
 .page-head-actions,
 .yonetim-page-head-actions,
 .result-header-actions,
-.welcome-actions {
+.welcome-actions,
+.ktt-page-head > .ktt-actions,
+.ktt-page-head-row > .ktt-actions {
     position: relative;
     z-index: 12;
     overflow: visible;
+}
+
+.ktt-page-head .ktt-actions > a.ktt-outline-btn.is-active,
+.ktt-page-head-row .ktt-actions > a.ktt-outline-btn.is-active {
+    background: rgba(255, 255, 255, 0.28) !important;
+    border-color: #86efac !important;
+    color: #fff !important;
+    box-shadow: 0 0 0 1px rgba(134, 239, 172, 0.45) inset !important;
 }
 
 /* Talebe listesi — Rapor Al açılır paneli */
@@ -1033,6 +1081,9 @@ body.yonetim-body .yonetim-page {
 .daily-secondary-button,
 .result-primary-button,
 .result-secondary-button,
+.result-back-button,
+.result-clear-button,
+.result-save-button,
 .report-pdf-btn,
 .yonetim-search-btn,
 .yonetim-head-ghost,
@@ -1040,10 +1091,13 @@ body.yonetim-body .yonetim-page {
 .ktt-outline-btn,
 .ktt-create-btn,
 .ktt-filter-submit,
+.dash-text-btn,
 button[type="submit"]:not(.v3-menu-toggle):not(.v3-nav-trigger):not(.yonetim-link-btn):not(.yonetim-action-btn):not(.duyuru-carousel-dots button),
 a.primary-btn,
 a.ghost-btn,
-a.small-button {
+a.small-button,
+a.result-secondary-button,
+a.result-back-button {
     min-height: var(--panel-btn-min-h) !important;
     padding: 12px 20px !important;
     font-size: var(--panel-btn-font) !important;
@@ -1055,6 +1109,8 @@ a.small-button {
     gap: 8px;
     box-sizing: border-box;
     white-space: nowrap;
+    border-radius: 12px !important;
+    text-decoration: none !important;
 }
 
 .page-head .primary-btn,
@@ -1494,4 +1550,305 @@ table tbody td {
     .dash-hero {
         padding: 22px 20px !important;
     }
+}
+
+/* ============================================================
+   Nizam — tüm panellerde sayfa başlığı tuşları aynı düzen
+   ============================================================ */
+:root {
+    --panel-head-btn-h: 44px;
+    --panel-head-btn-pad-x: 18px;
+    --panel-head-btn-gap: 10px;
+    --panel-head-btn-radius: 12px;
+    --panel-head-btn-min-w: 7.75rem;
+}
+
+.page-head-actions,
+.yonetim-page-head-actions,
+.result-header-actions,
+.result-card-actions,
+.welcome-actions,
+.ktt-page-head-row > .ktt-actions,
+.ktt-page-head > .ktt-actions,
+.ktt-report-actions,
+.profile-head-actions,
+.ny-head-actions,
+.at-page-head-actions,
+.dash-hero-actions,
+.page-hero-actions {
+    display: inline-flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: var(--panel-head-btn-gap) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100%;
+}
+
+.page-head-actions > a,
+.page-head-actions > button,
+.page-head-actions > .primary-btn,
+.page-head-actions > .ghost-btn,
+.page-head-actions > .talebe-rapor-ac,
+.yonetim-page-head-actions > a,
+.yonetim-page-head-actions > button,
+.yonetim-page-head-actions > .primary-btn,
+.yonetim-page-head-actions > .ghost-btn,
+.yonetim-page-head-actions > .yonetim-head-ghost,
+.result-header-actions > a,
+.result-header-actions > button,
+.result-header-actions > .result-secondary-button,
+.result-header-actions > .result-back-button,
+.result-header-actions > .result-primary-button,
+.result-header-actions > .ghost-btn,
+.result-header-actions > .primary-btn,
+.result-card-actions > a,
+.result-card-actions > button,
+.welcome-actions > a,
+.welcome-actions > button,
+.ktt-page-head-row > .ktt-actions > a,
+.ktt-page-head > .ktt-actions > a,
+.ktt-report-actions > a,
+.ktt-report-actions > .ktt-outline-btn,
+.profile-head-actions > a,
+.profile-head-actions > button,
+.ny-head-actions > a,
+.ny-head-actions > button,
+.at-page-head-actions > a,
+.at-page-head-actions > button,
+.dash-hero-actions > a,
+.dash-hero-actions > button,
+.page-hero-actions > a,
+.page-hero-actions > button,
+.page-head .result-secondary-button,
+.page-head .result-back-button,
+.patterned-page-head .result-secondary-button,
+.patterned-page-head .result-back-button,
+.result-entry-header .result-secondary-button,
+.result-entry-header .result-back-button,
+.result-page-header .result-secondary-button,
+.result-page-header .result-back-button,
+.ktt-page-head .ktt-outline-btn,
+.ktt-page-head-row .ktt-outline-btn {
+    min-height: var(--panel-head-btn-h) !important;
+    height: var(--panel-head-btn-h) !important;
+    min-width: var(--panel-head-btn-min-w) !important;
+    padding: 0 var(--panel-head-btn-pad-x) !important;
+    margin: 0 !important;
+    border-radius: var(--panel-head-btn-radius) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+    letter-spacing: 0.01em;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    white-space: nowrap !important;
+    flex: 0 0 auto;
+    text-align: center;
+    text-decoration: none !important;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.page-head .page-head-actions > a,
+.page-head .page-head-actions > button,
+.page-head .page-head-actions > .ghost-btn,
+.page-head .page-head-actions > .primary-btn,
+.patterned-page-head .page-head-actions > a,
+.patterned-page-head .page-head-actions > button,
+.patterned-page-head .page-head-actions > .ghost-btn,
+.yonetim-page-head .yonetim-page-head-actions > a,
+.yonetim-page-head .yonetim-page-head-actions > button,
+.yonetim-page-head .yonetim-page-head-actions > .ghost-btn,
+.yonetim-page-head .yonetim-page-head-actions > .yonetim-head-ghost,
+.yonetim-page-head .yonetim-page-head-actions > .primary-btn,
+.welcome-panel .welcome-actions > a,
+.welcome-panel .welcome-actions > button,
+.result-entry-header .result-header-actions > a,
+.result-entry-header .result-header-actions > button,
+.result-page-header .result-header-actions > a,
+.result-page-header .result-header-actions > button,
+.ktt-page-head .ktt-actions > a,
+.ktt-page-head-row .ktt-actions > a,
+.daily-header .page-head-actions > a,
+.exam-page-head .page-head-actions > a,
+.ogretmen-page-head .page-head-actions > a,
+.ny-head .ny-head-actions > a,
+.at-page-head .at-page-head-actions > a,
+.page-head .result-secondary-button,
+.page-head .result-back-button,
+.patterned-page-head .result-secondary-button,
+.patterned-page-head .result-back-button,
+.result-entry-header .result-secondary-button,
+.result-entry-header .result-back-button,
+.result-page-header .result-secondary-button,
+.result-page-header .result-back-button {
+    background: rgba(255, 255, 255, 0.14) !important;
+    color: #fff !important;
+    border: 1px solid rgba(255, 255, 255, 0.38) !important;
+    box-shadow: none !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.page-head .page-head-actions > a:hover,
+.page-head .page-head-actions > button:hover,
+.patterned-page-head .page-head-actions > a:hover,
+.yonetim-page-head .yonetim-page-head-actions > a:hover,
+.yonetim-page-head .yonetim-page-head-actions > button:hover,
+.welcome-panel .welcome-actions > a:hover,
+.result-entry-header .result-header-actions > a:hover,
+.result-page-header .result-header-actions > a:hover,
+.ktt-page-head .ktt-actions > a:hover,
+.ktt-page-head-row .ktt-actions > a:hover,
+.result-entry-header .result-secondary-button:hover,
+.result-entry-header .result-back-button:hover,
+.result-page-header .result-secondary-button:hover,
+.result-page-header .result-back-button:hover {
+    background: rgba(255, 255, 255, 0.24) !important;
+    border-color: rgba(255, 255, 255, 0.55) !important;
+    color: #fff !important;
+}
+
+.page-head-actions .pdf-sayfa-sec,
+.yonetim-page-head-actions .pdf-sayfa-sec,
+.result-header-actions .pdf-sayfa-sec,
+.ktt-report-actions .pdf-sayfa-sec,
+.ktt-page-head .pdf-sayfa-sec {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: var(--panel-head-btn-gap) !important;
+    margin: 0 !important;
+    flex-wrap: wrap;
+}
+
+.page-head-actions .pdf-sayfa-sec-select,
+.result-header-actions .pdf-sayfa-sec-select,
+.ktt-report-actions .pdf-sayfa-sec-select {
+    min-height: var(--panel-head-btn-h) !important;
+    height: var(--panel-head-btn-h) !important;
+    border-radius: var(--panel-head-btn-radius) !important;
+    padding: 0 12px !important;
+    box-sizing: border-box;
+}
+
+.page-head-actions .pdf-sayfa-sec [data-pdf-sayfa-link],
+.result-header-actions .pdf-sayfa-sec [data-pdf-sayfa-link],
+.ktt-report-actions .pdf-sayfa-sec [data-pdf-sayfa-link] {
+    min-height: var(--panel-head-btn-h) !important;
+    height: var(--panel-head-btn-h) !important;
+    min-width: var(--panel-head-btn-min-w) !important;
+    padding: 0 var(--panel-head-btn-pad-x) !important;
+    border-radius: var(--panel-head-btn-radius) !important;
+}
+
+.page-head-actions > form,
+.yonetim-page-head-actions > form,
+.result-header-actions > form,
+.ktt-actions > form {
+    display: inline-flex;
+    margin: 0;
+    padding: 0;
+}
+
+.page-head-actions > form > button,
+.yonetim-page-head-actions > form > button,
+.result-header-actions > form > button,
+.ktt-actions > form > button {
+    min-height: var(--panel-head-btn-h) !important;
+    height: var(--panel-head-btn-h) !important;
+    min-width: var(--panel-head-btn-min-w) !important;
+    padding: 0 var(--panel-head-btn-pad-x) !important;
+    border-radius: var(--panel-head-btn-radius) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+}
+
+@media (max-width: 700px) {
+    .page-head-actions,
+    .yonetim-page-head-actions,
+    .result-header-actions,
+    .welcome-actions,
+    .ktt-page-head-row > .ktt-actions,
+    .ktt-report-actions {
+        width: 100% !important;
+        justify-content: stretch !important;
+    }
+
+    .page-head-actions > a,
+    .page-head-actions > button,
+    .yonetim-page-head-actions > a,
+    .yonetim-page-head-actions > button,
+    .result-header-actions > a,
+    .result-header-actions > button,
+    .ktt-page-head-row > .ktt-actions > a,
+    .ktt-report-actions > a {
+        flex: 1 1 calc(50% - 6px) !important;
+        min-width: 0 !important;
+    }
+}
+
+/* ============================================================
+   Kayma / overflow — sayfa yatay kaymasın
+   ============================================================ */
+html,
+body.v3-body,
+body.yonetim-body,
+body.ogretmen-body,
+body.veli-body,
+body.talebe-body {
+    overflow-x: clip;
+    max-width: 100%;
+}
+
+.v3-main,
+.cs-v6-main,
+.v3-main .page-content,
+.cs-v6-main .page-content,
+.yonetim-main,
+.library-page,
+.report-page,
+.st-page,
+.ktt-page,
+.at-page,
+.ny-page,
+.mz-page,
+.fn-page,
+.rh-page,
+.dd-page,
+.ep-page,
+.dp-page,
+.dk-page,
+.im-page,
+.tz-page,
+.result-entry-page,
+.result-panel-page {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-x: clip;
+}
+
+.responsive-table,
+.st-table-wrap,
+.ktt-table-wrap,
+.report-data-table-wrap {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.metric-grid,
+.library-metrics,
+.st-layout,
+.st-filter-grid,
+.st-report-form,
+.ktt-split,
+.ktt-form-grid {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
 }

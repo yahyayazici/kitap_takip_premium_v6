@@ -8,7 +8,19 @@
     width: 100%; min-height: 42px; padding: 0 12px; border: 1px solid #d2dce8; border-radius: 10px; font: inherit;
 }
 .oo-metrics { margin-bottom: 18px; }
-.oo-rate-input { margin-top: 12px; width: 100%; border: 0; background: transparent; font-size: 24px; font-weight: 500; color: inherit; }
+.oo-rate-input {
+    margin-top: 12px;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    font-size: 24px;
+    font-weight: 500;
+    color: inherit;
+    text-align: left;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 .oo-report-filter { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto auto auto; gap: 12px; align-items: end; }
 .oo-report-filter label { display: grid; gap: 6px; font-size: 11px; color: #66768c; }
 .oo-report-filter input, .oo-report-filter select { min-height: 42px; padding: 0 12px; border: 1px solid #d2dce8; border-radius: 10px; }
@@ -89,11 +101,14 @@
 .oo-cell-input {
     width: 54px;
     min-height: 36px !important;
-    padding: 0 6px !important;
-    text-align: center;
+    padding: 0 8px !important;
+    text-align: left;
     border-radius: 8px !important;
     border: 1px solid #dbe3ee !important;
     background: #fff;
+    font-variant-numeric: tabular-nums;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 .oo-cell-input:focus {
     outline: none;

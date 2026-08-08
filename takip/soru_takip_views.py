@@ -83,9 +83,11 @@ def soru_takip_panel(request):
             request.POST,
             gunluk_not=request.POST.get("gunluk_not", "").strip(),
         )
-        for hata in hatalar:
-            messages.error(request, hata)
-        if not hatalar:
+        if hatalar:
+            from takip.messages_util import hatalari_ozetle
+
+            hatalari_ozetle(request, hatalar, tek_baslik="Soru kaydı hatalı")
+        else:
             messages.success(request, "Günlük soru kaydı kaydedildi.")
             return redirect(
                 f"{request.path}?talebe={talebe.id}&tarih={tarih:%Y-%m-%d}"
@@ -222,32 +224,18 @@ def soru_takip_pdf(request):
 @login_required
 @require_permission("soru_takip", "export_excel")
 def soru_takip_excel(request):
+    from takip.excel_rapor import basit_rapor_xlsx, excel_http_yanit
+
     filtre = rapor_filtre_dict(request)
     kayitlar, _, _, _ = rapor_kayitlari(request.user, filtre)
 
-    buffer = StringIO()
-    writer = csv.writer(buffer, delimiter=";")
-    writer.writerow(
-        [
-            "Tarih",
-            "Talebe",
-            "Sınıf",
-            "Ders",
-            "Toplam",
-            "Doğru",
-            "Yanlış",
-            "Boş",
-            "Net",
-            "Not",
-        ]
-    )
-
+    satirlar = []
     for kayit in kayitlar[:500]:
         for satir in kayit.ders_satirlari.select_related("ders"):
-            writer.writerow(
+            satirlar.append(
                 [
                     kayit.tarih.strftime("%d.%m.%Y"),
-                    kayit.talebe.ad_soyad,
+                    (kayit.talebe.ad_soyad or "").upper(),
                     str(kayit.talebe.sinif_sube or kayit.talebe.sinif or ""),
                     satir.ders.ad,
                     satir.toplam_soru,
@@ -255,13 +243,21 @@ def soru_takip_excel(request):
                     satir.yanlis,
                     satir.bos,
                     str(satir.net).replace(".", ","),
-                    kayit.gunluk_not.replace("\n", " ")[:120],
+                    (kayit.gunluk_not or "").replace("\n", " ")[:120],
                 ]
             )
 
-    response = HttpResponse(
-        "\ufeff" + buffer.getvalue(),
-        content_type="text/csv; charset=utf-8",
+    icerik = basit_rapor_xlsx(
+        baslik="Soru Takip Raporu",
+        alt_baslik=localdate().strftime("%d.%m.%Y"),
+        kolon_basliklari=[
+            "Tarih", "Ad-Soyad", "Sınıf", "Ders", "Toplam",
+            "Doğru", "Yanlış", "Boş", "Net", "Not",
+        ],
+        satirlar=satirlar,
+        sayfa_adi="Soru Takip",
+        vurgu_kolonlari=[8],
+        ortala_kolonlari=[0, 2, 4, 5, 6, 7],
+        genislikler=[12, 26, 10, 14, 10, 9, 9, 9, 9, 28],
     )
-    response["Content-Disposition"] = 'attachment; filename="soru_takip_rapor.csv"'
-    return response
+    return excel_http_yanit(icerik, f"soru_takip_rapor_{localdate():%Y%m%d}.xlsx")

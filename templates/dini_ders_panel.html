@@ -2,124 +2,91 @@
 {% load static %}
 {% block title %}Dini Ders Takip · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}">
+<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}?v=nizam1">
 {% endblock %}
 {% block content %}
 <div class="dd-page">
-    <header class="dd-head">
-        <div>
-            <p class="dd-eyebrow">Dini Ders Takip</p>
-            <h1>Dini Ders Takip Matrisi</h1>
-            <p class="dd-desc">Seviye ve takip alanı seçin · Talebe × konu ilerleme işaretleme</p>
-        </div>
-        <div class="dd-actions">
-            {% if seviye and alan %}
-            <a href="{% url 'yonetim:dini_ders_konu_listesi' %}" class="dd-btn">Konu Listesini Düzenle</a>
-            {% endif %}
-            <a href="{% url 'dini_ders_rapor' %}{% if seviye and alan %}?seviye={{ seviye.id }}&alan={{ alan.id }}{% endif %}" class="dd-btn">Rapor</a>
-            <a href="{% url 'dashboard' %}" class="dd-btn">Ana Sayfa</a>
-        </div>
-    </header>
 
-    <details class="dd-help">
-        <summary>Nasıl kullanılır?</summary>
-        <ol style="margin:0.65rem 0 0;padding-left:1.2rem;">
-            <li>Yönetim → Dini Ders sekmelerinden seviye, alan ve konuları tanımlayın.</li>
-            <li>Talebelere dini ders seviyesi ve hocası atayın.</li>
-            <li>Seviye + alan seçerek matriste tamamlanan konuları işaretleyin.</li>
-        </ol>
-        {% if ornek_cizelge_link %}
-        <p style="margin:0.65rem 0 0;"><a href="{{ ornek_cizelge_link }}" class="dd-btn dd-btn-sm">Örnek çizelge (Seviye 1 · Sure Ezberi)</a></p>
+<header class="page-head patterned-page-head dd-page-head">
+    <div>
+        <p class="kicker">DİNİ DERS TAKİP</p>
+        <h1>Dini Ders Takip Matrisi</h1>
+        <p class="muted">Seviye ve takip alanı seçin · Talebe × konu ilerleme işaretleme</p>
+    </div>
+    <div class="result-header-actions">
+        {% if seviye and alan %}
+        <a href="{% url 'yonetim:dini_ders_konu_listesi' %}" class="result-secondary-button">Konu Listesini Düzenle</a>
         {% endif %}
-    </details>
+        <a href="{% url 'dini_ders_rapor' %}{% if seviye and alan %}?seviye={{ seviye.id }}&alan={{ alan.id }}{% endif %}" class="result-secondary-button">Rapor</a>
+        <a href="{% url 'dashboard' %}" class="result-back-button">Ana Sayfa</a>
+    </div>
+</header>
 
-    <section class="dd-card" style="margin-bottom:1rem;">
-        <form method="get" class="dd-filter-grid">
-            <div class="dd-field">
-                <label for="dd-seviye">Dini Ders Seviyesi</label>
-                <select id="dd-seviye" name="seviye" required onchange="this.form.submit()">
-                    <option value="">Seçin…</option>
-                    {% for s in seviyeler %}
-                    <option value="{{ s.id }}" {% if seviye and seviye.id == s.id %}selected{% endif %}>{{ s.ad }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="dd-field">
-                <label for="dd-alan">Takip Alanı</label>
-                <select id="dd-alan" name="alan" required onchange="this.form.submit()">
-                    <option value="">Seçin…</option>
-                    {% for a in alanlar %}
-                    <option value="{{ a.id }}" {% if alan and alan.id == a.id %}selected{% endif %}>{{ a.ad }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </form>
-    </section>
+<details class="dd-help">
+    <summary>Nasıl kullanılır?</summary>
+    <ol>
+        <li>Yönetim → Dini Ders sekmelerinden seviye, alan ve konuları tanımlayın.</li>
+        <li>Talebelere dini ders seviyesi ve hocası atayın.</li>
+        <li>Seviye + alan seçerek matriste tamamlanan konuları işaretleyin.</li>
+    </ol>
+    {% if ornek_cizelge_link %}
+    <p class="dd-help-link"><a href="{{ ornek_cizelge_link }}" class="dd-btn dd-btn-sm">Örnek çizelge (Seviye 1 · Sure Ezberi)</a></p>
+    {% endif %}
+</details>
 
-    {% if seviye and alan %}
-    {% if talebe_satirlari and konular %}
-    <div class="dd-layout">
-        <section class="dd-card dd-matrix-card">
-            <div class="dd-matrix-head">
-                <div>
-                    <p class="dd-eyebrow">Çizelge Görünümü</p>
-                    <h2>{{ seviye.ad }} · {{ alan.ad }}</h2>
-                </div>
-                <span class="dd-pill dd-pill-gray">{{ konular|length }} konu · {{ talebeler|length }} talebe</span>
-            </div>
+<section class="dd-filter-bar">
+    <form method="get" class="dd-filter-grid">
+        <div class="dd-field">
+            <label for="dd-seviye">Dini Ders Seviyesi</label>
+            <select id="dd-seviye" name="seviye" required onchange="this.form.submit()">
+                <option value="">Seçin…</option>
+                {% for s in seviyeler %}
+                <option value="{{ s.id }}" {% if seviye and seviye.id == s.id %}selected{% endif %}>{{ s.ad }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="dd-field">
+            <label for="dd-alan">Takip Alanı</label>
+            <select id="dd-alan" name="alan" required onchange="this.form.submit()">
+                <option value="">Seçin…</option>
+                {% for a in alanlar %}
+                <option value="{{ a.id }}" {% if alan and alan.id == a.id %}selected{% endif %}>{{ a.ad }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+</section>
 
-            {% if duzenleyebilir %}
-            <form method="post">
-                {% csrf_token %}
-                <input type="hidden" name="seviye_id" value="{{ seviye.id }}">
-                <input type="hidden" name="alan_id" value="{{ alan.id }}">
-                <div class="dd-matrix-wrap">
-                    <table class="dd-matrix">
-                        <thead>
-                            <tr>
-                                <th class="dd-sticky-col">Talebe</th>
-                                {% for konu in konular %}
-                                <th class="dd-topic-col" title="{{ konu.ad }}">{{ konu.ad }}</th>
-                                {% endfor %}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for satir in talebe_satirlari %}
-                            <tr>
-                                <td class="dd-sticky-col">
-                                    <div class="dd-student-cell">
-                                        <span class="dd-student-no">{{ satir.sira }}</span>
-                                        <span class="dd-student-name">{{ satir.talebe.ad_soyad }}</span>
-                                    </div>
-                                </td>
-                                {% for hucre in satir.hucreler %}
-                                <td>
-                                    <label class="dd-cell-check" title="Tamamlandı">
-                                        <input type="checkbox"
-                                               name="k_{{ hucre.talebe_id }}_{{ hucre.konu_id }}"
-                                               value="1"
-                                               {% if hucre.tamamlandi %}checked{% endif %}>
-                                    </label>
-                                </td>
-                                {% endfor %}
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                <div class="dd-form-foot">
-                    <button type="submit" class="dd-btn dd-btn-primary">Kaydet</button>
-                    <span class="dd-desc">Yeşil tik = tamamlandı · Boş = işlenmedi / devam</span>
-                </div>
-            </form>
-            {% else %}
+{% if seviye and alan %}
+{% if talebe_satirlari and konular %}
+<div class="dd-layout">
+    <section class="dd-card dd-matrix-card">
+        <div class="dd-matrix-head">
+            <div>
+                <p class="dd-eyebrow">Çizelge Görünümü</p>
+                <h2>{{ seviye.ad }} · {{ alan.ad }}</h2>
+            </div>
+            <span class="dd-pill dd-pill-blue">{{ konular|length }} konu · {{ talebeler|length }} talebe</span>
+        </div>
+
+        <div class="dd-legend" aria-label="Durum renkleri">
+            <span class="dd-legend-item dd-legend-tamam"><em>✓</em> Tamamlandı</span>
+            <span class="dd-legend-item dd-legend-devam"><em>⏳</em> Devam</span>
+            <span class="dd-legend-item dd-legend-bos"><em>○</em> İşlenmedi</span>
+        </div>
+
+        {% if duzenleyebilir %}
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="seviye_id" value="{{ seviye.id }}">
+            <input type="hidden" name="alan_id" value="{{ alan.id }}">
             <div class="dd-matrix-wrap">
                 <table class="dd-matrix">
                     <thead>
                         <tr>
                             <th class="dd-sticky-col">Talebe</th>
                             {% for konu in konular %}
-                            <th class="dd-topic-col" title="{{ konu.ad }}">{{ konu.ad }}</th>
+                            <th class="dd-topic-col" title="{{ konu.ad }}"><span>{{ konu.ad }}</span></th>
                             {% endfor %}
                         </tr>
                     </thead>
@@ -133,14 +100,14 @@
                                 </div>
                             </td>
                             {% for hucre in satir.hucreler %}
-                            <td>
-                                {% if hucre.durum == 'tamam' %}
-                                <span class="dd-status dd-status-tamam" title="Tamamlandı">✓</span>
-                                {% elif hucre.durum == 'devam' %}
-                                <span class="dd-status dd-status-devam" title="Devam ediyor">⏳</span>
-                                {% else %}
-                                <span class="dd-status" title="İşlenmedi">○</span>
-                                {% endif %}
+                            <td class="dd-cell">
+                                <label class="dd-cell-check" title="Tamamlandı">
+                                    <input type="checkbox"
+                                           name="k_{{ hucre.talebe_id }}_{{ hucre.konu_id }}"
+                                           value="1"
+                                           {% if hucre.tamamlandi %}checked{% endif %}>
+                                    <span class="dd-cell-box" aria-hidden="true"></span>
+                                </label>
                             </td>
                             {% endfor %}
                         </tr>
@@ -148,75 +115,119 @@
                     </tbody>
                 </table>
             </div>
-            {% endif %}
+            <div class="dd-form-foot">
+                <button type="submit" class="dd-btn dd-btn-primary">Kaydet</button>
+                <span class="dd-desc">Yeşil tik = tamamlandı · Boş = işlenmedi / devam</span>
+            </div>
+        </form>
+        {% else %}
+        <div class="dd-matrix-wrap">
+            <table class="dd-matrix">
+                <thead>
+                    <tr>
+                        <th class="dd-sticky-col">Talebe</th>
+                        {% for konu in konular %}
+                        <th class="dd-topic-col" title="{{ konu.ad }}"><span>{{ konu.ad }}</span></th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for satir in talebe_satirlari %}
+                    <tr>
+                        <td class="dd-sticky-col">
+                            <div class="dd-student-cell">
+                                <span class="dd-student-no">{{ satir.sira }}</span>
+                                <span class="dd-student-name">{{ satir.talebe.ad_soyad }}</span>
+                            </div>
+                        </td>
+                        {% for hucre in satir.hucreler %}
+                        <td class="dd-cell">
+                            {% if hucre.durum == 'tamam' %}
+                            <span class="dd-status dd-status-tamam" title="Tamamlandı">✓</span>
+                            {% elif hucre.durum == 'devam' %}
+                            <span class="dd-status dd-status-devam" title="Devam ediyor">⏳</span>
+                            {% else %}
+                            <span class="dd-status dd-status-bos" title="İşlenmedi">○</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </section>
+
+    <aside class="dd-aside">
+        {% if sidebar_ozet %}
+        <section class="dd-card dd-aside-card">
+            <p class="dd-eyebrow">Seviye Özeti</p>
+            <div class="dd-stat-grid">
+                <article class="dd-stat dd-stat--blue">
+                    <span>Toplam Konu</span>
+                    <strong>{{ sidebar_ozet.toplam_konu }}</strong>
+                </article>
+                <article class="dd-stat dd-stat--green">
+                    <span>Tamamlanan</span>
+                    <strong>{{ sidebar_ozet.tamamlanan }}</strong>
+                </article>
+                <article class="dd-stat dd-stat--amber">
+                    <span>Devam Eden</span>
+                    <strong>{{ sidebar_ozet.devam_eden }}</strong>
+                </article>
+                <article class="dd-stat dd-stat--slate">
+                    <span>İşlenmeyen</span>
+                    <strong>{{ sidebar_ozet.islenmeyen }}</strong>
+                </article>
+            </div>
+            <div class="dd-progress">
+                <div class="dd-progress-label">
+                    <span>Genel İlerleme</span>
+                    <strong>%{{ sidebar_ozet.yuzde }}</strong>
+                </div>
+                <div class="dd-progress-bar">
+                    <div class="dd-progress-fill" style="width: {{ sidebar_ozet.yuzde }}%;"></div>
+                </div>
+            </div>
         </section>
+        {% endif %}
 
-        <aside class="dd-aside">
-            {% if sidebar_ozet %}
-            <section class="dd-card">
-                <p class="dd-eyebrow">Seviye Özeti</p>
-                <div class="dd-stat-grid">
-                    <article class="dd-stat">
-                        <span>Toplam Konu</span>
-                        <strong>{{ sidebar_ozet.toplam_konu }}</strong>
-                    </article>
-                    <article class="dd-stat">
-                        <span>Tamamlanan</span>
-                        <strong>{{ sidebar_ozet.tamamlanan }}</strong>
-                    </article>
-                    <article class="dd-stat">
-                        <span>Devam Eden</span>
-                        <strong>{{ sidebar_ozet.devam_eden }}</strong>
-                    </article>
-                    <article class="dd-stat">
-                        <span>İşlenmeyen</span>
-                        <strong>{{ sidebar_ozet.islenmeyen }}</strong>
-                    </article>
-                </div>
-                <div class="dd-progress">
-                    <div class="dd-progress-label">
-                        <span>Genel İlerleme</span>
-                        <strong>%{{ sidebar_ozet.yuzde }}</strong>
-                    </div>
-                    <div class="dd-progress-bar">
-                        <div class="dd-progress-fill" style="width: {{ sidebar_ozet.yuzde }}%;"></div>
-                    </div>
-                </div>
-            </section>
-            {% endif %}
-
-            <section class="dd-card">
-                <p class="dd-eyebrow">Son İşlenen Konular</p>
-                <ul class="dd-recent-list">
-                    {% for kayit in son_kayitlar %}
-                    <li>
+        <section class="dd-card dd-aside-card">
+            <p class="dd-eyebrow">Son İşlenen Konular</p>
+            <ul class="dd-recent-list">
+                {% for kayit in son_kayitlar %}
+                <li>
+                    <span class="dd-recent-dot dd-recent-dot--green" aria-hidden="true"></span>
+                    <div>
                         <strong>{{ kayit.konu.ad }}</strong>
                         <small>{{ kayit.talebe.ad_soyad }} · {{ kayit.guncellenme|date:"d.m.Y" }}</small>
-                    </li>
-                    {% empty %}
-                    <li><small>Henüz kayıt yok.</small></li>
-                    {% endfor %}
-                </ul>
-            </section>
-        </aside>
-    </div>
-    {% else %}
-    <section class="dd-card">
-        <p class="dd-empty">
-            {% if not konular %}
-            Bu seviye ve alan için konu tanımlı değil.
-            <a href="{% url 'yonetim:dini_ders_konu_listesi' %}">Yönetim → Konu Listeleri</a> bölümünden ekleyin.
-            {% elif not talebeler %}
-            Bu seviyede talebe görünmüyor. Yönetim → Talebeler ekranından öğrenciye
-            <em>dini ders seviyesi</em> ({{ seviye.ad }}) atayın.
-            {% endif %}
-        </p>
-    </section>
-    {% endif %}
-    {% else %}
-    <section class="dd-card">
-        <p class="dd-empty">Matrisi görmek için seviye ve takip alanı seçin.</p>
-    </section>
-    {% endif %}
+                    </div>
+                </li>
+                {% empty %}
+                <li class="dd-recent-empty"><small>Henüz kayıt yok.</small></li>
+                {% endfor %}
+            </ul>
+        </section>
+    </aside>
+</div>
+{% else %}
+<section class="dd-card">
+    <p class="dd-empty">
+        {% if not konular %}
+        Bu seviye ve alan için konu tanımlı değil.
+        <a href="{% url 'yonetim:dini_ders_konu_listesi' %}">Yönetim → Konu Listeleri</a> bölümünden ekleyin.
+        {% elif not talebeler %}
+        Bu seviyede talebe görünmüyor. Yönetim → Talebeler ekranından öğrenciye
+        <em>dini ders seviyesi</em> ({{ seviye.ad }}) atayın.
+        {% endif %}
+    </p>
+</section>
+{% endif %}
+{% else %}
+<section class="dd-card">
+    <p class="dd-empty">Matrisi görmek için seviye ve takip alanı seçin.</p>
+</section>
+{% endif %}
 </div>
 {% endblock %}

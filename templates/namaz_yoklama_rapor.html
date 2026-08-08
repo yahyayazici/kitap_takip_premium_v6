@@ -1,45 +1,126 @@
 {% extends "base.html" %}
 {% load static filter_tags %}
 {% block title %}Namaz Raporu · {{ panel_short }}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/namaz-yoklama.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/namaz-yoklama.css' %}?v=ny-rapor-2">{% endblock %}
 {% block content %}
-<div class="ny-page">
+<div class="ny-page ny-rapor-page">
     <header class="ny-head">
-        <h1>☪ Namaz Yoklama Raporu</h1>
-        <p>Vakit, tarih, sınıf, etüt ve talebe bazlı detaylı filtreleme.</p>
+        <div>
+            <p class="ny-eyebrow">Rapor</p>
+            <h1>Namaz Yoklama Raporu</h1>
+            <p class="ny-sub">Vakit, tarih, sınıf, etüt ve talebe bazlı filtreleme</p>
+        </div>
+        <div class="ny-head-actions">
+            {% if pdf_yetkisi %}
+            <a href="{{ pdf_url }}" class="ny-chip ny-chip-pdf">PDF İndir</a>
+            {% endif %}
+            <a href="{% url 'namaz_yoklama_panel' %}" class="ny-chip">Yoklama Paneli</a>
+        </div>
     </header>
 
-    <div class="ny-toolbar">
-        {% if pdf_yetkisi %}<a href="{{ pdf_url }}" class="ny-btn ny-btn-ghost" style="color:#dc2626;border-color:#fca5a5;">PDF İndir</a>{% endif %}
-        <a href="{% url 'namaz_yoklama_panel' %}" class="ny-btn ny-btn-ghost">Yoklama Paneli</a>
-    </div>
+    <section class="ny-rapor-card" aria-label="Filtreler">
+        <form method="get" class="ny-rapor-filters">
+            <label class="ny-rapor-field">
+                <span>Vakit</span>
+                <select name="vakit" class="ms-filter" multiple data-placeholder="Tüm vakitler">
+                    {% for k,l in vakit_labels.items %}
+                    <option value="{{ k }}" {% if k|in_filter:filtre.vakit %}selected{% endif %}>{{ l }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="ny-rapor-field">
+                <span>Sınıf</span>
+                <select name="sinif_sube" class="ms-filter" multiple data-placeholder="Tüm sınıflar">
+                    {% for ss in sinif_subeler %}
+                    <option value="{{ ss.id }}" {% if ss.id|in_filter:filtre.sinif_sube %}selected{% endif %}>{{ ss.sinif }}-{{ ss.sube }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="ny-rapor-field">
+                <span>Etüt</span>
+                <select name="etut_hocasi" class="ms-filter" multiple data-placeholder="Tüm etütler">
+                    {% for h in etut_hocalari %}
+                    <option value="{{ h.id }}" {% if h.id|in_filter:filtre.etut_hocasi %}selected{% endif %}>{{ h.ad_soyad }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="ny-rapor-field">
+                <span>Talebe</span>
+                <select name="talebe" class="ms-filter" multiple data-placeholder="Tüm talebeler">
+                    {% for t in talebeler %}
+                    <option value="{{ t.id }}" {% if t.id|in_filter:filtre.talebe %}selected{% endif %}>{{ t.ad_soyad }}</option>
+                    {% endfor %}
+                </select>
+            </label>
 
-    <section class="ny-table-card" style="margin-bottom:18px;padding:18px;">
-        <form method="get" class="ny-filter-row" style="padding:0;">
-            <label>Vakit<select name="vakit" class="ms-filter" multiple data-placeholder="Tüm vakitler">{% for k,l in vakit_labels.items %}<option value="{{ k }}" {% if k|in_filter:filtre.vakit %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></label>
-            <label>Sınıf<select name="sinif_sube" class="ms-filter" multiple data-placeholder="Tüm sınıflar">{% for ss in sinif_subeler %}<option value="{{ ss.id }}" {% if ss.id|in_filter:filtre.sinif_sube %}selected{% endif %}>{{ ss.sinif }}-{{ ss.sube }}</option>{% endfor %}</select></label>
-            <label>Etüt<select name="etut_hocasi" class="ms-filter" multiple data-placeholder="Tüm etütler">{% for h in etut_hocalari %}<option value="{{ h.id }}" {% if h.id|in_filter:filtre.etut_hocasi %}selected{% endif %}>{{ h.ad_soyad }}</option>{% endfor %}</select></label>
-            <label>Talebe<select name="talebe" class="ms-filter" multiple data-placeholder="Tüm talebeler">{% for t in talebeler %}<option value="{{ t.id }}" {% if t.id|in_filter:filtre.talebe %}selected{% endif %}>{{ t.ad_soyad }}</option>{% endfor %}</select></label>
-            <label>Dönem<select name="donem"><option value="">Tümü</option><option value="haftalik" {% if filtre.donem == 'haftalik' %}selected{% endif %}>Haftalık</option><option value="aylik" {% if filtre.donem == 'aylik' %}selected{% endif %}>Aylık</option><option value="donemlik" {% if filtre.donem == 'donemlik' %}selected{% endif %}>Dönemlik</option></select></label>
-            <label>Başlangıç<input type="date" name="baslangic" value="{{ filtre.baslangic }}"></label>
-            <label>Bitiş<input type="date" name="bitis" value="{{ filtre.bitis }}"></label>
-            <label>Durum<select name="durum" class="ms-filter" multiple data-placeholder="Tüm durumlar"><option value="G" {% if 'G'|in_filter:filtre.durum %}selected{% endif %}>Gelmedi</option><option value="TT" {% if 'TT'|in_filter:filtre.durum %}selected{% endif %}>T&amp;T</option><option value="I" {% if 'I'|in_filter:filtre.durum %}selected{% endif %}>İzinli</option></select></label>
-            <button type="submit" class="ny-btn ny-btn-blue">Filtrele</button>
+            <label class="ny-rapor-field">
+                <span>Dönem</span>
+                <select name="donem">
+                    <option value="">Tümü</option>
+                    <option value="haftalik" {% if filtre.donem == 'haftalik' %}selected{% endif %}>Haftalık</option>
+                    <option value="aylik" {% if filtre.donem == 'aylik' %}selected{% endif %}>Aylık</option>
+                    <option value="donemlik" {% if filtre.donem == 'donemlik' %}selected{% endif %}>Dönemlik</option>
+                </select>
+            </label>
+            <label class="ny-rapor-field">
+                <span>Başlangıç</span>
+                <input type="date" name="baslangic" value="{{ filtre.baslangic }}">
+            </label>
+            <label class="ny-rapor-field">
+                <span>Bitiş</span>
+                <input type="date" name="bitis" value="{{ filtre.bitis }}">
+            </label>
+            <label class="ny-rapor-field">
+                <span>Durum</span>
+                <select name="durum" class="ms-filter" multiple data-placeholder="Tüm durumlar">
+                    <option value="G" {% if 'G'|in_filter:filtre.durum %}selected{% endif %}>Gelmedi</option>
+                    <option value="TT" {% if 'TT'|in_filter:filtre.durum %}selected{% endif %}>T&amp;T</option>
+                    <option value="I" {% if 'I'|in_filter:filtre.durum %}selected{% endif %}>İzinli</option>
+                </select>
+            </label>
+
+            <div class="ny-rapor-actions">
+                <button type="submit" class="ny-btn-save">Filtrele</button>
+            </div>
         </form>
     </section>
 
-    <div class="ny-vakit-cards" style="margin-bottom:18px;">
-        <article class="ny-vakit-card sabah"><span>Toplam Kayıt</span><strong>{{ istatistik.toplam }}</strong></article>
-        <article class="ny-vakit-card ogle"><span>Gelmedi (G)</span><strong>{{ istatistik.gelmedi }}</strong></article>
-        <article class="ny-vakit-card ikindi"><span>T&amp;T</span><strong>{{ istatistik.takke_tesbih }}</strong></article>
-        <article class="ny-vakit-card aksam"><span>İzinli (İ)</span><strong>{{ istatistik.izinli }}</strong></article>
+    <div class="ny-rapor-stats" aria-label="Özet">
+        <article class="ny-rapor-stat is-toplam">
+            <span>Toplam Kayıt</span>
+            <strong>{{ istatistik.toplam }}</strong>
+        </article>
+        <article class="ny-rapor-stat is-gelmedi">
+            <span>Gelmedi (G)</span>
+            <strong>{{ istatistik.gelmedi }}</strong>
+        </article>
+        <article class="ny-rapor-stat is-tt">
+            <span>T&amp;T</span>
+            <strong>{{ istatistik.takke_tesbih }}</strong>
+        </article>
+        <article class="ny-rapor-stat is-izin">
+            <span>İzinli (İ)</span>
+            <strong>{{ istatistik.izinli }}</strong>
+        </article>
     </div>
 
-    <section class="ny-table-card">
-        <div class="ny-table-head"><h2>Kayıt Listesi</h2></div>
+    <section class="ny-rapor-card ny-rapor-list">
+        <div class="ny-rapor-list-head">
+            <h2>Kayıt Listesi</h2>
+            <span>{{ kayitlar|length }} satır</span>
+        </div>
         <div class="ny-table-wrap">
-            <table class="ny-table">
-                <thead><tr><th>Tarih</th><th>Vakit</th><th>Talebe</th><th>Sınıf</th><th>Etüt</th><th>Durum</th></tr></thead>
+            <table class="ny-table ny-rapor-table">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Vakit</th>
+                        <th>Talebe</th>
+                        <th>Sınıf</th>
+                        <th>Etüt</th>
+                        <th>Durum</th>
+                    </tr>
+                </thead>
                 <tbody>
                     {% for k in kayitlar %}
                     <tr>
@@ -51,7 +132,9 @@
                         <td>{{ k.get_durum_display }}</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="6">Kayıt bulunamadı.</td></tr>
+                    <tr>
+                        <td colspan="6" class="ny-rapor-empty">Kayıt bulunamadı.</td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>

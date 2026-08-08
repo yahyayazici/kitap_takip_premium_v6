@@ -1,0 +1,211 @@
+{% extends "yonetim/base.html" %}
+{% load static %}
+{% block title %}İdareci Özeti{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/idareci-premium.css' %}">
+{% endblock %}
+{% block content %}
+<div class="dash-home yonetim-dash idareci-dash">
+
+<section class="idareci-hero">
+    <div class="idareci-hero-copy">
+        <p class="idareci-hero-kicker">İdareci paneli</p>
+        <h1>Kurumu tek bakışta takip edin</h1>
+        <p>Kayıt girmeden personel, sınıf, yazılı, namaz ve vazife özetini görün. Pratik kısayollarla hemen ilgili ekrana geçin.</p>
+        <div class="idareci-hero-actions">
+            <a class="idareci-btn" href="{% url 'yonetim:personel_toplanti_ekle' %}">Toplantı tutanağı</a>
+            <a class="idareci-btn" href="{% url 'yonetim:vazife_listesi' %}">Vazife ata</a>
+            <a class="idareci-btn idareci-btn-ghost" href="{% url 'yonetim:yct_takvim' %}">YÇT takvimi</a>
+        </div>
+    </div>
+    <div class="idareci-tile-grid" aria-label="Özet karolar">
+        <a class="idareci-tile idareci-tile-sky" href="{% url 'yonetim:personel_listesi' %}">
+            <small>Personel</small>
+            <strong>{{ personel_sayisi }}</strong>
+            <span>Aktif profil</span>
+        </a>
+        <a class="idareci-tile idareci-tile-mint" href="{% url 'yonetim:sinif_listesi' %}">
+            <small>Sınıf</small>
+            <strong>{{ sinif_sayisi }}</strong>
+            <span>{{ talebe_sayisi }} talebe</span>
+        </a>
+        <a class="idareci-tile idareci-tile-amber" href="{% url 'yonetim:vazife_listesi' %}">
+            <small>Açık vazife</small>
+            <strong>{{ vazife_ozet.acik }}</strong>
+            <span>{{ vazife_ozet.geciken }} geciken</span>
+        </a>
+        <a class="idareci-tile idareci-tile-coral" href="{% url 'yonetim:yazili_kamp_listesi' %}">
+            <small>Yazılı</small>
+            <strong>{{ ornek_yazili }}/{{ gercek_yazili }}</strong>
+            <span>Örnek / gerçek</span>
+        </a>
+    </div>
+</section>
+
+<section class="idareci-promo-row" aria-label="Hızlı alanlar">
+    <a class="idareci-promo idareci-promo-violet" href="{% url 'yonetim:personel_toplanti_listesi' %}">
+        <small>Toplantı</small>
+        <h3>Personel toplantı tutanakları</h3>
+        <p>Karar, yapılacak ve takip maddelerini girin; PDF arşiv oluşsun, vazifeler otomatik gitsin.</p>
+        <span class="idareci-promo-cta">Toplantılara git →</span>
+    </a>
+    <a class="idareci-promo idareci-promo-blue" href="{% url 'yonetim:yct_takvim' %}">
+        <small>Plan</small>
+        <h3>Yıllık Çalışma Takvimi</h3>
+        <p>{{ yct_ay_etiket }} planını görün, personel ay ay bakar.</p>
+        <span class="idareci-promo-cta">Takvime git →</span>
+    </a>
+    <a class="idareci-promo idareci-promo-teal" href="{% url 'yonetim:yazili_kamp_listesi' %}">
+        <small>Ölçme</small>
+        <h3>Yazılı · örnek & gerçek</h3>
+        <p>Kamp sürecini ve okul yazılılarını ayrı takip edin.</p>
+        <span class="idareci-promo-cta">Yazılıya git →</span>
+    </a>
+    <a class="idareci-promo idareci-promo-violet" href="{% url 'namaz_yoklama_rapor' %}">
+        <small>İbadet</small>
+        <h3>Namaz katılımı</h3>
+        <p>Sınıf bazlı gelmedi özetini hızlıca görün.</p>
+        <span class="idareci-promo-cta">Rapora git →</span>
+    </a>
+</section>
+
+<div class="idareci-grid-2">
+    <section class="idareci-section">
+        <header class="idareci-section-head">
+            <div>
+                <p>Dini ders</p>
+                <h2>Sınıf tamamlanma</h2>
+            </div>
+        </header>
+        <div class="og-table-wrap">
+            <table class="og-grade-table">
+                <thead><tr><th>Sınıf</th><th>Talebe</th><th>Konu</th><th>%</th></tr></thead>
+                <tbody>
+                {% for s in dini_satirlar %}
+                <tr>
+                    <td>{{ s.sinif }}</td>
+                    <td>{{ s.talebe }}</td>
+                    <td>{{ s.tamamlanan }}/{{ s.toplam|default:0 }}</td>
+                    <td><strong>%{{ s.yuzde }}</strong></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="og-empty-note">Sınıf yok.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="idareci-section">
+        <header class="idareci-section-head">
+            <div>
+                <p>Namaz · 30 gün</p>
+                <h2>Sınıf gelmedi özeti</h2>
+            </div>
+        </header>
+        <div class="og-table-wrap">
+            <table class="og-grade-table">
+                <thead><tr><th>Sınıf</th><th>Gelmedi</th><th>İzinli</th><th>Ort/öğr</th></tr></thead>
+                <tbody>
+                {% for s in namaz_satirlar %}
+                <tr>
+                    <td>{{ s.sinif }}</td>
+                    <td>{{ s.gelmedi }}</td>
+                    <td>{{ s.izinli }}</td>
+                    <td><strong>{{ s.ort_gelmedi }}</strong></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="og-empty-note">Sınıf yok.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<div class="idareci-grid-2">
+    <section class="idareci-section">
+        <header class="idareci-section-head">
+            <div>
+                <p>Vazife</p>
+                <h2>Açık görevler</h2>
+            </div>
+            <a class="idareci-link" href="{% url 'yonetim:vazife_ekle' %}">+ Ata</a>
+        </header>
+        <div class="idareci-feed">
+            {% for v in acik_vazifeler %}
+            <article>
+                <div class="tag">{{ v.get_durum_display }} · {{ v.get_oncelik_display }}</div>
+                <h3>{{ v.baslik }}</h3>
+                <p>{{ v.atanan.ad_soyad }}{% if v.bitis %} · son {{ v.bitis|date:"d.m.Y" }}{% endif %}</p>
+            </article>
+            {% empty %}
+            <p class="og-empty-note">Açık vazife yok.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="idareci-section">
+        <header class="idareci-section-head">
+            <div>
+                <p>YÇT · {{ yct_ay_etiket }}</p>
+                <h2>Bu ayın planı</h2>
+            </div>
+            <a class="idareci-link" href="{% url 'yonetim:yct_takvim' %}">Takvim</a>
+        </header>
+        <div class="idareci-feed">
+            {% for o in yct_bu_ay %}
+            <article>
+                <div class="tag">{{ o.baslangic|date:"d.m" }}{% if o.bitis %}–{{ o.bitis|date:"d.m" }}{% endif %} · {{ o.get_kategori_display }}</div>
+                <h3>{{ o.baslik }}</h3>
+            </article>
+            {% empty %}
+            <p class="og-empty-note">Bu aya ait YÇT kaydı yok.</p>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+
+<section class="idareci-section">
+    <header class="idareci-section-head">
+        <div>
+            <p>Ölçme nabzı</p>
+            <h2>Son yazılı · KTT · deneme</h2>
+        </div>
+    </header>
+    <div class="og-table-wrap">
+        <table class="og-grade-table">
+            <thead><tr><th>Tür</th><th>Öğrenci</th><th>Sınav</th><th>Puan/Net</th></tr></thead>
+            <tbody>
+            {% for s in son_yazili %}
+            <tr>
+                <td>Yazılı · {{ s.sinav.get_tur_display }}</td>
+                <td>{{ s.talebe.ad_soyad }}</td>
+                <td>{{ s.sinav.etiket }}</td>
+                <td><strong>{{ s.puan }}</strong></td>
+            </tr>
+            {% endfor %}
+            {% for s in son_ktt %}
+            <tr>
+                <td>KTT</td>
+                <td>{{ s.talebe.ad_soyad }}</td>
+                <td>{{ s.ktt.ad }}</td>
+                <td><strong>{{ s.puan }}</strong></td>
+            </tr>
+            {% endfor %}
+            {% for s in son_deneme %}
+            <tr>
+                <td>Deneme</td>
+                <td>{{ s.talebe.ad_soyad }}</td>
+                <td>{{ s.deneme.ad }}</td>
+                <td><strong>{{ s.toplam_net }}</strong></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+</div>
+{% endblock %}
+{% block extra_js %}{% include "includes/panel_date_js.html" %}{% endblock %}

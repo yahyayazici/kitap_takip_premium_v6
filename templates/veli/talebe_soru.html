@@ -1,0 +1,71 @@
+{% extends "veli/base.html" %}
+{% block title %}Soru Takibi · {{ talebe.ad_soyad }}{% endblock %}
+{% block content %}
+<div class="dash-home veli-dash veli-wow">
+{% include "veli/includes/talebe_layout_head.html" %}
+
+<section class="veli-wow-metrics" aria-label="Soru özeti">
+    <article class="veli-wow-metric veli-wow-metric-blue">
+        <div class="veli-wow-metric-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+        </div>
+        <div>
+            <span class="veli-wow-metric-label">Haftalık soru</span>
+            <strong class="veli-wow-metric-value">{{ soru.haftalik.toplam_soru }}</strong>
+            <span class="veli-wow-metric-note">Net {{ soru.haftalik.toplam_net }}</span>
+        </div>
+    </article>
+    <article class="veli-wow-metric veli-wow-metric-green">
+        <div class="veli-wow-metric-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+        </div>
+        <div>
+            <span class="veli-wow-metric-label">Başarı</span>
+            <strong class="veli-wow-metric-value">%{{ soru.haftalik.basari_orani }}</strong>
+            <span class="veli-wow-metric-note">{{ soru.haftalik.gun_sayisi }} gün</span>
+        </div>
+    </article>
+    <article class="veli-wow-metric veli-wow-metric-amber">
+        <div class="veli-wow-metric-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </div>
+        <div>
+            <span class="veli-wow-metric-label">Aylık soru</span>
+            <strong class="veli-wow-metric-value">{{ soru.aylik.toplam_soru }}</strong>
+            <span class="veli-wow-metric-note">Net {{ soru.aylik.toplam_net }}</span>
+        </div>
+    </article>
+</section>
+
+<section class="veli-wow-card">
+    <header class="veli-wow-card-head">
+        <div>
+            <p class="veli-wow-kicker">Ders bazlı</p>
+            <h2>Doğru / Yanlış / Boş</h2>
+        </div>
+    </header>
+    <div class="og-table-wrap" style="padding: 8px 16px 18px;">
+        <table class="og-grade-table">
+            <thead>
+                <tr><th>Ders</th><th>Soru</th><th>D</th><th>Y</th><th>B</th><th>Net</th></tr>
+            </thead>
+            <tbody>
+                {% for d in soru.ders_ozet %}
+                <tr>
+                    <td>{{ d.ders__ad }}</td>
+                    <td>{{ d.toplam_soru }}</td>
+                    <td>{{ d.dogru }}</td>
+                    <td>{{ d.yanlis }}</td>
+                    <td>{{ d.bos }}</td>
+                    <td><strong>{{ d.net }}</strong></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="og-empty-note">Bu dönemde soru kaydı yok.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+</div>
+{% endblock %}
+{% block extra_js %}{% include "includes/panel_date_js.html" %}{% endblock %}

@@ -42,6 +42,7 @@ from takip.disiplin_kurul_service import (
     seed_demo_kurul,
     varsayilan_gundem_kaydet,
     varsayilan_gundem_sil,
+    varsayilan_gundem_pdf_baglam,
     varsayilan_katilimcilar,
     varsayilan_uye_kaydet,
     varsayilan_uye_sil,
@@ -280,6 +281,28 @@ def disiplin_kurul_durum_ilerlet(request, pk: int):
 
 @login_required
 @require_permission("disiplin_kurulu", "export_pdf")
+def disiplin_kurul_gundem_pdf(request):
+    if not kurul_tam_yetki(request.user):
+        messages.error(request, "Gündem PDF için yönetici yetkisi gerekir.")
+        return redirect("disiplin_kurul_ayarlar")
+
+    baglam = varsayilan_gundem_pdf_baglam()
+    html = render_to_string(
+        "disiplin_kurul_gundem_pdf.html",
+        baglam,
+        request=request,
+    )
+    pdf = html_to_pdf(html, base_url=request.build_absolute_uri("/"))
+    if not pdf:
+        return pdf_error_response("PDF oluşturulamadı.")
+    from django.utils.text import slugify
+
+    ad = slugify(baglam["kurul_adi"]) or "kurul"
+    return make_pdf_response(pdf, f"{ad}-gundem-sablonu.pdf")
+
+
+@login_required
+@require_permission("disiplin_kurulu", "export_pdf")
 def disiplin_kurul_pdf(request, pk: int):
     kurul = _kurul_erisim(request.user, pk)
     html = render_to_string("disiplin_kurul_pdf.html", pdf_baglam(request.user, kurul), request=request)
@@ -334,12 +357,34 @@ def disiplin_kurul_rapor(request):
 @login_required
 @require_permission("disiplin_kurulu", "export_excel")
 def disiplin_kurul_excel(request):
+    from takip.excel_rapor import basit_rapor_xlsx, excel_http_yanit
+    from django.utils.timezone import localdate
+
     params = {
         k: request.GET.get(k)
         for k in ("tarih_bas", "tarih_bit")
         if request.GET.get(k)
     }
-    data = rapor_csv(request.user, params)
-    response = HttpResponse(data, content_type="text/csv; charset=utf-8")
-    response["Content-Disposition"] = 'attachment; filename="disiplin_kurul_rapor.csv"'
-    return response
+    ozet = rapor_ozet(request.user, params)
+    satirlar = [
+        [
+            k["kurul_no"],
+            (k["talebe"] or "").upper(),
+            k["sinif"],
+            k["durum_etiket"],
+            k["toplanti_tarihi"],
+            k["karar_sayisi"],
+        ]
+        for k in ozet["kurullar"]
+    ]
+    icerik = basit_rapor_xlsx(
+        baslik="Disiplin Kurulu Raporu",
+        alt_baslik=localdate().strftime("%d.%m.%Y"),
+        kolon_basliklari=["Kurul No", "Ad-Soyad", "Sınıf", "Durum", "Toplantı", "Karar Sayısı"],
+        satirlar=satirlar,
+        sayfa_adi="Disiplin",
+        durum_kolonlari=[3],
+        ortala_kolonlari=[0, 2, 4, 5],
+        genislikler=[14, 26, 10, 14, 14, 12],
+    )
+    return excel_http_yanit(icerik, f"disiplin_kurul_rapor_{localdate():%Y%m%d}.xlsx")

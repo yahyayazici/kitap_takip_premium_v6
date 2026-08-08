@@ -1,116 +1,144 @@
 {% extends "ogretmen/base.html" %}
+{% load static %}
 {% block title %}Ana Sayfa · Öğretmen Paneli{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/duyuru-carousel.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="dash-home ogretmen-dash">
+<div class="dash-home ogretmen-dash og-wow">
 
-{% include "includes/panel_hero.html" with title="Hoş geldiniz, "|add:hoca.ad_soyad meta="Öğretmen · Kurum paneli" date_text=bugun|date:"d F Y, l" %}
+{% include "includes/panel_hero.html" with title="Hoş geldiniz, "|add:hoca.ad_soyad meta="Öğretmen · Kurum paneli" date_obj=bugun %}
 
-<section class="dash-metrics">
-    <article class="dash-stat dash-stat-blue">
-        <span class="dash-stat-label">Sınıf</span>
-        <strong class="dash-stat-value">{{ toplam_sinif }}</strong>
-        <span class="dash-stat-note">Sorumlu sınıf</span>
+{% include "includes/duyuru_carousel.html" %}
+
+{% if metrikler %}
+{% include "includes/dash_metrik_strip.html" %}
+{% else %}
+<section class="og-wow-metrics" aria-label="Özet">
+    <article class="og-wow-metric og-wow-metric-blue">
+        <div class="og-wow-metric-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+        </div>
+        <div>
+            <span class="og-wow-metric-label">Sorumlu sınıf</span>
+            <strong class="og-wow-metric-value">{{ toplam_sinif }}</strong>
+        </div>
     </article>
-    <article class="dash-stat dash-stat-green">
-        <span class="dash-stat-label">Öğrenci</span>
-        <strong class="dash-stat-value">{{ toplam_ogrenci }}</strong>
-        <span class="dash-stat-note">Toplam kayıt</span>
+    <article class="og-wow-metric og-wow-metric-green">
+        <div class="og-wow-metric-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div>
+            <span class="og-wow-metric-label">Toplam öğrenci</span>
+            <strong class="og-wow-metric-value">{{ toplam_ogrenci }}</strong>
+        </div>
+    </article>
+    <article class="og-wow-metric og-wow-metric-amber">
+        <div class="og-wow-metric-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </div>
+        <div>
+            <span class="og-wow-metric-label">Aktif hafta</span>
+            <strong class="og-wow-metric-value">{{ hafta_no }}.</strong>
+            <span class="og-wow-metric-sub">Hafta</span>
+        </div>
     </article>
 </section>
+{% endif %}
 
-<section class="dash-panel og-week-strip">
-    <div class="og-week-copy">
-        <p class="dash-eyebrow">Aktif hafta</p>
-        <p class="og-week-title">{{ hafta_no }}. hafta · {{ hafta_baslangic|date:"d.m.Y" }} – {{ hafta_bitis|date:"d.m.Y" }}</p>
+{% include "includes/dash_kisayol_grid.html" %}
+
+<section class="og-wow-week">
+    <div class="og-wow-week-copy">
+        <p class="og-wow-week-kicker">Bu haftanın paneli</p>
+        <h2>{{ hafta_no }}. Hafta · {{ hafta_baslangic|date:"d.m.Y" }} – {{ hafta_bitis|date:"d.m.Y" }}</h2>
+        <p>Yoklama alın, haftalık notları girin; kayıtlar veli paneline anında yansır.</p>
     </div>
-    <a href="{% url 'ogretmen_not_girisi' %}" class="dash-text-btn dash-text-btn-strong">Not girişi →</a>
+    <a href="{% url 'ogretmen_not_girisi' %}" class="og-wow-cta">Not Girişi Yap →</a>
 </section>
 
-<div class="dash-split og-dash-grid">
-    <section class="dash-panel og-program-panel">
-        <div class="dash-panel-head">
+<div class="og-wow-grid">
+    <section class="og-wow-card og-wow-program">
+        <header class="og-wow-card-head">
             <div>
-                <p class="dash-eyebrow">Program</p>
-                <h2>Ders programınız</h2>
+                <p class="og-wow-kicker">Program</p>
+                <h2>Bugünkü ders akışınız</h2>
             </div>
-            <a href="{% url 'ogretmen_ders_programi_pdf' %}" class="dash-text-btn" target="_blank">PDF</a>
+            <a href="{% url 'ogretmen_ders_programi' %}" class="og-wow-link">Tüm hafta</a>
+        </header>
+
+        {% if program_gunler %}
+        <div class="og-wow-day-tabs" role="tablist">
+            {% for gun in program_gunler %}
+            <button type="button"
+                    class="og-wow-day-tab{% if forloop.first %} is-active{% endif %}"
+                    data-day="{{ gun.slug }}">{{ gun.kisa }}</button>
+            {% endfor %}
         </div>
-        <div class="og-day-tabs" role="tablist">
-            <button type="button" class="og-day-tab" data-day="pazartesi">Pzt</button>
-            <button type="button" class="og-day-tab" data-day="sali">Sal</button>
-            <button type="button" class="og-day-tab" data-day="carsamba">Çar</button>
-            <button type="button" class="og-day-tab" data-day="persembe">Per</button>
-            <button type="button" class="og-day-tab active" data-day="cuma">Cum</button>
-            <button type="button" class="og-day-tab" data-day="cumartesi">Cmt</button>
-            <button type="button" class="og-day-tab" data-day="pazar">Paz</button>
+        <div class="og-wow-lessons" id="og-day-panel">
+            {% with gun=program_gunler.0 %}
+                {% for d in gun.dersler %}
+                <article class="og-wow-lesson">
+                    <div class="og-wow-lesson-time">{{ d.saat }}</div>
+                    <div class="og-wow-lesson-body">
+                        <span class="og-wow-lesson-class">{{ d.sinif }}</span>
+                        <strong>{{ d.ders }}</strong>
+                    </div>
+                    <span class="og-wow-lesson-dot" aria-hidden="true"></span>
+                </article>
+                {% endfor %}
+            {% endwith %}
         </div>
-        <div class="og-day-panel" id="og-day-panel">
-            <p class="og-day-empty">Cuma günü için atanmış dersiniz bulunmuyor.</p>
-        </div>
+        {% else %}
+        <p class="og-wow-empty">Bu hafta atanmış dersiniz bulunmuyor.</p>
+        {% endif %}
     </section>
 
-    <div class="og-side-stack">
-        <section class="dash-panel">
-            <div class="dash-panel-head">
+    <div class="og-wow-side">
+        <section class="og-wow-card og-wow-classes">
+            <header class="og-wow-card-head">
                 <div>
-                    <p class="dash-eyebrow">Duyurular</p>
-                    <h2>Güncel bildirimler</h2>
+                    <p class="og-wow-kicker">Sınıflar</p>
+                    <h2>Hızlı yoklama / not</h2>
                 </div>
-                {% if duyurular %}<span class="og-count-pill">{{ duyurular|length }}</span>{% endif %}
-            </div>
-            <div class="dash-feed og-feed-stack">
-                {% for d in duyurular %}
-                <article class="dash-feed-item dash-accent-navy">
-                    <span class="dash-feed-tag">{{ d.baslangic|date:"d.m.Y" }}</span>
-                    <h3>{{ d.baslik }}</h3>
-                    <p>{{ d.ozet|truncatechars:120 }}</p>
-                </article>
-                {% empty %}
-                <p class="og-empty-note">Güncel duyuru bulunmuyor.</p>
-                {% endfor %}
-            </div>
-        </section>
-
-        <section class="dash-panel">
-            <div class="dash-panel-head">
-                <div>
-                    <p class="dash-eyebrow">Sınıflar</p>
-                    <h2>Sorumlu sınıflar</h2>
-                </div>
-            </div>
-            <p class="og-empty-note og-empty-note-tight">Not ve yoklama için sınıfa tıklayın.</p>
-            <nav class="dash-shortcuts" aria-label="Sınıflar">
+            </header>
+            <p class="og-wow-hint">Sınıfa dokunun — yoklama ve not girişine gidersiniz.</p>
+            <div class="og-wow-class-grid">
                 {% for sinif in siniflar %}
-                <a href="{% url 'ogretmen_not_girisi_sinif' sinif.id %}" class="dash-shortcut">
-                    <span class="dash-shortcut-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
-                    </span>
-                    <span class="dash-shortcut-copy">
-                        <strong>{{ sinif.etiket }}</strong>
-                        <span>{{ sinif.ogrenci_sayisi }} öğrenci</span>
-                    </span>
-                    <svg class="dash-shortcut-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+                <a href="{% url 'ogretmen_not_girisi_sinif' sinif.id %}" class="og-wow-class-tile">
+                    <span class="og-wow-class-badge">{{ sinif.etiket }}</span>
+                    <strong>{{ sinif.ogrenci_sayisi }} öğrenci</strong>
+                    <span>Not & yoklama →</span>
                 </a>
+                {% empty %}
+                <p class="og-wow-empty">Sorumlu sınıf yok.</p>
                 {% endfor %}
-            </nav>
+            </div>
         </section>
 
-        <section class="dash-panel">
-            <div class="dash-panel-head">
+        <section class="og-wow-card og-wow-meet">
+            <header class="og-wow-card-head">
                 <div>
-                    <p class="dash-eyebrow">Randevu</p>
+                    <p class="og-wow-kicker">Randevu</p>
                     <h2>Veli görüşmeleri</h2>
                 </div>
-            </div>
+            </header>
             {% if randevular %}
-            <ul class="og-randevu-list">
+            <ul class="og-wow-meet-list">
                 {% for r in randevular %}
-                <li><strong>{{ r.talebe }}</strong> · {{ r.tarih }} {{ r.saat }}<br><small>{{ r.konu }}</small></li>
+                <li>
+                    <strong>{{ r.talebe }}</strong>
+                    <span>{{ r.tarih }} · {{ r.saat }}</span>
+                    <small>{{ r.konu }}</small>
+                </li>
                 {% endfor %}
             </ul>
             {% else %}
-            <p class="og-empty-note">Yakın tarihte planlanmış veli randevunuz bulunmuyor.</p>
+            <div class="og-wow-empty-box">
+                <strong>Yakın randevu yok</strong>
+                <span>Planlanan veli görüşmeleri burada görünür.</span>
+            </div>
             {% endif %}
         </section>
     </div>
@@ -120,18 +148,21 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/duyuru-carousel.js' %}"></script>
 <script>
 (function () {
     const panels = {
-        sali: `{% for gun in program_gunler %}{% if gun.gun == 'Salı' %}{% for d in gun.dersler %}<div class="og-mini-lesson"><span>{{ d.saat }}</span><strong>{{ d.sinif }}</strong><em>{{ d.ders }}</em></div>{% empty %}<p class="og-day-empty">Salı günü için atanmış dersiniz bulunmuyor.</p>{% endfor %}{% endif %}{% endfor %}`,
-        carsamba: `{% for gun in program_gunler %}{% if gun.gun == 'Çarşamba' %}{% for d in gun.dersler %}<div class="og-mini-lesson"><span>{{ d.saat }}</span><strong>{{ d.sinif }}</strong><em>{{ d.ders }}</em></div>{% empty %}<p class="og-day-empty">Çarşamba günü için atanmış dersiniz bulunmuyor.</p>{% endfor %}{% endif %}{% endfor %}`
+        {% for gun in program_gunler %}
+        "{{ gun.slug }}": `{% for d in gun.dersler %}<article class="og-wow-lesson"><div class="og-wow-lesson-time">{{ d.saat }}</div><div class="og-wow-lesson-body"><span class="og-wow-lesson-class">{{ d.sinif }}</span><strong>{{ d.ders }}</strong></div><span class="og-wow-lesson-dot" aria-hidden="true"></span></article>{% empty %}<p class="og-wow-empty">Bu gün için atanmış dersiniz bulunmuyor.</p>{% endfor %}`{% if not forloop.last %},{% endif %}
+        {% endfor %}
     };
-    const empty = '<p class="og-day-empty">Bu gün için atanmış dersiniz bulunmuyor.</p>';
+    const empty = '<p class="og-wow-empty">Bu gün için atanmış dersiniz bulunmuyor.</p>';
     const panel = document.getElementById('og-day-panel');
-    document.querySelectorAll('.og-day-tab').forEach(function (tab) {
+    if (!panel) return;
+    document.querySelectorAll('.og-wow-day-tab').forEach(function (tab) {
         tab.addEventListener('click', function () {
-            document.querySelectorAll('.og-day-tab').forEach(function (t) { t.classList.remove('active'); });
-            tab.classList.add('active');
+            document.querySelectorAll('.og-wow-day-tab').forEach(function (t) { t.classList.remove('is-active'); });
+            tab.classList.add('is-active');
             panel.innerHTML = panels[tab.dataset.day] || empty;
         });
     });

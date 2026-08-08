@@ -134,6 +134,7 @@ def seed_roller(moduller: dict[str, YetkiModul]) -> dict[str, Rol]:
                     "akademik_mudahale",
                     "etut_plani",
                     "dini_ders_takip",
+                    "yazili_takip",
                 }:
                     if modul_kod == "deneme":
                         izin = islem.kod == "view"
@@ -144,6 +145,14 @@ def seed_roller(moduller: dict[str, YetkiModul]) -> dict[str, Rol]:
                             "edit",
                             "delete",
                             "export_pdf",
+                        }
+                    elif modul_kod == "yazili_takip":
+                        # Kamp/sınav tanımı admin; etüt kendi grubuna sonuç girer
+                        izin = islem.kod in {
+                            "view",
+                            "edit",
+                            "export_pdf",
+                            "export_excel",
                         }
                     elif modul_kod == "dini_ders_takip":
                         izin = islem.kod in {

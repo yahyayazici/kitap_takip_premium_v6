@@ -58,9 +58,47 @@ def asistan_kullanilabilir(user: User) -> bool:
         return False
     if not user.is_authenticated:
         return False
-    if kullanici_veli_mi(user) or kullanici_talebe_mi(user) or ogretmen_paneli_kullanicisi_mi(user):
+    # Yönetim + öğretmen + veli panelleri
+    if kullanici_veli_mi(user) or ogretmen_paneli_kullanicisi_mi(user):
+        return True
+    if kullanici_talebe_mi(user):
         return False
     return can(user, "asistan", "view") or user.is_superuser
+
+
+def _ozel_panel_asistan_yanit(user: User, message: str) -> AsistanYanit | None:
+    """Öğretmen / veli panelleri için sade, panele özel yardım."""
+    if ogretmen_paneli_kullanicisi_mi(user):
+        return AsistanYanit(
+            reply=(
+                "Merhaba! Öğretmen panelinde size yardımcı olabilirim.\n\n"
+                "• **Not Girişi** — haftalık katılım / takip / disiplin notları\n"
+                "• **Değerlendirmeler** — girdiğiniz kayıtları görüntüleyin\n"
+                "• **Ders Programı** — haftalık planınızı ve PDF’i açın\n\n"
+                "Hangi adımda takıldınız?"
+            ),
+            suggestions=[
+                "Not girişini nasıl yaparım?",
+                "Değerlendirmeler nerede?",
+                "Ders programı PDF",
+            ],
+        )
+    if kullanici_veli_mi(user):
+        return AsistanYanit(
+            reply=(
+                "Merhaba! Veli panelinde size yardımcı olabilirim.\n\n"
+                "• **Ana Sayfa** — deneme, KTT, ders ve soru özetleri\n"
+                "• **Ders Notları / Soru / Yoklama / Namaz** — detaylı takip\n"
+                "• **Dini Ders** ve **Sohbet Mevzuu** — haftalık içerikler\n\n"
+                "Hangi bilgiyi merak ediyorsunuz?"
+            ),
+            suggestions=[
+                "Haftalık notlar nerede?",
+                "Yoklama bilgisi",
+                "Sohbet mevzuu nedir?",
+            ],
+        )
+    return None
 
 
 def _talebe_bul(user: User, ad_parcasi: str) -> Talebe | None:
@@ -573,6 +611,61 @@ def _normalize_asistan(text: str) -> str:
 def mesaj_isle(user: User, message: str, history: list[dict] | None = None) -> dict[str, Any]:
     history = history or []
     message = (message or "").strip()
+
+    ozel = kullanici_veli_mi(user) or ogretmen_paneli_kullanicisi_mi(user)
+    if ozel:
+        if not message:
+            yanit = _ozel_panel_asistan_yanit(user, "")
+            return (yanit or AsistanYanit(reply="Merhaba! Size nasıl yardımcı olabilirim?")).as_dict()
+        yanit = _ozel_panel_asistan_yanit(user, message)
+        if yanit:
+            # Kısa yönlendirme; mesaja göre ufak uyarlama
+            norm = _normalize_asistan(message)
+            if ogretmen_paneli_kullanicisi_mi(user):
+                if any(k in norm for k in ("not", "degerlendirme", "puan")):
+                    yanit = AsistanYanit(
+                        reply=(
+                            "Haftalık notlar için üst menüden **Not Girişi**’ne gidin; "
+                            "sınıfı seçip katılım / takip / disiplin alanlarını doldurun. "
+                            "Kayıtlarınız **Değerlendirmeler** sayfasında listelenir."
+                        ),
+                        suggestions=["Değerlendirmeler nerede?", "Ders programı PDF"],
+                    )
+                elif any(k in norm for k in ("program", "ders", "pdf")):
+                    yanit = AsistanYanit(
+                        reply=(
+                            "**Ders Programı** menüsünden haftalık planınızı görebilir, "
+                            "PDF indir butonuyla çıktı alabilirsiniz."
+                        ),
+                        suggestions=["Not girişini nasıl yaparım?"],
+                    )
+            else:
+                if any(k in norm for k in ("not", "ders", "hafta")):
+                    yanit = AsistanYanit(
+                        reply=(
+                            "Aktif hafta notları ana sayfada ve **Ders Notları** menüsünde. "
+                            "Geçmiş haftalar için sayfadaki **Haftalar** düğmesini kullanın."
+                        ),
+                        suggestions=["Yoklama bilgisi", "Sohbet mevzuu nedir?"],
+                    )
+                elif any(k in norm for k in ("yoklama", "devamsizlik", "devamsızlık", "namaz")):
+                    yanit = AsistanYanit(
+                        reply=(
+                            "**Yoklama** son 30 gün katılımını, **Namaz** ise namaz "
+                            "yoklaması kayıtlarını gösterir."
+                        ),
+                        suggestions=["Haftalık notlar nerede?"],
+                    )
+                elif any(k in norm for k in ("sohbet", "mevzu")):
+                    yanit = AsistanYanit(
+                        reply=(
+                            "**Sohbet Mevzuu** sayfasında yönetimin girdiği haftalık "
+                            "sohbet başlığı ve içeriğini okuyabilirsiniz."
+                        ),
+                        suggestions=["Haftalık notlar nerede?"],
+                    )
+            return yanit.as_dict()
+
     if not message:
         return AsistanYanit(
             reply=(

@@ -1,0 +1,75 @@
+{% extends "yonetim/base.html" %}
+{% load static %}
+{% block title %}Personel Vazifeleri{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/vazife-premium.css' %}">
+{% endblock %}
+{% block content %}
+<div class="vz-page">
+    <header class="vz-head">
+        <div>
+            <p class="vz-kicker">İdareci</p>
+            <h1>Personel vazifeleri</h1>
+            <p class="vz-head-meta">Ata · son tarih · bildirim · tamamlandı</p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <a href="{% url 'yonetim:vazife_ekle' %}" class="primary-btn">+ Vazife ata</a>
+            <a href="{% url 'yonetim:idareci_panel' %}" class="dash-text-btn">← İdareci özeti</a>
+        </div>
+    </header>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        {% for kod, ad in durumlar %}
+        <a href="?durum={{ kod }}" class="dash-text-btn{% if durum == kod %} dash-text-btn-strong{% endif %}">{{ ad }}</a>
+        {% endfor %}
+        <a href="?" class="dash-text-btn">Tümü</a>
+    </div>
+
+    <section class="vz-card">
+        <div class="vz-table-head" style="grid-template-columns:minmax(0,1.4fr) minmax(110px,.6fr) minmax(80px,.45fr) minmax(120px,.7fr) minmax(90px,.45fr) minmax(100px,.5fr) minmax(160px,.8fr);">
+            <span>Vazife</span>
+            <span>Personel</span>
+            <span>Sınıf</span>
+            <span>Şu güne kadar</span>
+            <span>Öncelik</span>
+            <span>Durum</span>
+            <span></span>
+        </div>
+        <div class="vz-list">
+            {% for v in vazifeler %}
+            <article class="vz-item" style="grid-template-columns:minmax(0,1.4fr) minmax(110px,.6fr) minmax(80px,.45fr) minmax(120px,.7fr) minmax(90px,.45fr) minmax(100px,.5fr) minmax(160px,.8fr);">
+                <div>
+                    <p class="vz-item-title">{{ v.baslik }}</p>
+                    {% if v.aciklama %}<p class="vz-item-desc">{{ v.aciklama|truncatechars:90 }}</p>{% endif %}
+                </div>
+                <div><span class="vz-col-label">Personel</span>{{ v.atanan.ad_soyad }}</div>
+                <div><span class="vz-col-label">Sınıf</span>{% if v.sinif_sube %}{{ v.sinif_sube }}{% else %}—{% endif %}</div>
+                <div class="vz-date">
+                    <span class="vz-col-label">Son tarih</span>
+                    <strong>{% if v.bitis %}{{ v.bitis|date:"d.m.Y" }}{% else %}—{% endif %}</strong>
+                    <span>{{ v.baslangic|date:"d.m" }}’den</span>
+                </div>
+                <div><span class="vz-col-label">Öncelik</span><span class="vz-pill vz-pill-oncelik-{{ v.oncelik }}">{{ v.get_oncelik_display }}</span></div>
+                <div><span class="vz-col-label">Durum</span><span class="vz-pill vz-pill-durum-{{ v.durum }}">{{ v.get_durum_display }}</span></div>
+                <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-start;">
+                    <a href="{% url 'yonetim:vazife_duzenle' v.pk %}">Düzenle</a>
+                    <form method="post" action="{% url 'yonetim:vazife_durum' v.pk %}">
+                        {% csrf_token %}
+                        <select name="durum" onchange="this.form.submit()" class="input" style="min-width:120px;">
+                            {% for kod, ad in durumlar %}
+                            <option value="{{ kod }}" {% if v.durum == kod %}selected{% endif %}>{{ ad }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+            </article>
+            {% empty %}
+            <div class="vz-empty">
+                <strong>Henüz vazife yok.</strong>
+                “+ Vazife ata” ile personel seçip şu güne kadar tarihini girin.
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

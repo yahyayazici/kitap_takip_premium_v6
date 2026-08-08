@@ -664,31 +664,40 @@ a {
     font-size: 8px;
 }
 
-.cs-field ul {
+.cs-field ul,
+.cs-field > div:has(> div > label > input[type="checkbox"]),
+.cs-field .choice-chip-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(92px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
     gap: 9px;
     margin: 0;
     padding: 0;
     list-style: none;
 }
 
-.cs-field li label {
+.cs-field li label,
+.cs-field > div:has(> div > label > input[type="checkbox"]) > div > label,
+.cs-field .choice-chip-grid label {
     min-height: 43px;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     padding: 0 11px;
     border: 1px solid var(--border);
     border-radius: 11px;
     background: #f9fbfe;
     cursor: pointer;
+    font-weight: 600;
 }
 
-.cs-field li label:has(input:checked) {
+.cs-field li label:has(input:checked),
+.cs-field > div:has(> div > label > input[type="checkbox"]) > div > label:has(input:checked),
+.cs-field .choice-chip-grid label:has(input:checked) {
     border-color: var(--blue-600);
     background: #eaf1ff;
     box-shadow: 0 0 0 3px rgba(47, 111, 234, .09);
+    color: #1d4ed8;
 }
 
 .cs-field input[type="checkbox"],
@@ -780,7 +789,9 @@ a {
 
     .cs-class-grid,
     .cs-class-grid-large,
-    .cs-field ul {
+    .cs-field ul,
+    .cs-field > div:has(> div > label > input[type="checkbox"]),
+    .cs-field .choice-chip-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }

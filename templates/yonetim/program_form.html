@@ -1,6 +1,10 @@
 {% extends "yonetim/base.html" %}
+{% load static %}
 
 {% block title %}{{ program.ad }} · Düzenle{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/program-sure.css' %}">
+{% endblock %}
 
 {% block content %}
 
@@ -8,13 +12,16 @@
     <div>
         <p class="kicker">PROGRAM DÜZENLEME</p>
         <h1>{{ program.ad }}</h1>
-        <p class="muted">Saat aralığı girildiğinde süre otomatik hesaplanır.</p>
+        <p class="muted">Saat aralığı girildiğinde süre otomatik hesaplanır. Tür seçince altta süre özeti güncellenir (kayıttan sonra).</p>
     </div>
     <div class="yonetim-page-head-actions">
         <a href="{% url 'yonetim:program_pdf' program.pk %}" class="ghost-btn yonetim-head-ghost" target="_blank">PDF İndir</a>
+        <a href="{% url 'yonetim:program_excel' program.pk %}" class="ghost-btn yonetim-head-ghost">Excel İndir</a>
         <a href="{% url 'yonetim:program_listesi' %}" class="ghost-btn">Listeye Dön</a>
     </div>
 </header>
+
+{% include "includes/program_sure_ozeti.html" with baslangic_kapali=True %}
 
 <form method="post" class="program-edit-form">
     {% csrf_token %}
@@ -79,6 +86,35 @@
             </table>
         </div>
     </section>
+
+    {% if sure_donemler %}
+    <div class="pg-sure-bottom">
+        <section class="pg-sure" aria-label="Tür süre özeti">
+            <div class="pg-sure-top">
+                <div>
+                    <p class="pg-sure-kicker">Tür özeti</p>
+                    <h2 class="pg-sure-title">Bu kadar uyku, bu kadar etüt…</h2>
+                    <p class="pg-sure-hint">Satırlardaki türlerden hesaplanır. Kaydettikten sonra yenilenir.</p>
+                </div>
+            </div>
+            <div class="pg-sure-panel is-open">
+                <div class="pg-sure-ai">
+                    <p class="pg-sure-ai-label">Yapay zekâ özeti (günlük)</p>
+                    <p>{{ sure_donemler.gun.ai_ozet }}</p>
+                </div>
+                <div class="pg-sure-grid">
+                    {% for s in sure_donemler.gun.satirlar %}
+                    <article class="pg-sure-chip pg-sure-chip-{{ s.kod }}">
+                        <span class="pg-sure-chip-ad">{{ s.ad }}</span>
+                        <strong>{{ s.etiket }}</strong>
+                        <em>%{{ s.yuzde }}</em>
+                    </article>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    </div>
+    {% endif %}
 
     <div class="yonetim-form-actions program-form-actions">
         <button type="submit" class="primary-btn">Kaydet</button>

@@ -120,7 +120,9 @@ class EtutHocasiAdminForm(forms.ModelForm):
                     "placeholder": "Personelin adını ve soyadını yazın",
                 }
             ),
-            "sorumlu_sinif_subeler": forms.CheckboxSelectMultiple(),
+            "sorumlu_sinif_subeler": forms.CheckboxSelectMultiple(
+                attrs={"class": "choice-chip-grid"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):

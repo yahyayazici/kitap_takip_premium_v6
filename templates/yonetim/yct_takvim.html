@@ -1,0 +1,125 @@
+{% extends "yonetim/base.html" %}
+{% load static %}
+{% block title %}YÇT · {{ ay_adi_tr }} {{ yil }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/yct-takvim-premium.css' %}?v=1">
+{% endblock %}
+{% block content %}
+<div class="dash-home yonetim-dash yct-page">
+{% include "includes/panel_hero.html" with eyebrow="Yıllık Çalışma Takvimi" title="Aylık takvim" meta="Personeller ay ay buradan bakar" show_date=False %}
+
+<nav class="yct-nav" aria-label="Ay gezinme">
+    <a class="dash-text-btn" href="?yil={{ onceki.yil }}&ay={{ onceki.ay }}">‹ {{ onceki.ay }}/{{ onceki.yil }}</a>
+    <p class="yct-nav-title">{{ ay_adi_tr }} {{ yil }}</p>
+    <a class="dash-text-btn" href="?yil={{ sonraki.yil }}&ay={{ sonraki.ay }}">{{ sonraki.ay }}/{{ sonraki.yil }} ›</a>
+    <a href="{% url 'yonetim:idareci_panel' %}" class="dash-text-btn">← İdareci</a>
+</nav>
+
+<section class="dash-panel yct-calendar-panel">
+    <table class="og-grade-table yct-grid">
+        <thead>
+            <tr>
+                <th>Pzt</th><th>Sal</th><th>Çar</th><th>Per</th><th>Cum</th><th>Cmt</th><th>Paz</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for week in weeks %}
+            <tr>
+            {% for cell in week %}
+                <td class="{% if not cell.day %}is-empty{% endif %}">
+                    {% if cell.day %}
+                    <span class="yct-day-num">{{ cell.day }}</span>
+                    {% for o in cell.olaylar %}
+                    <div class="yct-event" title="{{ o.baslik }}">{{ o.baslik|truncatechars:26 }}</div>
+                    {% endfor %}
+                    {% endif %}
+                </td>
+            {% endfor %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<div class="yct-split">
+    <section class="dash-panel">
+        <div class="dash-panel-head">
+            <div>
+                <p class="dash-eyebrow">Liste</p>
+                <h2>Bu ayın kayıtları</h2>
+            </div>
+        </div>
+        <div class="dash-feed yct-feed">
+            {% for o in olaylar %}
+            <article class="yct-feed-item">
+                <span class="yct-feed-tag">{{ o.baslangic|date:"d.m.Y" }}{% if o.bitis %} – {{ o.bitis|date:"d.m.Y" }}{% endif %} · {{ o.get_kategori_display }}</span>
+                <h3>{{ o.baslik }}</h3>
+                {% if o.aciklama %}<p>{{ o.aciklama|truncatechars:140 }}</p>{% endif %}
+                <form method="post" action="{% url 'yonetim:yct_sil' o.pk %}" onsubmit="return confirm('Silinsin mi?');" style="margin-top:0.45rem;">
+                    {% csrf_token %}
+                    <button type="submit" class="dash-text-btn">Sil</button>
+                </form>
+            </article>
+            {% empty %}
+            <p class="yct-empty">Bu ay için kayıt yok — sağdan yeni plan ekleyin.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="dash-panel">
+        <div class="dash-panel-head">
+            <div>
+                <p class="dash-eyebrow">Ekle</p>
+                <h2>Yeni plan / program</h2>
+            </div>
+        </div>
+        <form method="post" action="{% url 'yonetim:yct_ekle' %}" class="yct-form">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+            <ul class="errorlist">{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>
+            {% endif %}
+
+            <div class="yct-form-grid">
+                <div class="yct-field yct-field-wide">
+                    <label for="{{ form.baslik.id_for_label }}">{{ form.baslik.label }}</label>
+                    {{ form.baslik }}
+                    {{ form.baslik.errors }}
+                </div>
+                <div class="yct-field yct-field-wide">
+                    <label for="{{ form.aciklama.id_for_label }}">{{ form.aciklama.label }}</label>
+                    {{ form.aciklama }}
+                    {{ form.aciklama.errors }}
+                </div>
+                <div class="yct-field">
+                    <label for="{{ form.baslangic.id_for_label }}">{{ form.baslangic.label }}</label>
+                    {{ form.baslangic }}
+                    {{ form.baslangic.errors }}
+                </div>
+                <div class="yct-field">
+                    <label for="{{ form.bitis.id_for_label }}">{{ form.bitis.label }}</label>
+                    {{ form.bitis }}
+                    {% if form.bitis.help_text %}<small>{{ form.bitis.help_text }}</small>{% endif %}
+                    {{ form.bitis.errors }}
+                </div>
+                <div class="yct-field yct-field-wide">
+                    <label for="{{ form.kategori.id_for_label }}">{{ form.kategori.label }}</label>
+                    {{ form.kategori }}
+                    {{ form.kategori.errors }}
+                </div>
+                <div class="yct-field yct-field-wide">
+                    <label class="yct-check">
+                        {{ form.tum_personel }}
+                        <span>{{ form.tum_personel.label }}</span>
+                    </label>
+                    {{ form.tum_personel.errors }}
+                </div>
+            </div>
+
+            <div class="yct-form-actions">
+                <button type="submit" class="primary-btn">Takvime ekle</button>
+            </div>
+        </form>
+    </section>
+</div>
+</div>
+{% endblock %}

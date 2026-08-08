@@ -337,6 +337,7 @@ def donem_detay_verisi(donem: OgretmenOdemeDonemi) -> dict:
                 "tarih_goster": gun.tarih.strftime("%d.%m.%Y"),
                 "toplam_saat": gun.toplam_saat,
                 "dersler": dersler,
+                "has_kayit": any(d["saat_sayi"] for d in dersler),
             }
         )
     return {
@@ -486,33 +487,45 @@ def rapor_istatistik(satirlar: list[dict], *, finans: bool) -> dict:
 
 
 def rapor_excel_yanit(satirlar: list[dict], *, finans: bool) -> BytesIO:
-    from openpyxl import Workbook
+    from takip.excel_rapor import basit_rapor_xlsx
 
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Ödeme Raporu"
-    baslik = ["Dönem / Grup", "Öğretmen", "Branş", "Sınıf", "Toplam Saat"]
+    kolonlar = ["Dönem / Grup", "Ad-Soyad", "Branş", "Sınıf", "Toplam Saat"]
     if finans:
-        baslik.extend(["Saatlik Ücret", "Ödenecek Tutar"])
-    ws.append(baslik)
+        kolonlar.extend(["Saatlik Ücret", "Ödenecek Tutar"])
+    rows = []
     for satir in satirlar:
         row = [
             satir.get("etiket", ""),
-            satir.get("ogretmen", ""),
+            (satir.get("ogretmen") or "").upper(),
             satir.get("brans", "—"),
             satir.get("sinif", "—"),
             float(satir.get("toplam_saat") or 0),
         ]
         if finans:
-            row.extend([
-                float(satir.get("saatlik_ucret") or 0),
-                float(satir.get("odenecek_tutar") or 0),
-            ])
-        ws.append(row)
-    buffer = BytesIO()
-    wb.save(buffer)
-    buffer.seek(0)
-    return buffer
+            row.extend(
+                [
+                    float(satir.get("saatlik_ucret") or 0),
+                    float(satir.get("odenecek_tutar") or 0),
+                ]
+            )
+        rows.append(row)
+    ortala = [2, 3, 4]
+    vurgu = []
+    genislikler = [22, 26, 14, 12, 12]
+    if finans:
+        ortala.extend([5, 6])
+        vurgu = [6]
+        genislikler.extend([14, 14])
+    icerik = basit_rapor_xlsx(
+        baslik="Öğretmen Ödeme Raporu",
+        kolon_basliklari=kolonlar,
+        satirlar=rows,
+        sayfa_adi="Ödeme",
+        ortala_kolonlari=ortala,
+        vurgu_kolonlari=vurgu,
+        genislikler=genislikler,
+    )
+    return BytesIO(icerik)
 
 
 def seed_ogretmen_odeme_demo() -> None:

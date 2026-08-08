@@ -1,0 +1,21 @@
+{% load static %}
+{% if kisayollar %}
+{% with n=kisayollar|length %}
+<nav class="dash-shortcuts-grid" aria-label="Kısayollar" style="--dash-sc-cols: {% if n > 4 %}4{% elif n < 1 %}1{% else %}{{ n }}{% endif %};">
+    {% for shortcut in kisayollar %}
+    <a href="{{ shortcut.url }}" class="dash-shortcut-card dash-sc-{{ shortcut.icon }}{% if shortcut.gorsel_url %} has-photo{% endif %}"{% if shortcut.subtitle %} title="{{ shortcut.subtitle }}"{% endif %}>
+        <span class="dash-sc-banner{% if shortcut.gorsel_url %} has-photo{% endif %}" aria-hidden="true"{% if shortcut.gorsel_url %} style="--sc-photo:url('{{ shortcut.gorsel_url }}')"{% endif %}>
+            <span class="dash-sc-bracket"></span>
+            <span class="dash-sc-banner-label">{{ shortcut.title }}</span>
+            <span class="dash-sc-banner-mark"><em>{{ shortcut.mark }}</em></span>
+            <span class="dash-sc-banner-art">
+                {% include "includes/dashboard_shortcut_icon.html" with icon=shortcut.icon %}
+            </span>
+        </span>
+        <span class="visually-hidden">{{ shortcut.title }}{% if shortcut.badge %} ({{ shortcut.badge }}){% endif %}</span>
+        {% if shortcut.badge %}<em class="dash-shortcut-badge dash-shortcut-badge-float">{{ shortcut.badge }}</em>{% endif %}
+    </a>
+    {% endfor %}
+</nav>
+{% endwith %}
+{% endif %}

@@ -1,0 +1,549 @@
+/* Bildirim zili — premium, sakin */
+
+
+
+.bn-bell-wrap {
+
+    position: relative;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    z-index: 40;
+
+}
+
+
+
+.bn-bell-btn {
+
+    position: relative;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    width: 42px;
+
+    height: 42px;
+
+    border-radius: 13px;
+
+    border: 1px solid rgba(255, 255, 255, 0.22);
+
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.08));
+
+    color: #fff;
+
+    cursor: pointer;
+
+    overflow: hidden;
+
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.18) inset, 0 6px 16px rgba(7, 27, 58, 0.12);
+
+    transition: transform 180ms ease, background 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+
+}
+
+
+
+.bn-bell-btn:hover {
+
+    transform: translateY(-1px);
+
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.12));
+
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.22) inset, 0 10px 22px rgba(7, 27, 58, 0.16);
+
+}
+
+
+
+.bn-bell-btn:active { transform: translateY(0); }
+
+
+
+.bn-bell-glow {
+
+    position: absolute;
+
+    inset: -40% -20%;
+
+    background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.35), transparent 55%);
+
+    pointer-events: none;
+
+    opacity: 0.7;
+
+}
+
+
+
+.bn-bell-svg {
+
+    width: 20px;
+
+    height: 20px;
+
+    position: relative;
+
+    z-index: 1;
+
+}
+
+
+
+.bn-bell-body {
+
+    fill: currentColor;
+
+    opacity: 0.95;
+
+}
+
+
+
+.bn-bell-clapper {
+
+    fill: none;
+
+    stroke: currentColor;
+
+    stroke-width: 1.8;
+
+    stroke-linecap: round;
+
+}
+
+
+
+.bn-bell-dot {
+
+    fill: #fbbf24;
+
+    opacity: 0;
+
+    transform-origin: center;
+
+}
+
+
+
+.bn-bell-btn.has-unread .bn-bell-dot {
+
+    opacity: 1;
+
+    animation: bn-dot-ping 1.8s ease-in-out infinite;
+
+}
+
+
+
+.bn-bell-btn.has-unread {
+
+    border-color: rgba(251, 191, 36, 0.55);
+
+    background: linear-gradient(145deg, rgba(251, 191, 36, 0.28), rgba(255, 255, 255, 0.1));
+
+}
+
+
+
+.bn-bell-btn.has-unread .bn-bell-svg {
+
+    animation: bn-ring 2.4s ease-in-out infinite;
+
+    transform-origin: 50% 8%;
+
+}
+
+
+
+@keyframes bn-ring {
+
+    0%, 70%, 100% { transform: rotate(0deg); }
+
+    75% { transform: rotate(10deg); }
+
+    80% { transform: rotate(-8deg); }
+
+    85% { transform: rotate(6deg); }
+
+    90% { transform: rotate(-3deg); }
+
+}
+
+
+
+@keyframes bn-dot-ping {
+
+    0%, 100% { opacity: 1; }
+
+    50% { opacity: 0.45; }
+
+}
+
+
+
+.bn-badge {
+
+    position: absolute;
+
+    top: -5px;
+
+    right: -5px;
+
+    z-index: 2;
+
+    min-width: 18px;
+
+    height: 18px;
+
+    padding: 0 5px;
+
+    border-radius: 999px;
+
+    background: linear-gradient(180deg, #ff6b6b, #e11d48);
+
+    color: #fff;
+
+    font-size: 10.5px;
+
+    font-weight: 800;
+
+    line-height: 18px;
+
+    text-align: center;
+
+    border: 2px solid #0b2748;
+
+    box-shadow: 0 3px 10px rgba(225, 29, 72, 0.4);
+
+    letter-spacing: -0.02em;
+
+}
+
+
+
+.bn-badge[hidden] { display: none !important; }
+
+
+
+.bn-panel {
+
+    position: absolute;
+
+    top: calc(100% + 10px);
+
+    right: 0;
+
+    width: min(360px, calc(100vw - 24px));
+
+    background: #fff;
+
+    color: #0f172a;
+
+    border: 1px solid #d7e0ec;
+
+    border-radius: 16px;
+
+    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.16);
+
+    overflow: hidden;
+
+    display: none;
+
+    z-index: 1200;
+
+}
+
+
+
+.bn-panel.is-open { display: block; animation: bn-pop 160ms ease; }
+
+
+
+@keyframes bn-pop {
+
+    from { opacity: 0; transform: translateY(-6px); }
+
+    to { opacity: 1; transform: translateY(0); }
+
+}
+
+
+
+.bn-panel-head {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 10px;
+
+    padding: 12px 14px;
+
+    border-bottom: 1px solid #e8eef6;
+
+    background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+
+}
+
+
+
+.bn-panel-head strong {
+
+    font-size: 0.95rem;
+
+    color: #0f2744;
+
+}
+
+
+
+.bn-panel-head button,
+
+.bn-panel-foot a {
+
+    border: 0;
+
+    background: transparent;
+
+    color: #2563eb;
+
+    font-size: 0.8rem;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    text-decoration: none;
+
+}
+
+
+
+.bn-list {
+
+    max-height: 360px;
+
+    overflow: auto;
+
+    margin: 0;
+
+    padding: 0;
+
+    list-style: none;
+
+}
+
+
+
+.bn-item {
+
+    display: block;
+
+    padding: 12px 14px;
+
+    border-bottom: 1px solid #f1f5f9;
+
+    text-decoration: none;
+
+    color: inherit;
+
+    transition: background 120ms ease;
+
+}
+
+
+
+.bn-item:hover { background: #f8fafc; }
+
+
+
+.bn-item.is-unread {
+
+    background: #eff6ff;
+
+    box-shadow: inset 3px 0 0 #2563eb;
+
+}
+
+
+
+.bn-item-title {
+
+    margin: 0;
+
+    font-size: 0.88rem;
+
+    font-weight: 700;
+
+    color: #0f172a;
+
+}
+
+
+
+.bn-item-msg {
+
+    margin: 4px 0 0;
+
+    font-size: 0.78rem;
+
+    color: #64748b;
+
+    line-height: 1.35;
+
+}
+
+
+
+.bn-item-meta {
+
+    margin: 6px 0 0;
+
+    font-size: 0.7rem;
+
+    color: #94a3b8;
+
+    font-weight: 600;
+
+}
+
+
+
+.bn-empty {
+
+    padding: 28px 16px;
+
+    text-align: center;
+
+    color: #94a3b8;
+
+    font-size: 0.88rem;
+
+}
+
+
+
+.bn-panel-foot {
+
+    padding: 10px 14px;
+
+    border-top: 1px solid #e8eef6;
+
+    text-align: center;
+
+    background: #f8fafc;
+
+}
+
+
+
+/* Açık header'larda (personel v3) zil rengi */
+
+.v3-user-area .bn-bell-btn {
+
+    border-color: rgba(15, 39, 68, 0.1);
+
+    background: linear-gradient(160deg, #fff, #f3f7fc);
+
+    color: #0f2744;
+
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 4px 12px rgba(15, 39, 68, 0.06);
+
+}
+
+
+
+.v3-user-area .bn-bell-btn:hover {
+
+    background: linear-gradient(160deg, #fff, #eaf1fa);
+
+}
+
+
+
+.v3-user-area .bn-bell-btn.has-unread {
+
+    background: linear-gradient(145deg, #fff7e6, #fff);
+
+    border-color: #f59e0b;
+
+    color: #92400e;
+
+}
+
+
+
+.v3-user-area .bn-badge {
+
+    border-color: #fff;
+
+}
+
+
+
+.v3-user-area .bn-bell-glow {
+
+    background: radial-gradient(circle at 30% 20%, rgba(37, 99, 235, 0.12), transparent 55%);
+
+}
+
+
+
+/* Yönetim / öğretmen / veli koyu header */
+
+.cs-v6-actions .bn-bell-wrap,
+
+.yonetim-v6-actions .bn-bell-wrap,
+
+.panel-user-actions .bn-bell-wrap {
+
+    margin-right: 4px;
+
+}
+
+
+
+/* Bildirim merkezi sayfa */
+
+.bn-page {
+
+    max-width: 760px;
+
+    margin: 0 auto;
+
+    display: grid;
+
+    gap: 14px;
+
+}
+
+
+
+.bn-page-card {
+
+    background: #fff;
+
+    border: 1px solid #cdd6e4;
+
+    border-radius: 16px;
+
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 22px rgba(15, 23, 42, 0.05);
+
+    overflow: hidden;
+
+}
+
+
+
+.bn-page-card .bn-item { padding: 14px 18px; }
+
+

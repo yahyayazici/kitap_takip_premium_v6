@@ -27,6 +27,7 @@ from takip.akademik_mudahale_service import (
     yetkili_mudahaleler,
 )
 from takip.filter_utils import get_int_list
+from takip.forms import AkademikMudahaleForm
 from takip.models import AkademikMudahale, MudahaleTuru
 from takip.permissions.decorators import require_permission
 from takip.permissions.scope import yetkili_talebeler
@@ -223,15 +224,17 @@ def mudahale_rapor(request):
             ),
             "olusturanlar": olusturanlar,
             "filtre": filtre,
+            "excel_yetkisi": can(request.user, "akademik_mudahale", "export_excel"),
+            "pdf_yetkisi": can(request.user, "akademik_mudahale", "export_pdf")
+            or can(request.user, "akademik_mudahale", "export_excel")
+            or can(request.user, "akademik_mudahale", "view"),
         },
     )
 
 
-@login_required
-@require_permission("akademik_mudahale", "export_excel")
-def mudahale_excel(request):
+def _mudahale_rapor_queryset(request):
     qs = yetkili_mudahaleler(request.user).order_by("-tarih", "-id")
-    qs = mudahaleleri_filtrele(
+    return mudahaleleri_filtrele(
         qs,
         talebe_ids=get_int_list(request.GET, "talebe") or None,
         sinif_sube_ids=get_int_list(request.GET, "sinif_sube") or None,
@@ -243,46 +246,80 @@ def mudahale_excel(request):
         bitis=request.GET.get("bitis"),
     )
 
-    buffer = StringIO()
-    writer = csv.writer(buffer, delimiter=";")
-    writer.writerow(
-        [
-            "Tarih",
-            "Talebe",
-            "Sınıf",
-            "Ders",
-            "Konu",
-            "Müdahale Türü",
-            "Süre (dk)",
-            "Personel",
-            "Veliye Göster",
-            "Not",
-        ]
+
+@login_required
+@require_permission("akademik_mudahale", "view")
+def mudahale_pdf(request):
+    from django.template.loader import render_to_string
+    from django.utils.timezone import localdate
+
+    from takip.pdf_utils import (
+        coz_pdf_sayfa,
+        html_to_pdf,
+        make_pdf_response,
+        pdf_engine_status,
+        pdf_error_response,
     )
 
-    for kayit in qs[:1000]:
-        writer.writerow(
-            [
-                kayit.tarih.strftime("%d.%m.%Y"),
-                kayit.talebe.ad_soyad,
-                str(kayit.talebe.sinif_sube or ""),
-                kayit.ders.ad if kayit.ders_id else "",
-                kayit.konu,
-                kayit.mudahale_turu.ad,
-                kayit.sure_dakika,
+    qs = _mudahale_rapor_queryset(request)[:500]
+    pdf_sayfa = coz_pdf_sayfa(request, default="a4_landscape")
+    html = render_to_string(
+        "akademik_mudahale_rapor_pdf.html",
+        {
+            "kayitlar": qs,
+            "istatistik": rapor_istatistikleri(qs),
+            "alt_baslik": localdate().strftime("%d.%m.%Y"),
+            "pdf_sayfa": pdf_sayfa,
+        },
+        request=request,
+    )
+    pdf = html_to_pdf(html, base_url=request.build_absolute_uri("/"))
+    if not pdf:
+        return pdf_error_response(
+            f"PDF üretilemedi ({pdf_engine_status()})."
+        )
+    return make_pdf_response(
+        pdf, f"akademik_mudahale_{localdate():%Y%m%d}.pdf"
+    )
+
+
+@login_required
+@require_permission("akademik_mudahale", "export_excel")
+def mudahale_excel(request):
+    from takip.excel_rapor import basit_rapor_xlsx, excel_http_yanit
+    from django.utils.timezone import localdate
+
+    qs = _mudahale_rapor_queryset(request)
+
+    satirlar = [
+        [
+            kayit.tarih.strftime("%d.%m.%Y"),
+            (kayit.talebe.ad_soyad or "").upper(),
+            str(kayit.talebe.sinif_sube or ""),
+            kayit.ders.ad if kayit.ders_id else "",
+            kayit.konu,
+            kayit.mudahale_turu.ad,
+            kayit.sure_dakika,
+            (
                 kayit.olusturan.get_full_name() or kayit.olusturan.username
                 if kayit.olusturan
-                else "",
-                "Evet" if kayit.veliye_goster else "Hayır",
-                kayit.degerlendirme_notu.replace("\n", " ")[:200],
-            ]
-        )
-
-    response = HttpResponse(
-        "\ufeff" + buffer.getvalue(),
-        content_type="text/csv; charset=utf-8",
+                else ""
+            ),
+            "Evet" if kayit.veliye_goster else "Hayır",
+            (kayit.degerlendirme_notu or "").replace("\n", " ")[:200],
+        ]
+        for kayit in qs[:1000]
+    ]
+    icerik = basit_rapor_xlsx(
+        baslik="Akademik Müdahale Raporu",
+        alt_baslik=localdate().strftime("%d.%m.%Y"),
+        kolon_basliklari=[
+            "Tarih", "Ad-Soyad", "Sınıf", "Ders", "Konu",
+            "Müdahale Türü", "Süre (dk)", "Personel", "Veliye Göster", "Not",
+        ],
+        satirlar=satirlar,
+        sayfa_adi="Müdahale",
+        ortala_kolonlari=[0, 2, 6, 8],
+        genislikler=[12, 26, 10, 14, 18, 16, 10, 18, 12, 30],
     )
-    response["Content-Disposition"] = (
-        'attachment; filename="akademik_mudahale_rapor.csv"'
-    )
-    return response
+    return excel_http_yanit(icerik, f"akademik_mudahale_{localdate():%Y%m%d}.xlsx")

@@ -7,14 +7,16 @@
     <meta name="theme-color" content="#071b3a">
     <title>{% block title %}{{ panel_name }}{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/app.css' %}">
-    <link rel="stylesheet" href="{% static 'css/topnav-v3.css' %}">
+    <link rel="stylesheet" href="{% static 'css/topnav-v3.css' %}?v=toast2">
     <link rel="stylesheet" href="{% static 'css/premium-typography-v4.css' %}">
     <link rel="stylesheet" href="{% static 'css/premium-system-v5.css' %}">
     <link rel="stylesheet" href="{% static 'css/premium-system-v6.css' %}">
     <link rel="stylesheet" href="{% static 'css/nav-groups.css' %}">
-    <link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}">
-    <link rel="stylesheet" href="{% static 'css/panel-unified.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}?v=sc-mob4">
+    <link rel="stylesheet" href="{% static 'css/panel-unified.css' %}?v=nizam4">
+    <link rel="stylesheet" href="{% static 'css/choice-chip-grid.css' %}?v=chip1">
     <link rel="stylesheet" href="{% static 'css/multi-select-filter.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bildirim-bell.css' %}?v=bell2">
     {% if asistan_aktif %}
     <link rel="stylesheet" href="{% static 'css/asistan.css' %}">
     {% endif %}
@@ -47,6 +49,7 @@
         </nav>
 
         <div class="v3-user-area">
+            {% include "includes/bildirim_zili.html" %}
             <span class="v3-user-avatar">{{ request.user.username|slice:":1"|upper }}</span>
             <span class="v3-user-copy">
                 <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
@@ -61,12 +64,24 @@
 </header>
 
 {% if messages %}
-<div class="v3-toast-wrap">
+<div class="v3-toast-wrap" data-v3-toasts data-max="3" data-ttl="3200">
     {% for message in messages %}
-    <div class="v3-toast v3-toast-{{ message.tags|default:'info' }}">
-        <strong>{% if message.tags == 'success' %}İşlem tamamlandı{% elif message.tags == 'error' %}İşlem başarısız{% else %}Bilgilendirme{% endif %}</strong>
-        <span>{{ message }}</span>
-        <button type="button" class="v3-toast-close">×</button>
+    <div class="v3-toast v3-toast-{{ message.tags|default:'info' }}" role="status">
+        <span class="v3-toast-icon" aria-hidden="true">
+            {% if message.tags == 'success' %}
+            <svg viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            {% elif message.tags == 'error' %}
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 8v5m0 3h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            {% else %}
+            <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5m0 3h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            {% endif %}
+        </span>
+        <div class="v3-toast-body">
+            <strong>{% if message.tags == 'success' %}Tamam{% elif message.tags == 'error' %}Dikkat{% elif message.tags == 'warning' %}Uyarı{% else %}Bilgi{% endif %}</strong>
+            <span>{{ message }}</span>
+        </div>
+        <button type="button" class="v3-toast-close" aria-label="Kapat">×</button>
+        <span class="v3-toast-progress" aria-hidden="true"></span>
     </div>
     {% endfor %}
 </div>
@@ -83,8 +98,9 @@
 <script src="{% static 'js/asistan.js' %}"></script>
 {% endif %}
 
-<script src="{% static 'js/nav-dropdown.js' %}"></script>
+<script src="{% static 'js/nav-dropdown.js' %}?v=toast2"></script>
 <script src="{% static 'js/multi-select-filter.js' %}"></script>
+<script src="{% static 'js/bildirim-bell.js' %}"></script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

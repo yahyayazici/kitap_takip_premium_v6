@@ -788,6 +788,25 @@ def pdf_baglam(user: User, kurul: DisiplinKurulu) -> dict[str, Any]:
     }
 
 
+def varsayilan_gundem_pdf_baglam() -> dict[str, Any]:
+    """Kurul ayarlarından varsayılan gündem şablonu PDF bağlamı."""
+    from config.branding import PANEL_ORG, PANEL_SHORT
+
+    baglam = ayarlar_baglami()
+    ayar = baglam["ayar"]
+    uyeler = [u for u in baglam["uyeler"] if u.aktif]
+    gundem = [m for m in baglam["gundem"] if m.aktif]
+    return {
+        "kurum_adi": PANEL_ORG,
+        "panel_adi": PANEL_SHORT,
+        "kurul_adi": ayar.kurul_adi,
+        "varsayilan_yer": ayar.varsayilan_toplanti_yeri or "—",
+        "uyeler": uyeler,
+        "gundem": gundem,
+        "bugun": _bugun().strftime("%d.%m.%Y"),
+    }
+
+
 def seed_demo_kurul(user: User) -> DisiplinKurulu | None:
     talebe = yetkili_talebeler(user).select_related("etut_hocasi").first()
     if not talebe:

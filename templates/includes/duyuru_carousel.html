@@ -1,48 +1,46 @@
 <section class="duyuru-carousel-shell" aria-label="Duyurular"{% if duyurular %} data-duyuru-carousel{% endif %}>
 
     {% if duyurular %}
-    <div class="duyuru-split">
+    <div class="duyuru-banner">
         <div class="duyuru-media-pane" aria-live="polite">
             {% for duyuru in duyurular %}
             <article class="duyuru-media-slide{% if forloop.first %} is-active{% endif %}" data-duyuru-media-slide>
+                {% if duyuru.dis_link %}
+                <a class="duyuru-banner-hit" href="{{ duyuru.dis_link }}" target="_blank" rel="noopener" aria-label="{{ duyuru.baslik }}">
+                    {% include "includes/duyuru_slide_media.html" %}
+                </a>
+                {% else %}
                 {% include "includes/duyuru_slide_media.html" %}
+                {% endif %}
             </article>
             {% endfor %}
-        </div>
-
-        <div class="duyuru-copy-pane">
-            <div class="duyuru-copy-pane-head">
-                <div>
-                    <p class="duyuru-eyebrow">Duyurular</p>
-                    <h2>Son duyurular</h2>
-                </div>
-                <div class="duyuru-carousel-head-actions">
-                    {% if duyurular|length > 1 %}
-                    <div class="duyuru-carousel-nav">
-                        <button type="button" class="duyuru-nav-btn" data-duyuru-prev aria-label="Önceki duyuru">‹</button>
-                        <button type="button" class="duyuru-nav-btn" data-duyuru-next aria-label="Sonraki duyuru">›</button>
-                    </div>
-                    {% endif %}
-                    {% if yonetim_modulu %}
-                    <a href="{% url 'yonetim:duyuru_listesi' %}" class="dash-text-btn">Yönet</a>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="duyuru-copy-body">
-                {% for duyuru in duyurular %}
-                <article class="duyuru-copy-slide{% if forloop.first %} is-active{% endif %}" data-duyuru-copy-slide>
-                    {% include "includes/duyuru_slide_copy.html" %}
-                </article>
-                {% endfor %}
-            </div>
 
             {% if duyurular|length > 1 %}
+            <div class="duyuru-carousel-nav duyuru-carousel-nav-overlay">
+                <button type="button" class="duyuru-nav-btn" data-duyuru-prev aria-label="Önceki duyuru">‹</button>
+                <button type="button" class="duyuru-nav-btn" data-duyuru-next aria-label="Sonraki duyuru">›</button>
+            </div>
             <div class="duyuru-carousel-dots" id="duyuru-carousel-dots">
                 {% for duyuru in duyurular %}
                 <button type="button" class="{% if forloop.first %}is-active{% endif %}" data-duyuru-dot aria-label="Duyuru {{ forloop.counter }}"></button>
                 {% endfor %}
             </div>
+            {% endif %}
+        </div>
+
+        {# Erişilebilir metin — görsel bannerın altında ince şerit #}
+        <div class="duyuru-caption" aria-live="polite">
+            {% for duyuru in duyurular %}
+            <article class="duyuru-copy-slide{% if forloop.first %} is-active{% endif %}" data-duyuru-copy-slide>
+                <span class="duyuru-slide-tag">{{ duyuru.kategori_etiketi }}</span>
+                <strong class="duyuru-copy-title">{{ duyuru.baslik }}</strong>
+                {% if duyuru.dis_link %}
+                <a href="{{ duyuru.dis_link }}" class="duyuru-slide-link-label" target="_blank" rel="noopener">Detay →</a>
+                {% endif %}
+            </article>
+            {% endfor %}
+            {% if yonetim_modulu %}
+            <a href="{% url 'yonetim:duyuru_listesi' %}" class="duyuru-manage-link">Yönet</a>
             {% endif %}
         </div>
     </div>

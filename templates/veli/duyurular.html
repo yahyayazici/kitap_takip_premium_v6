@@ -1,27 +1,26 @@
 {% extends "veli/base.html" %}
+{% load static %}
 {% block title %}Duyurular · Veli Paneli{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/duyuru-carousel.css' %}">
+{% endblock %}
 {% block content %}
-<div class="dash-home veli-dash">
+<div class="dash-home veli-dash veli-wow">
 
 {% include "includes/panel_hero.html" with eyebrow="Veli paneli" title="Duyurular" meta="Kurum bildirimleri ve güncellemeler" show_date=True %}
 
+{% include "includes/duyuru_carousel.html" %}
+
+{% if not duyurular %}
 <section class="dash-panel">
-    <div class="dash-feed og-feed-stack">
-        {% for d in duyurular %}
-        <article class="dash-feed-item dash-accent-navy">
-            <span class="dash-feed-tag">{{ d.baslangic|date:"d.m.Y" }}</span>
-            <h3>{{ d.baslik }}</h3>
-            <p>{{ d.ozet }}</p>
-        </article>
-        {% empty %}
-        <p class="og-empty-note">Şu an görüntülenecek duyuru yok.</p>
-        {% endfor %}
-    </div>
+    <p class="og-empty-note">Şu an görüntülenecek duyuru yok.</p>
 </section>
+{% endif %}
 
 </div>
 {% endblock %}
 
 {% block extra_js %}
 {% include "includes/panel_date_js.html" %}
+<script src="{% static 'js/duyuru-carousel.js' %}"></script>
 {% endblock %}

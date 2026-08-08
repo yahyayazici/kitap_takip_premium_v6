@@ -63,6 +63,261 @@ class DashboardShortcut:
     url: str
     icon: str
     badge: int | None = None
+    banner: str = ""
+    mark: str = ""
+    gorsel_url: str = ""
+
+
+# Yönetim ekranı + varsayılan katalog
+PANEL_KISAYOL_KATALOG: tuple[dict[str, str], ...] = (
+    {"key": "kitap", "title": "Kitap Takip", "icon": "book"},
+    {"key": "talebeler", "title": "Talebeler", "icon": "users"},
+    {"key": "etut", "title": "Etüt Grupları", "icon": "groups"},
+    {"key": "gunluk_takip", "title": "Günlük Takip", "icon": "clipboard"},
+    {"key": "rehberlik", "title": "Rehberlik", "icon": "chat"},
+    {"key": "veli_iletisim", "title": "Veli & Talebe İletişim", "icon": "phone"},
+    {"key": "deneme", "title": "Deneme Sonuçları", "icon": "chart"},
+    {"key": "ktt", "title": "KTT Takip", "icon": "target"},
+    {"key": "gorevler", "title": "Görevler", "icon": "check"},
+    {"key": "dosyalar", "title": "Dosyalar", "icon": "folder"},
+    {"key": "takvim", "title": "Takvim", "icon": "calendar"},
+    {"key": "raporlar", "title": "Raporlar", "icon": "pie"},
+    {"key": "ayarlar", "title": "Ayarlar", "icon": "settings"},
+    {"key": "veli_duyurular", "title": "Duyurular", "icon": "chat"},
+    {"key": "veli_ana", "title": "Ana Sayfa", "icon": "users"},
+    {"key": "ogretmen_not", "title": "Not Girişi", "icon": "clipboard"},
+    {"key": "ogretmen_program", "title": "Ders Programı", "icon": "calendar"},
+    {"key": "ogretmen_degerlendirme", "title": "Değerlendirmeler", "icon": "chart"},
+)
+
+ICON_SECENEKLERI: tuple[str, ...] = (
+    "book",
+    "users",
+    "groups",
+    "clipboard",
+    "chat",
+    "phone",
+    "chart",
+    "target",
+    "check",
+    "folder",
+    "calendar",
+    "pie",
+    "settings",
+)
+
+
+def panel_kisayol_gorsel_haritasi() -> dict[str, str]:
+    from takip.panel_kisayol_models import PanelKisayol, PanelKisayolGorsel
+
+    sonuc: dict[str, str] = {}
+    for row in PanelKisayolGorsel.objects.filter(aktif=True).exclude(gorsel=""):
+        try:
+            sonuc[row.anahtar] = row.gorsel.url
+        except ValueError:
+            continue
+    for row in PanelKisayol.objects.filter(aktif=True).exclude(gorsel=""):
+        try:
+            sonuc[row.anahtar] = row.gorsel.url
+        except ValueError:
+            continue
+    return sonuc
+
+
+def _kisayol_url_coz(ayar, *, user: User | None = None, bugun: date | None = None) -> str | None:
+    """PanelKisayol kaydından URL üretir."""
+    url_ozel = (getattr(ayar, "url_ozel", "") or "").strip()
+    if url_ozel:
+        return url_ozel
+
+    anahtar = getattr(ayar, "anahtar", "")
+    url_name = (getattr(ayar, "url_name", "") or "").strip()
+
+    if anahtar == "gorevler" and user is not None:
+        return _gorevler_url(user)
+
+    if not url_name:
+        return None
+    try:
+        return reverse(url_name)
+    except Exception:
+        return None
+
+
+def _personel_kisayol_izinli(user: User, anahtar: str) -> bool:
+    if anahtar in {"kitap", "talebeler", "dosyalar", "raporlar"}:
+        return egitim_modulu_erisimi_var(user)
+    if anahtar == "etut":
+        return etut_plani_modulu_erisimi_var(user)
+    if anahtar == "gunluk_takip":
+        return gunluk_takip_modulu_erisimi_var(user)
+    if anahtar == "rehberlik":
+        return rehberlik_modulu_erisimi_var(user)
+    if anahtar == "veli_iletisim":
+        return veli_iletisim_modulu_erisimi_var(user)
+    if anahtar == "deneme":
+        return deneme_modulu_erisimi_var(user)
+    if anahtar == "ktt":
+        return ktt_modulu_erisimi_var(user)
+    if anahtar == "gorevler":
+        return bool(_gorevler_url(user))
+    if anahtar == "takvim":
+        return program_modulu_erisimi_var(user)
+    if anahtar == "ayarlar":
+        return yonetim_erisimi_var(user)
+    # özel / veli anahtarları personelde serbest (url varsa)
+    return True
+
+
+def dashboard_kisayollari(
+    user: User | None = None,
+    *,
+    bugun: date | None = None,
+    hedef: str = "personel",
+) -> list[DashboardShortcut]:
+    """hedef: personel | yonetim | veli | ogretmen"""
+    from takip.panel_kisayol_models import PanelKisayol
+
+    bugun = bugun or timezone.localdate()
+    filtre = {"aktif": True}
+    if hedef == "yonetim":
+        filtre["goster_yonetim"] = True
+    elif hedef == "veli":
+        filtre["goster_veli"] = True
+    elif hedef == "ogretmen":
+        filtre["goster_ogretmen"] = True
+    else:
+        filtre["goster_personel"] = True
+
+    ayarlar = list(PanelKisayol.objects.filter(**filtre).order_by("sira", "id"))
+    if not ayarlar:
+        if hedef == "personel" and user is not None:
+            return _legacy_personel_kisayollari(user, bugun=bugun)
+        return []
+
+    sonuc: list[DashboardShortcut] = []
+    for ayar in ayarlar:
+        if hedef == "personel" and user is not None:
+            # Katalog anahtarlarında izin kontrolü; özel URL'lerde geç
+            if not (ayar.url_ozel or "").strip():
+                if ayar.anahtar in {k["key"] for k in PANEL_KISAYOL_KATALOG}:
+                    if not _personel_kisayol_izinli(user, ayar.anahtar):
+                        continue
+
+        url = _kisayol_url_coz(ayar, user=user, bugun=bugun)
+        if not url:
+            continue
+
+        badge = None
+        if ayar.anahtar == "gorevler" and user is not None:
+            badge = _gorev_badge_sayisi(user, bugun) or None
+        elif ayar.anahtar == "vazife" and user is not None:
+            from takip.vazife_service import vazife_badge_sayisi
+
+            badge = vazife_badge_sayisi(user, bugun=bugun) or None
+
+        gorsel_url = ""
+        if ayar.gorsel:
+            try:
+                gorsel_url = ayar.gorsel.url
+            except ValueError:
+                gorsel_url = ""
+
+        sonuc.append(
+            DashboardShortcut(
+                key=ayar.anahtar,
+                title=ayar.baslik,
+                subtitle=ayar.alt_baslik,
+                url=url,
+                icon=ayar.icon or "book",
+                badge=badge,
+                banner=ayar.baslik.upper(),
+                mark=ayar.mark or ayar.baslik[:2].upper(),
+                gorsel_url=gorsel_url,
+            )
+        )
+        if len(sonuc) >= 16:
+            break
+    return sonuc
+
+
+def _legacy_personel_kisayollari(user: User, *, bugun: date) -> list[DashboardShortcut]:
+    """DB boşsa eski izin tabanlı liste."""
+    adaylar: list[DashboardShortcut] = []
+    gorseller = panel_kisayol_gorsel_haritasi()
+
+    def ekle(
+        kosul: bool,
+        key: str,
+        title: str,
+        subtitle: str,
+        url_name: str,
+        icon: str,
+        *,
+        banner: str = "",
+        mark: str = "",
+        badge: int | None = None,
+    ) -> None:
+        if not kosul:
+            return
+        try:
+            url = reverse(url_name)
+        except Exception:
+            return
+        adaylar.append(
+            DashboardShortcut(
+                key=key,
+                title=title,
+                subtitle=subtitle,
+                url=url,
+                icon=icon,
+                badge=badge,
+                banner=banner or title.upper(),
+                mark=mark or title[:2].upper(),
+                gorsel_url=gorseller.get(key, ""),
+            )
+        )
+
+    ekle(egitim_modulu_erisimi_var(user), "kitap", "Kitap Takip", "Zimmet, okuma ve arşiv", "kitap_listesi", "book", mark="KT")
+    ekle(egitim_modulu_erisimi_var(user), "talebeler", "Talebeler", "Liste ve profiller", "talebe_listesi", "users", mark="TL")
+    ekle(etut_plani_modulu_erisimi_var(user), "etut", "Etüt Grupları", "Grupları yönet", "etut_plan_panel", "groups", mark="EG")
+    ekle(gunluk_takip_modulu_erisimi_var(user), "gunluk_takip", "Günlük Takip", "Yoklama ve takip", "gunluk_takip_panel", "clipboard", mark="GT")
+    ekle(rehberlik_modulu_erisimi_var(user), "rehberlik", "Rehberlik", "Rehber öğretmeni görüşmeleri", "rehberlik_listesi", "chat", mark="RH")
+    ekle(veli_iletisim_modulu_erisimi_var(user), "veli_iletisim", "Veli & Talebe İletişim", "Veli ve öğrenci görüşmeleri", "iletisim_listesi", "phone", mark="Vİ")
+    ekle(deneme_modulu_erisimi_var(user), "deneme", "Deneme Sonuçları", "Deneme analizi", "deneme_listesi", "chart", mark="DN")
+    ekle(ktt_modulu_erisimi_var(user), "ktt", "KTT Takip", "Kazanım tarama testleri", "ktt_listesi", "target", mark="KTT")
+    gorev_url = _gorevler_url(user)
+    if gorev_url:
+        adaylar.append(
+            DashboardShortcut(
+                key="gorevler",
+                title="Görevler",
+                subtitle="İmam, temizlik, yemek",
+                url=gorev_url,
+                icon="check",
+                badge=_gorev_badge_sayisi(user, bugun) or None,
+                banner="GÖREVLER",
+                mark="GV",
+                gorsel_url=gorseller.get("gorevler", ""),
+            )
+        )
+    ekle(gelisim_dosyasi_erisimi_var(user), "dosyalar", "Dosyalar", "Gelişim dosyaları", "talebe_listesi", "folder", mark="GD")
+    ekle(program_modulu_erisimi_var(user), "takvim", "Takvim", "Kurum programı", "program_panel", "calendar", mark="TK")
+    from takip.vazife_service import vazife_badge_sayisi
+
+    ekle(
+        True,
+        "vazife",
+        "Vazifelerim",
+        "Atanan görevler",
+        "vazife_personel",
+        "check",
+        mark="VZ",
+        badge=vazife_badge_sayisi(user, bugun=bugun) or None,
+    )
+    ekle(egitim_modulu_erisimi_var(user), "raporlar", "Raporlar", "Filtre ve PDF çıktı", "raporlar", "pie", mark="RP")
+    ekle(yonetim_erisimi_var(user), "ayarlar", "Ayarlar", "Kurum ve modül ayarları", "yonetim:dashboard", "settings", mark="AY")
+    return adaylar[:12]
 
 
 @dataclass(frozen=True)
@@ -164,153 +419,6 @@ def _gorevler_url(user: User) -> str | None:
         return reverse("yemekcilik_panel")
     return None
 
-
-def dashboard_kisayollari(user: User, *, bugun: date | None = None) -> list[DashboardShortcut]:
-    bugun = bugun or timezone.localdate()
-    adaylar: list[tuple[bool, DashboardShortcut]] = []
-
-    def ekle(
-        kosul: bool,
-        key: str,
-        title: str,
-        subtitle: str,
-        url_name: str,
-        icon: str,
-        *,
-        url_kwargs: dict | None = None,
-        badge: int | None = None,
-    ) -> None:
-        if not kosul:
-            return
-        adaylar.append(
-            (
-                True,
-                DashboardShortcut(
-                    key=key,
-                    title=title,
-                    subtitle=subtitle,
-                    url=reverse(url_name, kwargs=url_kwargs or {}),
-                    icon=icon,
-                    badge=badge,
-                ),
-            )
-        )
-
-    ekle(
-        egitim_modulu_erisimi_var(user),
-        "kitap",
-        "Kitap Takip",
-        "Zimmet, okuma ve arşiv",
-        "kitap_listesi",
-        "book",
-    )
-    ekle(
-        egitim_modulu_erisimi_var(user),
-        "talebeler",
-        "Talebeler",
-        "Liste ve profiller",
-        "talebe_listesi",
-        "users",
-    )
-    ekle(
-        etut_plani_modulu_erisimi_var(user),
-        "etut",
-        "Etüt Grupları",
-        "Grupları yönet",
-        "etut_plan_panel",
-        "groups",
-    )
-    ekle(
-        gunluk_takip_modulu_erisimi_var(user),
-        "gunluk_takip",
-        "Günlük Takip",
-        "Yoklama ve takip",
-        "gunluk_takip_panel",
-        "clipboard",
-    )
-    ekle(
-        rehberlik_modulu_erisimi_var(user),
-        "rehberlik",
-        "Rehberlik",
-        "Rehber öğretmeni görüşmeleri",
-        "rehberlik_listesi",
-        "chat",
-    )
-    ekle(
-        veli_iletisim_modulu_erisimi_var(user),
-        "veli_iletisim",
-        "Veli & Talebe İletişim",
-        "Veli ve öğrenci görüşmeleri",
-        "iletisim_listesi",
-        "phone",
-    )
-    ekle(
-        deneme_modulu_erisimi_var(user),
-        "deneme",
-        "Deneme Sonuçları",
-        "Deneme analizi",
-        "deneme_listesi",
-        "chart",
-    )
-    ekle(
-        ktt_modulu_erisimi_var(user),
-        "ktt",
-        "KTT Takip",
-        "Kazanım tarama testleri",
-        "ktt_listesi",
-        "target",
-    )
-
-    gorev_url = _gorevler_url(user)
-    if gorev_url:
-        adaylar.append(
-            (
-                True,
-                DashboardShortcut(
-                    key="gorevler",
-                    title="Görevler",
-                    subtitle="İmam, temizlik, yemek",
-                    url=gorev_url,
-                    icon="check",
-                    badge=_gorev_badge_sayisi(user, bugun) or None,
-                ),
-            )
-        )
-
-    ekle(
-        gelisim_dosyasi_erisimi_var(user),
-        "dosyalar",
-        "Dosyalar",
-        "Gelişim dosyaları",
-        "talebe_listesi",
-        "folder",
-    )
-    ekle(
-        program_modulu_erisimi_var(user),
-        "takvim",
-        "Takvim",
-        "Kurum programı",
-        "program_panel",
-        "calendar",
-    )
-    ekle(
-        egitim_modulu_erisimi_var(user),
-        "raporlar",
-        "Raporlar",
-        "Filtre ve PDF çıktı",
-        "raporlar",
-        "pie",
-    )
-    ekle(
-        yonetim_erisimi_var(user),
-        "ayarlar",
-        "Ayarlar",
-        "Kurum ve modül ayarları",
-        "yonetim:dashboard",
-        "settings",
-    )
-
-    return [item for _, item in adaylar][:12]
 
 
 def dashboard_son_aktiviteler(user: User, *, limit: int = 6) -> list[DashboardActivity]:
@@ -608,6 +716,178 @@ def bugunku_sinav_sayisi(user: User, bugun: date | None = None) -> int:
     return _yetkili_sinavlar(user).filter(sinav_tarihi=bugun).count()
 
 
+@dataclass(frozen=True)
+class DashboardMetrik:
+    key: str
+    label: str
+    value: str | int
+    note: str
+    ton: str
+    icon: str
+    url: str = ""
+
+
+PANEL_METRIK_KATALOG: tuple[dict[str, str], ...] = (
+    {"key": "talebe", "title": "Talebe", "ton": "blue", "icon": "users"},
+    {"key": "bugun_okunan", "title": "Bugün okunan", "ton": "green", "icon": "book"},
+    {"key": "okuma_kaydi", "title": "Okuma kaydı", "ton": "amber", "icon": "folder"},
+    {"key": "sinav", "title": "Sınav", "ton": "violet", "icon": "clipboard"},
+    {"key": "aktif_deneme", "title": "Aktif deneme", "ton": "amber", "icon": "chart"},
+    {"key": "ktt", "title": "KTT", "ton": "violet", "icon": "target"},
+    {"key": "personel", "title": "Personel", "ton": "green", "icon": "users"},
+    {"key": "sinif", "title": "Sınıf", "ton": "blue", "icon": "groups"},
+    {"key": "sorumlu_sinif", "title": "Sorumlu sınıf", "ton": "blue", "icon": "groups"},
+    {"key": "ogretmen_ogrenci", "title": "Toplam öğrenci", "ton": "green", "icon": "users"},
+    {"key": "aktif_hafta", "title": "Aktif hafta", "ton": "amber", "icon": "calendar"},
+)
+
+
+def _metrik_deger(
+    anahtar: str,
+    *,
+    user: User | None,
+    baglam: dict | None,
+) -> tuple[str | int, str] | None:
+    """(değer, varsayılan_not) veya None (hesaplanamadı / gizle)."""
+    baglam = baglam or {}
+
+    if anahtar == "talebe":
+        if "talebe_sayisi" in baglam:
+            return baglam["talebe_sayisi"], "Aktif kayıt"
+        if user is not None:
+            return yetkili_talebeler(user, aktif_only=True).count(), "Aktif kayıt"
+        from takip.models import Talebe
+
+        return Talebe.objects.filter(aktif=True).count(), "Aktif kayıt"
+
+    if anahtar == "bugun_okunan":
+        return baglam.get("toplam_okunan", 0), "Toplam sayfa"
+
+    if anahtar == "okuma_kaydi":
+        deger = baglam.get("bugunku_kayit", 0)
+        bekleyen = baglam.get("bekleyen", 0)
+        notu = f"{bekleyen} zimmet bekliyor" if bekleyen else "Kayıt tamam"
+        return deger, notu
+
+    if anahtar == "sinav":
+        deger = baglam.get("bugunku_sinav", 0)
+        bekleyen = baglam.get("sinav_bekleyen", 0)
+        notu = f"{bekleyen} sonuç bekliyor" if bekleyen else "Bugünkü sınav"
+        return deger, notu
+
+    if anahtar == "aktif_deneme":
+        from takip.deneme_models import DenemeSinavi
+
+        return (
+            DenemeSinavi.objects.filter(durum=DenemeSinavi.Durum.AKTIF).count(),
+            "Yayındaki denemeler",
+        )
+
+    if anahtar == "ktt":
+        return KttSinav.objects.count(), "Kayıtlı tarama"
+
+    if anahtar == "personel":
+        from takip.models import PersonelProfili
+
+        return PersonelProfili.objects.filter(aktif=True).count(), "Aktif personel"
+
+    if anahtar == "sinif":
+        from takip.models import SinifSube
+
+        return SinifSube.objects.filter(aktif=True).count(), "Tanımlı sınıf"
+
+    if anahtar == "sorumlu_sinif":
+        return baglam.get("toplam_sinif", 0), "Sorumlu sınıf"
+
+    if anahtar == "ogretmen_ogrenci":
+        return baglam.get("toplam_ogrenci", 0), "Öğrenci"
+
+    if anahtar == "aktif_hafta":
+        hn = baglam.get("hafta_no")
+        if hn is None:
+            return None
+        return f"{hn}.", "Hafta"
+
+    return None
+
+
+def _metrik_url(anahtar: str, *, hedef: str = "personel") -> str:
+    """Özet kart → ilgili modül sayfası."""
+    harita = {
+        "talebe": "talebe_listesi" if hedef != "yonetim" else "yonetim:talebe_listesi",
+        "bugun_okunan": "toplu_gunluk_okuma",
+        "okuma_kaydi": "toplu_gunluk_okuma",
+        "sinav": "sinav_sonuc_paneli",
+        "aktif_deneme": "deneme_listesi",
+        "ktt": "ktt_listesi",
+        "personel": "yonetim:personel_listesi",
+        "sinif": "yonetim:sinif_listesi" if hedef == "yonetim" else "talebe_listesi",
+        "sorumlu_sinif": "ogretmen_dashboard",
+        "ogretmen_ogrenci": "ogretmen_dashboard",
+        "aktif_hafta": "ogretmen_not_girisi",
+    }
+    url_name = harita.get(anahtar)
+    if not url_name:
+        return ""
+    try:
+        return reverse(url_name)
+    except Exception:
+        return ""
+
+
+def dashboard_metrikleri(
+    user: User | None = None,
+    *,
+    hedef: str = "personel",
+    baglam: dict | None = None,
+) -> list[DashboardMetrik]:
+    from takip.panel_metrik_models import PanelMetrik
+
+    filtre = {"aktif": True}
+    if hedef == "yonetim":
+        filtre["goster_yonetim"] = True
+    elif hedef == "veli":
+        filtre["goster_veli"] = True
+    elif hedef == "ogretmen":
+        filtre["goster_ogretmen"] = True
+    else:
+        filtre["goster_personel"] = True
+
+    ayarlar = list(PanelMetrik.objects.filter(**filtre).order_by("sira", "id"))
+    if not ayarlar and hedef == "personel":
+        # DB boşsa eski 4'lü şerit
+        ayarlar = [
+            type("M", (), {"anahtar": k, "baslik": t, "not_metni": "", "ton": ton, "icon": icon})()
+            for k, t, ton, icon in (
+                ("talebe", "Talebe", "blue", "users"),
+                ("bugun_okunan", "Bugün okunan", "green", "book"),
+                ("okuma_kaydi", "Okuma kaydı", "amber", "folder"),
+                ("sinav", "Sınav", "violet", "clipboard"),
+            )
+        ]
+
+    sonuc: list[DashboardMetrik] = []
+    for ayar in ayarlar:
+        hesap = _metrik_deger(ayar.anahtar, user=user, baglam=baglam)
+        if hesap is None:
+            continue
+        deger, varsayilan_not = hesap
+        sonuc.append(
+            DashboardMetrik(
+                key=ayar.anahtar,
+                label=ayar.baslik,
+                value=deger,
+                note=(ayar.not_metni or "").strip() or varsayilan_not,
+                ton=ayar.ton or "blue",
+                icon=ayar.icon or "users",
+                url=_metrik_url(ayar.anahtar, hedef=hedef),
+            )
+        )
+        if len(sonuc) >= 8:
+            break
+    return sonuc
+
+
 def dashboard_etut_plani_onizleme(user: User):
     if not etut_plani_modulu_erisimi_var(user):
         return None
@@ -654,15 +934,13 @@ def dashboard_gunluk_gorevler(user: User, *, bugun: date | None = None) -> dict[
         from takip.yemekci_service import bugunun_atamalari
 
         yemek_satirlar = []
-        for atama in bugunun_atamalari():
-            ogun = getattr(atama.ogun, "ad", "Öğün")
-            isim = atama.talebe.ad_soyad
-            if atama.yardimci:
-                isim = f"{isim} · {atama.yardimci.ad_soyad}"
+        for kart in bugunun_atamalari():
+            talebe = kart.get("talebe") or {}
             yemek_satirlar.append(
                 DashboardGunlukGorev(
-                    baslik=ogun,
-                    deger=isim,
+                    baslik=kart.get("etiket") or f"{kart.get('sinif')}. Sınıf",
+                    deger=talebe.get("ad") or "—",
+                    alt=talebe.get("sinif_label") or "",
                     url=reverse("yemekcilik_panel"),
                 )
             )

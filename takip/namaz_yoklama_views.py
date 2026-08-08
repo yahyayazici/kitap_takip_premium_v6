@@ -12,6 +12,7 @@ from django.utils.timezone import localdate
 from config.branding import panel_branding_context
 
 from takip.filter_utils import get_int_list, get_str_list
+from takip.models import EtutHocasi, NamazVakti, SinifSube
 from takip.namaz_yoklama_models import NamazYoklamaOturum
 from takip.namaz_yoklama_service import (
     VAKIT_SIRASI,
@@ -42,6 +43,26 @@ def _parse_tarih(value: str | None):
         return localdate()
 
 
+def _varsayilan_vakit() -> str:
+    """Hocanın o anki namaz vakti — yoklama ekranına varsayılan odak."""
+    saat = datetime.now().hour
+    if saat < 10:
+        return NamazVakti.SABAH
+    if saat < 14:
+        return NamazVakti.OGLE
+    if saat < 17:
+        return NamazVakti.IKINDI
+    if saat < 20:
+        return NamazVakti.AKSAM
+    return NamazVakti.YATSI
+
+
+def _odak_vakit(value: str | None) -> str:
+    if value in VAKIT_SIRASI:
+        return value
+    return _varsayilan_vakit()
+
+
 def _kayit_haritalari(tarih):
     oturumlar = {
         vakit: NamazYoklamaOturum.objects.filter(tarih=tarih, vakit=vakit).first()
@@ -65,6 +86,7 @@ def _post_durumlari(request, talebe_ids, vakit: str) -> dict[int, str]:
 def namaz_yoklama_panel(request):
     if request.method == "POST" and namaz_yoklama_kaydedebilir(request.user):
         tarih = _parse_tarih(request.POST.get("tarih"))
+        odak = _odak_vakit(request.POST.get("odak_vakit"))
         qs = panel_talebeleri(
             request.user,
             etudum=request.POST.get("etudum") == "1",
@@ -72,7 +94,9 @@ def namaz_yoklama_panel(request):
             etut_hocasi_id=request.POST.get("etut_hocasi") or None,
         )
         talebe_ids = list(qs.values_list("id", flat=True))
-        for vakit in VAKIT_SIRASI:
+        # Tek vakit kaydı: o anki namazı bitirir, diğer vakitler bozulmaz
+        kaydedilecek = [odak] if request.POST.get("sadece_odak") == "1" else list(VAKIT_SIRASI)
+        for vakit in kaydedilecek:
             yoklama_kaydet(
                 request.user,
                 tarih,
@@ -80,16 +104,21 @@ def namaz_yoklama_panel(request):
                 _post_durumlari(request, talebe_ids, vakit),
                 talebe_ids,
             )
-        messages.success(request, f"{tarih:%d.%m.%Y} namaz yoklaması kaydedildi.")
-        params = f"?tarih={tarih:%Y-%m-%d}"
+        label = dict(NamazVakti.choices).get(odak, odak)
+        messages.success(request, f"{tarih:%d.%m.%Y} · {label} yoklaması kaydedildi.")
+        params = f"?tarih={tarih:%Y-%m-%d}&vakit={odak}"
         if request.POST.get("etudum") == "1":
             params += "&etudum=1"
+        sinif = request.POST.get("sinif_sube") or ""
+        if sinif:
+            params += f"&sinif_sube={sinif}"
         return redirect("namaz_yoklama_panel" + params)
 
     tarih = _parse_tarih(request.GET.get("tarih"))
     etudum = request.GET.get("etudum") == "1"
     if not namaz_tam_yetki(request.user):
         etudum = True
+    odak = _odak_vakit(request.GET.get("vakit"))
 
     qs = panel_talebeleri(
         request.user,
@@ -105,6 +134,7 @@ def namaz_yoklama_panel(request):
                 {"vakit": v, "secili": haritalar[v].get(talebe.id, "")}
                 for v in VAKIT_SIRASI
             ]
+            talebe.odak_secili = haritalar[odak].get(talebe.id, "")
 
     return render(
         request,
@@ -116,6 +146,8 @@ def namaz_yoklama_panel(request):
             "vakit_basliklari": [
                 (v, dict(NamazVakti.choices).get(v, v)) for v in VAKIT_SIRASI
             ],
+            "odak_vakit": odak,
+            "odak_vakit_label": dict(NamazVakti.choices).get(odak, odak),
             "haritalar": haritalar,
             "oturumlar": oturumlar,
             "herhangi_oturum_kayitli": any(oturumlar.values()),
@@ -128,6 +160,7 @@ def namaz_yoklama_panel(request):
             "etut_hocalari": EtutHocasi.objects.filter(aktif=True).order_by("ad_soyad"),
             "etut_bildirimleri": etut_gelmedi_bildirimleri(request.user, tarih),
             "talebe_sinif_etiketi": talebe_sinif_etiketi,
+            "secili_sinif": request.GET.get("sinif_sube", ""),
         },
     )
 

@@ -3,7 +3,7 @@
 .tz-page {
     --tz-bg: #f4f6f9;
     --tz-card: #ffffff;
-    --tz-line: rgba(15, 23, 42, 0.08);
+    --tz-line: #cdd6e4;
     --tz-navy: #071b3a;
     --tz-blue: #2563eb;
     --tz-muted: #64748b;
@@ -1092,3 +1092,101 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Personel görünümü — arşiv/liste seçicisiz */
+.tz-personel {
+    max-width: 960px;
+    margin: 0 auto;
+    padding-bottom: 2.5rem;
+}
+
+.tz-personel .tz-head,
+.tz-merkez .tz-head {
+    margin: 0 0 1rem !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    color: inherit !important;
+}
+
+.tz-personel .tz-head::before,
+.tz-merkez .tz-head::before {
+    display: none !important;
+    content: none !important;
+}
+
+.tz-card {
+    background: var(--tz-card, #fff);
+    border: 1px solid var(--tz-line, #cdd6e4);
+    border-radius: var(--tz-radius, 16px);
+    box-shadow: var(--tz-shadow);
+    padding: 1rem 1.1rem;
+}
+
+.tz-kat-banner strong {
+    display: block;
+    color: var(--tz-navy);
+    font-size: 1rem;
+    margin-top: 0.2rem;
+}
+
+.tz-card-kicker {
+    margin: 0;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--tz-muted);
+}
+
+.tz-card-head-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.85rem;
+}
+
+.tz-card-head-row h2 {
+    margin: 0.2rem 0 0;
+    font-size: 1.05rem;
+    color: var(--tz-navy);
+}
+
+.tz-date-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.tz-date-form label {
+    font-size: 0.75rem;
+    font-weight: 650;
+    color: var(--tz-muted);
+}
+
+.tz-input {
+    min-height: 36px;
+    border: 1px solid var(--tz-line, #cdd6e4);
+    border-radius: 10px;
+    padding: 0 0.65rem;
+    font: inherit;
+    background: #fff;
+}
+
+.tz-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 0.65rem;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 0.75rem;
+    font-weight: 650;
+}
+
+.tz-muted { color: var(--tz-muted); font-size: 0.85rem; }
+.tz-empty { color: var(--tz-muted); text-align: center; padding: 1rem 0; }

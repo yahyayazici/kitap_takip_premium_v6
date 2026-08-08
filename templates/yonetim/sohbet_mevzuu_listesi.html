@@ -1,0 +1,59 @@
+{% extends "yonetim/base.html" %}
+
+{% block title %}Sohbet Mevzuu{% endblock %}
+
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">VELİ İLETİŞİM</p>
+        <h1>Haftalık Sohbet Mevzuu</h1>
+        <p class="muted">Veli panelinde görünen haftalık sohbet başlığı ve içeriğini yönetin.</p>
+    </div>
+    <div class="yonetim-page-head-actions">
+        <a href="{% url 'yonetim:sohbet_mevzuu_ekle' %}" class="primary-btn">Mevzu Ekle</a>
+    </div>
+</header>
+
+<section class="report-table-card yonetim-table-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">LİSTE</p>
+            <h2>Sohbet mevzuları</h2>
+        </div>
+        <span class="report-record-count">{{ mevzular|length }} kayıt</span>
+    </div>
+
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <thead>
+                <tr>
+                    <th>Hafta</th>
+                    <th>Başlık</th>
+                    <th>Durum</th>
+                    <th class="yonetim-action-col">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in mevzular %}
+                <tr>
+                    <td>{{ m.hafta_baslangic|date:"d.m.Y" }}</td>
+                    <td><strong>{{ m.baslik }}</strong></td>
+                    <td>{% if m.aktif %}Aktif{% else %}Pasif{% endif %}</td>
+                    <td class="yonetim-action-col">
+                        <a href="{% url 'yonetim:sohbet_mevzuu_duzenle' m.pk %}" class="ghost-btn">Düzenle</a>
+                        <form method="post" action="{% url 'yonetim:sohbet_mevzuu_sil' m.pk %}" style="display:inline;" onsubmit="return confirm('Silinsin mi?');">
+                            {% csrf_token %}
+                            <button type="submit" class="ghost-btn">Sil</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4">Henüz sohbet mevzuu yok.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

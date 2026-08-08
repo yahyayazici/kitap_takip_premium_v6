@@ -2,23 +2,23 @@
 {% load static %}
 {% block title %}Soru Takip · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/soru-takip-premium.css' %}">
+<link rel="stylesheet" href="{% static 'css/soru-takip-premium.css' %}?v=nizam2">
 {% endblock %}
 {% block content %}
 <div class="st-page">
-    <header class="st-head">
+    <header class="page-head patterned-page-head st-page-head">
         <div>
-            <p class="st-eyebrow">Günlük Soru Takip</p>
+            <p class="kicker">GÜNLÜK SORU TAKİP</p>
             <h1>Soru Takip</h1>
-            <p class="st-desc">Talebe başına günde bir kayıt · Net = Doğru − Yanlış/4</p>
+            <p class="muted">Talebe başına günde bir kayıt · Net = Doğru − Yanlış/4</p>
         </div>
-        <div class="st-actions">
-            <a href="{% url 'soru_takip_rapor' %}" class="st-btn">Rapor</a>
-            <a href="{% url 'dashboard' %}" class="st-btn">Ana Sayfa</a>
+        <div class="result-header-actions st-actions">
+            <a href="{% url 'soru_takip_rapor' %}" class="result-secondary-button">Rapor</a>
+            <a href="{% url 'dashboard' %}" class="result-back-button">Ana Sayfa</a>
         </div>
     </header>
 
-    <section class="st-card" style="margin-bottom:1rem;">
+    <section class="st-card st-filter-card">
         <form method="get" class="st-filter-grid">
             <div class="st-field">
                 <label for="st-sinif">Sınıf / Şube</label>
@@ -47,7 +47,7 @@
 
     {% if talebe %}
     <div class="st-layout">
-        <section class="st-card">
+        <section class="st-card st-main-card">
             {% if duzenleyebilir %}
             <form method="post">
                 {% csrf_token %}
@@ -96,7 +96,7 @@
 
                 <div class="st-form-actions">
                     <button type="submit" class="st-btn st-btn-primary">Kaydet</button>
-                    {% if kayit and silebilir %}
+                    {% if kayit %}
                     <a href="{% url 'soru_takip_sil' kayit.pk %}" class="st-btn" onclick="return confirm('Bu günün kaydı silinsin mi?');">Sil</a>
                     {% endif %}
                 </div>
@@ -117,32 +117,32 @@
                 <strong class="st-stat-value">%{{ gunluk_ozet.basari_orani }}</strong>
                 <span class="st-stat-sub">doğru / toplam soru</span>
             </article>
-            {% if aylik_ozet %}
             <article class="st-stat st-stat-purple">
                 <span class="st-stat-label">Aylık Özet</span>
                 <strong class="st-stat-value">{{ aylik_ozet.toplam_soru }}</strong>
                 <span class="st-stat-sub">{{ aylik_ozet.gun_sayisi }} gün · Net {{ aylik_ozet.toplam_net }}</span>
             </article>
-            {% endif %}
 
-            <section class="st-card">
+            <section class="st-card st-recent-card">
                 <p class="st-recent-head">Son Kayıtlar</p>
-                <table class="st-recent-table">
-                    <thead>
-                        <tr><th>Talebe</th><th>Tarih</th><th class="st-num">Soru</th></tr>
-                    </thead>
-                    <tbody>
-                        {% for k in son_kayitlar %}
-                        <tr>
-                            <td><a href="{% url 'soru_takip_panel' %}?talebe={{ k.talebe_id }}&tarih={{ k.tarih|date:'Y-m-d' }}">{{ k.talebe.ad_soyad }}</a></td>
-                            <td>{{ k.tarih|date:"d.m.Y" }}</td>
-                            <td class="st-num">{{ k.toplam_soru }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="3" class="st-empty" style="padding:1rem 0;">Kayıt yok.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <div class="st-recent-wrap">
+                    <table class="st-recent-table">
+                        <thead>
+                            <tr><th>Talebe</th><th>Tarih</th><th class="st-num">Soru</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for k in son_kayitlar %}
+                            <tr>
+                                <td><a href="{% url 'soru_takip_detay' k.pk %}">{{ k.talebe.ad_soyad }}</a></td>
+                                <td>{{ k.tarih|date:"d.m.Y" }}</td>
+                                <td class="st-num">{{ k.toplam_soru }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="st-empty" style="padding:1rem 0;">Kayıt yok.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </section>
         </aside>
     </div>

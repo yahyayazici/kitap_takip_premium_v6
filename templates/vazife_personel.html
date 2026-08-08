@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Vazifelerim{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/vazife-premium.css' %}">
+{% endblock %}
+{% block content %}
+<div class="vz-page">
+    <header class="vz-head">
+        <div>
+            <p class="vz-kicker">Personel</p>
+            <h1>Vazifelerim</h1>
+            <p class="vz-head-meta">{{ profil.ad_soyad }} · atanmış görevler ve son tarihler</p>
+        </div>
+    </header>
+
+    <div class="vz-stats" aria-label="Özet">
+        <div class="vz-stat"><span>Toplam</span><strong>{{ ozet.toplam }}</strong></div>
+        <div class="vz-stat"><span>Açık</span><strong>{{ ozet.acik }}</strong></div>
+        <div class="vz-stat{% if ozet.bildirim %} is-warn{% endif %}"><span>Bildirimde</span><strong>{{ ozet.bildirim }}</strong></div>
+        <div class="vz-stat{% if ozet.geciken %} is-danger{% endif %}"><span>Geciken</span><strong>{{ ozet.geciken }}</strong></div>
+    </div>
+
+    {% if bildirimler %}
+    <section class="vz-alert" aria-label="Aktif vazife bildirimleri">
+        <div>
+            <h2>Son tarihe kadar hatırlatmalar</h2>
+            <p>İdareci tarafından verilen vazifeler bitiş gününe kadar burada görünür. Tamamlayınca bildirim kapanır.</p>
+            <ul class="vz-alert-list">
+                {% for b in bildirimler %}
+                <li>
+                    <strong>{{ b.baslik }}</strong>
+                    {% if b.bitis %}
+                    — şu güne kadar: {{ b.bitis|date:"d.m.Y" }}
+                    {% if b.kalan_gun is not None %}
+                        {% if b.kalan_gun == 0 %} (bugün){% elif b.kalan_gun > 0 %} ({{ b.kalan_gun }} gün){% else %} (gecikti){% endif %}
+                    {% endif %}
+                    {% else %}
+                    — son tarih yok
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </section>
+    {% endif %}
+
+    <section class="vz-card">
+        <div class="vz-card-head">
+            <div>
+                <h2>Görev listesi</h2>
+                <p>Durumu güncelleyin; tamamlananlar bildirimden düşer.</p>
+            </div>
+        </div>
+
+        {% if vazifeler %}
+        <div class="vz-table-head" aria-hidden="true">
+            <span>Vazife</span>
+            <span>Tarih / son gün</span>
+            <span>Öncelik</span>
+            <span>Durum</span>
+            <span>Güncelle</span>
+        </div>
+        <div class="vz-list">
+            {% for v in vazifeler %}
+            <article class="vz-item{% if v.gecikti %} is-gecikmis{% endif %}{% if v.oncelik == 'acil' %} is-acil{% endif %}">
+                <div>
+                    <p class="vz-item-title">{{ v.baslik }}</p>
+                    {% if v.aciklama %}<p class="vz-item-desc">{{ v.aciklama|truncatechars:140 }}</p>{% endif %}
+                    <p class="vz-item-meta">
+                        {% if v.toplanti_karar_id %}<span class="vz-toplanti-tag">Toplantı kararı</span> · {% endif %}
+                        {% if v.sinif_sube %}Sınıf: {{ v.sinif_sube }} · {% endif %}
+                        {% if v.atayan %}Atayan: {{ v.atayan.get_full_name|default:v.atayan.username }}{% endif %}
+                    </p>
+                </div>
+                <div class="vz-date">
+                    <span class="vz-col-label">Tarih</span>
+                    <strong>{{ v.baslangic|date:"d.m.Y" }}{% if v.bitis %} → {{ v.bitis|date:"d.m.Y" }}{% endif %}</strong>
+                    {% if v.bitis %}
+                    <span class="{% if v.gecikti %}is-late{% endif %}">
+                        {% if v.durum == 'tamamlandi' or v.durum == 'iptal' %}
+                            Kapalı
+                        {% elif v.gecikti %}
+                            Son tarih geçti
+                        {% elif v.kalan_gun == 0 %}
+                            Bugün son gün
+                        {% elif v.kalan_gun is not None %}
+                            {{ v.kalan_gun }} gün kaldı
+                        {% endif %}
+                    </span>
+                    {% else %}
+                    <span>Son tarih yok</span>
+                    {% endif %}
+                </div>
+                <div>
+                    <span class="vz-col-label">Öncelik</span>
+                    <span class="vz-pill vz-pill-oncelik-{{ v.oncelik }}">{{ v.get_oncelik_display }}</span>
+                </div>
+                <div>
+                    <span class="vz-col-label">Durum</span>
+                    <span class="vz-pill vz-pill-durum-{{ v.durum }}">{{ v.get_durum_display }}</span>
+                </div>
+                <div>
+                    <span class="vz-col-label">Güncelle</span>
+                    {% if v.durum != "tamamlandi" and v.durum != "iptal" %}
+                    <form method="post" action="{% url 'vazife_personel_durum' v.pk %}" class="vz-form">
+                        {% csrf_token %}
+                        <select name="durum" aria-label="Durum">
+                            <option value="onaylandi" {% if v.durum == "onaylandi" %}selected{% endif %}>Onayla</option>
+                            <option value="devam" {% if v.durum == "devam" %}selected{% endif %}>Devam ediyor</option>
+                            <option value="tamamlandi">Tamamlandı</option>
+                        </select>
+                        <input type="text" name="personel_notu" placeholder="Not (opsiyonel)" value="{{ v.personel_notu }}">
+                        <button type="submit">Kaydet</button>
+                    </form>
+                    {% else %}
+                    <span class="vz-done">—</span>
+                    {% endif %}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="vz-empty">
+            <strong>Size atanmış vazife yok.</strong>
+            İdareci “şu güne kadar” tarihli bir vazife verdiğinde burada ve ana sayfada bildirim görünür.
+        </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>{{ kurul_adi }} — Gündem Şablonu</title>
+<style>
+@page { size: A4; margin: 18mm 16mm; }
+body { font-family: "DejaVu Sans", sans-serif; font-size: 10pt; color: #111; line-height: 1.45; }
+h1 { font-size: 16pt; margin: 0 0 4px; color: #071b3a; text-align: center; }
+h2 { font-size: 11pt; margin: 18px 0 8px; color: #071b3a; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; }
+.meta { color: #64748b; font-size: 9pt; margin-bottom: 16px; text-align: center; }
+.info-table { width: 100%; border-collapse: collapse; margin: 8px 0 16px; }
+.info-table th,
+.info-table td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; vertical-align: top; }
+.info-table th { width: 28%; background: #f1f5f9; font-size: 9pt; color: #475569; }
+.info-table td { min-height: 24px; }
+table.members { width: 100%; border-collapse: collapse; margin: 8px 0; }
+table.members th,
+table.members td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: left; }
+table.members th { background: #f1f5f9; font-size: 9pt; }
+.gundem-list { margin: 8px 0 0; padding-left: 1.4rem; }
+.gundem-list li { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed #e2e8f0; }
+.gundem-list li:last-child { border-bottom: 0; }
+.note-box { margin-top: 20px; min-height: 80px; border: 1px solid #cbd5e1; padding: 10px; border-radius: 4px; }
+.note-box p { margin: 0 0 6px; font-size: 9pt; color: #64748b; }
+.signatures { margin-top: 36px; display: table; width: 100%; }
+.signatures div { display: table-cell; width: 33%; text-align: center; padding-top: 44px; border-top: 1px solid #111; font-size: 9pt; }
+</style>
+</head>
+<body>
+
+<h1>{{ kurul_adi|upper }}</h1>
+<p class="meta">{{ kurum_adi }} · Gündem Şablonu · {{ bugun }}</p>
+
+<h2>Toplantı Bilgileri</h2>
+<table class="info-table">
+    <tr><th>Öğrenci Ad Soyad</th><td>&nbsp;</td></tr>
+    <tr><th>Sınıf / Şube</th><td>&nbsp;</td></tr>
+    <tr><th>Toplantı Tarihi</th><td>&nbsp;</td></tr>
+    <tr><th>Toplantı Saati</th><td>&nbsp;</td></tr>
+    <tr><th>Toplantı Yeri</th><td>{{ varsayilan_yer }}</td></tr>
+    <tr><th>Kurul No</th><td>&nbsp;</td></tr>
+</table>
+
+<h2>Katılımcılar</h2>
+<table class="members">
+    <tr><th>Ad Soyad</th><th>Kurum Görevi</th><th>Kurul Görevi</th><th>İmza</th></tr>
+    {% for uye in uyeler %}
+    <tr>
+        <td>{{ uye.personel.ad_soyad }}</td>
+        <td>{{ uye.personel.rol_etiketi|default:"—" }}</td>
+        <td>{{ uye.get_kurul_gorevi_display }}</td>
+        <td>&nbsp;</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="4">Henüz kurul üyesi tanımlanmadı.</td></tr>
+    {% endfor %}
+</table>
+
+<h2>Gündem</h2>
+<ol class="gundem-list">
+    {% for madde in gundem %}
+    <li>
+        <strong>{{ madde.baslik }}</strong>
+        <div style="margin-top:6px; min-height:28px; color:#94a3b8; font-size:9pt;">Değerlendirme notu:</div>
+    </li>
+    {% empty %}
+    <li>Henüz gündem maddesi tanımlanmadı.</li>
+    {% endfor %}
+</ol>
+
+<div class="note-box">
+    <p><strong>Genel Değerlendirme / Notlar</strong></p>
+</div>
+
+<div class="signatures">
+    <div>Kurul Başkanı</div>
+    <div>Raportör</div>
+    <div>Etüt Mesulü</div>
+</div>
+
+</body>
+</html>

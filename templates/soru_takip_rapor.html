@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Soru Takip Rapor · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/soru-takip-premium.css' %}">
+<link rel="stylesheet" href="{% static 'css/soru-takip-premium.css' %}?v=nizam2">
 {% endblock %}
 {% block content %}
 <div class="library-page st-report-page">
@@ -10,9 +10,11 @@
         <div>
             <p class="kicker">GÜNLÜK SORU TAKİP</p>
             <h1>Rapor</h1>
-            <p class="library-panel-desc">{{ donem_baslik }} · PDF veya Excel olarak indirin.</p>
+            <p class="muted">{{ donem_baslik }} · PDF veya Excel olarak indirin.</p>
         </div>
-        <a href="{% url 'soru_takip_panel' %}" class="ghost-btn">Soru Takip</a>
+        <div class="result-header-actions">
+            <a href="{% url 'soru_takip_panel' %}" class="result-back-button">Soru Takip</a>
+        </div>
     </header>
 
     <section class="metric-grid library-metrics st-report-metrics">

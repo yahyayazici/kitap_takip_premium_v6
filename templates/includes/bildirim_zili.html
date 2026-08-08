@@ -1,0 +1,63 @@
+{# Header zil — personel / öğretmen / veli / yönetim #}
+
+{% if user.is_authenticated %}
+
+<div class="bn-bell-wrap" data-bn-root
+
+     data-liste-url="{% url 'bildirim_api_liste' %}"
+
+     data-okundu-url="{% url 'bildirim_api_okundu' 0 %}"
+
+     data-tumunu-url="{% url 'bildirim_api_tumunu_okundu' %}"
+
+     data-merkez-url="{% url 'bildirim_merkezi' %}"
+
+     data-csrf="{{ csrf_token }}">
+
+    <button type="button" class="bn-bell-btn{% if bildirim_okunmamis %} has-unread{% endif %}" data-bn-toggle aria-expanded="false" aria-label="Bildirimler">
+
+        <span class="bn-bell-glow" aria-hidden="true"></span>
+
+        <svg class="bn-bell-svg" viewBox="0 0 24 24" aria-hidden="true">
+
+            <path class="bn-bell-body" d="M12 3a5.5 5.5 0 0 0-5.5 5.5v2.1c0 .7-.2 1.4-.6 2L4.4 15a1.2 1.2 0 0 0 1 1.8h13.2a1.2 1.2 0 0 0 1-1.8l-1.5-2.4c-.4-.6-.6-1.3-.6-2V8.5A5.5 5.5 0 0 0 12 3Z"/>
+
+            <path class="bn-bell-clapper" d="M10.2 17.4a2.1 2.1 0 0 0 3.6 0"/>
+
+            <circle class="bn-bell-dot" cx="17.2" cy="6.2" r="1.35"/>
+
+        </svg>
+
+        <span class="bn-badge" data-bn-badge {% if not bildirim_okunmamis %}hidden{% endif %}>{{ bildirim_okunmamis|default:0 }}</span>
+
+    </button>
+
+    <div class="bn-panel" data-bn-panel hidden>
+
+        <div class="bn-panel-head">
+
+            <strong>Bildirimler</strong>
+
+            <button type="button" data-bn-tumunu>Tümünü okundu</button>
+
+        </div>
+
+        <ul class="bn-list" data-bn-list>
+
+            <li class="bn-empty">Yükleniyor…</li>
+
+        </ul>
+
+        <div class="bn-panel-foot">
+
+            <a href="{% url 'bildirim_merkezi' %}">Tüm bildirimler</a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endif %}
+
+

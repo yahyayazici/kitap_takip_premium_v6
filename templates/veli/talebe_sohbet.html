@@ -1,0 +1,28 @@
+{% extends "veli/base.html" %}
+{% block title %}Haftalık Sohbet Mevzuu · {{ talebe.ad_soyad }}{% endblock %}
+{% block content %}
+<div class="dash-home veli-dash veli-wow">
+{% include "veli/includes/talebe_layout_head.html" %}
+
+<section class="veli-wow-card">
+    <header class="veli-wow-card-head">
+        <div>
+            <p class="veli-wow-kicker">Sohbet</p>
+            <h2>Haftalık sohbet mevzuu</h2>
+        </div>
+    </header>
+    <div class="dash-feed og-feed-stack" style="padding: 12px 16px 18px;">
+        {% for m in mevzular %}
+        <article class="dash-feed-item dash-accent-navy og-duyuru-card">
+            <span class="dash-feed-tag">{{ m.hafta_baslangic|date:"d.m.Y" }}</span>
+            <h3>{{ m.baslik }}</h3>
+            <div class="og-duyuru-body">{{ m.icerik|linebreaksbr }}</div>
+        </article>
+        {% empty %}
+        <p class="og-empty-note">Henüz sohbet mevzuu yayınlanmamış.</p>
+        {% endfor %}
+    </div>
+</section>
+</div>
+{% endblock %}
+{% block extra_js %}{% include "includes/panel_date_js.html" %}{% endblock %}

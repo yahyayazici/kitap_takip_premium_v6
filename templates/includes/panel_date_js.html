@@ -1,9 +1,24 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    var now = new Date();
+    var day = new Intl.DateTimeFormat('tr-TR', { day: '2-digit' }).format(now);
+    var month = new Intl.DateTimeFormat('tr-TR', { month: 'long', year: 'numeric' }).format(now);
+    var week = new Intl.DateTimeFormat('tr-TR', { weekday: 'long' }).format(now);
+    var full = new Intl.DateTimeFormat('tr-TR', {
+        day: 'numeric', month: 'long', year: 'numeric', weekday: 'long'
+    }).format(now);
+
+    document.querySelectorAll('[data-panel-date-day]').forEach(function (el) {
+        el.textContent = day;
+    });
+    document.querySelectorAll('[data-panel-date-month]').forEach(function (el) {
+        el.textContent = month.charAt(0).toUpperCase() + month.slice(1);
+    });
+    document.querySelectorAll('[data-panel-date-week]').forEach(function (el) {
+        el.textContent = week.charAt(0).toUpperCase() + week.slice(1);
+    });
     document.querySelectorAll('#current-date, [data-panel-date]').forEach(function (el) {
-        el.textContent = new Intl.DateTimeFormat('tr-TR', {
-            day: 'numeric', month: 'long', year: 'numeric', weekday: 'long'
-        }).format(new Date());
+        el.textContent = full;
     });
 });
 </script>

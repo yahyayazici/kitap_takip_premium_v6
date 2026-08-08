@@ -215,53 +215,120 @@ def dershane_program_atama_surukle(request):
 @login_required
 @require_permission("dershane_programi", "view")
 def dershane_program_goruntule(request, mod):
+    from takip.dershane_program_service import gorunum_baglami
+
     program = _program_al(request.user, request)
     gun = _gun_al(request)
-    context = panel_baglami(
+    context = gorunum_baglami(
         request.user,
         program=program,
         gun=gun,
+        mod=mod,
         filtre=_filtre_al(request),
     )
-    context["mod"] = mod
-    context["mod_baslik"] = {
-        "genel": "Genel Program",
-        "sinif": "Sınıf Bazlı Program",
-        "etut": "Etüt Grubu Programı",
-        "ogretmen": "Öğretmen Programı",
-    }.get(mod, "Program Görünümü")
     return render(request, "dershane_program_goruntule.html", context)
 
 
 @login_required
 @require_GET
-@require_permission("dershane_programi", "export_pdf")
+@require_permission("dershane_programi", "view")
 def dershane_program_pdf(request):
+    from takip.dershane_program_service import gorunum_baglami, tum_haftalik_pdf_baglami
+
     program = _program_al(request.user, request)
-    gun = _gun_al(request)
-    context = panel_baglami(request.user, program=program, gun=gun)
-    if pdf_engine_status() != "ok":
-        return pdf_error_response(request)
+    gun_param = (request.GET.get("gun") or "").strip().lower()
+    tum = request.GET.get("tum") == "1" or gun_param in {"all", "hepsi", "tum"}
+
+    if pdf_engine_status() == "none":
+        return pdf_error_response(
+            f"PDF motoru bulunamadı. (Motor: {pdf_engine_status()})"
+        )
+
+    if tum:
+        context = tum_haftalik_pdf_baglami(request.user, program=program)
+        dosya = f"dershane_{program.pk}_haftalik_tum.pdf"
+    else:
+        gun = _gun_al(request)
+        mod = (request.GET.get("mod") or "genel").strip().lower()
+        if mod not in {"genel", "sinif", "etut", "ogretmen"}:
+            mod = "genel"
+        filtre = _filtre_al(request)
+        context = gorunum_baglami(
+            request.user,
+            program=program,
+            gun=gun,
+            mod=mod,
+            filtre=filtre,
+        )
+        parcalar = [f"dershane_{program.pk}", mod, f"gun{gun}"]
+        if filtre.get("etut_grubu"):
+            parcalar.append(f"etut{filtre['etut_grubu']}")
+        elif filtre.get("sinif"):
+            parcalar.append(f"sinif{filtre['sinif']}")
+        dosya = "_".join(parcalar) + ".pdf"
 
     html = render_to_string(
         "dershane_program_pdf.html",
         context,
         request=request,
     )
-    pdf = html_to_pdf(html)
-    dosya = f"dershane_program_{program.pk}.pdf"
+    pdf = html_to_pdf(html, base_url="/")
+    if not pdf:
+        return pdf_error_response(
+            f"PDF oluşturulamadı. (Motor: {pdf_engine_status()})"
+        )
     return make_pdf_response(pdf, dosya)
 
 
 @login_required
 @require_GET
-@require_permission("dershane_programi", "export_excel")
+@require_permission("dershane_programi", "view")
 def dershane_program_excel(request):
     program = _program_al(request.user, request)
-    gun_param = request.GET.get("gun")
-    gun = int(gun_param) if gun_param not in (None, "", "all") else None
-    dosya, icerik = excel_yanit(program, gun)
-    response = HttpResponse(icerik, content_type="text/csv; charset=utf-8")
+    gun_param = (request.GET.get("gun") or "").strip().lower()
+    tum = request.GET.get("tum") == "1" or gun_param in {"all", "hepsi", "tum"}
+
+    if tum:
+        gun = None
+        filtre: dict[str, str] = {}
+        mod = "genel"
+    elif gun_param.isdigit():
+        gun = max(0, min(6, int(gun_param)))
+        mod = (request.GET.get("mod") or "genel").strip().lower()
+        filtre = _filtre_al(request)
+        if mod == "etut" and not filtre.get("etut_grubu"):
+            ilk = program.etut_gruplari.order_by("sira", "id").first()
+            if ilk:
+                filtre["etut_grubu"] = str(ilk.pk)
+        if mod == "sinif" and not filtre.get("sinif"):
+            seviye = (
+                program.etut_gruplari.exclude(sinif_seviye="")
+                .order_by("sinif_seviye")
+                .values_list("sinif_seviye", flat=True)
+                .first()
+            )
+            if seviye:
+                filtre["sinif"] = str(seviye)
+    elif (
+        "gun" not in request.GET
+        and (request.GET.get("mod") or "genel") == "genel"
+        and not _filtre_al(request)
+    ):
+        gun = None
+        filtre = {}
+        mod = "genel"
+    else:
+        gun = _gun_al(request)
+        mod = (request.GET.get("mod") or "genel").strip().lower()
+        filtre = _filtre_al(request)
+
+    dosya, icerik = excel_yanit(program, gun, filtre=filtre, mod=mod)
+    response = HttpResponse(
+        icerik,
+        content_type=(
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        ),
+    )
     response["Content-Disposition"] = f'attachment; filename="{dosya}"'
     return response
 

@@ -1,0 +1,75 @@
+{% load static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>Öğretmen Değerlendirme Raporu</title>
+    <style>
+        {% include "includes/pdf_kart_belge_css.html" %}
+    </style>
+</head>
+<body>
+<table class="kart-wrap" cellpadding="0" cellspacing="0">
+    <tr>
+        <td class="kart-head">
+            <div class="kart-brand">{{ panel_org }}</div>
+            <div class="kart-sub">Öğretmen Değerlendirme Raporu</div>
+        </td>
+    </tr>
+    <tr>
+        <td class="kart-body">
+            <h1 class="kart-name">Haftalık Ders Değerlendirmeleri</h1>
+            <p class="kart-role">{{ filtre_ozet }} · {{ notlar|length }} kayıt</p>
+
+            <div class="section-block">
+                <div class="section-head">Rapor dökümü</div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Talebe</th>
+                            <th>Sınıf</th>
+                            <th>Hafta</th>
+                            <th>Ders</th>
+                            <th>K</th>
+                            <th>T</th>
+                            <th>D</th>
+                            <th>Puan</th>
+                            <th>Öğretmen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for n in notlar %}
+                        <tr>
+                            <td>{{ n.talebe.ad_soyad }}</td>
+                            <td>{{ n.talebe.sinif }}{% if n.talebe.sube %}-{{ n.talebe.sube }}{% endif %}</td>
+                            <td>{{ n.hafta_baslangic|date:"d.m" }}</td>
+                            <td>{{ n.ders.ad }}</td>
+                            <td>{{ n.katilim|default:"—" }}</td>
+                            <td>{{ n.takip|default:"—" }}</td>
+                            <td>{{ n.disiplin|default:"—" }}</td>
+                            <td style="font-weight:600;">{{ n.puan|default:"—" }}</td>
+                            <td>{{ n.etut_hocasi.ad_soyad }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="9" class="section-empty">Kayıt bulunamadı.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="kart-note">Bu rapor yönetim paneli filtrelerine göre oluşturulmuştur.</p>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <table class="kart-foot" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="left">{{ panel_short }}</td>
+                    <td class="right">{{ bugun|date:"d.m.Y" }}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

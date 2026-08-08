@@ -94,8 +94,9 @@ def deneme_detay(request, pk):
 
         onizleme = deneme_excel_onizle(request.FILES["excel"])
         if onizleme.hatalar and not onizleme.satirlar:
-            for h in onizleme.hatalar:
-                messages.error(request, h)
+            from takip.messages_util import hatalari_ozetle
+
+            hatalari_ozetle(request, onizleme.hatalar, tek_baslik="Excel hatalı")
             return redirect("yonetim:deneme_detay", pk=pk)
 
         _onizleme_kaydet(request, pk, onizleme)
@@ -126,28 +127,73 @@ def deneme_onizleme(request, pk):
 
     if request.method == "POST":
         aksiyon = request.POST.get("aksiyon")
+        satir_no = int(request.POST.get("satir_no") or 0)
+
+        if aksiyon == "onayla" and satir_no:
+            for satir in onizleme.satirlar:
+                if satir.satir_no != satir_no:
+                    continue
+                hedef_id = request.POST.get("talebe_id") or satir.oneri_talebe_id
+                if hedef_id:
+                    satir.talebe_id = int(hedef_id)
+                    satir.eslesme = "manuel"
+                    satir.hatalar = []
+                    messages.success(
+                        request,
+                        f"«{satir.excel_ad_soyad}» eşleştirmesi onaylandı.",
+                    )
+            _onizleme_kaydet(request, pk, onizleme)
+            return redirect("yonetim:deneme_onizleme", pk=pk)
+
+        if aksiyon == "atla" and satir_no:
+            for satir in onizleme.satirlar:
+                if satir.satir_no != satir_no:
+                    continue
+                satir.talebe_id = None
+                satir.eslesme = "atla"
+                satir.hatalar = []
+                messages.info(
+                    request,
+                    f"«{satir.excel_ad_soyad}» atlandı (aktarılmayacak).",
+                )
+            _onizleme_kaydet(request, pk, onizleme)
+            return redirect("yonetim:deneme_onizleme", pk=pk)
+
         if aksiyon == "eslestir":
-            satir_no = int(request.POST.get("satir_no", 0))
             talebe_id = request.POST.get("talebe_id")
             for satir in onizleme.satirlar:
                 if satir.satir_no == satir_no and talebe_id:
                     satir.talebe_id = int(talebe_id)
                     satir.eslesme = "manuel"
+                    satir.hatalar = []
             _onizleme_kaydet(request, pk, onizleme)
             messages.success(request, "Eşleştirme kaydedildi.")
             return redirect("yonetim:deneme_onizleme", pk=pk)
 
         if aksiyon == "aktar":
             adet, hatalar = deneme_sonuclari_aktar(deneme, onizleme, request.user)
-            for h in hatalar:
-                messages.error(request, h)
-            if adet:
+            if hatalar and not adet:
+                from takip.messages_util import hatalari_ozetle
+
+                hatalari_ozetle(request, hatalar, tek_baslik="Aktarım hatası")
+            elif adet:
                 request.session.pop(session_key(pk), None)
                 messages.success(request, f"{adet} öğrenci sonucu aktarıldı.")
+                if hatalar:
+                    for h in hatalar:
+                        messages.warning(request, h)
                 return redirect("yonetim:deneme_detay", pk=pk)
 
     talebeler = Talebe.objects.filter(aktif=True).order_by("ad_soyad")
-    eslesmeyen = [s for s in onizleme.satirlar if not s.talebe_id]
+    oneri_satirlari = [
+        s for s in onizleme.satirlar if s.eslesme == "oneri" and not s.talebe_id
+    ]
+    eslesmeyen = [
+        s
+        for s in onizleme.satirlar
+        if not s.talebe_id and s.eslesme not in {"oneri", "atla"}
+    ]
+    atlanan = [s for s in onizleme.satirlar if s.eslesme == "atla"]
 
     return render(
         request,
@@ -155,7 +201,9 @@ def deneme_onizleme(request, pk):
         {
             "deneme": deneme,
             "onizleme": onizleme,
+            "oneri_satirlari": oneri_satirlari,
             "eslesmeyen": eslesmeyen,
+            "atlanan": atlanan,
             "talebeler": talebeler,
         },
     )
@@ -191,6 +239,8 @@ def deneme_rapor(request):
 
 @yonetici_gerekli
 def deneme_excel_export(request):
+    from takip.excel_rapor import basit_rapor_xlsx, excel_http_yanit
+
     deneme_id = request.GET.get("deneme")
     if not deneme_id:
         return redirect("yonetim:deneme_rapor")
@@ -198,28 +248,24 @@ def deneme_excel_export(request):
     deneme = get_object_or_404(DenemeSinavi, pk=deneme_id)
     sonuclar = deneme_sonuclari(request.user, deneme)
 
-    buffer = StringIO()
-    writer = csv.writer(buffer, delimiter=";")
-    writer.writerow(
+    satirlar = [
         [
-            "Sıra",
-            "Talebe",
-            "Sınıf",
-            "Toplam Net",
-            "Puan",
+            sira,
+            (sonuc.talebe.ad_soyad or "").upper(),
+            str(sonuc.talebe.sinif_sube or ""),
+            str(sonuc.toplam_net).replace(".", ","),
+            str(sonuc.puan).replace(".", ","),
         ]
+        for sira, sonuc in enumerate(sonuclar, start=1)
+    ]
+    icerik = basit_rapor_xlsx(
+        baslik=f"Deneme Sıralama — {deneme.ad}",
+        alt_baslik=str(getattr(deneme, "tarih", "") or ""),
+        kolon_basliklari=["Sıra", "Ad-Soyad", "Sınıf", "Toplam Net", "Puan"],
+        satirlar=satirlar,
+        sayfa_adi="Deneme",
+        vurgu_kolonlari=[4],
+        ortala_kolonlari=[0, 2, 3],
+        genislikler=[8, 28, 12, 12, 12],
     )
-    for sira, sonuc in enumerate(sonuclar, start=1):
-        writer.writerow(
-            [
-                sira,
-                sonuc.talebe.ad_soyad,
-                str(sonuc.talebe.sinif_sube or ""),
-                str(sonuc.toplam_net).replace(".", ","),
-                str(sonuc.puan).replace(".", ","),
-            ]
-        )
-
-    response = HttpResponse("\ufeff" + buffer.getvalue(), content_type="text/csv; charset=utf-8")
-    response["Content-Disposition"] = f'attachment; filename="deneme_{deneme.pk}_siralama.csv"'
-    return response
+    return excel_http_yanit(icerik, f"deneme_{deneme.pk}_siralama.xlsx")

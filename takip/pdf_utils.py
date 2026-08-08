@@ -11,9 +11,11 @@ import logging
 import os
 import platform
 import re
+import tempfile
 from io import BytesIO
 from pathlib import Path
 from urllib.parse import unquote, urlparse
+from urllib.request import url2pathname
 
 from django.conf import settings
 from django.http import HttpResponse
@@ -46,6 +48,67 @@ def _pdf_turkish_font_file() -> Path:
     return _pdf_turkish_font_path
 
 
+def _static_roots() -> list[Path]:
+    roots = [Path(settings.BASE_DIR) / "static"]
+    static_root = getattr(settings, "STATIC_ROOT", None)
+    if static_root:
+        roots.append(Path(static_root))
+    for extra in getattr(settings, "STATICFILES_DIRS", []):
+        roots.append(Path(extra))
+    return roots
+
+
+def _path_from_file_uri(uri: str) -> Path:
+    """file:///C:/... URI'sini Windows/POSIX dosya yoluna çevirir."""
+    parsed = urlparse(uri)
+    # url2pathname('/C:/Users/...') → 'C:\\Users\\...' (Windows)
+    return Path(url2pathname(unquote(parsed.path)))
+
+
+def _resolve_static_uri(uri: str) -> Path | None:
+    """'/static/...' veya tam URL içindeki static yolu dosya sistemine çevirir."""
+    if not uri:
+        return None
+
+    raw = unquote(uri.strip())
+    if raw.startswith("file:"):
+        path = _path_from_file_uri(raw)
+        return path if path.is_file() else None
+
+    # Zaten mutlak dosya yolu olabilir
+    as_path = Path(raw)
+    if as_path.is_file():
+        return as_path
+
+    parsed = urlparse(raw)
+    path_part = parsed.path if parsed.scheme else raw
+    path_part = path_part.replace("\\", "/")
+
+    # file:// URI içindeki /static/ yanlışlıkla yeniden yakalanmasın
+    if ":" in path_part and path_part.index(":") < 3:
+        return None
+
+    marker = "/static/"
+    idx = path_part.find(marker)
+    if idx >= 0:
+        relative = path_part[idx + len(marker) :]
+    elif path_part.startswith("static/"):
+        relative = path_part[len("static/") :]
+    else:
+        return None
+
+    relative = relative.lstrip("/")
+    for root in _static_roots():
+        candidate = (root / relative).resolve()
+        try:
+            candidate.relative_to(root.resolve())
+        except ValueError:
+            continue
+        if candidate.is_file():
+            return candidate
+    return None
+
+
 def _sanitize_html_for_xhtml2pdf(html_string: str) -> str:
     """xhtml2pdf'in desteklemediği WeasyPrint @page margin box kurallarını temizler."""
     sanitized = html_string
@@ -58,12 +121,49 @@ def _sanitize_html_for_xhtml2pdf(html_string: str) -> str:
             flags=re.DOTALL,
         )
 
+    # xhtml2pdf bazı unicode content değerlerini parse edemiyor
+    sanitized = re.sub(
+        r"\.pdf-karne\s+\.analiz-ton-\w+\s+\.eval-title::before\s*\{[^}]*\}",
+        "",
+        sanitized,
+        flags=re.DOTALL,
+    )
+    sanitized = re.sub(
+        r"\.analiz-ton-\w+\s+\.eval-title::before\s*\{[^}]*\}",
+        "",
+        sanitized,
+        flags=re.DOTALL,
+    )
+
+    # xhtml2pdf calc() desteklemez
+    sanitized = sanitized.replace("width: calc(100% + 8px);", "width: 100%;")
+    sanitized = sanitized.replace("width:calc(100% + 8px);", "width:100%;")
+
+    # /static/... → file:// URI (Windows C:/ yolu "c:" şeması sanılmasın)
+    def _to_file_uri(match: re.Match[str]) -> str:
+        uri = match.group(0)
+        path = _resolve_static_uri(uri)
+        if path is None:
+            return uri
+        return path.resolve().as_uri()
+
+    sanitized = re.sub(
+        r"(?<![A-Za-z0-9:])(?:https?://[^\"'\s]+)?/static/[^\s\"')]+",
+        _to_file_uri,
+        sanitized,
+    )
+
     return sanitized
 
 
 def _xhtml2pdf_link_callback(uri: str, rel: str) -> str:
     if uri.startswith("file:"):
-        return unquote(urlparse(uri).path)
+        path = _path_from_file_uri(uri)
+        return str(path)
+
+    resolved = _resolve_static_uri(uri)
+    if resolved is not None:
+        return str(resolved)
 
     path = Path(uri)
     if path.is_file():
@@ -72,74 +172,168 @@ def _xhtml2pdf_link_callback(uri: str, rel: str) -> str:
     return uri
 
 
+def _ensure_xhtml2pdf_windows_tmp_patch() -> None:
+    """
+    Windows'ta NamedTemporaryFile açıkken aynı yolu yeniden açmak PermissionError verir.
+    xhtml2pdf font/görsel için temp kopya oluştururken delete=False + close kullanırız.
+    """
+    if os.name != "nt":
+        return
+
+    from xhtml2pdf import files as xhtml_files
+
+    if getattr(xhtml_files.BaseFile, "_cinili_win_tmp_patched", False):
+        return
+
+    def get_named_tmp_file(self):
+        data = self.get_data()
+        tmp_file = tempfile.NamedTemporaryFile(suffix=self.suffix, delete=False)
+        name = tmp_file.name
+        try:
+            if data:
+                tmp_file.write(data)
+                tmp_file.flush()
+        finally:
+            tmp_file.close()
+
+        class _ClosedNamedTmp:
+            def __init__(self, path: str) -> None:
+                self.name = path
+
+            def close(self) -> None:
+                try:
+                    Path(self.name).unlink(missing_ok=True)
+                except OSError:
+                    pass
+
+        wrapper = _ClosedNamedTmp(name)
+        xhtml_files.files_tmp.append(wrapper)
+        if self.path is None:
+            self.path = name
+        return wrapper
+
+    xhtml_files.BaseFile.get_named_tmp_file = get_named_tmp_file  # type: ignore[method-assign]
+    xhtml_files.BaseFile._cinili_win_tmp_patched = True  # type: ignore[attr-defined]
+
+
 def _prepare_html_for_xhtml2pdf(html_string: str) -> str:
     """
     xhtml2pdf için HTML hazırlar.
     PdfTurkish.ttf @font-face ile gömülür — Türkçe karakterler (İ, ı, ş, ğ) düzgün çıkar.
     """
     font_path = _pdf_turkish_font_file()
+    prepared = _sanitize_html_for_xhtml2pdf(html_string)
 
-    if not font_path.is_file():
-        logger.error("PDF Türkçe font dosyası bulunamadı: %s", font_path)
-        register_reportlab_turkish_fonts()
-    else:
-        font_uri = font_path.resolve().as_uri()
+    # xhtml2pdf Poppins @font-face + numeric font-weight bozar → PdfTurkish kullan
+    prepared = re.sub(
+        r"@font-face\s*\{[^}]*font-family:\s*[\"']Poppins[\"'][^}]*\}",
+        "",
+        prepared,
+        flags=re.DOTALL | re.IGNORECASE,
+    )
+    prepared = prepared.replace('"Poppins"', "PdfTurkish")
+    prepared = prepared.replace("'Poppins'", "PdfTurkish")
+    prepared = prepared.replace("Poppins,", "PdfTurkish,")
+    prepared = prepared.replace('"DejaVu Sans", Arial, sans-serif', "PdfTurkish, sans-serif")
+    prepared = prepared.replace('"DejaVu Sans"', "PdfTurkish")
+
+    register_reportlab_turkish_fonts()
+
+    if font_path.is_file():
+        font_src = font_path.resolve().as_uri()
         font_css = f"""
 /* xhtml2pdf Türkçe font */
 @font-face {{
-    font-family: "PdfTurkish";
-    src: url("{font_uri}");
+    font-family: PdfTurkish;
+    src: url("{font_src}");
 }}
-body, table, td, th, div, p, span, small, section {{
-    font-family: PdfTurkish, sans-serif;
+body, table, td, th, div, p, span, small, section, h1, h2, h3 {{
+    font-family: PdfTurkish, Arial, sans-serif;
 }}
 """
-        prepared = _sanitize_html_for_xhtml2pdf(html_string)
-        prepared = prepared.replace(
-            '"DejaVu Sans", Arial, sans-serif',
-            "PdfTurkish, sans-serif",
-        )
-        prepared = prepared.replace('"DejaVu Sans"', "PdfTurkish")
+    else:
+        logger.error("PDF Türkçe font dosyası bulunamadı: %s", font_path)
+        prepared = prepared.replace("PdfTurkish", "Vera")
+        font_css = """
+body, table, td, th, div, p, span, small, section, h1, h2, h3 {
+    font-family: Vera, Arial, sans-serif;
+}
+"""
 
-        if "<style>" in prepared:
-            prepared = prepared.replace("<style>", f"<style>{font_css}", 1)
-        else:
-            prepared = prepared.replace(
-                "</head>",
-                f"<style>{font_css}</style></head>",
-                1,
-            )
-
-        return prepared
-
-    prepared = _sanitize_html_for_xhtml2pdf(html_string)
-    prepared = prepared.replace('"DejaVu Sans"', "Vera")
     if "<style>" in prepared:
+        prepared = prepared.replace("<style>", f"<style>{font_css}", 1)
+    else:
         prepared = prepared.replace(
-            "<style>",
-            '<style>body{font-family:Vera,sans-serif;}',
+            "</head>",
+            f"<style>{font_css}</style></head>",
             1,
         )
     return prepared
 
 
 def _configure_weasyprint_library_path() -> None:
-    """macOS Homebrew: GLib/Pango kütüphanelerinin bulunması için library path ayarlar."""
-    if platform.system() != "Darwin":
+    """WeasyPrint native kütüphaneleri (Pango/GLib) için arama yollarını ayarlar."""
+    system = platform.system()
+
+    if system == "Darwin":
+        for prefix in ("/opt/homebrew", "/usr/local"):
+            lib_dir = Path(prefix) / "lib"
+            if not lib_dir.is_dir():
+                continue
+
+            current = os.environ.get("DYLD_FALLBACK_LIBRARY_PATH", "")
+            lib_str = str(lib_dir)
+            if lib_str not in current.split(":"):
+                os.environ["DYLD_FALLBACK_LIBRARY_PATH"] = (
+                    f"{lib_str}:{current}" if current else lib_str
+                )
+            break
         return
 
-    for prefix in ("/opt/homebrew", "/usr/local"):
-        lib_dir = Path(prefix) / "lib"
-        if not lib_dir.is_dir():
-            continue
+    if system != "Windows":
+        return
 
-        current = os.environ.get("DYLD_FALLBACK_LIBRARY_PATH", "")
-        lib_str = str(lib_dir)
-        if lib_str not in current.split(":"):
-            os.environ["DYLD_FALLBACK_LIBRARY_PATH"] = (
-                f"{lib_str}:{current}" if current else lib_str
-            )
-        break
+    candidates: list[Path] = []
+    existing = os.environ.get("WEASYPRINT_DLL_DIRECTORIES", "")
+    if existing:
+        candidates.extend(Path(p) for p in existing.split(os.pathsep) if p.strip())
+
+    candidates.extend(
+        [
+            Path(r"C:\msys64\mingw64\bin"),
+            Path(r"C:\msys64\ucrt64\bin"),
+            Path(os.environ.get("MSYS2_PATH", "")) / "mingw64" / "bin",
+            Path(r"C:\Program Files\GTK3-Runtime Win64\bin"),
+        ]
+    )
+
+    dll_dirs: list[str] = []
+    for path in candidates:
+        if not path or not path.is_dir():
+            continue
+        # GLib/Pango var mı?
+        if not any(path.glob("libgobject-2.0-0.dll")) and not any(
+            path.glob("*gobject-2.0-0*.dll")
+        ):
+            continue
+        resolved = str(path.resolve())
+        if resolved not in dll_dirs:
+            dll_dirs.append(resolved)
+
+    if not dll_dirs:
+        return
+
+    os.environ["WEASYPRINT_DLL_DIRECTORIES"] = os.pathsep.join(dll_dirs)
+
+    # Python 3.8+ Windows DLL araması
+    for dll_dir in dll_dirs:
+        try:
+            os.add_dll_directory(dll_dir)
+        except (OSError, AttributeError):
+            pass
+        path_env = os.environ.get("PATH", "")
+        if dll_dir.lower() not in path_env.lower().split(os.pathsep):
+            os.environ["PATH"] = dll_dir + os.pathsep + path_env
 
 
 def get_weasyprint_html():
@@ -156,6 +350,8 @@ def get_weasyprint_html():
     try:
         from weasyprint import HTML
 
+        # Windows'ta DLL eksikse import geçer ama ilk kullanımda patlar;
+        # gerçek yazımda yakalanır ve xhtml2pdf'e düşülür.
         _weasyprint_html = HTML
         logger.info("WeasyPrint kullanılabilir.")
     except (ImportError, OSError) as exc:
@@ -178,14 +374,18 @@ def html_to_pdf(html_string: str, base_url: str = "/") -> bytes | None:
                 string=html_string,
                 base_url=base_url,
             ).write_pdf()
-        except Exception:
-            logger.exception("WeasyPrint PDF üretimi başarısız.")
+        except Exception as exc:
+            logger.warning("WeasyPrint PDF üretimi başarısız, xhtml2pdf deneniyor: %s", exc)
+            global _weasyprint_html
+            _weasyprint_html = None
 
     try:
         from xhtml2pdf import pisa
     except ImportError:
         logger.error("xhtml2pdf yüklü değil; HTML tabanlı PDF üretilemedi.")
         return None
+
+    _ensure_xhtml2pdf_windows_tmp_patch()
 
     buffer = BytesIO()
     try:
@@ -223,6 +423,76 @@ def make_pdf_response(pdf_bytes: bytes, filename: str) -> HttpResponse:
     response = HttpResponse(pdf_bytes, content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
+
+
+# —— Sayfa boyutu tercihi (A4/A3 × dikey/yatay) ——
+
+PDF_SAYFA_VARSAYILAN = "a4_portrait"
+
+PDF_SAYFA_SECENEKLERI: tuple[tuple[str, str, str], ...] = (
+    ("a4_portrait", "A4 dikey", "A4 portrait"),
+    ("a4_landscape", "A4 yatay", "A4 landscape"),
+    ("a3_portrait", "A3 dikey", "A3 portrait"),
+    ("a3_landscape", "A3 yatay", "A3 landscape"),
+)
+
+_PDF_SAYFA_MAP = {kod: (etiket, css) for kod, etiket, css in PDF_SAYFA_SECENEKLERI}
+
+
+def coz_pdf_sayfa(kaynak=None, *, default: str = PDF_SAYFA_VARSAYILAN) -> dict:
+    """
+    Request veya kod'dan PDF sayfa boyutunu çözer.
+    Tercih yoksa A4 dikey.
+    Query: ?sayfa=a4_portrait|a4_landscape|a3_portrait|a3_landscape
+    Eski parametreler: format/boyut=a4|a3 + orientation=portrait|landscape
+    """
+    kod = default
+    if kaynak is None:
+        pass
+    elif isinstance(kaynak, str):
+        kod = (kaynak or "").strip().lower() or default
+    else:
+        # HttpRequest
+        get = getattr(kaynak, "GET", None)
+        if get is not None:
+            ham = (get.get("sayfa") or get.get("pdf_sayfa") or "").strip().lower()
+            if ham:
+                kod = ham
+            else:
+                # Geriye uyum: boyut=a4|a3 + orientation=portrait|landscape
+                # Not: format=pdf gibi export bayraklarını boyut sanma
+                boyut = (get.get("boyut") or "").strip().lower()
+                yon = (get.get("orientation") or get.get("yon") or "").strip().lower()
+                if boyut in {"a4", "a3"} or yon in {"portrait", "landscape", "dikey", "yatay"}:
+                    if boyut not in {"a4", "a3"}:
+                        boyut = "a4"
+                    if yon in {"landscape", "yatay"}:
+                        yon = "landscape"
+                    else:
+                        yon = "portrait"
+                    kod = f"{boyut}_{yon}"
+
+    if kod not in _PDF_SAYFA_MAP:
+        # a4-portrait / a4 dikey gibi varyantlar
+        kod = (
+            kod.replace("-", "_")
+            .replace(" ", "_")
+            .replace("dikey", "portrait")
+            .replace("yatay", "landscape")
+        )
+    if kod not in _PDF_SAYFA_MAP:
+        kod = default if default in _PDF_SAYFA_MAP else PDF_SAYFA_VARSAYILAN
+
+    etiket, size_css = _PDF_SAYFA_MAP[kod]
+    return {
+        "kod": kod,
+        "etiket": etiket,
+        "size_css": size_css,
+        "secenekler": [
+            {"kod": k, "etiket": e, "secili": k == kod}
+            for k, e, _ in PDF_SAYFA_SECENEKLERI
+        ],
+    }
 
 
 def pdf_error_response(message: str, status: int = 500) -> HttpResponse:

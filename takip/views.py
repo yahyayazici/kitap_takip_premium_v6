@@ -17,6 +17,7 @@ from django.utils.timezone import localdate
 
 from config.branding import panel_branding_context
 from .pdf_utils import (
+    coz_pdf_sayfa,
     html_to_pdf,
     make_pdf_response,
     pdf_engine_status,
@@ -64,6 +65,7 @@ from .dashboard_service import (
     dashboard_etut_plani_onizleme,
     dashboard_gunluk_gorevler,
     dashboard_kisayollari,
+    dashboard_metrikleri,
     dashboard_son_aktiviteler,
     dashboard_son_gorusmeler,
     dashboard_son_iletisim,
@@ -79,6 +81,7 @@ from .temizlik_service import (
 )
 from .yemekci_service import bugunun_atamalari as bugunun_yemek_atamalari
 from .yemekci_service import bugunun_listesi as bugunun_yemekci_listesi
+from . import yemekci_views  # noqa: F401 — panel URL'leri yemekci_views'ta
 from .panel_permissions import (
     egitim_modulu_erisimi_var,
     gelisim_dosyasi_erisimi_var,
@@ -448,8 +451,29 @@ def dashboard(request):
     )
 
     bugunku_sinav = bugunku_sinav_sayisi(request.user, bugun)
+    from takip.idareci_service import yct_ay_takvimi
+
+    yct = yct_ay_takvimi(bugun.year, bugun.month)
+    ay_tr = [
+        "", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+        "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık",
+    ][bugun.month]
+    yct["ay_adi_tr"] = ay_tr
+
     dashboard_widgets = {
         "kisayollar": dashboard_kisayollari(request.user, bugun=bugun),
+        "metrikler": dashboard_metrikleri(
+            request.user,
+            hedef="personel",
+            baglam={
+                "talebe_sayisi": talebeler.count(),
+                "toplam_okunan": bugun_toplam,
+                "bugunku_kayit": bugunku_kayit_sayisi,
+                "bekleyen": bekleyen,
+                "bugunku_sinav": bugunku_sinav,
+                "sinav_bekleyen": sinav_bekleyen,
+            },
+        ),
         "son_aktiviteler": dashboard_son_aktiviteler(request.user),
         "son_gorusmeler": dashboard_son_gorusmeler(request.user),
         "son_iletisim": dashboard_son_iletisim(request.user),
@@ -459,7 +483,12 @@ def dashboard(request):
         ),
         "etut_plani_onizleme": dashboard_etut_plani_onizleme(request.user),
         "gunluk_gorevler": dashboard_gunluk_gorevler(request.user, bugun=bugun),
+        "yct": yct,
     }
+
+    from takip.vazife_service import vazife_bildirim_kartlari
+
+    vazife_bildirimleri = vazife_bildirim_kartlari(request.user, bugun=bugun)
 
     return render(
         request,
@@ -496,6 +525,7 @@ def dashboard(request):
             "temizlik_modulu": temizlik_modulu_erisimi_var(request.user),
             "bugun_yemek_atamalari": bugun_yemek_atamalari,
             "yemekcilik_modulu": yemekcilik_modulu_erisimi_var(request.user),
+            "vazife_bildirimleri": vazife_bildirimleri,
             **dashboard_widgets,
         },
     )
@@ -560,6 +590,7 @@ def talebe_listesi(request):
             "sinif_id": sinif_id,
             "rapor_siniflar": erisilebilir_siniflar(talebe_qs),
             "rapor_pdf_url": reverse("talebe_liste_raporu_pdf"),
+            "rapor_excel_url": reverse("talebe_liste_excel"),
             "kurum_raporu_goster": (
                 request.user.is_superuser or tum_talebe_erisimi_var(request.user)
             ),
@@ -581,6 +612,30 @@ def talebe_liste_raporu_pdf(request):
         sinif_sube_id=sinif_sube_ids[0] if len(sinif_sube_ids) == 1 else None,
         sinif_sube_ids=sinif_sube_ids,
         talebe_qs=_yetkili_talebeler(request.user),
+    )
+
+
+@login_required
+def talebe_liste_excel(request):
+    from takip.panel_permissions import tum_talebe_erisimi_var
+    from takip.talebe_liste_raporu_service import talebe_liste_excel_yanit
+
+    qs = _yetkili_talebeler(request.user)
+    sinif_id = request.GET.get("sinif", "").strip()
+    if sinif_id.isdigit():
+        qs = qs.filter(sinif_sube_id=int(sinif_id))
+
+    if request.user.is_superuser or tum_talebe_erisimi_var(request.user):
+        baslik = "Talebe Listesi — Kurum"
+        dosya = "talebe-listesi-kurum.xlsx"
+    else:
+        baslik = "Talebe Listesi — Etüt"
+        dosya = "talebe-listesi-etut.xlsx"
+
+    return talebe_liste_excel_yanit(
+        talebe_qs=qs,
+        baslik=baslik,
+        dosya_adi=dosya,
     )
 
 
@@ -1011,8 +1066,9 @@ def toplu_zimmet(request):
             )
 
         if hatalar:
-            for hata in hatalar:
-                messages.error(request, hata)
+            from takip.messages_util import hatalari_ozetle
+
+            hatalari_ozetle(request, hatalar)
         else:
             kitap = get_object_or_404(Kitap, id=kitap_id)
 
@@ -1180,10 +1236,11 @@ def toplu_gunluk_okuma(request):
                 f"{kaydedilen} talebenin okuma kaydı kaydedildi.",
             )
 
-        for hata in hatalar:
-            messages.error(request, hata)
+        if hatalar:
+            from takip.messages_util import hatalari_ozetle
 
-        if not hatalar:
+            hatalari_ozetle(request, hatalar, tek_baslik="Okuma kaydı hatalı")
+        else:
             return redirect("toplu_gunluk_okuma")
 
     bugunku_kayitlar = {
@@ -1337,10 +1394,10 @@ def okuma_raporu_pdf(request):
         zimmet.okunan_toplam = totals.get(zimmet.id, 0)
 
     sinif_adi = "Tümü"
-    if sinif_id.isdigit():
-        sinif = SinifSube.objects.filter(id=int(sinif_id)).first()
-        if sinif:
-            sinif_adi = str(sinif)
+    if sinif_ids:
+        siniflar = list(SinifSube.objects.filter(id__in=sinif_ids).order_by("sinif", "sube"))
+        if siniflar:
+            sinif_adi = ", ".join(str(s) for s in siniflar)
 
     durum_etiketleri = {
         "tum": "Aktif ve geçmiş",
@@ -1604,8 +1661,13 @@ def sinav_sonuclari_gir(request, sinav_id):
                 transaction.set_rollback(True)
 
         if hatalar:
-            for hata in hatalar:
-                messages.error(request, hata)
+            from takip.messages_util import hatalari_ozetle
+
+            hatalari_ozetle(
+                request,
+                hatalar,
+                tek_baslik=f"Doğru+yanlış+boş toplamı {toplam_soru} olmalı",
+            )
 
         else:
             messages.success(
@@ -1915,8 +1977,12 @@ def _program_erisim_kontrol(request):
 
 
 def program_plan_pdf_yanit(request, program):
+    from takip.program_service import program_sure_ozeti
+
     satirlar = list(program.satirlar.all())
     toplam_dakika = sum(satir.sure_dakika for satir in satirlar)
+    sure_ozet = program_sure_ozeti(program, donem="gun")
+    pdf_sayfa = coz_pdf_sayfa(request)
 
     html_metni = render_to_string(
         "program_plan_pdf.html",
@@ -1924,6 +1990,8 @@ def program_plan_pdf_yanit(request, program):
             "program": program,
             "satirlar": satirlar,
             "toplam_dakika": toplam_dakika,
+            "sure_ozet": sure_ozet,
+            "pdf_sayfa": pdf_sayfa,
             **panel_branding_context(),
         },
         request=request,
@@ -1943,13 +2011,18 @@ def program_plan_pdf_yanit(request, program):
         return redirect("program_detay", pk=program.pk)
 
     dosya_adi = slugify(program.ad) or f"program-{program.pk}"
-    return make_pdf_response(pdf_verisi, f"{dosya_adi}-program.pdf")
+    return make_pdf_response(
+        pdf_verisi,
+        f"{dosya_adi}-program-{pdf_sayfa['kod']}.pdf",
+    )
 
 
 @login_required
 def program_panel(request):
     if not _program_erisim_kontrol(request):
         return redirect("dashboard")
+
+    from takip.program_service import program_tum_donem_ozetleri
 
     secili_id = request.GET.get("program", "").strip()
     bugun = localdate()
@@ -1967,6 +2040,11 @@ def program_panel(request):
         )
 
     secilebilir_programlar = list(program_arsivi())
+    sure_donemler = (
+        program_tum_donem_ozetleri(secili_program, referans=bugun)
+        if secili_program
+        else None
+    )
 
     return render(
         request,
@@ -1982,6 +2060,8 @@ def program_panel(request):
                 if secili_program
                 else []
             ),
+            "sure_donemler": sure_donemler,
+            "pdf_sayfa": coz_pdf_sayfa(request) if secili_program else None,
             "yonetim_modulu": yonetim_erisimi_var(request.user),
         },
     )
@@ -1991,6 +2071,8 @@ def program_panel(request):
 def program_detay(request, pk):
     if not _program_erisim_kontrol(request):
         return redirect("dashboard")
+
+    from takip.program_service import program_tum_donem_ozetleri
 
     program = get_object_or_404(
         ProgramPlan.objects.prefetch_related("satirlar"),
@@ -2003,6 +2085,8 @@ def program_detay(request, pk):
         {
             "program": program,
             "satirlar": list(program.satirlar.all()),
+            "sure_donemler": program_tum_donem_ozetleri(program),
+            "pdf_sayfa": coz_pdf_sayfa(request),
         },
     )
 
@@ -2017,6 +2101,22 @@ def program_pdf(request, pk):
         pk=pk,
     )
     return program_plan_pdf_yanit(request, program)
+
+
+@login_required
+def program_excel(request, pk):
+    if not _program_erisim_kontrol(request):
+        return redirect("dashboard")
+
+    from takip.excel_rapor import excel_http_yanit
+    from takip.program_service import program_excel_icerik
+
+    program = get_object_or_404(
+        ProgramPlan.objects.prefetch_related("satirlar"),
+        pk=pk,
+    )
+    dosya, icerik = program_excel_icerik(program)
+    return excel_http_yanit(icerik, dosya)
 
 
 # =========================================================
@@ -2144,11 +2244,19 @@ def temizlik_pdf_yanit(request, liste):
 
     merkez = yonetim_merkezi(liste)
     fmt = (request.GET.get("format") or "a4").lower()
-    yon = (request.GET.get("orientation") or "landscape").lower()
+    yon = (request.GET.get("orientation") or "portrait").lower()
     if fmt not in ("a4", "a3"):
         fmt = "a4"
     if yon not in ("portrait", "landscape"):
-        yon = "landscape"
+        yon = "portrait"
+
+    # Ortak sayfa tercihi (sayfa=a4_portrait …) varsa onu kullan
+    from .pdf_utils import coz_pdf_sayfa
+
+    pdf_sayfa = coz_pdf_sayfa(request)
+    if request.GET.get("sayfa") or request.GET.get("pdf_sayfa"):
+        kod = pdf_sayfa["kod"]
+        fmt, yon = kod.split("_", 1)
 
     html_metni = render_to_string(
         "temizlik_pdf.html",
@@ -2187,27 +2295,27 @@ def temizlik_panel(request):
     if not _temizlik_erisim_kontrol(request):
         return redirect("dashboard")
 
-    secili_id = request.GET.get("liste", "").strip()
+    from .temizlik_service import aktif_temizlik_listesi
+
     tarih_metni = request.GET.get("tarih", "").strip()
     bugun = localdate()
     bugun_liste = bugunun_temizlik_listesi()
     bugun_gorevler = bugunun_atamalari_kullanici(request.user)
     kat_sorumluluklari = kullanici_kat_sorumluluklari(request.user)
-    listeler = list(
-        TemizlikListesi.objects.filter(aktif=True)
-        .prefetch_related("atamalar__alan", "atamalar__talebe")
-        .order_by("-baslangic_tarihi", "ad")
-    )
+    yonetim_modu = yonetim_erisimi_var(request.user) or request.user.is_superuser
+    kat_ids = {s.kat_id for s in kat_sorumluluklari}
 
-    secili_liste = bugun_liste or (listeler[0] if listeler else None)
-
-    if secili_id.isdigit():
-        secili_liste = (
-            TemizlikListesi.objects.filter(pk=int(secili_id))
-            .prefetch_related("atamalar__alan", "atamalar__talebe")
-            .first()
-            or secili_liste
-        )
+    # Personel: tek aktif liste; arşiv seçimi yok
+    secili_liste = aktif_temizlik_listesi() or bugun_liste
+    if yonetim_modu:
+        secili_id = request.GET.get("liste", "").strip()
+        if secili_id.isdigit():
+            secili_liste = (
+                TemizlikListesi.objects.filter(pk=int(secili_id), aktif=True)
+                .prefetch_related("atamalar__alan", "atamalar__talebe")
+                .first()
+                or secili_liste
+            )
 
     secili_tarih = bugun
     if tarih_metni:
@@ -2234,9 +2342,12 @@ def temizlik_panel(request):
         else []
     )
 
-    kat_ids = {s.kat_id for s in kat_sorumluluklari}
-    if kat_ids and not request.user.is_superuser and not yonetim_erisimi_var(request.user):
-        atamalar = [a for a in atamalar if a.alan.kat_id in kat_ids]
+    # Personel yalnızca zimmetli katlarını görür
+    if not yonetim_modu:
+        if kat_ids:
+            atamalar = [a for a in atamalar if a.alan and a.alan.kat_id in kat_ids]
+        else:
+            atamalar = []
 
     return render(
         request,
@@ -2245,12 +2356,13 @@ def temizlik_panel(request):
             "bugun": bugun,
             "bugun_gorevler": bugun_gorevler,
             "kat_sorumluluklari": kat_sorumluluklari,
-            "listeler": listeler,
+            "listeler": [],
             "secili_liste": secili_liste,
             "secili_tarih": secili_tarih,
             "atamalar": atamalar,
-            "yonetim_modulu": yonetim_erisimi_var(request.user),
-            "sadece_kat_gorunumu": bool(kat_ids),
+            "yonetim_modulu": yonetim_modu,
+            "sadece_kat_gorunumu": (not yonetim_modu) and bool(kat_ids),
+            "kat_zimmeti_yok": (not yonetim_modu) and not kat_ids,
         },
     )
 
@@ -2271,139 +2383,16 @@ def temizlik_pdf(request, pk):
 
 
 # =========================================================
-# YEMEKÇİLİK
+# YEMEKÇİLİK — sınıf döngüsü (yemekci_views)
 # =========================================================
 
-
-def _yemekcilik_erisim_kontrol(request):
-    if not yemekcilik_modulu_erisimi_var(request.user):
-        messages.error(request, "Yemekçilik modülüne erişim yetkiniz yok.")
-        return False
-
-    return True
+yemekcilik_panel = yemekci_views.yemekcilik_panel
+yemekcilik_pdf = yemekci_views.yemekcilik_pdf
 
 
 def yemekcilik_pdf_yanit(request, liste):
-    atamalar = list(
-        liste.atamalar.select_related("ogun", "talebe", "yardimci").order_by(
-            "tarih",
-            "ogun__sira",
-            "ogun__ad",
-        )
-    )
-
-    html_metni = render_to_string(
-        "yemekcilik_pdf.html",
-        {
-            "liste": liste,
-            "atamalar": atamalar,
-            **panel_branding_context(),
-        },
-        request=request,
-    )
-
-    pdf_verisi = html_to_pdf(
-        html_metni,
-        base_url=request.build_absolute_uri("/"),
-    )
-
-    if not pdf_verisi:
-        messages.error(
-            request,
-            "Liste PDF oluşturulamadı. "
-            f"(Motor: {pdf_engine_status()})",
-        )
-        return redirect("yemekcilik_panel")
-
-    dosya_adi = slugify(liste.ad) or f"yemekci-liste-{liste.pk}"
-    return make_pdf_response(pdf_verisi, f"{dosya_adi}-yemekcilik.pdf")
+    return redirect("yemekcilik_panel")
 
 
-@login_required
-def yemekcilik_panel(request):
-    if not _yemekcilik_erisim_kontrol(request):
-        return redirect("dashboard")
-
-    secili_id = request.GET.get("liste", "").strip()
-    tarih_metni = request.GET.get("tarih", "").strip()
-    bugun = localdate()
-    bugun_liste = bugunun_yemekci_listesi()
-    bugun_gorevler = bugunun_yemek_atamalari()
-    listeler = list(
-        YemekciListesi.objects.filter(aktif=True)
-        .prefetch_related(
-            "atamalar__ogun",
-            "atamalar__talebe",
-            "atamalar__yardimci",
-        )
-        .order_by("-baslangic_tarihi", "ad")
-    )
-
-    secili_liste = bugun_liste or (listeler[0] if listeler else None)
-
-    if secili_id.isdigit():
-        secili_liste = (
-            YemekciListesi.objects.filter(pk=int(secili_id))
-            .prefetch_related(
-                "atamalar__ogun",
-                "atamalar__talebe",
-                "atamalar__yardimci",
-            )
-            .first()
-            or secili_liste
-        )
-
-    secili_tarih = bugun
-    if tarih_metni:
-        try:
-            yil, ay, gun = tarih_metni.split("-")
-            secili_tarih = date(int(yil), int(ay), int(gun))
-        except ValueError:
-            secili_tarih = bugun
-    elif secili_liste:
-        if not (
-            secili_liste.baslangic_tarihi
-            <= bugun
-            <= secili_liste.bitis_tarihi
-        ):
-            secili_tarih = secili_liste.baslangic_tarihi
-
-    atamalar = (
-        list(
-            secili_liste.atamalar.select_related("ogun", "talebe", "yardimci")
-            .filter(tarih=secili_tarih)
-            .order_by("ogun__sira", "ogun__ad")
-        )
-        if secili_liste
-        else []
-    )
-
-    return render(
-        request,
-        "yemekcilik_panel.html",
-        {
-            "bugun": bugun,
-            "bugun_gorevler": bugun_gorevler,
-            "listeler": listeler,
-            "secili_liste": secili_liste,
-            "secili_tarih": secili_tarih,
-            "atamalar": atamalar,
-            "yonetim_modulu": yonetim_erisimi_var(request.user),
-        },
-    )
-
-
-@login_required
-def yemekcilik_pdf(request, pk):
-    if not _yemekcilik_erisim_kontrol(request):
-        return redirect("dashboard")
-
-    liste = get_object_or_404(
-        YemekciListesi.objects.prefetch_related(
-            "atamalar__ogun",
-            "atamalar__talebe",
-            "atamalar__yardimci",
-        ),
-        pk=pk,
-    )
-    return yemekcilik_pdf_yanit(request, liste)
+def _yemekcilik_erisim_kontrol(request):
+    return yemekci_views._erisim(request)

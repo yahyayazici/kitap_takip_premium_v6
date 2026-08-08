@@ -2,53 +2,303 @@
 {% load static %}
 {% block title %}{{ mod_baslik }} · Dershane Programı{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dershane-program-premium.css' %}">
+<link rel="stylesheet" href="{% static 'css/dershane-program-premium.css' %}?v=dp7">
+<link rel="stylesheet" href="{% static 'css/program-sure.css' %}">
 {% endblock %}
 {% block content %}
-<div class="dp-page">
+<div class="dp-page dp-page-view">
 <header class="dp-head">
     <div>
-        <p class="dp-eyebrow">Dershane Programı</p>
+        <p class="dp-kicker">Dershane Programı</p>
         <h1>{{ mod_baslik }}</h1>
-        <p class="dp-sub">{{ program.ad }} · {{ program.tarih_araligi_goster }}</p>
+        <p class="dp-sub">{{ program.ad }} · {{ gun_adi }}{% if program.tarih_araligi_goster %} · {{ program.tarih_araligi_goster }}{% endif %}</p>
     </div>
     <div class="dp-actions">
-        <a href="{% url 'dershane_program_panel' %}?program={{ program.pk }}&gun={{ gun }}" class="dp-btn dp-btn-ghost">Düzenlemeye Dön</a>
-        <a href="{% url 'dershane_program_pdf' %}?program={{ program.pk }}" class="dp-btn dp-btn-primary" target="_blank">PDF</a>
+        <a href="{% url 'dershane_program_pdf' %}?{{ export_qs }}" class="dp-btn dp-btn-primary" target="_blank" rel="noopener">PDF</a>
+        <a href="{% url 'dershane_program_excel' %}?{{ export_qs }}" class="dp-btn dp-btn-ghost">Excel</a>
+        <a href="{% url 'dershane_program_pdf' %}?program={{ program.pk }}&tum=1" class="dp-btn dp-btn-ghost" target="_blank" rel="noopener">Tüm PDF</a>
+        <a href="{% url 'dershane_program_excel' %}?program={{ program.pk }}&tum=1" class="dp-btn dp-btn-ghost">Tüm Excel</a>
     </div>
 </header>
 
-<article class="dp-card dp-matrix-card">
-    <div class="dp-card-head"><h2>{{ gun_adi }} · Program Matrisi</h2></div>
-    <div class="dp-matrix-scroll">
-        <table class="dp-matrix">
-            <thead>
-                <tr>
-                    <th class="dp-time-col">Saat / Tür</th>
-                    {% for grup in gruplar %}
-                    <th>{{ grup.etiket }}</th>
-                    {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for satir in matris %}
-                {% if satir.birlestirilmis %}
-                <tr>
-                    <td class="dp-time-col"><span class="dp-time-main">{{ satir.saat }}</span></td>
-                    <td colspan="{{ gruplar|length }}" class="dp-merged-row {% if satir.tur == 'namaz' %}dp-merged-namaz{% elif satir.tur == 'yemek' %}dp-merged-yemek{% endif %}">{{ satir.birlestirilmis_metin }}</td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td class="dp-time-col"><span class="dp-time-main">{{ satir.saat }}</span></td>
-                    {% for hucre in satir.hucreler %}
-                    <td><div class="dp-cell" style="background: {{ hucre.renk }};">{% if not hucre.bos %}<strong>{{ hucre.ders }}</strong><span>{{ hucre.ogretmen }}</span>{% endif %}</div></td>
-                    {% endfor %}
-                </tr>
-                {% endif %}
-                {% endfor %}
-            </tbody>
-        </table>
+{% include "includes/dershane_mod_sekmeleri.html" %}
+
+<nav class="dp-day-tabs" aria-label="Günler">
+    {% for gun_item in gunler %}
+    <a href="?program={{ program.pk }}&gun={{ gun_item.gun }}{% if filtre.sinif %}&sinif={{ filtre.sinif }}{% endif %}{% if filtre.etut_grubu %}&etut_grubu={{ filtre.etut_grubu }}{% endif %}{% if filtre.ogretmen %}&ogretmen={{ filtre.ogretmen|urlencode }}{% endif %}"
+       class="dp-day-tab{% if gun_item.secili %} is-on{% endif %}">
+        <strong>{{ gun_item.ad }}</strong>
+        <small>{% if gun_item.secili %}Seçili{% else %}{{ gun_item.durum_etiket }}{% endif %}</small>
+    </a>
+    {% endfor %}
+</nav>
+
+{# Moda özel filtre #}
+<section class="dp-shell dp-view-shell">
+    <div class="dp-toolbar">
+        <div>
+            <h2>{{ gun_adi }}</h2>
+            <p class="dp-toolbar-sub">
+                {% if mod == "sinif" %}Sınıf seçerek o sınıfın etüt gruplarını görün.
+                {% elif mod == "etut" %}Etüt grubu seçerek günlük akışı görün.
+                {% elif mod == "ogretmen" %}Öğretmen sütunlarında kim hangi derste görünür.
+                {% else %}Tüm sınıflar ve etüt grupları tek matriste.{% endif %}
+            </p>
+        </div>
     </div>
-</article>
+
+    <form method="get" class="dp-filter-bar dp-filter-compact">
+        <input type="hidden" name="program" value="{{ program.pk }}">
+        <input type="hidden" name="gun" value="{{ gun }}">
+        {% if mod == "sinif" or mod == "genel" %}
+        <div class="dp-field">
+            <label for="v-sinif">Sınıf</label>
+            <select id="v-sinif" name="sinif" onchange="this.form.submit()">
+                {% if mod == "genel" %}<option value="">Tümü</option>{% endif %}
+                {% for sinif in siniflar %}
+                <option value="{{ sinif }}" {% if filtre.sinif == sinif|stringformat:"s" or filtre.sinif == sinif %}selected{% endif %}>{{ sinif }}. Sınıf</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+        {% if mod == "etut" or mod == "genel" %}
+        <div class="dp-field">
+            <label for="v-etut">Etüt grubu</label>
+            <select id="v-etut" name="etut_grubu" onchange="this.form.submit()">
+                {% if mod == "genel" %}<option value="">Tümü</option>{% endif %}
+                {% for grup in etut_gruplari %}
+                <option value="{{ grup.pk }}" {% if filtre.etut_grubu == grup.pk|stringformat:"s" %}selected{% endif %}>{{ grup.etiket }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+        {% if mod == "ogretmen" or mod == "genel" %}
+        <div class="dp-field">
+            <label for="v-ogretmen">Öğretmen</label>
+            <select id="v-ogretmen" name="ogretmen" onchange="this.form.submit()">
+                <option value="">Tümü</option>
+                {% for ogretmen in ogretmenler %}
+                <option value="{{ ogretmen.ad_soyad }}" {% if filtre.ogretmen == ogretmen.ad_soyad %}selected{% endif %}>{{ ogretmen.ad_soyad }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+    </form>
+
+    {% if gorunum.tip == "sinif" %}
+        <div class="dp-view-stack">
+            {% for panel in gorunum.paneller %}
+            <article class="dp-view-panel">
+                <header class="dp-view-panel-head">
+                    <h3>{{ panel.baslik }}</h3>
+                    <span>{{ panel.gruplar|length }} etüt grubu</span>
+                </header>
+                <div class="dp-matrix-scroll">
+                    <table class="dp-matrix">
+                        <thead>
+                            <tr>
+                                <th class="dp-time-col">Saat</th>
+                                {% for g in panel.gruplar %}
+                                <th>{{ g.etiket }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for satir in panel.satirlar %}
+                            <tr>
+                                <td class="dp-time-col"><span class="dp-time-main">{{ satir.saat }}</span></td>
+                                {% if satir.birlestirilmis %}
+                                <td colspan="{{ panel.gruplar|length }}" class="dp-merged-row {% if satir.tur == 'namaz' %}dp-merged-namaz{% elif satir.tur == 'yemek' %}dp-merged-yemek{% endif %}">{{ satir.metin }}</td>
+                                {% else %}
+                                {% for hucre in satir.hucreler %}
+                                <td>
+                                    <div class="dp-cell {% if hucre.bos %}dp-cell-empty{% endif %}" style="{% if not hucre.bos %}background: {{ hucre.renk }};{% endif %}">
+                                        {% if not hucre.bos %}
+                                        <strong class="dp-cell-ders">{{ hucre.ders }}</strong>
+                                        <span class="dp-cell-ogretmen">{{ hucre.ogretmen }}</span>
+                                        {% else %}
+                                        <span class="dp-cell-placeholder">—</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                {% endfor %}
+                                {% endif %}
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="{{ panel.gruplar|length|add:1 }}" class="dp-empty-cell">Bu sınıf için satır yok.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+            {% empty %}
+            <p class="dp-empty-note">Gösterilecek sınıf bulunamadı.</p>
+            {% endfor %}
+        </div>
+
+    {% elif gorunum.tip == "etut" %}
+        <div class="dp-view-etut">
+            {% if gorunum.tek_grup %}
+            <article class="dp-view-panel">
+                <header class="dp-view-panel-head">
+                    <h3>{{ gorunum.gruplar.0.etiket }}</h3>
+                    <span>{{ gun_adi }} akışı</span>
+                </header>
+                <ol class="dp-timeline">
+                    {% for satir in gorunum.satirlar %}
+                    <li class="dp-timeline-item {% if satir.birlestirilmis %}is-merged{% endif %}">
+                        <time>{{ satir.saat }}</time>
+                        <div class="dp-timeline-body">
+                            {% if satir.birlestirilmis %}
+                            <strong>{{ satir.metin }}</strong>
+                            <span>{{ satir.tur_etiket }}</span>
+                            {% else %}
+                                {% for hucre in satir.hucreler %}
+                                <div class="dp-timeline-ders" style="{% if not hucre.bos %}background:{{ hucre.renk }};{% endif %}">
+                                    {% if hucre.bos %}
+                                    <em>Boş saat</em>
+                                    {% else %}
+                                    <strong>{{ hucre.ders }}</strong>
+                                    <span>{{ hucre.ogretmen }}</span>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </li>
+                    {% empty %}
+                    <li class="dp-empty-note">Bu etüt grubu için program yok.</li>
+                    {% endfor %}
+                </ol>
+            </article>
+            {% else %}
+            <div class="dp-matrix-scroll">
+                <table class="dp-matrix">
+                    <thead>
+                        <tr>
+                            <th class="dp-time-col">Saat</th>
+                            {% for g in gorunum.gruplar %}
+                            <th>{{ g.etiket }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for satir in gorunum.satirlar %}
+                        <tr>
+                            <td class="dp-time-col"><span class="dp-time-main">{{ satir.saat }}</span></td>
+                            {% if satir.birlestirilmis %}
+                            <td colspan="{{ gorunum.gruplar|length }}" class="dp-merged-row">{{ satir.metin }}</td>
+                            {% else %}
+                            {% for hucre in satir.hucreler %}
+                            <td>
+                                <div class="dp-cell {% if hucre.bos %}dp-cell-empty{% endif %}" style="{% if not hucre.bos %}background: {{ hucre.renk }};{% endif %}">
+                                    {% if not hucre.bos %}
+                                    <strong class="dp-cell-ders">{{ hucre.ders }}</strong>
+                                    <span class="dp-cell-ogretmen">{{ hucre.ogretmen }}</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            {% endfor %}
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+
+    {% elif gorunum.tip == "ogretmen" %}
+        {% if not gorunum.ogretmenler %}
+        <p class="dp-empty-note">Bu günde atanmış öğretmen yok. Önce düzenle ekranından ders atayın.</p>
+        {% else %}
+        <div class="dp-matrix-scroll">
+            <table class="dp-matrix dp-matrix-ogretmen">
+                <thead>
+                    <tr>
+                        <th class="dp-time-col">Saat</th>
+                        {% for ad in gorunum.ogretmenler %}
+                        <th>{{ ad }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for satir in gorunum.satirlar %}
+                    <tr>
+                        <td class="dp-time-col"><span class="dp-time-main">{{ satir.saat }}</span></td>
+                        {% if satir.birlestirilmis %}
+                        <td colspan="{{ gorunum.ogretmenler|length }}" class="dp-merged-row {% if satir.tur == 'namaz' %}dp-merged-namaz{% elif satir.tur == 'yemek' %}dp-merged-yemek{% endif %}">{{ satir.metin }}</td>
+                        {% else %}
+                        {% for hucre in satir.hucreler %}
+                        <td>
+                            <div class="dp-cell {% if hucre.bos %}dp-cell-empty{% endif %}">
+                                {% if hucre.bos %}
+                                <span class="dp-cell-placeholder">—</span>
+                                {% else %}
+                                {% for k in hucre.kayitlar %}
+                                <div class="dp-ogretmen-slot" style="background:{{ k.renk }};">
+                                    <strong>{{ k.ders }}</strong>
+                                    <span>{{ k.grup }}</span>
+                                </div>
+                                {% endfor %}
+                                {% endif %}
+                            </div>
+                        </td>
+                        {% endfor %}
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+    {% else %}
+        {# Genel #}
+        <div class="dp-matrix-scroll">
+            <table class="dp-matrix">
+                <thead>
+                    <tr>
+                        <th class="dp-time-col" rowspan="2">Saat</th>
+                        {% for item in sinif_gruplari_list %}
+                        <th colspan="{{ item.colspan }}" class="dp-sinif-head">{{ item.sinif }}. Sınıf</th>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        {% for grup in gruplar %}
+                        <th>{{ grup.etiket }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for satir in matris %}
+                    {% if satir.birlestirilmis %}
+                    <tr>
+                        <td class="dp-time-col"><span class="dp-time-main">{{ satir.saat }}</span></td>
+                        <td colspan="{{ gruplar|length }}" class="dp-merged-row {% if satir.tur == 'namaz' %}dp-merged-namaz{% elif satir.tur == 'yemek' %}dp-merged-yemek{% endif %}">{{ satir.birlestirilmis_metin }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td class="dp-time-col"><span class="dp-time-main">{{ satir.saat }}</span></td>
+                        {% for hucre in satir.hucreler %}
+                        <td>
+                            <div class="dp-cell {% if hucre.bos %}dp-cell-empty{% endif %}" style="{% if not hucre.bos %}background: {{ hucre.renk }};{% endif %}">
+                                {% if not hucre.bos %}
+                                <strong class="dp-cell-ders">{{ hucre.ders }}</strong>
+                                <span class="dp-cell-ogretmen">{{ hucre.ogretmen }}</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endif %}
+                    {% empty %}
+                    <tr><td colspan="{{ gruplar|length|add:1 }}" class="dp-empty-cell">Program satırı yok.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</section>
 </div>
 {% endblock %}

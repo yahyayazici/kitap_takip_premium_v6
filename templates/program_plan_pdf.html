@@ -15,12 +15,12 @@
             src: url("{% static 'fonts/Poppins-Medium.ttf' %}") format("truetype");
             font-weight: 500;
         }
-        @page { size: A4 landscape; margin: 10mm 12mm; }
+        @page { size: {{ pdf_sayfa.size_css|default:"A4 portrait" }}; margin: 12mm 14mm; }
         * { box-sizing: border-box; }
         body {
             margin: 0;
             font-family: "Poppins", sans-serif;
-            font-size: 8px;
+            font-size: 9px;
             color: #546173;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
@@ -47,7 +47,7 @@
         }
         th, td {
             border: 1px solid #e3eaf3;
-            padding: 6px 8px;
+            padding: 5px 7px;
             text-align: left;
             vertical-align: top;
         }
@@ -61,6 +61,31 @@
         }
         td strong { color: #10213d; font-weight: 500; }
         .passive { color: #94a3b8; }
+        .ozet {
+            margin-top: 14px;
+            padding-top: 10px;
+            border-top: 1px solid #d8e3f0;
+        }
+        .ozet h2 {
+            margin: 0 0 6px;
+            font-size: 11px;
+            font-weight: 500;
+            color: #10213d;
+        }
+        .ozet-ai {
+            margin: 0 0 10px;
+            font-size: 8.5px;
+            line-height: 1.45;
+            color: #334155;
+        }
+        .ozet-grid {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .ozet-grid th, .ozet-grid td {
+            padding: 4px 6px;
+            font-size: 8px;
+        }
         .foot {
             margin-top: 10px;
             font-size: 7px;
@@ -85,12 +110,12 @@
     <table>
         <thead>
             <tr>
-                <th style="width:14%">Saat</th>
-                <th style="width:10%">Süre</th>
+                <th style="width:16%">Saat</th>
+                <th style="width:12%">Süre</th>
                 <th style="width:12%">Tür</th>
                 <th style="width:28%">Faaliyet</th>
-                <th style="width:22%">Program</th>
-                <th style="width:10%">Durum</th>
+                <th style="width:20%">Program</th>
+                <th style="width:12%">Durum</th>
             </tr>
         </thead>
         <tbody>
@@ -108,6 +133,31 @@
             {% endfor %}
         </tbody>
     </table>
+
+    {% if sure_ozet %}
+    <div class="ozet">
+        <h2>Tür dağılımı (günlük)</h2>
+        <p class="ozet-ai">{{ sure_ozet.ai_ozet }}</p>
+        <table class="ozet-grid">
+            <thead>
+                <tr>
+                    <th>Tür</th>
+                    <th>Süre</th>
+                    <th>Pay</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in sure_ozet.satirlar %}
+                <tr>
+                    <td>{{ s.ad }}</td>
+                    <td>{{ s.etiket }}</td>
+                    <td>%{{ s.yuzde }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
 
     <div class="foot">
         <span>{{ satirlar|length }} faaliyet · Toplam {{ toplam_dakika }} dk</span>

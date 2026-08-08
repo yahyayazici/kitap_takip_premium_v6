@@ -6,6 +6,7 @@ from django.forms import inlineformset_factory
 from .models import (
     Duyuru,
     EtutHocasi,
+    HaftalikSohbetMevzuu,
     ImamMuezzinAtama,
     ImamMuezzinListesi,
     PersonelProfili,
@@ -81,7 +82,7 @@ class PersonelProfiliForm(forms.ModelForm):
         label="Sorumlu olduğu sınıf ve şubeler",
         queryset=SinifSube.objects.none(),
         required=False,
-        widget=forms.CheckboxSelectMultiple(),
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "choice-chip-grid"}),
     )
 
     class Meta:
@@ -257,7 +258,9 @@ class TalebeForm(forms.ModelForm):
                     "placeholder": "Boş bırakılırsa otomatik atanır",
                 }
             ),
-            "sinif_sube": forms.RadioSelect(),
+            "sinif_sube": forms.RadioSelect(
+                attrs={"class": "choice-chip-radio"}
+            ),
             "etut_hocasi": forms.Select(
                 attrs={"class": "cs-input"}
             ),
@@ -276,6 +279,7 @@ class TalebeForm(forms.ModelForm):
             SinifSube.objects.filter(aktif=True)
             .order_by("sinif", "sube")
         )
+        self.fields["sinif_sube"].empty_label = "Atanmadı"
 
         hoca_qs = (
             EtutHocasi.objects.filter(aktif=True)
@@ -332,8 +336,8 @@ class DuyuruForm(forms.ModelForm):
             "ozet": forms.Textarea(
                 attrs={
                     "class": "cs-input",
-                    "rows": 3,
-                    "placeholder": "Ana sayfada görünecek kısa metin",
+                    "rows": 8,
+                    "placeholder": "Duyuru metni",
                 }
             ),
             "kategori": forms.Select(attrs={"class": "cs-input"}),
@@ -383,6 +387,28 @@ class DuyuruForm(forms.ModelForm):
             )
 
         return cleaned
+
+
+class HaftalikSohbetMevzuuForm(forms.ModelForm):
+    class Meta:
+        model = HaftalikSohbetMevzuu
+        fields = ["baslik", "icerik", "hafta_baslangic", "aktif"]
+        widgets = {
+            "baslik": forms.TextInput(
+                attrs={"class": "cs-input", "placeholder": "Sohbet başlığı"}
+            ),
+            "icerik": forms.Textarea(
+                attrs={
+                    "class": "cs-input",
+                    "rows": 8,
+                    "placeholder": "Sohbet içeriği",
+                }
+            ),
+            "hafta_baslangic": forms.DateInput(
+                attrs={"class": "cs-input", "type": "date"}
+            ),
+            "aktif": forms.CheckboxInput(attrs={"class": "cs-checkbox"}),
+        }
 
 
 class ProgramPlanForm(forms.ModelForm):
@@ -501,7 +527,9 @@ class ImamMuezzinListesiForm(forms.ModelForm):
             "aktif": forms.CheckboxInput(attrs={"class": "cs-checkbox"}),
             "cumartesi_dahil": forms.CheckboxInput(attrs={"class": "cs-checkbox"}),
             "pazar_dahil": forms.CheckboxInput(attrs={"class": "cs-checkbox"}),
-            "talebe_havuzu": forms.CheckboxSelectMultiple(),
+            "talebe_havuzu": forms.CheckboxSelectMultiple(
+                attrs={"class": "choice-chip-grid choice-chip-grid--wide"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
@@ -634,7 +662,9 @@ class TemizlikListesiForm(forms.ModelForm):
             "aktif": forms.CheckboxInput(attrs={"class": "cs-checkbox"}),
             "cumartesi_dahil": forms.CheckboxInput(attrs={"class": "cs-checkbox"}),
             "pazar_dahil": forms.CheckboxInput(attrs={"class": "cs-checkbox"}),
-            "talebe_havuzu": forms.CheckboxSelectMultiple(),
+            "talebe_havuzu": forms.CheckboxSelectMultiple(
+                attrs={"class": "choice-chip-grid choice-chip-grid--wide"}
+            ),
         }
         help_texts = {
             "talebe_havuzu": "Boş bırakılırsa tüm aktif talebeler kullanılır. Mahaller görev panelinden yönetilir.",
@@ -771,8 +801,12 @@ class YemekciListesiForm(forms.ModelForm):
             "aktif": forms.CheckboxInput(attrs={"class": "cs-checkbox"}),
             "cumartesi_dahil": forms.CheckboxInput(attrs={"class": "cs-checkbox"}),
             "pazar_dahil": forms.CheckboxInput(attrs={"class": "cs-checkbox"}),
-            "ogunler": forms.CheckboxSelectMultiple(),
-            "talebe_havuzu": forms.CheckboxSelectMultiple(),
+            "ogunler": forms.CheckboxSelectMultiple(
+                attrs={"class": "choice-chip-grid"}
+            ),
+            "talebe_havuzu": forms.CheckboxSelectMultiple(
+                attrs={"class": "choice-chip-grid choice-chip-grid--wide"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):

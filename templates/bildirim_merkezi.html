@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Bildirimler{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/bildirim-bell.css' %}">
+{% endblock %}
+{% block content %}
+<div class="bn-page">
+    <header style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+            <p style="margin:0 0 4px;font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#3b82f6;">Merkez</p>
+            <h1 style="margin:0;font-size:1.5rem;color:#0f2744;">Bildirimler</h1>
+            <p style="margin:0.3rem 0 0;color:#64748b;">{{ okunmamis }} okunmamış</p>
+        </div>
+        <form method="post" action="{% url 'bildirim_api_tumunu_okundu' %}">
+            {% csrf_token %}
+            <button type="submit" class="primary-btn">Tümünü okundu işaretle</button>
+        </form>
+    </header>
+
+    <section class="bn-page-card">
+        {% for b in bildirimler %}
+        <a class="bn-item{% if not b.okundu %} is-unread{% endif %}" href="{% url 'bildirim_okundu_yonlendir' b.id %}">
+            <p class="bn-item-title">{{ b.baslik }}</p>
+            {% if b.mesaj %}<p class="bn-item-msg">{{ b.mesaj|truncatechars:180 }}</p>{% endif %}
+            <p class="bn-item-meta">{{ b.tur_etiket }}{% if b.bitis_etiket %} · şu güne kadar {{ b.bitis_etiket }}{% endif %} · {{ b.zaman_etiket }}</p>
+        </a>
+        {% empty %}
+        <div class="bn-empty">Henüz bildiriminiz yok.</div>
+        {% endfor %}
+    </section>
+</div>
+{% endblock %}

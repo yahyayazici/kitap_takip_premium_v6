@@ -1,0 +1,212 @@
+{% load pdf_extras static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>{{ toplanti.toplanti_no }} — Personel Toplantı Raporu</title>
+    <style>
+        {% include "includes/pdf_karne_fonts.html" %}
+        {% include "includes/pdf_karne_a4_css.html" %}
+        @page { size: A4 portrait; margin: 5mm 7mm 4mm; }
+
+        .pt-pdf .brand-logo-wrap { width: 42px; height: 42px; }
+        .pt-pdf .brand-logo { width: 42px; height: 42px; }
+        .pt-pdf .header-text-cell { padding: 0 0 0 10px; vertical-align: middle; }
+        .pt-pdf .brand-name { font-size: 14px; font-weight: 700; color: #1e293b; line-height: 1.2; }
+        .pt-pdf .brand-sub { margin-top: 3px; font-size: 8px; letter-spacing: 0.35px; color: #64748b; }
+        .pt-pdf .doc-title { font-size: 8px; color: #64748b; }
+
+        .pt-pdf .pt-info-box {
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: #fafbfc;
+            padding: 10px 12px;
+            color: #334155;
+        }
+        .pt-pdf .pt-info-title {
+            font-size: 15px;
+            font-weight: 700;
+            line-height: 1.2;
+            color: #0f172a;
+        }
+        .pt-pdf .pt-info-subtitle {
+            margin-top: 4px;
+            font-size: 10px;
+            font-weight: 500;
+            line-height: 1.3;
+            color: #475569;
+        }
+        .pt-pdf .pt-info-meta {
+            margin-top: 6px;
+            font-size: 8px;
+            color: #64748b;
+        }
+
+        .pt-pdf .table-panel {
+            width: 100%;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #fff;
+        }
+        .pt-pdf .table-panel-head {
+            padding: 6px 10px;
+            border-bottom: 1px solid #e2e8f0;
+            background: #f8fafc;
+        }
+        .pt-pdf .section-title {
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: 0.35px;
+            text-transform: uppercase;
+            color: #475569;
+        }
+        .pt-pdf table.results {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        .pt-pdf table.results thead th {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            padding: 4px 6px;
+            font-size: 7.5px;
+            text-align: left;
+            vertical-align: top;
+        }
+        .pt-pdf table.results tbody td {
+            border: 1px solid #e2e8f0;
+            padding: 4px 6px;
+            font-size: 7.5px;
+            line-height: 1.35;
+            color: #334155;
+            vertical-align: top;
+            word-wrap: break-word;
+        }
+        .pt-pdf .chip-row { font-size: 7.5px; line-height: 1.45; color: #64748b; }
+        .pt-pdf .chip-row strong { color: #334155; font-weight: 600; }
+        .pt-pdf .foot-note { font-size: 6.5px; color: #94a3b8; text-align: right; padding-top: 4px; }
+
+        .pt-pdf.density-l .pt-info-title,
+        .pt-pdf.density-xl .pt-info-title { font-size: 13px; }
+        .pt-pdf.density-xl table.results tbody td { padding: 2px 5px; font-size: 6.5px; }
+        .pt-pdf.density-xl .gap6 { height: 4px; }
+    </style>
+</head>
+<body class="pdf-karne pt-pdf {{ pdf_satir_sayisi|pdf_density_class }}">
+
+<div class="pdf-sheet">
+<table class="layout" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+        <td>
+            <table class="header-table" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="header-logo-cell">
+                        <div class="brand-logo-wrap">
+                            <img class="brand-logo" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="">
+                        </div>
+                    </td>
+                    <td class="header-text-cell">
+                        <div class="brand-name">{{ panel_org|default:"Çinili Saray Proje" }}</div>
+                        <div class="brand-sub">Personel Toplantı Raporu</div>
+                    </td>
+                    <td class="header-right">
+                        <div class="doc-title">{{ toplanti.toplanti_no }}</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    <tr><td class="gap8"></td></tr>
+    <tr>
+        <td class="pt-info-box">
+            <div class="pt-info-title">Personel Toplantısı</div>
+            {% if toplanti.baslik %}
+            <div class="pt-info-subtitle">{{ toplanti.baslik }}</div>
+            {% endif %}
+            <div class="pt-info-meta">Tarih: {{ toplanti.tarih|date:"d.m.Y" }}</div>
+        </td>
+    </tr>
+    <tr><td class="gap6"></td></tr>
+
+    {% if katilimcilar %}
+    <tr>
+        <td class="chip-row">
+            <strong>Katılımcılar:</strong>
+            {% for k in katilimcilar %}{{ k }}{% if not forloop.last %} · {% endif %}{% endfor %}
+        </td>
+    </tr>
+    <tr><td class="gap6"></td></tr>
+    {% endif %}
+
+    {% if gundem_maddeleri %}
+    <tr>
+        <td>
+            <div class="table-panel">
+                <div class="table-panel-head">
+                    <div class="section-title">Gündem — Görüşülenler</div>
+                </div>
+                <table class="results" cellpadding="0" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th style="width:4%">#</th>
+                            <th style="width:28%">Gündem maddesi</th>
+                            <th style="width:68%">Konuşulanlar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for g in gundem_maddeleri %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ g.madde }}</td>
+                            <td>{{ g.gorusulen|default:"—"|linebreaksbr }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </td>
+    </tr>
+    <tr><td class="gap6"></td></tr>
+    {% endif %}
+
+    {% if yapilacaklar %}
+    <tr>
+        <td>
+            <div class="table-panel">
+                <div class="table-panel-head">
+                    <div class="section-title">Yapılacaklar</div>
+                </div>
+                <table class="results" cellpadding="0" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th style="width:4%">#</th>
+                            <th style="width:52%">İş / görev</th>
+                            <th style="width:28%">Sorumlu</th>
+                            <th style="width:16%">Son tarih</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for y in yapilacaklar %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ y.metin }}</td>
+                            <td>{% if y.sorumlu %}{{ y.sorumlu.ad_soyad }}{% else %}—{% endif %}</td>
+                            <td>{% if y.kontrol_tarihi %}{{ y.kontrol_tarihi|date:"d.m.Y" }}{% else %}—{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </td>
+    </tr>
+    <tr><td class="gap6"></td></tr>
+    {% endif %}
+
+    <tr>
+        <td class="foot-note">{{ toplanti.toplanti_no }} · Personel Toplantı Raporu · {{ bugun|date:"d.m.Y" }}</td>
+    </tr>
+</table>
+</div>
+</body>
+</html>

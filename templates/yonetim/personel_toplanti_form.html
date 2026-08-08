@@ -1,0 +1,61 @@
+{% extends "yonetim/base.html" %}
+{% load static %}
+{% block title %}{{ baslik }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/personel-toplanti-premium.css' %}?v=pt5">
+{% endblock %}
+{% block content %}
+<div class="pt-page pt-olustur-page">
+    <header class="pt-hero pt-hero-compact">
+        <div class="pt-hero-main">
+            <p class="pt-kicker">Personel Toplantı Raporu</p>
+            <h1 class="pt-hero-heading">Personel Toplantısı</h1>
+            <p class="pt-head-meta">Yeni rapor oluştur</p>
+        </div>
+        <a href="{% url 'yonetim:personel_toplanti_listesi' %}" class="pt-hero-link">← Listeye dön</a>
+    </header>
+
+    <section class="pt-box pt-box-blue pt-form-card">
+        <form method="post" class="pt-form pt-olustur-form">
+            {% csrf_token %}
+            {% if form.non_field_errors %}<ul class="errorlist">{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+            {% if form.errors %}
+            <div class="pt-form-errors" role="alert">
+                Lütfen işaretli alanları kontrol edin.
+            </div>
+            {% endif %}
+
+            <div class="pt-olustur-grid">
+                <div class="pt-field">
+                    <label for="{{ form.tarih.id_for_label }}">Tarih</label>
+                    {{ form.tarih }}
+                    {{ form.tarih.errors }}
+                </div>
+                <div class="pt-field pt-field-wide">
+                    <label for="{{ form.baslik.id_for_label }}">Alt başlık <span class="pt-optional">isteğe bağlı</span></label>
+                    {{ form.baslik }}
+                    {{ form.baslik.errors }}
+                </div>
+                <div class="pt-field pt-field-wide pt-katilimci-field">
+                    <label for="{{ form.katilimci_personeller.id_for_label }}">Katılımcılar <span class="pt-optional">isteğe bağlı</span></label>
+                    {{ form.katilimci_personeller }}
+                    {{ form.katilimci_personeller.errors }}
+                </div>
+            </div>
+
+            <div class="pt-form-actions">
+                <button type="submit" class="primary-btn">Oluştur ve devam et</button>
+            </div>
+        </form>
+    </section>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    if (window.initMultiSelectFilters) {
+        window.initMultiSelectFilters(document.querySelector(".pt-olustur-page"));
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% load static %}
+{% if metrikler %}
+{% with n=metrikler|length %}
+<section class="dash-metrics-shell" aria-label="Özet istatistikler" style="--dash-metric-cols: {% if n < 1 %}1{% else %}{{ n }}{% endif %};">
+    <div class="dash-metrics">
+        {% for m in metrikler %}
+        {% if m.url %}
+        <a href="{{ m.url }}" class="dash-stat dash-stat-{{ m.ton }} dash-stat-link" title="{{ m.label }} sayfasına git">
+            <span class="dash-stat-icon" aria-hidden="true">
+                {% include "includes/dashboard_shortcut_icon.html" with icon=m.icon %}
+            </span>
+            <span class="dash-stat-label">{{ m.label }}</span>
+            <strong class="dash-stat-value">{{ m.value }}</strong>
+            <span class="dash-stat-note">{{ m.note }}</span>
+        </a>
+        {% else %}
+        <article class="dash-stat dash-stat-{{ m.ton }}">
+            <span class="dash-stat-icon" aria-hidden="true">
+                {% include "includes/dashboard_shortcut_icon.html" with icon=m.icon %}
+            </span>
+            <span class="dash-stat-label">{{ m.label }}</span>
+            <strong class="dash-stat-value">{{ m.value }}</strong>
+            <span class="dash-stat-note">{{ m.note }}</span>
+        </article>
+        {% endif %}
+        {% endfor %}
+    </div>
+</section>
+{% endwith %}
+{% endif %}

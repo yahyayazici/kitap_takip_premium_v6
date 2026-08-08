@@ -763,9 +763,10 @@ class Duyuru(models.Model):
         KURUM = "kurum", "Kurum"
 
     class HedefKitle(models.TextChoices):
-        TUM_PERSONEL = "tum_personel", "Tüm personel"
-        PERSONEL = "personel", "Personel paneli"
-        VELI = "veli", "Veli paneli"
+        TUM_PERSONEL = "tum_personel", "Herkese (Personel + Öğretmen + Veli)"
+        PERSONEL = "personel", "Yalnızca personel paneli"
+        OGRETMEN = "ogretmen", "Yalnızca öğretmen paneli"
+        VELI = "veli", "Yalnızca veli paneli"
 
     class Ton(models.TextChoices):
         NAVY = "navy", "Lacivert"
@@ -778,7 +779,7 @@ class Duyuru(models.Model):
         verbose_name="Başlık",
     )
     ozet = models.TextField(
-        max_length=500,
+        max_length=4000,
         verbose_name="Kısa açıklama",
     )
     kategori = models.CharField(
@@ -1049,6 +1050,7 @@ class ProgramSatir(models.Model):
         ETUT = "etut", "Etüt"
         NAMAZ = "namaz", "Namaz"
         YEMEK = "yemek", "Yemek"
+        UYKU = "uyku", "Uyku"
         DINLENME = "dinlenme", "Dinlenme"
         SPOR = "spor", "Spor"
         GOREV = "gorev", "Görev"
@@ -1960,15 +1962,36 @@ from takip.yazili_takip_models import (  # noqa: E402,F401
     YaziliSonuc,
 )
 
+from takip.vazife_models import PersonelVazife  # noqa: E402,F401
+from takip.personel_toplanti_models import (  # noqa: E402,F401
+    PersonelToplantiGundemMadde,
+    PersonelToplantiKarar,
+    PersonelToplantisi,
+)
+
+from takip.bildirim_models import Bildirim  # noqa: E402,F401
+
+from takip.yct_models import YctOlay  # noqa: E402,F401
+
 from takip.talebe_panel_models import (  # noqa: E402,F401
     TalebeEvGunu,
     TalebeHesap,
     TalebeKonumKaydi,
 )
 
-from takip.ogretmen_not_models import OgretmenSinavNotu  # noqa: E402,F401
+from takip.ogretmen_not_models import (  # noqa: E402,F401
+    OgretmenHaftalikKonu,
+    OgretmenSinavNotu,
+    OgretmenSinifYoklama,
+)
 
 from takip.veli_goruntuleme_models import VeliIcerikGoruntuleme  # noqa: E402,F401
+
+from takip.sohbet_mevzuu_models import HaftalikSohbetMevzuu  # noqa: E402,F401
+
+from takip.panel_kisayol_models import PanelKisayol, PanelKisayolGorsel  # noqa: E402,F401
+
+from takip.panel_metrik_models import PanelMetrik  # noqa: E402,F401
 
 from takip.dershane_program_models import (  # noqa: E402,F401
     DershaneDersAtamasi,
@@ -1979,4 +2002,11 @@ from takip.dershane_program_models import (  # noqa: E402,F401
     DershaneProgramSurum,
     DershaneProgrami,
     DershaneSaatBloku,
+)
+
+from takip.yemekci_sinif_models import (  # noqa: E402,F401
+    YemekciAyar,
+    YemekciGunAtama,
+    YemekciHavuzKaydi,
+    YemekciSinifHavuzu,
 )

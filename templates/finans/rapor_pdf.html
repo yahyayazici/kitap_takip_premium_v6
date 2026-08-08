@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>Finans Raporu</title>
+    <style>
+        @page { size: A4 landscape; margin: 10mm; }
+        body { font-family: sans-serif; font-size: 9px; color: #334155; margin: 0; }
+        h1 { font-size: 16px; margin: 0 0 4px; color: #071b3a; }
+        .meta { margin: 0 0 12px; color: #64748b; font-size: 8px; }
+        .kpi { display: inline-block; margin-right: 18px; margin-bottom: 8px; }
+        .kpi strong { display: block; font-size: 11px; color: #071b3a; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #e2e8f0; padding: 5px 6px; text-align: left; }
+        th { background: #f8fafc; font-size: 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+        td.num { text-align: right; white-space: nowrap; }
+        tfoot td { font-weight: 700; background: #f8fafc; }
+        .durum { font-weight: 600; }
+    </style>
+</head>
+<body>
+    {% load finans_extras %}
+    <h1>Finans Raporu</h1>
+    <p class="meta">
+        {% if yil %}{{ yil.ad }} · {% endif %}{{ filtre_etiketi }} · {{ olusturma_tarihi|date:"d.m.Y" }}
+    </p>
+    <div style="margin-bottom:10px">
+        <span class="kpi"><span>Kayıt</span><strong>{{ ozet.dosya_sayisi }}</strong></span>
+        <span class="kpi"><span>Net Toplam</span><strong>{{ ozet.toplam_net|para }}</strong></span>
+        <span class="kpi"><span>Tahsilat</span><strong>{{ ozet.tahsil_edilen|para }}</strong></span>
+        <span class="kpi"><span>Bekleyen</span><strong>{{ ozet.bekleyen|para }}</strong></span>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Öğrenci</th>
+                <th>No</th>
+                <th>Sınıf</th>
+                <th>Toplam</th>
+                <th>İndirim</th>
+                <th>Net</th>
+                <th>Ödenen</th>
+                <th>Kalan</th>
+                <th>Durum</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in satirlar %}
+            <tr>
+                <td>{{ s.ad_soyad }}</td>
+                <td>{{ s.talebe_no }}</td>
+                <td>{{ s.sinif }}</td>
+                <td class="num">{{ s.toplam_ucret|para }}</td>
+                <td class="num">{{ s.indirim_tutari|para }}</td>
+                <td class="num">{{ s.net_ucret|para }}</td>
+                <td class="num">{{ s.odenen_tutar|para }}</td>
+                <td class="num">{{ s.kalan_tutar|para }}</td>
+                <td class="durum">{{ s.durum }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="9">Kayıt bulunamadı.</td></tr>
+            {% endfor %}
+        </tbody>
+        {% if satirlar %}
+        <tfoot>
+            <tr>
+                <td colspan="5">Toplam ({{ ozet.dosya_sayisi }})</td>
+                <td class="num">{{ ozet.toplam_net|para }}</td>
+                <td class="num">{{ ozet.tahsil_edilen|para }}</td>
+                <td class="num">{{ ozet.bekleyen|para }}</td>
+                <td></td>
+            </tr>
+        </tfoot>
+        {% endif %}
+    </table>
+</body>
+</html>

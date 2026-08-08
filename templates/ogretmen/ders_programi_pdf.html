@@ -1,49 +1,91 @@
+{% load static %}
 <!doctype html>
 <html lang="tr">
 <head>
     <meta charset="utf-8">
     <title>Haftalık Ders Programı — {{ hoca.ad_soyad }}</title>
     <style>
-        body { font-family: Arial, sans-serif; font-size: 12px; color: #222; margin: 24px; }
-        h1 { font-size: 18px; margin: 0 0 4px; }
-        .meta { color: #666; margin-bottom: 20px; }
-        h2 { font-size: 14px; letter-spacing: 1px; margin: 24px 0 12px; }
-        .day { margin-bottom: 18px; }
-        .day-title { font-weight: bold; color: #1e6fbf; margin-bottom: 6px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border-bottom: 1px solid #ddd; padding: 8px 6px; text-align: left; }
-        th { background: #f5f7fa; font-size: 11px; }
-        .pill { background: #eef2f7; padding: 2px 8px; border-radius: 4px; }
+        {% include "includes/pdf_kart_belge_css.html" %}
     </style>
 </head>
 <body>
-    <h1>Haftalık Ders Programı</h1>
-    <div class="meta">
-        {{ hoca.ad_soyad }} · {{ hafta_no }}. Hafta ({{ hafta_baslangic|date:"d.m.Y" }} - {{ hafta_bitis|date:"d.m.Y" }})
-    </div>
+<table class="kart-wrap" cellpadding="0" cellspacing="0">
+    <tr>
+        <td class="kart-head">
+            <div class="kart-brand">{{ panel_org }}</div>
+            <div class="kart-sub">Haftalık Ders Programı</div>
+        </td>
+    </tr>
+    <tr>
+        <td class="kart-body">
+            <h1 class="kart-name">{{ hoca.ad_soyad }}</h1>
+            <p class="kart-role">Öğretmen</p>
 
-    {% for gun in gunler %}
-    <div class="day">
-        <div class="day-title">{{ gun.gun|upper }}</div>
-        <table>
-            <thead>
+            <table class="info-table" cellpadding="0" cellspacing="0">
                 <tr>
-                    <th>Saat Aralığı</th>
-                    <th>Sınıf / Etüt Grubu</th>
-                    <th>Ders</th>
+                    <td class="info-cell" style="width:49%; padding-right:6px;">
+                        <table class="info-box" cellpadding="0" cellspacing="0"><tr><td>
+                            <span class="info-label">Aktif hafta</span>
+                            <div class="info-value">{{ hafta_no }}. Hafta</div>
+                        </td></tr></table>
+                    </td>
+                    <td class="info-cell" style="width:49%; padding-left:6px;">
+                        <table class="info-box" cellpadding="0" cellspacing="0"><tr><td>
+                            <span class="info-label">Tarih aralığı</span>
+                            <div class="info-value">{{ hafta_baslangic|date:"d.m.Y" }} – {{ hafta_bitis|date:"d.m.Y" }}</div>
+                        </td></tr></table>
+                    </td>
                 </tr>
-            </thead>
-            <tbody>
-                {% for d in gun.dersler %}
+            </table>
+
+            {% for gun in gunler %}
+            <div class="section-block">
+                <div class="section-head">{{ gun.gun }}</div>
+                {% if gun.dersler %}
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Saat Aralığı</th>
+                            <th>Sınıf / Grup</th>
+                            <th>Ders</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in gun.dersler %}
+                        <tr>
+                            <td style="font-weight:600;">{{ d.saat }}</td>
+                            <td><span class="pill">{{ d.sinif }}</span></td>
+                            <td>{{ d.ders }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="section-empty">Bu gün için atanmış ders bulunmuyor.</div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="section-block">
+                <div class="section-empty">Program kaydı bulunamadı.</div>
+            </div>
+            {% endfor %}
+
+            <p class="kart-note">
+                Bu belge {{ panel_org }} öğretmen paneli için hazırlanmıştır.
+                Güncel program değişiklikleri panel üzerinden takip edilmelidir.
+            </p>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <table class="kart-foot" cellpadding="0" cellspacing="0">
                 <tr>
-                    <td>{{ d.saat }}</td>
-                    <td><span class="pill">[{{ d.sinif }}]</span></td>
-                    <td>{{ d.ders }}</td>
+                    <td class="left">{{ panel_short }}</td>
+                    <td class="right">{{ hafta_baslangic|date:"d.m.Y" }} – {{ hafta_bitis|date:"d.m.Y" }}</td>
                 </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endfor %}
+            </table>
+        </td>
+    </tr>
+</table>
 </body>
 </html>

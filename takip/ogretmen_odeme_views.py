@@ -97,11 +97,16 @@ def ogretmen_odeme_pdf(request, pk: int):
     donem = get_object_or_404(donem_qs(), pk=pk)
     finans = ogretmen_odeme_finans_gorebilir(request.user)
     detay = donem_detay_verisi(donem)
+    pdf_satir_sayisi = sum(
+        max(1, sum(1 for ders in gun["dersler"] if ders.get("saat_sayi")))
+        for gun in detay["gunler"]
+    )
     html_metni = render_to_string(
         "ogretmen_odeme_pdf.html",
         {
             **detay,
             "finans_goster": finans,
+            "pdf_satir_sayisi": pdf_satir_sayisi,
             **panel_branding_context(),
         },
         request=request,

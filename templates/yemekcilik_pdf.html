@@ -1,106 +1,44 @@
-{% load static %}
-<!doctype html>
+<!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="utf-8">
-    <title>{{ liste.ad }} · Yemekçilik</title>
-    <style>
-        @font-face {
-            font-family: "Poppins";
-            src: url("{% static 'fonts/Poppins-Regular.ttf' %}") format("truetype");
-            font-weight: 400;
-        }
-        @font-face {
-            font-family: "Poppins";
-            src: url("{% static 'fonts/Poppins-Medium.ttf' %}") format("truetype");
-            font-weight: 500;
-        }
-        @page { size: A4 landscape; margin: 10mm 12mm; }
-        * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            font-family: "Poppins", sans-serif;
-            font-size: 8px;
-            color: #546173;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
-        .head {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            border-bottom: 1px solid #d8e3f0;
-            padding-bottom: 8px;
-            margin-bottom: 12px;
-        }
-        .head h1 { margin: 0; font-size: 16px; font-weight: 500; color: #10213d; }
-        .head p { margin: 4px 0 0; font-size: 8px; }
-        .meta { text-align: right; font-size: 8px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td {
-            border: 1px solid #e3eaf3;
-            padding: 5px 7px;
-            text-align: left;
-            vertical-align: top;
-        }
-        th {
-            background: #f3f7fc;
-            color: #173b80;
-            font-weight: 500;
-            font-size: 7px;
-            letter-spacing: .08em;
-            text-transform: uppercase;
-        }
-        td strong { color: #10213d; font-weight: 500; }
-        .foot {
-            margin-top: 10px;
-            font-size: 7px;
-            color: #718097;
-            display: flex;
-            justify-content: space-between;
-        }
-    </style>
+<meta charset="utf-8">
+<title>Yemekçilik Listesi</title>
+<style>
+@page { size: {% if boyut == 'a3' %}A3 landscape{% else %}A4 landscape{% endif %}; margin: 12mm; }
+body { font-family: DejaVu Sans, sans-serif; font-size: 9pt; color: #111; }
+h1 { font-size: 14pt; margin: 0 0 4px; color: #071b3a; }
+.meta { color: #64748b; margin-bottom: 12px; font-size: 9pt; }
+table { width: 100%; border-collapse: collapse; }
+th, td { border: 1px solid #cdd6e4; padding: 6px 8px; text-align: left; vertical-align: top; }
+th { background: #334155; color: #fff; font-size: 8.5pt; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+small { color: #64748b; }
+</style>
 </head>
 <body>
-    <div class="head">
-        <div>
-            <h1>{{ liste.ad }}</h1>
-            <p>{{ liste.tarih_araligi_goster }}</p>
-        </div>
-        <div class="meta">
-            <div>{{ panel_org }}</div>
-            <div>Yemekçilik Görev Listesi</div>
-        </div>
-    </div>
-
-    <table>
-        <thead>
-            <tr>
-                <th style="width:12%">Tarih</th>
-                <th style="width:10%">Gün</th>
-                <th style="width:18%">Öğün</th>
-                <th style="width:28%">Sorumlu</th>
-                <th style="width:28%">Yardımcı</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for atama in atamalar %}
-            <tr>
-                <td><strong>{{ atama.tarih|date:"d.m.Y" }}</strong></td>
-                <td>{{ atama.tarih|date:"l" }}</td>
-                <td>{{ atama.ogun.ad }}</td>
-                <td>{{ atama.talebe.ad_soyad|default:"—" }}</td>
-                <td>{{ atama.yardimci.ad_soyad|default:"—" }}</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="5">Atama tanımlanmamış.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <div class="foot">
-        <span>{{ atamalar|length }} görev · Cumartesi {% if liste.cumartesi_dahil %}dahil{% else %}hariç{% endif %} · Pazar {% if liste.pazar_dahil %}dahil{% else %}hariç{% endif %}</span>
-        <span>{{ panel_name }}</span>
-    </div>
+<h1>Yemekçilik Listesi</h1>
+<p class="meta">Başlangıç: {{ baslangic|date:"d.m.Y" }} · {{ sure }} iş günü · {{ panel_short }}</p>
+<table>
+<thead>
+<tr>
+<th>Tarih</th>
+<th><span class="dot" style="background:#0071e3"></span>5. Sınıf</th>
+<th><span class="dot" style="background:#15803d"></span>6. Sınıf</th>
+<th><span class="dot" style="background:#ea580c"></span>7. Sınıf</th>
+<th><span class="dot" style="background:#dc2626"></span>8. Sınıf</th>
+</tr>
+</thead>
+<tbody>
+{% for s in satirlar %}
+<tr>
+<td>{{ s.tarih|date:"d.m.Y l" }}</td>
+<td>{% if s.hucreler.5.talebe %}{{ s.hucreler.5.talebe.ad }} <small>({{ s.hucreler.5.talebe.sinif_label }})</small>{% else %}—{% endif %}</td>
+<td>{% if s.hucreler.6.talebe %}{{ s.hucreler.6.talebe.ad }} <small>({{ s.hucreler.6.talebe.sinif_label }})</small>{% else %}—{% endif %}</td>
+<td>{% if s.hucreler.7.talebe %}{{ s.hucreler.7.talebe.ad }} <small>({{ s.hucreler.7.talebe.sinif_label }})</small>{% else %}—{% endif %}</td>
+<td>{% if s.hucreler.8.talebe %}{{ s.hucreler.8.talebe.ad }} <small>({{ s.hucreler.8.talebe.sinif_label }})</small>{% else %}—{% endif %}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
 </body>
 </html>

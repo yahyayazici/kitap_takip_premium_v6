@@ -1,6 +1,10 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}{{ program.ad }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/program-sure.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="program-page">
@@ -12,10 +16,14 @@
         <p class="muted">{{ program.tarih_araligi_goster }}</p>
     </div>
     <div class="profile-head-actions">
-        <a href="{% url 'program_pdf' program.pk %}" class="primary-btn" target="_blank">PDF İndir</a>
+        {% url 'program_pdf' program.pk as program_pdf_href %}
+        {% include "includes/pdf_sayfa_secici.html" with pdf_href=program_pdf_href pdf_sayfa=pdf_sayfa pdf_btn_class="primary-btn" pdf_btn_label="PDF İndir" %}
+        <a href="{% url 'program_excel' program.pk %}" class="ghost-btn">Excel İndir</a>
         <a href="{% url 'program_panel' %}?program={{ program.pk }}" class="ghost-btn">Program Merkezine Dön</a>
     </div>
 </header>
+
+{% include "includes/program_sure_ozeti.html" with baslangic_kapali=True %}
 
 {% include "includes/program_schedule_table.html" with satirlar=satirlar %}
 

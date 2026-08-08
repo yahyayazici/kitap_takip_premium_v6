@@ -1,0 +1,37 @@
+{# Ortak mod sekmeleri: Düzenle | Genel | Sınıf | Etüt | Öğretmen #}
+
+<nav class="dp-mode-tabs" aria-label="Program görünümü">
+
+    {% for sekme in mod_sekmeleri %}
+
+        {% if sekme.key == "duzenle" %}
+
+        <a href="{% url 'dershane_program_panel' %}?program={{ program.pk }}&gun={{ gun }}"
+
+           class="dp-mode-tab{% if sekme.aktif %} is-on{% endif %}"
+
+           title="{{ sekme.aciklama }}">
+
+            <strong>{{ sekme.baslik }}</strong>
+
+        </a>
+
+        {% else %}
+
+        <a href="{% url 'dershane_program_goruntule' sekme.mod %}?program={{ program.pk }}&gun={{ gun }}{% if filtre.sinif %}&sinif={{ filtre.sinif }}{% endif %}{% if filtre.etut_grubu %}&etut_grubu={{ filtre.etut_grubu }}{% endif %}{% if filtre.ogretmen %}&ogretmen={{ filtre.ogretmen|urlencode }}{% endif %}"
+
+           class="dp-mode-tab{% if sekme.aktif %} is-on{% endif %}"
+
+           title="{{ sekme.aciklama }}">
+
+            <strong>{{ sekme.baslik }}</strong>
+
+        </a>
+
+        {% endif %}
+
+    {% endfor %}
+
+</nav>
+
+

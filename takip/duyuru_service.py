@@ -10,45 +10,60 @@ from .models import Duyuru
 from .panel_permissions import kullanici_rolu
 
 
-def kullaniciya_gorunur_duyurular(user: User) -> QuerySet[Duyuru]:
+def _yayindaki_duyurular() -> QuerySet[Duyuru]:
     bugun = localdate()
-
-    qs = (
-        Duyuru.objects.filter(
-            aktif=True,
-            baslangic__lte=bugun,
-        )
-        .filter(
-            Q(bitis__isnull=True)
-            | Q(bitis__gte=bugun)
-        )
+    return Duyuru.objects.filter(
+        aktif=True,
+        baslangic__lte=bugun,
+    ).filter(
+        Q(bitis__isnull=True)
+        | Q(bitis__gte=bugun)
     )
+
+
+def kullaniciya_gorunur_duyurular(user: User) -> QuerySet[Duyuru]:
+    qs = _yayindaki_duyurular()
 
     rol = kullanici_rolu(user)
 
     if rol is None:
         return Duyuru.objects.none()
 
-    # Veli paneli henüz yok; personel veli-only duyuruları görmez.
-    qs = qs.exclude(
-        hedef_kitle=Duyuru.HedefKitle.VELI,
+    # Personel paneli: herkese + personel duyuruları.
+    # Veli/öğretmen-özel duyuruları burada görünmez.
+    qs = qs.filter(
+        hedef_kitle__in=(
+            Duyuru.HedefKitle.TUM_PERSONEL,
+            Duyuru.HedefKitle.PERSONEL,
+        ),
     )
 
     return qs.order_by("sira", "-baslangic", "-id")
 
 
-def veli_duyurulari() -> QuerySet[Duyuru]:
-    bugun = localdate()
-
+def ogretmen_duyurulari() -> QuerySet[Duyuru]:
+    """Öğretmen paneli: herkese açık + öğretmen-özel duyurular."""
     return (
-        Duyuru.objects.filter(
-            aktif=True,
-            baslangic__lte=bugun,
-            hedef_kitle=Duyuru.HedefKitle.VELI,
-        )
+        _yayindaki_duyurular()
         .filter(
-            Q(bitis__isnull=True)
-            | Q(bitis__gte=bugun)
+            hedef_kitle__in=(
+                Duyuru.HedefKitle.TUM_PERSONEL,
+                Duyuru.HedefKitle.OGRETMEN,
+            ),
+        )
+        .order_by("sira", "-baslangic", "-id")
+    )
+
+
+def veli_duyurulari() -> QuerySet[Duyuru]:
+    """Veli paneli: herkese açık + veli-özel duyurular."""
+    return (
+        _yayindaki_duyurular()
+        .filter(
+            hedef_kitle__in=(
+                Duyuru.HedefKitle.TUM_PERSONEL,
+                Duyuru.HedefKitle.VELI,
+            ),
         )
         .order_by("sira", "-baslangic", "-id")
     )

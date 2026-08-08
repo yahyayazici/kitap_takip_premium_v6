@@ -1,0 +1,184 @@
+{% extends "yonetim/base.html" %}
+{% load static %}
+
+{% block title %}Kısayollar{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/panel-admin-cards.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="pa-page">
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">PANEL</p>
+        <h1>Kısayollar</h1>
+        <p class="muted">Personel, yönetim, öğretmen ve veli ana sayfalarında hangi kısayolların görüneceğini buradan yönetin.</p>
+    </div>
+</header>
+
+<div class="pa-stack">
+
+<section class="pa-card">
+    <div class="pa-card-head">
+        <div>
+            <p class="pa-kicker">Yeni</p>
+            <h2>Kısayol ekle</h2>
+        </div>
+    </div>
+    <div class="pa-card-body">
+        <form method="post" action="{% url 'yonetim:kisayol_gorsel_kaydet' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="pa-form-grid">
+                <label class="pa-field">
+                    <span>Başlık</span>
+                    <input type="text" name="baslik" required placeholder="Örn. Yazılı Takip">
+                </label>
+                <label class="pa-field">
+                    <span>Alt yazı</span>
+                    <input type="text" name="alt_baslik" placeholder="Kısa açıklama">
+                </label>
+                <label class="pa-field">
+                    <span>Kısaltma</span>
+                    <input type="text" name="mark" maxlength="8" placeholder="YT">
+                </label>
+                <label class="pa-field">
+                    <span>İkon</span>
+                    <select name="icon">
+                        {% for ik in ikonlar %}<option value="{{ ik }}">{{ ik }}</option>{% endfor %}
+                    </select>
+                </label>
+                <label class="pa-field pa-field-span-2">
+                    <span>URL adı</span>
+                    <input type="text" name="url_name" placeholder="veli_duyurular veya yonetim:talebe_listesi">
+                </label>
+                <label class="pa-field pa-field-span-2">
+                    <span>Özel URL</span>
+                    <input type="text" name="url_ozel" placeholder="/yazili/ veya https://…">
+                </label>
+                <label class="pa-field">
+                    <span>Sıra</span>
+                    <input type="number" name="sira" value="100">
+                </label>
+                <label class="pa-field pa-field-span-2">
+                    <span>Görsel</span>
+                    <input type="file" name="gorsel" accept="image/*">
+                </label>
+            </div>
+            <div class="pa-footer-row">
+                <div class="pa-checks">
+                    <label class="pa-check"><input type="checkbox" name="goster_personel" value="1" checked> Personel</label>
+                    <label class="pa-check"><input type="checkbox" name="goster_yonetim" value="1"> Yönetim</label>
+                    <label class="pa-check"><input type="checkbox" name="goster_ogretmen" value="1"> Öğretmen</label>
+                    <label class="pa-check"><input type="checkbox" name="goster_veli" value="1"> Veli</label>
+                    <label class="pa-check"><input type="checkbox" name="aktif" value="1" checked> Aktif</label>
+                </div>
+                <div class="pa-actions">
+                    <button type="submit" class="primary-btn">Ekle</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+<section class="pa-card">
+    <div class="pa-card-head">
+        <div>
+            <p class="pa-kicker">Liste</p>
+            <h2>Tanımlı kısayollar</h2>
+        </div>
+        <span class="pa-card-count">{{ kayitlar|length }} kayıt</span>
+    </div>
+    <div class="pa-card-body">
+        <div class="pa-list">
+            {% for k in kayitlar %}
+            <article class="pa-item">
+                <div class="pa-item-preview">
+                    {% if k.gorsel %}
+                    <img class="pa-thumb" src="{{ k.gorsel.url }}" alt="">
+                    {% else %}
+                    <div class="pa-thumb-empty">Varsayılan</div>
+                    {% endif %}
+                    <div class="pa-item-meta">{{ k.anahtar }}</div>
+                    <div class="pa-chip-row">
+                        <span class="pa-chip{% if not k.goster_personel %} is-off{% endif %}">Personel</span>
+                        <span class="pa-chip{% if not k.goster_yonetim %} is-off{% endif %}">Yönetim</span>
+                        <span class="pa-chip{% if not k.goster_ogretmen %} is-off{% endif %}">Öğretmen</span>
+                        <span class="pa-chip{% if not k.goster_veli %} is-off{% endif %}">Veli</span>
+                        {% if not k.aktif %}<span class="pa-chip is-warn">Pasif</span>{% endif %}
+                    </div>
+                </div>
+                <div class="pa-item-form">
+                    <form method="post" action="{% url 'yonetim:kisayol_gorsel_kaydet' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input type="hidden" name="pk" value="{{ k.pk }}">
+                        <input type="hidden" name="anahtar" value="{{ k.anahtar }}">
+                        <div class="pa-form-grid">
+                            <label class="pa-field pa-field-span-2">
+                                <span>Başlık</span>
+                                <input type="text" name="baslik" value="{{ k.baslik }}" required>
+                            </label>
+                            <label class="pa-field pa-field-span-2">
+                                <span>Alt yazı</span>
+                                <input type="text" name="alt_baslik" value="{{ k.alt_baslik }}" placeholder="Alt yazı">
+                            </label>
+                            <label class="pa-field">
+                                <span>Kısaltma</span>
+                                <input type="text" name="mark" value="{{ k.mark }}" maxlength="8">
+                            </label>
+                            <label class="pa-field">
+                                <span>İkon</span>
+                                <select name="icon">
+                                    {% for ik in ikonlar %}
+                                    <option value="{{ ik }}"{% if k.icon == ik %} selected{% endif %}>{{ ik }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+                            <label class="pa-field">
+                                <span>Sıra</span>
+                                <input type="number" name="sira" value="{{ k.sira }}">
+                            </label>
+                            <label class="pa-field">
+                                <span>Yeni görsel</span>
+                                <input type="file" name="gorsel" accept="image/*">
+                            </label>
+                            <label class="pa-field pa-field-span-2">
+                                <span>URL adı</span>
+                                <input type="text" name="url_name" value="{{ k.url_name }}" placeholder="URL adı">
+                            </label>
+                            <label class="pa-field pa-field-span-2">
+                                <span>Özel URL</span>
+                                <input type="text" name="url_ozel" value="{{ k.url_ozel }}" placeholder="Özel URL">
+                            </label>
+                        </div>
+                        <div class="pa-footer-row">
+                            <div class="pa-checks">
+                                <label class="pa-check"><input type="checkbox" name="goster_personel" value="1"{% if k.goster_personel %} checked{% endif %}> Personel</label>
+                                <label class="pa-check"><input type="checkbox" name="goster_yonetim" value="1"{% if k.goster_yonetim %} checked{% endif %}> Yönetim</label>
+                                <label class="pa-check"><input type="checkbox" name="goster_ogretmen" value="1"{% if k.goster_ogretmen %} checked{% endif %}> Öğretmen</label>
+                                <label class="pa-check"><input type="checkbox" name="goster_veli" value="1"{% if k.goster_veli %} checked{% endif %}> Veli</label>
+                                <label class="pa-check"><input type="checkbox" name="aktif" value="1"{% if k.aktif %} checked{% endif %}> Aktif</label>
+                            </div>
+                            <div class="pa-actions">
+                                <button type="submit" class="primary-btn">Kaydet</button>
+                            </div>
+                        </div>
+                    </form>
+                    <form method="post" action="{% url 'yonetim:kisayol_gorsel_sil' k.pk %}" onsubmit="return confirm('Silinsin mi?');" style="margin-top:10px;">
+                        {% csrf_token %}
+                        <div class="pa-actions" style="margin-left:0;">
+                            <button type="submit" class="ghost-btn">Sil</button>
+                        </div>
+                    </form>
+                </div>
+            </article>
+            {% empty %}
+            <p class="muted" style="margin:0;">Henüz kısayol yok. Yukarıdan ekleyin.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+</div>
+</div>
+{% endblock %}

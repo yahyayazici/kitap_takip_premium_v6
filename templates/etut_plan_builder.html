@@ -65,7 +65,7 @@
                         <tr>
                             <th class="ep-time-col">Saat</th>
                             {% for gun in grid.gunler %}
-                            <th>{{ gun.label }}</th>
+                            <th class="ep-day-col">{{ gun.label }}</th>
                             {% endfor %}
                         </tr>
                     </thead>
@@ -76,6 +76,8 @@
                             {% for hucre in satir.hucreler %}
                             <td class="ep-cell {% if hucre.bos %}ep-cell-empty{% endif %}"
                                 data-blok-id="{{ hucre.blok_id|default:'' }}"
+                                data-saat="{{ satir.saat.goster }}"
+                                data-gun="{{ hucre.gun_label|default:'' }}"
                                 data-drop="1">
                                 {% if hucre.faaliyet %}
                                 <article class="ep-activity"
@@ -136,7 +138,7 @@
             <button type="button" class="ep-btn ep-btn-sm" data-ep-open="ozel-kart">+ Özel</button>
             {% endif %}
         </div>
-        <p class="ep-pool-hint">Kartı sürükleyip saat hücresine bırakın · Boş hücreye çift tıklayın</p>
+        <p class="ep-pool-hint">Havuzda sürükleyerek sıralayın · Hücreye bırakın · ↑↓ veya × ile yönetin</p>
         <div class="ep-pool-grid" data-ep-pool>
             {% for kart in havuz %}
             <article class="ep-pool-card"
@@ -146,8 +148,17 @@
                      data-hedef="{{ kart.varsayilan_hedef }}"
                      data-renk="{{ kart.renk }}"
                      style="--ep-kart-renk: {{ kart.renk }}">
-                <strong>{{ kart.baslik }}</strong>
-                {% if kart.varsayilan_hedef %}<span>{{ kart.varsayilan_hedef }}</span>{% endif %}
+                <div class="ep-pool-card-body">
+                    <strong>{{ kart.baslik }}</strong>
+                    {% if kart.varsayilan_hedef %}<span>{{ kart.varsayilan_hedef }}</span>{% endif %}
+                </div>
+                {% if duzenleyebilir %}
+                <div class="ep-pool-card-actions">
+                    <button type="button" class="ep-pool-move" data-ep-havuz-up draggable="false" aria-label="Yukarı">↑</button>
+                    <button type="button" class="ep-pool-move" data-ep-havuz-down draggable="false" aria-label="Aşağı">↓</button>
+                    <button type="button" class="ep-pool-del" data-ep-havuz-sil="{{ kart.id }}" draggable="false" aria-label="Sil">×</button>
+                </div>
+                {% endif %}
             </article>
             {% endfor %}
         </div>
@@ -173,15 +184,69 @@
 
 {% if duzenleyebilir %}
 <div class="ep-modal" data-ep-modal="hucre" hidden>
-    <div class="ep-modal-card">
-        <header><h3>Etkinlik Ekle</h3><button type="button" data-ep-close>×</button></header>
-        <form data-ep-hucre-form>
+    <div class="ep-modal-backdrop" data-ep-close tabindex="-1"></div>
+    <div class="ep-modal-card ep-modal-sheet" role="dialog" aria-modal="true" aria-labelledby="ep-hucre-title">
+        <header class="ep-modal-head">
+            <div class="ep-modal-head-copy">
+                <p class="ep-modal-eyebrow">Yeni etkinlik</p>
+                <h3 id="ep-hucre-title">Etkinlik Ekle</h3>
+                <p class="ep-slot-badge" data-ep-slot-meta>Hücre seçilmedi</p>
+            </div>
+            <button type="button" class="ep-modal-close" data-ep-close aria-label="Kapat">×</button>
+        </header>
+        <form data-ep-hucre-form class="ep-modal-form">
             <input type="hidden" name="blok_id" id="ep-blok-id">
-            <label>Başlık<input type="text" name="baslik" class="ep-input" required></label>
-            <label>Açıklama<textarea name="aciklama" class="ep-input" rows="2"></textarea></label>
-            <label>Hedef<input type="text" name="hedef" class="ep-input" placeholder="40 soru"></label>
-            <label>Renk<input type="color" name="renk" value="#eff6ff"></label>
-            <footer>
+
+            <div class="ep-quick-bar" data-ep-quick>
+                <button type="button" class="ep-quick-chip" data-title="Matematik" data-hedef="40 soru" data-renk="#dbeafe">Matematik</button>
+                <button type="button" class="ep-quick-chip" data-title="Fen" data-hedef="2 test" data-renk="#dcfce7">Fen</button>
+                <button type="button" class="ep-quick-chip" data-title="Türkçe" data-hedef="20 paragraf" data-renk="#f3e8ff">Türkçe</button>
+                <button type="button" class="ep-quick-chip" data-title="Soru Çözümü" data-hedef="40 soru" data-renk="#ffedd5">Soru</button>
+                <button type="button" class="ep-quick-chip" data-title="Konu Tekrarı" data-hedef="1 konu" data-renk="#fef9c3">Tekrar</button>
+                <button type="button" class="ep-quick-chip" data-title="Deneme Analizi" data-hedef="1 deneme" data-renk="#e0e7ff">Deneme</button>
+            </div>
+
+            <div class="ep-preview" data-ep-preview style="--ep-kart-renk:#dbeafe">
+                <strong data-ep-preview-title>Etkinlik başlığı</strong>
+                <span data-ep-preview-hedef>Hedef yok</span>
+            </div>
+
+            <div class="ep-field">
+                <label for="ep-baslik">Başlık</label>
+                <input type="text" name="baslik" id="ep-baslik" class="ep-input" placeholder="Örn. Matematik" required autocomplete="off" data-ep-live="title">
+            </div>
+
+            <div class="ep-field-row">
+                <div class="ep-field">
+                    <label for="ep-hedef">Hedef</label>
+                    <input type="text" name="hedef" id="ep-hedef" class="ep-input" placeholder="40 soru" autocomplete="off" data-ep-live="hedef">
+                </div>
+                <div class="ep-field">
+                    <label for="ep-aciklama">Not <span class="ep-opt">isteğe bağlı</span></label>
+                    <input type="text" name="aciklama" id="ep-aciklama" class="ep-input" placeholder="Sayfa / yönerge" autocomplete="off">
+                </div>
+            </div>
+
+            <div class="ep-field">
+                <label>Renk</label>
+                <input type="hidden" name="renk" id="ep-renk" value="#dbeafe" data-ep-live="renk">
+                <div class="ep-swatches ep-swatches-lg" data-ep-swatches>
+                    <span class="ep-swatch is-on" data-color="#dbeafe" style="background:#dbeafe" role="button" tabindex="0" title="Mavi"></span>
+                    <span class="ep-swatch" data-color="#dcfce7" style="background:#dcfce7" role="button" tabindex="0" title="Yeşil"></span>
+                    <span class="ep-swatch" data-color="#f3e8ff" style="background:#f3e8ff" role="button" tabindex="0" title="Mor"></span>
+                    <span class="ep-swatch" data-color="#fef9c3" style="background:#fef9c3" role="button" tabindex="0" title="Sarı"></span>
+                    <span class="ep-swatch" data-color="#ffe4e6" style="background:#ffe4e6" role="button" tabindex="0" title="Pembe"></span>
+                    <span class="ep-swatch" data-color="#ffedd5" style="background:#ffedd5" role="button" tabindex="0" title="Turuncu"></span>
+                    <span class="ep-swatch" data-color="#e0e7ff" style="background:#e0e7ff" role="button" tabindex="0" title="İndigo"></span>
+                    <span class="ep-swatch" data-color="#e2e8f0" style="background:#e2e8f0" role="button" tabindex="0" title="Gri"></span>
+                    <label class="ep-swatch ep-swatch-picker" title="Renk paleti" aria-label="Renk paleti aç">
+                        <input type="color" value="#dbeafe" data-ep-color-picker tabindex="-1">
+                        <span class="ep-swatch-picker-icon" aria-hidden="true">+</span>
+                    </label>
+                </div>
+            </div>
+
+            <footer class="ep-modal-foot">
                 <button type="button" class="ep-btn ep-btn-ghost" data-ep-close>İptal</button>
                 <button type="submit" class="ep-btn ep-btn-primary">Kaydet</button>
             </footer>
@@ -190,13 +255,42 @@
 </div>
 
 <div class="ep-modal" data-ep-modal="ozel-kart" hidden>
-    <div class="ep-modal-card">
-        <header><h3>Özel Etkinlik Kartı</h3><button type="button" data-ep-close>×</button></header>
-        <form data-ep-ozel-form>
-            <label>Başlık<input type="text" name="baslik" class="ep-input" required></label>
-            <label>Hedef<input type="text" name="hedef" class="ep-input"></label>
-            <label>Renk<input type="color" name="renk" value="#eff6ff"></label>
-            <footer>
+    <div class="ep-modal-backdrop" data-ep-close tabindex="-1"></div>
+    <div class="ep-modal-card ep-modal-sheet" role="dialog" aria-modal="true" aria-labelledby="ep-ozel-title">
+        <header class="ep-modal-head">
+            <div class="ep-modal-head-copy">
+                <p class="ep-modal-eyebrow">Havuz</p>
+                <h3 id="ep-ozel-title">Özel Kart</h3>
+                <p class="ep-modal-meta">Havuza eklenir, hücrelere sürüklenir</p>
+            </div>
+            <button type="button" class="ep-modal-close" data-ep-close aria-label="Kapat">×</button>
+        </header>
+        <form data-ep-ozel-form class="ep-modal-form">
+            <div class="ep-field">
+                <label for="ep-ozel-baslik">Başlık</label>
+                <input type="text" name="baslik" id="ep-ozel-baslik" class="ep-input" required autocomplete="off">
+            </div>
+            <div class="ep-field">
+                <label for="ep-ozel-hedef">Hedef</label>
+                <input type="text" name="hedef" id="ep-ozel-hedef" class="ep-input" placeholder="20 paragraf" autocomplete="off">
+            </div>
+            <div class="ep-field">
+                <label>Renk</label>
+                <input type="hidden" name="renk" id="ep-ozel-renk" value="#dbeafe">
+                <div class="ep-swatches ep-swatches-lg" data-ep-swatches>
+                    <span class="ep-swatch is-on" data-color="#dbeafe" style="background:#dbeafe" role="button" tabindex="0"></span>
+                    <span class="ep-swatch" data-color="#dcfce7" style="background:#dcfce7" role="button" tabindex="0"></span>
+                    <span class="ep-swatch" data-color="#f3e8ff" style="background:#f3e8ff" role="button" tabindex="0"></span>
+                    <span class="ep-swatch" data-color="#fef9c3" style="background:#fef9c3" role="button" tabindex="0"></span>
+                    <span class="ep-swatch" data-color="#ffe4e6" style="background:#ffe4e6" role="button" tabindex="0"></span>
+                    <span class="ep-swatch" data-color="#e2e8f0" style="background:#e2e8f0" role="button" tabindex="0"></span>
+                    <label class="ep-swatch ep-swatch-picker" title="Renk paleti" aria-label="Renk paleti aç">
+                        <input type="color" value="#dbeafe" data-ep-color-picker tabindex="-1">
+                        <span class="ep-swatch-picker-icon" aria-hidden="true">+</span>
+                    </label>
+                </div>
+            </div>
+            <footer class="ep-modal-foot">
                 <button type="button" class="ep-btn ep-btn-ghost" data-ep-close>İptal</button>
                 <button type="submit" class="ep-btn ep-btn-primary">Oluştur</button>
             </footer>
@@ -207,5 +301,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/etut-plan-panel.js' %}"></script>
+<script src="{% static 'js/etut-plan-panel.js' %}?v=havuz-controls-2"></script>
 {% endblock %}

@@ -1,0 +1,132 @@
+{# Personel ana sayfa — YÇT ay görünümü (olaylar gün hücrelerinde) #}
+<section class="personel-yct-card" aria-label="Yıllık Çalışma Takvimi" data-yct-mini>
+    <header class="personel-yct-head">
+        <div>
+            <p class="personel-yct-kicker">YÇT</p>
+            <h2>{{ yct.ay_adi_tr }} {{ yct.yil }}</h2>
+        </div>
+        <a href="{% url 'yct_personel' %}" class="personel-yct-link">Tam takvim →</a>
+    </header>
+    <table class="personel-yct-grid personel-yct-grid--inline">
+        <thead>
+            <tr>
+                <th>Pzt</th><th>Sal</th><th>Çar</th><th>Per</th><th>Cum</th><th>Cmt</th><th>Paz</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for week in yct.weeks %}
+            <tr>
+            {% for cell in week %}
+                <td class="{% if cell.olaylar %}has-event{% endif %}{% if not cell.day %} is-empty{% endif %}">
+                    {% if cell.day %}
+                    <span class="day">{{ cell.day }}</span>
+                    <div class="personel-yct-cell-events">
+                        {% for o in cell.olaylar|slice:":2" %}
+                        <button
+                            type="button"
+                            class="personel-yct-chip"
+                            data-yct-chip
+                            data-full="{{ o.baslik }}"
+                            {% if o.aciklama %}data-note="{{ o.aciklama }}"{% endif %}
+                            data-when="{{ cell.day }}.{{ yct.ay|stringformat:'02d' }}.{{ yct.yil }}"
+                            title="Tamamını görmek için tıkla"
+                        >{{ o.baslik|truncatechars:18 }}</button>
+                        {% endfor %}
+                        {% if cell.olaylar|length > 2 %}
+                        <button
+                            type="button"
+                            class="personel-yct-more"
+                            data-yct-more
+                            data-full="{% for o in cell.olaylar %}{{ o.baslik }}{% if not forloop.last %} · {% endif %}{% endfor %}"
+                            data-when="{{ cell.day }}.{{ yct.ay|stringformat:'02d' }}.{{ yct.yil }}"
+                            title="Tümünü gör"
+                        >+{{ cell.olaylar|length|add:"-2" }}</button>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </td>
+            {% endfor %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="personel-yct-pop" data-yct-pop hidden role="dialog" aria-modal="false">
+        <p class="personel-yct-pop-when" data-yct-pop-when></p>
+        <p class="personel-yct-pop-title" data-yct-pop-title></p>
+        <p class="personel-yct-pop-note" data-yct-pop-note hidden></p>
+        <button type="button" class="personel-yct-pop-close" data-yct-pop-close aria-label="Kapat">Kapat</button>
+    </div>
+</section>
+<script>
+(function () {
+  var root = document.currentScript && document.currentScript.previousElementSibling;
+  if (!root || !root.hasAttribute("data-yct-mini")) {
+    root = document.querySelector("[data-yct-mini]");
+  }
+  if (!root) return;
+  var pop = root.querySelector("[data-yct-pop]");
+  var titleEl = pop.querySelector("[data-yct-pop-title]");
+  var whenEl = pop.querySelector("[data-yct-pop-when]");
+  var noteEl = pop.querySelector("[data-yct-pop-note]");
+  var openBtn = null;
+
+  function kapat() {
+    pop.hidden = true;
+    pop.classList.remove("is-open");
+    openBtn = null;
+  }
+
+  function ac(btn) {
+    var full = btn.getAttribute("data-full") || "";
+    var note = btn.getAttribute("data-note") || "";
+    var when = btn.getAttribute("data-when") || "";
+    whenEl.textContent = when;
+    titleEl.textContent = full;
+    if (note) {
+      noteEl.textContent = note;
+      noteEl.hidden = false;
+    } else {
+      noteEl.textContent = "";
+      noteEl.hidden = true;
+    }
+    pop.hidden = false;
+    pop.classList.add("is-open");
+    openBtn = btn;
+    var r = btn.getBoundingClientRect();
+    var card = root.getBoundingClientRect();
+    var top = r.bottom - card.top + 6;
+    var left = Math.min(
+      Math.max(8, r.left - card.left),
+      Math.max(8, card.width - 228)
+    );
+    pop.style.top = top + "px";
+    pop.style.left = left + "px";
+  }
+
+  root.addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-yct-chip], [data-yct-more]");
+    if (btn && root.contains(btn)) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (openBtn === btn) {
+        kapat();
+        return;
+      }
+      ac(btn);
+      return;
+    }
+    if (e.target.closest("[data-yct-pop-close]")) {
+      kapat();
+      return;
+    }
+    if (!e.target.closest("[data-yct-pop]")) {
+      kapat();
+    }
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") kapat();
+  });
+})();
+</script>

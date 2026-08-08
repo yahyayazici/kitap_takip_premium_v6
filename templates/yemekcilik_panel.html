@@ -1,104 +1,231 @@
 {% extends "base.html" %}
-
-{% block title %}Yemekçilik{% endblock %}
+{% load static %}
+{% block title %}Yemekçilik Listesi · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/yemekcilik-premium.css' %}?v=yc2">
+{% endblock %}
 
 {% block content %}
-<div class="program-page">
+<div class="yc-page" data-yc-panel data-tarih="{{ tarih|date:'Y-m-d' }}">
+{% csrf_token %}
 
-<header class="page-head patterned-page-head">
+<header class="yc-head">
     <div>
-        <p class="kicker">GÖREV MODÜLÜ</p>
-        <h1>Yemekçilik Görevleri</h1>
-        <p class="muted">{{ secili_tarih|date:"d F Y, l" }} · Öğün bazlı sorumlu atamaları</p>
-    </div>
-    <div class="profile-head-actions">
-        {% if secili_liste %}
-        <a href="{% url 'yemekcilik_pdf' secili_liste.pk %}" class="primary-btn" target="_blank">PDF İndir</a>
-        {% endif %}
-        {% if yonetim_modulu %}
-        <a href="{% url 'yonetim:yemekci_listesi' %}" class="ghost-btn">Yönetim</a>
-        {% endif %}
+        <h1>Yemekçilik Listesi Modülü</h1>
+        <p class="yc-sub">Sınıflar bazında otomatik dönen yemekçilik planlama sistemi</p>
     </div>
 </header>
 
-{% if bugun_gorevler and secili_tarih == bugun %}
-<section class="dashboard-card yonetim-highlight-card">
-    <div class="card-heading">
-        <div>
-            <p class="card-kicker">BUGÜN</p>
-            <h2>{{ bugun_gorevler|length }} öğün · yemek görevi</h2>
-        </div>
-        <span class="status-pill status-okunuyor">Bugün</span>
-    </div>
-    <p class="muted">{% if secili_liste %}{{ secili_liste.ad }}{% else %}Aktif liste yok{% endif %}</p>
-</section>
-{% endif %}
+<nav class="yc-tabs" aria-label="Yemekçilik sekmeleri">
+    <a href="?sekme=bugun&tarih={{ tarih|date:'Y-m-d' }}" class="yc-tab{% if sekme == 'bugun' %} is-on{% endif %}">Bugünkü Yemekçiler</a>
+    <a href="?sekme=takvim&yil={{ takvim_yil }}&ay={{ takvim_ay }}" class="yc-tab{% if sekme == 'takvim' %} is-on{% endif %}">Yemekçi Takvimi</a>
+    <a href="?sekme=siralama" class="yc-tab{% if sekme == 'siralama' %} is-on{% endif %}">Sıralama Yönetimi</a>
+    <a href="?sekme=toplu" class="yc-tab{% if sekme == 'toplu' %} is-on{% endif %}">Toplu Liste Oluşturma / Baskı</a>
+</nav>
 
-<section class="program-selector-card dashboard-card">
-    <div class="card-heading">
-        <div><p class="card-kicker">SEÇİM</p><h2>Liste ve Tarih</h2></div>
+<section class="yc-shell">
+
+{% if sekme == 'bugun' %}
+<div class="yc-datebar">
+    <div class="yc-date-nav">
+        <a class="yc-btn yc-btn-ghost" href="?sekme=bugun&tarih={{ onceki }}">‹ Önceki Gün</a>
+        <input type="date" class="yc-input" value="{{ tarih|date:'Y-m-d' }}" data-yc-date>
+        <a class="yc-btn yc-btn-ghost" href="?sekme=bugun&tarih={{ sonraki }}">Sonraki Gün ›</a>
     </div>
-    <form method="get" class="program-selector-form temizlik-selector-form">
-        <div class="temizlik-selector-grid">
-            <div>
-                <label for="liste-select">Görüntülenecek liste</label>
-                <select id="liste-select" name="liste" class="cs-input">
-                    {% for liste in listeler %}
-                    <option value="{{ liste.pk }}" {% if secili_liste and secili_liste.pk == liste.pk %}selected{% endif %}>{{ liste.ad }} · {{ liste.tarih_araligi_goster }}</option>
-                    {% empty %}
-                    <option value="">Liste yok</option>
+    <div class="yc-date-label">{{ tarih|date:"d F Y, l" }}</div>
+</div>
+
+<div class="yc-cards">
+    {% for y in yemekciler %}
+    <article class="yc-card" style="--yc-accent: {{ y.renk }}">
+        <div class="yc-card-top">
+            <span class="yc-card-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 10h16v2H4v-2Zm1 4h6v6H5v-6Zm8 0h6v6h-6v-6ZM5 4h14v4H5V4Z" fill="currentColor"/></svg>
+            </span>
+            <span class="yc-card-class">{{ y.etiket }}</span>
+        </div>
+        <div class="yc-card-body">
+            {% if y.hafta_sonu %}
+            <p class="yc-empty">Hafta sonu · görev yok</p>
+            {% elif y.talebe %}
+            <strong class="yc-name">{{ y.talebe.ad }}</strong>
+            <span class="yc-sube">{{ y.talebe.sinif_label }}</span>
+            {% else %}
+            <p class="yc-empty">Havuzda talebe yok</p>
+            {% endif %}
+        </div>
+        {% if duzenleyebilir and not y.hafta_sonu %}
+        <div class="yc-card-foot">
+            <label class="yc-change">
+                <span>Görevliyi Değiştir</span>
+                <select data-yc-gorevli data-sinif="{{ y.sinif }}">
+                    <option value="">— Seç —</option>
+                    {% for h in havuzlar %}
+                    {% if h.sinif == y.sinif %}
+                    {% for k in h.kayitlar %}
+                    <option value="{{ k.talebe_id }}" {% if y.talebe and y.talebe.id == k.talebe_id %}selected{% endif %}>{{ k.ad }}</option>
+                    {% endfor %}
+                    {% endif %}
                     {% endfor %}
                 </select>
-            </div>
-            <div>
-                <label for="tarih-select">Gün</label>
-                <input id="tarih-select" type="date" name="tarih" class="cs-input" value="{{ secili_tarih|date:'Y-m-d' }}">
-            </div>
-            <div class="temizlik-selector-action">
-                <button type="submit" class="primary-btn">Göster</button>
-            </div>
+            </label>
         </div>
-    </form>
-</section>
-
-{% if secili_liste %}
-<section class="report-table-card program-schedule-card">
-    <div class="card-heading">
-        <div>
-            <p class="card-kicker">{{ secili_liste.tarih_araligi_goster }}</p>
-            <h2>{{ secili_liste.ad }}</h2>
-        </div>
-        {% if secili_liste.yayinda_mi %}
-        <span class="status-pill status-okunuyor">Yayında</span>
         {% endif %}
-    </div>
-
-    <div class="responsive-table">
-        <table class="report-data-table program-table">
-            <thead>
-                <tr>
-                    <th>Öğün</th>
-                    <th>Sorumlu</th>
-                    <th>Yardımcı</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for atama in atamalar %}
-                <tr{% if atama.tarih == bugun %} class="program-row-today"{% endif %}>
-                    <td><strong>{{ atama.ogun.ad }}</strong>{% if atama.ogun.aciklama %}<br><span class="muted">{{ atama.ogun.aciklama }}</span>{% endif %}</td>
-                    <td>{{ atama.talebe.ad_soyad|default:"—" }}</td>
-                    <td>{{ atama.yardimci.ad_soyad|default:"—" }}</td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="3" class="report-empty">Seçilen gün için atama bulunamadı.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</section>
-{% else %}
-<section class="dashboard-card"><div class="report-empty">Aktif yemekçilik listesi bulunamadı.</div></section>
+    </article>
+    {% endfor %}
+</div>
 {% endif %}
 
+{% if sekme == 'takvim' %}
+<div class="yc-cal-head">
+    <a class="yc-btn yc-btn-ghost" href="?sekme=takvim&yil={% if takvim_ay == 1 %}{{ takvim_yil|add:'-1' }}{% else %}{{ takvim_yil }}{% endif %}&ay={% if takvim_ay == 1 %}12{% else %}{{ takvim_ay|add:'-1' }}{% endif %}">‹</a>
+    <strong>{{ takvim_ay }} / {{ takvim_yil }}</strong>
+    <a class="yc-btn yc-btn-ghost" href="?sekme=takvim&yil={% if takvim_ay == 12 %}{{ takvim_yil|add:'1' }}{% else %}{{ takvim_yil }}{% endif %}&ay={% if takvim_ay == 12 %}1{% else %}{{ takvim_ay|add:'1' }}{% endif %}">›</a>
 </div>
+<div class="yc-cal">
+    <div class="yc-cal-row yc-cal-headrow">
+        <span>Pzt</span><span>Sal</span><span>Çar</span><span>Per</span><span>Cum</span><span>Cmt</span><span>Paz</span>
+    </div>
+    {% for week in takvim %}
+    <div class="yc-cal-row">
+        {% for cell in week %}
+        {% if cell %}
+        <a class="yc-cal-cell" href="?sekme=bugun&tarih={{ cell.tarih|date:'Y-m-d' }}">
+            <em>{{ cell.tarih.day }}</em>
+            <span class="yc-cal-dots">
+            {% for y in cell.yemekciler %}
+            {% if y.talebe %}<i style="background:{{ y.renk }}" title="{{ y.etiket }}: {{ y.talebe.ad }}"></i>{% endif %}
+            {% endfor %}
+            </span>
+        </a>
+        {% else %}
+        <span class="yc-cal-cell is-empty"></span>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if sekme == 'siralama' %}
+<div class="yc-siralama" data-yc-siralama>
+    {% for h in havuzlar %}
+    <article class="yc-pool" data-sinif="{{ h.sinif }}" style="--yc-accent: {{ h.renk }}">
+        <div class="yc-pool-head">
+            <h2>{{ h.etiket }}</h2>
+            {% if duzenleyebilir %}
+            <form class="yc-add" data-yc-add>
+                <select name="talebe_id" required>
+                    <option value="">+ Talebe ekle</option>
+                    {% for t in h.secenekler %}
+                    <option value="{{ t.id }}">{{ t.ad }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="yc-btn yc-btn-primary yc-btn-sm">Ekle</button>
+            </form>
+            {% endif %}
+        </div>
+        <ul class="yc-pool-list" data-yc-list>
+            {% for k in h.kayitlar %}
+            <li class="yc-pool-item" draggable="{% if duzenleyebilir %}true{% else %}false{% endif %}" data-kayit-id="{{ k.id }}">
+                <span class="yc-handle">☰</span>
+                <span class="yc-pool-sira">{{ forloop.counter }}.</span>
+                <span class="yc-pool-name">{{ k.ad }} <small>{{ k.sinif_label }}</small></span>
+                {% if duzenleyebilir %}
+                <button type="button" class="yc-del" data-yc-sil="{{ k.id }}" aria-label="Sil">×</button>
+                {% endif %}
+            </li>
+            {% empty %}
+            <li class="yc-pool-empty">Liste boş — talebe ekleyin.</li>
+            {% endfor %}
+        </ul>
+    </article>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if sekme == 'toplu' %}
+<div class="yc-toplu">
+    <aside class="yc-params">
+        <h2>Toplu Liste Parametreleri</h2>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="toplu_hesapla">
+            <label class="yc-field">
+                <span>Başlangıç Tarihi</span>
+                <input type="date" name="baslangic" value="{{ toplu_baslangic }}" required>
+            </label>
+            <label class="yc-field">
+                <span>Süre</span>
+                <select name="sure">
+                    {% for val, label in sure_secenekleri %}
+                    <option value="{{ val }}" {% if toplu_sure == val|stringformat:'s' %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="yc-check">
+                <input type="checkbox" name="hafta_sonu_cikar" value="1" {% if toplu_hafta_sonu %}checked{% endif %}>
+                Hafta Sonlarını Çıkar (Cumartesi / Pazar görev yazma)
+            </label>
+            <label class="yc-check">
+                <input type="checkbox" name="kaydet" value="1">
+                Hesaplanan listeyi kaydet
+            </label>
+            <button type="submit" class="yc-btn yc-btn-primary yc-btn-block">Toplu Listeyi Hesapla</button>
+        </form>
+    </aside>
+    <div class="yc-preview">
+        <div class="yc-preview-head">
+            <h2>Oluşturulan Liste Önizlemesi</h2>
+            {% if toplu_satirlar %}
+            <div class="yc-pdf-actions">
+            <a class="yc-btn yc-btn-success" target="_blank"
+               href="{% url 'yemekcilik_pdf' %}?baslangic={{ toplu_baslangic }}&sure={{ toplu_sure }}&hafta_sonu_cikar={% if toplu_hafta_sonu %}1{% else %}0{% endif %}&boyut=a4">
+                A4 Yazdır / PDF
+            </a>
+            <a class="yc-btn yc-btn-success" target="_blank"
+               href="{% url 'yemekcilik_pdf' %}?baslangic={{ toplu_baslangic }}&sure={{ toplu_sure }}&hafta_sonu_cikar={% if toplu_hafta_sonu %}1{% else %}0{% endif %}&boyut=a3">
+                A3 Yazdır / PDF
+            </a>
+            </div>
+            {% endif %}
+        </div>
+        {% if toplu_satirlar %}
+        <div class="yc-table-wrap">
+            <table class="yc-table">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th><i style="background:#0071e3"></i> 5. Sınıf</th>
+                        <th><i style="background:#15803d"></i> 6. Sınıf</th>
+                        <th><i style="background:#ea580c"></i> 7. Sınıf</th>
+                        <th><i style="background:#dc2626"></i> 8. Sınıf</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in toplu_satirlar %}
+                    <tr>
+                        <td>{{ s.tarih|date:"d F Y, l" }}</td>
+                        <td>{% if s.hucreler.5.talebe %}{{ s.hucreler.5.talebe.ad }} <small>({{ s.hucreler.5.talebe.sinif_label }})</small>{% else %}—{% endif %}</td>
+                        <td>{% if s.hucreler.6.talebe %}{{ s.hucreler.6.talebe.ad }} <small>({{ s.hucreler.6.talebe.sinif_label }})</small>{% else %}—{% endif %}</td>
+                        <td>{% if s.hucreler.7.talebe %}{{ s.hucreler.7.talebe.ad }} <small>({{ s.hucreler.7.talebe.sinif_label }})</small>{% else %}—{% endif %}</td>
+                        <td>{% if s.hucreler.8.talebe %}{{ s.hucreler.8.talebe.ad }} <small>({{ s.hucreler.8.talebe.sinif_label }})</small>{% else %}—{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="yc-muted">Parametreleri seçip «Toplu Listeyi Hesapla»ya basın.</p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+</section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/yemekcilik-panel.js' %}?v=yc2"></script>
 {% endblock %}

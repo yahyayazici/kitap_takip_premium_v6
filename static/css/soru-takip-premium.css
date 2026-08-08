@@ -1,4 +1,4 @@
-/* Soru Takip — premium günlük giriş */
+/* Soru Takip — nizam + overflow güvenli */
 
 .st-page {
     --st-bg: #ffffff;
@@ -11,71 +11,55 @@
     --st-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06);
     max-width: none;
     width: 100%;
+    min-width: 0;
     margin: 0;
     padding: 0 0 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    overflow-x: clip;
 }
 
-.st-page * {
+.st-page *,
+.st-page *::before,
+.st-page *::after {
     box-sizing: border-box;
 }
 
-.st-head {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 1.25rem;
-    flex-wrap: wrap;
-}
-
-.st-head h1 {
-    margin: 0;
-    font-size: clamp(1.5rem, 2.4vw, 1.75rem);
-    font-weight: 650;
-    letter-spacing: -0.02em;
-    color: var(--st-navy);
-}
-
-.st-eyebrow {
-    margin: 0 0 0.35rem;
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--st-muted);
-}
-
-.st-desc {
-    margin: 0.35rem 0 0;
-    color: var(--st-muted);
-    font-size: 0.92rem;
+.st-page-head {
+    margin-bottom: 0 !important;
 }
 
 .st-actions {
-    display: flex;
-    gap: 0.5rem;
+    display: inline-flex !important;
+    gap: 10px !important;
     flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
 }
 
 .st-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.62rem 1rem;
+    min-height: 44px;
+    min-width: 7.75rem;
+    padding: 0 18px;
     border-radius: 12px;
     border: 1px solid var(--st-line);
     background: var(--st-bg);
     color: var(--st-navy);
-    font-size: 0.875rem;
-    font-weight: 550;
+    font-size: 13px;
+    font-weight: 600;
     text-decoration: none;
     cursor: pointer;
-    transition: transform 160ms ease, box-shadow 160ms ease;
+    box-sizing: border-box;
+    white-space: nowrap;
+    transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .st-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+    background: #f8fafc;
 }
 
 .st-btn-primary {
@@ -92,8 +76,15 @@
     background: var(--st-bg);
     border: 1px solid var(--st-line);
     border-radius: var(--st-radius);
-    padding: 1.25rem 1.35rem;
+    padding: 1.15rem 1.25rem;
     box-shadow: var(--st-shadow);
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.st-filter-card {
+    margin: 0;
 }
 
 .st-filter-grid {
@@ -101,6 +92,12 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.85rem;
     align-items: end;
+    width: 100%;
+    min-width: 0;
+}
+
+.st-field {
+    min-width: 0;
 }
 
 .st-field label {
@@ -118,7 +115,8 @@
 .st-field input[type="number"],
 .st-field textarea {
     width: 100%;
-    min-height: 42px;
+    max-width: 100%;
+    min-height: 44px;
     padding: 0.55rem 0.75rem;
     border: 1px solid var(--st-line);
     border-radius: 12px;
@@ -135,9 +133,15 @@
 
 .st-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 300px;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
     gap: 1rem;
     align-items: start;
+    width: 100%;
+    min-width: 0;
+}
+
+.st-main-card {
+    min-width: 0;
 }
 
 .st-form-head {
@@ -152,6 +156,7 @@
     font-weight: 650;
     letter-spacing: -0.02em;
     color: var(--st-navy);
+    overflow-wrap: anywhere;
 }
 
 .st-form-date {
@@ -170,18 +175,24 @@
 }
 
 .st-table-wrap {
+    width: 100%;
+    max-width: 100%;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     border: 1px solid var(--st-line);
     border-radius: 14px;
+    overscroll-behavior-x: contain;
 }
 
 .st-table {
     width: 100%;
+    min-width: 520px;
     border-collapse: collapse;
+    table-layout: fixed;
 }
 
 .st-table thead th {
-    padding: 0.65rem 0.75rem;
+    padding: 0.65rem 0.55rem;
     font-size: 0.68rem;
     font-weight: 600;
     letter-spacing: 0.06em;
@@ -195,10 +206,15 @@
 .st-table thead th:first-child {
     text-align: left;
     padding-left: 1rem;
+    width: 28%;
+}
+
+.st-table thead th:not(:first-child) {
+    width: 14.4%;
 }
 
 .st-table tbody td {
-    padding: 0.45rem 0.5rem;
+    padding: 0.45rem 0.4rem;
     border-top: 1px solid rgba(15, 23, 42, 0.05);
     vertical-align: middle;
     text-align: center;
@@ -209,6 +225,8 @@
     padding-left: 1rem;
     font-weight: 600;
     color: var(--st-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
 }
 
@@ -217,9 +235,11 @@
 }
 
 .st-num-input {
-    width: 68px;
-    min-height: 36px;
-    padding: 0.35rem 0.45rem;
+    width: 100%;
+    max-width: 72px;
+    min-height: 40px;
+    margin: 0 auto;
+    padding: 0.35rem 0.4rem;
     border: 1px solid var(--st-line);
     border-radius: 10px;
     background: var(--st-bg);
@@ -227,6 +247,7 @@
     font: inherit;
     font-size: 0.875rem;
     font-variant-numeric: tabular-nums;
+    display: block;
 }
 
 .st-net {
@@ -242,8 +263,9 @@
 
 .st-form-actions {
     display: flex;
-    gap: 0.65rem;
+    gap: 10px;
     align-items: center;
+    flex-wrap: wrap;
     margin-top: 1.1rem;
     padding-top: 1rem;
     border-top: 1px solid var(--st-line);
@@ -253,6 +275,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    min-width: 0;
 }
 
 .st-stat {
@@ -261,6 +284,7 @@
     border: 1px solid var(--st-line);
     background: var(--st-bg);
     box-shadow: var(--st-shadow);
+    min-width: 0;
 }
 
 .st-stat-label {
@@ -280,6 +304,7 @@
     letter-spacing: -0.03em;
     line-height: 1;
     color: var(--st-navy);
+    overflow-wrap: anywhere;
 }
 
 .st-stat-sub {
@@ -293,6 +318,10 @@
 .st-stat-green .st-stat-value { color: #15803d; }
 .st-stat-purple .st-stat-value { color: #7e22ce; }
 
+.st-recent-card {
+    padding: 1rem 1.1rem;
+}
+
 .st-recent-head {
     margin: 0 0 0.75rem;
     font-size: 0.72rem;
@@ -302,6 +331,12 @@
     color: var(--st-muted);
 }
 
+.st-recent-wrap {
+    width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+}
+
 .st-recent-table {
     width: 100%;
     border-collapse: collapse;
@@ -309,7 +344,7 @@
 }
 
 .st-recent-table th {
-    padding: 0.35rem 0;
+    padding: 0.35rem 0.25rem;
     font-size: 0.65rem;
     font-weight: 600;
     letter-spacing: 0.05em;
@@ -320,9 +355,17 @@
 }
 
 .st-recent-table td {
-    padding: 0.55rem 0;
+    padding: 0.55rem 0.25rem;
     border-bottom: 1px solid rgba(15, 23, 42, 0.05);
     vertical-align: middle;
+    max-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.st-recent-table td:first-child {
+    max-width: 140px;
 }
 
 .st-recent-table tr:last-child td {
@@ -340,9 +383,11 @@
 }
 
 .st-num {
-    text-align: right;
+    text-align: right !important;
     font-variant-numeric: tabular-nums;
     font-weight: 600;
+    white-space: nowrap !important;
+    max-width: none !important;
 }
 
 .st-empty {
@@ -354,11 +399,11 @@
 
 @media (max-width: 960px) {
     .st-layout {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .st-filter-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 
@@ -366,6 +411,8 @@
 .st-report-page {
     max-width: none;
     width: 100%;
+    min-width: 0;
+    overflow-x: clip;
 }
 
 .st-report-metrics {
@@ -374,6 +421,7 @@
 
 .st-report-filter {
     padding: 22px 24px;
+    min-width: 0;
 }
 
 .st-report-form {
@@ -381,15 +429,27 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 14px;
     align-items: end;
+    width: 100%;
+    min-width: 0;
 }
 
 .st-report-actions {
-    display: flex;
+    display: inline-flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 10px;
     grid-column: 1 / -1;
     justify-content: flex-end;
     padding-top: 4px;
+}
+
+.st-report-actions .primary-btn,
+.st-report-actions .ghost-btn {
+    min-height: 44px !important;
+    min-width: 7.75rem;
+    padding: 0 18px !important;
+    border-radius: 12px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
 }
 
 .st-report-form label {
@@ -397,6 +457,7 @@
     gap: 6px;
     font-size: 0.78rem;
     color: var(--st-muted);
+    min-width: 0;
 }
 
 @media (max-width: 1100px) {
@@ -412,6 +473,10 @@
 @media (max-width: 640px) {
     .st-report-form,
     .st-report-metrics {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .st-table {
+        min-width: 480px;
     }
 }

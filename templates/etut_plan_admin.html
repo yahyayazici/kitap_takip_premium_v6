@@ -58,7 +58,7 @@
                 <p class="ep-muted">{{ hafta_grid.stats.toplam }} hücre · {{ grup_sayisi }} etüt grubuna otomatik yansır</p>
             </div>
             <div class="ep-bulk-actions">
-                <form method="post" class="ep-inline-form">
+                <form method="post" class="ep-inline-form" onsubmit="return confirm('Pazartesi saatleri tüm günlere kopyalanacak. Diğer günlerdeki özel saatler silinir. Devam?');">
                     {% csrf_token %}
                     <input type="hidden" name="aksiyon" value="tum_haftaya_uygula">
                     <input type="hidden" name="kaynak_gun" value="0">
@@ -92,30 +92,42 @@
         {% endif %}
 
         <div class="ep-week-stage">
-        <div class="ep-week-grid-wrap">
+        <div class="ep-week-grid-wrap" data-ep-week-scroll data-odak-gun="{{ odak_gun|default:'' }}">
             <table class="ep-week-grid">
                 <thead>
                     <tr>
                         <th class="ep-time-col">Saat</th>
                         {% for gun in hafta_grid.gunler %}
-                        <th>{{ gun.label }}</th>
+                        <th class="ep-week-col{% if odak_gun == gun.gun|stringformat:'s' %} is-odak{% endif %}" data-gun="{{ gun.gun }}">{{ gun.label }}</th>
                         {% endfor %}
                     </tr>
                 </thead>
                 <tbody>
                     {% for satir in hafta_grid.satirlar %}
                     <tr>
-                        <td class="ep-time-col">{{ satir.saat.goster }}</td>
+                        <td class="ep-time-col">
+                            <div class="ep-time-cell">
+                                <span>{{ satir.saat.goster }}</span>
+                                <form method="post" class="ep-inline-form" onsubmit="return confirm('Bu saat satırı tüm günlerden silinsin mi?');">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="aksiyon" value="saat_satir_sil">
+                                    <input type="hidden" name="baslangic" value="{{ satir.saat.baslangic }}">
+                                    <button type="submit" class="ep-btn ep-btn-xs ep-btn-ghost" title="Bu saati tüm günlerden sil">×</button>
+                                </form>
+                            </div>
+                        </td>
                         {% for hucre in satir.hucreler %}
-                        <td class="ep-week-cell ep-week-aktif">
+                        <td class="ep-week-cell ep-week-aktif ep-week-col{% if odak_gun == hucre.gun|stringformat:'s' %} is-odak{% endif %}" data-gun="{{ hucre.gun }}">
                             {% if hucre.blok %}
                             <div class="ep-week-slot">
                                 <span class="ep-slot-label">{{ hucre.blok.baslangic_saati|time:"H:i" }}–{{ hucre.blok.bitis_saati|time:"H:i" }}</span>
                                 <div class="ep-slot-actions">
                                     <form method="post" class="ep-inline-form">
                                         {% csrf_token %}
+                                        <input type="hidden" name="aksiyon" value="saat_sil">
                                         <input type="hidden" name="blok_id" value="{{ hucre.blok.id }}">
-                                        <button type="submit" name="aksiyon" value="saat_sil" class="ep-btn ep-btn-xs ep-btn-ghost" title="Sil">×</button>
+                                        <input type="hidden" name="gun" value="{{ hucre.gun }}">
+                                        <button type="submit" class="ep-btn ep-btn-xs ep-btn-ghost" title="Sadece bu günden sil">×</button>
                                     </form>
                                 </div>
                             </div>
@@ -135,8 +147,8 @@
         </div>
         </div>
 
-        <footer class="ep-week-foot">
-            <p class="ep-muted ep-week-foot-note">Her değişiklik kaydedildiğinde tüm etüt gruplarına otomatik uygulanır.</p>
+        <footer class="ep-week-foot" id="ep-saat-ekle">
+            <p class="ep-muted ep-week-foot-note">Hücredeki × yalnız o günü siler. Soldaki × satırı tüm günlerden kaldırır. Silince görünüm aynı günde kalır.</p>
             <form method="post" class="ep-inline-form ep-add-row-form">
                 {% csrf_token %}
                 <input type="hidden" name="aksiyon" value="saat_satir_ekle">
@@ -187,4 +199,8 @@
 </section>
 {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/etut-plan-admin.js' %}"></script>
 {% endblock %}

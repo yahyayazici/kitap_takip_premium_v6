@@ -2,7 +2,12 @@
 {% load static %}
 {% block title %}Ana Sayfa · {{ panel_short }}{% endblock %}
 {% block extra_css %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/duyuru-carousel.css' %}">
+<link rel="stylesheet" href="{% static 'css/personel-dash-split.css' %}?v=yct3">
+<link rel="stylesheet" href="{% static 'css/vazife-premium.css' %}">
 {% if etut_plani_onizleme %}
 <link rel="stylesheet" href="{% static 'css/etut-plan-premium.css' %}">
 {% endif %}
@@ -15,45 +20,40 @@
 {% include "includes/panel_hero.html" with title="Hoş geldiniz, "|add:hero_name meta=panel_rol|add:" · Kurum yönetim paneli" show_date=True %}
 {% endwith %}
 
-{% include "includes/duyuru_carousel.html" %}
-
-{% if egitim_modulu %}
-<section class="dash-metrics-shell" aria-label="Özet istatistikler">
-    <div class="dash-metrics">
-        <article class="dash-stat dash-stat-blue">
-            <span class="dash-stat-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-            </span>
-            <span class="dash-stat-label">Talebe</span>
-            <strong class="dash-stat-value">{{ talebe_sayisi|default:0 }}</strong>
-            <span class="dash-stat-note">Aktif kayıt</span>
-        </article>
-        <article class="dash-stat dash-stat-green">
-            <span class="dash-stat-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-            </span>
-            <span class="dash-stat-label">Bugün okunan</span>
-            <strong class="dash-stat-value">{{ toplam_okunan|default:0 }}</strong>
-            <span class="dash-stat-note">Toplam sayfa</span>
-        </article>
-        <article class="dash-stat dash-stat-amber">
-            <span class="dash-stat-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-            </span>
-            <span class="dash-stat-label">Okuma kaydı</span>
-            <strong class="dash-stat-value">{{ bugunku_kayit|default:0 }}</strong>
-            <span class="dash-stat-note">{% if bekleyen %}{{ bekleyen }} zimmet bekliyor{% else %}Kayıt tamam{% endif %}</span>
-        </article>
-        <article class="dash-stat dash-stat-violet">
-            <span class="dash-stat-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
-            </span>
-            <span class="dash-stat-label">Sınav</span>
-            <strong class="dash-stat-value">{{ bugunku_sinav|default:0 }}</strong>
-            <span class="dash-stat-note">{% if sinav_bekleyen %}{{ sinav_bekleyen }} sonuç bekliyor{% else %}Bugünkü sınav{% endif %}</span>
-        </article>
+{% if vazife_bildirimleri %}
+<section class="vz-dash-strip" aria-label="Vazife bildirimleri">
+    <div class="vz-dash-strip-head">
+        <h2>Vazife hatırlatmaları</h2>
+        <a href="{% url 'vazife_personel' %}">Vazifelerim →</a>
+    </div>
+    <div class="vz-dash-chips">
+        {% for b in vazife_bildirimleri %}
+        <a href="{% url 'vazife_personel' %}" class="vz-dash-chip{% if b.gecikti %} is-late{% endif %}">
+            <span>{{ b.baslik }}</span>
+            {% if b.bitis %}
+            <em>
+                {% if b.kalan_gun == 0 %}bugün son gün
+                {% elif b.kalan_gun and b.kalan_gun > 0 %}{{ b.kalan_gun }} gün · {{ b.bitis|date:"d.m" }}
+                {% else %}{{ b.bitis|date:"d.m" }}’e kadar{% endif %}
+            </em>
+            {% endif %}
+        </a>
+        {% endfor %}
     </div>
 </section>
+{% endif %}
+
+<div class="personel-top-split">
+    <div class="personel-top-duyuru">
+        {% include "includes/duyuru_carousel.html" %}
+    </div>
+    <div class="personel-top-yct">
+        {% include "includes/personel_yct_mini.html" %}
+    </div>
+</div>
+
+{% if egitim_modulu %}
+{% include "includes/dash_metrik_strip.html" %}
 
 <section class="dash-panel dash-panel-lined">
     <div class="dash-panel-head">
@@ -62,20 +62,11 @@
             <h2>Kısayollar</h2>
         </div>
     </div>
-    <nav class="dash-shortcuts-grid" aria-label="Kısayollar">
-        {% for shortcut in kisayollar %}
-        <a href="{{ shortcut.url }}" class="dash-shortcut-card">
-            <span class="dash-shortcut-icon dash-shortcut-icon-{{ shortcut.icon }}" aria-hidden="true">
-                {% include "includes/dashboard_shortcut_icon.html" with icon=shortcut.icon %}
-            </span>
-            <span class="dash-shortcut-copy">
-                <strong>{{ shortcut.title }}{% if shortcut.badge %}<em class="dash-shortcut-badge">{{ shortcut.badge }}</em>{% endif %}</strong>
-                <span>{{ shortcut.subtitle }}</span>
-            </span>
-        </a>
-        {% empty %}
-        <p class="dash-empty-note">Bu rol için kısayol tanımlı değil.</p>
-        {% endfor %}
+    <nav class="dash-shortcuts-grid-wrap" aria-label="Kısayollar">
+        {% include "includes/dash_kisayol_grid.html" %}
+        {% if not kisayollar %}
+        <p class="dash-empty-note">Bu rol için kısayol tanımlı değil. Yönetim → Kısayollar’dan ekleyebilirsiniz.</p>
+        {% endif %}
     </nav>
 </section>
 

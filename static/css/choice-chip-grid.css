@@ -1,0 +1,247 @@
+/* Çoklu seçim — chip grid (Django div veya eski ul yapısı) */
+/* Not: Django attrs.class her input'a da kopyalanır → sadece div/ul hedeflenir */
+
+div.choice-chip-grid,
+ul.choice-chip-grid,
+.yonetim-field-control > div:has(> div > label > input[type="checkbox"]),
+.yonetim-field-control > ul:has(input[type="checkbox"]),
+.yonetim-field-checkbox-grid .yonetim-field-control > div:has(> div > label > input[type="checkbox"]),
+.yonetim-field-checkbox-grid .yonetim-field-control > ul,
+.yonetim-form-card .yonetim-field-control > div:has(> div > label > input[type="checkbox"]),
+.yonetim-form-card .yonetim-field-control > ul:has(input[type="checkbox"]),
+.yonetim-form .yonetim-field-control > div:has(> div > label > input[type="checkbox"]),
+.yonetim-form .yonetim-field-control > ul:has(input[type="checkbox"]),
+.yk-checkbox-grid > div:has(> div > label > input[type="checkbox"]),
+.yk-checkbox-grid > ul,
+.cs-field > div:has(> div > label > input[type="checkbox"]),
+.cs-field ul:has(input[type="checkbox"]),
+.ktt-checkbox-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+div.choice-chip-grid > div,
+div.choice-chip-grid > li,
+ul.choice-chip-grid > li,
+.yonetim-field-control > div:has(> div > label > input[type="checkbox"]) > div,
+.yonetim-field-control > ul:has(input[type="checkbox"]) > li,
+.yonetim-form-card .yonetim-field-control > div:has(> div > label > input[type="checkbox"]) > div,
+.yonetim-form-card .yonetim-field-control > ul:has(input[type="checkbox"]) > li,
+.yk-checkbox-grid > div:has(> div > label > input[type="checkbox"]) > div,
+.yk-checkbox-grid ul > li,
+.cs-field > div:has(> div > label > input[type="checkbox"]) > div,
+.cs-field ul > li,
+.ktt-checkbox-grid > label,
+.ktt-checkbox-grid > div {
+    margin: 0 !important;
+    min-width: 0;
+}
+
+div.choice-chip-grid label,
+ul.choice-chip-grid label,
+.yonetim-field-control > div:has(> div > label > input[type="checkbox"]) > div > label,
+.yonetim-field-control > ul:has(input[type="checkbox"]) > li > label,
+.yonetim-form-card .yonetim-field-control > div:has(> div > label > input[type="checkbox"]) > div > label,
+.yonetim-form-card .yonetim-field-control > ul:has(input[type="checkbox"]) > li > label,
+.yk-checkbox-grid label,
+.cs-field > div:has(> div > label > input[type="checkbox"]) > div > label,
+.cs-field li label,
+.ktt-checkbox-grid > label {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 8px 10px !important;
+    border: 1px solid #d5e0ef !important;
+    border-radius: 11px !important;
+    background: #fff !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    color: #334155 !important;
+    cursor: pointer;
+    margin: 0 !important;
+    line-height: 1.2 !important;
+    text-align: center;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+    user-select: none;
+}
+
+div.choice-chip-grid label:hover,
+ul.choice-chip-grid label:hover,
+.yonetim-field-control > div:has(> div > label > input[type="checkbox"]) > div > label:hover,
+.yonetim-form-card .yonetim-field-control > div:has(> div > label > input[type="checkbox"]) > div > label:hover,
+.yk-checkbox-grid label:hover,
+.cs-field > div:has(> div > label > input[type="checkbox"]) > div > label:hover,
+.ktt-checkbox-grid > label:hover {
+    border-color: #93c5fd !important;
+    background: #f8fbff !important;
+}
+
+div.choice-chip-grid label:has(input:checked),
+ul.choice-chip-grid label:has(input:checked),
+.yonetim-field-control > div:has(> div > label > input[type="checkbox"]) > div > label:has(input:checked),
+.yonetim-field-control > ul:has(input[type="checkbox"]) > li > label:has(input:checked),
+.yonetim-form-card .yonetim-field-control > div:has(> div > label > input[type="checkbox"]) > div > label:has(input:checked),
+.yonetim-form-card .yonetim-field-control > ul:has(input[type="checkbox"]) > li > label:has(input:checked),
+.yk-checkbox-grid label:has(input:checked),
+.cs-field > div:has(> div > label > input[type="checkbox"]) > div > label:has(input:checked),
+.cs-field li label:has(input:checked),
+.ktt-checkbox-grid > label:has(input:checked) {
+    border-color: #60a5fa !important;
+    background: #eff6ff !important;
+    color: #1d4ed8 !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+div.choice-chip-grid input[type="checkbox"],
+ul.choice-chip-grid input[type="checkbox"],
+.yonetim-field-control > div:has(> div > label > input[type="checkbox"]) input[type="checkbox"],
+.yonetim-field-control > ul:has(input[type="checkbox"]) input[type="checkbox"],
+.yonetim-form-card .yonetim-field-control input[type="checkbox"],
+.yk-checkbox-grid input[type="checkbox"],
+.cs-field > div:has(> div > label > input[type="checkbox"]) input[type="checkbox"],
+.ktt-checkbox-grid input[type="checkbox"] {
+    accent-color: #2563eb;
+    width: 15px;
+    height: 15px;
+    margin: 0 !important;
+    flex-shrink: 0;
+    display: inline-block !important;
+}
+
+/* Uzun etiketler (öğrenci havuzu vb.) */
+div.choice-chip-grid.choice-chip-grid--wide,
+ul.choice-chip-grid.choice-chip-grid--wide {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+}
+
+div.choice-chip-grid.choice-chip-grid--wide label,
+ul.choice-chip-grid.choice-chip-grid--wide label {
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.yonetim-form-grid .yonetim-field-radio-grid,
+.yonetim-form-grid .yonetim-field:has(.choice-chip-wrap--radio) {
+    grid-column: 1 / -1;
+}
+
+/* —— RadioSelect → chip grid (sınıf/şube vb.) —— */
+.choice-chip-wrap--radio > ul,
+.yonetim-field-radio-grid .yonetim-field-control > ul:has(input[type="radio"]),
+.yonetim-form-card .yonetim-field-control > ul:has(input[type="radio"]),
+.yonetim-form .yonetim-field-control > ul:has(input[type="radio"]) {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.choice-chip-wrap--radio > ul > li,
+.yonetim-field-radio-grid .yonetim-field-control > ul:has(input[type="radio"]) > li,
+.yonetim-form-card .yonetim-field-control > ul:has(input[type="radio"]) > li {
+    margin: 0 !important;
+    min-width: 0;
+}
+
+.choice-chip-wrap--radio > ul > li > label,
+.yonetim-field-radio-grid .yonetim-field-control > ul:has(input[type="radio"]) > li > label,
+.yonetim-form-card .yonetim-field-control > ul:has(input[type="radio"]) > li > label {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 8px 10px !important;
+    border: 1.5px solid #d5e0ef !important;
+    border-radius: 12px !important;
+    background: linear-gradient(180deg, #fff 0%, #f8fafc 100%) !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: #334155 !important;
+    cursor: pointer;
+    margin: 0 !important;
+    line-height: 1.15 !important;
+    text-align: center;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
+    user-select: none;
+    position: relative;
+}
+
+.choice-chip-wrap--radio > ul > li > label:hover,
+.yonetim-field-radio-grid .yonetim-field-control > ul:has(input[type="radio"]) > li > label:hover {
+    border-color: #93c5fd !important;
+    background: #f8fbff !important;
+    transform: translateY(-1px);
+}
+
+.choice-chip-wrap--radio > ul > li > label:has(input:checked),
+.yonetim-field-radio-grid .yonetim-field-control > ul:has(input[type="radio"]) > li > label:has(input:checked) {
+    border-color: #2563eb !important;
+    background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%) !important;
+    color: #1d4ed8 !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12), 0 4px 10px rgba(37, 99, 235, 0.08);
+}
+
+.choice-chip-wrap--radio input[type="radio"],
+.yonetim-field-radio-grid input[type="radio"] {
+    position: absolute !important;
+    opacity: 0 !important;
+    width: 1px !important;
+    height: 1px !important;
+    margin: 0 !important;
+    pointer-events: none;
+}
+
+/* Boş / Atanmadı seçeneği */
+.choice-chip-wrap--radio > ul > li:first-child > label:has(input[value=""]),
+.yonetim-field-radio-grid .yonetim-field-control > ul > li:first-child > label:has(input[value=""]) {
+    font-weight: 600 !important;
+    color: #94a3b8 !important;
+    border-style: dashed !important;
+    background: #fafbfc !important;
+}
+
+.choice-chip-wrap--radio > ul > li:first-child > label:has(input[value=""]:checked),
+.yonetim-field-radio-grid .yonetim-field-control > ul > li:first-child > label:has(input[value=""]:checked) {
+    color: #64748b !important;
+    border-color: #94a3b8 !important;
+    background: #f1f5f9 !important;
+    box-shadow: none;
+}
+
+@media (max-width: 640px) {
+    div.choice-chip-grid,
+    ul.choice-chip-grid,
+    .yonetim-field-control > div:has(> div > label > input[type="checkbox"]),
+    .yonetim-field-control > ul:has(input[type="checkbox"]),
+    .yonetim-form-card .yonetim-field-control > div:has(> div > label > input[type="checkbox"]),
+    .yonetim-form-card .yonetim-field-control > ul:has(input[type="checkbox"]),
+    .yk-checkbox-grid > div:has(> div > label > input[type="checkbox"]),
+    .yk-checkbox-grid ul,
+    .cs-field > div:has(> div > label > input[type="checkbox"]),
+    .cs-field ul:has(input[type="checkbox"]),
+    .ktt-checkbox-grid,
+    .choice-chip-wrap--radio > ul,
+    .yonetim-field-radio-grid .yonetim-field-control > ul:has(input[type="radio"]) {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 8px;
+    }
+
+    div.choice-chip-grid.choice-chip-grid--wide,
+    ul.choice-chip-grid.choice-chip-grid--wide {
+        grid-template-columns: 1fr !important;
+    }
+}

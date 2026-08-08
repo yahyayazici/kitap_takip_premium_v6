@@ -11,9 +11,6 @@
 
 <header class="tz-head">
     <div>
-        <p class="tz-crumb">
-            <a href="{% url 'yonetim:temizlik_listesi' %}">Temizlik</a> › {{ liste.ad }}
-        </p>
         <h1>Temizlik Yönetimi</h1>
         <p class="tz-sub">Katları, mahalleri ve görevli talebeleri tek merkezden yönetin.</p>
     </div>
@@ -23,6 +20,7 @@
         <a href="{% url 'yonetim:temizlik_pdf' liste.pk %}?format=a3&amp;orientation=landscape" class="tz-btn" target="_blank" rel="noopener">A3 Yazdır</a>
         <a href="{% url 'yonetim:temizlik_rapor' liste.pk %}" class="tz-btn">Raporlar</a>
         <a href="{% url 'temizlik_panel' %}?liste={{ liste.pk }}" class="tz-btn">Personel Görünümü</a>
+        <a href="{% url 'yonetim:temizlik_duzenle' liste.pk %}" class="tz-btn">Ayarlar</a>
     </div>
 </header>
 

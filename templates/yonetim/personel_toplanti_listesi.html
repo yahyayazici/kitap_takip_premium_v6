@@ -1,0 +1,79 @@
+{% extends "yonetim/base.html" %}
+{% load static %}
+{% block title %}Personel Toplantıları{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/vazife-premium.css' %}">
+<link rel="stylesheet" href="{% static 'css/personel-toplanti-premium.css' %}">
+{% endblock %}
+{% block content %}
+<div class="pt-page">
+    <header class="pt-head">
+        <div>
+            <p class="pt-kicker">İdareci</p>
+            <h1>Personel toplantıları</h1>
+            <p class="pt-head-meta">Gündem · yapılacak · PDF rapor · otomatik vazife</p>
+        </div>
+        <div class="pt-head-actions">
+            <a href="{% url 'yonetim:personel_toplanti_ekle' %}" class="primary-btn">+ Yeni toplantı</a>
+            <a href="{% url 'yonetim:personel_toplanti_arsiv' %}" class="dash-text-btn">Arşiv ({{ ozet.arsiv }})</a>
+            <a href="{% url 'yonetim:idareci_panel' %}" class="dash-text-btn">← İdareci özeti</a>
+        </div>
+    </header>
+
+    <div class="pt-stats">
+        <div class="pt-stat"><span>Toplam</span><strong>{{ ozet.toplam }}</strong></div>
+        <div class="pt-stat"><span>Bu ay</span><strong>{{ ozet.bu_ay }}</strong></div>
+        <div class="pt-stat"><span>Açık karar</span><strong>{{ ozet.acik_karar }}</strong></div>
+        <div class="pt-stat"><span>Arşiv</span><strong>{{ ozet.arsiv }}</strong></div>
+    </div>
+
+    <div class="pt-filters">
+        {% for kod, ad in durumlar %}
+        <a href="?durum={{ kod }}" class="dash-text-btn{% if durum == kod %} dash-text-btn-strong{% endif %}">{{ ad }}</a>
+        {% endfor %}
+        <a href="?" class="dash-text-btn{% if not durum and not arsiv %} dash-text-btn-strong{% endif %}">Tümü</a>
+        <a href="?arsiv=1" class="dash-text-btn{% if arsiv %} dash-text-btn-strong{% endif %}">Arşivlenenler</a>
+    </div>
+
+    <section class="pt-card">
+        <div class="pt-table-head">
+            <span>No / Toplantı</span>
+            <span>Tarih</span>
+            <span>Durum</span>
+            <span>Karar</span>
+            <span></span>
+        </div>
+        <div class="pt-list">
+            {% for t in toplantilar %}
+            <article class="pt-item">
+                <div>
+                    <p class="pt-item-title">{{ t.toplanti_no }} · Personel Toplantısı{% if t.baslik %} — {{ t.baslik }}{% endif %}</p>
+                    <p class="pt-item-desc">{{ t.gundem_maddeleri.count }} gündem maddesi</p>
+                </div>
+                <div>{{ t.tarih|date:"d.m.Y" }}</div>
+                <div><span class="pt-pill pt-pill-{{ t.durum }}">{{ t.get_durum_display }}</span></div>
+                <div>{{ t.kararlar.count }} yapılacak</div>
+                <div class="pt-item-actions">
+                    <a href="{% url 'yonetim:personel_toplanti_detay' t.pk %}">Aç</a>
+                    {% if t.arsivlandi and t.tutanak_pdf %}
+                    <a href="{% url 'yonetim:personel_toplanti_arsiv_pdf' t.pk %}" target="_blank">Arşiv PDF</a>
+                    {% else %}
+                    <a href="{% url 'yonetim:personel_toplanti_pdf' t.pk %}" target="_blank">PDF</a>
+                    {% endif %}
+                    {% if t.arsivlandi %}
+                    <a href="{% url 'yonetim:personel_toplanti_pdf' t.pk %}?kaydet=1" target="_blank">PDF güncelle</a>
+                    {% elif not t.tutanak_pdf %}
+                    <a href="{% url 'yonetim:personel_toplanti_pdf' t.pk %}?kaydet=1" target="_blank">Kaydet</a>
+                    {% endif %}
+                </div>
+            </article>
+            {% empty %}
+            <div class="pt-empty">
+                <strong>Henüz toplantı yok.</strong>
+                “+ Yeni toplantı” ile tutanak oluşturun; kararları personele vazife olarak aktarın.
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

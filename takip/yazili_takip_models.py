@@ -1,4 +1,4 @@
-"""Yazılı takip modelleri — kamp, sınav ve sonuç."""
+"""Yazılı takip modelleri — kamp, sınav ve sonuç (puan odaklı)."""
 
 from __future__ import annotations
 
@@ -42,19 +42,15 @@ class YaziliKamp(models.Model):
     def __str__(self):
         return self.ad
 
-    @property
-    def sinav_sayisi(self) -> int:
-        return self.sinavlar.count()
-
-    @property
-    def sonuc_sayisi(self) -> int:
-        return YaziliSonuc.objects.filter(sinav__kamp=self).count()
-
 
 class YaziliSinav(models.Model):
     class Durum(models.TextChoices):
         TASLAK = "taslak", "Taslak"
         AKTIF = "aktif", "Aktif"
+
+    class Tur(models.TextChoices):
+        ORNEK = "ornek", "Örnek yazılı"
+        GERCEK = "gercek", "Gerçek yazılı"
 
     kamp = models.ForeignKey(
         YaziliKamp,
@@ -64,9 +60,41 @@ class YaziliSinav(models.Model):
     )
     ad = models.CharField(max_length=200, verbose_name="Sınav adı")
     sinav_tarihi = models.DateField(verbose_name="Sınav tarihi")
+    ders = models.ForeignKey(
+        "Ders",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="yazili_sinavlar",
+        verbose_name="Ders",
+    )
     ders_ad = models.CharField(max_length=120, verbose_name="Ders")
     brans = models.CharField(max_length=80, blank=True, verbose_name="Branş")
-    soru_sayisi = models.PositiveIntegerField(verbose_name="Soru sayısı")
+    yazili_no = models.PositiveSmallIntegerField(
+        default=1,
+        verbose_name="Yazılı no",
+        help_text="Örn. 1. yazılı, 2. yazılı",
+    )
+    tur = models.CharField(
+        max_length=10,
+        choices=Tur.choices,
+        default=Tur.ORNEK,
+        verbose_name="Tür",
+        help_text="Kamp sürecindeki örnek veya okul gerçek yazılısı",
+    )
+    hedef_siniflar = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        verbose_name="Hedef sınıflar",
+        help_text="Virgülle: 7-A, 7-B",
+    )
+    soru_sayisi = models.PositiveIntegerField(
+        default=0,
+        blank=True,
+        verbose_name="Soru sayısı",
+        help_text="Puan girişinde kullanılmaz; isteğe bağlı.",
+    )
     durum = models.CharField(
         max_length=10,
         choices=Durum.choices,
@@ -87,21 +115,43 @@ class YaziliSinav(models.Model):
     class Meta:
         verbose_name = "Yazılı sınav"
         verbose_name_plural = "Yazılı sınavlar"
-        ordering = ["sinav_tarihi", "id"]
+        ordering = ["sinav_tarihi", "yazili_no", "id"]
 
     def __str__(self):
         return self.ad
 
     @property
+    def sinif_goster(self) -> str:
+        if self.hedef_siniflar.strip():
+            return self.hedef_siniflar.strip()
+        return f"{self.kamp.sinif_seviyesi}. sınıf" if self.kamp_id else "—"
+
+    @property
     def ders_goster(self) -> str:
+        if self.ders_id:
+            return str(self.ders)
         if self.brans:
             return f"{self.ders_ad} ({self.brans})"
         return self.ders_ad
 
+    @property
+    def etiket(self) -> str:
+        tur = self.get_tur_display()
+        return f"{self.ders_ad} · {self.yazili_no}. yazılı ({tur})"
+
     def clean(self):
         super().clean()
-        if self.soru_sayisi <= 0:
-            raise ValidationError({"soru_sayisi": "Soru sayısı en az 1 olmalıdır."})
+        if self.yazili_no < 1:
+            raise ValidationError({"yazili_no": "Yazılı no en az 1 olmalıdır."})
+        if self.soru_sayisi is not None and self.soru_sayisi < 0:
+            raise ValidationError({"soru_sayisi": "Soru sayısı negatif olamaz."})
+
+    def save(self, *args, **kwargs):
+        if self.ders_id and not self.ders_ad:
+            self.ders_ad = self.ders.ad
+            if self.ders.brans_id and not self.brans:
+                self.brans = self.ders.brans.ad
+        super().save(*args, **kwargs)
 
 
 class YaziliSonuc(models.Model):
@@ -131,7 +181,6 @@ class YaziliSonuc(models.Model):
         max_digits=5,
         decimal_places=2,
         default=Decimal("0.00"),
-        editable=False,
         verbose_name="Puan (100)",
     )
     kaydeden = models.ForeignKey(
@@ -165,23 +214,19 @@ class YaziliSonuc(models.Model):
             net = Decimal("0.00")
         return net.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
-    def puan_hesapla(self) -> Decimal:
-        if not self.sinav_id or not self.sinav.soru_sayisi:
-            return Decimal("0.00")
-
-        net = self.net_hesapla(int(self.dogru or 0), int(self.yanlis or 0))
-        if net < 0:
-            net = Decimal("0.00")
-
-        puan = net * Decimal("100") / Decimal(int(self.sinav.soru_sayisi))
-        return puan.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-
     def clean(self):
-        if not self.sinav_id:
-            return
+        puan = Decimal(str(self.puan or 0))
+        if puan < 0 or puan > 100:
+            raise ValidationError({"puan": "Puan 0–100 arasında olmalıdır."})
 
+        # Eski D/Y/B kayıtları için opsiyonel doğrulama (puan girişi asıl yol)
         toplam = int(self.dogru or 0) + int(self.yanlis or 0) + int(self.bos or 0)
-        if toplam != self.sinav.soru_sayisi:
+        if (
+            self.sinav_id
+            and self.sinav.soru_sayisi
+            and toplam > 0
+            and toplam != self.sinav.soru_sayisi
+        ):
             raise ValidationError(
                 {
                     "dogru": (
@@ -192,10 +237,13 @@ class YaziliSonuc(models.Model):
             )
 
     def save(self, *args, **kwargs):
-        self.net = self.net_hesapla(int(self.dogru or 0), int(self.yanlis or 0))
-        if self.net < 0:
+        self.puan = Decimal(str(self.puan or 0)).quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        )
+        if int(self.dogru or 0) or int(self.yanlis or 0):
+            self.net = self.net_hesapla(int(self.dogru or 0), int(self.yanlis or 0))
+        else:
             self.net = Decimal("0.00")
-        self.puan = self.puan_hesapla()
         self.full_clean()
         super().save(*args, **kwargs)
 

@@ -85,6 +85,7 @@ class Command(BaseCommand):
                 "kategori": Duyuru.Kategori.KURUM,
                 "ton": Duyuru.Ton.VIOLET,
                 "sira": 0,
+                "hedef_kitle": Duyuru.HedefKitle.TUM_PERSONEL,
             },
             {
                 "baslik": f"{PANEL_NAME}'e hoş geldiniz",
@@ -92,6 +93,7 @@ class Command(BaseCommand):
                 "kategori": Duyuru.Kategori.GENEL,
                 "ton": Duyuru.Ton.NAVY,
                 "sira": 1,
+                "hedef_kitle": Duyuru.HedefKitle.TUM_PERSONEL,
             },
             {
                 "baslik": "Günlük okuma kayıtlarını unutmayın",
@@ -99,6 +101,7 @@ class Command(BaseCommand):
                 "kategori": Duyuru.Kategori.EGITIM,
                 "ton": Duyuru.Ton.VIOLET,
                 "sira": 2,
+                "hedef_kitle": Duyuru.HedefKitle.TUM_PERSONEL,
             },
             {
                 "baslik": "Program modülü aktif",
@@ -106,6 +109,38 @@ class Command(BaseCommand):
                 "kategori": Duyuru.Kategori.PROGRAM,
                 "ton": Duyuru.Ton.TEAL,
                 "sira": 3,
+                "hedef_kitle": Duyuru.HedefKitle.TUM_PERSONEL,
+            },
+            {
+                "baslik": "Değerli Öğretmenlerimiz",
+                "ozet": (
+                    "Yeni eğitim dönemimizle birlikte tekrardan öğretmen panelimiz aktif hale getirilmiştir.\n\n"
+                    "🔹 Ana Sayfa\n\n"
+                    "Haftalık ders programınızı görüntüleyebilirsiniz.\n"
+                    "Güncel duyuruları takip edebilirsiniz.\n"
+                    "Sorumlu olduğunuz sınıfları görebilirsiniz.\n"
+                    "Yaklaşan veli randevularınızı görüntüleyebilirsiniz.\n\n"
+                    "✍🏻 Haftalık Not Girişi\n"
+                    "Her hafta;\n\n"
+                    "Günlük sınıf yoklamasını işaretleyebilir,\n"
+                    "O hafta işlenen konuyu yazabilir,\n"
+                    "Her talebemiz için;\n\n"
+                    "* Katılım (%30)\n"
+                    "* Takip (%30)\n"
+                    "* Disiplin (%40)\n\n"
+                    "puanlarını girerek haftalık ders değerlendirmesini oluşturabilirsiniz.\n\n"
+                    "Ayrıca her talebe için kısa bir değerlendirme notu ekleyebilirsiniz.\n\n"
+                    "📊 Girilen tüm veriler;\n\n"
+                    "Veli paneline,\n"
+                    "Personel paneline,\n\n"
+                    "anlık olarak yansımakta ve talebelerimizin akademik gelişimi haftalık olarak takip edilmektedir.\n\n"
+                    "Bu sistem sayesinde her talebemizin ders içi performansı düzenli olarak kayıt altına alınacak "
+                    "ve eğitim sürecimiz çok daha sağlıklı şekilde yürütülecektir."
+                ),
+                "kategori": Duyuru.Kategori.EGITIM,
+                "ton": Duyuru.Ton.NAVY,
+                "sira": 0,
+                "hedef_kitle": Duyuru.HedefKitle.OGRETMEN,
             },
         ]
 
@@ -114,7 +149,6 @@ class Command(BaseCommand):
                 baslik=veri["baslik"],
                 defaults={
                     **veri,
-                    "hedef_kitle": Duyuru.HedefKitle.TUM_PERSONEL,
                     "baslangic": timezone.localdate(),
                     "aktif": True,
                     "olusturan": admin,
@@ -266,6 +300,11 @@ class Command(BaseCommand):
         seed_disiplin_turleri()
         seed_yazili_takip_demo()
         seed_talebe_panel_demo()
+
+        from takip.seed_panel_demo import seed_tum_paneller
+
+        self.stdout.write("Panel demo verileri dolduruluyor…")
+        seed_tum_paneller()
 
         self.stdout.write(self.style.SUCCESS(
             "Demo hazır. Admin: admin/Admin123! | Etüt: yahya/Yahya123! | "

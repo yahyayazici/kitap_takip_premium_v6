@@ -1,43 +1,152 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Yazılı Takip · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=nizam2">
+{% endblock %}
 {% block content %}
-<div class="library-page">
-    <header class="page-head patterned-page-head library-page-head">
+<div class="ktt-page">
+    <header class="ktt-page-head ktt-page-head-row">
         <div>
             <p class="kicker">YAZILI TAKİP</p>
-            <h1>Yazılı Kamplar</h1>
-            <p class="muted">Kamp dönemi yazılı sınav sonuçları.</p>
+            <h1>Yazılı Sınavlar</h1>
+            <p class="muted">Örnek yazılı veya okul gerçek notu — sadece puan girişi.</p>
+        </div>
+        <div class="ktt-actions ktt-head-tabs">
+            <a href="{% url 'yazili_kamp_listesi' %}?tur=ornek" class="ktt-outline-btn {% if aktif_tur == 'ornek' %}is-active{% endif %}">Örnek yazılı</a>
+            <a href="{% url 'yazili_kamp_listesi' %}?tur=gercek" class="ktt-outline-btn {% if aktif_tur == 'gercek' %}is-active{% endif %}">Gerçek okul notu</a>
         </div>
     </header>
-    <section class="dashboard-card">
-        <div class="responsive-table">
-            <table class="report-data-table">
-                <thead>
-                    <tr>
-                        <th>Kamp</th>
-                        <th>Sınıf</th>
-                        <th>Dönem</th>
-                        <th>Sınav</th>
-                        <th>Sonuç</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
+
+    <div class="ktt-split">
+        {% if olusturabilir and form %}
+        <aside class="ktt-form-card" id="yeni-yazili">
+            <div class="ktt-form-card-head">
+                {% if aktif_tur == 'gercek' %}+ Gerçek yazılı notu{% else %}+ Örnek yazılı oluştur{% endif %}
+            </div>
+            <div class="ktt-form-card-body">
+                <form method="post" action="{% url 'yazili_kamp_listesi' %}?tur={{ aktif_tur }}" class="ktt-create-form">
+                    {% csrf_token %}
+                    {{ form.tur }}
+                    <div class="ktt-form-grid">
+                        <div class="ktt-field">
+                            <label for="{{ form.ad.id_for_label }}">Sınav adı (opsiyonel)</label>
+                            {{ form.ad }}
+                        </div>
+                        <div class="ktt-field">
+                            <label for="{{ form.sinav_tarihi.id_for_label }}">Tarih</label>
+                            {{ form.sinav_tarihi }}
+                            {{ form.sinav_tarihi.errors }}
+                        </div>
+                        <div class="ktt-field">
+                            <label for="{{ form.ders.id_for_label }}">Ders</label>
+                            {{ form.ders }}
+                            {{ form.ders.errors }}
+                        </div>
+                        <div class="ktt-field">
+                            <label for="{{ form.yazili_no.id_for_label }}">Yazılı no</label>
+                            {{ form.yazili_no }}
+                            {{ form.yazili_no.errors }}
+                        </div>
+                        <div class="ktt-field ktt-field-full">
+                            <label>Sınıf(lar)</label>
+                            {% if sinif_secenekleri %}
+                            <div class="ktt-checkbox-grid">
+                                {% for ss in sinif_secenekleri %}
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        name="sinif_subeler"
+                                        value="{{ ss.sinif }}-{{ ss.sube }}"
+                                        {% if sinif_secenekleri|length == 1 %}checked{% endif %}
+                                    >
+                                    {{ ss.sinif }}-{{ ss.sube }}
+                                </label>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="ktt-field-note">Size tanımlı sınıf bulunamadı.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <button type="submit" class="ktt-create-btn" {% if not sinif_secenekleri %}disabled{% endif %}>
+                        {% if aktif_tur == 'gercek' %}Gerçek not oluştur{% else %}Yazılı oluştur{% endif %}
+                    </button>
+                </form>
+            </div>
+        </aside>
+        {% endif %}
+
+        <section class="ktt-table-card">
+            <h2>
+                {% if aktif_tur == 'gercek' %}Gerçek okul yazılı notları{% else %}Örnek yazılılar{% endif %}
+            </h2>
+            <div class="responsive-table">
+                <table class="ktt-table">
+                    <thead>
+                        <tr>
+                            <th>Sınav</th>
+                            <th>Ders</th>
+                            <th>Sınıf</th>
+                            <th>No</th>
+                            <th>Tarih</th>
+                            <th>Sonuç</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in sinavlar %}
+                        <tr>
+                            <td><strong>{{ s.ad }}</strong></td>
+                            <td><span class="ktt-ders-pill">{{ s.ders_goster }}</span></td>
+                            <td>{{ s.sinif_goster }}</td>
+                            <td>{{ s.yazili_no }}.</td>
+                            <td>{{ s.sinav_tarihi|date:"d.m.Y" }}</td>
+                            <td><span class="ktt-katilim">{{ s.sonuc_sayisi }} öğrenci</span></td>
+                            <td>
+                                <div class="ktt-actions">
+                                    {% if sonuc_girebilir %}
+                                    <a href="{% url 'yazili_sonuc_gir' s.pk %}" class="ktt-btn ktt-btn-blue">Puan gir</a>
+                                    {% endif %}
+                                    {% if pdf_yetkisi %}
+                                    <a href="{% url 'yazili_sinav_sirali_pdf' s.pk %}" class="ktt-btn" target="_blank">Sıralı PDF</a>
+                                    <a href="{% url 'yazili_sinav_bireysel_pdf' s.pk %}" class="ktt-btn" target="_blank">Bireysel PDF</a>
+                                    {% endif %}
+                                    {% if silme_yetkisi %}
+                                    <form method="post" action="{% url 'yazili_sinav_sil' s.pk %}" style="display:inline;" onsubmit="return confirm('{{ s.ad }} silinsin mi?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="ktt-btn ktt-btn-red">Sil</button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="report-empty">
+                                {% if aktif_tur == 'gercek' %}
+                                Henüz gerçek okul yazılı notu yok. Sağdaki formdan oluşturun.
+                                {% else %}
+                                Henüz örnek yazılı yok. Formdan oluşturun (KTT gibi).
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if kamplar %}
+            <details style="margin-top:18px;">
+                <summary class="muted" style="cursor:pointer;">Kamp görünümü ({{ kamplar|length }})</summary>
+                <ul style="margin-top:10px;">
                     {% for k in kamplar %}
-                    <tr>
-                        <td><strong>{{ k.ad }}</strong></td>
-                        <td>{{ k.sinif_seviyesi }}. sınıf</td>
-                        <td>{{ k.baslangic|date:"d.m.Y" }} — {{ k.bitis|date:"d.m.Y" }}</td>
-                        <td>{{ k.sinav_sayisi }}</td>
-                        <td>{{ k.sonuc_sayisi }} kayıt</td>
-                        <td><a href="{% url 'yazili_kamp_detay' k.pk %}" class="ghost-btn">Detay</a></td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="6" class="report-empty">Aktif yazılı kamp bulunmuyor.</td></tr>
+                    <li><a href="{% url 'yazili_kamp_detay' k.pk %}">{{ k.ad }}</a> — {{ k.sinif_seviyesi }}. sınıf</li>
                     {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </section>
+                </ul>
+            </details>
+            {% endif %}
+        </section>
+    </div>
 </div>
 {% endblock %}

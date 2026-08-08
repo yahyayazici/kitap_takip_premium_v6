@@ -27,9 +27,35 @@ YONETIM_NAV_GROUPS: tuple[YonetimNavGroup, ...] = (
         name="Genel Bakış",
         items=(
             YonetimNavItem(
+                label="İdareci Özeti",
+                url_name="yonetim:idareci_panel",
+                active_names=("idareci_panel",),
+            ),
+            YonetimNavItem(
                 label="Genel Bakış",
                 url_name="yonetim:dashboard",
                 active_names=("dashboard",),
+            ),
+            YonetimNavItem(
+                label="Vazifeler",
+                url_name="yonetim:vazife_listesi",
+                active_names=("vazife_listesi", "vazife_ekle", "vazife_duzenle", "vazife_durum"),
+            ),
+            YonetimNavItem(
+                label="Toplantılar",
+                url_name="yonetim:personel_toplanti_listesi",
+                active_names=(
+                    "personel_toplanti_listesi",
+                    "personel_toplanti_ekle",
+                    "personel_toplanti_detay",
+                    "personel_toplanti_pdf",
+                    "personel_toplanti_arsiv",
+                ),
+            ),
+            YonetimNavItem(
+                label="YÇT",
+                url_name="yonetim:yct_takvim",
+                active_names=("yct_takvim", "yct_ekle", "yct_sil"),
             ),
             YonetimNavItem(
                 label="Hızlı Ekle",
@@ -139,6 +165,25 @@ YONETIM_NAV_GROUPS: tuple[YonetimNavGroup, ...] = (
                 active_names=("duyuru_listesi", "duyuru_ekle", "duyuru_duzenle"),
             ),
             YonetimNavItem(
+                label="Kısayollar",
+                url_name="yonetim:kisayol_gorsel_listesi",
+                active_names=("kisayol_gorsel_listesi",),
+            ),
+            YonetimNavItem(
+                label="Özet Kartları",
+                url_name="yonetim:metrik_listesi",
+                active_names=("metrik_listesi",),
+            ),
+            YonetimNavItem(
+                label="Sohbet Mevzuu",
+                url_name="yonetim:sohbet_mevzuu_listesi",
+                active_names=(
+                    "sohbet_mevzuu_listesi",
+                    "sohbet_mevzuu_ekle",
+                    "sohbet_mevzuu_duzenle",
+                ),
+            ),
+            YonetimNavItem(
                 label="Veli Hesapları",
                 url_name="yonetim:veli_hesap_listesi",
                 active_names=(
@@ -196,8 +241,10 @@ YONETIM_NAV_GROUPS: tuple[YonetimNavGroup, ...] = (
             ),
             YonetimNavItem(
                 label="Yemekçilik",
-                url_name="yonetim:yemekci_listesi",
+                url_name="yemekcilik_panel",
                 active_names=(
+                    "yemekcilik_panel",
+                    "yemekcilik_pdf",
                     "yemekci_listesi",
                     "yemekci_ekle",
                     "yemekci_duzenle",
@@ -279,6 +326,14 @@ YONETIM_NAV_GROUPS: tuple[YonetimNavGroup, ...] = (
                     "sinav_sonuc_paneli",
                     "sinav_sonuclari_gir",
                     "sinav_ekle_panel",
+                ),
+            ),
+            YonetimNavItem(
+                label="Öğretmen Notları",
+                url_name="yonetim:ogretmen_degerlendirme_rapor",
+                active_names=(
+                    "ogretmen_degerlendirme_rapor",
+                    "ogretmen_degerlendirme_karne_pdf",
                 ),
             ),
             YonetimNavItem(

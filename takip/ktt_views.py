@@ -34,7 +34,13 @@ from takip.ktt_service import (
 )
 from takip.ktt_analiz_service import ktt_analiz_durumu, ktt_rapor_analizi, ktt_sinav_grup_analizi
 from takip.models import Ders, KttSinav, KttSonucu, Talebe
-from takip.pdf_utils import html_to_pdf, make_pdf_response, pdf_engine_status, pdf_error_response
+from takip.pdf_utils import (
+    coz_pdf_sayfa,
+    html_to_pdf,
+    make_pdf_response,
+    pdf_engine_status,
+    pdf_error_response,
+)
 from takip.permissions.decorators import require_permission
 from takip.permissions.service import can
 from takip.user_helpers import etut_hocasi_for_user
@@ -206,6 +212,7 @@ def ktt_detay(request, pk):
             "duzenleyebilir": ktt_duzenleyebilir(request.user, ktt),
             "sonuc_girebilir": can(request.user, "ktt", "edit"),
             "pdf_yetkisi": can(request.user, "ktt", "export_pdf"),
+            "pdf_sayfa": coz_pdf_sayfa(request),
         },
     )
 
@@ -227,8 +234,14 @@ def ktt_sonuc_gir(request, pk):
         return redirect("ktt_listesi")
 
     if request.method == "POST":
+        from takip.soru_takip_service import ktt_sonucu_soru_takibe_yansit
+
         hatalar = []
         kaydedilen = 0
+        onceki_map = {
+            s.talebe_id: s
+            for s in KttSonucu.objects.filter(ktt=ktt, talebe__in=talebeler)
+        }
 
         with transaction.atomic():
             for talebe in talebeler:
@@ -246,8 +259,23 @@ def ktt_sonuc_gir(request, pk):
                     )
                     continue
 
+                onceki = onceki_map.get(talebe.id)
+                onceki_d = int(onceki.dogru or 0) if onceki else 0
+                onceki_y = int(onceki.yanlis or 0) if onceki else 0
+                onceki_b = int(onceki.bos or 0) if onceki else 0
+
                 if dogru == 0 and yanlis == 0 and bos == toplam_soru:
-                    KttSonucu.objects.filter(ktt=ktt, talebe=talebe).delete()
+                    if onceki:
+                        KttSonucu.objects.filter(ktt=ktt, talebe=talebe).delete()
+                        ktt_sonucu_soru_takibe_yansit(
+                            user=request.user,
+                            ktt=ktt,
+                            talebe=talebe,
+                            onceki_dogru=onceki_d,
+                            onceki_yanlis=onceki_y,
+                            onceki_bos=onceki_b,
+                            silindi=True,
+                        )
                     continue
 
                 KttSonucu.objects.update_or_create(
@@ -260,18 +288,31 @@ def ktt_sonuc_gir(request, pk):
                         "kaydeden": request.user,
                     },
                 )
+                ktt_sonucu_soru_takibe_yansit(
+                    user=request.user,
+                    ktt=ktt,
+                    talebe=talebe,
+                    dogru=dogru,
+                    yanlis=yanlis,
+                    bos=bos,
+                    onceki_dogru=onceki_d,
+                    onceki_yanlis=onceki_y,
+                    onceki_bos=onceki_b,
+                )
                 kaydedilen += 1
 
             if hatalar:
                 transaction.set_rollback(True)
 
-        for hata in hatalar:
-            messages.error(request, hata)
+        if hatalar:
+            from takip.messages_util import hatalari_ozetle
 
-        if not hatalar:
+            hatalari_ozetle(request, hatalar, tek_baslik="Sonuç kaydı hatalı")
+        else:
             messages.success(
                 request,
-                f"{kaydedilen} öğrenci sonucu kaydedildi.",
+                f"{kaydedilen} öğrenci sonucu kaydedildi; "
+                f"{ktt.ders.ad} soru takibine işlendi ({ktt.sinav_tarihi:%d.%m.%Y}).",
             )
             return redirect("ktt_sonuc_gir", pk=ktt.pk)
 
@@ -310,42 +351,34 @@ def ktt_sonuc_gir(request, pk):
 @login_required
 @require_permission("ktt", "export_excel")
 def ktt_excel_indir(request, pk):
+    from takip.excel_rapor import basit_rapor_xlsx, excel_http_yanit
+
     ktt = get_object_or_404(yetkili_ktt_sinavlari(request.user), pk=pk)
     sonuclar = ktt.sonuclar.select_related("talebe").order_by("-puan", "-net")
 
-    buffer = StringIO()
-    writer = csv.writer(buffer, delimiter=";")
-    writer.writerow(
+    satirlar = [
         [
-            "Talebe",
-            "Talebe No",
-            "Doğru",
-            "Yanlış",
-            "Boş",
-            "Net",
-            "Puan",
+            (sonuc.talebe.ad_soyad or "").upper(),
+            sonuc.talebe.talebe_no or "",
+            sonuc.dogru,
+            sonuc.yanlis,
+            sonuc.bos,
+            str(sonuc.net).replace(".", ","),
+            str(sonuc.puan).replace(".", ","),
         ]
+        for sonuc in sonuclar
+    ]
+    icerik = basit_rapor_xlsx(
+        baslik=f"KTT Sonuçları — {ktt.ad}",
+        alt_baslik=ktt.sinav_tarihi.strftime("%d.%m.%Y") if ktt.sinav_tarihi else "",
+        kolon_basliklari=["Ad-Soyad", "No", "Doğru", "Yanlış", "Boş", "Net", "Puan"],
+        satirlar=satirlar,
+        sayfa_adi="KTT",
+        vurgu_kolonlari=[6],
+        ortala_kolonlari=[1, 2, 3, 4, 5],
+        genislikler=[28, 10, 10, 10, 10, 10, 12],
     )
-    for sonuc in sonuclar:
-        writer.writerow(
-            [
-                sonuc.talebe.ad_soyad,
-                sonuc.talebe.talebe_no or "",
-                sonuc.dogru,
-                sonuc.yanlis,
-                sonuc.bos,
-                str(sonuc.net).replace(".", ","),
-                str(sonuc.puan).replace(".", ","),
-            ]
-        )
-
-    response = HttpResponse(
-        "\ufeff" + buffer.getvalue(),
-        content_type="text/csv; charset=utf-8",
-    )
-    dosya_adi = f"ktt_{ktt.id}_{localdate():%Y%m%d}.csv"
-    response["Content-Disposition"] = f'attachment; filename="{dosya_adi}"'
-    return response
+    return excel_http_yanit(icerik, f"ktt_{ktt.id}_{localdate():%Y%m%d}.xlsx")
 
 
 def _ktt_sonuc_ozeti(sonuclar) -> dict:
@@ -378,6 +411,7 @@ def ktt_detay_pdf(request, pk):
     sonuclar_list = list(sonuclar)
     ozet = _ktt_sonuc_ozeti(sonuclar_list)
     analiz = ktt_sinav_grup_analizi(ktt, sonuclar_list, ozet)
+    pdf_sayfa = coz_pdf_sayfa(request)
 
     html = render(
         request,
@@ -388,6 +422,7 @@ def ktt_detay_pdf(request, pk):
             "ozet": ozet,
             "analiz": analiz,
             "olusturma_tarihi": now(),
+            "pdf_sayfa": pdf_sayfa,
         },
     ).content.decode("utf-8")
 
@@ -403,7 +438,7 @@ def ktt_detay_pdf(request, pk):
     dosya_adi = slugify(ktt.ad) or f"ktt_{ktt.pk}"
     return make_pdf_response(
         pdf_verisi,
-        f"ktt_{dosya_adi}_{localdate():%Y%m%d}.pdf",
+        f"ktt_{dosya_adi}_{pdf_sayfa['kod']}_{localdate():%Y%m%d}.pdf",
     )
 
 
@@ -495,6 +530,7 @@ def ktt_rapor(request):
             "excel_url": f"{request.path}?format=excel{export_tail}",
             "pdf_url": f"{request.path}?format=pdf{export_tail}",
             "analiz_url": analiz_url,
+            "pdf_sayfa": coz_pdf_sayfa(request),
         },
     )
 
@@ -502,48 +538,38 @@ def ktt_rapor(request):
 @login_required
 @require_permission("ktt", "export_excel")
 def ktt_rapor_excel(request):
+    from takip.excel_rapor import basit_rapor_xlsx, excel_http_yanit
+
     sonuclar, _ = _ktt_rapor_sonuclar(request)
-
-    buffer = StringIO()
-    writer = csv.writer(buffer, delimiter=";")
-    writer.writerow(
+    satirlar = [
         [
-            "Tarih",
-            "KTT",
-            "Talebe",
-            "Sınıf",
-            "Ders",
-            "Doğru",
-            "Yanlış",
-            "Boş",
-            "Net",
-            "Puan",
+            sonuc.ktt.sinav_tarihi.strftime("%d.%m.%Y"),
+            sonuc.ktt.ad,
+            (sonuc.talebe.ad_soyad or "").upper(),
+            str(sonuc.talebe.sinif_sube or sonuc.ktt.sinif_goster),
+            sonuc.ktt.ders.ad,
+            sonuc.dogru,
+            sonuc.yanlis,
+            sonuc.bos,
+            str(sonuc.net).replace(".", ","),
+            str(sonuc.puan).replace(".", ","),
         ]
+        for sonuc in sonuclar[:2000]
+    ]
+    icerik = basit_rapor_xlsx(
+        baslik="KTT Raporu",
+        alt_baslik=localdate().strftime("%d.%m.%Y"),
+        kolon_basliklari=[
+            "Tarih", "KTT", "Ad-Soyad", "Sınıf", "Ders",
+            "Doğru", "Yanlış", "Boş", "Net", "Puan",
+        ],
+        satirlar=satirlar,
+        sayfa_adi="KTT Rapor",
+        vurgu_kolonlari=[9],
+        ortala_kolonlari=[0, 3, 5, 6, 7, 8],
+        genislikler=[12, 22, 26, 10, 14, 9, 9, 9, 9, 10],
     )
-    for sonuc in sonuclar[:2000]:
-        writer.writerow(
-            [
-                sonuc.ktt.sinav_tarihi.strftime("%d.%m.%Y"),
-                sonuc.ktt.ad,
-                sonuc.talebe.ad_soyad,
-                str(sonuc.talebe.sinif_sube or sonuc.ktt.sinif_goster),
-                sonuc.ktt.ders.ad,
-                sonuc.dogru,
-                sonuc.yanlis,
-                sonuc.bos,
-                str(sonuc.net).replace(".", ","),
-                str(sonuc.puan).replace(".", ","),
-            ]
-        )
-
-    response = HttpResponse(
-        "\ufeff" + buffer.getvalue(),
-        content_type="text/csv; charset=utf-8",
-    )
-    response["Content-Disposition"] = (
-        f'attachment; filename="ktt_rapor_{localdate():%Y%m%d}.csv"'
-    )
-    return response
+    return excel_http_yanit(icerik, f"ktt_rapor_{localdate():%Y%m%d}.xlsx")
 
 
 @login_required
@@ -554,6 +580,7 @@ def ktt_rapor_pdf(request):
     secenekler = ktt_rapor_filtre_secenekleri(request.user)
     sonuclar_list = list(sonuclar[:300])
     filtre_etiketleri = ktt_rapor_filtre_etiketleri(filtre, secenekler)
+    pdf_sayfa = coz_pdf_sayfa(request)
 
     talebe = None
     talebe_filtre = filtre.get("talebe") or []
@@ -579,6 +606,7 @@ def ktt_rapor_pdf(request):
             "kapsam": "KTT Sonuç Özeti",
             "analiz": analiz,
             "olusturma_tarihi": now(),
+            "pdf_sayfa": pdf_sayfa,
         },
     ).content.decode("utf-8")
 
@@ -593,5 +621,5 @@ def ktt_rapor_pdf(request):
 
     return make_pdf_response(
         pdf_verisi,
-        f"ktt_rapor_{localdate():%Y%m%d}.pdf",
+        f"ktt_rapor_{pdf_sayfa['kod']}_{localdate():%Y%m%d}.pdf",
     )

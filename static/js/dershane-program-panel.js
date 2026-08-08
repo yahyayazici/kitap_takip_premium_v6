@@ -97,10 +97,15 @@
                 const target = row;
                 if (!draggedRow || draggedRow === target) return;
                 const rect = target.getBoundingClientRect();
-                const next = event.clientY > rect.top + rect.height / 2;
+                const horizontal = blockList.classList.contains("dp-block-strip")
+                    || getComputedStyle(blockList).flexDirection.startsWith("row")
+                    || blockList.style.display === "flex";
+                const after = horizontal
+                    ? event.clientX > rect.left + rect.width / 2
+                    : event.clientY > rect.top + rect.height / 2;
                 blockList.insertBefore(
                     draggedRow,
-                    next ? target.nextSibling : target
+                    after ? target.nextSibling : target
                 );
             });
         });

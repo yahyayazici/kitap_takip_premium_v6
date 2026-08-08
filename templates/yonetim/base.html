@@ -10,10 +10,12 @@
     <link rel="stylesheet" href="{% static 'css/premium-system-v6.css' %}">
     <link rel="stylesheet" href="{% static 'css/nav-groups.css' %}">
     <link rel="stylesheet" href="{% static 'css/yonetim-nav.css' %}">
-    <link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}">
-    <link rel="stylesheet" href="{% static 'css/panel-unified.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}?v=sc-center1">
+    <link rel="stylesheet" href="{% static 'css/panel-unified.css' %}?v=nizam4">
+    <link rel="stylesheet" href="{% static 'css/choice-chip-grid.css' %}?v=chip2">
     <link rel="stylesheet" href="{% static 'css/yonetim-premium.css' %}">
     <link rel="stylesheet" href="{% static 'css/multi-select-filter.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bildirim-bell.css' %}?v=bell2">
     {% if asistan_aktif %}
     <link rel="stylesheet" href="{% static 'css/asistan.css' %}">
     {% endif %}
@@ -47,6 +49,7 @@
         </nav>
 
         <div class="cs-v6-actions yonetim-v6-actions">
+            {% include "includes/bildirim_zili.html" %}
             <span class="yonetim-user-chip">{{ request.user.username|slice:":1"|upper }}</span>
             <span class="yonetim-user-copy">
                 <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
@@ -82,6 +85,7 @@
 
 <script src="{% static 'js/nav-dropdown.js' %}"></script>
 <script src="{% static 'js/multi-select-filter.js' %}"></script>
+<script src="{% static 'js/bildirim-bell.js' %}"></script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

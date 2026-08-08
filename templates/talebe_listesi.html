@@ -1,7 +1,10 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}
-Talebeler
+{% block title %}Talebeler{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/talebe-listesi.css' %}?v=tl2">
 {% endblock %}
 
 {% block content %}
@@ -9,133 +12,90 @@ Talebeler
 <header class="page-head">
     <div>
         <p class="kicker">TALEBE YÖNETİMİ</p>
-
         <h1>Talebeler</h1>
-
-        <p class="muted">
-            Etüdünüzdeki talebelerin kitap ve okuma durumlarını görüntüleyin.
-        </p>
+        <p class="muted">Etüdünüzdeki talebelerin kitap ve okuma durumlarını görüntüleyin.</p>
     </div>
-
     <div class="page-head-actions">
+        <a href="{{ rapor_excel_url }}" class="ghost-btn">Excel İndir</a>
         {% include "includes/talebe_liste_rapor_panel.html" %}
-        <a href="{% url 'toplu_zimmet' %}" class="primary-btn">
-            Toplu Kitap Zimmetle
-        </a>
+        <a href="{% url 'toplu_zimmet' %}" class="primary-btn">Toplu Kitap Zimmetle</a>
     </div>
 </header>
 
-
-<section class="panel">
-
+<section class="panel tl-panel">
     <div class="student-list-head">
-        <div>
+        <div class="tl-list-title">
             <strong>{{ talebeler|length }} talebe</strong>
             <span>Aktif talebe listesi</span>
         </div>
-
         <div class="search-box">
-            <input
-                type="text"
-                id="student-search"
-                placeholder="Talebe ara..."
-                autocomplete="off"
-            >
+            <input type="text" id="student-search" placeholder="Talebe ara..." autocomplete="off">
         </div>
     </div>
 
-
-    <div class="student-grid" id="student-grid">
-
+    <div class="student-grid tl-grid" id="student-grid">
         {% for talebe in talebeler %}
-
-            <article
-                class="student-card"
-                data-name="{{ talebe.ad_soyad|lower }}"
-            >
-
-                <div class="student-card-top">
-
-                    <div class="student-avatar">
-                        {{ talebe.ad_soyad|slice:":1" }}
-                    </div>
-
-                    <div class="student-info">
-                        <h3>{{ talebe.ad_soyad }}</h3>
-
-                        <p>
-                            {{ talebe.sinif }}
-
-                            {% if talebe.sube %}
-                                / {{ talebe.sube }}
-                            {% endif %}
-                        </p>
-                    </div>
-
+        <article class="student-card tl-card" data-name="{{ talebe.ad_soyad|lower }}">
+            <div class="student-card-top tl-card-head">
+                <div class="student-avatar tl-avatar" aria-hidden="true">{{ talebe.ad_soyad|slice:":1" }}</div>
+                <div class="student-info tl-info">
+                    <h3>{{ talebe.ad_soyad }}</h3>
+                    <p class="tl-sub">
+                        <span>{{ talebe.sinif }}{% if talebe.sube %} / {{ talebe.sube }}{% endif %}</span>
+                        {% if talebe.aktif %}
+                        <span class="tl-pill tl-pill-ok">Aktif</span>
+                        {% else %}
+                        <span class="tl-pill tl-pill-off">Pasif</span>
+                        {% endif %}
+                    </p>
                 </div>
-
-                <div class="student-meta student-meta-rich">
-                    <div><span>Talebe No</span><strong>{{ talebe.talebe_no|default:"—" }}</strong></div>
-                    <div><span>Aktif Kitap</span><strong>{{ talebe.aktif_zimmet.kitap.ad|default:"Kitap yok" }}</strong></div>
-                    <div><span>Etüt Hocası</span><strong>{{ talebe.etut_hocasi.ad_soyad }}</strong></div>
-                    <div><span>Dini Ders</span><strong>{% if talebe.zimmet_hocalari_ayni %}Aynı hoca{% else %}{{ talebe.dini_ders_hocasi.ad_soyad }}{% endif %}</strong></div>
-                    <div><span>Durum</span>{% if talebe.aktif %}<strong class="active-text">Aktif</strong>{% else %}<strong class="passive-text">Pasif</strong>{% endif %}</div>
-                </div>
-
-                <a
-                    href="{% url 'talebe_detay' talebe.id %}"
-                    class="student-detail-btn"
-                >
-                    Profili Aç
-                </a>
-
-            </article>
-
-        {% empty %}
-
-            <div class="empty-state">
-                <strong>Talebe bulunmuyor</strong>
-                <span>Bu etüt hocasına bağlı aktif talebe yok.</span>
             </div>
 
+            <dl class="tl-meta">
+                <div class="tl-field">
+                    <dt>Talebe no</dt>
+                    <dd>{{ talebe.talebe_no|default:"—" }}</dd>
+                </div>
+                <div class="tl-field">
+                    <dt>Aktif kitap</dt>
+                    <dd title="{{ talebe.aktif_zimmet.kitap.ad|default:'Kitap yok' }}">{{ talebe.aktif_zimmet.kitap.ad|default:"Kitap yok" }}</dd>
+                </div>
+                <div class="tl-field">
+                    <dt>Etüt hocası</dt>
+                    <dd title="{{ talebe.etut_hocasi.ad_soyad }}">{{ talebe.etut_hocasi.ad_soyad|default:"—" }}</dd>
+                </div>
+                <div class="tl-field">
+                    <dt>Dini ders</dt>
+                    <dd title="{% if talebe.zimmet_hocalari_ayni %}Aynı hoca{% else %}{{ talebe.dini_ders_hocasi.ad_soyad }}{% endif %}">
+                        {% if talebe.zimmet_hocalari_ayni %}Aynı hoca{% else %}{{ talebe.dini_ders_hocasi.ad_soyad|default:"—" }}{% endif %}
+                    </dd>
+                </div>
+            </dl>
+
+            <a href="{% url 'talebe_detay' talebe.id %}" class="student-detail-btn tl-btn">Profili Aç</a>
+        </article>
+        {% empty %}
+        <div class="empty-state">
+            <strong>Talebe bulunmuyor</strong>
+            <span>Bu etüt hocasına bağlı aktif talebe yok.</span>
+        </div>
         {% endfor %}
-
     </div>
-
 </section>
 
-
 <script>
-
-    document.addEventListener("DOMContentLoaded", function () {
-
-        const searchInput = document.getElementById("student-search");
-        const cards = document.querySelectorAll(".student-card");
-
-        if (!searchInput) {
-            return;
-        }
-
-        searchInput.addEventListener("input", function () {
-
-            const searchText = searchInput.value
-                .trim()
-                .toLowerCase();
-
-            cards.forEach(function (card) {
-
-                const name = card.dataset.name;
-
-                card.style.display = name.includes(searchText)
-                    ? ""
-                    : "none";
-
-            });
-
+document.addEventListener("DOMContentLoaded", function () {
+    var searchInput = document.getElementById("student-search");
+    var cards = document.querySelectorAll(".student-card");
+    if (!searchInput) return;
+    searchInput.addEventListener("input", function () {
+        var searchText = searchInput.value.trim().toLowerCase();
+        cards.forEach(function (card) {
+            var name = card.dataset.name || "";
+            card.style.display = name.indexOf(searchText) !== -1 ? "" : "none";
         });
-
     });
-
+});
 </script>
 
 {% endblock %}

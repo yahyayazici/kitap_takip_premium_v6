@@ -1,0 +1,133 @@
+{% extends "yonetim/base.html" %}
+{% load static %}
+
+{% block title %}Özet Kartları{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/panel-admin-cards.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="pa-page">
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">PANEL</p>
+        <h1>Özet Kartları</h1>
+        <p class="muted">Personel, yönetim, öğretmen ve veli ana sayfalarındaki üst özet kartlarını buradan yönetin.</p>
+    </div>
+</header>
+
+<div class="pa-stack">
+
+<section class="pa-card">
+    <div class="pa-card-head">
+        <div>
+            <p class="pa-kicker">Hazır</p>
+            <h2>Katalogdan ekle</h2>
+        </div>
+    </div>
+    <div class="pa-card-body">
+        <div class="pa-catalog">
+            {% for item in katalog %}
+            <form method="post" action="{% url 'yonetim:metrik_kaydet' %}">
+                {% csrf_token %}
+                <input type="hidden" name="anahtar" value="{{ item.key }}">
+                <input type="hidden" name="baslik" value="{{ item.title }}">
+                <input type="hidden" name="ton" value="{{ item.ton }}">
+                <input type="hidden" name="icon" value="{{ item.icon }}">
+                <input type="hidden" name="goster_personel" value="1">
+                <input type="hidden" name="aktif" value="1">
+                <input type="hidden" name="sira" value="100">
+                <button type="submit" class="ghost-btn">+ {{ item.title }}</button>
+            </form>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="pa-card">
+    <div class="pa-card-head">
+        <div>
+            <p class="pa-kicker">Liste</p>
+            <h2>Tanımlı özet kartları</h2>
+        </div>
+        <span class="pa-card-count">{{ kayitlar|length }} kayıt</span>
+    </div>
+    <div class="pa-card-body">
+        <div class="pa-list">
+            {% for k in kayitlar %}
+            <article class="pa-item" style="grid-template-columns: minmax(0, 1fr);">
+                <div class="pa-item-form">
+                    <div class="pa-chip-row">
+                        <span class="pa-chip">{{ k.anahtar }}</span>
+                        <span class="pa-chip{% if not k.goster_personel %} is-off{% endif %}">Personel</span>
+                        <span class="pa-chip{% if not k.goster_yonetim %} is-off{% endif %}">Yönetim</span>
+                        <span class="pa-chip{% if not k.goster_ogretmen %} is-off{% endif %}">Öğretmen</span>
+                        <span class="pa-chip{% if not k.goster_veli %} is-off{% endif %}">Veli</span>
+                        {% if not k.aktif %}<span class="pa-chip is-warn">Pasif</span>{% endif %}
+                    </div>
+                    <form method="post" action="{% url 'yonetim:metrik_kaydet' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="pk" value="{{ k.pk }}">
+                        <input type="hidden" name="anahtar" value="{{ k.anahtar }}">
+                        <div class="pa-form-grid">
+                            <label class="pa-field pa-field-span-2">
+                                <span>Başlık</span>
+                                <input type="text" name="baslik" value="{{ k.baslik }}" required>
+                            </label>
+                            <label class="pa-field pa-field-span-2">
+                                <span>Alt not</span>
+                                <input type="text" name="not_metni" value="{{ k.not_metni }}" placeholder="Alt not">
+                            </label>
+                            <label class="pa-field">
+                                <span>Renk</span>
+                                <select name="ton">
+                                    {% for val, lab in tonlar %}
+                                    <option value="{{ val }}"{% if k.ton == val %} selected{% endif %}>{{ lab }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+                            <label class="pa-field">
+                                <span>İkon</span>
+                                <select name="icon">
+                                    {% for ik in ikonlar %}
+                                    <option value="{{ ik }}"{% if k.icon == ik %} selected{% endif %}>{{ ik }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+                            <label class="pa-field">
+                                <span>Sıra</span>
+                                <input type="number" name="sira" value="{{ k.sira }}">
+                            </label>
+                        </div>
+                        <div class="pa-footer-row">
+                            <div class="pa-checks">
+                                <label class="pa-check"><input type="checkbox" name="goster_personel" value="1"{% if k.goster_personel %} checked{% endif %}> Personel</label>
+                                <label class="pa-check"><input type="checkbox" name="goster_yonetim" value="1"{% if k.goster_yonetim %} checked{% endif %}> Yönetim</label>
+                                <label class="pa-check"><input type="checkbox" name="goster_ogretmen" value="1"{% if k.goster_ogretmen %} checked{% endif %}> Öğretmen</label>
+                                <label class="pa-check"><input type="checkbox" name="goster_veli" value="1"{% if k.goster_veli %} checked{% endif %}> Veli</label>
+                                <label class="pa-check"><input type="checkbox" name="aktif" value="1"{% if k.aktif %} checked{% endif %}> Aktif</label>
+                            </div>
+                            <div class="pa-actions">
+                                <button type="submit" class="primary-btn">Kaydet</button>
+                            </div>
+                        </div>
+                    </form>
+                    <form method="post" action="{% url 'yonetim:metrik_sil' k.pk %}" onsubmit="return confirm('Kaldırılsın mı?');" style="margin-top:10px;">
+                        {% csrf_token %}
+                        <div class="pa-actions" style="margin-left:0;">
+                            <button type="submit" class="ghost-btn">Sil</button>
+                        </div>
+                    </form>
+                </div>
+            </article>
+            {% empty %}
+            <p class="muted" style="margin:0;">Henüz kart yok. Katalogdan ekleyin.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+</div>
+</div>
+{% endblock %}

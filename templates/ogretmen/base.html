@@ -10,9 +10,16 @@
     <link rel="stylesheet" href="{% static 'css/premium-system-v5.css' %}">
     <link rel="stylesheet" href="{% static 'css/premium-system-v6.css' %}">
     <link rel="stylesheet" href="{% static 'css/nav-groups.css' %}">
-    <link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}">
-    <link rel="stylesheet" href="{% static 'css/panel-unified.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}?v=sc-mob4">
+    <link rel="stylesheet" href="{% static 'css/panel-unified.css' %}?v=nizam4">
+    <link rel="stylesheet" href="{% static 'css/choice-chip-grid.css' %}?v=chip1">
     <link rel="stylesheet" href="{% static 'css/ogretmen-panel.css' %}">
+    <link rel="stylesheet" href="{% static 'css/panel-apple-polish.css' %}">
+    <link rel="stylesheet" href="{% static 'css/ogretmen-dash-wow.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bildirim-bell.css' %}?v=bell2">
+    {% if asistan_aktif %}
+    <link rel="stylesheet" href="{% static 'css/asistan.css' %}">
+    {% endif %}
     {% block extra_css %}{% endblock %}
 </head>
 <body class="v3-body ogretmen-body">
@@ -31,13 +38,19 @@
         <nav class="cs-v6-nav">
             <a href="{% url 'ogretmen_dashboard' %}" class="{% if request.resolver_match.url_name == 'ogretmen_dashboard' %}active{% endif %}">Ana Sayfa</a>
             <a href="{% url 'ogretmen_not_girisi' %}" class="{% if 'ogretmen_not' in request.resolver_match.url_name %}active{% endif %}">Not Girişi</a>
+            <a href="{% url 'ogretmen_degerlendirmeler' %}" class="{% if request.resolver_match.url_name == 'ogretmen_degerlendirmeler' or request.resolver_match.url_name == 'ogretmen_talebe_karne_pdf' %}active{% endif %}">Değerlendirmeler</a>
             <a href="{% url 'ogretmen_ders_programi' %}" class="{% if 'ogretmen_ders' in request.resolver_match.url_name %}active{% endif %}">Ders Programı</a>
         </nav>
-        <div class="cs-v6-actions">
-            <span class="ogretmen-user-chip">{{ hoca.ad_soyad }}</span>
+        <div class="cs-v6-actions panel-user-actions">
+            {% include "includes/bildirim_zili.html" %}
+            <span class="panel-user-chip" aria-hidden="true">{{ panel_user_name|default:hoca.ad_soyad|slice:":1"|upper }}</span>
+            <span class="panel-user-copy">
+                <strong>{{ panel_user_name|default:hoca.ad_soyad }}</strong>
+                <small>{{ panel_user_subtitle|default:"Öğretmen" }}</small>
+            </span>
             <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
-                <button type="submit" class="ghost-btn yonetim-ghost-light">Çıkış</button>
+                <button type="submit" class="ghost-btn yonetim-ghost-light panel-logout-btn">Çıkış</button>
             </form>
         </div>
     </div>
@@ -53,6 +66,12 @@
     {% endif %}
     {% block content %}{% endblock %}
 </main>
+
+{% if asistan_aktif %}
+{% include "includes/asistan_widget.html" %}
+<script src="{% static 'js/asistan.js' %}"></script>
+{% endif %}
+<script src="{% static 'js/bildirim-bell.js' %}"></script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

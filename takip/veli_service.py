@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import date, timedelta
+from decimal import Decimal
 
 from django.contrib.auth.models import User
-from django.db.models import QuerySet
+from django.db.models import Avg, Count, QuerySet, Sum
 from django.utils.timezone import localdate
 
 from takip.dini_ders_takip_service import talebe_ilerleme_ozeti
@@ -15,19 +16,28 @@ from takip.models import (
     DiniDersKonuKaydi,
     DiniDersTakipAlani,
     Duyuru,
+    GunlukSoruDersSatiri,
     GunlukSoruKaydi,
+    HaftalikSohbetMevzuu,
     KttSonucu,
+    NamazYoklamaKaydi,
     Talebe,
     TalebePersonelNotu,
     VeliHesap,
     VeliTalebeBaglantisi,
     Zimmet,
 )
+from takip.ogretmen_not_models import OgretmenSinavNotu, OgretmenSinifYoklama
 from takip.ogretmen_not_service import talebe_ogretmen_notlari
 from takip.deneme_service import BRANS_ETIKETLERI, talebe_deneme_sonuclari
 from takip.yazili_takip_service import talebe_yazili_sonuclari
 from takip.duyuru_service import veli_duyurulari
 from takip.soru_takip_service import aylik_ozet, haftalik_ozet
+
+
+def _hafta_pazartesi(referans: date | None = None) -> date:
+    bugun = referans or localdate()
+    return bugun - timedelta(days=bugun.weekday())
 
 
 def veli_hesabi_for_user(user: User) -> VeliHesap | None:
@@ -50,6 +60,20 @@ def kullanici_veli_mi(user: User) -> bool:
 
     hesap = veli_hesabi_for_user(user)
     return bool(hesap and hesap.aktif)
+
+
+def veli_talebe_ozet_etiketi(veli: VeliHesap | None) -> str:
+    """Header alt satırı: talebe adı / adları."""
+    if not veli:
+        return "Veli"
+    adlar = list(veli_talebeleri(veli).values_list("ad_soyad", flat=True)[:3])
+    if not adlar:
+        return "Veli"
+    if len(adlar) == 1:
+        return adlar[0]
+    if len(adlar) == 2:
+        return f"{adlar[0]} · {adlar[1]}"
+    return f"{adlar[0]} · {adlar[1]}…"
 
 
 def veli_talebeleri(veli: VeliHesap) -> QuerySet[Talebe]:
@@ -78,6 +102,13 @@ def aktif_zimmetler(talebe: Talebe) -> list[Zimmet]:
         .select_related("kitap")
         .order_by("-id")
     )
+
+
+def _not_ortalamasi(qs: QuerySet[OgretmenSinavNotu]) -> Decimal | None:
+    agg = qs.aggregate(ort=Avg("puan"))
+    if agg["ort"] is None:
+        return None
+    return Decimal(agg["ort"]).quantize(Decimal("0.1"))
 
 
 def talebe_veli_ozeti(talebe: Talebe) -> dict:
@@ -129,7 +160,7 @@ def talebe_veli_ozeti(talebe: Talebe) -> dict:
         "deneme_sonuclari": deneme_sonuclari,
         "deneme_brans_etiketleri": BRANS_ETIKETLERI,
         "yazili_sonuclari": yazili_sonuclari,
-        "ogretmen_notlari": list(talebe_ogretmen_notlari(talebe)),
+        "ogretmen_notlari": list(talebe_ogretmen_notlari(talebe, limit=50)),
         "dini_ders_ozet": talebe_ilerleme_ozeti(talebe),
         "personel_notlari": personel_notlari,
     }
@@ -158,7 +189,7 @@ def veli_dashboard_verisi(veli: VeliHesap) -> dict:
         "veli": veli,
         "talebeler": talebeler,
         "kartlar": kartlar,
-        "duyurular": list(veli_duyurulari()[:5]),
+        "duyurular": list(veli_duyurulari()[:8]),
     }
 
 
@@ -189,6 +220,16 @@ def talebe_kpi_ozeti(talebe: Talebe) -> dict:
     ).select_related("ktt", "ktt__ders")
     son_ktt = ktt_qs.order_by("-ktt__sinav_tarihi", "-id").first()
 
+    hafta_bas = _hafta_pazartesi()
+    tum_notlar = OgretmenSinavNotu.objects.filter(talebe=talebe, veliye_goster=True)
+    haftalik_ders_ort = _not_ortalamasi(tum_notlar.filter(hafta_baslangic=hafta_bas))
+    etut_qs = tum_notlar
+    if talebe.etut_hocasi_id:
+        etut_qs = tum_notlar.filter(etut_hocasi_id=talebe.etut_hocasi_id)
+    etut_ders_ort = _not_ortalamasi(etut_qs.filter(hafta_baslangic=hafta_bas))
+    if etut_ders_ort is None:
+        etut_ders_ort = _not_ortalamasi(etut_qs)
+
     hafta = haftalik_ozet(talebe)
     dini_yuzde = _dini_ders_toplam_yuzde(talebe)
     mudahale_sayisi = AkademikMudahale.objects.filter(
@@ -197,12 +238,24 @@ def talebe_kpi_ozeti(talebe: Talebe) -> dict:
         tarih__gte=localdate() - timedelta(days=30),
     ).count()
 
+    aktif_hafta_notlari = list(
+        tum_notlar.filter(hafta_baslangic=hafta_bas)
+        .select_related("ders", "etut_hocasi")
+        .order_by("ders__ad")[:12]
+    )
+
     return {
         "son_deneme": son_deneme,
         "son_ktt": son_ktt,
+        "haftalik_ders_ort": haftalik_ders_ort,
+        "etut_ders_ort": etut_ders_ort,
         "haftalik_soru": hafta,
         "dini_ders_yuzde": dini_yuzde,
+        "dini_ders_detay": dini_ders_mufredat_detay(talebe),
         "mudahale_sayisi": mudahale_sayisi,
+        "aktif_hafta_baslangic": hafta_bas,
+        "aktif_hafta_bitis": hafta_bas + timedelta(days=6),
+        "aktif_hafta_notlari": aktif_hafta_notlari,
     }
 
 
@@ -268,6 +321,138 @@ def talebe_sinif_goster(talebe: Talebe) -> str:
     if talebe.sube:
         return f"{talebe.sinif} / {talebe.sube}"
     return talebe.sinif or "—"
+
+
+def talebe_soru_detay(talebe: Talebe, gun: int = 14) -> dict:
+    bitis = localdate()
+    baslangic = bitis - timedelta(days=gun - 1)
+    kayitlar = (
+        GunlukSoruKaydi.objects.filter(
+            talebe=talebe,
+            tarih__gte=baslangic,
+            tarih__lte=bitis,
+        )
+        .prefetch_related("ders_satirlari__ders")
+        .order_by("-tarih")
+    )
+    satirlar = GunlukSoruDersSatiri.objects.filter(kayit__in=kayitlar).select_related(
+        "ders", "kayit"
+    )
+    ders_ozet = list(
+        satirlar.values("ders__ad")
+        .annotate(
+            toplam_soru=Sum("toplam_soru"),
+            dogru=Sum("dogru"),
+            yanlis=Sum("yanlis"),
+            bos=Sum("bos"),
+            net=Sum("net"),
+        )
+        .order_by("-toplam_soru")
+    )
+    return {
+        "baslangic": baslangic,
+        "bitis": bitis,
+        "haftalik": haftalik_ozet(talebe),
+        "aylik": aylik_ozet(talebe),
+        "kayitlar": list(kayitlar),
+        "ders_ozet": ders_ozet,
+    }
+
+
+def talebe_haftalik_notlar(talebe: Talebe, hafta_baslangic: date | None = None) -> dict:
+    aktif = _hafta_pazartesi()
+    secili = hafta_baslangic or aktif
+    notlar = list(
+        OgretmenSinavNotu.objects.filter(
+            talebe=talebe,
+            veliye_goster=True,
+            hafta_baslangic=secili,
+        )
+        .select_related("ders", "etut_hocasi")
+        .order_by("ders__ad")
+    )
+    arsiv_haftalar = list(
+        OgretmenSinavNotu.objects.filter(talebe=talebe, veliye_goster=True)
+        .values_list("hafta_baslangic", flat=True)
+        .distinct()
+        .order_by("-hafta_baslangic")[:16]
+    )
+    return {
+        "aktif_hafta": aktif,
+        "secili_hafta": secili,
+        "secili_hafta_bitis": secili + timedelta(days=6),
+        "notlar": notlar,
+        "ortalama": _not_ortalamasi(
+            OgretmenSinavNotu.objects.filter(
+                talebe=talebe, veliye_goster=True, hafta_baslangic=secili
+            )
+        ),
+        "arsiv_haftalar": arsiv_haftalar,
+        "arsiv_modu": secili != aktif,
+    }
+
+
+def talebe_yoklama_30_gun(talebe: Talebe) -> dict:
+    bitis = localdate()
+    baslangic = bitis - timedelta(days=29)
+    kayitlar = list(
+        OgretmenSinifYoklama.objects.filter(
+            talebe=talebe,
+            tarih__gte=baslangic,
+            tarih__lte=bitis,
+            yok=True,
+        )
+        .select_related("etut_hocasi")
+        .order_by("-tarih")
+    )
+    gun_sayisi = 30
+    yok_gun = len({k.tarih for k in kayitlar})
+    return {
+        "baslangic": baslangic,
+        "bitis": bitis,
+        "kayitlar": kayitlar,
+        "yok_gun": yok_gun,
+        "var_gun": max(gun_sayisi - yok_gun, 0),
+        "katilim_yuzde": round(100 * (gun_sayisi - yok_gun) / gun_sayisi) if gun_sayisi else 0,
+    }
+
+
+def talebe_namaz_30_gun(talebe: Talebe) -> dict:
+    bitis = localdate()
+    baslangic = bitis - timedelta(days=29)
+    kayitlar = list(
+        NamazYoklamaKaydi.objects.filter(
+            talebe=talebe,
+            oturum__tarih__gte=baslangic,
+            oturum__tarih__lte=bitis,
+        )
+        .select_related("oturum")
+        .order_by("-oturum__tarih", "oturum__vakit")
+    )
+    ozet = (
+        NamazYoklamaKaydi.objects.filter(
+            talebe=talebe,
+            oturum__tarih__gte=baslangic,
+            oturum__tarih__lte=bitis,
+        )
+        .values("durum")
+        .annotate(adet=Count("id"))
+    )
+    return {
+        "baslangic": baslangic,
+        "bitis": bitis,
+        "kayitlar": kayitlar,
+        "ozet": {row["durum"]: row["adet"] for row in ozet},
+        "toplam": len(kayitlar),
+    }
+
+
+def aktif_sohbet_mevzulari(limit: int = 8) -> list[HaftalikSohbetMevzuu]:
+    return list(
+        HaftalikSohbetMevzuu.objects.filter(aktif=True).order_by(
+            "-hafta_baslangic", "-id"
+        )[:limit]
+    )
 
 
 def seed_veli_demo() -> None:

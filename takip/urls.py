@@ -14,6 +14,8 @@ from . import disiplin_kurul_views
 from . import gunluk_takip_views
 from . import deneme_views
 from . import yazili_takip_views
+from . import personel_vazife_views
+from . import bildirim_views
 from . import akademik_mudahale_views
 from . import ktt_views
 from . import soru_takip_views
@@ -23,6 +25,7 @@ from . import veli_views
 from . import veli_randevu_views
 from . import asistan_views
 from . import dershane_program_views
+from . import yemekci_views
 from . import views
 from .auth_views import PanelLoginView
 
@@ -38,12 +41,36 @@ urlpatterns = [
     path("cikis/", auth_views.LogoutView.as_view(), name="logout"),
 
     path("panel/", views.dashboard, name="dashboard"),
+    path("panel/yct/", personel_vazife_views.yct_personel, name="yct_personel"),
+    path("panel/vazifelerim/", personel_vazife_views.vazife_personel, name="vazife_personel"),
+    path("panel/vazifelerim/<int:pk>/durum/",
+        personel_vazife_views.vazife_personel_durum,
+        name="vazife_personel_durum",
+    ),
+    path("panel/bildirimler/", bildirim_views.bildirim_merkezi, name="bildirim_merkezi"),
+    path("panel/bildirimler/api/", bildirim_views.bildirim_api_liste, name="bildirim_api_liste"),
+    path(
+        "panel/bildirimler/api/<int:pk>/okundu/",
+        bildirim_views.bildirim_api_okundu,
+        name="bildirim_api_okundu",
+    ),
+    path(
+        "panel/bildirimler/api/tumunu-okundu/",
+        bildirim_views.bildirim_api_tumunu_okundu,
+        name="bildirim_api_tumunu_okundu",
+    ),
+    path(
+        "panel/bildirimler/<int:pk>/git/",
+        bildirim_views.bildirim_okundu_yonlendir,
+        name="bildirim_okundu_yonlendir",
+    ),
 
     path("panel/asistan/chat/", asistan_views.asistan_chat_api, name="asistan_chat_api"),
 
     path("programlar/", views.program_panel, name="program_panel"),
     path("programlar/<int:pk>/", views.program_detay, name="program_detay"),
     path("programlar/<int:pk>/pdf/", views.program_pdf, name="program_pdf"),
+    path("programlar/<int:pk>/excel/", views.program_excel, name="program_excel"),
 
     path(
         "dershane-programi/",
@@ -90,11 +117,36 @@ urlpatterns = [
         name="temizlik_pdf",
     ),
 
-    path("yemekcilik/", views.yemekcilik_panel, name="yemekcilik_panel"),
+    path("yemekcilik/", yemekci_views.yemekcilik_panel, name="yemekcilik_panel"),
+    path(
+        "yemekcilik/pdf/",
+        yemekci_views.yemekcilik_pdf,
+        name="yemekcilik_pdf",
+    ),
     path(
         "yemekcilik/<int:pk>/pdf/",
-        views.yemekcilik_pdf,
-        name="yemekcilik_pdf",
+        yemekci_views.yemekcilik_pdf,
+        name="yemekcilik_pdf_eski",
+    ),
+    path(
+        "yemekcilik/api/kayit-ekle/",
+        yemekci_views.yemekcilik_api_kayit_ekle,
+        name="yemekcilik_api_kayit_ekle",
+    ),
+    path(
+        "yemekcilik/api/kayit-sil/",
+        yemekci_views.yemekcilik_api_kayit_sil,
+        name="yemekcilik_api_kayit_sil",
+    ),
+    path(
+        "yemekcilik/api/sirala/",
+        yemekci_views.yemekcilik_api_sirala,
+        name="yemekcilik_api_sirala",
+    ),
+    path(
+        "yemekcilik/api/gorevli/",
+        yemekci_views.yemekcilik_api_gorevli,
+        name="yemekcilik_api_gorevli",
     ),
 
     path("talebeler/", views.talebe_listesi, name="talebe_listesi"),
@@ -102,6 +154,11 @@ urlpatterns = [
         "talebeler/rapor/pdf/",
         views.talebe_liste_raporu_pdf,
         name="talebe_liste_raporu_pdf",
+    ),
+    path(
+        "talebeler/rapor/excel/",
+        views.talebe_liste_excel,
+        name="talebe_liste_excel",
     ),
     path("talebe/<int:talebe_id>/", views.talebe_detay, name="talebe_detay"),
     path(
@@ -164,9 +221,34 @@ urlpatterns = [
         name="yazili_sonuc_gir",
     ),
     path(
+        "yazili-takip/sinav/<int:pk>/sil/",
+        yazili_takip_views.yazili_sinav_sil,
+        name="yazili_sinav_sil",
+    ),
+    path(
         "yazili-takip/<int:pk>/pdf/",
         yazili_takip_views.yazili_kamp_pdf,
         name="yazili_kamp_pdf",
+    ),
+    path(
+        "yazili-takip/sinav/<int:pk>/pdf/",
+        yazili_takip_views.yazili_sinav_sirali_pdf,
+        name="yazili_sinav_sirali_pdf",
+    ),
+    path(
+        "yazili-takip/sinav/<int:pk>/bireysel-pdf/",
+        yazili_takip_views.yazili_sinav_bireysel_pdf,
+        name="yazili_sinav_bireysel_pdf",
+    ),
+    path(
+        "yazili-takip/sinav/<int:pk>/bireysel-pdf/<int:talebe_id>/",
+        yazili_takip_views.yazili_sinav_bireysel_pdf,
+        name="yazili_sinav_bireysel_talebe_pdf",
+    ),
+    path(
+        "yazili-takip/sinav/<int:pk>/excel-sablon/",
+        yazili_takip_views.yazili_sinav_excel_sablon,
+        name="yazili_sinav_excel_sablon",
     ),
 
     path("soru-takip/", soru_takip_views.soru_takip_panel, name="soru_takip_panel"),
@@ -210,6 +292,11 @@ urlpatterns = [
         "akademik-mudahale/excel/",
         akademik_mudahale_views.mudahale_excel,
         name="akademik_mudahale_excel",
+    ),
+    path(
+        "akademik-mudahale/pdf/",
+        akademik_mudahale_views.mudahale_pdf,
+        name="akademik_mudahale_pdf",
     ),
     path(
         "akademik-mudahale/<int:pk>/",
@@ -263,6 +350,16 @@ urlpatterns = [
         "etut-plani/api/havuz/",
         etut_plan_views.etut_plan_havuz_ekle,
         name="etut_plan_havuz_ekle",
+    ),
+    path(
+        "etut-plani/api/havuz-sil/",
+        etut_plan_views.etut_plan_havuz_sil,
+        name="etut_plan_havuz_sil",
+    ),
+    path(
+        "etut-plani/api/havuz-sirala/",
+        etut_plan_views.etut_plan_havuz_sirala,
+        name="etut_plan_havuz_sirala",
     ),
     path(
         "etut-plani/api/kopyala/",
@@ -346,6 +443,8 @@ urlpatterns = [
     path("finans/politikalar/", finans_views.finans_politikalar, name="finans_politikalar"),
     path("finans/indirimler/", finans_views.finans_indirimler, name="finans_indirimler"),
     path("finans/raporlar/", finans_views.finans_raporlar, name="finans_raporlar"),
+    path("finans/raporlar/pdf/", finans_views.finans_rapor_pdf, name="finans_rapor_pdf"),
+    path("finans/raporlar/excel/", finans_views.finans_rapor_excel, name="finans_rapor_excel"),
     path("finans/ayarlar/", finans_views.finans_ayarlar, name="finans_ayarlar"),
 
     path("rehberlik/", rehberlik_views.rehberlik_listesi, name="rehberlik_listesi"),
@@ -401,6 +500,11 @@ urlpatterns = [
         "disiplin-kurulu/ayarlar/",
         disiplin_kurul_views.disiplin_kurul_ayarlar,
         name="disiplin_kurul_ayarlar",
+    ),
+    path(
+        "disiplin-kurulu/ayarlar/gundem-pdf/",
+        disiplin_kurul_views.disiplin_kurul_gundem_pdf,
+        name="disiplin_kurul_gundem_pdf",
     ),
     path(
         "disiplin-kurulu/rapor/",
@@ -482,9 +586,44 @@ urlpatterns = [
         name="veli_talebe_sinavlar",
     ),
     path(
+        "veli/talebe/<int:talebe_id>/degerlendirme-karne-pdf/",
+        veli_views.veli_talebe_degerlendirme_karne_pdf,
+        name="veli_talebe_degerlendirme_karne_pdf",
+    ),
+    path(
         "veli/talebe/<int:talebe_id>/dini-ders/",
         veli_views.veli_talebe_dini_ders,
         name="veli_talebe_dini_ders",
+    ),
+    path(
+        "veli/talebe/<int:talebe_id>/soru/",
+        veli_views.veli_talebe_soru,
+        name="veli_talebe_soru",
+    ),
+    path(
+        "veli/talebe/<int:talebe_id>/ders-notlari/",
+        veli_views.veli_talebe_ders_notlari,
+        name="veli_talebe_ders_notlari",
+    ),
+    path(
+        "veli/talebe/<int:talebe_id>/yoklama/",
+        veli_views.veli_talebe_yoklama,
+        name="veli_talebe_yoklama",
+    ),
+    path(
+        "veli/talebe/<int:talebe_id>/namaz/",
+        veli_views.veli_talebe_namaz,
+        name="veli_talebe_namaz",
+    ),
+    path(
+        "veli/talebe/<int:talebe_id>/akademik-mudahale/",
+        veli_views.veli_talebe_mudahale,
+        name="veli_talebe_mudahale",
+    ),
+    path(
+        "veli/talebe/<int:talebe_id>/sohbet/",
+        veli_views.veli_talebe_sohbet,
+        name="veli_talebe_sohbet",
     ),
     path(
         "veli/talebe/<int:talebe_id>/randevu/",
@@ -523,5 +662,15 @@ urlpatterns = [
         "ogretmen-panel/ders-programi/pdf/",
         ogretmen_views.ogretmen_ders_programi_pdf,
         name="ogretmen_ders_programi_pdf",
+    ),
+    path(
+        "ogretmen-panel/degerlendirmeler/",
+        ogretmen_views.ogretmen_degerlendirmeler,
+        name="ogretmen_degerlendirmeler",
+    ),
+    path(
+        "ogretmen-panel/degerlendirmeler/talebe/<int:talebe_id>/karne-pdf/",
+        ogretmen_views.ogretmen_talebe_karne_pdf,
+        name="ogretmen_talebe_karne_pdf",
     ),
 ]

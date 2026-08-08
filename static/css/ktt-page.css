@@ -3,13 +3,15 @@
 .ktt-page {
     width: 100%;
     max-width: none;
+    min-width: 0;
     margin: 0;
     padding: 0 0 40px;
     box-sizing: border-box;
+    overflow-x: clip;
 }
 
 .ktt-page-head {
-    margin-bottom: 22px;
+    margin-bottom: 0;
 }
 
 .ktt-page-head .kicker {
@@ -17,28 +19,30 @@
     font-size: 11px;
     font-weight: 700;
     letter-spacing: .08em;
-    color: #64748b;
+    color: rgba(255, 255, 255, 0.72);
 }
 
 .ktt-page-head h1 {
     margin: 0;
     font-size: 26px;
-    color: #0f172a;
+    color: #fff;
 }
 
 .ktt-split {
     display: grid;
-    grid-template-columns: minmax(480px, 46%) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
     gap: 22px;
     align-items: start;
+    width: 100%;
+    min-width: 0;
 }
 
 @media (max-width: 1180px) {
-    .ktt-split { grid-template-columns: minmax(420px, 48%) minmax(0, 1fr); }
+    .ktt-split { grid-template-columns: minmax(0, 340px) minmax(0, 1fr); }
 }
 
 @media (max-width: 980px) {
-    .ktt-split { grid-template-columns: 1fr; }
+    .ktt-split { grid-template-columns: minmax(0, 1fr); }
 }
 
 .ktt-form-card {
@@ -287,14 +291,19 @@
 .ktt-outline-btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
-    padding: 10px 16px;
-    border-radius: 10px;
+    min-height: 44px;
+    min-width: 7.75rem;
+    padding: 0 18px;
+    border-radius: 12px;
     font-size: 13px;
     font-weight: 600;
     text-decoration: none;
     border: 1.5px solid;
     background: #fff;
+    box-sizing: border-box;
+    white-space: nowrap;
 }
 
 .ktt-outline-btn.green { color: #16a34a; border-color: #16a34a; }
@@ -328,9 +337,45 @@
 }
 
 .ktt-report-actions {
-    display: flex;
+    display: inline-flex;
     gap: 10px;
     flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.pdf-sayfa-sec {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.pdf-sayfa-sec-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.result-header-actions .pdf-sayfa-sec-label,
+.ktt-page-head .pdf-sayfa-sec-label {
+    color: #fff !important;
+}
+
+.pdf-sayfa-sec-select {
+    min-width: 120px;
+    border: 1px solid #cdd6e4;
+    border-radius: 10px;
+    padding: 7px 10px;
+    font-size: 0.86rem;
+    background: #fff;
+    color: #0f172a;
+}
+
+.result-header-actions .pdf-sayfa-sec {
+    margin-right: 2px;
 }
 
 .ktt-filter-grid {

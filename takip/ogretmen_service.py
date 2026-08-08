@@ -9,6 +9,7 @@ from typing import Any
 from django.contrib.auth.models import User
 from django.utils import timezone
 
+from takip.duyuru_service import ogretmen_duyurulari
 from takip.veli_randevu_service import ogretmen_randevu_listesi
 from takip.models import EtutHocasi, SinifSube, Talebe
 from takip.user_helpers import etut_hocasi_for_user
@@ -58,6 +59,37 @@ def ogretmen_paneli_kullanicisi_mi(user: User) -> bool:
     return not profil.aktif
 
 
+def ogretmen_brans_etiketi(hoca: EtutHocasi | None) -> str:
+    """Header alt satırı: örn. 'Sosyal Bilgiler Öğretmeni'."""
+    if not hoca:
+        return "Öğretmen"
+
+    from django.db.models import Count
+
+    from takip.ogretmen_not_models import OgretmenSinavNotu
+
+    # Önce panelde fiilen girdiği ders (daha doğru unvan)
+    ders = (
+        OgretmenSinavNotu.objects.filter(etut_hocasi=hoca)
+        .values("ders__ad")
+        .annotate(adet=Count("id"))
+        .order_by("-adet")
+        .values_list("ders__ad", flat=True)
+        .first()
+    )
+    if ders:
+        return f"{ders} Öğretmeni"
+
+    try:
+        profil = hoca.odeme_profili
+        if profil and profil.brans_id and profil.brans.ad:
+            return f"{profil.brans.ad} Öğretmeni"
+    except Exception:
+        pass
+
+    return "Öğretmen"
+
+
 def _hafta_araligi(ref: date | None = None) -> tuple[int, date, date]:
     ref = ref or timezone.localdate()
     yil_bas = date(ref.year, 8, 1)
@@ -74,7 +106,7 @@ def _demo_siniflar(hoca: EtutHocasi) -> list[OgretmenSinifKarti]:
     kartlar: list[OgretmenSinifKarti] = []
 
     for sinif in siniflar:
-        sayi = Talebe.objects.filter(sinif_sube=sinif, aktif=True, etut_hocasi=hoca).count()
+        sayi = Talebe.objects.filter(sinif_sube=sinif, aktif=True).count()
         etiket = f"{sinif.sinif}-{sinif.sube}"
         kartlar.append(
             OgretmenSinifKarti(
@@ -140,16 +172,7 @@ def ogretmen_dashboard_verisi(hoca: EtutHocasi) -> dict[str, Any]:
     hafta_no, baslangic, bitis = _hafta_araligi()
     toplam_ogrenci = sum(s.ogrenci_sayisi for s in siniflar)
 
-    duyurular = list(veli_duyurulari()[:2])
-    if not duyurular:
-        duyurular = [
-            {
-                "baslik": "Yeni Dönem",
-                "ozet": "Yeni eğitim döneminde tüm öğrenci ve öğretmenlerimize başarılar dileriz.",
-                "tarih_goster": "13.07.2026",
-                "yeni": True,
-            }
-        ]
+    duyurular = list(ogretmen_duyurulari()[:8])
 
     return {
         "hoca": hoca,
@@ -167,9 +190,12 @@ def ogretmen_dashboard_verisi(hoca: EtutHocasi) -> dict[str, Any]:
 
 
 def _program_gunleri() -> list[dict[str, Any]]:
-    return [
+    """Yalnızca dersi olan günleri döndürür."""
+    gunler = [
         {
             "gun": "Salı",
+            "slug": "sali",
+            "kisa": "Sal",
             "dersler": [
                 {"saat": "14:40 - 15:20", "sinif": "5-A", "ders": "Sosyal Bilgiler"},
                 {"saat": "15:30 - 16:10", "sinif": "6-B", "ders": "Sosyal Bilgiler"},
@@ -179,6 +205,8 @@ def _program_gunleri() -> list[dict[str, Any]]:
         },
         {
             "gun": "Çarşamba",
+            "slug": "carsamba",
+            "kisa": "Çar",
             "dersler": [
                 {"saat": "14:40 - 15:20", "sinif": "5-B", "ders": "Sosyal Bilgiler"},
                 {"saat": "15:30 - 16:10", "sinif": "5-A", "ders": "Sosyal Bilgiler"},
@@ -186,6 +214,7 @@ def _program_gunleri() -> list[dict[str, Any]]:
             ],
         },
     ]
+    return [g for g in gunler if g.get("dersler")]
 
 
 def ogretmen_program_verisi(hoca: EtutHocasi) -> dict[str, Any]:
@@ -216,6 +245,10 @@ def seed_ogretmen_panel_demo() -> None:
         hoca.ad_soyad = "Kemal Demirci"
         hoca.save(update_fields=["ad_soyad"])
 
-    siniflar = list(SinifSube.objects.filter(aktif=True).order_by("sinif", "sube")[:2])
-    if len(siniflar) >= 2:
+    siniflar = list(
+        SinifSube.objects.filter(aktif=True, sinif="8").order_by("sube")[:2]
+    )
+    if len(siniflar) < 2:
+        siniflar = list(SinifSube.objects.filter(aktif=True).order_by("sinif", "sube")[:2])
+    if siniflar:
         hoca.sorumlu_sinif_subeler.set(siniflar)

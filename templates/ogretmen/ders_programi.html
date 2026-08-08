@@ -4,19 +4,22 @@
 {% block content %}
 <div class="dash-home ogretmen-dash">
 
-{% include "includes/panel_hero.html" with title="Haftalık ders programım" meta="Gün ve saat bazlı ders dağılımı" show_date=True %}
+{% include "includes/panel_hero.html" with title="Haftalık ders programım" meta="Yalnızca dersi olan günler" show_date=True %}
 
-    <section class="ogretmen-program-page dash-panel">
-        <div class="dash-panel-head">
-            <div>
-                <p class="dash-eyebrow">Program</p>
-                <h2>Haftalık ders planı</h2>
-            </div>
-            <a href="{% url 'ogretmen_ders_programi_pdf' %}" class="dash-text-btn" target="_blank">PDF indir</a>
+<section class="ogretmen-program-page dash-panel">
+    <div class="dash-panel-head">
+        <div>
+            <p class="dash-eyebrow">Program</p>
+            <h2>Haftalık ders planı</h2>
         </div>
-        {% for gun in gunler %}
-        <div class="og-program-day-block">
-            <div class="og-program-day-label">{{ gun.gun|upper }}</div>
+        <a href="{% url 'ogretmen_ders_programi_pdf' %}" class="dash-text-btn dash-text-btn-strong">PDF indir</a>
+    </div>
+
+    {% for gun in gunler %}
+    {% if gun.dersler %}
+    <div class="og-program-day-block">
+        <div class="og-program-day-label">{{ gun.gun }}</div>
+        <div class="og-table-wrap og-program-table-wrap">
             <table class="og-program-table">
                 <thead>
                     <tr>
@@ -29,15 +32,19 @@
                     {% for d in gun.dersler %}
                     <tr>
                         <td>{{ d.saat }}</td>
-                        <td><span class="og-class-pill">[{{ d.sinif }}]</span></td>
+                        <td><span class="og-class-pill">{{ d.sinif }}</span></td>
                         <td>{{ d.ders }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-        {% endfor %}
-    </section>
+    </div>
+    {% endif %}
+    {% empty %}
+    <p class="og-empty-note">Bu hafta için atanmış ders bulunmuyor.</p>
+    {% endfor %}
+</section>
 </div>
 {% endblock %}
 

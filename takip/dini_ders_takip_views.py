@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
+from django.utils.timezone import localdate
 
 from takip.dini_ders_takip_service import (
     cizelge_sidebar_ozeti,
@@ -32,6 +33,26 @@ def dini_ders_panel(request):
 
     seviye_id = request.GET.get("seviye") or request.POST.get("seviye_id")
     alan_id = request.GET.get("alan") or request.POST.get("alan_id")
+
+    # Örnek görünüm: seçim yoksa ilk dolu seviye + alan
+    if not seviye_id and not request.POST:
+        for s in seviyeler:
+            if yetkili_dini_talebeler(request.user).filter(dini_ders_seviyesi=s).exists():
+                seviye_id = str(s.pk)
+                break
+        if not seviye_id and seviyeler.exists():
+            seviye_id = str(seviyeler.first().pk)
+    if not alan_id and not request.POST and alanlar.exists():
+        # Seçili seviyede konu olan ilk alan
+        if seviye_id:
+            for a in alanlar:
+                if konular_for(
+                    seviyeler.filter(pk=seviye_id).first(), a
+                ).exists():
+                    alan_id = str(a.pk)
+                    break
+        if not alan_id:
+            alan_id = str(alanlar.first().pk)
 
     seviye = None
     alan = None
@@ -171,6 +192,8 @@ def dini_ders_rapor(request):
 @login_required
 @require_permission("dini_ders_takip", "export_excel")
 def dini_ders_excel(request):
+    from takip.excel_rapor import basit_rapor_xlsx, excel_http_yanit
+
     seviye_id = request.GET.get("seviye")
     alan_id = request.GET.get("alan")
     seviye = (
@@ -187,15 +210,6 @@ def dini_ders_excel(request):
     talebeler = yetkili_dini_talebeler(request.user).order_by("ad_soyad")
     if seviye:
         talebeler = talebeler.filter(dini_ders_seviyesi=seviye)
-
-    response = HttpResponse(content_type="text/csv; charset=utf-8")
-    response["Content-Disposition"] = 'attachment; filename="dini-ders-rapor.csv"'
-    response.write("\ufeff")
-
-    writer = csv.writer(response)
-    writer.writerow(
-        ["Talebe", "Seviye", "Alan", "Konu", "Durum", "Güncellenme"]
-    )
 
     from takip.models import DiniDersKonu, DiniDersKonuKaydi
 
@@ -215,22 +229,31 @@ def dini_ders_excel(request):
         ).select_related("talebe", "konu")
     }
 
+    satirlar = []
     for talebe in talebeler:
         if not talebe.dini_ders_seviyesi_id:
             continue
         for konu in konu_qs.filter(seviye=talebe.dini_ders_seviyesi):
             kayit = kayit_map.get((talebe.id, konu.id))
-            writer.writerow(
+            satirlar.append(
                 [
-                    talebe.ad_soyad,
+                    (talebe.ad_soyad or "").upper(),
                     talebe.dini_ders_seviyesi.ad,
                     konu.alan.ad,
                     konu.ad,
                     "Tamamlandı" if kayit and kayit.tamamlandi else "Bekliyor",
-                    kayit.guncellenme.strftime("%d.%m.%Y %H:%M")
-                    if kayit
-                    else "",
+                    kayit.guncellenme.strftime("%d.%m.%Y %H:%M") if kayit else "",
                 ]
             )
 
-    return response
+    icerik = basit_rapor_xlsx(
+        baslik="Dini Ders Takip Raporu",
+        alt_baslik=localdate().strftime("%d.%m.%Y"),
+        kolon_basliklari=["Ad-Soyad", "Seviye", "Alan", "Konu", "Durum", "Güncellenme"],
+        satirlar=satirlar,
+        sayfa_adi="Dini Ders",
+        durum_kolonlari=[4],
+        ortala_kolonlari=[1, 5],
+        genislikler=[26, 14, 14, 22, 14, 16],
+    )
+    return excel_http_yanit(icerik, f"dini-ders-rapor_{localdate():%Y%m%d}.xlsx")

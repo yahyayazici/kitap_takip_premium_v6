@@ -1,0 +1,65 @@
+{% extends "veli/base.html" %}
+{% block title %}Yoklama · {{ talebe.ad_soyad }}{% endblock %}
+{% block content %}
+<div class="dash-home veli-dash veli-wow">
+{% include "veli/includes/talebe_layout_head.html" %}
+
+<section class="veli-wow-metrics" aria-label="Yoklama özeti">
+    <article class="veli-wow-metric veli-wow-metric-green">
+        <div class="veli-wow-metric-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+        </div>
+        <div>
+            <span class="veli-wow-metric-label">Katılım</span>
+            <strong class="veli-wow-metric-value">%{{ yoklama.katilim_yuzde }}</strong>
+            <span class="veli-wow-metric-note">Son 30 gün</span>
+        </div>
+    </article>
+    <article class="veli-wow-metric veli-wow-metric-blue">
+        <div class="veli-wow-metric-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        </div>
+        <div>
+            <span class="veli-wow-metric-label">Var</span>
+            <strong class="veli-wow-metric-value">{{ yoklama.var_gun }}</strong>
+            <span class="veli-wow-metric-note">gün</span>
+        </div>
+    </article>
+    <article class="veli-wow-metric veli-wow-metric-amber">
+        <div class="veli-wow-metric-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+        </div>
+        <div>
+            <span class="veli-wow-metric-label">Yok</span>
+            <strong class="veli-wow-metric-value">{{ yoklama.yok_gun }}</strong>
+            <span class="veli-wow-metric-note">gün</span>
+        </div>
+    </article>
+</section>
+
+<section class="veli-wow-card">
+    <header class="veli-wow-card-head">
+        <div>
+            <p class="veli-wow-kicker">Detay</p>
+            <h2>Detaylı yoklama · Son 30 gün</h2>
+        </div>
+    </header>
+    <div class="og-table-wrap" style="padding: 8px 16px 18px;">
+        <table class="og-grade-table">
+            <thead><tr><th>Tarih</th><th>Durum</th></tr></thead>
+            <tbody>
+                {% for k in yoklama.kayitlar %}
+                <tr>
+                    <td>{{ k.tarih|date:"d.m.Y" }}</td>
+                    <td><span class="veli-pill veli-pill-warn">Yok</span></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="2" class="og-empty-note">Son 30 günde yok kaydı yok.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+</div>
+{% endblock %}
+{% block extra_js %}{% include "includes/panel_date_js.html" %}{% endblock %}

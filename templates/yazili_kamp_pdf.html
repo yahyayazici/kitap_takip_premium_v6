@@ -325,14 +325,10 @@
                 <table class="results" style="margin-top:8px;">
                     <thead>
                         <tr>
-                            <th style="width:6%;">Sıra</th>
-                            <th class="left" style="width:28%;">Talebe</th>
-                            <th style="width:10%;">Sınıf</th>
-                            <th style="width:7%;">D</th>
-                            <th style="width:7%;">Y</th>
-                            <th style="width:7%;">B</th>
-                            <th style="width:10%;">Net</th>
-                            <th style="width:12%;">Puan</th>
+                            <th style="width:8%;">Sıra</th>
+                            <th class="left" style="width:48%;">Talebe</th>
+                            <th style="width:18%;">Sınıf</th>
+                            <th style="width:16%;">Puan</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -341,15 +337,11 @@
                             <td class="num-cell">{{ satir.sira }}</td>
                             <td class="left"><div class="cell-name">{{ satir.sonuc.talebe.ad_soyad }}</div></td>
                             <td>{{ satir.sonuc.talebe.sinif_sube|default:"—" }}</td>
-                            <td class="num-cell">{{ satir.sonuc.dogru }}</td>
-                            <td class="num-cell">{{ satir.sonuc.yanlis }}</td>
-                            <td class="num-cell">{{ satir.sonuc.bos }}</td>
-                            <td class="num-cell">{{ satir.sonuc.net }}</td>
                             <td class="score">{{ satir.sonuc.puan }}</td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="8" class="empty-note">Bu sınav için sonuç bulunmuyor.</td>
+                            <td colspan="4" class="empty-note">Bu sınav için sonuç bulunmuyor.</td>
                         </tr>
                         {% endfor %}
                     </tbody>

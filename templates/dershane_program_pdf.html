@@ -3,47 +3,261 @@
 <html lang="tr">
 <head>
     <meta charset="utf-8">
-    <title>{{ program.ad }} · Dershane Programı</title>
+    <title>{{ mod_baslik|default:program.ad }} · Dershane Programı</title>
     <style>
         @page { size: A4 landscape; margin: 10mm 12mm; }
-        body { font-family: "Poppins", sans-serif; font-size: 8px; color: #546173; margin: 0; }
-        h1 { margin: 0; font-size: 16px; color: #10213d; }
-        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-        th, td { border: 1px solid #e3eaf3; padding: 5px 6px; text-align: center; vertical-align: top; }
-        th { background: #f3f7fc; color: #173b80; font-size: 7px; text-transform: uppercase; }
-        .merged { background: #ecfdf5; font-weight: 600; letter-spacing: 0.04em; }
-        .merged-yemek { background: #fff7ed; }
+        body { font-family: "Calibri", "Segoe UI", sans-serif; font-size: 10px; color: #546173; margin: 0; }
+        h1 { margin: 0 0 2px; font-size: 16px; color: #1A3A6B; }
+        h2 { margin: 14px 0 6px; font-size: 12px; color: #10213d; page-break-after: avoid; }
+        .meta { margin: 0 0 10px; color: #6B7280; font-size: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+        th, td { border-bottom: 1px solid #D9DEE7; border-top: none; border-left: none; border-right: none; padding: 7px 8px; text-align: left; vertical-align: top; }
+        th { border-bottom: 2px solid #B8956C; color: #1A1A1A; font-size: 9px; text-transform: uppercase; letter-spacing: 0.03em; }
+        td.saat, th.saat { width: 90px; color: #6B7280; white-space: nowrap; }
+        .ders { font-weight: 700; color: #1A1A1A; display: block; }
+        .ogretmen { color: #6B7280; font-size: 9px; }
+        .merged { background: #F8FAFC; font-weight: 600; letter-spacing: 0.03em; text-align: center; color: #1A3A6B; }
+        .merged-yemek { background: #FFF7ED; }
+        .merged-namaz { background: #ECFDF5; }
+        .timeline td { padding: 8px 10px; }
+        .empty { color: #9CA3AF; font-style: italic; }
+        .panel { margin-bottom: 16px; page-break-inside: avoid; }
+        .gun-panel { margin-bottom: 18px; page-break-before: always; }
+        .gun-panel:first-of-type { page-break-before: avoid; }
     </style>
 </head>
 <body>
-    <h1>{{ program.ad }}</h1>
-    <p>{{ program.tarih_araligi_goster }} · {{ gun_adi }}</p>
-    <table>
-        <thead>
-            <tr>
-                <th>Saat</th>
-                {% for grup in gruplar %}
-                <th>{{ grup.etiket }}</th>
+    <h1>{{ mod_baslik|default:program.ad }}</h1>
+    <p class="meta">
+        {{ program.ad }}
+        {% if tum_gunler %} · Tüm günler · Tüm sınıflar{% elif gun_adi %} · {{ gun_adi }}{% endif %}
+        {% if program.tarih_araligi_goster %} · {{ program.tarih_araligi_goster }}{% endif %}
+        {% if filtre.sinif %} · {{ filtre.sinif }}. Sınıf{% endif %}
+        {% if filtre.etut_grubu and gorunum.gruplar %} · {{ gorunum.gruplar.0.etiket }}{% endif %}
+        {% if filtre.ogretmen %} · {{ filtre.ogretmen }}{% endif %}
+    </p>
+
+    {% if tum_gunler and gun_panelleri %}
+        {% for panel in gun_panelleri %}
+        <div class="gun-panel">
+            <h2>{{ panel.gun_adi }}</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th class="saat">Saat</th>
+                        {% for grup in panel.gruplar %}
+                        <th>{{ grup.etiket }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for satir in panel.matris %}
+                    {% if satir.birlestirilmis %}
+                    <tr>
+                        <td class="saat">{{ satir.saat }}</td>
+                        <td colspan="{{ panel.gruplar|length }}" class="merged {% if satir.tur == 'yemek' %}merged-yemek{% elif satir.tur == 'namaz' %}merged-namaz{% endif %}">{{ satir.birlestirilmis_metin }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td class="saat">{{ satir.saat }}</td>
+                        {% for hucre in satir.hucreler %}
+                        <td>
+                            {% if not hucre.bos %}
+                            <span class="ders">{{ hucre.ders }}</span>
+                            <span class="ogretmen">{{ hucre.ogretmen }}</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endif %}
+                    {% empty %}
+                    <tr><td colspan="{{ panel.gruplar|length|add:1 }}" class="empty">Bu gün için satır yok.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% empty %}
+        <p class="empty">Haftalık program satırı bulunamadı.</p>
+        {% endfor %}
+
+    {% elif gorunum.tip == "etut" %}
+        {% if gorunum.tek_grup %}
+        <h2>{{ gorunum.gruplar.0.etiket }} · {{ gun_adi }} akışı</h2>
+        <table class="timeline">
+            <thead>
+                <tr>
+                    <th class="saat">Saat</th>
+                    <th>Ders / Faaliyet</th>
+                    <th>Öğretmen</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for satir in gorunum.satirlar %}
+                <tr>
+                    <td class="saat">{{ satir.saat }}</td>
+                    {% if satir.birlestirilmis %}
+                    <td colspan="2" class="merged {% if satir.tur == 'namaz' %}merged-namaz{% elif satir.tur == 'yemek' %}merged-yemek{% endif %}">{{ satir.metin }}</td>
+                    {% else %}
+                        {% with hucre=satir.hucreler.0 %}
+                        <td>
+                            {% if hucre and not hucre.bos %}
+                            <span class="ders">{{ hucre.ders }}</span>
+                            {% else %}
+                            <span class="empty">Boş saat</span>
+                            {% endif %}
+                        </td>
+                        <td class="ogretmen">{% if hucre and not hucre.bos %}{{ hucre.ogretmen }}{% else %}—{% endif %}</td>
+                        {% endwith %}
+                    {% endif %}
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" class="empty">Bu etüt grubu için program yok.</td></tr>
                 {% endfor %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for satir in matris %}
-            {% if satir.birlestirilmis %}
-            <tr>
-                <td>{{ satir.saat }}</td>
-                <td colspan="{{ gruplar|length }}" class="merged {% if satir.tur == 'yemek' %}merged-yemek{% endif %}">{{ satir.birlestirilmis_metin }}</td>
-            </tr>
-            {% else %}
-            <tr>
-                <td>{{ satir.saat }}</td>
-                {% for hucre in satir.hucreler %}
-                <td>{% if not hucre.bos %}<strong>{{ hucre.ders }}</strong><br>{{ hucre.ogretmen }}{% endif %}</td>
+            </tbody>
+        </table>
+        {% else %}
+        <table>
+            <thead>
+                <tr>
+                    <th class="saat">Saat</th>
+                    {% for g in gorunum.gruplar %}
+                    <th>{{ g.etiket }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for satir in gorunum.satirlar %}
+                <tr>
+                    <td class="saat">{{ satir.saat }}</td>
+                    {% if satir.birlestirilmis %}
+                    <td colspan="{{ gorunum.gruplar|length }}" class="merged">{{ satir.metin }}</td>
+                    {% else %}
+                        {% for hucre in satir.hucreler %}
+                        <td>
+                            {% if not hucre.bos %}
+                            <span class="ders">{{ hucre.ders }}</span>
+                            <span class="ogretmen">{{ hucre.ogretmen }}</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    {% endif %}
+                </tr>
                 {% endfor %}
-            </tr>
-            {% endif %}
-            {% endfor %}
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+        {% endif %}
+
+    {% elif gorunum.tip == "sinif" %}
+        {% for panel in gorunum.paneller %}
+        <div class="panel">
+            <h2>{{ panel.baslik }}</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th class="saat">Saat</th>
+                        {% for g in panel.gruplar %}
+                        <th>{{ g.etiket }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for satir in panel.satirlar %}
+                    <tr>
+                        <td class="saat">{{ satir.saat }}</td>
+                        {% if satir.birlestirilmis %}
+                        <td colspan="{{ panel.gruplar|length }}" class="merged {% if satir.tur == 'namaz' %}merged-namaz{% elif satir.tur == 'yemek' %}merged-yemek{% endif %}">{{ satir.metin }}</td>
+                        {% else %}
+                            {% for hucre in satir.hucreler %}
+                            <td>
+                                {% if not hucre.bos %}
+                                <span class="ders">{{ hucre.ders }}</span>
+                                <span class="ogretmen">{{ hucre.ogretmen }}</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        {% endif %}
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="{{ panel.gruplar|length|add:1 }}" class="empty">Bu sınıf için satır yok.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% empty %}
+        <p class="empty">Gösterilecek sınıf bulunamadı.</p>
+        {% endfor %}
+
+    {% elif gorunum.tip == "ogretmen" %}
+        {% if not gorunum.ogretmenler %}
+        <p class="empty">Bu günde atanmış öğretmen yok.</p>
+        {% else %}
+        <table>
+            <thead>
+                <tr>
+                    <th class="saat">Saat</th>
+                    {% for ad in gorunum.ogretmenler %}
+                    <th>{{ ad }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for satir in gorunum.satirlar %}
+                <tr>
+                    <td class="saat">{{ satir.saat }}</td>
+                    {% if satir.birlestirilmis %}
+                    <td colspan="{{ gorunum.ogretmenler|length }}" class="merged {% if satir.tur == 'namaz' %}merged-namaz{% elif satir.tur == 'yemek' %}merged-yemek{% endif %}">{{ satir.metin }}</td>
+                    {% else %}
+                        {% for hucre in satir.hucreler %}
+                        <td>
+                            {% if not hucre.bos %}
+                                {% for k in hucre.kayitlar %}
+                                <span class="ders">{{ k.ders }}</span>
+                                <span class="ogretmen">{{ k.grup }}</span>
+                                {% endfor %}
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+    {% else %}
+        {# Genel matris — filtre uygulanmış gruplar #}
+        <table>
+            <thead>
+                <tr>
+                    <th class="saat">Saat</th>
+                    {% for grup in gruplar %}
+                    <th>{{ grup.etiket }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for satir in matris %}
+                {% if satir.birlestirilmis %}
+                <tr>
+                    <td class="saat">{{ satir.saat }}</td>
+                    <td colspan="{{ gruplar|length }}" class="merged {% if satir.tur == 'yemek' %}merged-yemek{% elif satir.tur == 'namaz' %}merged-namaz{% endif %}">{{ satir.birlestirilmis_metin }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td class="saat">{{ satir.saat }}</td>
+                    {% for hucre in satir.hucreler %}
+                    <td>
+                        {% if not hucre.bos %}
+                        <span class="ders">{{ hucre.ders }}</span>
+                        <span class="ogretmen">{{ hucre.ogretmen }}</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
 </body>
 </html>

@@ -1,88 +1,175 @@
 {% extends "veli/base.html" %}
-{% block title %}{{ talebe.ad_soyad }} · Dashboard{% endblock %}
+{% load static %}
+{% block title %}{{ talebe.ad_soyad }} · Ana Sayfa{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/duyuru-carousel.css' %}">
+{% endblock %}
 {% block content %}
-<div class="dash-home veli-dash">
+<div class="dash-home veli-dash veli-wow">
     {% include "veli/includes/talebe_layout_head.html" %}
 
-    <section class="dash-metrics">
-        <article class="dash-stat dash-stat-blue">
-            <span class="dash-stat-label">Son deneme neti</span>
-            {% if kpi.son_deneme %}
-            <strong class="dash-stat-value">{{ kpi.son_deneme.toplam_net }}</strong>
-            <span class="dash-stat-note">{{ kpi.son_deneme.deneme.ad|truncatechars:28 }}</span>
-            {% else %}
-            <strong class="dash-stat-value">—</strong>
-            <span class="dash-stat-note">Henüz deneme kaydı yok</span>
-            {% endif %}
-        </article>
-        <article class="dash-stat dash-stat-violet">
-            <span class="dash-stat-label">Son KTT puanı</span>
-            {% if kpi.son_ktt %}
-            <strong class="dash-stat-value">{{ kpi.son_ktt.puan }}</strong>
-            <span class="dash-stat-note">{{ kpi.son_ktt.ktt.ders.ad }} · {{ kpi.son_ktt.ktt.ad|truncatechars:24 }}</span>
-            {% else %}
-            <strong class="dash-stat-value">—</strong>
-            <span class="dash-stat-note">Henüz KTT kaydı yok</span>
-            {% endif %}
-        </article>
-        <article class="dash-stat dash-stat-green">
-            <span class="dash-stat-label">Haftalık soru neti</span>
-            <strong class="dash-stat-value">{{ kpi.haftalik_soru.toplam_net }}</strong>
-            <span class="dash-stat-note">{{ kpi.haftalik_soru.toplam_soru }} soru · {{ kpi.haftalik_soru.gun_sayisi }} gün</span>
-        </article>
-        <article class="dash-stat dash-stat-amber">
-            <span class="dash-stat-label">Dini ders</span>
-            <strong class="dash-stat-value">%{{ kpi.dini_ders_yuzde }}</strong>
-            <span class="dash-stat-note">Müfredat tamamlanma</span>
-        </article>
+    {% include "includes/duyuru_carousel.html" %}
+
+    <section class="veli-wow-metrics" aria-label="Önizleme">
+        <a href="{% url 'veli_talebe_sinavlar' talebe.id %}?tab=deneme" class="veli-wow-metric veli-wow-metric-blue">
+            <div class="veli-wow-metric-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+            </div>
+            <div>
+                <span class="veli-wow-metric-label">Son deneme</span>
+                {% if kpi.son_deneme %}
+                <strong class="veli-wow-metric-value">{{ kpi.son_deneme.toplam_net }}</strong>
+                <span class="veli-wow-metric-note">{{ kpi.son_deneme.deneme.ad|truncatechars:28 }}</span>
+                {% else %}
+                <strong class="veli-wow-metric-value">—</strong>
+                <span class="veli-wow-metric-note">Kayıt yok</span>
+                {% endif %}
+            </div>
+        </a>
+        <a href="{% url 'veli_talebe_sinavlar' talebe.id %}?tab=ktt" class="veli-wow-metric veli-wow-metric-violet">
+            <div class="veli-wow-metric-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <div>
+                <span class="veli-wow-metric-label">Son KTT</span>
+                {% if kpi.son_ktt %}
+                <strong class="veli-wow-metric-value">{{ kpi.son_ktt.puan }}</strong>
+                <span class="veli-wow-metric-note">{{ kpi.son_ktt.ktt.ad|truncatechars:28 }}</span>
+                {% else %}
+                <strong class="veli-wow-metric-value">—</strong>
+                <span class="veli-wow-metric-note">Kayıt yok</span>
+                {% endif %}
+            </div>
+        </a>
+        <a href="{% url 'veli_talebe_ders_notlari' talebe.id %}" class="veli-wow-metric veli-wow-metric-green">
+            <div class="veli-wow-metric-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            </div>
+            <div>
+                <span class="veli-wow-metric-label">Haftalık ders ort.</span>
+                <strong class="veli-wow-metric-value">{% if kpi.haftalik_ders_ort is not None %}{{ kpi.haftalik_ders_ort }}{% else %}—{% endif %}</strong>
+                <span class="veli-wow-metric-note">Öğretmen notları</span>
+            </div>
+        </a>
+        <a href="{% url 'veli_talebe_ders_notlari' talebe.id %}" class="veli-wow-metric veli-wow-metric-amber">
+            <div class="veli-wow-metric-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+            </div>
+            <div>
+                <span class="veli-wow-metric-label">Etüt ders ort.</span>
+                <strong class="veli-wow-metric-value">{% if kpi.etut_ders_ort is not None %}{{ kpi.etut_ders_ort }}{% else %}—{% endif %}</strong>
+                <span class="veli-wow-metric-note">{% if talebe.etut_hocasi %}{{ talebe.etut_hocasi.ad_soyad }}{% else %}Etüt hocası{% endif %}</span>
+            </div>
+        </a>
+        <a href="{% url 'veli_talebe_soru' talebe.id %}" class="veli-wow-metric veli-wow-metric-cyan">
+            <div class="veli-wow-metric-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+            </div>
+            <div>
+                <span class="veli-wow-metric-label">Haftalık soru</span>
+                <strong class="veli-wow-metric-value">{{ kpi.haftalik_soru.toplam_soru }}</strong>
+                <span class="veli-wow-metric-note">Net {{ kpi.haftalik_soru.toplam_net }} · {{ kpi.haftalik_soru.gun_sayisi }} gün</span>
+            </div>
+        </a>
+        <a href="{% url 'veli_talebe_mudahale' talebe.id %}" class="veli-wow-metric veli-wow-metric-rose">
+            <div class="veli-wow-metric-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+            </div>
+            <div>
+                <span class="veli-wow-metric-label">Akademik müdahale</span>
+                <strong class="veli-wow-metric-value">{{ kpi.mudahale_sayisi }}</strong>
+                <span class="veli-wow-metric-note">Son 30 gün</span>
+            </div>
+        </a>
     </section>
 
-    <div class="dash-split">
-        <section class="dash-panel">
-            <div class="dash-panel-head">
-                <div>
-                    <p class="dash-eyebrow">Duyurular</p>
-                    <h2>Güncel bildirimler</h2>
-                </div>
-                <a href="{% url 'veli_duyurular' %}" class="dash-text-btn">Tümü</a>
-            </div>
-            <div class="dash-feed og-feed-stack">
-                {% for d in duyurular %}
-                <article class="dash-feed-item dash-accent-teal">
-                    <span class="dash-feed-tag">Genel</span>
-                    <h3>{{ d.baslik }}</h3>
-                    <p>{{ d.ozet|truncatechars:120 }}</p>
-                </article>
-                {% empty %}
-                <p class="og-empty-note">Yeni duyuru yok.</p>
-                {% endfor %}
-            </div>
-        </section>
+    <section class="veli-wow-week">
+        <div class="veli-wow-week-copy">
+            <p class="veli-wow-week-kicker">Aktif hafta</p>
+            <h2>{{ kpi.aktif_hafta_baslangic|date:"d.m.Y" }} – {{ kpi.aktif_hafta_bitis|date:"d.m.Y" }}</h2>
+            <p>Haftalık ders ortalaması {% if kpi.haftalik_ders_ort is not None %}{{ kpi.haftalik_ders_ort }}{% else %}—{% endif %}. Notları ve haftalık arşivi buradan açabilirsiniz.</p>
+        </div>
+        <a href="{% url 'veli_talebe_ders_notlari' talebe.id %}" class="veli-wow-cta">Ders notları →</a>
+    </section>
 
-        <section class="dash-panel">
-            <div class="dash-panel-head">
-                <div>
-                    <p class="dash-eyebrow">Özet</p>
-                    <h2>Son 30 gün</h2>
-                </div>
+    <section class="veli-wow-card">
+        <header class="veli-wow-card-head">
+            <div>
+                <p class="veli-wow-kicker">Bu hafta</p>
+                <h2>Ders notları</h2>
             </div>
-            <div class="veli-progress-row">
-                <header><span>Dini ders tamamlanma</span><strong>%{{ kpi.dini_ders_yuzde }}</strong></header>
-                <div class="veli-progress-bar"><span style="width:{{ kpi.dini_ders_yuzde }}%;"></span></div>
+            <a href="{% url 'veli_talebe_ders_notlari' talebe.id %}" class="veli-wow-link">Haftalar →</a>
+        </header>
+        <p class="veli-wow-hint">
+            Ortalama {% if kpi.haftalik_ders_ort is not None %}{{ kpi.haftalik_ders_ort }}{% else %}—{% endif %}
+        </p>
+        <div class="og-table-wrap" style="padding: 8px 16px 18px;">
+            <table class="og-grade-table">
+                <thead>
+                    <tr>
+                        <th>Ders</th>
+                        <th>Öğretmen</th>
+                        <th>Puan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for n in kpi.aktif_hafta_notlari %}
+                    <tr>
+                        <td>{{ n.ders.ad }}</td>
+                        <td>{{ n.etut_hocasi.ad_soyad }}</td>
+                        <td><strong>{{ n.puan|default:"—" }}</strong></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3" class="og-empty-note">Bu haftaya ait not yok.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="veli-wow-card">
+        <header class="veli-wow-card-head">
+            <div>
+                <p class="veli-wow-kicker">Özet</p>
+                <h2>Dini ders tamamlama</h2>
             </div>
-            <div class="veli-progress-row">
-                <header><span>Haftalık soru başarısı</span><strong>%{{ kpi.haftalik_soru.basari_orani }}</strong></header>
-                <div class="veli-progress-bar"><span style="width:{{ kpi.haftalik_soru.basari_orani }}%;"></span></div>
-            </div>
-            <div class="veli-progress-row">
-                <header><span>Akademik destek kaydı</span><strong>{{ kpi.mudahale_sayisi }}</strong></header>
-                <div class="veli-progress-bar"><span style="width:{% if kpi.mudahale_sayisi %}100{% else %}0{% endif %}%;"></span></div>
-            </div>
-        </section>
-    </div>
+            <a href="{% url 'veli_talebe_dini_ders' talebe.id %}" class="veli-wow-link">Detay</a>
+        </header>
+        {% if kpi.dini_ders_detay %}
+        <div class="veli-progress-row" style="margin: 14px 20px 0;">
+            <header><span>Genel tamamlanma</span><strong>%{{ kpi.dini_ders_detay.genel_yuzde }}</strong></header>
+            <div class="veli-progress-bar"><span style="width:{{ kpi.dini_ders_detay.genel_yuzde }}%;"></span></div>
+        </div>
+        <div class="og-table-wrap" style="padding: 8px 16px 18px;">
+            <table class="og-grade-table veli-dini-ozet-table">
+                <thead>
+                    <tr>
+                        <th>Alan</th>
+                        <th>Tamamlanan</th>
+                        <th>Toplam</th>
+                        <th>%</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alan in kpi.dini_ders_detay.alanlar %}
+                    <tr>
+                        <td>{{ alan.ad }}</td>
+                        <td>{{ alan.tamamlanan }}</td>
+                        <td>{{ alan.toplam }}</td>
+                        <td><strong>%{{ alan.yuzde }}</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="og-wow-empty">Dini ders seviyesi atanmamış.</p>
+        {% endif %}
+    </section>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 {% include "includes/panel_date_js.html" %}
+<script src="{% static 'js/duyuru-carousel.js' %}"></script>
 {% endblock %}

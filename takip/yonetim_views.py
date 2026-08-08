@@ -10,8 +10,12 @@ from django.views.decorators.http import require_POST
 from .models import (
     Duyuru,
     EtutHocasi,
+    HaftalikSohbetMevzuu,
     ImamMuezzinHavuzKaydi,
     ImamMuezzinListesi,
+    PanelKisayol,
+    PanelKisayolGorsel,
+    PanelMetrik,
     PersonelProfili,
     ProgramPlan,
     SinifSube,
@@ -25,6 +29,7 @@ from .models import (
     Zimmet,
 )
 from .imam_muezzin_service import bugunun_atamasi, otomatik_dagit
+from .dashboard_service import dashboard_kisayollari, dashboard_metrikleri
 from .imam_muezzin_yonetim_service import (
     atamalari_temizle,
     ay_araligi,
@@ -58,8 +63,6 @@ from .temizlik_yonetim_service import (
     talebe_ara,
     yonetim_merkezi,
 )
-from .yemekci_service import bugunun_atamalari as bugunun_yemek_atamalari
-from .yemekci_service import otomatik_dagit as yemekci_dagit
 from .panel_permissions import yonetim_erisimi_var
 from .program_service import bugunun_programi
 from .talebe_excel import (
@@ -69,6 +72,7 @@ from .talebe_excel import (
 )
 from .yonetim_forms import (
     DuyuruForm,
+    HaftalikSohbetMevzuuForm,
     ImamMuezzinAtamaFormSet,
     ImamMuezzinListesiForm,
     PersonelProfiliForm,
@@ -130,6 +134,14 @@ def dashboard(request):
         "son_talebeler": son_talebeler,
         "son_personeller": son_personeller,
         "siniflar": siniflar[:8],
+        "kisayollar": dashboard_kisayollari(request.user, hedef="yonetim"),
+        "metrikler": dashboard_metrikleri(
+            request.user,
+            hedef="yonetim",
+            baglam={
+                "talebe_sayisi": Talebe.objects.filter(aktif=True).count(),
+            },
+        ),
     }
 
     return render(
@@ -321,6 +333,7 @@ def talebe_listesi(request):
             "sinif_id": sinif_id,
             "rapor_siniflar": erisilebilir_siniflar(rapor_kaynak),
             "rapor_pdf_url": reverse("yonetim:talebe_liste_raporu_pdf"),
+            "rapor_excel_url": reverse("yonetim:talebe_liste_excel"),
             "kurum_raporu_goster": True,
         },
     )
@@ -340,6 +353,29 @@ def talebe_liste_raporu_pdf(request):
         sinif_sube_id=sinif_sube_ids[0] if len(sinif_sube_ids) == 1 else None,
         sinif_sube_ids=sinif_sube_ids,
         talebe_qs=Talebe.objects.all(),
+    )
+
+
+@yonetici_gerekli
+def talebe_liste_excel(request):
+    from .talebe_liste_raporu_service import talebe_liste_excel_yanit
+
+    qs = Talebe.objects.all()
+    sinif_id = request.GET.get("sinif", "").strip()
+    if sinif_id.isdigit():
+        qs = qs.filter(sinif_sube_id=int(sinif_id))
+    arama = request.GET.get("q", "").strip()
+    if arama:
+        qs = qs.filter(
+            Q(ad_soyad__icontains=arama)
+            | Q(talebe_no__icontains=arama)
+            | Q(etut_hocasi__ad_soyad__icontains=arama)
+        )
+
+    return talebe_liste_excel_yanit(
+        talebe_qs=qs,
+        baslik="Talebe Listesi — Kurum",
+        dosya_adi="talebe-listesi-kurum.xlsx",
     )
 
 
@@ -582,6 +618,219 @@ def duyuru_sil(request, pk):
     return redirect("yonetim:duyuru_listesi")
 
 
+@yonetici_gerekli
+def sohbet_mevzuu_listesi(request):
+    mevzular = HaftalikSohbetMevzuu.objects.select_related("olusturan").order_by(
+        "-hafta_baslangic",
+        "-id",
+    )
+    return render(
+        request,
+        "yonetim/sohbet_mevzuu_listesi.html",
+        {"mevzular": mevzular},
+    )
+
+
+@yonetici_gerekli
+def sohbet_mevzuu_ekle(request):
+    form = HaftalikSohbetMevzuuForm(request.POST or None)
+    if form.is_valid():
+        mevzu = form.save(commit=False)
+        mevzu.olusturan = request.user
+        mevzu.save()
+        messages.success(request, f"“{mevzu.baslik}” yayınlandı.")
+        return redirect("yonetim:sohbet_mevzuu_listesi")
+    return render(
+        request,
+        "yonetim/form.html",
+        {
+            "form": form,
+            "sayfa_basligi": "Sohbet Mevzuu Ekle",
+            "sayfa_aciklama": "Veli panelinde görünecek haftalık sohbet başlığı ve içeriğini girin.",
+            "geri_url": "yonetim:sohbet_mevzuu_listesi",
+        },
+    )
+
+
+@yonetici_gerekli
+def sohbet_mevzuu_duzenle(request, pk):
+    mevzu = get_object_or_404(HaftalikSohbetMevzuu, pk=pk)
+    form = HaftalikSohbetMevzuuForm(request.POST or None, instance=mevzu)
+    if form.is_valid():
+        mevzu = form.save()
+        messages.success(request, f"“{mevzu.baslik}” güncellendi.")
+        return redirect("yonetim:sohbet_mevzuu_listesi")
+    return render(
+        request,
+        "yonetim/form.html",
+        {
+            "form": form,
+            "sayfa_basligi": "Sohbet Mevzuu Düzenle",
+            "sayfa_aciklama": "Başlık, içerik ve hafta bilgisini güncelleyin.",
+            "geri_url": "yonetim:sohbet_mevzuu_listesi",
+        },
+    )
+
+
+@yonetici_gerekli
+@require_POST
+def sohbet_mevzuu_sil(request, pk):
+    mevzu = get_object_or_404(HaftalikSohbetMevzuu, pk=pk)
+    baslik = mevzu.baslik
+    mevzu.delete()
+    messages.success(request, f"“{baslik}” silindi.")
+    return redirect("yonetim:sohbet_mevzuu_listesi")
+
+
+@yonetici_gerekli
+def kisayol_gorsel_listesi(request):
+    from takip.dashboard_service import ICON_SECENEKLERI
+
+    kayitlar = list(PanelKisayol.objects.order_by("sira", "id"))
+    return render(
+        request,
+        "yonetim/kisayol_gorsel_listesi.html",
+        {
+            "kayitlar": kayitlar,
+            "ikonlar": ICON_SECENEKLERI,
+        },
+    )
+
+
+@yonetici_gerekli
+@require_POST
+def kisayol_gorsel_kaydet(request):
+    from django.utils.text import slugify
+
+    pk = request.POST.get("pk")
+    anahtar = (request.POST.get("anahtar") or "").strip()
+    baslik = (request.POST.get("baslik") or "").strip()
+    if not baslik:
+        messages.error(request, "Başlık gerekli.")
+        return redirect("yonetim:kisayol_gorsel_listesi")
+
+    if pk:
+        kayit = get_object_or_404(PanelKisayol, pk=pk)
+    else:
+        if not anahtar:
+            anahtar = slugify(baslik)[:40] or "kisayol"
+        base = anahtar
+        n = 2
+        while PanelKisayol.objects.filter(anahtar=anahtar).exists():
+            anahtar = f"{base}-{n}"[:40]
+            n += 1
+        kayit = PanelKisayol(anahtar=anahtar)
+
+    kayit.baslik = baslik
+    kayit.alt_baslik = (request.POST.get("alt_baslik") or "").strip()
+    kayit.icon = (request.POST.get("icon") or "book").strip()[:20]
+    kayit.mark = (request.POST.get("mark") or "").strip()[:8]
+    kayit.url_name = (request.POST.get("url_name") or "").strip()
+    kayit.url_ozel = (request.POST.get("url_ozel") or "").strip()
+    kayit.goster_personel = request.POST.get("goster_personel") == "1"
+    kayit.goster_yonetim = request.POST.get("goster_yonetim") == "1"
+    kayit.goster_veli = request.POST.get("goster_veli") == "1"
+    kayit.goster_ogretmen = request.POST.get("goster_ogretmen") == "1"
+    kayit.aktif = request.POST.get("aktif") == "1"
+    try:
+        kayit.sira = int(request.POST.get("sira") or 0)
+    except (TypeError, ValueError):
+        kayit.sira = 0
+    if request.FILES.get("gorsel"):
+        if kayit.gorsel:
+            kayit.gorsel.delete(save=False)
+        kayit.gorsel = request.FILES["gorsel"]
+    kayit.save()
+    messages.success(request, f"“{kayit.baslik}” kaydedildi.")
+    return redirect("yonetim:kisayol_gorsel_listesi")
+
+
+@yonetici_gerekli
+@require_POST
+def kisayol_gorsel_sil(request, pk):
+    kayit = get_object_or_404(PanelKisayol, pk=pk)
+    ad = kayit.baslik
+    if kayit.gorsel:
+        kayit.gorsel.delete(save=False)
+    kayit.delete()
+    messages.success(request, f"“{ad}” silindi.")
+    return redirect("yonetim:kisayol_gorsel_listesi")
+
+
+@yonetici_gerekli
+def metrik_listesi(request):
+    from takip.dashboard_service import ICON_SECENEKLERI, PANEL_METRIK_KATALOG
+
+    return render(
+        request,
+        "yonetim/metrik_listesi.html",
+        {
+            "kayitlar": list(PanelMetrik.objects.order_by("sira", "id")),
+            "katalog": PANEL_METRIK_KATALOG,
+            "ikonlar": ICON_SECENEKLERI,
+            "tonlar": PanelMetrik.Ton.choices,
+        },
+    )
+
+
+@yonetici_gerekli
+@require_POST
+def metrik_kaydet(request):
+    from django.utils.text import slugify
+
+    pk = request.POST.get("pk")
+    baslik = (request.POST.get("baslik") or "").strip()
+    anahtar = (request.POST.get("anahtar") or "").strip()
+    if not baslik:
+        messages.error(request, "Başlık gerekli.")
+        return redirect("yonetim:metrik_listesi")
+
+    if pk:
+        kayit = get_object_or_404(PanelMetrik, pk=pk)
+    else:
+        if not anahtar:
+            anahtar = slugify(baslik)[:40] or "metrik"
+        # Katalogdan ekleme
+        if PanelMetrik.objects.filter(anahtar=anahtar).exists() and not pk:
+            kayit = PanelMetrik.objects.get(anahtar=anahtar)
+        else:
+            base = anahtar
+            n = 2
+            while PanelMetrik.objects.filter(anahtar=anahtar).exists():
+                anahtar = f"{base}-{n}"[:40]
+                n += 1
+            kayit = PanelMetrik(anahtar=anahtar)
+
+    kayit.baslik = baslik
+    kayit.not_metni = (request.POST.get("not_metni") or "").strip()
+    kayit.ton = (request.POST.get("ton") or "blue").strip()
+    if kayit.ton not in PanelMetrik.Ton.values:
+        kayit.ton = PanelMetrik.Ton.BLUE
+    kayit.icon = (request.POST.get("icon") or "users").strip()[:20]
+    kayit.goster_personel = request.POST.get("goster_personel") == "1"
+    kayit.goster_yonetim = request.POST.get("goster_yonetim") == "1"
+    kayit.goster_veli = request.POST.get("goster_veli") == "1"
+    kayit.goster_ogretmen = request.POST.get("goster_ogretmen") == "1"
+    kayit.aktif = request.POST.get("aktif") == "1"
+    try:
+        kayit.sira = int(request.POST.get("sira") or 0)
+    except (TypeError, ValueError):
+        kayit.sira = 0
+    kayit.save()
+    messages.success(request, f"“{kayit.baslik}” kaydedildi.")
+    return redirect("yonetim:metrik_listesi")
+
+
+@yonetici_gerekli
+@require_POST
+def metrik_sil(request, pk):
+    kayit = get_object_or_404(PanelMetrik, pk=pk)
+    ad = kayit.baslik
+    kayit.delete()
+    messages.success(request, f"“{ad}” kaldırıldı.")
+    return redirect("yonetim:metrik_listesi")
+
+
 def _program_pdf_yanit(request, program):
     from .views import program_plan_pdf_yanit
 
@@ -634,6 +883,8 @@ def program_ekle(request):
 
 @yonetici_gerekli
 def program_duzenle(request, pk):
+    from takip.program_service import program_tum_donem_ozetleri
+
     program = get_object_or_404(ProgramPlan, pk=pk)
     form = ProgramPlanForm(request.POST or None, instance=program)
     formset = ProgramSatirFormSet(
@@ -657,6 +908,7 @@ def program_duzenle(request, pk):
             "form": form,
             "formset": formset,
             "program": program,
+            "sure_donemler": program_tum_donem_ozetleri(program),
         },
     )
 
@@ -668,6 +920,19 @@ def program_pdf(request, pk):
         pk=pk,
     )
     return _program_pdf_yanit(request, program)
+
+
+@yonetici_gerekli
+def program_excel(request, pk):
+    from takip.excel_rapor import excel_http_yanit
+    from takip.program_service import program_excel_icerik
+
+    program = get_object_or_404(
+        ProgramPlan.objects.prefetch_related("satirlar"),
+        pk=pk,
+    )
+    dosya, icerik = program_excel_icerik(program)
+    return excel_http_yanit(icerik, dosya)
 
 
 def _imam_pdf_yanit(request, liste):
@@ -927,20 +1192,11 @@ def temizlik_alan_duzenle(request, pk):
 
 @yonetici_gerekli
 def temizlik_listesi(request):
-    listeler = (
-        TemizlikListesi.objects.prefetch_related("atamalar")
-        .annotate(gun_sayisi=Count("atamalar", distinct=True))
-        .order_by("-baslangic_tarihi", "ad")
-    )
+    """Liste arşivi yok — doğrudan aktif görev paneline git."""
+    from .temizlik_service import temizlik_listesi_olustur_veya_al
 
-    return render(
-        request,
-        "yonetim/temizlik_listesi.html",
-        {
-            "listeler": listeler,
-            "bugun_atamalar": bugunun_atamalari(),
-        },
-    )
+    liste = temizlik_listesi_olustur_veya_al(request.user)
+    return redirect("yonetim:temizlik_gorev_panel", pk=liste.pk)
 
 
 @yonetici_gerekli
@@ -1129,9 +1385,6 @@ def temizlik_pdf(request, pk):
 
 @yonetici_gerekli
 def temizlik_rapor(request, pk):
-    import csv
-    from io import StringIO
-
     liste = get_object_or_404(TemizlikListesi, pk=pk)
     merkez = yonetim_merkezi(liste)
     filtre = {
@@ -1144,28 +1397,31 @@ def temizlik_rapor(request, pk):
     satirlar = rapor_satirlari(liste, **filtre)
 
     if request.GET.get("format") == "excel":
-        buffer = StringIO()
-        writer = csv.writer(buffer, delimiter=";")
-        writer.writerow(["Kat", "Mahal", "Talebe", "Sorumlu Personel", "Durum", "Tarih"])
-        for row in satirlar:
-            writer.writerow(
-                [
-                    row["kat"],
-                    row["mahal"],
-                    row["talebe"],
-                    row["sorumlular"],
-                    row["durum"],
-                    row["tarih"].strftime("%d.%m.%Y"),
-                ]
-            )
-        response = HttpResponse(
-            "\ufeff" + buffer.getvalue(),
-            content_type="text/csv; charset=utf-8",
+        from takip.excel_rapor import basit_rapor_xlsx, excel_http_yanit
+        from django.utils.timezone import localdate
+
+        rows = [
+            [
+                row["kat"],
+                row["mahal"],
+                (row["talebe"] or "").upper(),
+                row["sorumlular"],
+                row["durum"],
+                row["tarih"].strftime("%d.%m.%Y") if row.get("tarih") else "",
+            ]
+            for row in satirlar
+        ]
+        icerik = basit_rapor_xlsx(
+            baslik=f"Temizlik Raporu — {liste}",
+            alt_baslik=localdate().strftime("%d.%m.%Y"),
+            kolon_basliklari=["Kat", "Mahal", "Ad-Soyad", "Sorumlu Personel", "Durum", "Tarih"],
+            satirlar=rows,
+            sayfa_adi="Temizlik",
+            durum_kolonlari=[4],
+            ortala_kolonlari=[0, 5],
+            genislikler=[12, 18, 24, 22, 14, 12],
         )
-        response["Content-Disposition"] = (
-            f'attachment; filename="temizlik-rapor-{liste.pk}.csv"'
-        )
-        return response
+        return excel_http_yanit(icerik, f"temizlik-rapor-{liste.pk}.xlsx")
 
     if request.GET.get("format") == "pdf":
         q = request.GET.copy()
@@ -1252,105 +1508,131 @@ def yemek_ogun_duzenle(request, pk):
 
 @yonetici_gerekli
 def yemekci_listesi(request):
-    listeler = (
-        YemekciListesi.objects.prefetch_related("atamalar")
-        .annotate(gun_sayisi=Count("atamalar"))
-        .order_by("-baslangic_tarihi", "ad")
-    )
-
-    return render(
-        request,
-        "yonetim/yemekci_listesi.html",
-        {
-            "listeler": listeler,
-            "bugun_atamalar": bugunun_yemek_atamalari(),
-        },
-    )
+    """Eski öğün listesi → sınıf döngüsü paneli."""
+    return redirect("yemekcilik_panel")
 
 
 @yonetici_gerekli
 def yemekci_ekle(request):
-    form = YemekciListesiForm(request.POST or None)
-
-    if form.is_valid():
-        liste = form.save(commit=False)
-        liste.olusturan = request.user
-        liste.save()
-        form.save_m2m()
-        adet = yemekci_dagit(liste)
-        messages.success(
-            request,
-            f"“{liste.ad}” oluşturuldu. {adet} öğün-gün ataması yapıldı.",
-        )
-        return redirect("yonetim:yemekci_duzenle", pk=liste.pk)
-
-    return render(
-        request,
-        "yonetim/form.html",
-        {
-            "form": form,
-            "sayfa_basligi": "Yemekçilik Listesi Ekle",
-            "sayfa_aciklama": "Tarih aralığı, öğünler ve talebe havuzunu belirleyin.",
-            "geri_url": "yonetim:yemekci_listesi",
-        },
-    )
+    return redirect("yemekcilik_panel")
 
 
 @yonetici_gerekli
 def yemekci_duzenle(request, pk):
-    liste = get_object_or_404(YemekciListesi, pk=pk)
-    form = YemekciListesiForm(request.POST or None, instance=liste)
-    formset = YemekciAtamaFormSet(
-        request.POST or None,
-        instance=liste,
-        prefix="atamalar",
-    )
-
-    if request.method == "POST" and request.POST.get("action") == "redistribute":
-        if form.is_valid():
-            liste = form.save()
-            adet = yemekci_dagit(liste)
-            messages.success(
-                request,
-                f"Liste yeniden dağıtıldı. {adet} öğün-gün atandı.",
-            )
-        else:
-            messages.error(request, "Önce form hatalarını düzeltin.")
-        return redirect("yonetim:yemekci_duzenle", pk=liste.pk)
-
-    if request.method == "POST" and form.is_valid() and formset.is_valid():
-        with transaction.atomic():
-            form.save()
-            formset.save()
-
-        messages.success(request, f"“{liste.ad}” güncellendi.")
-        return redirect("yonetim:yemekci_duzenle", pk=liste.pk)
-
-    return render(
-        request,
-        "yonetim/yemekci_form.html",
-        {
-            "form": form,
-            "formset": formset,
-            "liste": liste,
-        },
-    )
+    return redirect("yemekcilik_panel")
 
 
 def _yemekci_pdf_yanit(request, liste):
-    from .views import yemekcilik_pdf_yanit
-
-    return yemekcilik_pdf_yanit(request, liste)
+    return redirect("yemekcilik_panel")
 
 
 @yonetici_gerekli
 def yemekci_pdf(request, pk):
-    liste = get_object_or_404(
-        YemekciListesi.objects.prefetch_related(
-            "atamalar__ogun",
-            "atamalar__talebe",
-            "atamalar__yardimci",
-        ),
-        pk=pk,
+    return redirect("yemekcilik_panel")
+
+
+@yonetici_gerekli
+def ogretmen_degerlendirme_rapor(request):
+    from django.utils.timezone import localdate
+
+    from config.branding import panel_branding_context
+    from takip.ogretmen_not_service import admin_degerlendirme_qs, talebe_karne_verisi
+    from takip.pdf_utils import html_to_pdf, make_pdf_response, pdf_engine_status, pdf_error_response
+    from django.template.loader import render_to_string
+
+    def _int_or_none(raw):
+        try:
+            return int(raw) if raw else None
+        except (TypeError, ValueError):
+            return None
+
+    sinif_id = _int_or_none(request.GET.get("sinif"))
+    talebe_id = _int_or_none(request.GET.get("talebe"))
+    hoca_id = _int_or_none(request.GET.get("hoca"))
+
+    notlar = list(
+        admin_degerlendirme_qs(
+            sinif_id=sinif_id,
+            talebe_id=talebe_id,
+            hoca_id=hoca_id,
+        )[:500]
     )
-    return _yemekci_pdf_yanit(request, liste)
+
+    siniflar = SinifSube.objects.filter(aktif=True).order_by("sinif", "sube")
+    hocalar = EtutHocasi.objects.filter(aktif=True).order_by("ad_soyad")
+    talebe_qs = Talebe.objects.filter(aktif=True).order_by("ad_soyad")
+    if sinif_id:
+        talebe_qs = talebe_qs.filter(sinif_sube_id=sinif_id)
+    talebeler = list(talebe_qs[:300])
+
+    filtre_parcalari = []
+    if sinif_id:
+        s = next((x for x in siniflar if x.id == sinif_id), None)
+        filtre_parcalari.append(f"Sınıf: {s}" if s else "Sınıf filtreli")
+    if talebe_id:
+        t = next((x for x in talebeler if x.id == talebe_id), None)
+        filtre_parcalari.append(f"Talebe: {t.ad_soyad}" if t else "Talebe filtreli")
+    if hoca_id:
+        h = next((x for x in hocalar if x.id == hoca_id), None)
+        filtre_parcalari.append(f"Öğretmen: {h.ad_soyad}" if h else "Öğretmen filtreli")
+    filtre_ozet = " · ".join(filtre_parcalari) if filtre_parcalari else "Tüm kayıtlar"
+
+    if request.GET.get("format") == "pdf":
+        html_metni = render_to_string(
+            "ogretmen_degerlendirme_rapor_pdf.html",
+            {
+                **panel_branding_context(),
+                "notlar": notlar,
+                "filtre_ozet": filtre_ozet,
+                "bugun": localdate(),
+            },
+            request=request,
+        )
+        pdf_verisi = html_to_pdf(html_metni, base_url=request.build_absolute_uri("/"))
+        if not pdf_verisi:
+            return pdf_error_response(
+                f"Rapor PDF oluşturulamadı. (Motor: {pdf_engine_status()})"
+            )
+        return make_pdf_response(pdf_verisi, "ogretmen-degerlendirme-raporu.pdf")
+
+    return render(
+        request,
+        "yonetim/ogretmen_degerlendirme_rapor.html",
+        {
+            "notlar": notlar,
+            "siniflar": siniflar,
+            "talebeler": talebeler,
+            "hocalar": hocalar,
+            "secili_sinif_id": sinif_id,
+            "secili_talebe_id": talebe_id,
+            "secili_hoca_id": hoca_id,
+            "filtre_ozet": filtre_ozet,
+        },
+    )
+
+
+@yonetici_gerekli
+def ogretmen_degerlendirme_karne_pdf(request, talebe_id: int):
+    from django.utils.timezone import localdate
+
+    from config.branding import panel_branding_context
+    from takip.ogretmen_not_service import talebe_karne_verisi
+    from takip.pdf_utils import html_to_pdf, make_pdf_response, pdf_engine_status, pdf_error_response
+    from django.template.loader import render_to_string
+
+    talebe = get_object_or_404(Talebe, pk=talebe_id)
+    ctx = talebe_karne_verisi(talebe, sadece_veliye_acik=False)
+    ctx.update(panel_branding_context())
+    ctx["bugun"] = localdate()
+    html_metni = render_to_string(
+        "ogretmen_degerlendirme_karne_pdf.html",
+        ctx,
+        request=request,
+    )
+    pdf_verisi = html_to_pdf(html_metni, base_url=request.build_absolute_uri("/"))
+    if not pdf_verisi:
+        return pdf_error_response(
+            f"Karne PDF oluşturulamadı. (Motor: {pdf_engine_status()})"
+        )
+    ad = talebe.ad_soyad.replace(" ", "-")
+    return make_pdf_response(pdf_verisi, f"{ad}-degerlendirme-karnesi.pdf")

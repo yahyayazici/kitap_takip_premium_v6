@@ -11,6 +11,7 @@
         <p class="muted">Talebe kayıtlarını görüntüleyin ve düzenleyin.</p>
     </div>
     <div class="yonetim-page-head-actions">
+        <a href="{{ rapor_excel_url }}{% if sinif_id %}?sinif={{ sinif_id }}{% endif %}{% if arama %}{% if sinif_id %}&{% else %}?{% endif %}q={{ arama|urlencode }}{% endif %}" class="ghost-btn yonetim-head-ghost">Excel İndir</a>
         {% include "includes/talebe_liste_rapor_panel.html" %}
         <a href="{% url 'yonetim:talebe_excel_yukle' %}" class="ghost-btn yonetim-head-ghost">Excel ile Yükle</a>
         <a href="{% url 'yonetim:talebe_ekle' %}" class="primary-btn">Talebe Ekle</a>

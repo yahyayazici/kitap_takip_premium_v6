@@ -1,0 +1,28 @@
+{% extends "veli/base.html" %}
+{% block title %}Akademik Müdahale · {{ talebe.ad_soyad }}{% endblock %}
+{% block content %}
+<div class="dash-home veli-dash veli-wow">
+{% include "veli/includes/talebe_layout_head.html" %}
+
+<section class="veli-wow-card">
+    <header class="veli-wow-card-head">
+        <div>
+            <p class="veli-wow-kicker">Akademik</p>
+            <h2>Müdahale kayıtları</h2>
+        </div>
+    </header>
+    <div class="dash-feed" style="padding: 12px 16px 18px;">
+        {% for m in mudahaleler %}
+        <article class="dash-feed-item dash-accent-navy">
+            <span class="dash-feed-tag">{{ m.tarih|date:"d.m.Y" }}</span>
+            <h3>{% if m.mudahale_turu %}{{ m.mudahale_turu }}{% else %}Müdahale{% endif %}</h3>
+            <p>{% if m.ders %}{{ m.ders.ad }} · {% endif %}{{ m.veli_ozet }}</p>
+        </article>
+        {% empty %}
+        <p class="og-empty-note">Görüntülenecek akademik müdahale kaydı yok.</p>
+        {% endfor %}
+    </div>
+</section>
+</div>
+{% endblock %}
+{% block extra_js %}{% include "includes/panel_date_js.html" %}{% endblock %}

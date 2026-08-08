@@ -1,6 +1,10 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Programlar{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/program-sure.css' %}?v=sayfa2">
+{% endblock %}
 
 {% block content %}
 <div class="program-page">
@@ -13,7 +17,9 @@
     </div>
     <div class="profile-head-actions">
         {% if secili_program %}
-        <a href="{% url 'program_pdf' secili_program.pk %}" class="primary-btn" target="_blank">PDF İndir</a>
+        {% url 'program_pdf' secili_program.pk as program_pdf_href %}
+        {% include "includes/pdf_sayfa_secici.html" with pdf_href=program_pdf_href pdf_sayfa=pdf_sayfa pdf_btn_class="primary-btn" pdf_btn_label="PDF İndir" %}
+        <a href="{% url 'program_excel' secili_program.pk %}" class="ghost-btn">Excel İndir</a>
         {% endif %}
         {% if yonetim_modulu %}
         <a href="{% url 'yonetim:program_listesi' %}" class="ghost-btn">Yönetim</a>
@@ -38,6 +44,8 @@
 </section>
 
 {% if secili_program %}
+{% include "includes/program_sure_ozeti.html" with baslangic_kapali=True %}
+
 <section class="report-table-card program-schedule-card">
     <div class="card-heading">
         <div>

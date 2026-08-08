@@ -1,0 +1,141 @@
+{% load static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>Akademik Müdahale Raporu</title>
+    <style>
+        {% include "includes/pdf_rapor_landscape_css.html" %}
+        .am-pill {
+            display: inline-block;
+            padding: 2px 7px;
+            border-radius: 999px;
+            color: #fff;
+            font-size: 7px;
+            font-weight: 600;
+            white-space: nowrap;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+    </style>
+</head>
+<body>
+<table class="layout">
+    <tr>
+        <td colspan="3">
+            <table class="header-table" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="header-logo-cell">
+                        <div class="brand-logo-wrap">
+                            <img class="brand-logo" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="">
+                        </div>
+                    </td>
+                    <td class="header-text-cell">
+                        <div class="brand-name">{{ panel_org|default:panel_short }}</div>
+                        <div class="brand-sub">Akademik Müdahale</div>
+                    </td>
+                    <td class="header-right">
+                        <div class="doc-title">Rapor · {{ alt_baslik }}</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+
+    <tr><td colspan="3" class="gap16"></td></tr>
+
+    <tr>
+        <td colspan="3" class="hero">
+            <div class="hero-inner">
+                <div class="hero-tag">Rapor &amp; İstatistik</div>
+                <div class="hero-title">Akademik Müdahale Raporu</div>
+                <div class="hero-meta">{{ kayitlar|length }} kayıt · {{ alt_baslik }}</div>
+            </div>
+        </td>
+    </tr>
+
+    <tr><td colspan="3" class="gap16"></td></tr>
+
+    <tr>
+        <td colspan="3">
+            <table class="stats-table" cellpadding="0">
+                <tr>
+                    <td width="25%" class="stat-cell tone-blue">
+                        <div class="stat-accent"></div>
+                        <div class="stat-deco"></div>
+                        <div class="stat-label">Toplam Müdahale</div>
+                        <div class="stat-metric">{{ istatistik.toplam_mudahale }}</div>
+                    </td>
+                    <td width="25%" class="stat-cell tone-green">
+                        <div class="stat-accent"></div>
+                        <div class="stat-deco"></div>
+                        <div class="stat-label">Öğrenci Ort.</div>
+                        <div class="stat-metric">{{ istatistik.ortalama_mudahale }}</div>
+                    </td>
+                    <td width="25%" class="stat-cell tone-orange">
+                        <div class="stat-accent"></div>
+                        <div class="stat-deco"></div>
+                        <div class="stat-label">En Çok Ders</div>
+                        <div class="stat-metric" style="font-size:14px;margin-top:12px;">{{ istatistik.en_cok_ders|default:"—" }}</div>
+                    </td>
+                    <td width="25%" class="stat-cell tone-purple">
+                        <div class="stat-accent"></div>
+                        <div class="stat-deco"></div>
+                        <div class="stat-label">En Çok Konu</div>
+                        <div class="stat-metric" style="font-size:13px;margin-top:12px;">{{ istatistik.en_cok_konu|default:"—" }}</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+
+    <tr><td colspan="3" class="gap16"></td></tr>
+
+    <tr>
+        <td colspan="3">
+            <div class="table-panel">
+                <div class="table-panel-accent"></div>
+                <div class="table-panel-head">
+                    <div class="section-kicker">Kayıtlar</div>
+                    <div class="section-title">Müdahale listesi</div>
+                </div>
+                <table class="results">
+                    <thead>
+                        <tr>
+                            <th>Tarih</th>
+                            <th>Talebe</th>
+                            <th>Sınıf</th>
+                            <th>Ders</th>
+                            <th>Konu</th>
+                            <th>Tür</th>
+                            <th>Süre</th>
+                            <th>Personel</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for kayit in kayitlar %}
+                        <tr>
+                            <td>{{ kayit.tarih|date:"d.m.Y" }}</td>
+                            <td><strong>{{ kayit.talebe.ad_soyad }}</strong></td>
+                            <td>{{ kayit.talebe.sinif_sube|default:"—" }}</td>
+                            <td>{{ kayit.ders.ad|default:"—" }}</td>
+                            <td>{{ kayit.konu|default:"—" }}</td>
+                            <td>
+                                <span class="am-pill" style="background:{{ kayit.mudahale_turu.renk|default:'#2563eb' }};">
+                                    {{ kayit.mudahale_turu.ad }}
+                                </span>
+                            </td>
+                            <td>{{ kayit.sure_dakika }} dk</td>
+                            <td>{{ kayit.olusturan.get_full_name|default:kayit.olusturan.username|default:"—" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="8" style="text-align:center;padding:20px;color:#68778F;">Kayıt bulunamadı.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

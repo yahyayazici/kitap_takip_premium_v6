@@ -1,35 +1,39 @@
-/* Duyuru carousel — sol/sağ yarı yarıya medya + metin */
+/* Duyuru carousel — tam genişlik görsel banner (Uğur Online tarzı) */
 
 .duyuru-carousel-shell {
-    margin-top: 18px;
+    margin-top: 14px !important;
+    margin-bottom: 4px;
     padding: 0 !important;
-    border: 1px solid var(--dash-line, rgba(0, 0, 0, 0.08));
-    border-radius: var(--dash-radius, 18px);
-    background: var(--dash-surface, #fff);
-    box-shadow: var(--dash-shadow, 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06));
-    overflow: hidden;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    overflow: visible;
     width: 100%;
+    max-width: none !important;
 }
 
-.duyuru-split {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    align-items: stretch;
+.duyuru-banner {
     width: 100%;
-    aspect-ratio: 15 / 6;
-    min-height: 220px;
-    max-height: min(40vh, calc(100vw * 6 / 15));
+    max-width: none;
+    border-radius: 18px;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.04),
+        0 10px 28px rgba(15, 23, 42, 0.07);
 }
 
 .duyuru-media-pane {
     position: relative;
-    width: 100%;
-    height: 100%;
-    min-height: 0;
+    width: 100% !important;
+    max-width: none !important;
+    aspect-ratio: 16 / 9;
+    min-height: 180px;
+    max-height: none;
     margin: 0;
-    justify-self: stretch;
-    align-self: stretch;
-    background: #f1f5f9;
+    background: #e8eef6;
     overflow: hidden;
 }
 
@@ -38,24 +42,26 @@
     inset: 0;
     opacity: 0;
     visibility: hidden;
-    clip-path: inset(0 100% 0 0);
-    transform-origin: left center;
-    transition:
-        clip-path 460ms cubic-bezier(0.22, 1, 0.36, 1),
-        opacity 260ms ease,
-        visibility 260ms ease;
+    transition: opacity 320ms ease, visibility 320ms ease;
 }
 
 .duyuru-media-slide.is-active {
     opacity: 1;
     visibility: visible;
-    clip-path: inset(0 0 0 0);
+    z-index: 1;
+}
+
+.duyuru-banner-hit {
+    display: block;
+    width: 100%;
+    height: 100%;
+    text-decoration: none !important;
 }
 
 .duyuru-media-inner {
     display: flex;
     align-items: stretch;
-    justify-content: flex-start;
+    justify-content: stretch;
     width: 100%;
     height: 100%;
     background: #0f172a;
@@ -69,7 +75,7 @@
     max-width: 100%;
     max-height: 100%;
     object-fit: cover;
-    object-position: left center;
+    object-position: center center;
     display: block;
     border: 0;
 }
@@ -170,10 +176,15 @@
 .duyuru-scene-svg {
     width: 100%;
     height: 100%;
-    max-width: none;
-    max-height: none;
+    max-width: none !important;
+    max-height: none !important;
+    min-width: 100%;
+    min-height: 100%;
     object-fit: cover;
-    filter: drop-shadow(0 10px 28px rgba(15, 23, 42, 0.22));
+    object-position: center center;
+    transform: scale(1.08);
+    transform-origin: center center;
+    filter: drop-shadow(0 10px 28px rgba(15, 23, 42, 0.18));
     animation: duyuruSceneFloat 9s ease-in-out infinite;
 }
 
@@ -281,145 +292,130 @@
     background: linear-gradient(135deg, #ffedd5 0%, #fff7ed 100%);
 }
 
-.duyuru-copy-pane {
+/* Noktalar — görselin üzerinde, ortada */
+.duyuru-carousel-dots {
+    position: absolute;
+    left: 50%;
+    bottom: 14px;
+    transform: translateX(-50%);
+    z-index: 4;
     display: flex;
-    flex-direction: column;
-    min-width: 0;
-    min-height: 0;
-    height: 100%;
-    padding: 16px 18px 14px;
-    border-left: 1px solid var(--dash-line, rgba(0, 0, 0, 0.08));
-    background: #fff;
-    overflow: hidden;
-}
-
-.duyuru-copy-pane-head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 10px;
-}
-
-.duyuru-eyebrow {
-    margin: 0 0 4px;
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--dash-secondary, #6e6e73);
-}
-
-.duyuru-copy-pane-head h2 {
+    justify-content: center;
+    align-items: center;
+    gap: 7px;
+    padding: 0;
     margin: 0;
-    font-size: 1.05rem;
-    font-weight: 650;
-    letter-spacing: -0.02em;
-    color: var(--dash-text, #1d1d1f);
+    border: 0;
 }
 
-.duyuru-carousel-head-actions {
+.duyuru-carousel-dots button {
+    width: 7px;
+    height: 7px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.55);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+    transition: width 160ms ease, background 160ms ease;
+}
+
+.duyuru-carousel-dots button.is-active {
+    width: 18px;
+    background: #fff;
+}
+
+/* Oklar — görsel üzerinde */
+.duyuru-carousel-nav-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
     display: flex;
     align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
+    justify-content: space-between;
+    padding: 0 10px;
+    pointer-events: none;
 }
 
-.duyuru-carousel-nav {
-    display: inline-flex;
-    gap: 6px;
-}
-
-.duyuru-nav-btn {
-    width: 30px;
-    height: 30px;
-    border: 1px solid var(--dash-line, rgba(0, 0, 0, 0.08));
+.duyuru-carousel-nav-overlay .duyuru-nav-btn {
+    pointer-events: auto;
+    width: 34px;
+    height: 34px;
+    border: 0;
     border-radius: 999px;
-    background: #fff;
-    color: var(--dash-accent, #0071e3);
-    font-size: 18px;
+    background: rgba(255, 255, 255, 0.92);
+    color: #1e4f9c;
+    font-size: 20px;
     line-height: 1;
     cursor: pointer;
-    transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.18);
+    opacity: 0;
+    transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.duyuru-media-pane:hover .duyuru-carousel-nav-overlay .duyuru-nav-btn,
+.duyuru-media-pane:focus-within .duyuru-carousel-nav-overlay .duyuru-nav-btn {
+    opacity: 1;
 }
 
 .duyuru-nav-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
-    background: #f8fbff;
+    transform: scale(1.05);
 }
 
-.duyuru-copy-body {
-    position: relative;
+/* İnce başlık şeridi */
+.duyuru-caption {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: linear-gradient(180deg, #f7faff 0%, #fff 100%);
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    min-height: 52px;
+}
+
+.duyuru-caption .duyuru-copy-slide {
+    display: none;
     flex: 1;
-    min-height: 72px;
-}
-
-.duyuru-copy-slide {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 220ms ease, visibility 220ms ease;
-}
-
-.duyuru-copy-slide.is-active {
-    opacity: 1;
-    visibility: visible;
-}
-
-.duyuru-copy-slide-head {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
     min-width: 0;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.duyuru-caption .duyuru-copy-slide.is-active {
+    display: flex;
 }
 
 .duyuru-slide-tag {
-    align-self: flex-start;
-    padding: 2px 8px;
+    flex-shrink: 0;
+    padding: 3px 9px;
     border-radius: 999px;
     font-size: 10px;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: var(--dash-secondary, #6e6e73);
-    background: #f1f5f9;
+    color: #475569;
+    background: #eef2f7;
 }
 
 .duyuru-copy-title {
-    font-size: 0.9375rem;
-    font-weight: 600;
+    font-size: 0.9rem;
+    font-weight: 650;
     letter-spacing: -0.01em;
-    color: var(--dash-text, #1d1d1f);
+    color: #1d1d1f;
     line-height: 1.3;
-}
-
-.duyuru-slide-list {
-    margin: 0;
-    padding: 0 0 0 18px;
-    list-style: disc;
-    color: var(--dash-secondary, #6e6e73);
-}
-
-.duyuru-slide-list li {
-    font-size: 0.8125rem;
-    line-height: 1.45;
-    margin: 0;
-}
-
-.duyuru-slide-list li + li {
-    margin-top: 3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
 }
 
 .duyuru-slide-link-label {
-    margin-top: auto;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--dash-accent, #0071e3);
+    margin-left: auto;
+    flex-shrink: 0;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #1d4ed8;
     text-decoration: none !important;
 }
 
@@ -427,32 +423,16 @@
     text-decoration: underline !important;
 }
 
-.duyuru-carousel-dots {
-    display: flex;
-    justify-content: flex-start;
-    gap: 6px;
-    padding-top: 10px;
-    margin-top: auto;
-}
-
-.duyuru-carousel-dots button {
-    width: 6px;
-    height: 6px;
-    padding: 0;
-    border: 0;
-    border-radius: 999px;
-    background: #d1d5db;
-    cursor: pointer;
-    transition: width 160ms ease, background 160ms ease;
-}
-
-.duyuru-carousel-dots button.is-active {
-    width: 18px;
-    background: var(--dash-accent, #0071e3);
+.duyuru-manage-link {
+    flex-shrink: 0;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #64748b;
+    text-decoration: none !important;
 }
 
 .duyuru-empty-wrap {
-    padding: 18px 20px;
+    padding: 0;
 }
 
 .duyuru-empty-state {
@@ -460,26 +440,25 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
-    padding: 14px 16px;
+    padding: 18px 16px;
     min-height: 80px;
     border: 1px dashed rgba(0, 0, 0, 0.1);
-    border-radius: 14px;
+    border-radius: 18px;
     background: #fafafa;
 }
 
 .duyuru-empty-state strong {
     font-size: 0.9375rem;
-    color: var(--dash-text, #1d1d1f);
+    color: #1d1d1f;
 }
 
 .duyuru-empty-state span {
     font-size: 0.8125rem;
-    color: var(--dash-secondary, #6e6e73);
+    color: #6e6e73;
 }
 
 @media (prefers-reduced-motion: reduce) {
     .duyuru-media-slide {
-        clip-path: none;
         transition: opacity 160ms ease, visibility 160ms ease;
     }
 
@@ -492,28 +471,81 @@
     }
 }
 
+/* Mobil — mevcut oran iyi kalsın */
 @media (max-width: 768px) {
-    .duyuru-split {
-        grid-template-columns: 1fr;
-        aspect-ratio: auto;
-        min-height: 0;
-        max-height: none;
+    .duyuru-carousel-shell {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        border-radius: 16px !important;
+    }
+
+    .duyuru-banner {
+        border-radius: 16px;
     }
 
     .duyuru-media-pane {
-        width: 100%;
-        max-width: none;
-        aspect-ratio: 15 / 6;
-        min-height: 160px;
-        margin-inline: 0;
+        aspect-ratio: 16 / 9 !important;
+        height: auto !important;
+        max-height: none !important;
+        min-height: 160px !important;
     }
 
-    .duyuru-copy-pane {
-        border-left: 0;
-        border-top: 1px solid var(--dash-line, rgba(0, 0, 0, 0.08));
+    .duyuru-carousel-nav-overlay .duyuru-nav-btn {
+        opacity: 0.85;
     }
 
-    .duyuru-copy-body {
-        min-height: 64px;
+    .duyuru-caption {
+        padding: 10px 14px;
+    }
+
+    .duyuru-copy-title {
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .duyuru-scene-svg {
+        transform: none;
+    }
+}
+
+/* Masaüstü — içerik genişliğinde büyük promo kart (örnek portal) */
+@media (min-width: 769px) {
+    .ogretmen-body .duyuru-carousel-shell,
+    .veli-body .duyuru-carousel-shell,
+    .duyuru-carousel-shell {
+        width: 100% !important;
+        max-width: none !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        border-radius: 24px !important;
+    }
+
+    .ogretmen-body .duyuru-banner,
+    .veli-body .duyuru-banner,
+    .duyuru-banner {
+        border-radius: 24px;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        box-shadow:
+            0 12px 32px rgba(37, 99, 235, 0.08),
+            0 2px 8px rgba(15, 39, 68, 0.04);
+    }
+
+    .duyuru-media-pane {
+        aspect-ratio: auto !important;
+        width: 100% !important;
+        height: clamp(260px, 24vw, 380px) !important;
+        min-height: 260px !important;
+        max-height: 380px !important;
+    }
+}
+
+@media (min-width: 1400px) {
+    .duyuru-media-pane {
+        height: clamp(300px, 22vw, 420px) !important;
+        min-height: 300px !important;
+        max-height: 420px !important;
     }
 }

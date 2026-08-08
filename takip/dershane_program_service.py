@@ -6,6 +6,7 @@ import csv
 from datetime import date, datetime, time
 from io import StringIO
 from typing import Any
+from urllib.parse import urlencode
 
 from django.contrib.auth.models import User
 from django.db import transaction
@@ -604,6 +605,323 @@ def panel_baglami(
         "duzenleyebilir": dershane_program_duzenleyebilir(user),
         "filtre": filtre,
         "goruntuleme_kartlari": _goruntuleme_kartlari(),
+        "mod_sekmeleri": _mod_sekmeleri("duzenle"),
+        "export_qs": urlencode(
+            {
+                "program": program.pk,
+                "gun": gun,
+                "mod": "genel",
+                **{k: v for k, v in filtre.items() if v},
+            }
+        ),
+    }
+
+
+def _mod_sekmeleri(aktif: str) -> list[dict[str, Any]]:
+    """Düzenle + görüntüleme modları — aktif sekme işaretli."""
+    sekmeler = [
+        {
+            "key": "duzenle",
+            "baslik": "Düzenle",
+            "aciklama": "Saat ve ders atama",
+            "url_name": "dershane_program_panel",
+        },
+        {
+            "key": "genel",
+            "baslik": "Genel",
+            "aciklama": "Tüm gruplar",
+            "url_name": "dershane_program_goruntule",
+            "mod": "genel",
+        },
+        {
+            "key": "sinif",
+            "baslik": "Sınıf",
+            "aciklama": "Sınıf bazlı",
+            "url_name": "dershane_program_goruntule",
+            "mod": "sinif",
+        },
+        {
+            "key": "etut",
+            "baslik": "Etüt",
+            "aciklama": "Etüt grubu",
+            "url_name": "dershane_program_goruntule",
+            "mod": "etut",
+        },
+        {
+            "key": "ogretmen",
+            "baslik": "Öğretmen",
+            "aciklama": "Öğretmen programı",
+            "url_name": "dershane_program_goruntule",
+            "mod": "ogretmen",
+        },
+    ]
+    for s in sekmeler:
+        s["aktif"] = s["key"] == aktif
+    return sekmeler
+
+
+def gorunum_baglami(
+    user: User,
+    *,
+    program: DershaneProgrami,
+    gun: int,
+    mod: str,
+    filtre: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    """Görüntüleme moduna göre farklı matris / kartlar üretir."""
+    filtre = dict(filtre or {})
+    mod = (mod or "genel").strip().lower()
+    if mod not in {"genel", "sinif", "etut", "ogretmen"}:
+        mod = "genel"
+
+    # Moda göre filtreyi netleştir
+    if mod == "sinif" and not filtre.get("sinif"):
+        # İlk sınıfı varsayılan seç — tek sınıf odağı
+        siniflar_tmp = sorted(
+            {
+                g.sinif_seviye
+                for g in program.etut_gruplari.all()
+                if g.sinif_seviye
+            },
+            key=lambda x: int(x) if str(x).isdigit() else x,
+        )
+        if siniflar_tmp:
+            filtre["sinif"] = str(siniflar_tmp[0])
+
+    if mod == "etut" and not filtre.get("etut_grubu"):
+        ilk = program.etut_gruplari.order_by("sira", "id").first()
+        if ilk:
+            filtre["etut_grubu"] = str(ilk.pk)
+
+    ctx = panel_baglami(user, program=program, gun=gun, filtre=filtre)
+    ctx["mod"] = mod
+    ctx["mod_sekmeleri"] = _mod_sekmeleri(mod)
+    ctx["mod_baslik"] = {
+        "genel": "Genel Program",
+        "sinif": "Sınıf Bazlı Program",
+        "etut": "Etüt Grubu Programı",
+        "ogretmen": "Öğretmen Programı",
+    }.get(mod, "Program Görünümü")
+
+    if mod == "sinif":
+        ctx["gorunum"] = _gorunum_sinif(ctx)
+    elif mod == "etut":
+        ctx["gorunum"] = _gorunum_etut(ctx)
+    elif mod == "ogretmen":
+        ctx["gorunum"] = _gorunum_ogretmen(program, gun, filtre)
+    else:
+        ctx["gorunum"] = {"tip": "genel", "matris": ctx["matris"], "gruplar": ctx["gruplar"]}
+
+    ctx["export_qs"] = urlencode(
+        {
+            "program": program.pk,
+            "gun": gun,
+            "mod": mod,
+            **{k: v for k, v in filtre.items() if v},
+        }
+    )
+    return ctx
+
+
+def tum_haftalik_pdf_baglami(
+    user: User,
+    *,
+    program: DershaneProgrami,
+) -> dict[str, Any]:
+    """Tüm günler + tüm sınıflar/etütler — tek PDF için paneller."""
+    gun_panelleri: list[dict[str, Any]] = []
+    for gun in range(7):
+        if not program.saat_bloklari.filter(gun=gun).exists():
+            continue
+        gun_ctx = panel_baglami(user, program=program, gun=gun, filtre={})
+        gun_panelleri.append(
+            {
+                "gun": gun,
+                "gun_adi": GUN_ADLARI[gun],
+                "gun_kisa": GUN_KISA[gun],
+                "matris": gun_ctx["matris"],
+                "gruplar": gun_ctx["gruplar"],
+            }
+        )
+
+    return {
+        "program": program,
+        "mod": "genel",
+        "mod_baslik": "Haftalık Dershane Programı",
+        "tum_gunler": True,
+        "gun_panelleri": gun_panelleri,
+        "gun_adi": None,
+        "filtre": {},
+        "gruplar": [],
+        "matris": [],
+        "gorunum": {"tip": "tum_gunler"},
+        "panel_name": getattr(user, "get_full_name", lambda: "")() or "",
+    }
+
+
+def _gorunum_sinif(ctx: dict[str, Any]) -> dict[str, Any]:
+    """Her sınıf için ayrı tablo (veya seçili sınıf)."""
+    paneller: list[dict[str, Any]] = []
+    filtre_sinif = (ctx.get("filtre") or {}).get("sinif") or ""
+
+    kaynak = ctx["sinif_gruplari_list"]
+    if filtre_sinif:
+        kaynak = [x for x in kaynak if str(x["sinif"]) == str(filtre_sinif)]
+
+    for item in kaynak:
+        grup_ids = {g.pk for g in item["gruplar"]}
+        satirlar = []
+        for satir in ctx["matris"]:
+            if satir.get("birlestirilmis"):
+                satirlar.append(
+                    {
+                        "saat": satir["saat"],
+                        "birlestirilmis": True,
+                        "metin": satir.get("birlestirilmis_metin", ""),
+                        "tur": satir.get("tur"),
+                        "hucreler": [],
+                    }
+                )
+                continue
+            hucreler = [h for h in satir["hucreler"] if h["grup_id"] in grup_ids]
+            if not hucreler:
+                continue
+            satirlar.append(
+                {
+                    "saat": satir["saat"],
+                    "birlestirilmis": False,
+                    "hucreler": hucreler,
+                    "tur": satir.get("tur"),
+                }
+            )
+        paneller.append(
+            {
+                "baslik": f"{item['sinif']}. Sınıf",
+                "gruplar": item["gruplar"],
+                "satirlar": satirlar,
+            }
+        )
+    return {"tip": "sinif", "paneller": paneller}
+
+
+def _gorunum_etut(ctx: dict[str, Any]) -> dict[str, Any]:
+    """Tek (veya az) etüt grubu için dikey gün programı."""
+    gruplar = ctx["gruplar"]
+    satirlar: list[dict[str, Any]] = []
+    for satir in ctx["matris"]:
+        if satir.get("birlestirilmis"):
+            satirlar.append(
+                {
+                    "saat": satir["saat"],
+                    "tur_etiket": satir.get("tur_etiket", ""),
+                    "birlestirilmis": True,
+                    "metin": satir.get("birlestirilmis_metin", ""),
+                    "hucreler": [],
+                }
+            )
+            continue
+        satirlar.append(
+            {
+                "saat": satir["saat"],
+                "tur_etiket": satir.get("tur_etiket", ""),
+                "birlestirilmis": False,
+                "hucreler": satir["hucreler"],
+            }
+        )
+    return {
+        "tip": "etut",
+        "gruplar": gruplar,
+        "satirlar": satirlar,
+        "tek_grup": len(gruplar) == 1,
+    }
+
+
+def _gorunum_ogretmen(
+    program: DershaneProgrami,
+    gun: int,
+    filtre: dict[str, str],
+) -> dict[str, Any]:
+    """Satır=saat, sütun=öğretmen — kim nerede derste."""
+    saat_bloklari = list(
+        program.saat_bloklari.filter(gun=gun).order_by("sira", "baslangic_saati", "id")
+    )
+    atamalar = list(
+        program.ders_atamalari.filter(saat_bloku__gun=gun)
+        .select_related("ders", "ogretmen", "etut_grubu", "saat_bloku")
+        .order_by("saat_bloku__sira")
+    )
+
+    ogretmen_filtre = (filtre.get("ogretmen") or "").strip().lower()
+    ogretmenler: list[str] = []
+    seen: set[str] = set()
+    for atama in atamalar:
+        ad = (atama.gorunen_ogretmen or "").strip()
+        if not ad or ad == "—":
+            continue
+        if ogretmen_filtre and ad.lower() != ogretmen_filtre:
+            continue
+        key = ad.lower()
+        if key not in seen:
+            seen.add(key)
+            ogretmenler.append(ad)
+    ogretmenler.sort(key=str.casefold)
+
+    # blok_id -> öğretmen -> hücre listesi
+    hucre_map: dict[int, dict[str, list[dict[str, str]]]] = {}
+    for atama in atamalar:
+        ad = (atama.gorunen_ogretmen or "").strip()
+        if not ad or ad == "—":
+            continue
+        if ogretmen_filtre and ad.lower() != ogretmen_filtre:
+            continue
+        ders = atama.gorunen_ders
+        if not ders or ders == "—":
+            continue
+        hucre_map.setdefault(atama.saat_bloku_id, {}).setdefault(ad, []).append(
+            {
+                "ders": ders,
+                "grup": atama.etut_grubu.etiket if atama.etut_grubu_id else "",
+                "renk": ders_renk(ders),
+            }
+        )
+
+    satirlar = []
+    for blok in saat_bloklari:
+        if not blok.ders_atamasi_gerektirir:
+            satirlar.append(
+                {
+                    "saat": blok.saat_goster,
+                    "birlestirilmis": True,
+                    "metin": (blok.aciklama or blok.get_tur_display()).upper(),
+                    "tur": blok.tur,
+                    "hucreler": [],
+                }
+            )
+            continue
+        hucreler = []
+        for ad in ogretmenler:
+            kayitlar = hucre_map.get(blok.pk, {}).get(ad, [])
+            hucreler.append(
+                {
+                    "ogretmen": ad,
+                    "bos": not kayitlar,
+                    "kayitlar": kayitlar,
+                }
+            )
+        satirlar.append(
+            {
+                "saat": blok.saat_goster,
+                "birlestirilmis": False,
+                "hucreler": hucreler,
+                "tur": blok.tur,
+            }
+        )
+
+    return {
+        "tip": "ogretmen",
+        "ogretmenler": ogretmenler,
+        "satirlar": satirlar,
+        "tek_ogretmen": len(ogretmenler) == 1,
     }
 
 
@@ -973,64 +1291,289 @@ def sablon_yukle(program: DershaneProgrami, sablon: DershaneProgramSablon) -> No
     surum_geri_yukle(program, sahte)
 
 
-def excel_yanit(program: DershaneProgrami, gun: int | None = None) -> tuple[str, str]:
-    buffer = StringIO()
-    writer = csv.writer(buffer, delimiter=";")
-    writer.writerow(
-        ["Gün", "Saat", "Tür", "Etüt Grubu", "Ders", "Öğretmen", "Açıklama"]
-    )
+def _excel_hucre_metni(ders: str, ogretmen: str) -> str:
+    ders = (ders or "").strip()
+    ogretmen = (ogretmen or "").strip()
+    if not ders or ders == "—":
+        return ""
+    if ogretmen:
+        return f"{ders}\n{ogretmen}"
+    return ders
 
-    bloklar = program.saat_bloklari.order_by("gun", "sira", "baslangic_saati")
-    if gun is not None:
-        bloklar = bloklar.filter(gun=gun)
+
+def _excel_gruplari(program: DershaneProgrami, filtre: dict[str, str]):
+    qs = program.etut_gruplari.order_by("sira", "id")
+    if filtre.get("sinif"):
+        qs = qs.filter(sinif_seviye=filtre["sinif"])
+    if filtre.get("etut_grubu"):
+        try:
+            qs = qs.filter(pk=int(filtre["etut_grubu"]))
+        except (TypeError, ValueError):
+            pass
+    return list(qs)
+
+
+def _excel_gun_matrisi(
+    program: DershaneProgrami,
+    gun: int,
+    *,
+    filtre: dict[str, str] | None = None,
+) -> tuple[list[str], list[list[str]]]:
+    """Tek gün: Saat × etüt grubu matrisi (ekrandaki tablo)."""
+    filtre = filtre or {}
+    gruplar = _excel_gruplari(program, filtre)
+    if not gruplar:
+        gruplar = list(program.etut_gruplari.order_by("sira", "id"))
+
+    bloklar = program.saat_bloklari.filter(gun=gun).order_by(
+        "sira", "baslangic_saati", "id"
+    )
+    atama_map: dict[int, dict[int, DershaneDersAtamasi]] = {}
+    for atama in program.ders_atamalari.filter(
+        saat_bloku__gun=gun
+    ).select_related("ders", "ogretmen", "etut_grubu", "saat_bloku"):
+        atama_map.setdefault(atama.saat_bloku_id, {})[atama.etut_grubu_id] = atama
+
+    ogretmen_filtre = (filtre.get("ogretmen") or "").strip().lower()
+    ders_filtre = (filtre.get("ders") or "").strip().lower()
+
+    basliklar = ["Saat"] + [g.etiket for g in gruplar]
+    satirlar: list[list[str]] = []
 
     for blok in bloklar:
+        saat_etiket = blok.saat_goster
         if not blok.ders_atamasi_gerektirir:
-            writer.writerow(
-                [
-                    GUN_ADLARI[blok.gun],
-                    blok.saat_goster,
-                    blok.get_tur_display(),
-                    "—",
-                    blok.aciklama,
-                    "—",
-                    blok.aciklama,
-                ]
+            metin = (blok.aciklama or blok.get_tur_display() or "").strip()
+            if blok.tur == DershaneSaatBloku.Tur.NAMAZ:
+                metin = metin.upper()
+            satir = [f"{saat_etiket}\n{blok.get_tur_display()}"] + [metin] * len(
+                gruplar
             )
+            satirlar.append(satir)
             continue
 
-        atamalar = program.ders_atamalari.filter(saat_bloku=blok).select_related(
-            "etut_grubu"
+        hucreler: list[str] = []
+        for grup in gruplar:
+            atama = atama_map.get(blok.pk, {}).get(grup.pk)
+            if atama:
+                ders_adi = (atama.gorunen_ders or "").strip()
+                ogretmen = (atama.gorunen_ogretmen or "").strip()
+            else:
+                ders_adi = ""
+                ogretmen = ""
+
+            if ders_filtre and ders_adi.lower() != ders_filtre:
+                hucreler.append("")
+                continue
+            if ogretmen_filtre and ogretmen.lower() != ogretmen_filtre:
+                hucreler.append("")
+                continue
+            if filtre.get("atanmamis") == "1" and ders_adi and ders_adi != "—":
+                hucreler.append("")
+                continue
+            hucreler.append(_excel_hucre_metni(ders_adi, ogretmen))
+
+        satirlar.append([saat_etiket] + hucreler)
+
+    return basliklar, satirlar
+
+
+def _excel_haftalik_grup_matrisi(
+    program: DershaneProgrami,
+    grup: Any,
+    *,
+    filtre: dict[str, str] | None = None,
+) -> tuple[list[str], list[list[str]]]:
+    """Tek etüt grubu: Saat × haftanın günleri."""
+    filtre = filtre or {}
+    ogretmen_filtre = (filtre.get("ogretmen") or "").strip().lower()
+    ders_filtre = (filtre.get("ders") or "").strip().lower()
+
+    # Ortak saat satırları: günlere göre bloklar — satır anahtarı başlangıç-bitiş
+    bloklar = program.saat_bloklari.order_by("gun", "sira", "baslangic_saati", "id")
+    saat_sirasi: list[str] = []
+    saat_set: set[str] = set()
+    gun_blok: dict[tuple[int, str], DershaneSaatBloku] = {}
+
+    for blok in bloklar:
+        anahtar = blok.saat_goster
+        gun_blok[(blok.gun, anahtar)] = blok
+        if anahtar not in saat_set:
+            saat_set.add(anahtar)
+            saat_sirasi.append(anahtar)
+
+    atama_map: dict[tuple[int, int], DershaneDersAtamasi] = {}
+    for atama in program.ders_atamalari.filter(
+        etut_grubu=grup
+    ).select_related("ders", "ogretmen", "saat_bloku"):
+        atama_map[(atama.saat_bloku.gun, atama.saat_bloku_id)] = atama
+
+    basliklar = ["Saat"] + list(GUN_KISA)
+    satirlar: list[list[str]] = []
+
+    for saat in saat_sirasi:
+        satir = [saat]
+        for gun in range(7):
+            blok = gun_blok.get((gun, saat))
+            if not blok:
+                satir.append("")
+                continue
+            if not blok.ders_atamasi_gerektirir:
+                metin = (blok.aciklama or blok.get_tur_display() or "").strip()
+                if blok.tur == DershaneSaatBloku.Tur.NAMAZ:
+                    metin = metin.upper()
+                satir.append(metin)
+                continue
+            atama = atama_map.get((gun, blok.pk))
+            if not atama:
+                satir.append("")
+                continue
+            ders_adi = (atama.gorunen_ders or "").strip()
+            ogretmen = (atama.gorunen_ogretmen or "").strip()
+            if ders_filtre and ders_adi.lower() != ders_filtre:
+                satir.append("")
+                continue
+            if ogretmen_filtre and ogretmen.lower() != ogretmen_filtre:
+                satir.append("")
+                continue
+            satir.append(_excel_hucre_metni(ders_adi, ogretmen))
+        if any(satir[1:]):
+            satirlar.append(satir)
+
+    return basliklar, satirlar
+
+
+def excel_yanit(
+    program: DershaneProgrami,
+    gun: int | None = None,
+    *,
+    filtre: dict[str, str] | None = None,
+    mod: str = "genel",
+) -> tuple[str, bytes]:
+    from takip.excel_rapor import (
+        ExcelKolon,
+        ExcelRapor,
+        ExcelSayfa,
+        coklu_rapor_xlsx,
+        rapor_xlsx_olustur,
+    )
+
+    filtre = filtre or {}
+    mod = (mod or "genel").strip().lower()
+    baslik = f"Dershane Programı — {program.ad}"
+    alt_parcalar: list[str] = []
+    if mod and mod != "genel":
+        alt_parcalar.append(mod.title())
+    if filtre.get("sinif"):
+        alt_parcalar.append(f"{filtre['sinif']}. Sınıf")
+    if filtre.get("etut_grubu"):
+        g = program.etut_gruplari.filter(pk=filtre["etut_grubu"]).first()
+        if g:
+            alt_parcalar.append(g.etiket)
+    if filtre.get("ogretmen"):
+        alt_parcalar.append(filtre["ogretmen"])
+    if program.tarih_araligi_goster:
+        alt_parcalar.append(program.tarih_araligi_goster)
+    alt_ortak = " · ".join(alt_parcalar)
+
+    def _kolonlar(basliklar: list[str]) -> list[ExcelKolon]:
+        sonuc: list[ExcelKolon] = []
+        for i, ad in enumerate(basliklar):
+            sonuc.append(
+                ExcelKolon(
+                    baslik=ad,
+                    genislik=12 if i == 0 else 14,
+                    tip="ortala" if i == 0 else "metin",
+                )
+            )
+        return sonuc
+
+    # Tek gün → Saat × grup matrisi
+    if gun is not None:
+        basliklar, satirlar = _excel_gun_matrisi(program, gun, filtre=filtre)
+        icerik = rapor_xlsx_olustur(
+            ExcelRapor(
+                baslik=baslik,
+                alt_baslik=" · ".join(
+                    [p for p in [GUN_ADLARI[gun], alt_ortak] if p]
+                ),
+                kolonlar=_kolonlar(basliklar),
+                satirlar=satirlar,
+                sayfa_adi=GUN_KISA[gun],
+                satir_yukseklik=32,
+                metin_kaydir=True,
+            )
         )
-        if not atamalar.exists():
-            writer.writerow(
-                [
-                    GUN_ADLARI[blok.gun],
-                    blok.saat_goster,
-                    blok.get_tur_display(),
-                    "—",
-                    "",
-                    "",
-                    blok.aciklama,
-                ]
+        dosya = f"dershane_program_{program.pk}_gun{gun}.xlsx"
+        return dosya, icerik
+
+    # Tüm günler
+    # Tek etüt seçiliyse: bir sayfada Saat × günler (klasik haftalık tablo)
+    tek_grup = None
+    if filtre.get("etut_grubu"):
+        try:
+            tek_grup = program.etut_gruplari.filter(
+                pk=int(filtre["etut_grubu"])
+            ).first()
+        except (TypeError, ValueError):
+            tek_grup = None
+
+    if tek_grup is not None:
+        basliklar, satirlar = _excel_haftalik_grup_matrisi(
+            program, tek_grup, filtre=filtre
+        )
+        icerik = rapor_xlsx_olustur(
+            ExcelRapor(
+                baslik=baslik,
+                alt_baslik=" · ".join(
+                    [p for p in [tek_grup.etiket, "Haftalık", alt_ortak] if p]
+                ),
+                kolonlar=_kolonlar(basliklar),
+                satirlar=satirlar,
+                sayfa_adi=(tek_grup.etiket or "Grup")[:31],
+                satir_yukseklik=32,
+                metin_kaydir=True,
             )
+        )
+        return f"dershane_program_{program.pk}_haftalik.xlsx", icerik
+
+    # Aksi halde: her gün ayrı sayfa, Saat × grup matrisi
+    sayfalar: list[ExcelSayfa] = []
+    for g in range(7):
+        if not program.saat_bloklari.filter(gun=g).exists():
             continue
-
-        for atama in atamalar:
-            writer.writerow(
-                [
-                    GUN_ADLARI[blok.gun],
-                    blok.saat_goster,
-                    blok.get_tur_display(),
-                    atama.etut_grubu.etiket,
-                    atama.gorunen_ders,
-                    atama.gorunen_ogretmen,
-                    blok.aciklama,
-                ]
+        basliklar, satirlar = _excel_gun_matrisi(program, g, filtre=filtre)
+        if not satirlar:
+            continue
+        sayfalar.append(
+            ExcelSayfa(
+                adi=GUN_KISA[g],
+                baslik=baslik,
+                alt_baslik=" · ".join(
+                    [p for p in [GUN_ADLARI[g], alt_ortak] if p]
+                ),
+                kolonlar=_kolonlar(basliklar),
+                satirlar=satirlar,
+                satir_yukseklik=32,
+                metin_kaydir=True,
             )
+        )
 
-    dosya = f"dershane_program_{program.pk}.csv"
-    return dosya, buffer.getvalue()
+    if not sayfalar:
+        # Boş fallback
+        icerik = rapor_xlsx_olustur(
+            ExcelRapor(
+                baslik=baslik,
+                alt_baslik=alt_ortak,
+                kolonlar=[ExcelKolon("Saat", 12)],
+                satirlar=[["Program satırı yok"]],
+                sayfa_adi="Program",
+            )
+        )
+    else:
+        icerik = coklu_rapor_xlsx(sayfalar)
+
+    return f"dershane_program_{program.pk}_tum.xlsx", icerik
 
 
 def ornek_cumartesi_verisi(program: DershaneProgrami) -> None:

@@ -1,19 +1,23 @@
 {% extends "base.html" %}
-{% block title %}{{ sinav.ad }} · Sonuç Girişi{% endblock %}
+{% block title %}{{ sinav.ad }} · Puan Girişi{% endblock %}
 {% block content %}
 <div class="result-entry-page">
     <header class="page-head patterned-page-head">
         <div>
-            <p class="kicker">{{ kamp.ad|upper }}</p>
+            <p class="kicker">{{ sinav.get_tur_display|upper }}</p>
             <h1>{{ sinav.ad }}</h1>
             <p class="muted">
                 {{ sinav.sinav_tarihi|date:"d F Y" }} · {{ sinav.ders_goster }} ·
-                {{ toplam_soru }} soru · Net = Doğru − Yanlış/4
+                {{ sinav.yazili_no }}. yazılı · {{ sinav.sinif_goster }} ·
+                Sadece puan (0–100)
             </p>
         </div>
         <div class="result-header-actions">
-            <a href="{% url 'yazili_kamp_detay' kamp.pk %}?sinav={{ sinav.pk }}" class="result-secondary-button">Sonuç Tablosu</a>
-            <a href="{% url 'yazili_kamp_listesi' %}" class="result-back-button">Kamplar</a>
+            {% if pdf_yetkisi %}
+            <a href="{% url 'yazili_sinav_sirali_pdf' sinav.pk %}" class="result-secondary-button" target="_blank">Sıralı PDF</a>
+            <a href="{% url 'yazili_sinav_bireysel_pdf' sinav.pk %}" class="result-secondary-button" target="_blank">Bireysel PDF</a>
+            {% endif %}
+            <a href="{% url 'yazili_kamp_listesi' %}?tur={{ sinav.tur }}" class="result-back-button">Liste</a>
         </div>
     </header>
 
@@ -25,32 +29,47 @@
                     <thead>
                         <tr>
                             <th>Talebe</th>
-                            <th>Doğru</th>
-                            <th>Yanlış</th>
-                            <th>Boş</th>
-                            <th>Net</th>
-                            <th>Puan</th>
+                            <th>Sınıf</th>
+                            <th style="width:120px;">Puan</th>
+                            {% if pdf_yetkisi %}<th></th>{% endif %}
                         </tr>
                     </thead>
                     <tbody>
                         {% for satir in satirlar %}
                         <tr>
                             <td><strong>{{ satir.talebe.ad_soyad }}</strong></td>
-                            <td><input type="number" min="0" max="{{ toplam_soru }}" name="dogru_{{ satir.talebe.id }}" value="{{ satir.dogru }}" class="input" style="width:70px;"></td>
-                            <td><input type="number" min="0" max="{{ toplam_soru }}" name="yanlis_{{ satir.talebe.id }}" value="{{ satir.yanlis }}" class="input" style="width:70px;"></td>
-                            <td><input type="number" min="0" max="{{ toplam_soru }}" name="bos_{{ satir.talebe.id }}" value="{{ satir.bos }}" class="input" style="width:70px;"></td>
-                            <td class="num-col">{{ satir.net }}</td>
-                            <td class="num-col">{{ satir.puan }}</td>
+                            <td>{% if satir.talebe.sinif_sube %}{{ satir.talebe.sinif_sube }}{% else %}{{ satir.talebe.sinif }}{% endif %}</td>
+                            <td>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    step="0.01"
+                                    name="puan_{{ satir.talebe.id }}"
+                                    value="{{ satir.puan }}"
+                                    class="input"
+                                    style="width:100px;"
+                                    placeholder="—"
+                                >
+                            </td>
+                            {% if pdf_yetkisi %}
+                            <td>
+                                {% if satir.sonuc %}
+                                <a href="{% url 'yazili_sinav_bireysel_talebe_pdf' sinav.pk satir.talebe.id %}" class="ghost-btn" target="_blank">Karne</a>
+                                {% endif %}
+                            </td>
+                            {% endif %}
                         </tr>
                         {% empty %}
-                        <tr><td colspan="6" class="report-empty">Bu sınıf seviyesinde talebe bulunamadı.</td></tr>
+                        <tr><td colspan="4" class="report-empty">Bu sınıflarda talebe bulunamadı.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
             {% if satirlar %}
             <div style="margin-top:20px;">
-                <button type="submit" class="primary-btn">Sonuçları Kaydet</button>
+                <button type="submit" class="primary-btn">Puanları Kaydet</button>
+                <span class="muted" style="margin-left:12px;">Boş bırakılan satırlar silinir.</span>
             </div>
             {% endif %}
         </section>

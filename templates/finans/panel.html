@@ -12,11 +12,14 @@
     <div>
         <p class="fn-eyebrow">Kurum İçi · Finans Merkezi</p>
         <h1>Finans Yönetimi</h1>
-        <p class="fn-sub">Ücret politikalarını, tahsilatları, ödeme planlarını ve finans süreçlerini tek merkezden yönetin.</p>
+        <p class="fn-sub">Ücret politikalarını, tahsilatları ve ödeme planlarını yönetin. Etüt hocası yalnızca kendi grubunun tahsilatını girer.</p>
     </div>
     <div class="fn-head-actions">
+        {% if yonetebilir and dosyasiz_talebeler %}
+        <button type="button" class="fn-btn fn-btn-primary" onclick="document.getElementById('fn-toplu-kayit').scrollIntoView({behavior:'smooth'})">Toplu Aidat</button>
+        {% endif %}
         {% if yonetebilir and yeni_form %}
-        <button type="button" class="fn-btn fn-btn-primary" onclick="document.getElementById('fn-yeni-kayit').scrollIntoView({behavior:'smooth'})">+ Yeni Kayıt</button>
+        <button type="button" class="fn-btn" onclick="document.getElementById('fn-yeni-kayit').scrollIntoView({behavior:'smooth'})">+ Tek Kayıt</button>
         {% endif %}
         <a href="{% url 'finans_raporlar' %}" class="fn-btn">Raporlar</a>
         {% if yonetebilir %}
@@ -24,6 +27,8 @@
         {% endif %}
     </div>
 </header>
+
+<p class="fn-sub" style="margin-top:-0.75rem;margin-bottom:1.25rem">{{ kapsam_etiket }}{% if yil %} · {{ yil.ad }}{% endif %}</p>
 
 <div class="fn-kpi-grid" aria-label="Finans özeti">
     <article class="fn-kpi">
@@ -141,9 +146,54 @@
             </div>
         </div>
 
+        {% if yonetebilir and dosyasiz_talebeler %}
+        <div class="fn-card" id="fn-toplu-kayit">
+            <div class="fn-section-head">
+                <h3>Toplu Aidat + Taksit</h3>
+                <span class="fn-sub" style="margin:0">Admin tanımlar; etüt hocası yalnızca tahsilat girer.</span>
+            </div>
+            <form method="post" class="fn-form-grid">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="toplu_kayit">
+                <div class="fn-field-row">
+                    <div class="fn-field">
+                        <label>Peşinat (₺)</label>
+                        <input type="number" name="pesinat" value="0" step="0.01" min="0" class="fn-input">
+                    </div>
+                    <div class="fn-field">
+                        <label>Taksit sayısı</label>
+                        <input type="number" name="taksit_sayisi" value="10" min="1" max="24" class="fn-input">
+                    </div>
+                    <div class="fn-field">
+                        <label>İlk vade</label>
+                        <input type="date" name="ilk_vade" class="fn-input">
+                    </div>
+                </div>
+                <div class="fn-bulk-toolbar">
+                    <label class="fn-check">
+                        <input type="checkbox" name="hepsi" value="1" id="fn-hepsi" onchange="document.querySelectorAll('.fn-talebe-cb').forEach(c=>c.checked=this.checked)">
+                        Tümünü seç ({{ dosyasiz_talebeler|length }})
+                    </label>
+                </div>
+                <div class="fn-bulk-list">
+                    {% for t in dosyasiz_talebeler %}
+                    <label class="fn-check fn-bulk-item">
+                        <input type="checkbox" class="fn-talebe-cb" name="talebe_ids" value="{{ t.pk }}">
+                        <span>
+                            <strong>{{ t.ad_soyad }}</strong>
+                            <small>{% if t.sinif_sube %}{{ t.sinif_sube }}{% else %}{{ t.sinif }}{% endif %}</small>
+                        </span>
+                    </label>
+                    {% endfor %}
+                </div>
+                <button type="submit" class="fn-btn fn-btn-primary">Seçilenlere Aidat + Taksit Yaz</button>
+            </form>
+        </div>
+        {% endif %}
+
         {% if yonetebilir and yeni_form %}
         <div class="fn-card fn-modal" id="fn-yeni-kayit">
-            <div class="fn-section-head"><h3>Yeni Finans Kaydı</h3></div>
+            <div class="fn-section-head"><h3>Tek Finans Kaydı</h3></div>
             <form method="post" class="fn-form-grid">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="yeni_kayit">

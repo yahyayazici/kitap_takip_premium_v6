@@ -14,9 +14,9 @@
         </div>
         <div class="result-header-actions">
             {% if pdf_yetkisi %}
-            <a href="{% url 'yazili_kamp_pdf' kamp.pk %}" class="result-secondary-button">PDF</a>
+            <a href="{% url 'yazili_kamp_pdf' kamp.pk %}" class="result-secondary-button">Kamp PDF</a>
             {% endif %}
-            <a href="{% url 'yazili_kamp_listesi' %}" class="result-back-button">Kamplar</a>
+            <a href="{% url 'yazili_kamp_listesi' %}" class="result-back-button">Liste</a>
         </div>
     </header>
 
@@ -34,7 +34,9 @@
                         <th>Tarih</th>
                         <th>Sınav</th>
                         <th>Ders</th>
-                        <th>Soru</th>
+                        <th>Tür</th>
+                        <th>No</th>
+                        <th>Sınıf</th>
                         <th>Durum</th>
                         <th></th>
                     </tr>
@@ -45,17 +47,23 @@
                         <td>{{ s.sinav_tarihi|date:"d.m.Y" }}</td>
                         <td><strong>{{ s.ad }}</strong></td>
                         <td>{{ s.ders_goster }}</td>
-                        <td>{{ s.soru_sayisi }}</td>
+                        <td>{{ s.get_tur_display }}</td>
+                        <td>{{ s.yazili_no }}.</td>
+                        <td>{{ s.sinif_goster }}</td>
                         <td>{{ s.get_durum_display }}</td>
                         <td>
                             <a href="?sinav={{ s.pk }}" class="ghost-btn">Sonuçlar</a>
                             {% if sonuc_girebilir %}
-                            <a href="{% url 'yazili_sonuc_gir' s.pk %}" class="ghost-btn">Giriş</a>
+                            <a href="{% url 'yazili_sonuc_gir' s.pk %}" class="ghost-btn">Puan</a>
+                            {% endif %}
+                            {% if pdf_yetkisi %}
+                            <a href="{% url 'yazili_sinav_sirali_pdf' s.pk %}" class="ghost-btn">Sıralı</a>
+                            <a href="{% url 'yazili_sinav_bireysel_pdf' s.pk %}" class="ghost-btn">Bireysel</a>
                             {% endif %}
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="6" class="report-empty">Bu kampta sınav tanımlı değil.</td></tr>
+                    <tr><td colspan="8" class="report-empty">Bu kampta sınav tanımlı değil.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -67,7 +75,7 @@
         <div class="card-heading">
             <div>
                 <p class="card-kicker">SONUÇLAR</p>
-                <h2>{{ secili_sinav.ad }} — Sonuç Tablosu</h2>
+                <h2>{{ secili_sinav.ad }} — Puan Tablosu</h2>
             </div>
         </div>
         <div class="responsive-table">
@@ -77,10 +85,6 @@
                         <th>Sıra</th>
                         <th>Talebe</th>
                         <th>Sınıf</th>
-                        <th>D</th>
-                        <th>Y</th>
-                        <th>B</th>
-                        <th>Net</th>
                         <th>Puan</th>
                     </tr>
                 </thead>
@@ -90,14 +94,10 @@
                         <td class="num-col">{{ satir.sira }}</td>
                         <td>{{ satir.sonuc.talebe.ad_soyad }}</td>
                         <td>{{ satir.sonuc.talebe.sinif_sube|default:"—" }}</td>
-                        <td class="num-col">{{ satir.sonuc.dogru }}</td>
-                        <td class="num-col">{{ satir.sonuc.yanlis }}</td>
-                        <td class="num-col">{{ satir.sonuc.bos }}</td>
-                        <td class="num-col">{{ satir.sonuc.net }}</td>
                         <td class="num-col profile-score">{{ satir.sonuc.puan }}</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="8" class="report-empty">Sonuç girilmemiş.</td></tr>
+                    <tr><td colspan="4" class="report-empty">Sonuç girilmemiş.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>

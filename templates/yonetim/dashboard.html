@@ -12,23 +12,20 @@
     <span>Personel · Talebe · Öğretmen</span>
 </div>
 
-<section class="dash-metrics yonetim-metrics">
-    <article class="dash-stat dash-stat-blue">
-        <span class="dash-stat-label">Talebe</span>
-        <strong class="dash-stat-value">{{ toplam_talebe }}</strong>
-        <span class="dash-stat-note">{{ aktif_talebe }} aktif kayıt</span>
-    </article>
-    <article class="dash-stat dash-stat-green">
-        <span class="dash-stat-label">Etüt hocası</span>
-        <strong class="dash-stat-value">{{ toplam_personel }}</strong>
-        <span class="dash-stat-note">{{ aktif_personel }} aktif personel</span>
-    </article>
-    <article class="dash-stat dash-stat-violet">
-        <span class="dash-stat-label">Sınıf</span>
-        <strong class="dash-stat-value">{{ toplam_sinif }}</strong>
-        <span class="dash-stat-note">Tanımlı sınıf ve şube</span>
-    </article>
+{% if kisayollar %}
+<section class="dash-panel dash-panel-lined" style="margin-bottom:16px;">
+    <div class="dash-panel-head">
+        <div>
+            <p class="dash-eyebrow dash-accent-eyebrow-blue">Panel</p>
+            <h2>Kısayollar</h2>
+        </div>
+        <a href="{% url 'yonetim:kisayol_gorsel_listesi' %}" class="dash-text-btn">Düzenle</a>
+    </div>
+    {% include "includes/dash_kisayol_grid.html" %}
 </section>
+{% endif %}
+
+{% include "includes/dash_metrik_strip.html" %}
 
 <div class="dash-split">
     <section class="dash-panel">

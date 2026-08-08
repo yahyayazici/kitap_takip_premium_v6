@@ -299,6 +299,8 @@ def plan_grid_verisi(plan: EtutHaftaPlani, hoca: EtutHocasi) -> dict[str, Any]:
                 "faaliyet": faaliyet,
                 "bos": faaliyet is None,
                 "saat": satir["goster"],
+                "gun": gun,
+                "gun_label": label,
             }
 
     gunler = []
@@ -426,6 +428,53 @@ def ozel_havuz_karti_olustur(
         olusturan=user,
         sira=900 + EtutFaaliyetHavuzu.objects.filter(ozel=True, etut_hocasi=hoca).count(),
     )
+
+
+def _havuz_kart_erisebilir(
+    user: User, hoca: EtutHocasi | None, kart: EtutFaaliyetHavuzu
+) -> bool:
+    if not kart.aktif:
+        return False
+    if not kart.ozel:
+        return True
+    if not hoca:
+        return False
+    if kart.etut_hocasi_id == hoca.id:
+        return True
+    return bool(user.is_superuser or tum_talebe_kapsami_var(user))
+
+
+def havuz_karti_sil(
+    user: User, hoca: EtutHocasi | None, kart_id: int
+) -> EtutFaaliyetHavuzu | None:
+    """Özel kartı siler; ortak kartı pasife alır."""
+    kart = EtutFaaliyetHavuzu.objects.filter(pk=kart_id).first()
+    if not kart or not _havuz_kart_erisebilir(user, hoca, kart):
+        return None
+    if kart.ozel:
+        if hoca and kart.etut_hocasi_id != hoca.id and not (
+            user.is_superuser or tum_talebe_kapsami_var(user)
+        ):
+            return None
+        kart.delete()
+        return kart
+    kart.aktif = False
+    kart.save(update_fields=["aktif"])
+    return kart
+
+
+@transaction.atomic
+def havuz_kartlari_sirala(
+    user: User, hoca: EtutHocasi | None, kart_ids: list[int]
+) -> bool:
+    if not kart_ids:
+        return True
+    izinli = {k.id for k in faaliyet_havuzu(user, hoca)}
+    if not set(kart_ids).issubset(izinli):
+        return False
+    for sira, kart_id in enumerate(kart_ids):
+        EtutFaaliyetHavuzu.objects.filter(pk=kart_id).update(sira=sira)
+    return True
 
 
 @transaction.atomic
@@ -804,6 +853,24 @@ def saat_satir_ekle(
         if created:
             olusturulan += 1
     return olusturulan
+
+
+@transaction.atomic
+def saat_satir_sil(
+    hoca: EtutHocasi,
+    *,
+    baslangic: time,
+    gunler: tuple[int, ...] | None = None,
+) -> int:
+    """Aynı başlangıç saatini seçili (veya tüm) günlerden siler."""
+    qs = EtutGrupSaatBloku.objects.filter(
+        etut_hocasi=hoca,
+        baslangic_saati=baslangic,
+    )
+    if gunler is not None:
+        qs = qs.filter(gun__in=gunler)
+    deleted, _ = qs.delete()
+    return deleted
 
 
 def saat_bloku_durum_guncelle(

@@ -1,7 +1,7 @@
-/* Tek sayfa A4 — sınav / KTT / karne PDF'leri */
+/* Tek sayfa — sınav / KTT / karne PDF'leri (varsayılan A4 dikey) */
 
 @page {
-    size: A4 portrait;
+    size: {{ pdf_sayfa.size_css|default:"A4 portrait" }};
     margin: 5mm 7mm 4mm;
 }
 
@@ -81,6 +81,7 @@
     overflow: hidden;
     padding: 7px 8px;
     min-height: 0;
+    min-width: 0;
     border-radius: 10px;
     background: #fff;
     border: 1px solid #dfe6f0;
@@ -99,8 +100,28 @@
 }
 
 .pdf-karne .stat-label { font-size: 6px; font-weight: 600; letter-spacing: 0.55px; color: #68778f; text-transform: uppercase; }
-.pdf-karne .stat-metric { margin-top: 3px; font-size: 15px; font-weight: 700; line-height: 1; letter-spacing: -0.3px; font-variant-numeric: tabular-nums; color: #14213d; }
-.pdf-karne .stat-sub { margin-top: 2px; font-size: 6px; color: #929daf; }
+.pdf-karne .stat-metric {
+    margin-top: 3px;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.3px;
+    font-variant-numeric: tabular-nums;
+    color: #14213d;
+    text-align: left;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.pdf-karne .stat-sub {
+    margin-top: 2px;
+    font-size: 6px;
+    color: #929daf;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 
 .pdf-karne .tone-blue  { color: #3778ff; }
 .pdf-karne .tone-green { color: #1aa477; }
@@ -112,7 +133,16 @@
 .pdf-karne .tone-purple .stat-accent { background: #7657e8; }
 
 .pdf-karne .section-kicker { font-size: 6px; font-weight: 600; letter-spacing: 0.2px; color: #35659c; text-transform: uppercase; }
-.pdf-karne .section-title { margin-top: 2px; font-size: 10px; font-weight: 700; color: #17243a; }
+.pdf-karne .section-title {
+    margin-top: 2px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #17243a;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
 
 .pdf-karne .table-panel {
     position: relative;
@@ -220,6 +250,12 @@
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     color: #173b80;
+    text-align: left;
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .pdf-karne .evaluation-table {
@@ -263,6 +299,8 @@
     background: #fff;
     padding: 8px 10px;
     box-shadow: 0 4px 14px rgba(26, 45, 84, 0.04);
+    overflow: hidden;
+    min-width: 0;
 }
 
 .pdf-karne .student-panel .student-name {

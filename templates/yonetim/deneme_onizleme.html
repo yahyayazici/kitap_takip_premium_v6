@@ -5,7 +5,7 @@
     <header class="yonetim-page-head">
         <div>
             <h1>Excel Önizleme</h1>
-            <p>{{ deneme.ad }}</p>
+            <p>{{ deneme.ad }}{% if onizleme.format == "okyanus" %} · Okyanus genel sonuç raporu{% endif %}</p>
         </div>
         <a href="{% url 'yonetim:deneme_detay' deneme.pk %}" class="ghost-btn">Geri</a>
     </header>
@@ -13,27 +13,98 @@
     <section class="daily-stat-grid" style="margin-bottom:20px;">
         <article class="daily-stat-card"><div><span>TOPLAM</span><strong>{{ onizleme.toplam_ogrenci }}</strong></div></article>
         <article class="daily-stat-card"><div><span>EŞLEŞEN</span><strong>{{ onizleme.eslesen }}</strong></div></article>
-        <article class="daily-stat-card"><div><span>EŞLEŞMEYEN</span><strong>{{ onizleme.eslesmeyen }}</strong></div></article>
+        <article class="daily-stat-card"><div><span>ÖNERİ</span><strong>{{ oneri_satirlari|length }}</strong></div></article>
+        <article class="daily-stat-card"><div><span>EŞLEŞMEYEN</span><strong>{{ eslesmeyen|length }}</strong></div></article>
     </section>
+
+    {% if oneri_satirlari %}
+    <section class="yonetim-card" style="margin-bottom:20px;">
+        <h2>Benzer isim — doğru mu?</h2>
+        <p style="color:#64748B;margin-bottom:14px;">Excel’deki isim sitedeki talebeyle birebir değil. Öneriyi onaylayın veya başka seçin.</p>
+        {% for satir in oneri_satirlari %}
+        <div style="border:1px solid #E2E8F0;border-radius:12px;padding:14px 16px;margin-bottom:12px;">
+            <div style="margin-bottom:10px;">
+                <strong>{{ satir.excel_ad_soyad }}</strong>
+                <span style="color:#94A3B8;">(satır {{ satir.satir_no }}{% if satir.sinif %} · {{ satir.sinif }}{% endif %})</span>
+            </div>
+            {% if satir.oneri_ad_soyad %}
+            <p style="margin:0 0 12px;line-height:1.45;">
+                «{{ satir.excel_ad_soyad }}» sitedeki
+                <strong>{{ satir.oneri_ad_soyad }}</strong>
+                {% if satir.oneri_sinif %} ({{ satir.oneri_sinif }}){% endif %}
+                talebesine benziyor
+                {% if satir.oneri_oran %}(%{{ satir.oneri_oran }}){% endif %} — doğru mu?
+            </p>
+            {% endif %}
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;">
+                <form method="post" style="display:flex;gap:8px;align-items:end;flex-wrap:wrap;">
+                    {% csrf_token %}
+                    <input type="hidden" name="aksiyon" value="onayla">
+                    <input type="hidden" name="satir_no" value="{{ satir.satir_no }}">
+                    <input type="hidden" name="talebe_id" value="{{ satir.oneri_talebe_id }}">
+                    <button type="submit" class="primary-btn">Evet, bu</button>
+                </form>
+                <form method="post" style="display:flex;gap:8px;align-items:end;flex-wrap:wrap;flex:1;">
+                    {% csrf_token %}
+                    <input type="hidden" name="aksiyon" value="eslestir">
+                    <input type="hidden" name="satir_no" value="{{ satir.satir_no }}">
+                    <select name="talebe_id" class="input" required style="min-width:220px;">
+                        <option value="">Başka talebe seç…</option>
+                        {% for o in satir.oneriler %}
+                        <option value="{{ o.id }}">{{ o.ad_soyad }} — {{ o.sinif }} (%{{ o.oran }})</option>
+                        {% endfor %}
+                        {% for t in talebeler %}
+                        <option value="{{ t.id }}">{{ t.ad_soyad }} — {{ t.sinif_sube }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="ghost-btn">Seç ve eşleştir</button>
+                </form>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="aksiyon" value="atla">
+                    <input type="hidden" name="satir_no" value="{{ satir.satir_no }}">
+                    <button type="submit" class="ghost-btn">Atla</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </section>
+    {% endif %}
 
     {% if eslesmeyen %}
     <section class="yonetim-card" style="margin-bottom:20px;">
         <h2>Manuel Eşleştirme</h2>
+        <p style="color:#64748B;margin-bottom:14px;">Benzer isim bulunamadı. Listeden seçin veya atlayın (misafir vb.).</p>
         {% for satir in eslesmeyen %}
-        <form method="post" style="display:flex;gap:12px;align-items:end;margin-bottom:12px;flex-wrap:wrap;">
-            {% csrf_token %}
-            <input type="hidden" name="aksiyon" value="eslestir">
-            <input type="hidden" name="satir_no" value="{{ satir.satir_no }}">
-            <span style="min-width:200px;"><strong>{{ satir.excel_ad_soyad }}</strong> (satır {{ satir.satir_no }})</span>
-            <select name="talebe_id" class="input" required>
-                <option value="">Talebe seç…</option>
-                {% for t in talebeler %}
-                <option value="{{ t.id }}">{{ t.ad_soyad }} — {{ t.sinif_sube }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit" class="ghost-btn">Eşleştir</button>
-        </form>
+        <div style="display:flex;gap:12px;align-items:end;margin-bottom:12px;flex-wrap:wrap;">
+            <form method="post" style="display:flex;gap:12px;align-items:end;flex-wrap:wrap;flex:1;">
+                {% csrf_token %}
+                <input type="hidden" name="aksiyon" value="eslestir">
+                <input type="hidden" name="satir_no" value="{{ satir.satir_no }}">
+                <span style="min-width:200px;"><strong>{{ satir.excel_ad_soyad }}</strong> (satır {{ satir.satir_no }})</span>
+                <select name="talebe_id" class="input" required>
+                    <option value="">Talebe seç…</option>
+                    {% for t in talebeler %}
+                    <option value="{{ t.id }}">{{ t.ad_soyad }} — {{ t.sinif_sube }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="ghost-btn">Eşleştir</button>
+            </form>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="aksiyon" value="atla">
+                <input type="hidden" name="satir_no" value="{{ satir.satir_no }}">
+                <button type="submit" class="ghost-btn">Atla</button>
+            </form>
+        </div>
         {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if atlanan %}
+    <section class="yonetim-card" style="margin-bottom:20px;">
+        <h2>Atlanan ({{ atlanan|length }})</h2>
+        <p style="color:#64748B;">{{ atlanan|length }} satır aktarıma dahil edilmeyecek.</p>
     </section>
     {% endif %}
 
@@ -41,11 +112,15 @@
         <form method="post">
             {% csrf_token %}
             <input type="hidden" name="aksiyon" value="aktar">
-            <button type="submit" class="primary-btn" {% if onizleme.eslesmeyen %}disabled{% endif %}>
+            <button type="submit" class="primary-btn" {% if oneri_satirlari or not onizleme.eslesen %}disabled{% endif %}>
                 Sonuçları Sisteme Aktar
             </button>
-            {% if onizleme.eslesmeyen %}
-            <p style="margin-top:8px;color:#64748B;">Tüm öğrenciler eşleşmeden aktarım yapılamaz.</p>
+            {% if oneri_satirlari %}
+            <p style="margin-top:8px;color:#64748B;">Benzer isim önerilerini onaylamadan aktarım yapılamaz.</p>
+            {% elif not onizleme.eslesen %}
+            <p style="margin-top:8px;color:#64748B;">En az bir eşleşmiş öğrenci gerekli.</p>
+            {% elif eslesmeyen %}
+            <p style="margin-top:8px;color:#64748B;">Eşleşmeyen satırlar atlanır; yalnızca eşleşenler aktarılır.</p>
             {% endif %}
         </form>
     </section>

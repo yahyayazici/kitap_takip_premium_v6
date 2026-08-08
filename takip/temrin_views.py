@@ -218,8 +218,14 @@ def ktt_sonuc_gir(request, pk):
         return redirect("ktt_listesi")
 
     if request.method == "POST":
+        from takip.soru_takip_service import ktt_sonucu_soru_takibe_yansit
+
         hatalar = []
         kaydedilen = 0
+        onceki_map = {
+            s.talebe_id: s
+            for s in KttSonucu.objects.filter(ktt=ktt, talebe__in=talebeler)
+        }
 
         with transaction.atomic():
             for talebe in talebeler:
@@ -237,8 +243,23 @@ def ktt_sonuc_gir(request, pk):
                     )
                     continue
 
+                onceki = onceki_map.get(talebe.id)
+                onceki_d = int(onceki.dogru or 0) if onceki else 0
+                onceki_y = int(onceki.yanlis or 0) if onceki else 0
+                onceki_b = int(onceki.bos or 0) if onceki else 0
+
                 if dogru == 0 and yanlis == 0 and bos == toplam_soru:
-                    KttSonucu.objects.filter(ktt=ktt, talebe=talebe).delete()
+                    if onceki:
+                        KttSonucu.objects.filter(ktt=ktt, talebe=talebe).delete()
+                        ktt_sonucu_soru_takibe_yansit(
+                            user=request.user,
+                            ktt=ktt,
+                            talebe=talebe,
+                            onceki_dogru=onceki_d,
+                            onceki_yanlis=onceki_y,
+                            onceki_bos=onceki_b,
+                            silindi=True,
+                        )
                     continue
 
                 KttSonucu.objects.update_or_create(
@@ -251,18 +272,31 @@ def ktt_sonuc_gir(request, pk):
                         "kaydeden": request.user,
                     },
                 )
+                ktt_sonucu_soru_takibe_yansit(
+                    user=request.user,
+                    ktt=ktt,
+                    talebe=talebe,
+                    dogru=dogru,
+                    yanlis=yanlis,
+                    bos=bos,
+                    onceki_dogru=onceki_d,
+                    onceki_yanlis=onceki_y,
+                    onceki_bos=onceki_b,
+                )
                 kaydedilen += 1
 
             if hatalar:
                 transaction.set_rollback(True)
 
-        for hata in hatalar:
-            messages.error(request, hata)
+        if hatalar:
+            from takip.messages_util import hatalari_ozetle
 
-        if not hatalar:
+            hatalari_ozetle(request, hatalar, tek_baslik="Sonuç kaydı hatalı")
+        else:
             messages.success(
                 request,
-                f"{kaydedilen} öğrenci sonucu kaydedildi.",
+                f"{kaydedilen} öğrenci sonucu kaydedildi; "
+                f"{ktt.ders.ad} soru takibine işlendi ({ktt.sinav_tarihi:%d.%m.%Y}).",
             )
             return redirect("ktt_sonuc_gir", pk=ktt.pk)
 

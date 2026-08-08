@@ -1,0 +1,62 @@
+{# PDF sayfa boyutu seçici — varsayılan A4 dikey #}
+{# Kullanım: include ... with pdf_href=... pdf_sayfa=pdf_sayfa #}
+{% with secenekler=pdf_sayfa.secenekler|default:None %}
+<div class="pdf-sayfa-sec" data-pdf-sayfa>
+    <span class="pdf-sayfa-sec-label">Sayfa</span>
+    <select
+        id="pdf-sayfa-{{ forloop.counter|default:'1' }}"
+        class="pdf-sayfa-sec-select"
+        data-pdf-sayfa-select
+        aria-label="PDF sayfa boyutu"
+    >
+        {% if secenekler %}
+            {% for s in secenekler %}
+            <option value="{{ s.kod }}" {% if s.secili %}selected{% endif %}>{{ s.etiket }}</option>
+            {% endfor %}
+        {% else %}
+            <option value="a4_portrait" selected>A4 dikey</option>
+            <option value="a4_landscape">A4 yatay</option>
+            <option value="a3_portrait">A3 dikey</option>
+            <option value="a3_landscape">A3 yatay</option>
+        {% endif %}
+    </select>
+    <a
+        href="{{ pdf_href }}"
+        class="{{ pdf_btn_class|default:'ktt-outline-btn red' }}"
+        data-pdf-sayfa-link
+        target="_blank"
+        rel="noopener"
+    >{{ pdf_btn_label|default:"PDF İndir" }}</a>
+</div>
+{% endwith %}
+<script>
+(function () {
+  function applySayfa(root) {
+    var sel = root.querySelector("[data-pdf-sayfa-select]");
+    var link = root.querySelector("[data-pdf-sayfa-link]");
+    if (!sel || !link) return;
+    var base = link.getAttribute("data-base-href") || link.getAttribute("href") || "";
+    if (!link.getAttribute("data-base-href")) {
+      link.setAttribute("data-base-href", base);
+    }
+    base = link.getAttribute("data-base-href") || "";
+    try {
+      var u = new URL(base, window.location.origin);
+      u.searchParams.set("sayfa", sel.value || "a4_portrait");
+      link.setAttribute("href", u.pathname + u.search + u.hash);
+    } catch (e) {
+      var sep = base.indexOf("?") >= 0 ? "&" : "?";
+      link.setAttribute("href", base.replace(/([?&])sayfa=[^&]*/g, "").replace(/[?&]$/, "") + sep + "sayfa=" + encodeURIComponent(sel.value || "a4_portrait"));
+    }
+  }
+  document.querySelectorAll("[data-pdf-sayfa]").forEach(function (root) {
+    if (root.dataset.bound) return;
+    root.dataset.bound = "1";
+    var sel = root.querySelector("[data-pdf-sayfa-select]");
+    if (sel) {
+      sel.addEventListener("change", function () { applySayfa(root); });
+    }
+    applySayfa(root);
+  });
+})();
+</script>

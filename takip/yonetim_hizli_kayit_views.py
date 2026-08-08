@@ -58,8 +58,9 @@ def _excel_sonuc_mesajlari(request, sonuc) -> None:
     for mesaj in sonuc.bilgi[:6]:
         messages.info(request, mesaj)
     if sonuc.hatalar:
-        for hata in sonuc.hatalar[:5]:
-            messages.error(request, hata)
+        from takip.messages_util import hatalari_ozetle
+
+        hatalari_ozetle(request, list(sonuc.hatalar), tek_baslik="Excel satır hatası")
 
 
 def _giris_pdf_yanit(request, kayit: PersonelGirisKaydi | OgretmenGirisKaydi) -> HttpResponse:
@@ -120,8 +121,10 @@ def hizli_kayit(request):
                 brans=toplu_ogretmen_form.cleaned_data.get("brans"),
                 saatlik_ucret=toplu_ogretmen_form.cleaned_data.get("saatlik_ucret"),
             )
-            for hata in hatalar:
-                messages.error(request, hata)
+            if hatalar:
+                from takip.messages_util import hatalari_ozetle
+
+                hatalari_ozetle(request, hatalar, tek_baslik="Toplu öğretmen kaydı")
 
             if kayitlar:
                 zip_dosya = personel_giris_zip_olustur(kayitlar, request=request)
@@ -165,8 +168,10 @@ def hizli_kayit(request):
                     toplu_personel_form.cleaned_data.get("sorumlu_sinif_subeler") or []
                 ),
             )
-            for hata in hatalar:
-                messages.error(request, hata)
+            if hatalar:
+                from takip.messages_util import hatalari_ozetle
+
+                hatalari_ozetle(request, hatalar, tek_baslik="Toplu öğretmen kaydı")
 
             if kayitlar:
                 zip_dosya = personel_giris_zip_olustur(kayitlar, request=request)

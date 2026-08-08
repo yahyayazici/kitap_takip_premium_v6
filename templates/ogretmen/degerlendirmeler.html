@@ -1,0 +1,77 @@
+{% extends "ogretmen/base.html" %}
+{% block title %}Değerlendirmeler · Öğretmen Paneli{% endblock %}
+
+{% block content %}
+<div class="dash-home ogretmen-dash">
+
+{% include "includes/panel_hero.html" with title="Değerlendirmeler" meta="Yalnızca sizin girdiğiniz not kayıtları" show_date=True %}
+
+<section class="ogretmen-select-card dash-panel">
+    <div class="dash-panel-head">
+        <div>
+            <p class="dash-eyebrow">Filtre</p>
+            <h2>Sınıf seçin</h2>
+        </div>
+        <a href="{% url 'ogretmen_degerlendirmeler' %}" class="dash-text-btn">Tümü</a>
+    </div>
+    <div class="ogretmen-class-tabs">
+        {% for sinif in siniflar %}
+        <a href="{% url 'ogretmen_degerlendirmeler' %}?sinif={{ sinif.id }}"
+           class="ogretmen-class-tab {% if secili_sinif_id == sinif.id %}active{% endif %}">
+            {{ sinif.etiket }}
+            <span class="og-count-badge">{{ sinif.ogrenci_sayisi }} Öğrenci</span>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="dash-panel">
+    <div class="dash-panel-head">
+        <div>
+            <p class="dash-eyebrow">Kayıtlar</p>
+            <h2>Haftalık değerlendirmeleriniz</h2>
+        </div>
+        <span class="og-count-pill">{{ notlar|length }} kayıt</span>
+    </div>
+    <div class="og-table-wrap">
+        <table class="og-grade-table og-degerlendirme-table">
+            <thead>
+                <tr>
+                    <th>Talebe</th>
+                    <th>Sınıf</th>
+                    <th>Hafta</th>
+                    <th>Ders</th>
+                    <th>Katılım</th>
+                    <th>Takip</th>
+                    <th>Disiplin</th>
+                    <th>Puan</th>
+                    <th>Not</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for n in notlar %}
+                <tr>
+                    <td class="og-ogrenci-ad">{{ n.talebe.ad_soyad }}</td>
+                    <td>{{ n.talebe.sinif }}{% if n.talebe.sube %}-{{ n.talebe.sube }}{% endif %}</td>
+                    <td>{{ n.hafta_baslangic|date:"d.m.Y" }}</td>
+                    <td>{{ n.ders.ad }}</td>
+                    <td>{{ n.katilim|default:"—" }}</td>
+                    <td>{{ n.takip|default:"—" }}</td>
+                    <td>{{ n.disiplin|default:"—" }}</td>
+                    <td><strong>{{ n.puan|default:"—" }}</strong></td>
+                    <td>{{ n.aciklama|truncatechars:60 }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="9" class="og-empty-note">Henüz girdiğiniz değerlendirme kaydı yok.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/panel_date_js.html" %}
+{% endblock %}

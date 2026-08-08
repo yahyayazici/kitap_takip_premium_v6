@@ -1,0 +1,118 @@
+{% load pdf_extras static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>{{ sinav.ad }} · Bireysel Karne</title>
+    <style>
+        {% include "includes/pdf_karne_fonts.html" %}
+        {% include "includes/pdf_karne_a4_css.html" %}
+        .pdf-karne .info-panel-accent {
+            position: absolute;
+            top: 0;
+            left: 10px;
+            right: 10px;
+            height: 2px;
+            border-radius: 0 0 999px 999px;
+            background: #3778ff;
+            opacity: 0.5;
+        }
+        .pdf-karne .info-panel { position: relative; overflow: hidden; }
+        .page-break { page-break-after: always; }
+    </style>
+</head>
+<body class="pdf-karne density-s">
+
+{% for row in satirlar %}
+{% with sonuc=row.sonuc talebe=row.sonuc.talebe %}
+<div class="pdf-sheet{% if not forloop.last %} page-break{% endif %}">
+<table class="layout">
+    <tr>
+        <td>
+            <table class="header-table" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="header-logo-cell">
+                        <div class="brand-logo-wrap">
+                            <img class="brand-logo" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="Çinili Saray">
+                        </div>
+                    </td>
+                    <td class="header-text-cell">
+                        <div class="brand-name">{{ panel_org }}</div>
+                        <div class="brand-sub">{{ panel_name }}</div>
+                    </td>
+                    <td class="header-right">
+                        <div class="doc-title">Yazılı Sonuç Karnesi</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+
+    <tr><td class="gap6"></td></tr>
+
+    <tr>
+        <td class="hero">
+            <div class="hero-inner">
+                <div class="hero-tag">{{ sinav.get_tur_display }} · {{ sinav.yazili_no }}. yazılı</div>
+                <div class="hero-title">{{ sinav.ders_ad }}</div>
+                <div class="hero-meta">
+                    {{ talebe.ad_soyad }} ·
+                    {% if talebe.sinif_sube %}{{ talebe.sinif_sube }}{% else %}{{ talebe.sinif }}{% endif %}
+                    · {{ sinav.sinav_tarihi|date:"d.m.Y" }}
+                </div>
+            </div>
+        </td>
+    </tr>
+
+    <tr><td class="gap6"></td></tr>
+
+    <tr>
+        <td>
+            <table class="stats-table" cellpadding="0">
+                <tr>
+                    <td width="33%" class="stat-cell tone-blue">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">Puan</div>
+                        <div class="stat-metric">{{ sonuc.puan|pdf_puan }}</div>
+                        <div class="stat-sub">100 üzerinden</div>
+                    </td>
+                    <td width="33%" class="stat-cell tone-purple">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">Derece</div>
+                        <div class="stat-metric">{{ row.sira }}</div>
+                        <div class="stat-sub">{{ toplam_talebe }} talebe</div>
+                    </td>
+                    <td width="34%" class="stat-cell tone-green">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">Sınıf Ort.</div>
+                        <div class="stat-metric">{{ sinif_ortalamasi|pdf_puan }}</div>
+                        <div class="stat-sub">En yüksek {{ en_yuksek_puan|pdf_puan }}</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+
+    <tr><td class="gap8"></td></tr>
+
+    <tr>
+        <td>
+            <div class="info-panel">
+                <div class="info-panel-accent"></div>
+                <div class="section-kicker">Sınav</div>
+                <div class="section-title">{{ sinav.ad }}</div>
+                <p style="margin:8px 0 0;font-size:10px;color:#64748b;">
+                    {{ sinav.sinif_goster }}
+                    {% if etut_hocasi %} · Etüt: {{ etut_hocasi }}{% endif %}
+                    · {{ bugun|date:"d.m.Y" }}
+                </p>
+            </div>
+        </td>
+    </tr>
+</table>
+</div>
+{% endwith %}
+{% endfor %}
+
+</body>
+</html>

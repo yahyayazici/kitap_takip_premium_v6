@@ -585,3 +585,71 @@ def kayit_kaydet(
         return None, hatalar
 
     return kayit, []
+
+
+def ktt_sonucu_soru_takibe_yansit(
+    *,
+    user: User,
+    ktt,
+    talebe: Talebe,
+    dogru: int = 0,
+    yanlis: int = 0,
+    bos: int = 0,
+    onceki_dogru: int = 0,
+    onceki_yanlis: int = 0,
+    onceki_bos: int = 0,
+    silindi: bool = False,
+) -> None:
+    """
+    KTT sonucunu talebenin günlük soru takibine yansıtır.
+
+    Aynı KTT tekrar kaydedilirse önceki KTT katkısı düşülüp yenisi eklenir
+    (çift sayım olmaz). Sınav tarihindeki ilgili ders satırına işlenir.
+    """
+    ders = getattr(ktt, "ders", None)
+    tarih = getattr(ktt, "sinav_tarihi", None)
+    if ders is None or tarih is None:
+        return
+
+    kayit, _ = GunlukSoruKaydi.objects.get_or_create(
+        talebe=talebe,
+        tarih=tarih,
+        defaults={"kaydeden": user},
+    )
+
+    not_ek = f"KTT: {ktt.ad}"
+    mevcut_not = (kayit.gunluk_not or "").strip()
+    if not_ek not in mevcut_not:
+        kayit.gunluk_not = f"{mevcut_not}\n{not_ek}".strip() if mevcut_not else not_ek
+    kayit.kaydeden = user
+    kayit.save(update_fields=["gunluk_not", "kaydeden", "guncellenme"])
+
+    satir = GunlukSoruDersSatiri.objects.filter(kayit=kayit, ders=ders).first()
+    cur_d = int(satir.dogru or 0) if satir else 0
+    cur_y = int(satir.yanlis or 0) if satir else 0
+    cur_b = int(satir.bos or 0) if satir else 0
+
+    yeni_d = max(0, cur_d - int(onceki_dogru or 0))
+    yeni_y = max(0, cur_y - int(onceki_yanlis or 0))
+    yeni_b = max(0, cur_b - int(onceki_bos or 0))
+    if not silindi:
+        yeni_d += int(dogru or 0)
+        yeni_y += int(yanlis or 0)
+        yeni_b += int(bos or 0)
+
+    yeni_toplam = yeni_d + yeni_y + yeni_b
+    if yeni_toplam <= 0:
+        if satir:
+            satir.delete()
+        return
+
+    GunlukSoruDersSatiri.objects.update_or_create(
+        kayit=kayit,
+        ders=ders,
+        defaults={
+            "toplam_soru": yeni_toplam,
+            "dogru": yeni_d,
+            "yanlis": yeni_y,
+            "bos": yeni_b,
+        },
+    )

@@ -1,0 +1,155 @@
+{% load pdf_extras static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>{{ sinav.ad }} · Sıralı Liste</title>
+    <style>
+        {% include "includes/pdf_karne_fonts.html" %}
+        {% include "includes/pdf_karne_a4_css.html" %}
+        .pdf-karne .table-panel-accent { background: #3778ff; }
+        .pdf-karne table.results thead th.col-puan,
+        .pdf-karne table.results tbody td.col-puan {
+            text-align: left;
+            padding-left: 10px;
+            width: 18%;
+        }
+        .pdf-karne table.results tbody td.col-puan .score {
+            display: block;
+            text-align: left;
+        }
+        .pdf-karne .meta-line {
+            font-size: 6.5px;
+            color: #64748b;
+            line-height: 1.45;
+        }
+    </style>
+</head>
+<body class="pdf-karne {{ satirlar|length|pdf_density_class }}">
+
+<div class="pdf-sheet">
+<table class="layout">
+    <tr>
+        <td>
+            <table class="header-table" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="header-logo-cell">
+                        <div class="brand-logo-wrap">
+                            <img class="brand-logo" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="Çinili Saray">
+                        </div>
+                    </td>
+                    <td class="header-text-cell">
+                        <div class="brand-name">{{ panel_org|default:"Çinili Saray Proje" }}</div>
+                        <div class="brand-sub">{{ panel_name|default:panel_short|default:"Eğitim Modülü" }}</div>
+                    </td>
+                    <td class="header-right">
+                        <div class="doc-title">Yazılı Sıralı Liste</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+
+    <tr><td class="gap6"></td></tr>
+
+    <tr>
+        <td class="hero">
+            <div class="hero-inner">
+                <div class="hero-tag">{{ sinav.get_tur_display }} · {{ sinav.yazili_no }}. yazılı</div>
+                <div class="hero-title">{{ sinav.ders_ad }} — {{ sinav.ad }}</div>
+                <div class="hero-meta">
+                    Kamp: {{ sinav.kamp.ad }}
+                    · Sınıf: {{ sinav.sinif_goster }}
+                    · {{ sinav.sinav_tarihi|date:"d.m.Y" }}
+                    {% if etut_hocasi %} · Etüt: {{ etut_hocasi }}{% endif %}
+                </div>
+            </div>
+        </td>
+    </tr>
+
+    <tr><td class="gap6"></td></tr>
+
+    <tr>
+        <td>
+            <table class="stats-table" cellpadding="0">
+                <tr>
+                    <td width="33%" class="stat-cell tone-blue">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">Talebe</div>
+                        <div class="stat-metric">{{ toplam_talebe }}</div>
+                        <div class="stat-sub">sıralı liste</div>
+                    </td>
+                    <td width="33%" class="stat-cell tone-purple">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">Sınıf Ort.</div>
+                        <div class="stat-metric">{{ sinif_ortalamasi|pdf_puan }}</div>
+                        <div class="stat-sub">100 üzerinden</div>
+                    </td>
+                    <td width="34%" class="stat-cell tone-green">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">En Yüksek</div>
+                        <div class="stat-metric">{{ en_yuksek_puan|pdf_puan }}</div>
+                        <div class="stat-sub">{{ bugun|date:"d.m.Y" }}</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+
+    <tr><td class="gap8"></td></tr>
+
+    <tr>
+        <td>
+            <div class="table-panel">
+                <div class="table-panel-accent"></div>
+                <div class="table-panel-head">
+                    <div class="section-kicker">Sonuçlar</div>
+                    <div class="section-title">Sıralı puan listesi</div>
+                </div>
+                <table class="results">
+                    <thead>
+                        <tr>
+                            <th style="width:8%">SN</th>
+                            <th class="left" style="width:42%">Ad Soyad</th>
+                            <th style="width:14%">Sınıf</th>
+                            <th class="left col-puan">Puan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in satirlar %}
+                        <tr>
+                            <td><span class="rank">{{ row.sira }}</span></td>
+                            <td class="left">
+                                <div class="student-name">{{ row.sonuc.talebe.ad_soyad }}</div>
+                            </td>
+                            <td>
+                                {% if row.sonuc.talebe.sinif_sube %}{{ row.sonuc.talebe.sinif_sube }}{% else %}{{ row.sonuc.talebe.sinif }}{% endif %}
+                            </td>
+                            <td class="left col-puan"><span class="score">{{ row.sonuc.puan|pdf_puan }}</span></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="left">Sonuç yok.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </td>
+    </tr>
+
+    <tr><td class="gap8"></td></tr>
+
+    <tr>
+        <td>
+            <table class="footer-table">
+                <tr>
+                    <td class="footer-left">{{ panel_short|default:"Çinili Saray Proje" }} · Yazılı sıralı liste · {{ sinav.get_tur_display }}</td>
+                    <td class="footer-right">{{ bugun|date:"d.m.Y" }}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</div>
+
+</body>
+</html>

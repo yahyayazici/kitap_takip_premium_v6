@@ -91,7 +91,7 @@ class TopluPersonelForm(forms.Form):
         label="Sorumlu olduğu sınıf ve şubeler",
         queryset=SinifSube.objects.none(),
         required=False,
-        widget=forms.CheckboxSelectMultiple(),
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "choice-chip-grid"}),
     )
     aktif = forms.BooleanField(
         label="Aktif hesap",
@@ -296,7 +296,7 @@ class HizliOgretmenForm(forms.Form):
         label="Sorumlu sınıf ve şubeler",
         queryset=SinifSube.objects.none(),
         required=False,
-        widget=forms.CheckboxSelectMultiple(),
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "choice-chip-grid"}),
     )
     brans = forms.ModelChoiceField(
         label="Branş",
@@ -357,7 +357,7 @@ class TopluOgretmenForm(forms.Form):
         label="Sorumlu sınıf ve şubeler",
         queryset=SinifSube.objects.none(),
         required=False,
-        widget=forms.CheckboxSelectMultiple(),
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "choice-chip-grid"}),
     )
     brans = forms.ModelChoiceField(
         label="Branş",

@@ -1,0 +1,79 @@
+{# Program süre özeti — üstten dönem tıkla, panel açılır #}
+{% if sure_donemler %}
+<section class="pg-sure" data-pg-sure aria-label="Süre analizi">
+    <div class="pg-sure-top">
+        <div>
+            <p class="pg-sure-kicker">Süre analizi</p>
+            <h2 class="pg-sure-title">Kaç saat ne yapıyoruz?</h2>
+            <p class="pg-sure-hint">Günlük / haftalık / aylık / yıllık seçmek için üstteki düğmeye tıklayın.</p>
+        </div>
+        <div class="pg-sure-tabs" role="tablist" aria-label="Dönem">
+            <button type="button" class="pg-sure-tab{% if not baslangic_kapali %} is-active{% endif %}" data-donem="gun" role="tab" aria-selected="{% if not baslangic_kapali %}true{% else %}false{% endif %}">Günlük</button>
+            <button type="button" class="pg-sure-tab" data-donem="hafta" role="tab" aria-selected="false">Haftalık</button>
+            <button type="button" class="pg-sure-tab" data-donem="ay" role="tab" aria-selected="false">Aylık</button>
+            <button type="button" class="pg-sure-tab" data-donem="yil" role="tab" aria-selected="false">Yıllık</button>
+        </div>
+    </div>
+
+    {% for key, ozet in sure_donemler.items %}
+    <div class="pg-sure-panel{% if key == 'gun' and not baslangic_kapali %} is-open{% endif %}" data-donem-panel="{{ key }}" {% if baslangic_kapali or key != 'gun' %}hidden{% endif %}>
+        <div class="pg-sure-meta">
+            <strong>{{ ozet.donem_etiket }}</strong>
+            <span>Toplam {{ ozet.toplam_etiket }}{% if ozet.gun_sayisi > 1 %} · {{ ozet.gun_sayisi }} gün{% endif %}</span>
+        </div>
+
+        <div class="pg-sure-ai">
+            <p class="pg-sure-ai-label">Yapay zekâ özeti</p>
+            <p>{{ ozet.ai_ozet }}</p>
+        </div>
+
+        <div class="pg-sure-grid">
+            {% for s in ozet.satirlar %}
+            <article class="pg-sure-chip pg-sure-chip-{{ s.kod }}">
+                <span class="pg-sure-chip-ad">{{ s.ad }}</span>
+                <strong>{{ s.etiket }}</strong>
+                <em>%{{ s.yuzde }}</em>
+            </article>
+            {% empty %}
+            <p class="pg-sure-empty">Etkin satır yok.</p>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</section>
+<script>
+(function () {
+  var root = document.querySelector("[data-pg-sure]");
+  if (!root || root.dataset.bound) return;
+  root.dataset.bound = "1";
+  var tabs = root.querySelectorAll(".pg-sure-tab");
+  var panels = root.querySelectorAll("[data-donem-panel]");
+  tabs.forEach(function (tab) {
+    tab.addEventListener("click", function () {
+      var d = tab.getAttribute("data-donem");
+      var already = tab.classList.contains("is-active") && !tab.getAttribute("data-force-open");
+      // İkinci tık: paneli kapat (üstten seçtikçe açılsın)
+      if (already) {
+        tab.classList.remove("is-active");
+        tab.setAttribute("aria-selected", "false");
+        panels.forEach(function (p) {
+          p.classList.remove("is-open");
+          p.hidden = true;
+        });
+        return;
+      }
+      tabs.forEach(function (t) {
+        var on = t === tab;
+        t.classList.toggle("is-active", on);
+        t.setAttribute("aria-selected", on ? "true" : "false");
+      });
+      panels.forEach(function (p) {
+        var on = p.getAttribute("data-donem-panel") === d;
+        p.classList.toggle("is-open", on);
+        p.hidden = !on;
+      });
+    });
+  });
+})();
+</script>
+{% endif %}

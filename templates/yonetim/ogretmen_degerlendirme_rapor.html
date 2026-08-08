@@ -1,0 +1,94 @@
+{% extends "yonetim/base.html" %}
+{% block title %}Öğretmen Değerlendirme Raporu{% endblock %}
+{% block content %}
+<div class="yonetim-page">
+    <div class="yonetim-page-head">
+        <div>
+            <p class="muted">Raporlar</p>
+            <h1>Öğretmen Değerlendirme Raporu</h1>
+            <p class="muted">Sınıf, talebe ve öğretmen bazında haftalık notları görüntüleyin / PDF alın.</p>
+        </div>
+        <div class="yonetim-page-actions">
+            <a class="primary-btn" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}format=pdf" target="_blank">PDF İndir</a>
+        </div>
+    </div>
+
+    <form method="get" class="yonetim-filter-bar dash-panel" style="padding:16px;margin-bottom:16px;display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));align-items:end;">
+        <div>
+            <label for="sinif">Sınıf</label>
+            <select id="sinif" name="sinif" class="cs-input">
+                <option value="">Tümü</option>
+                {% for s in siniflar %}
+                <option value="{{ s.id }}" {% if secili_sinif_id == s.id %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="talebe">Talebe</label>
+            <select id="talebe" name="talebe" class="cs-input">
+                <option value="">Tümü</option>
+                {% for t in talebeler %}
+                <option value="{{ t.id }}" {% if secili_talebe_id == t.id %}selected{% endif %}>{{ t.ad_soyad }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="hoca">Öğretmen</label>
+            <select id="hoca" name="hoca" class="cs-input">
+                <option value="">Tümü</option>
+                {% for h in hocalar %}
+                <option value="{{ h.id }}" {% if secili_hoca_id == h.id %}selected{% endif %}>{{ h.ad_soyad }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <button type="submit" class="primary-btn">Filtrele</button>
+        </div>
+    </form>
+
+    <section class="dash-panel">
+        <div class="dash-panel-head">
+            <div>
+                <p class="dash-eyebrow">Sonuç</p>
+                <h2>{{ notlar|length }} kayıt</h2>
+            </div>
+        </div>
+        <div class="responsive-table">
+            <table class="yonetim-table">
+                <thead>
+                    <tr>
+                        <th>Talebe</th>
+                        <th>Sınıf</th>
+                        <th>Hafta</th>
+                        <th>Ders</th>
+                        <th>Katılım</th>
+                        <th>Takip</th>
+                        <th>Disiplin</th>
+                        <th>Puan</th>
+                        <th>Öğretmen</th>
+                        <th>Karne</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for n in notlar %}
+                    <tr>
+                        <td>{{ n.talebe.ad_soyad }}</td>
+                        <td>{{ n.talebe.sinif }}{% if n.talebe.sube %}-{{ n.talebe.sube }}{% endif %}</td>
+                        <td>{{ n.hafta_baslangic|date:"d.m.Y" }}</td>
+                        <td>{{ n.ders.ad }}</td>
+                        <td>{{ n.katilim|default:"—" }}</td>
+                        <td>{{ n.takip|default:"—" }}</td>
+                        <td>{{ n.disiplin|default:"—" }}</td>
+                        <td><strong>{{ n.puan|default:"—" }}</strong></td>
+                        <td>{{ n.etut_hocasi.ad_soyad }}</td>
+                        <td><a href="{% url 'yonetim:ogretmen_degerlendirme_karne_pdf' n.talebe_id %}" target="_blank">PDF</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="10" class="report-empty">Kayıt bulunamadı.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

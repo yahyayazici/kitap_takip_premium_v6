@@ -1,0 +1,286 @@
+/* Personel ana sayfa — Duyuru | YÇT yarı yarıya */
+
+.personel-top-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px;
+    align-items: stretch;
+    margin-top: 14px;
+}
+
+.personel-top-split > * {
+    min-width: 0;
+    height: 100%;
+}
+
+.personel-top-split .duyuru-carousel-shell {
+    margin-top: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.personel-top-split .duyuru-banner {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-radius: 20px !important;
+    min-height: 100%;
+}
+
+.personel-top-split .duyuru-media-pane {
+    flex: 1;
+    aspect-ratio: auto !important;
+    height: auto !important;
+    min-height: 220px !important;
+    max-height: none !important;
+}
+
+.personel-top-split .duyuru-caption {
+    flex-shrink: 0;
+}
+
+/* YÇT kartı */
+.personel-yct-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px 16px 14px;
+    border-radius: 20px;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow:
+        0 12px 32px rgba(37, 99, 235, 0.07),
+        0 2px 8px rgba(15, 39, 68, 0.04);
+    min-height: 100%;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.personel-yct-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.personel-yct-kicker {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
+}
+
+.personel-yct-head h2 {
+    margin: 4px 0 0;
+    font-size: 18px;
+    font-weight: 750;
+    letter-spacing: -0.02em;
+    color: #0f2744;
+}
+
+.personel-yct-link {
+    font-size: 13px;
+    font-weight: 700;
+    color: #2563eb !important;
+    text-decoration: none !important;
+    white-space: nowrap;
+}
+
+.personel-yct-grid {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 4px;
+    table-layout: fixed;
+}
+
+.personel-yct-grid th {
+    font-size: 10px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0 0 4px;
+    text-align: center;
+}
+
+.personel-yct-grid td {
+    height: auto;
+    min-height: 64px;
+    text-align: left;
+    vertical-align: top;
+    border-radius: 10px;
+    position: relative;
+    padding: 5px 4px 6px;
+    background: #f8fafc;
+    border: 1px solid transparent;
+    box-sizing: border-box;
+}
+
+.personel-yct-grid td.is-empty {
+    background: transparent;
+    border-color: transparent;
+}
+
+.personel-yct-grid td .day {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    margin-bottom: 3px;
+}
+
+.personel-yct-grid td.has-event {
+    background: #f0f7ff;
+    border-color: #dbeafe;
+}
+
+.personel-yct-grid td.has-event .day {
+    background: #2563eb;
+    color: #fff;
+    font-weight: 750;
+}
+
+.personel-yct-cell-events {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-height: 28px;
+}
+
+.personel-yct-chip {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 2px 5px;
+    border-radius: 5px;
+    background: #fff;
+    border: 1px solid #dbeafe;
+    color: #1e40af;
+    font-size: 9.5px;
+    font-weight: 650;
+    font-family: inherit;
+    line-height: 1.25;
+    text-align: left;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+.personel-yct-chip:hover,
+.personel-yct-chip:focus-visible {
+    background: #eff6ff;
+    border-color: #93c5fd;
+    outline: none;
+}
+
+.personel-yct-more {
+    display: inline-block;
+    margin: 0;
+    padding: 0 2px;
+    border: 0;
+    background: transparent;
+    font-size: 9px;
+    font-weight: 700;
+    font-family: inherit;
+    color: #64748b;
+    cursor: pointer;
+    text-align: left;
+}
+
+.personel-yct-more:hover {
+    color: #2563eb;
+}
+
+.personel-yct-pop {
+    position: absolute;
+    z-index: 40;
+    width: min(240px, calc(100% - 16px));
+    padding: 10px 12px 12px;
+    border-radius: 12px;
+    background: #0f2744;
+    color: #fff;
+    box-shadow: 0 12px 28px rgba(15, 39, 68, 0.28);
+}
+
+.personel-yct-pop[hidden] {
+    display: none !important;
+}
+
+.personel-yct-pop-when {
+    margin: 0 0 4px;
+    font-size: 11px;
+    font-weight: 650;
+    color: #93c5fd;
+}
+
+.personel-yct-pop-title {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+.personel-yct-pop-note {
+    margin: 6px 0 0;
+    font-size: 12px;
+    line-height: 1.4;
+    color: #cbd5e1;
+    word-break: break-word;
+}
+
+.personel-yct-pop-close {
+    margin-top: 10px;
+    padding: 4px 10px;
+    border: 0;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 650;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.personel-yct-pop-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.personel-yct-grid td .dot {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .personel-top-split {
+        grid-template-columns: 1fr;
+    }
+
+    .personel-top-split .duyuru-media-pane {
+        min-height: 180px !important;
+        aspect-ratio: 16 / 9 !important;
+    }
+
+    .personel-yct-grid td {
+        min-height: 52px;
+        padding: 4px 3px;
+    }
+
+    .personel-yct-chip {
+        font-size: 8.5px;
+        padding: 1px 3px;
+    }
+}

@@ -128,6 +128,8 @@ def yazili_sinav_ekle(request, kamp_pk):
         sinav = form.save(commit=False)
         sinav.kamp = kamp
         sinav.olusturan = request.user
+        if sinav.ders_id and not sinav.ders_ad:
+            sinav.ders_ad = sinav.ders.ad
         sinav.save()
         messages.success(request, "Sınav eklendi.")
         return redirect("yonetim:yazili_sinav_detay", pk=sinav.pk)
@@ -147,7 +149,12 @@ def yazili_sinav_duzenle(request, pk):
     sinav = get_object_or_404(YaziliSinav.objects.select_related("kamp"), pk=pk)
     form = YaziliSinavForm(request.POST or None, instance=sinav)
     if form.is_valid():
-        form.save()
+        sinav = form.save(commit=False)
+        if sinav.ders_id:
+            sinav.ders_ad = sinav.ders.ad
+            if sinav.ders.brans_id and not sinav.brans:
+                sinav.brans = sinav.ders.brans.ad
+        sinav.save()
         messages.success(request, "Sınav güncellendi.")
         return redirect("yonetim:yazili_sinav_detay", pk=sinav.pk)
 

@@ -142,6 +142,39 @@
     </section>
 </div>
 
+{% if yonetebilir %}
+<section class="fn-card" style="margin-top:1.25rem" id="fn-indirim">
+    <div class="fn-section-head">
+        <h3>İndirim Uygula</h3>
+        <span class="fn-sub" style="margin:0">Yalnızca admin; tahsilat yoksa taksit planı yenilenir.</span>
+    </div>
+    <form method="post" class="fn-form-grid">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="indirim">
+        <div class="fn-field-row">
+            <div class="fn-field">
+                <label>Katalog indirimi</label>
+                <select name="indirim_kodu" class="fn-input">
+                    <option value="">— Seçin veya tutar girin —</option>
+                    {% for ind in indirimler %}
+                    <option value="{{ ind.kod }}">
+                        {{ ind.ad }}
+                        {% if ind.tur == "yuzde" %}(%{{ ind.deger }}){% else %}({{ ind.deger }} ₺){% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="fn-field">
+                <label>veya sabit tutar (₺)</label>
+                <input type="number" name="indirim_tutari" step="0.01" min="0" class="fn-input" placeholder="Opsiyonel override">
+            </div>
+        </div>
+        <p class="fn-sub">Mevcut indirim: <strong>{{ dosya.indirim_tutari|para }}</strong> · Net: <strong>{{ dosya.net_ucret|para }}</strong></p>
+        <button type="submit" class="fn-btn fn-btn-primary">İndirimi Uygula</button>
+    </form>
+</section>
+{% endif %}
+
 <section class="fn-card" style="margin-top:1.25rem">
     <div class="fn-section-head"><h3>Ödeme Geçmişi</h3></div>
     <ul class="fn-timeline">

@@ -1,0 +1,196 @@
+{% extends "yonetim/base.html" %}
+{% load static %}
+{% block title %}{{ toplanti.toplanti_no }} · Personel Toplantı Raporu{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/personel-toplanti-premium.css' %}?v=pt5">
+{% endblock %}
+{% block content %}
+<div class="pt-page pt-detay-page">
+    <header class="pt-hero">
+        <div class="pt-hero-main">
+            <p class="pt-kicker">{{ toplanti.toplanti_no }} · {{ toplanti.tarih|date:"d.m.Y" }}</p>
+            <h1 class="pt-hero-fixed-title">Personel Toplantısı</h1>
+            <div class="pt-hero-subtitle-row">
+                <label class="sr-only" for="{{ form.baslik.id_for_label }}">Alt başlık</label>
+                {{ form.baslik }}
+            </div>
+        </div>
+        <div class="pt-head-actions">
+            {% if toplanti.tutanak_pdf %}
+            <a href="{% url 'yonetim:personel_toplanti_arsiv_pdf' toplanti.pk %}" class="primary-btn" target="_blank">Arşiv PDF</a>
+            {% endif %}
+            <a href="{% url 'yonetim:personel_toplanti_pdf' toplanti.pk %}" class="dash-text-btn" target="_blank">PDF önizle</a>
+            {% if toplanti.arsivlandi %}
+            <a href="{% url 'yonetim:personel_toplanti_pdf' toplanti.pk %}?kaydet=1" class="dash-text-btn" target="_blank">PDF güncelle</a>
+            {% else %}
+            <a href="{% url 'yonetim:personel_toplanti_pdf' toplanti.pk %}?kaydet=1" class="dash-text-btn" target="_blank">PDF kaydet</a>
+            {% endif %}
+            <a href="{% url 'yonetim:personel_toplanti_listesi' %}" class="dash-text-btn">← Liste</a>
+        </div>
+    </header>
+
+    <form method="post" class="pt-detay-form" id="pt-detay-form">
+        {% csrf_token %}
+        {{ gundem_formset.management_form }}
+        {{ yapilacak_formset.management_form }}
+
+        <div class="pt-workspace pt-workspace-2">
+            <section class="pt-box pt-box-blue">
+                <h2 class="pt-box-title">Toplantı bilgisi</h2>
+                <div class="pt-compact-grid pt-compact-grid-2">
+                    <div class="pt-field">
+                        <label for="{{ form.tarih.id_for_label }}">Tarih</label>
+                        {{ form.tarih }}
+                    </div>
+                    <div class="pt-field">
+                        <label for="{{ form.durum.id_for_label }}">Durum</label>
+                        {{ form.durum }}
+                    </div>
+                </div>
+            </section>
+
+            <section class="pt-box pt-box-purple">
+                <h2 class="pt-box-title">Katılımcılar <span class="pt-optional">isteğe bağlı</span></h2>
+                <p class="pt-hint">Personel listesinden seçin; raporda görünür.</p>
+                <div class="pt-field pt-field-flush pt-katilimci-field">
+                    {{ form.katilimci_personeller }}
+                </div>
+            </section>
+        </div>
+
+        <section class="pt-box pt-box-purple pt-gundem-section">
+            <div class="pt-section-head">
+                <div>
+                    <h2 class="pt-box-title">Gündem maddeleri</h2>
+                    <p class="pt-hint">Toplantıda madde madde görüşülen konular ve konuşulanlar.</p>
+                </div>
+                <button type="button" class="dash-text-btn pt-add-btn" id="pt-gundem-add">+ Gündem ekle</button>
+            </div>
+
+            <div class="pt-row-list" id="pt-gundem-rows">
+                {% for gform in gundem_formset %}
+                <article class="pt-gundem-row{% if gform.errors %} has-error{% endif %}">
+                    {{ gform.id }}{{ gform.sira }}
+                    <span class="pt-row-no">#{{ forloop.counter }}</span>
+                    <div class="pt-field">
+                        <label>Gündem maddesi</label>
+                        {{ gform.madde }}
+                    </div>
+                    <div class="pt-field pt-field-grow">
+                        <label>Konuşulanlar</label>
+                        {{ gform.gorusulen }}
+                    </div>
+                    {% if gform.DELETE %}
+                    <label class="pt-del-check">{{ gform.DELETE }} Sil</label>
+                    {% endif %}
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="pt-box pt-box-green pt-yapilacak-section">
+            <div class="pt-section-head">
+                <div>
+                    <h2 class="pt-box-title">Yapılacaklar</h2>
+                    <p class="pt-hint">Sorumlu atanan maddeler otomatik <strong>Vazifelerim</strong> ekranına gider.</p>
+                </div>
+                <button type="button" class="dash-text-btn pt-add-btn" id="pt-yapilacak-add">+ Yapılacak ekle</button>
+            </div>
+
+            <div class="pt-row-list" id="pt-yapilacak-rows">
+                {% for yform in yapilacak_formset %}
+                <article class="pt-yapilacak-row{% if yform.errors %} has-error{% endif %}">
+                    {{ yform.id }}{{ yform.sira }}
+                    <span class="pt-row-no">#{{ forloop.counter }}</span>
+                    <div class="pt-field pt-field-grow">
+                        <label>İş / görev</label>
+                        {{ yform.metin }}
+                    </div>
+                    <div class="pt-field">
+                        <label>Sorumlu</label>
+                        {{ yform.sorumlu }}
+                    </div>
+                    <div class="pt-field pt-field-date">
+                        <label>Son tarih</label>
+                        {{ yform.kontrol_tarihi }}
+                    </div>
+                    <div class="pt-field pt-field-mini">
+                        <label>Durum</label>
+                        {{ yform.durum }}
+                    </div>
+                    <div class="pt-row-badges">
+                        {% if yform.instance.pk and yform.instance.vazife_id %}
+                        <span class="pt-vazife-badge">✓ Vazife</span>
+                        {% endif %}
+                        {% if yform.DELETE %}
+                        <label class="pt-del-check">{{ yform.DELETE }} Sil</label>
+                        {% endif %}
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+
+        <div class="pt-form-actions pt-form-actions-bar">
+            <button type="submit" name="aksiyon" value="kaydet" class="dash-text-btn">Kaydet</button>
+            <button type="submit" name="aksiyon" value="tamamla" class="primary-btn">Tamamla · PDF arşivle</button>
+        </div>
+    </form>
+</div>
+
+<template id="pt-gundem-empty">
+<article class="pt-gundem-row">
+    {{ gundem_formset.empty_form.id }}
+    {{ gundem_formset.empty_form.sira }}
+    <span class="pt-row-no">#</span>
+    <div class="pt-field">
+        <label>Gündem maddesi</label>
+        {{ gundem_formset.empty_form.madde }}
+    </div>
+    <div class="pt-field pt-field-grow">
+        <label>Konuşulanlar</label>
+        {{ gundem_formset.empty_form.gorusulen }}
+    </div>
+    {% if gundem_formset.empty_form.DELETE %}
+    <label class="pt-del-check">{{ gundem_formset.empty_form.DELETE }} Sil</label>
+    {% endif %}
+</article>
+</template>
+
+<template id="pt-yapilacak-empty">
+<article class="pt-yapilacak-row">
+    {{ yapilacak_formset.empty_form.id }}
+    {{ yapilacak_formset.empty_form.sira }}
+    <span class="pt-row-no">#</span>
+    <div class="pt-field pt-field-grow">
+        <label>İş / görev</label>
+        {{ yapilacak_formset.empty_form.metin }}
+    </div>
+    <div class="pt-field">
+        <label>Sorumlu</label>
+        {{ yapilacak_formset.empty_form.sorumlu }}
+    </div>
+    <div class="pt-field pt-field-date">
+        <label>Son tarih</label>
+        {{ yapilacak_formset.empty_form.kontrol_tarihi }}
+    </div>
+    <div class="pt-field pt-field-mini">
+        <label>Durum</label>
+        {{ yapilacak_formset.empty_form.durum }}
+    </div>
+    {% if yapilacak_formset.empty_form.DELETE %}
+    <label class="pt-del-check">{{ yapilacak_formset.empty_form.DELETE }} Sil</label>
+    {% endif %}
+</article>
+</template>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/personel-toplanti.js' %}?v=pt1"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    if (window.initMultiSelectFilters) {
+        window.initMultiSelectFilters(document.querySelector(".pt-detay-page"));
+    }
+});
+</script>
+{% endblock %}

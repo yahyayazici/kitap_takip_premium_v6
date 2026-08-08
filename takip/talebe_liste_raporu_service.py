@@ -217,3 +217,60 @@ def talebe_liste_raporu_pdf_yanit(
         )
 
     return make_pdf_response(pdf_verisi, dosya_adi)
+
+
+def talebe_liste_excel_yanit(
+    *,
+    talebe_qs: QuerySet[Talebe],
+    baslik: str = "Talebe Listesi",
+    dosya_adi: str = "talebe-listesi.xlsx",
+) -> HttpResponse:
+    """Yetkili talebe listesini ortak Excel tasarımıyla indirir."""
+    from takip.excel_rapor import basit_rapor_xlsx, excel_http_yanit
+
+    qs = (
+        talebe_qs.select_related("sinif_sube", "etut_hocasi", "dini_ders_hocasi")
+        .order_by("sinif_sube__sinif", "sinif_sube__sube", "ad_soyad")
+    )
+    satirlar: list[list] = []
+    for t in qs:
+        sinif = ""
+        sube = ""
+        if t.sinif_sube_id:
+            sinif = t.sinif_sube.sinif
+            sube = t.sinif_sube.sube
+        else:
+            sinif = getattr(t, "sinif", "") or ""
+            sube = getattr(t, "sube", "") or ""
+        satirlar.append(
+            [
+                t.ad_soyad,
+                t.talebe_no or "",
+                sinif,
+                sube,
+                t.etut_hocasi.ad_soyad if t.etut_hocasi_id else "",
+                t.dini_ders_hocasi.ad_soyad if t.dini_ders_hocasi_id else "",
+                "Aktif" if t.aktif else "Pasif",
+            ]
+        )
+
+    icerik = basit_rapor_xlsx(
+        baslik=baslik,
+        alt_baslik=f"{len(satirlar)} talebe",
+        kolon_basliklari=[
+            "Ad Soyad",
+            "Talebe No",
+            "Sınıf",
+            "Şube",
+            "Etüt Hocası",
+            "Dini Ders Hocası",
+            "Durum",
+        ],
+        satirlar=satirlar,
+        sayfa_adi="Talebeler",
+        durum_kolonlari=[6],
+        vurgu_kolonlari=[0],
+        ortala_kolonlari=[1, 2, 3, 6],
+        genislikler=[26, 12, 10, 10, 22, 22, 10],
+    )
+    return excel_http_yanit(icerik, dosya_adi)

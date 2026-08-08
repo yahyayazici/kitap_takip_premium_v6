@@ -1,0 +1,40 @@
+{% extends "yonetim/base.html" %}
+{% load static %}
+{% block title %}Toplantı Arşivi{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/personel-toplanti-premium.css' %}?v=pt6">
+{% endblock %}
+{% block content %}
+<div class="pt-page">
+    <header class="pt-head">
+        <div>
+            <p class="pt-kicker">Arşiv</p>
+            <h1>Personel toplantı arşivi</h1>
+            <p class="pt-head-meta">Tamamlanan raporlar · Arşiv PDF tamamlanma anındaki sabit kopyadır</p>
+        </div>
+        <a href="{% url 'yonetim:personel_toplanti_listesi' %}" class="dash-text-btn">← Aktif toplantılar</a>
+    </header>
+
+    <section class="pt-card">
+        <div class="pt-list">
+            {% for t in toplantilar %}
+            <article class="pt-item">
+                <div>
+                    <p class="pt-item-title">{{ t.toplanti_no }} · Personel Toplantısı{% if t.baslik %} — {{ t.baslik }}{% endif %}</p>
+                    <p class="pt-item-desc">{{ t.tarih|date:"d.m.Y" }} · {{ t.gundem_maddeleri.count }} gündem · {{ t.kararlar.count }} yapılacak</p>
+                </div>
+                <div class="pt-item-actions">
+                    <a href="{% url 'yonetim:personel_toplanti_detay' t.pk %}">Düzenle</a>
+                    {% if t.tutanak_pdf %}
+                    <a href="{% url 'yonetim:personel_toplanti_arsiv_pdf' t.pk %}" target="_blank">Arşiv PDF</a>
+                    {% endif %}
+                    <a href="{% url 'yonetim:personel_toplanti_pdf' t.pk %}?kaydet=1" target="_blank" title="Güncel veriyle arşivi yenile">PDF güncelle</a>
+                </div>
+            </article>
+            {% empty %}
+            <div class="pt-empty">Arşivde toplantı yok.</div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

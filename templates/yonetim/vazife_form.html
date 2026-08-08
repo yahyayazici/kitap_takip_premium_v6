@@ -1,0 +1,45 @@
+{% extends "yonetim/base.html" %}
+{% load static %}
+{% block title %}{{ baslik }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/panel-admin-cards.css' %}">
+<link rel="stylesheet" href="{% static 'css/vazife-premium.css' %}">
+{% endblock %}
+{% block content %}
+<div class="pa-page pa-stack">
+    <header class="vz-head">
+        <div>
+            <p class="vz-kicker">İdareci · Vazife</p>
+            <h1>{{ baslik }}</h1>
+            <p class="vz-head-meta">Personel seçin, <strong>şu güne kadar</strong> tarihini girin — bitişe kadar bildirimi gider.</p>
+        </div>
+        <a href="{% url 'yonetim:vazife_listesi' %}" class="dash-text-btn">← Listeye dön</a>
+    </header>
+
+    <section class="pa-card">
+        <div class="pa-card-head">
+            <div>
+                <p class="pa-kicker">Atama</p>
+                <h2>Vazife bilgileri</h2>
+            </div>
+        </div>
+        <div class="pa-card-body">
+            <form method="post" class="pa-form-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+                {% csrf_token %}
+                {% for field in form %}
+                <div class="pa-field{% if field.name == 'aciklama' or field.name == 'baslik' %} pa-field-span-2{% endif %}"{% if field.name == 'aciklama' or field.name == 'baslik' %} style="grid-column:1/-1"{% endif %}>
+                    <span class="pa-label">{{ field.label }}{% if field.field.required %} *{% endif %}</span>
+                    {{ field }}
+                    {% if field.help_text %}<small class="pa-help">{{ field.help_text }}</small>{% endif %}
+                    {% for err in field.errors %}<small class="pa-help" style="color:#b91c1c;">{{ err }}</small>{% endfor %}
+                </div>
+                {% endfor %}
+                <div style="grid-column:1/-1;display:flex;gap:10px;margin-top:8px;">
+                    <button type="submit" class="primary-btn">Kaydet</button>
+                    <a href="{% url 'yonetim:vazife_listesi' %}" class="dash-text-btn">İptal</a>
+                </div>
+            </form>
+        </div>
+    </section>
+</div>
+{% endblock %}

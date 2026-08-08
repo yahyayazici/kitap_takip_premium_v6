@@ -15,11 +15,51 @@ from . import mezun_yonetim_views
 from . import aidat_yonetim_views
 from . import veli_randevu_yonetim_views
 from . import yonetim_hizli_kayit_views
+from . import idareci_views
+from . import personel_toplanti_views
 
 app_name = "yonetim"
 
 urlpatterns = [
     path("", yonetim_views.dashboard, name="dashboard"),
+    path("idareci/", idareci_views.idareci_panel, name="idareci_panel"),
+    path("vazife/", idareci_views.vazife_listesi, name="vazife_listesi"),
+    path("vazife/ekle/", idareci_views.vazife_ekle, name="vazife_ekle"),
+    path("vazife/<int:pk>/", idareci_views.vazife_duzenle, name="vazife_duzenle"),
+    path("vazife/<int:pk>/durum/", idareci_views.vazife_durum, name="vazife_durum"),
+    path("yct/", idareci_views.yct_takvim, name="yct_takvim"),
+    path("yct/ekle/", idareci_views.yct_ekle, name="yct_ekle"),
+    path("yct/<int:pk>/sil/", idareci_views.yct_sil, name="yct_sil"),
+    path(
+        "personel-toplantilari/",
+        personel_toplanti_views.toplanti_listesi,
+        name="personel_toplanti_listesi",
+    ),
+    path(
+        "personel-toplantilari/ekle/",
+        personel_toplanti_views.toplanti_ekle,
+        name="personel_toplanti_ekle",
+    ),
+    path(
+        "personel-toplantilari/arsiv/",
+        personel_toplanti_views.toplanti_arsiv,
+        name="personel_toplanti_arsiv",
+    ),
+    path(
+        "personel-toplantilari/<int:pk>/",
+        personel_toplanti_views.toplanti_detay,
+        name="personel_toplanti_detay",
+    ),
+    path(
+        "personel-toplantilari/<int:pk>/pdf/",
+        personel_toplanti_views.toplanti_pdf,
+        name="personel_toplanti_pdf",
+    ),
+    path(
+        "personel-toplantilari/<int:pk>/arsiv-pdf/",
+        personel_toplanti_views.toplanti_arsiv_pdf,
+        name="personel_toplanti_arsiv_pdf",
+    ),
 
     path(
         "ekle/",
@@ -93,6 +133,11 @@ urlpatterns = [
         "talebeler/rapor/pdf/",
         yonetim_views.talebe_liste_raporu_pdf,
         name="talebe_liste_raporu_pdf",
+    ),
+    path(
+        "talebeler/rapor/excel/",
+        yonetim_views.talebe_liste_excel,
+        name="talebe_liste_excel",
     ),
 
     path(
@@ -210,6 +255,56 @@ urlpatterns = [
         yonetim_views.duyuru_sil,
         name="duyuru_sil",
     ),
+    path(
+        "sohbet-mevzuu/",
+        yonetim_views.sohbet_mevzuu_listesi,
+        name="sohbet_mevzuu_listesi",
+    ),
+    path(
+        "sohbet-mevzuu/ekle/",
+        yonetim_views.sohbet_mevzuu_ekle,
+        name="sohbet_mevzuu_ekle",
+    ),
+    path(
+        "sohbet-mevzuu/<int:pk>/duzenle/",
+        yonetim_views.sohbet_mevzuu_duzenle,
+        name="sohbet_mevzuu_duzenle",
+    ),
+    path(
+        "sohbet-mevzuu/<int:pk>/sil/",
+        yonetim_views.sohbet_mevzuu_sil,
+        name="sohbet_mevzuu_sil",
+    ),
+    path(
+        "kisayol-gorselleri/",
+        yonetim_views.kisayol_gorsel_listesi,
+        name="kisayol_gorsel_listesi",
+    ),
+    path(
+        "kisayol-gorselleri/kaydet/",
+        yonetim_views.kisayol_gorsel_kaydet,
+        name="kisayol_gorsel_kaydet",
+    ),
+    path(
+        "kisayol-gorselleri/<int:pk>/sil/",
+        yonetim_views.kisayol_gorsel_sil,
+        name="kisayol_gorsel_sil",
+    ),
+    path(
+        "ozet-kartlari/",
+        yonetim_views.metrik_listesi,
+        name="metrik_listesi",
+    ),
+    path(
+        "ozet-kartlari/kaydet/",
+        yonetim_views.metrik_kaydet,
+        name="metrik_kaydet",
+    ),
+    path(
+        "ozet-kartlari/<int:pk>/sil/",
+        yonetim_views.metrik_sil,
+        name="metrik_sil",
+    ),
 
     path(
         "programlar/",
@@ -230,6 +325,11 @@ urlpatterns = [
         "programlar/<int:pk>/pdf/",
         yonetim_views.program_pdf,
         name="program_pdf",
+    ),
+    path(
+        "programlar/<int:pk>/excel/",
+        yonetim_views.program_excel,
+        name="program_excel",
     ),
 
     path(
@@ -504,5 +604,15 @@ urlpatterns = [
         "yetkiler/roller/<int:pk>/",
         yonetim_rbac_views.rol_duzenle,
         name="rol_duzenle",
+    ),
+    path(
+        "ogretmen-degerlendirme/",
+        yonetim_views.ogretmen_degerlendirme_rapor,
+        name="ogretmen_degerlendirme_rapor",
+    ),
+    path(
+        "ogretmen-degerlendirme/talebe/<int:talebe_id>/karne-pdf/",
+        yonetim_views.ogretmen_degerlendirme_karne_pdf,
+        name="ogretmen_degerlendirme_karne_pdf",
     ),
 ]

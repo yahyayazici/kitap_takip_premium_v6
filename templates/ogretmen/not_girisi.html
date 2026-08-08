@@ -4,84 +4,121 @@
 {% block content %}
 <div class="dash-home ogretmen-dash">
 
-{% include "includes/panel_hero.html" with title="Haftalık not girişi" meta="Sınıf seçerek not kaydı" show_date=True %}
+<div class="og-week-active-banner">
+    <div>
+        <p class="dash-eyebrow">Aktif hafta</p>
+        <strong>{{ hafta_no }}. Hafta not girişi</strong>
+    </div>
+    <span>{{ hafta_baslangic|date:"d.m.Y" }} – {{ hafta_bitis|date:"d.m.Y" }}</span>
+</div>
 
-    <section class="ogretmen-select-card dash-panel">
-        <div class="dash-panel-head">
-            <div>
-                <p class="dash-eyebrow">Hafta {{ hafta_no }}</p>
-                <h2>Sınıf seçin</h2>
-            </div>
+<section class="ogretmen-select-card dash-panel">
+    <div class="dash-panel-head">
+        <div>
+            <h2>Sınıf Seçin</h2>
         </div>
-        <div class="ogretmen-class-tabs">
-            {% for sinif in siniflar %}
-            <a href="{% url 'ogretmen_not_girisi_sinif' sinif.id %}{% if secili_ders %}?ders={{ secili_ders.id }}{% endif %}"
-               class="ogretmen-class-tab {% if secili_sinif and secili_sinif.id == sinif.id %}active{% endif %}">
-                {{ sinif.etiket }}
-                <span class="og-count-badge">{{ sinif.ogrenci_sayisi }} öğrenci</span>
-            </a>
+    </div>
+    <div class="ogretmen-class-tabs">
+        {% for sinif in siniflar %}
+        <a href="{% url 'ogretmen_not_girisi_sinif' sinif.id %}{% if secili_ders %}?ders={{ secili_ders.id }}{% endif %}"
+           class="ogretmen-class-tab {% if secili_sinif and secili_sinif.id == sinif.id %}active{% endif %}">
+            {{ sinif.etiket }}
+            <span class="og-count-badge">{{ sinif.ogrenci_sayisi }} Öğrenci</span>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
+{% if secili_sinif %}
+<form method="post" class="ogretmen-not-form">
+    {% csrf_token %}
+    <input type="hidden" name="ders_id" value="{{ secili_ders.id }}">
+
+    <section class="og-yoklama-card">
+        <header class="og-section-head og-section-head-warn">
+            <div>
+                <p class="dash-eyebrow">Yoklama</p>
+                <h2>Günlük sınıf yoklaması</h2>
+            </div>
+            <span class="og-section-meta">{{ bugun|date:"d.m.Y" }}</span>
+        </header>
+        <p class="og-yoklama-note">
+            Bugün sınıfta olmayan öğrencileri işaretleyin. Bu veri veli ve yönetici paneline anlık olarak yansıyacaktır.
+        </p>
+        <div class="og-yoklama-grid">
+            {% for ogrenci in ogrenciler %}
+            <label class="og-yoklama-item">
+                <input type="checkbox" name="yok_talebe" value="{{ ogrenci.id }}" {% if ogrenci.yok %}checked{% endif %}>
+                <span class="og-yoklama-name">{{ ogrenci.ad_soyad|upper }}</span>
+                <span class="og-yoklama-yok">(YOK)</span>
+            </label>
+            {% empty %}
+            <p class="og-empty-note">Bu sınıfta öğrenci yok.</p>
             {% endfor %}
         </div>
     </section>
 
-    {% if secili_sinif %}
-    <form method="post" class="ogretmen-not-form">
-        {% csrf_token %}
-
-        <section class="ogretmen-lesson-card dash-panel">
-            <header class="og-lesson-head">Not girişi ({{ bugun|date:"d.m.Y" }})</header>
-            <div class="og-topic-row">
-                <label for="ders_id">Ders</label>
-                <select id="ders_id" name="ders_id" onchange="location.href='{% url 'ogretmen_not_girisi_sinif' secili_sinif.id %}?ders=' + this.value">
-                    {% for d in dersler %}
-                    <option value="{{ d.id }}" {% if secili_ders and secili_ders.id == d.id %}selected{% endif %}>{{ d.ad }}</option>
-                    {% endfor %}
-                </select>
+    <section class="og-ders-card">
+        <header class="og-section-head">
+            <div>
+                <p class="dash-eyebrow">Not girişi</p>
+                <h2>{{ secili_ders.ad }}</h2>
             </div>
+        </header>
 
-            <div class="og-table-wrap">
-                <table class="og-grade-table">
-                    <thead>
-                        <tr>
-                            <th>Öğrenci Adı Soyadı</th>
-                            <th>Tür</th>
-                            <th>Puan (0–100)</th>
-                            <th>Açıklama</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for ogrenci in ogrenciler %}
-                        <tr>
-                            <td>{{ ogrenci.ad_soyad }}</td>
-                            <td>
-                                <select name="tur_{{ ogrenci.id }}">
-                                    <option value="yazili" {% if ogrenci.tur == 'yazili' %}selected{% endif %}>Yazılı</option>
-                                    <option value="sozlu" {% if ogrenci.tur == 'sozlu' %}selected{% endif %}>Sözlü</option>
-                                </select>
-                            </td>
-                            <td><input type="number" name="puan_{{ ogrenci.id }}" min="0" max="100" step="0.01" value="{{ ogrenci.puan }}" placeholder="0-100"></td>
-                            <td><input type="text" name="aciklama_{{ ogrenci.id }}" value="{{ ogrenci.aciklama }}" placeholder="Değerlendirme notu…"></td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="4">Bu sınıfta öğrenci yok.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <div class="ogretmen-form-actions">
-            <button type="submit" class="ogretmen-save-btn">Notları Kaydet</button>
+        <div class="og-konu-row">
+            <label for="islenen_konu">Bu Hafta İşlenen Konu</label>
+            <input type="text" id="islenen_konu" name="islenen_konu" value="{{ islenen_konu }}"
+                   placeholder="Örn: Rasyonel Sayılarda Toplama İşlemi">
         </div>
-    </form>
-    {% else %}
-    <div class="ogretmen-empty-select">
-        <span>Not girişi için bir sınıf seçin</span>
-    </div>
-    {% endif %}
-</div>
-{% endblock %}
 
-{% block extra_js %}
-{% include "includes/panel_date_js.html" %}
+        <div class="og-table-wrap">
+            <table class="og-grade-table og-haftalik-table">
+                <thead>
+                    <tr>
+                        <th>Öğrenci Adı Soyadı</th>
+                        <th>Katılım (30%)</th>
+                        <th>Takip (30%)</th>
+                        <th>Disiplin (40%)</th>
+                        <th>Değerlendirme Notu / Açıklama</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ogrenci in ogrenciler %}
+                    <tr>
+                        <td class="og-ogrenci-ad" data-label="Öğrenci">{{ ogrenci.ad_soyad|upper }}</td>
+                        <td data-label="Katılım (30%)">
+                            <input type="number" inputmode="decimal" name="katilim_{{ ogrenci.id }}" min="0" max="100" step="0.01" value="{{ ogrenci.katilim }}" placeholder="0-100" required>
+                        </td>
+                        <td data-label="Takip (30%)">
+                            <input type="number" inputmode="decimal" name="takip_{{ ogrenci.id }}" min="0" max="100" step="0.01" value="{{ ogrenci.takip }}" placeholder="0-100" required>
+                        </td>
+                        <td data-label="Disiplin (40%)">
+                            <input type="number" inputmode="decimal" name="disiplin_{{ ogrenci.id }}" min="0" max="100" step="0.01" value="{{ ogrenci.disiplin }}" placeholder="0-100" required>
+                        </td>
+                        <td data-label="Açıklama">
+                            <input type="text" name="aciklama_{{ ogrenci.id }}" value="{{ ogrenci.aciklama }}" placeholder="Dersteki genel başarısı..." required>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5">Bu sınıfta öğrenci yok.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <div class="ogretmen-form-actions">
+        <button type="submit" class="ogretmen-save-btn og-save-all">
+            Tüm Sınıf Notlarını ve Yoklamayı Kaydet
+        </button>
+    </div>
+</form>
+{% else %}
+<div class="ogretmen-empty-select">
+    <span class="og-empty-info-icon" aria-hidden="true">ℹ</span>
+    <span>Lütfen Not Girişi Yapmak İçin Bir Sınıf Seçin</span>
+</div>
+{% endif %}
+</div>
 {% endblock %}

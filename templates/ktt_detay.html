@@ -1,5 +1,9 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}{{ ktt.ad }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=nizam2">
+{% endblock %}
 {% block content %}
 <div class="result-entry-page">
     <header class="result-entry-header">
@@ -13,7 +17,8 @@
             <a href="{% url 'ktt_sonuc_gir' ktt.pk %}" class="primary-btn">Sonuç Girişi</a>
             {% endif %}
             {% if pdf_yetkisi %}
-            <a href="{% url 'ktt_detay_pdf' ktt.pk %}" class="result-secondary-button" target="_blank" rel="noopener">PDF İndir</a>
+            {% url 'ktt_detay_pdf' ktt.pk as ktt_pdf_href %}
+            {% include "includes/pdf_sayfa_secici.html" with pdf_href=ktt_pdf_href pdf_sayfa=pdf_sayfa pdf_btn_class="result-secondary-button" pdf_btn_label="PDF İndir" %}
             {% endif %}
             <a href="{% url 'ktt_excel_indir' ktt.pk %}" class="result-secondary-button">Excel</a>
             {% if duzenleyebilir %}

@@ -1,0 +1,207 @@
+/* Günlük program — süre analizi */
+
+.pg-sure {
+    --pg-line: #cdd6e4;
+    --pg-text: #0f172a;
+    --pg-muted: #64748b;
+    --pg-navy: #0f2744;
+    margin: 14px 0;
+    background: #fff;
+    border: 1px solid var(--pg-line);
+    border-radius: 16px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 22px rgba(15, 23, 42, 0.05);
+    overflow: hidden;
+}
+
+.pg-sure-top {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 16px 18px 12px;
+    border-bottom: 1px solid var(--pg-line);
+    background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+}
+
+.pg-sure-kicker {
+    margin: 0 0 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #3b82f6;
+}
+
+.pg-sure-title {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--pg-navy);
+    letter-spacing: -0.02em;
+}
+
+.pg-sure-hint {
+    margin: 4px 0 0;
+    font-size: 0.84rem;
+    color: var(--pg-muted);
+}
+
+.pg-sure-tabs {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 4px;
+    background: #f1f5f9;
+    border-radius: 12px;
+    border: 1px solid var(--pg-line);
+}
+
+.pg-sure-tab {
+    border: 0;
+    background: transparent;
+    color: var(--pg-muted);
+    font-size: 0.84rem;
+    font-weight: 650;
+    padding: 8px 12px;
+    border-radius: 9px;
+    cursor: pointer;
+}
+
+.pg-sure-tab.is-active {
+    background: #fff;
+    color: var(--pg-navy);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.pg-sure-panel {
+    padding: 14px 18px 18px;
+}
+
+.pg-sure-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+    font-size: 0.88rem;
+    color: var(--pg-muted);
+}
+
+.pg-sure-meta strong {
+    color: var(--pg-text);
+}
+
+.pg-sure-ai {
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid #dbeafe;
+    background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%);
+}
+
+.pg-sure-ai-label {
+    margin: 0 0 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #2563eb;
+}
+
+.pg-sure-ai p:last-child {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    color: var(--pg-text);
+}
+
+.pg-sure-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+}
+
+.pg-sure-chip {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--pg-line);
+    background: #f8fafc;
+}
+
+.pg-sure-chip-ad {
+    font-size: 0.78rem;
+    font-weight: 650;
+    color: var(--pg-muted);
+}
+
+.pg-sure-chip strong {
+    font-size: 1.05rem;
+    color: var(--pg-text);
+    letter-spacing: -0.02em;
+}
+
+.pg-sure-chip em {
+    font-style: normal;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #64748b;
+}
+
+.pg-sure-chip-etut { background: #eff6ff; border-color: #bfdbfe; }
+.pg-sure-chip-uyku { background: #eef2ff; border-color: #c7d2fe; }
+.pg-sure-chip-ders { background: #ecfdf5; border-color: #a7f3d0; }
+.pg-sure-chip-namaz { background: #fff7ed; border-color: #fed7aa; }
+.pg-sure-chip-yemek { background: #fffbeb; border-color: #fde68a; }
+.pg-sure-chip-dinlenme { background: #f8fafc; border-color: #e2e8f0; }
+
+.pg-sure-empty {
+    margin: 0;
+    color: var(--pg-muted);
+    font-size: 0.9rem;
+}
+
+.pg-sure-bottom {
+    margin-top: 16px;
+}
+
+/* PDF sayfa seçici (ortak) */
+.pdf-sayfa-sec {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.pdf-sayfa-sec-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.page-head .pdf-sayfa-sec-label,
+.patterned-page-head .pdf-sayfa-sec-label,
+.yonetim-page-head .pdf-sayfa-sec-label,
+.ktt-page-head .pdf-sayfa-sec-label,
+.result-page-header .pdf-sayfa-sec-label,
+.result-entry-header .pdf-sayfa-sec-label,
+.daily-header .pdf-sayfa-sec-label,
+.exam-page-head .pdf-sayfa-sec-label,
+.profile-head-actions .pdf-sayfa-sec-label {
+    color: #fff !important;
+    opacity: 0.95;
+}
+
+.pdf-sayfa-sec-select {
+    min-width: 120px;
+    border: 1px solid #cdd6e4;
+    border-radius: 10px;
+    padding: 7px 10px;
+    font-size: 0.86rem;
+    background: #fff;
+    color: #0f172a;
+}

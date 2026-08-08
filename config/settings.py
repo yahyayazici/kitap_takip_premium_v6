@@ -121,7 +121,13 @@ STORAGES = {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        # Geliştirmede kaynak static/ klasöründen doğrudan servis et;
+        # Manifest + boş staticfiles tasarımı kırıyordu.
+        "BACKEND": (
+            "django.contrib.staticfiles.storage.StaticFilesStorage"
+            if DEBUG
+            else "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        ),
     },
 }
 
@@ -136,6 +142,29 @@ OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 AI_ASSISTANT_MODEL = os.environ.get("AI_ASSISTANT_MODEL", "gpt-4o-mini")
 AI_KTT_ANALYSIS_ENABLED = os.environ.get("AI_KTT_ANALYSIS_ENABLED", "True").lower() == "true"
 AI_KTT_ANALYSIS_MAX_TOKENS = int(os.environ.get("AI_KTT_ANALYSIS_MAX_TOKENS", "2200"))
+
+# —— Bildirim e-posta ——
+# SMTP yoksa console backend ile DEBUG'ta mail içeriği terminale yazılır.
+BILDIRIM_EMAIL_AKTIF = os.environ.get("BILDIRIM_EMAIL_AKTIF", "True").lower() == "true"
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "").strip()
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "").strip()
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "").strip()
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True").lower() == "true"
+EMAIL_USE_SSL = os.environ.get("EMAIL_USE_SSL", "False").lower() == "true"
+DEFAULT_FROM_EMAIL = os.environ.get(
+    "DEFAULT_FROM_EMAIL",
+    EMAIL_HOST_USER or "noreply@cinili-saray.local",
+)
+PANEL_PUBLIC_URL = os.environ.get("PANEL_PUBLIC_URL", "").strip()
+
+if EMAIL_HOST:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+else:
+    EMAIL_BACKEND = os.environ.get(
+        "EMAIL_BACKEND",
+        "django.core.mail.backends.console.EmailBackend",
+    )
 
 LOGGING = {
     "version": 1,

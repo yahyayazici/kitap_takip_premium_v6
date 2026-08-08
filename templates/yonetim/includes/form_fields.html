@@ -1,12 +1,14 @@
 {% for field in form %}
-<div class="yonetim-field">
-    {% if field.field.widget.input_type == 'checkbox' and not field.field.widget.allow_multiple_selected %}
+{% with w=field.field.widget %}
+<div class="yonetim-field{% if w.input_type == 'checkbox' and w.allow_multiple_selected %} yonetim-field-checkbox-grid{% elif field.field.widget.attrs.rows %} yonetim-field-wide{% endif %}">
+    {% if w.input_type == 'checkbox' and not w.allow_multiple_selected %}
     <label class="yonetim-check-label">{{ field }} {{ field.label }}</label>
     {% else %}
     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-    <div class="yonetim-field-control">{{ field }}</div>
+    <div class="yonetim-field-control{% if w.input_type == 'checkbox' and w.allow_multiple_selected %} choice-chip-wrap{% endif %}">{{ field }}</div>
     {% endif %}
     {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
     {% for error in field.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
 </div>
+{% endwith %}
 {% endfor %}

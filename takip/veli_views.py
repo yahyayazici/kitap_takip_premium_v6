@@ -2,16 +2,18 @@
 
 from __future__ import annotations
 
-from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
+from django.utils.timezone import localdate
 
-from takip.aidat_service import talebe_aidat_ozeti
+from config.branding import panel_branding_context
 from takip.duyuru_service import veli_duyurulari
+from takip.ogretmen_not_service import talebe_karne_verisi
+from takip.pdf_utils import html_to_pdf, make_pdf_response, pdf_engine_status, pdf_error_response
 from takip.veli_goruntuleme_service import (
-    aidat_goruntulendi,
     dini_ders_goruntulendi,
     duyurular_goruntulendi,
     sayfa_goruntulendi,
@@ -26,12 +28,17 @@ from takip.veli_randevu_service import (
     veli_randevulari,
 )
 from takip.veli_service import (
+    aktif_sohbet_mevzulari,
     dini_ders_mufredat_detay,
     kullanici_veli_mi,
+    talebe_haftalik_notlar,
     talebe_kpi_ozeti,
+    talebe_namaz_30_gun,
     talebe_sinif_goster,
+    talebe_soru_detay,
     talebe_veli_ozeti,
     talebe_yakinlik,
+    talebe_yoklama_30_gun,
     veli_dashboard_verisi,
     veli_hesabi_for_user,
     veli_talebe_getir,
@@ -88,6 +95,9 @@ def veli_dashboard(request):
         )
 
     sayfa_goruntulendi(veli, "veli_dashboard")
+    from takip.dashboard_service import dashboard_kisayollari
+
+    context["kisayollar"] = dashboard_kisayollari(hedef="veli")
     return render(request, "veli/dashboard.html", context)
 
 
@@ -101,7 +111,7 @@ def veli_talebe_dashboard(request, talebe_id: int):
     if not kullanici_veli_mi(request.user):
         return redirect("dashboard")
     veli, talebe = _veli_talebe_yukle(request, talebe_id)
-    duyurular = list(veli_duyurulari()[:3])
+    duyurular = list(veli_duyurulari()[:8])
     sayfa_goruntulendi(veli, "veli_talebe_dashboard", talebe=talebe)
     duyurular_goruntulendi(veli, duyurular, sayfa="veli_talebe_dashboard")
     return _talebe_sayfa(
@@ -170,6 +180,30 @@ def veli_talebe_sinavlar(request, talebe_id: int):
 
 
 @login_required
+def veli_talebe_degerlendirme_karne_pdf(request, talebe_id: int):
+    if not kullanici_veli_mi(request.user):
+        return redirect("dashboard")
+    _veli, talebe = _veli_talebe_yukle(request, talebe_id)
+    ctx = talebe_karne_verisi(talebe, sadece_veliye_acik=True)
+    ctx.update(panel_branding_context())
+    ctx["bugun"] = localdate()
+    html_metni = render_to_string(
+        "ogretmen_degerlendirme_karne_pdf.html",
+        ctx,
+        request=request,
+    )
+    pdf_verisi = html_to_pdf(html_metni, base_url=request.build_absolute_uri("/"))
+    if not pdf_verisi:
+        messages.error(
+            request,
+            f"Karne PDF oluşturulamadı. (Motor: {pdf_engine_status()})",
+        )
+        return redirect("veli_talebe_sinavlar", talebe_id=talebe.id)
+    ad = talebe.ad_soyad.replace(" ", "-")
+    return make_pdf_response(pdf_verisi, f"{ad}-degerlendirme-karnesi.pdf")
+
+
+@login_required
 def veli_talebe_dini_ders(request, talebe_id: int):
     if not kullanici_veli_mi(request.user):
         return redirect("dashboard")
@@ -203,17 +237,113 @@ def veli_talebe_dini_ders(request, talebe_id: int):
 
 @login_required
 def veli_talebe_aidat(request, talebe_id: int):
+    return redirect("veli_talebe_dashboard", talebe_id=talebe_id)
+
+
+@login_required
+def veli_talebe_soru(request, talebe_id: int):
     if not kullanici_veli_mi(request.user):
         return redirect("dashboard")
     veli, talebe = _veli_talebe_yukle(request, talebe_id)
-    aidat_goruntulendi(veli, talebe)
+    sayfa_goruntulendi(veli, "veli_talebe_soru", talebe=talebe)
     return _talebe_sayfa(
         request,
         veli,
         talebe,
-        "veli/talebe_aidat.html",
-        "aidat",
-        {"aidat_ozet": talebe_aidat_ozeti(talebe)},
+        "veli/talebe_soru.html",
+        "soru",
+        {"soru": talebe_soru_detay(talebe)},
+    )
+
+
+@login_required
+def veli_talebe_ders_notlari(request, talebe_id: int):
+    if not kullanici_veli_mi(request.user):
+        return redirect("dashboard")
+    veli, talebe = _veli_talebe_yukle(request, talebe_id)
+    hafta = request.GET.get("hafta")
+    hafta_bas = None
+    if hafta:
+        from datetime import date
+
+        try:
+            hafta_bas = date.fromisoformat(hafta)
+        except ValueError:
+            hafta_bas = None
+    data = talebe_haftalik_notlar(talebe, hafta_baslangic=hafta_bas)
+    sayfa_goruntulendi(veli, "veli_talebe_ders_notlari", talebe=talebe)
+    return _talebe_sayfa(
+        request,
+        veli,
+        talebe,
+        "veli/talebe_ders_notlari.html",
+        "ders_notlari",
+        data,
+    )
+
+
+@login_required
+def veli_talebe_yoklama(request, talebe_id: int):
+    if not kullanici_veli_mi(request.user):
+        return redirect("dashboard")
+    veli, talebe = _veli_talebe_yukle(request, talebe_id)
+    sayfa_goruntulendi(veli, "veli_talebe_yoklama", talebe=talebe)
+    return _talebe_sayfa(
+        request,
+        veli,
+        talebe,
+        "veli/talebe_yoklama.html",
+        "yoklama",
+        {"yoklama": talebe_yoklama_30_gun(talebe)},
+    )
+
+
+@login_required
+def veli_talebe_namaz(request, talebe_id: int):
+    if not kullanici_veli_mi(request.user):
+        return redirect("dashboard")
+    veli, talebe = _veli_talebe_yukle(request, talebe_id)
+    sayfa_goruntulendi(veli, "veli_talebe_namaz", talebe=talebe)
+    return _talebe_sayfa(
+        request,
+        veli,
+        talebe,
+        "veli/talebe_namaz.html",
+        "namaz",
+        {"namaz": talebe_namaz_30_gun(talebe)},
+    )
+
+
+@login_required
+def veli_talebe_mudahale(request, talebe_id: int):
+    if not kullanici_veli_mi(request.user):
+        return redirect("dashboard")
+    veli, talebe = _veli_talebe_yukle(request, talebe_id)
+    ozet = talebe_veli_ozeti(talebe)
+    sayfa_goruntulendi(veli, "veli_talebe_mudahale", talebe=talebe)
+    return _talebe_sayfa(
+        request,
+        veli,
+        talebe,
+        "veli/talebe_mudahale.html",
+        "mudahale",
+        {"mudahaleler": ozet["mudahaleler"]},
+    )
+
+
+@login_required
+def veli_talebe_sohbet(request, talebe_id: int):
+    if not kullanici_veli_mi(request.user):
+        return redirect("dashboard")
+    veli, talebe = _veli_talebe_yukle(request, talebe_id)
+    sayfa_goruntulendi(veli, "veli_talebe_sohbet", talebe=talebe)
+    return _talebe_sayfa(
+        request,
+        veli,
+        talebe,
+        "veli/talebe_sohbet.html",
+        "sohbet",
+        {"mevzular": aktif_sohbet_mevzulari()},
     )
 
 

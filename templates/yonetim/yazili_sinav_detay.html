@@ -7,12 +7,13 @@
         <p class="kicker">{{ kamp.ad|upper }}</p>
         <h1>{{ sinav.ad }}</h1>
         <p class="muted">
-            {{ sinav.sinav_tarihi|date:"d.m.Y" }} · {{ sinav.ders_goster }} · {{ sinav.soru_sayisi }} soru
+            {{ sinav.sinav_tarihi|date:"d.m.Y" }} · {{ sinav.ders_goster }} ·
+            {{ sinav.get_tur_display }} · {{ sinav.yazili_no }}. yazılı
         </p>
     </div>
     <div class="yonetim-page-head-actions">
         {% if duzenleyebilir %}
-        <a href="{% url 'yazili_sonuc_gir' sinav.pk %}" class="primary-btn">Sonuç Girişi</a>
+        <a href="{% url 'yazili_sonuc_gir' sinav.pk %}" class="primary-btn">Puan Girişi</a>
         <a href="{% url 'yonetim:yazili_sinav_duzenle' sinav.pk %}" class="ghost-btn yonetim-head-ghost">Düzenle</a>
         {% endif %}
         <a href="{% url 'yonetim:yazili_kamp_detay' kamp.pk %}" class="ghost-btn yonetim-head-ghost">Kamp</a>
@@ -23,7 +24,7 @@
     <div class="card-heading">
         <div>
             <p class="card-kicker">SONUÇLAR</p>
-            <h2>Sınav Sonuç Tablosu</h2>
+            <h2>Puan Tablosu</h2>
         </div>
     </div>
     <div class="responsive-table">
@@ -32,10 +33,6 @@
                 <tr>
                     <th>Sıra</th>
                     <th>Talebe</th>
-                    <th>D</th>
-                    <th>Y</th>
-                    <th>B</th>
-                    <th>Net</th>
                     <th>Puan</th>
                 </tr>
             </thead>
@@ -44,14 +41,10 @@
                 <tr>
                     <td>{{ satir.sira }}</td>
                     <td>{{ satir.sonuc.talebe.ad_soyad }}</td>
-                    <td>{{ satir.sonuc.dogru }}</td>
-                    <td>{{ satir.sonuc.yanlis }}</td>
-                    <td>{{ satir.sonuc.bos }}</td>
-                    <td>{{ satir.sonuc.net }}</td>
                     <td>{{ satir.sonuc.puan }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="7" class="report-empty">Sonuç girilmemiş.</td></tr>
+                <tr><td colspan="3" class="report-empty">Sonuç girilmemiş.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

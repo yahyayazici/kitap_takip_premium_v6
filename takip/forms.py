@@ -44,7 +44,9 @@ class TopluZimmetForm(forms.Form):
     )
     talebeler = forms.ModelMultipleChoiceField(
         queryset=Talebe.objects.none(),
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.CheckboxSelectMultiple(
+            attrs={"class": "choice-chip-grid choice-chip-grid--wide"}
+        ),
         label="Talebeler",
     )
     zimmet_tarihi = forms.DateField(
@@ -337,14 +339,63 @@ class YaziliSinavForm(StyledModelForm):
         fields = [
             "ad",
             "sinav_tarihi",
+            "ders",
             "ders_ad",
             "brans",
+            "yazili_no",
+            "tur",
             "soru_sayisi",
             "durum",
         ]
         widgets = {
             "sinav_tarihi": forms.DateInput(attrs={"class": "input", "type": "date"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from takip.models import Ders
+
+        self.fields["ders"].queryset = Ders.objects.filter(aktif=True).order_by(
+            "sira", "ad"
+        )
+        self.fields["ders"].required = False
+        self.fields["soru_sayisi"].required = False
+
+
+class YaziliSinavPanelForm(StyledModelForm):
+    """Etüt hocası paneli — KTT benzeri yazılı oluşturma."""
+
+    class Meta:
+        from takip.models import YaziliSinav
+
+        model = YaziliSinav
+        fields = [
+            "ad",
+            "sinav_tarihi",
+            "ders",
+            "yazili_no",
+            "tur",
+        ]
+        widgets = {
+            "sinav_tarihi": forms.DateInput(
+                attrs={"class": "input", "type": "date"}
+            ),
+        }
+
+    def __init__(self, *args, aktif_tur=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        from takip.models import Ders, YaziliSinav
+
+        self.fields["ders"].queryset = Ders.objects.filter(aktif=True).order_by(
+            "sira", "ad"
+        )
+        self.fields["ders"].required = True
+        self.fields["ad"].required = False
+        self.fields["ad"].help_text = "Boş bırakılırsa ders + yazılı no ile doldurulur."
+        if aktif_tur in {YaziliSinav.Tur.ORNEK, YaziliSinav.Tur.GERCEK}:
+            self.fields["tur"].widget = forms.HiddenInput()
+            if not self.is_bound:
+                self.initial.setdefault("tur", aktif_tur)
 
 
 class EtutPlanFaaliyetForm(StyledModelForm):
@@ -428,7 +479,9 @@ class VeliHesapForm(forms.Form):
     )
     talebeler = forms.ModelMultipleChoiceField(
         queryset=Talebe.objects.filter(durum=Talebe.Durum.AKTIF).order_by("ad_soyad"),
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.CheckboxSelectMultiple(
+            attrs={"class": "choice-chip-grid choice-chip-grid--wide"}
+        ),
         label="Bağlı öğrenciler",
     )
     aktif = forms.BooleanField(required=False, initial=True, label="Aktif")
@@ -797,3 +850,211 @@ class GunlukTakipKaydiForm(StyledModelForm):
         self.fields["talebe"].queryset = yetkili_talebeler(
             user, aktif_only=True
         ).order_by("ad_soyad")
+
+class PersonelVazifeForm(StyledModelForm):
+    class Meta:
+        from takip.vazife_models import PersonelVazife
+
+        model = PersonelVazife
+        fields = [
+            "baslik",
+            "aciklama",
+            "atanan",
+            "sinif_sube",
+            "baslangic",
+            "bitis",
+            "durum",
+            "oncelik",
+        ]
+        labels = {
+            "bitis": "Şu güne kadar",
+            "baslangic": "Başlangıç",
+            "atanan": "Personel",
+        }
+        help_texts = {
+            "bitis": "Bu tarihe kadar personele ana sayfada ve Vazifelerim’de bildirim gider.",
+        }
+        widgets = {
+            "baslangic": forms.DateInput(attrs={"class": "input", "type": "date"}),
+            "bitis": forms.DateInput(attrs={"class": "input", "type": "date"}),
+            "aciklama": forms.Textarea(attrs={"rows": 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from takip.models import PersonelProfili, SinifSube
+
+        self.fields["atanan"].queryset = PersonelProfili.objects.filter(
+            aktif=True
+        ).order_by("ad_soyad")
+        self.fields["sinif_sube"].queryset = SinifSube.objects.filter(
+            aktif=True
+        ).order_by("sinif", "sube")
+        self.fields["sinif_sube"].required = False
+        self.fields["bitis"].required = True
+
+    def clean(self):
+        cleaned = super().clean()
+        baslangic = cleaned.get("baslangic")
+        bitis = cleaned.get("bitis")
+        if baslangic and bitis and bitis < baslangic:
+            self.add_error("bitis", "Şu güne kadar tarihi başlangıçtan önce olamaz.")
+        return cleaned
+
+
+class PersonelToplantisiForm(StyledModelForm):
+    class Meta:
+        from takip.personel_toplanti_models import PersonelToplantisi
+
+        model = PersonelToplantisi
+        fields = [
+            "baslik",
+            "tarih",
+            "katilimci_personeller",
+            "durum",
+        ]
+        widgets = {
+            "baslik": forms.TextInput(
+                attrs={"class": "input", "placeholder": "Alt başlık (isteğe bağlı)"}
+            ),
+            "tarih": forms.DateInput(attrs={"class": "input", "type": "date"}),
+            "katilimci_personeller": forms.SelectMultiple(
+                attrs={
+                    "class": "input ms-filter",
+                    "data-placeholder": "Katılımcı seçin (isteğe bağlı)",
+                }
+            ),
+        }
+
+    def __init__(self, *args, olusturma=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        from takip.models import PersonelProfili
+
+        profil_qs = PersonelProfili.objects.filter(aktif=True).order_by("ad_soyad")
+        self.fields["katilimci_personeller"].queryset = profil_qs
+        self.fields["katilimci_personeller"].required = False
+        self.fields["katilimci_personeller"].label = "Katılımcılar"
+        self.fields["baslik"].required = False
+        self.fields["baslik"].label = "Alt başlık"
+        if olusturma:
+            self.fields.pop("durum", None)
+
+
+class PersonelToplantiGundemForm(StyledModelForm):
+    class Meta:
+        from takip.personel_toplanti_models import PersonelToplantiGundemMadde
+
+        model = PersonelToplantiGundemMadde
+        fields = ["madde", "gorusulen", "sira"]
+        widgets = {
+            "madde": forms.TextInput(attrs={"placeholder": "Gündem maddesi"}),
+            "gorusulen": forms.Textarea(
+                attrs={"rows": 2, "placeholder": "Toplantıda konuşulanlar"}
+            ),
+            "sira": forms.HiddenInput(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["sira"].required = False
+        self.fields["madde"].required = False
+        self.fields["gorusulen"].required = False
+
+    def clean(self):
+        cleaned = super().clean()
+        madde = (cleaned.get("madde") or "").strip()
+        gorusulen = (cleaned.get("gorusulen") or "").strip()
+        if madde or gorusulen:
+            cleaned["madde"] = madde
+            cleaned["gorusulen"] = gorusulen
+        return cleaned
+
+
+class PersonelToplantiYapilacakForm(StyledModelForm):
+    """Yapılacak / takip maddesi — personele vazife olarak yansır."""
+
+    class Meta:
+        from takip.personel_toplanti_models import PersonelToplantiKarar
+
+        model = PersonelToplantiKarar
+        fields = ["metin", "sorumlu", "kontrol_tarihi", "durum", "sira"]
+        widgets = {
+            "metin": forms.Textarea(attrs={"rows": 2, "placeholder": "Yapılacak iş"}),
+            "kontrol_tarihi": forms.DateInput(attrs={"class": "input", "type": "date"}),
+            "sira": forms.HiddenInput(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from takip.models import PersonelProfili
+
+        self.fields["sorumlu"].queryset = PersonelProfili.objects.filter(
+            aktif=True
+        ).order_by("ad_soyad")
+        self.fields["sorumlu"].required = False
+        self.fields["kontrol_tarihi"].required = False
+        self.fields["sira"].required = False
+        self.fields["metin"].required = False
+
+    def clean_metin(self):
+        return (self.cleaned_data.get("metin") or "").strip()
+
+
+class PersonelToplantiKararForm(StyledModelForm):
+    class Meta:
+        from takip.personel_toplanti_models import PersonelToplantiKarar
+
+        model = PersonelToplantiKarar
+        fields = ["tur", "metin", "sorumlu", "kontrol_tarihi", "durum", "sira"]
+        widgets = {
+            "metin": forms.Textarea(attrs={"rows": 2, "placeholder": "Karar / yapılacak metni"}),
+            "kontrol_tarihi": forms.DateInput(attrs={"class": "input", "type": "date"}),
+            "sira": forms.HiddenInput(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from takip.models import PersonelProfili
+
+        self.fields["sorumlu"].queryset = PersonelProfili.objects.filter(
+            aktif=True
+        ).order_by("ad_soyad")
+        self.fields["sorumlu"].required = False
+        self.fields["kontrol_tarihi"].required = False
+        self.fields["sira"].required = False
+        self.fields["metin"].required = False
+
+    def clean_metin(self):
+        return (self.cleaned_data.get("metin") or "").strip()
+
+
+class YctOlayForm(StyledModelForm):
+    class Meta:
+        from takip.yct_models import YctOlay
+
+        model = YctOlay
+        fields = [
+            "baslik",
+            "aciklama",
+            "baslangic",
+            "bitis",
+            "kategori",
+            "tum_personel",
+        ]
+        widgets = {
+            "baslik": forms.TextInput(
+                attrs={"class": "input", "placeholder": "Örn: LGS deneme haftası"}
+            ),
+            "aciklama": forms.Textarea(
+                attrs={"class": "input", "rows": 3, "placeholder": "Plan detayı"}
+            ),
+            "baslangic": forms.DateInput(attrs={"class": "input", "type": "date"}),
+            "bitis": forms.DateInput(attrs={"class": "input", "type": "date"}),
+            "kategori": forms.Select(attrs={"class": "input"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["bitis"].required = False
+        self.fields["aciklama"].required = False
+

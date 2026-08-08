@@ -1,0 +1,66 @@
+{% extends "veli/base.html" %}
+{% block title %}Namaz Yoklaması · {{ talebe.ad_soyad }}{% endblock %}
+{% block content %}
+<div class="dash-home veli-dash veli-wow">
+{% include "veli/includes/talebe_layout_head.html" %}
+
+<section class="veli-wow-metrics" aria-label="Namaz özeti">
+    <article class="veli-wow-metric veli-wow-metric-blue">
+        <div class="veli-wow-metric-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        </div>
+        <div>
+            <span class="veli-wow-metric-label">Toplam kayıt</span>
+            <strong class="veli-wow-metric-value">{{ namaz.toplam }}</strong>
+            <span class="veli-wow-metric-note">Son 30 gün</span>
+        </div>
+    </article>
+    <article class="veli-wow-metric veli-wow-metric-amber">
+        <div class="veli-wow-metric-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+        </div>
+        <div>
+            <span class="veli-wow-metric-label">Gelmedi</span>
+            <strong class="veli-wow-metric-value">{{ namaz.ozet.G|default:0 }}</strong>
+            <span class="veli-wow-metric-note">kayıt</span>
+        </div>
+    </article>
+    <article class="veli-wow-metric veli-wow-metric-violet">
+        <div class="veli-wow-metric-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div>
+            <span class="veli-wow-metric-label">İzinli</span>
+            <strong class="veli-wow-metric-value">{{ namaz.ozet.I|default:0 }}</strong>
+            <span class="veli-wow-metric-note">kayıt</span>
+        </div>
+    </article>
+</section>
+
+<section class="veli-wow-card">
+    <header class="veli-wow-card-head">
+        <div>
+            <p class="veli-wow-kicker">Namaz</p>
+            <h2>Namaz yoklaması katılımı</h2>
+        </div>
+    </header>
+    <div class="og-table-wrap" style="padding: 8px 16px 18px;">
+        <table class="og-grade-table">
+            <thead><tr><th>Tarih</th><th>Vakit</th><th>Durum</th></tr></thead>
+            <tbody>
+                {% for k in namaz.kayitlar %}
+                <tr>
+                    <td>{{ k.oturum.tarih|date:"d.m.Y" }}</td>
+                    <td>{{ k.oturum.get_vakit_display }}</td>
+                    <td>{{ k.get_durum_display }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" class="og-empty-note">Son 30 günde namaz yoklama kaydı yok.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+</div>
+{% endblock %}
+{% block extra_js %}{% include "includes/panel_date_js.html" %}{% endblock %}
