@@ -48,7 +48,7 @@ class OgretmenGirisKaydi:
 
     @property
     def rol_etiket(self) -> str:
-        return "Öğretmen / Etüt Hocası"
+        return "Ana Ders Öğretmeni"
 
     @property
     def ad_soyad(self) -> str:
@@ -126,6 +126,7 @@ def personel_olustur(
     ana_rol: str,
     aktif: bool = True,
     siniflar: list[SinifSube] | None = None,
+    dini_ders_seviyeleri: list | None = None,
 ) -> PersonelGirisKaydi | None:
     ad_soyad = ad_soyad.strip()
     if not ad_soyad:
@@ -157,6 +158,9 @@ def personel_olustur(
         )
         if siniflar:
             hoca.sorumlu_sinif_subeler.set(siniflar)
+        if ana_rol == ROL_ETUT_MESUL:
+            for seviye in dini_ders_seviyeleri or []:
+                seviye.hocalar.add(hoca)
         personel.etut_hocasi = hoca
         personel.save(update_fields=["etut_hocasi"])
 
@@ -173,6 +177,7 @@ def toplu_personel_olustur(
     ana_rol: str,
     aktif: bool = True,
     siniflar: list[SinifSube] | None = None,
+    dini_ders_seviyeleri: list | None = None,
 ) -> tuple[list[PersonelGirisKaydi], list[str]]:
     kayitlar: list[PersonelGirisKaydi] = []
     hatalar: list[str] = []
@@ -187,6 +192,7 @@ def toplu_personel_olustur(
                 ana_rol=ana_rol,
                 aktif=aktif,
                 siniflar=siniflar,
+                dini_ders_seviyeleri=dini_ders_seviyeleri,
             )
         except Exception as exc:
             hatalar.append(f"Satır {satir_no} ({ad}): {exc}")
@@ -202,8 +208,6 @@ def toplu_personel_olustur(
 def ogretmen_olustur(
     *,
     ad_soyad: str,
-    siniflar: list[SinifSube] | None = None,
-    dini_ders_seviyeleri: list | None = None,
     brans: Brans | None = None,
     saatlik_ucret=None,
 ) -> OgretmenGirisKaydi | None:
@@ -223,11 +227,6 @@ def ogretmen_olustur(
         is_active=True,
     )
     hoca = EtutHocasi.objects.create(user=user, ad_soyad=ad_soyad, aktif=True)
-    if siniflar:
-        hoca.sorumlu_sinif_subeler.set(siniflar)
-
-    for seviye in dini_ders_seviyeleri or []:
-        seviye.hocalar.add(hoca)
 
     OgretmenOdemeProfili.objects.create(
         etut_hocasi=hoca,
@@ -246,8 +245,6 @@ def ogretmen_olustur(
 def toplu_ogretmen_olustur(
     isimler: list[str],
     *,
-    siniflar: list[SinifSube] | None = None,
-    dini_ders_seviyeleri: list | None = None,
     brans: Brans | None = None,
     saatlik_ucret=None,
 ) -> tuple[list[OgretmenGirisKaydi], list[str]]:
@@ -261,8 +258,6 @@ def toplu_ogretmen_olustur(
         try:
             kayit = ogretmen_olustur(
                 ad_soyad=ad,
-                siniflar=siniflar,
-                dini_ders_seviyeleri=dini_ders_seviyeleri,
                 brans=brans,
                 saatlik_ucret=saatlik_ucret,
             )
@@ -346,4 +341,4 @@ def personel_giris_zip_olustur(
 
 
 def rol_secenekleri() -> list[tuple[str, str]]:
-    return [(k, v) for k, v in PERSONEL_ROLLER if k != "etut_mesul"]
+    return list(PERSONEL_ROLLER)

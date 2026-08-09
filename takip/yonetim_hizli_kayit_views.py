@@ -29,9 +29,9 @@ from takip.yonetim_hizli_kayit_forms import (
 from takip.yonetim_views import yonetici_gerekli
 
 TUR_SECENEKLERI = (
-    ("personel", "Personel", "Personel kaydı — giriş bilgileri otomatik PDF"),
+    ("personel", "Personel", "Kurum personeli — etüt mesulü, idareci vb."),
     ("talebe", "Talebe", "Talebe kaydı — veli bilgisi aynı formda veya Excel ile"),
-    ("ogretmen", "Öğretmen", "Etüt hocası — giriş bilgileri otomatik PDF"),
+    ("ogretmen", "Öğretmen", "Ana ders öğretmeni — branş ve ders ücreti"),
 )
 
 
@@ -164,12 +164,6 @@ def hizli_kayit(request):
         if toplu_ogretmen_form.is_valid():
             kayitlar, hatalar = toplu_ogretmen_olustur(
                 toplu_ogretmen_form.cleaned_data["isim_listesi"],
-                siniflar=list(
-                    toplu_ogretmen_form.cleaned_data.get("sorumlu_sinif_subeler") or []
-                ),
-                dini_ders_seviyeleri=list(
-                    toplu_ogretmen_form.cleaned_data.get("dini_ders_seviyeleri") or []
-                ),
                 brans=toplu_ogretmen_form.cleaned_data.get("brans"),
                 saatlik_ucret=toplu_ogretmen_form.cleaned_data.get("saatlik_ucret"),
             )
@@ -218,11 +212,14 @@ def hizli_kayit(request):
                 siniflar=list(
                     toplu_personel_form.cleaned_data.get("sorumlu_sinif_subeler") or []
                 ),
+                dini_ders_seviyeleri=list(
+                    toplu_personel_form.cleaned_data.get("dini_ders_seviyeleri") or []
+                ),
             )
             if hatalar:
                 from takip.messages_util import hatalari_ozetle
 
-                hatalari_ozetle(request, hatalar, tek_baslik="Toplu öğretmen kaydı")
+                hatalari_ozetle(request, hatalar, tek_baslik="Toplu personel kaydı")
 
             if kayitlar:
                 zip_dosya = personel_giris_zip_olustur(kayitlar, request=request)

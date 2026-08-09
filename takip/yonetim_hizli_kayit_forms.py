@@ -43,21 +43,31 @@ def _cs(attrs=None):
 class HizliPersonelForm(PersonelProfiliForm):
     """İdari personel — kullanıcı adı ve şifre otomatik."""
 
-    SINIF_GEREKLI_ROLLER = {ROL_SINIF_MESUL}
+    SINIF_GEREKLI_ROLLER = {ROL_SINIF_MESUL, ROL_ETUT_MESUL}
+
+    dini_ders_seviyeleri = forms.ModelMultipleChoiceField(
+        label="Sorumlu dini ders seviyeleri",
+        queryset=DiniDersSeviyesi.objects.none(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "choice-chip-grid"}),
+        help_text="Etüt mesulü için en az bir seviye seçin.",
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields.pop("kullanici_adi", None)
         self.fields.pop("sifre", None)
         rol_alan = self.fields["ana_rol"]
-        rol_alan.choices = [
-            (k, v)
-            for k, v in rol_alan.choices
-            if k and k != ROL_ETUT_MESUL
-        ]
         rol_alan.widget.attrs.update({"class": "cs-input", "data-yk-rol-sec": "1"})
         self.fields["ad_soyad"].widget.attrs["placeholder"] = "Ad ve soyad"
         self.fields["aktif"].initial = True
+        self.fields["dini_ders_seviyeleri"].queryset = DiniDersSeviyesi.objects.filter(
+            aktif=True
+        ).order_by("sira", "ad")
+        if self.instance.pk and self.instance.etut_hocasi_id:
+            self.fields["dini_ders_seviyeleri"].initial = (
+                self.instance.etut_hocasi.sorumlu_dini_ders_seviyeleri.all()
+            )
 
     def clean(self):
         cleaned = super().clean()
@@ -66,7 +76,25 @@ class HizliPersonelForm(PersonelProfiliForm):
             if ad:
                 cleaned["kullanici_adi"] = kullanici_adi_uret(ad)
                 cleaned["sifre"] = sifre_uret()
+
+        if cleaned.get("ana_rol") == ROL_ETUT_MESUL and not cleaned.get(
+            "dini_ders_seviyeleri"
+        ):
+            self.add_error(
+                "dini_ders_seviyeleri",
+                "Etüt mesulü için en az bir dini ders seviyesi seçin.",
+            )
         return cleaned
+
+    @transaction.atomic
+    def save(self, commit=True):
+        personel = super().save(commit=commit)
+        if personel.ana_rol == ROL_ETUT_MESUL and personel.etut_hocasi_id:
+            seviyeler = self.cleaned_data.get("dini_ders_seviyeleri") or []
+            hoca = personel.etut_hocasi
+            for seviye in seviyeler:
+                seviye.hocalar.add(hoca)
+        return personel
 
 
 class TopluPersonelForm(forms.Form):
@@ -93,6 +121,12 @@ class TopluPersonelForm(forms.Form):
         required=False,
         widget=forms.CheckboxSelectMultiple(attrs={"class": "choice-chip-grid"}),
     )
+    dini_ders_seviyeleri = forms.ModelMultipleChoiceField(
+        label="Sorumlu dini ders seviyeleri",
+        queryset=DiniDersSeviyesi.objects.none(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "choice-chip-grid"}),
+    )
     aktif = forms.BooleanField(
         label="Aktif hesap",
         required=False,
@@ -106,16 +140,29 @@ class TopluPersonelForm(forms.Form):
         self.fields["sorumlu_sinif_subeler"].queryset = SinifSube.objects.filter(
             aktif=True
         ).order_by("sinif", "sube")
+        self.fields["dini_ders_seviyeleri"].queryset = DiniDersSeviyesi.objects.filter(
+            aktif=True
+        ).order_by("sira", "ad")
 
     def clean(self):
         cleaned = super().clean()
-        if cleaned.get("ana_rol") == ROL_SINIF_MESUL and not cleaned.get(
-            "sorumlu_sinif_subeler"
-        ):
+        rol = cleaned.get("ana_rol")
+        if rol == ROL_SINIF_MESUL and not cleaned.get("sorumlu_sinif_subeler"):
             self.add_error(
                 "sorumlu_sinif_subeler",
                 "Sınıf mesulü için en az bir sınıf seçin.",
             )
+        if rol == ROL_ETUT_MESUL:
+            if not cleaned.get("sorumlu_sinif_subeler"):
+                self.add_error(
+                    "sorumlu_sinif_subeler",
+                    "Etüt mesulü için en az bir sınıf seçin.",
+                )
+            if not cleaned.get("dini_ders_seviyeleri"):
+                self.add_error(
+                    "dini_ders_seviyeleri",
+                    "Etüt mesulü için en az bir dini ders seviyesi seçin.",
+                )
         return cleaned
 
     def clean_isim_listesi(self):
@@ -343,25 +390,13 @@ class HizliOgretmenForm(forms.Form):
         max_length=120,
         widget=forms.TextInput(attrs=_cs({"placeholder": "Öğretmen adı soyadı"})),
     )
-    sorumlu_sinif_subeler = forms.ModelMultipleChoiceField(
-        label="Sorumlu sınıf ve şubeler",
-        queryset=SinifSube.objects.none(),
-        required=False,
-        widget=forms.CheckboxSelectMultiple(attrs={"class": "choice-chip-grid"}),
-    )
-    dini_ders_seviyeleri = forms.ModelMultipleChoiceField(
-        label="Sorumlu dini ders seviyeleri",
-        queryset=DiniDersSeviyesi.objects.none(),
-        required=False,
-        widget=forms.CheckboxSelectMultiple(attrs={"class": "choice-chip-grid"}),
-        help_text="Etüt hocasının ders verdiği dini ders seviyelerini işaretleyin.",
-    )
     brans = forms.ModelChoiceField(
         label="Branş",
         queryset=Brans.objects.none(),
-        required=False,
-        empty_label="— Seçilmedi —",
+        required=True,
+        empty_label="Branş seçin",
         widget=forms.Select(attrs={"class": "cs-input"}),
+        help_text="Beş ana dersten birini seçin (Türkçe, Matematik, Fen, Sosyal, Din).",
     )
     saatlik_ucret = forms.DecimalField(
         label="Saatlik ücret (₺)",
@@ -373,12 +408,6 @@ class HizliOgretmenForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["sorumlu_sinif_subeler"].queryset = SinifSube.objects.filter(
-            aktif=True
-        ).order_by("sinif", "sube")
-        self.fields["dini_ders_seviyeleri"].queryset = DiniDersSeviyesi.objects.filter(
-            aktif=True
-        ).order_by("sira", "ad")
         self.fields["brans"].queryset = Brans.objects.filter(aktif=True).order_by(
             "sira", "ad"
         )
@@ -395,10 +424,6 @@ class HizliOgretmenForm(forms.Form):
     def save(self) -> OgretmenGirisKaydi:
         return ogretmen_olustur(
             ad_soyad=self.cleaned_data["ad_soyad"],
-            siniflar=list(self.cleaned_data.get("sorumlu_sinif_subeler") or []),
-            dini_ders_seviyeleri=list(
-                self.cleaned_data.get("dini_ders_seviyeleri") or []
-            ),
             brans=self.cleaned_data.get("brans"),
             saatlik_ucret=self.cleaned_data.get("saatlik_ucret") or Decimal("0"),
         )
@@ -417,23 +442,11 @@ class TopluOgretmenForm(forms.Form):
         ),
         help_text="Kullanıcı adı ve şifre her öğretmen için otomatik oluşturulur.",
     )
-    sorumlu_sinif_subeler = forms.ModelMultipleChoiceField(
-        label="Sorumlu sınıf ve şubeler",
-        queryset=SinifSube.objects.none(),
-        required=False,
-        widget=forms.CheckboxSelectMultiple(attrs={"class": "choice-chip-grid"}),
-    )
-    dini_ders_seviyeleri = forms.ModelMultipleChoiceField(
-        label="Sorumlu dini ders seviyeleri",
-        queryset=DiniDersSeviyesi.objects.none(),
-        required=False,
-        widget=forms.CheckboxSelectMultiple(attrs={"class": "choice-chip-grid"}),
-    )
     brans = forms.ModelChoiceField(
         label="Branş",
         queryset=Brans.objects.none(),
-        required=False,
-        empty_label="— Seçilmedi —",
+        required=True,
+        empty_label="Branş seçin",
         widget=forms.Select(attrs={"class": "cs-input"}),
     )
     saatlik_ucret = forms.DecimalField(
@@ -446,12 +459,6 @@ class TopluOgretmenForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["sorumlu_sinif_subeler"].queryset = SinifSube.objects.filter(
-            aktif=True
-        ).order_by("sinif", "sube")
-        self.fields["dini_ders_seviyeleri"].queryset = DiniDersSeviyesi.objects.filter(
-            aktif=True
-        ).order_by("sira", "ad")
         self.fields["brans"].queryset = Brans.objects.filter(aktif=True).order_by(
             "sira", "ad"
         )

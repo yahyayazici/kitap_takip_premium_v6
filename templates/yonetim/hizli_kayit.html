@@ -14,7 +14,7 @@
     <div>
         <p class="kicker">KURUM KAYDI</p>
         <h1>Hızlı Ekle</h1>
-        <p class="muted">Personel, talebe veya öğretmen kaydını tek ekrandan oluşturun.</p>
+        <p class="muted">Personel (etüt mesulü dahil), talebe veya ana ders öğretmeni kaydı.</p>
     </div>
 </header>
 
@@ -89,7 +89,7 @@
 
         {% elif tur == "ogretmen" %}
         <div class="yk-section">
-            <p class="yk-section-note">Yalnızca ad soyad girin. Kullanıcı adı ve şifre otomatik oluşturulur; kayıttan sonra giriş bilgisi PDF'i indirilir.</p>
+            <p class="yk-section-note">Beş ana dersten (Türkçe, Matematik, Fen, Sosyal, Din) ders veren öğretmen. Sınıf zimmeti ve dini ders yok — yalnızca branş ve ücret kaydı.</p>
             <div class="yk-grid yk-grid-2">
                 <div class="yk-field yk-field-wide">
                     <label for="{{ form.ad_soyad.id_for_label }}">{{ form.ad_soyad.label }}</label>
@@ -104,6 +104,7 @@
                 <div class="yk-field">
                     <label for="{{ form.brans.id_for_label }}">{{ form.brans.label }}</label>
                     {{ form.brans }}
+                    {% if form.brans.help_text %}<small>{{ form.brans.help_text }}</small>{% endif %}
                     {% for error in form.brans.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
                 </div>
                 <div class="yk-field">
@@ -113,28 +114,13 @@
                 </div>
             </div>
         </div>
-        <div class="yk-section">
-            <h3 class="yk-section-title">Sorumlu Sınıflar</h3>
-            <div class="yk-checkbox-grid">
-                {{ form.sorumlu_sinif_subeler }}
-            </div>
-            {% for error in form.sorumlu_sinif_subeler.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
-        </div>
-        <div class="yk-section">
-            <h3 class="yk-section-title">Dini Ders Seviyeleri</h3>
-            <p class="yk-section-note">Etüt hocasının sorumlu olduğu dini ders seviyelerini işaretleyin.</p>
-            <div class="yk-checkbox-grid">
-                {{ form.dini_ders_seviyeleri }}
-            </div>
-            {% for error in form.dini_ders_seviyeleri.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
-        </div>
 
         {% elif tur == "personel" %}
         <div class="yk-section">
-            <p class="yk-section-note">Yalnızca ad soyad ve rol girin. Kullanıcı adı ve şifre otomatik oluşturulur; kayıttan sonra giriş bilgisi PDF'i indirilir.</p>
+            <p class="yk-section-note">Kurum personeli kaydı. <strong>Etüt mesulü</strong> seçildiğinde sınıf zimmeti ve dini ders seviyesi atanır. Kullanıcı adı ve şifre otomatik oluşturulur.</p>
             <div class="yk-grid yk-grid-2">
                 {% for field in form %}
-                    {% if field.name != "sorumlu_sinif_subeler" %}
+                    {% if field.name != "sorumlu_sinif_subeler" and field.name != "dini_ders_seviyeleri" %}
                     <div class="yk-field{% if field.name == 'ad_soyad' %} yk-field-wide{% endif %}{% if field.name == 'aktif' %} yk-field-check{% endif %}">
                         {% if field.name == "aktif" %}
                         <label class="yk-check-label">{{ field }} {{ field.label }}</label>
@@ -152,11 +138,20 @@
 
         <div class="yk-section yk-section-siniflar" id="yk-personel-siniflar" hidden>
             <h3 class="yk-section-title">Sorumlu Sınıflar</h3>
-            <p class="yk-section-note">Sınıf mesulü için sorumlu olduğu sınıf ve şubeleri seçin.</p>
+            <p class="yk-section-note">Etüt veya sınıf mesulü için sorumlu olduğu sınıf ve şubeleri işaretleyin.</p>
             <div class="yk-checkbox-grid">
                 {{ form.sorumlu_sinif_subeler }}
             </div>
             {% for error in form.sorumlu_sinif_subeler.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+        </div>
+
+        <div class="yk-section yk-section-dini-seviyeler" id="yk-personel-dini-seviyeler" hidden>
+            <h3 class="yk-section-title">Dini Ders Seviyeleri</h3>
+            <p class="yk-section-note">Etüt mesulünün sorumlu olduğu seviyeleri işaretleyin (Seviye 1 – 4).</p>
+            <div class="yk-checkbox-grid">
+                {{ form.dini_ders_seviyeleri }}
+            </div>
+            {% for error in form.dini_ders_seviyeleri.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
         </div>
 
         {% endif %}
@@ -204,11 +199,19 @@
             </div>
             <div class="yk-section yk-section-siniflar yk-toplu-siniflar" id="yk-toplu-siniflar" hidden>
                 <h3 class="yk-section-title">Sorumlu Sınıflar</h3>
-                <p class="yk-section-note">Toplu eklenen sınıf mesullerine aynı sınıflar atanır.</p>
+                <p class="yk-section-note">Etüt veya sınıf mesulü için sınıfları işaretleyin.</p>
                 <div class="yk-checkbox-grid">
                     {{ toplu_personel_form.sorumlu_sinif_subeler }}
                 </div>
                 {% for error in toplu_personel_form.sorumlu_sinif_subeler.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+            </div>
+            <div class="yk-section yk-section-dini-seviyeler yk-toplu-dini-seviyeler" id="yk-toplu-dini-seviyeler" hidden>
+                <h3 class="yk-section-title">Dini Ders Seviyeleri</h3>
+                <p class="yk-section-note">Etüt mesulü için seviyeleri işaretleyin (Seviye 1 – 4).</p>
+                <div class="yk-checkbox-grid">
+                    {{ toplu_personel_form.dini_ders_seviyeleri }}
+                </div>
+                {% for error in toplu_personel_form.dini_ders_seviyeleri.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
             </div>
             <button type="submit" class="primary-btn yk-excel-submit">Toplu Ekle ve ZIP İndir</button>
         </form>
@@ -219,8 +222,8 @@
     <div class="yk-section yk-section-excel">
         <h3 class="yk-section-title">Toplu Öğretmen Ekle</h3>
         <p class="yk-section-note">
-            Her satıra bir ad soyad yazın. Tüm öğretmenler için aynı branş, ücret ve sınıflar uygulanır.
-            Kayıttan sonra her öğretmen için ayrı giriş PDF'i içeren ZIP dosyası indirilir.
+            Her satıra bir ad soyad yazın. Tüm öğretmenler için aynı branş ve ücret uygulanır.
+            Ana ders öğretmeni — sınıf zimmeti ve dini ders atanmaz.
         </p>
         <form method="post" class="yk-excel-form yk-toplu-ogretmen-form">
             {% csrf_token %}
@@ -243,22 +246,6 @@
                     {{ toplu_ogretmen_form.saatlik_ucret }}
                     {% for error in toplu_ogretmen_form.saatlik_ucret.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
                 </div>
-            </div>
-            <div class="yk-section">
-                <h3 class="yk-section-title">Sorumlu Sınıflar</h3>
-                <p class="yk-section-note">Toplu eklenen öğretmenlere aynı sınıflar atanır.</p>
-                <div class="yk-checkbox-grid">
-                    {{ toplu_ogretmen_form.sorumlu_sinif_subeler }}
-                </div>
-                {% for error in toplu_ogretmen_form.sorumlu_sinif_subeler.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
-            </div>
-            <div class="yk-section">
-                <h3 class="yk-section-title">Dini Ders Seviyeleri</h3>
-                <p class="yk-section-note">Toplu eklenen öğretmenlere aynı dini ders seviyeleri atanır.</p>
-                <div class="yk-checkbox-grid">
-                    {{ toplu_ogretmen_form.dini_ders_seviyeleri }}
-                </div>
-                {% for error in toplu_ogretmen_form.dini_ders_seviyeleri.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
             </div>
             <button type="submit" class="primary-btn yk-excel-submit">Toplu Ekle ve ZIP İndir</button>
         </form>
@@ -309,24 +296,24 @@
 {% if tur == "personel" %}
 <script>
 (function () {
-    var sinifRol = "sinif_mesul";
+    var ETUT_ROL = "etut_mesul";
+    var SINIF_ROL = "sinif_mesul";
 
-    function toggleSinif(panel, rolSelect) {
-        if (!panel || !rolSelect) return;
-        var goster = rolSelect.value === sinifRol;
-        panel.hidden = !goster;
-        panel.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
-            cb.disabled = !goster;
-        });
+    function togglePersonelPaneller(form, rol) {
+        if (!form) return;
+        var sinifPanel = form.querySelector(".yk-section-siniflar, .yk-toplu-siniflar");
+        var diniPanel = form.querySelector(".yk-section-dini-seviyeler, .yk-toplu-dini-seviyeler");
+        var sinifGoster = rol === SINIF_ROL || rol === ETUT_ROL;
+        var diniGoster = rol === ETUT_ROL;
+        if (sinifPanel) sinifPanel.hidden = !sinifGoster;
+        if (diniPanel) diniPanel.hidden = !diniGoster;
     }
 
     document.querySelectorAll("[data-yk-rol-sec]").forEach(function (rolSelect) {
         var form = rolSelect.closest("form");
-        if (!form) return;
-        var panel = form.querySelector(".yk-section-siniflar, .yk-toplu-siniflar");
-        toggleSinif(panel, rolSelect);
+        togglePersonelPaneller(form, rolSelect.value);
         rolSelect.addEventListener("change", function () {
-            toggleSinif(panel, rolSelect);
+            togglePersonelPaneller(form, rolSelect.value);
         });
     });
 })();
