@@ -1,0 +1,457 @@
+/* ============================================================
+   ÇİNİLİ SARAY — Design Constitution Phase 6
+   Son katman: modül *-premium.css sonrası CS uyumu
+   Yalnızca görsel — işleyişe dokunmaz
+   ============================================================ */
+
+/* —— Modül token köprüsü (premium CSS üzerine) —— */
+.ep-page {
+    --ep-bg: var(--cs-background-warm);
+    --ep-surface: var(--cs-surface);
+    --ep-line: var(--cs-border);
+    --ep-line-soft: var(--cs-border-subtle);
+    --ep-navy: var(--cs-primary-dark);
+    --ep-text: var(--cs-text-primary);
+    --ep-muted: var(--cs-text-tertiary);
+    --ep-accent: var(--cs-accent);
+    --ep-radius: var(--cs-radius-lg);
+    --ep-radius-sm: var(--cs-radius-md);
+    --ep-shadow: var(--cs-shadow-card);
+}
+
+.dp-page {
+    --dp-line: var(--cs-border);
+    --dp-line-soft: var(--cs-border-subtle);
+    --dp-navy: var(--cs-primary-dark);
+    --dp-text: var(--cs-text-primary);
+    --dp-muted: var(--cs-text-tertiary);
+    --dp-accent: var(--cs-accent);
+    --dp-radius: var(--cs-radius-lg);
+    --dp-radius-sm: var(--cs-radius-md);
+    --dp-shadow: var(--cs-shadow-card);
+    overflow-x: visible !important;
+}
+
+.fn-page {
+    --fn-bg: var(--cs-surface);
+    --fn-surface: var(--cs-surface-muted);
+    --fn-border: var(--cs-border);
+    --fn-navy: var(--cs-primary-dark);
+    --fn-blue: var(--cs-accent);
+    --fn-text: var(--cs-text-primary);
+    --fn-muted: var(--cs-text-secondary);
+    --fn-radius: var(--cs-radius-lg);
+    --fn-shadow: var(--cs-shadow-card);
+}
+
+.st-page {
+    --st-bg: var(--cs-surface);
+    --st-surface: var(--cs-surface-muted);
+    --st-line: var(--cs-border);
+    --st-navy: var(--cs-primary-dark);
+    --st-text: var(--cs-text-primary);
+    --st-muted: var(--cs-text-secondary);
+    --st-radius: var(--cs-radius-lg);
+    --st-shadow: var(--cs-shadow-card);
+}
+
+.rh-page {
+    --rh-bg: var(--cs-surface);
+    --rh-surface: var(--cs-surface-muted);
+    --rh-border: var(--cs-border-subtle);
+    --rh-navy: var(--cs-primary-dark);
+    --rh-text: var(--cs-text-primary);
+    --rh-muted: var(--cs-text-secondary);
+    --rh-radius: var(--cs-radius-md);
+    --rh-shadow: var(--cs-shadow-card);
+}
+
+.im-page,
+.im-panel {
+    --im-bg: var(--cs-background);
+    --im-card: var(--cs-surface);
+    --im-line: var(--cs-border-subtle);
+    --im-navy: var(--cs-primary-dark);
+    --im-blue: var(--cs-accent);
+    --im-muted: var(--cs-text-secondary);
+    --im-radius: var(--cs-radius-lg);
+}
+
+.tz-page {
+    --tz-bg: var(--cs-background);
+    --tz-card: var(--cs-surface);
+    --tz-line: var(--cs-border);
+    --tz-navy: var(--cs-primary-dark);
+    --tz-blue: var(--cs-accent);
+    --tz-muted: var(--cs-text-secondary);
+    --tz-radius: var(--cs-radius-lg);
+    --tz-shadow: var(--cs-shadow-card);
+}
+
+.dd-page {
+    --dd-navy: var(--cs-primary-dark);
+    --dd-muted: var(--cs-text-secondary);
+    --dd-line: var(--cs-border);
+    --dd-accent: var(--cs-accent);
+}
+
+.dk-page {
+    --dk-bg: var(--cs-background-warm);
+    --dk-surface: var(--cs-surface);
+    --dk-line: var(--cs-border-subtle);
+    --dk-navy: var(--cs-primary-dark);
+    --dk-text: var(--cs-text-primary);
+    --dk-muted: var(--cs-text-secondary);
+    --dk-accent: var(--cs-accent);
+    --dk-radius: var(--cs-radius-lg);
+    --dk-shadow: var(--cs-shadow-card);
+}
+
+.mz-page {
+    --mz-navy: var(--cs-primary-dark);
+    --mz-muted: var(--cs-text-secondary);
+    --mz-line: var(--cs-border);
+    --mz-accent: var(--cs-accent);
+}
+
+.yct-page {
+    --yct-navy: var(--cs-primary-dark);
+    --yct-muted: var(--cs-text-secondary);
+    --yct-line: var(--cs-border);
+    --yct-accent: var(--cs-accent);
+}
+
+/* —— Modül kart & panel —— */
+.ep-card,
+.dp-card,
+.dp-view-panel,
+.fn-card,
+.st-card,
+.st-panel,
+.rh-card,
+.rh-panel,
+.im-card,
+.tz-card,
+.dk-card,
+.mz-card,
+.cd-card,
+.vz-card,
+.pt-card,
+.pid-card,
+.yc-card,
+.oo-card {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-lg) !important;
+    background: var(--cs-surface) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+}
+
+/* —— Modül başlıkları —— */
+.ep-head h1,
+.dp-head h1,
+.fn-head h1,
+.st-page-head h1,
+.rh-page-head h1,
+.im-head h1,
+.tz-head h1,
+.dk-head h1,
+.mz-head h1,
+.cd-head h1,
+.vz-head h1,
+.pt-head h1,
+.pid-head h1,
+.yc-head h1 {
+    font-size: var(--cs-font-page-title) !important;
+    font-weight: 650 !important;
+    letter-spacing: var(--cs-letter-tight) !important;
+    color: var(--cs-text-primary) !important;
+}
+
+.ep-eyebrow,
+.fn-eyebrow,
+.st-kicker,
+.rh-eyebrow,
+.im-eyebrow,
+.tz-crumb,
+.dk-eyebrow,
+.mz-eyebrow,
+.cd-kicker,
+.vz-kicker,
+.pt-kicker {
+    font-size: var(--cs-font-label) !important;
+    font-weight: 600 !important;
+    letter-spacing: var(--cs-letter-kicker) !important;
+    text-transform: uppercase;
+    color: var(--cs-text-tertiary) !important;
+}
+
+/* Operasyon sayfalarında hero sadeleştirme */
+.ep-head.patterned-page-head,
+.dp-head.patterned-page-head,
+.fn-head.patterned-page-head,
+.st-page-head.patterned-page-head,
+.rh-page-head.patterned-page-head,
+.pid-head.patterned-page-head {
+    animation: none !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin-bottom: var(--cs-space-4) !important;
+}
+
+.dp-head {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+/* —— Modül butonları —— */
+.ep-btn,
+.ep-btn-sm,
+.dp-btn,
+.dp-btn-sm,
+.fn-btn,
+.st-btn,
+.st-btn-sm,
+.rh-btn,
+.im-btn,
+.im-btn-sm,
+.tz-btn,
+.tz-btn-sm,
+.dk-btn,
+.dk-btn-sm,
+.dd-btn,
+.mz-btn,
+.cd-btn,
+.vz-btn,
+.pt-btn,
+.pid-btn,
+.yc-btn,
+.program-btn {
+    min-height: var(--cs-btn-h-sm) !important;
+    border-radius: var(--cs-radius-sm) !important;
+    font-size: var(--cs-font-secondary) !important;
+    font-weight: 500 !important;
+}
+
+.ep-btn-primary,
+.dp-btn-primary,
+.fn-btn-primary,
+.st-btn-primary,
+.rh-btn-primary,
+.im-btn-primary,
+.tz-btn-primary,
+.dk-btn-primary,
+.cd-btn-primary,
+.vz-btn-primary,
+.pt-btn-primary {
+    background: linear-gradient(160deg, var(--cs-primary-mid), var(--cs-accent)) !important;
+    color: #fff !important;
+    border-color: transparent !important;
+}
+
+[class*="-page"] .primary-btn,
+[class*="-page"] .ghost-btn,
+[class*="-panel"] .primary-btn,
+[class*="-panel"] .ghost-btn {
+    min-height: var(--cs-btn-h-sm) !important;
+    border-radius: var(--cs-radius-sm) !important;
+    font-size: var(--cs-font-secondary) !important;
+}
+
+/* —— Modül inputları —— */
+.ep-input,
+.ep-input-sm,
+.dp-input,
+.fn-input,
+.st-input,
+.rh-input,
+.im-input,
+.tz-input,
+.dk-input,
+.dd-input,
+.mz-input,
+.cd-input,
+.vz-input,
+.pt-input,
+.pid-input,
+.yc-input {
+    min-height: var(--cs-input-h) !important;
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-sm) !important;
+    font-size: max(16px, var(--cs-font-body)) !important;
+    color: var(--cs-text-primary) !important;
+    background: var(--cs-surface) !important;
+}
+
+.ep-input:focus,
+.dp-input:focus,
+.fn-input:focus,
+.st-input:focus,
+.rh-input:focus,
+.im-input:focus,
+.tz-input:focus,
+.dk-input:focus {
+    border-color: var(--cs-accent) !important;
+    box-shadow: var(--cs-shadow-focus) !important;
+    outline: none;
+}
+
+/* —— Modül tabloları —— */
+.st-table-wrap,
+.fn-table-wrap,
+.rh-table-wrap,
+.ep-table-wrap,
+.dp-matrix-scroll,
+.pid-table-wrap,
+.vz-table-wrap,
+.pt-table-wrap,
+.yc-table-wrap,
+.im-table-wrap,
+.tz-table-wrap,
+.dk-table-wrap {
+    border: 1px solid var(--cs-border-subtle);
+    border-radius: var(--cs-radius-md);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+}
+
+.st-table thead th,
+.fn-table thead th,
+.rh-table thead th,
+.ep-admin-table thead th,
+.pid-table thead th,
+.vz-table thead th,
+.pt-table thead th {
+    font-size: var(--cs-font-label) !important;
+    font-weight: 600 !important;
+    letter-spacing: var(--cs-letter-kicker) !important;
+    text-transform: uppercase;
+    color: var(--cs-text-tertiary) !important;
+    background: var(--cs-surface-muted) !important;
+    border-bottom: 1px solid var(--cs-border) !important;
+}
+
+.st-table tbody td,
+.fn-table tbody td,
+.rh-table tbody td,
+.ep-admin-table tbody td,
+.pid-table tbody td {
+    font-size: var(--cs-font-body) !important;
+    color: var(--cs-text-primary) !important;
+    border-bottom: 1px solid var(--cs-border-subtle) !important;
+    vertical-align: middle;
+}
+
+/* Mobil kart görünümü — premium tablo sarmalayıcıları */
+@media (max-width: 640px) {
+    .st-table-wrap.cs-mobile-cards .st-table tbody tr,
+    .fn-table-wrap.cs-mobile-cards .fn-table tbody tr,
+    .rh-table-wrap.cs-mobile-cards .rh-table tbody tr,
+    .ep-table-wrap.cs-mobile-cards .ep-admin-table tbody tr,
+    .pid-table-wrap.cs-mobile-cards .pid-table tbody tr,
+    .vz-table-wrap.cs-mobile-cards .vz-table tbody tr,
+    .pt-table-wrap.cs-mobile-cards .pt-table tbody tr,
+    .im-table-wrap.cs-mobile-cards .im-table tbody tr,
+    .tz-table-wrap.cs-mobile-cards .tz-table tbody tr,
+    .dk-table-wrap.cs-mobile-cards .dk-table tbody tr {
+        border: 1px solid var(--cs-border) !important;
+        border-radius: var(--cs-radius-md) !important;
+        background: var(--cs-surface) !important;
+        box-shadow: var(--cs-shadow-xs) !important;
+        padding: var(--cs-space-3) !important;
+        margin-bottom: var(--cs-space-3);
+    }
+
+    .ep-head,
+    .dp-head,
+    .fn-head,
+    .st-page-head,
+    .rh-page-head,
+    .im-head,
+    .tz-head,
+    .dk-head,
+    .vz-head,
+    .pt-head,
+    .pid-head,
+    .dp-actions,
+    .ep-head-actions,
+    .fn-head-actions,
+    .rh-head-actions,
+    .st-report-actions {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    .ep-btn,
+    .dp-btn,
+    .fn-btn,
+    .st-btn,
+    .rh-btn,
+    .im-btn,
+    .tz-btn,
+    .dk-btn,
+    .vz-btn,
+    .pt-btn,
+    .pid-btn,
+    .yc-btn,
+    .dp-actions > *,
+    .ep-head-actions > *,
+    .fn-head-actions > *,
+    .st-report-actions .primary-btn,
+    .st-report-actions .ghost-btn {
+        width: 100%;
+        min-height: var(--cs-touch-min) !important;
+        justify-content: center;
+    }
+}
+
+/* —— Yönetim premium çakışma: modül sayfalarında sol şerit kapalı —— */
+.yonetim-page .ep-page .dashboard-card::before,
+.yonetim-page .fn-page .dashboard-card::before,
+.yonetim-page .st-page .dashboard-card::before,
+.yonetim-page .dp-page .dashboard-card::before,
+.yonetim-page [class*="-page"] .report-table-card::before,
+.yonetim-page [class*="-page"] .yonetim-table-card::before {
+    display: none !important;
+}
+
+/* —— Finans KPI —— */
+.fn-kpi {
+    border-color: var(--cs-border) !important;
+    box-shadow: var(--cs-shadow-xs) !important;
+}
+
+.fn-kpi-value {
+    font-variant-numeric: tabular-nums;
+}
+
+/* —— Mezun / yemekçilik / idareci —— */
+.mezun-page,
+.yc-page {
+    gap: var(--cs-section-gap);
+    min-width: 0;
+}
+
+.idareci-dash .idareci-tile {
+    border-radius: var(--cs-radius-lg) !important;
+    border: 1px solid var(--cs-border) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+}
+
+/* —— Ultrawide denge —— */
+@media (min-width: 1920px) {
+    .ep-page,
+    .dp-page,
+    .fn-page,
+    .st-page,
+    .rh-page,
+    .dk-page,
+    .im-page,
+    .tz-page {
+        max-width: var(--cs-content-wide);
+        margin-inline: auto;
+    }
+}
