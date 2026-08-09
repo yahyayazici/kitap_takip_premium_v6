@@ -13,7 +13,7 @@ from config.branding import (
 )
 
 PWA_THEME_COLOR = "#071b3a"
-PWA_VERSION = "v5"
+PWA_VERSION = "v6"
 PWA_ID = f"/?pwa={PWA_VERSION}"
 
 _ICON_FILES = {

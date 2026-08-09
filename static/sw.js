@@ -1,6 +1,6 @@
 /* Çinili Saray Proje — minimal service worker (ana ekrana ekle / yükle) */
 
-const SW_VERSION = "csp-pwa-5";
+const SW_VERSION = "csp-pwa-6";
 
 self.addEventListener("install", (event) => {
     self.skipWaiting();
