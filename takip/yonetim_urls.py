@@ -66,6 +66,11 @@ urlpatterns = [
         yonetim_hizli_kayit_views.hizli_kayit,
         name="hizli_kayit",
     ),
+    path(
+        "ekle/sil/",
+        yonetim_hizli_kayit_views.kayit_sil,
+        name="kayit_sil",
+    ),
 
     path(
         "siniflar/",

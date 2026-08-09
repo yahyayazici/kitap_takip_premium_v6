@@ -4,10 +4,19 @@ from __future__ import annotations
 
 from django.contrib import messages
 from django.http import HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.http import require_POST
 
 from takip.pdf_utils import pdf_error_response
+from takip.hizli_kayit_service import (
+    ogretmen_pasif_et,
+    personel_pasif_et,
+    son_kayitlar,
+    talebe_pasif_et,
+)
+from takip.models import EtutHocasi, PersonelProfili, Talebe
 from takip.personel_giris_service import (
     OgretmenGirisKaydi,
     PersonelGirisKaydi,
@@ -78,6 +87,7 @@ def _render_context(
         "excel_sonuc": excel_sonuc,
         "toplu_personel_form": toplu_personel_form,
         "toplu_ogretmen_form": toplu_ogretmen_form,
+        "son_kayitlar": son_kayitlar(tur),
     }
     if tur == "talebe":
         ctx["talebe_form_meta"] = _talebe_form_meta()
@@ -121,6 +131,45 @@ def _giris_pdf_yanit(request, kayit: PersonelGirisKaydi | OgretmenGirisKaydi) ->
     response = HttpResponse(pdf, content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="giris-{dosya}.pdf"'
     return response
+
+
+@yonetici_gerekli
+@require_POST
+def kayit_sil(request):
+    tur = (request.POST.get("tur") or "talebe").strip()
+    pk = request.POST.get("pk")
+    next_url = (request.POST.get("next") or "").strip()
+
+    if tur == "talebe":
+        talebe = get_object_or_404(Talebe, pk=pk, aktif=True)
+        ad = talebe.ad_soyad
+        talebe_pasif_et(talebe)
+        messages.success(request, f"{ad} pasif edildi (listeden kaldırıldı).")
+    elif tur == "personel":
+        personel = get_object_or_404(PersonelProfili, pk=pk, aktif=True)
+        ad = personel.ad_soyad
+        personel_pasif_et(personel)
+        messages.success(request, f"{ad} pasif edildi (giriş kapatıldı).")
+    elif tur == "ogretmen":
+        hoca = get_object_or_404(
+            EtutHocasi,
+            pk=pk,
+            aktif=True,
+            personel_kaydi__isnull=True,
+        )
+        ad = hoca.ad_soyad
+        ogretmen_pasif_et(hoca)
+        messages.success(request, f"{ad} pasif edildi (giriş kapatıldı).")
+    else:
+        messages.error(request, "Geçersiz kayıt türü.")
+        tur = "talebe"
+
+    if next_url and url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+    ):
+        return redirect(next_url)
+    return redirect(f"{reverse('yonetim:hizli_kayit')}?tur={tur}")
 
 
 @yonetici_gerekli

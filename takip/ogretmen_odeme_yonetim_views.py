@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from django.contrib.auth.models import User
 from django import forms
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from takip.hizli_kayit_service import ogretmen_pasif_et
 from takip.models import EtutHocasi
 from takip.ogretmen_odeme_models import OgretmenOdemeProfili
 from takip.ogretmen_odeme_service import ogretmen_profili
@@ -77,20 +77,6 @@ def ogretmen_odeme_profil_sil(request, pk: int):
         return redirect("yonetim:dashboard")
 
     hoca = get_object_or_404(EtutHocasi, pk=pk, aktif=True)
-    profil = ogretmen_profili(hoca)
-    profil.aktif = False
-    profil.save(update_fields=["aktif"])
-
-    hoca.aktif = False
-    hoca.save(update_fields=["aktif"])
-
-    personel = getattr(hoca, "personel_kaydi", None)
-    if personel:
-        personel.aktif = False
-        personel.save(update_fields=["aktif"])
-
-    if hoca.user_id:
-        User.objects.filter(pk=hoca.user_id).update(is_active=False)
-
+    ogretmen_pasif_et(hoca)
     messages.success(request, f"{hoca.ad_soyad} pasif edildi ve listeden kaldırıldı.")
     return redirect("yonetim:ogretmen_odeme_profil_listesi")

@@ -77,7 +77,16 @@
                         {% endif %}
                     </td>
                     <td class="yonetim-action-col">
-                        <a href="{% url 'yonetim:personel_duzenle' personel.pk %}" class="yonetim-link">Düzenle</a>
+                        <div class="yonetim-action-group">
+                            <a href="{% url 'yonetim:personel_duzenle' personel.pk %}" class="yonetim-action-btn">Düzenle</a>
+                            <form method="post" action="{% url 'yonetim:kayit_sil' %}" class="yonetim-inline-action" onsubmit="return confirm('{{ personel.ad_soyad|escapejs }} pasif edilsin mi? Giriş kapanır.');">
+                                {% csrf_token %}
+                                <input type="hidden" name="tur" value="personel">
+                                <input type="hidden" name="pk" value="{{ personel.pk }}">
+                                <input type="hidden" name="next" value="{{ request.path }}">
+                                <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger">Sil</button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 {% empty %}

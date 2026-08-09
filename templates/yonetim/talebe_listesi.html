@@ -91,7 +91,16 @@
                         {% endif %}
                     </td>
                     <td class="yonetim-action-col">
-                        <a href="{% url 'yonetim:talebe_duzenle' talebe.pk %}" class="yonetim-link">Düzenle</a>
+                        <div class="yonetim-action-group">
+                            <a href="{% url 'yonetim:talebe_duzenle' talebe.pk %}" class="yonetim-action-btn">Düzenle</a>
+                            <form method="post" action="{% url 'yonetim:kayit_sil' %}" class="yonetim-inline-action" onsubmit="return confirm('{{ talebe.ad_soyad|escapejs }} pasif edilsin mi?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="tur" value="talebe">
+                                <input type="hidden" name="pk" value="{{ talebe.pk }}">
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger">Sil</button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 {% empty %}

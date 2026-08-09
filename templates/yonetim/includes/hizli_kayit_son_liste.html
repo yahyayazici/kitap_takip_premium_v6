@@ -1,0 +1,57 @@
+{% if son_kayitlar %}
+<div class="yk-section yk-section-recent">
+    <h3 class="yk-section-title">Son Kayıtlar</h3>
+    <p class="yk-section-note">Yanlış eklenen kaydı pasif edebilirsiniz — giriş kapanır, listeden kalkar.</p>
+    <div class="yk-recent-table-wrap">
+        <table class="yk-recent-table">
+            <thead>
+                <tr>
+                    {% if tur == "talebe" %}
+                    <th>No</th>
+                    <th>Ad Soyad</th>
+                    <th>Sınıf</th>
+                    <th>Etüt Hocası</th>
+                    {% elif tur == "personel" %}
+                    <th>Ad Soyad</th>
+                    <th>Rol</th>
+                    <th>Kullanıcı</th>
+                    {% elif tur == "ogretmen" %}
+                    <th>Ad Soyad</th>
+                    <th>Branş</th>
+                    <th>Ücret</th>
+                    {% endif %}
+                    <th class="yk-recent-action-col">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for kayit in son_kayitlar %}
+                <tr>
+                    {% if tur == "talebe" %}
+                    <td>{{ kayit.talebe_no|default:"—" }}</td>
+                    <td><strong>{{ kayit.ad_soyad }}</strong></td>
+                    <td>{% if kayit.sinif_sube %}{{ kayit.sinif_sube }}{% else %}—{% endif %}</td>
+                    <td>{{ kayit.etut_hocasi.ad_soyad }}</td>
+                    {% elif tur == "personel" %}
+                    <td><strong>{{ kayit.ad_soyad }}</strong></td>
+                    <td>{{ kayit.rol_etiketi }}</td>
+                    <td>{{ kayit.user.username }}</td>
+                    {% elif tur == "ogretmen" %}
+                    <td><strong>{{ kayit.ad_soyad }}</strong></td>
+                    <td>{{ kayit.odeme_profili.brans.ad|default:"—" }}</td>
+                    <td>{{ kayit.odeme_profili.saatlik_ucret }} ₺</td>
+                    {% endif %}
+                    <td class="yk-recent-action-col">
+                        <form method="post" action="{% url 'yonetim:kayit_sil' %}" class="yonetim-inline-action" onsubmit="return confirm('{{ kayit.ad_soyad|escapejs }} pasif edilsin mi?');">
+                            {% csrf_token %}
+                            <input type="hidden" name="tur" value="{{ tur }}">
+                            <input type="hidden" name="pk" value="{{ kayit.pk }}">
+                            <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger yk-sil-btn">Sil</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
