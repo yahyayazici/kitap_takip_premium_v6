@@ -1,10 +1,9 @@
-"""PWA — ana ekrana ekleme (manifest + service worker)."""
+"""PWA — ana ekrana ekleme (manifest + service worker + ikon servisi)."""
 
 from __future__ import annotations
 
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
-from django.templatetags.static import static
 from django.views.decorators.http import require_GET
 
 from config.branding import (
@@ -14,14 +13,34 @@ from config.branding import (
 )
 
 PWA_THEME_COLOR = "#071b3a"
+PWA_VERSION = "v5"
+PWA_ID = f"/?pwa={PWA_VERSION}"
+
+_ICON_FILES = {
+    180: "app-launcher-v5-180.png",
+    192: "app-launcher-v5-192.png",
+    512: "app-launcher-v5-512.png",
+}
+
+
+def _no_cache(response: HttpResponse) -> HttpResponse:
+    response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response["Pragma"] = "no-cache"
+    response["Expires"] = "0"
+    return response
+
+
+def _icon_bytes(size: int) -> bytes:
+    name = _ICON_FILES[size]
+    path = settings.BASE_DIR / "static" / "images" / name
+    return path.read_bytes()
 
 
 @require_GET
 def web_manifest(request):
-    icon_192 = static("images/cinili-saray-pwa-icon-192.png")
-    icon_512 = static("images/cinili-saray-pwa-icon.png")
-    return JsonResponse(
+    response = JsonResponse(
         {
+            "id": PWA_ID,
             "name": PANEL_NAME,
             "short_name": PANEL_MOBILE_SHORT,
             "description": PANEL_TAGLINE,
@@ -34,13 +53,13 @@ def web_manifest(request):
             "lang": "tr",
             "icons": [
                 {
-                    "src": icon_192,
+                    "src": f"/pwa/icon-192.png?{PWA_VERSION}",
                     "sizes": "192x192",
                     "type": "image/png",
                     "purpose": "any",
                 },
                 {
-                    "src": icon_512,
+                    "src": f"/pwa/icon-512.png?{PWA_VERSION}",
                     "sizes": "512x512",
                     "type": "image/png",
                     "purpose": "any maskable",
@@ -50,6 +69,22 @@ def web_manifest(request):
         json_dumps_params={"ensure_ascii": False},
         content_type="application/manifest+json",
     )
+    return _no_cache(response)
+
+
+@require_GET
+def pwa_icon_180(request):
+    return _no_cache(HttpResponse(_icon_bytes(180), content_type="image/png"))
+
+
+@require_GET
+def pwa_icon_192(request):
+    return _no_cache(HttpResponse(_icon_bytes(192), content_type="image/png"))
+
+
+@require_GET
+def pwa_icon_512(request):
+    return _no_cache(HttpResponse(_icon_bytes(512), content_type="image/png"))
 
 
 @require_GET
@@ -58,5 +93,4 @@ def service_worker(request):
     body = sw_path.read_text(encoding="utf-8")
     response = HttpResponse(body, content_type="application/javascript; charset=utf-8")
     response["Service-Worker-Allowed"] = "/"
-    response["Cache-Control"] = "no-cache"
-    return response
+    return _no_cache(response)

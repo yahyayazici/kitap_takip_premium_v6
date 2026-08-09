@@ -4,12 +4,23 @@ from django.conf.urls.static import static
 from django.urls import include, path
 
 from takip.bootstrap_views import bootstrap_admin, bootstrap_setup, health_check
-from takip.pwa_views import service_worker, web_manifest
+from takip.pwa_views import (
+    pwa_icon_180,
+    pwa_icon_192,
+    pwa_icon_512,
+    service_worker,
+    web_manifest,
+)
 
 urlpatterns = [
     path("health/", health_check, name="health_check"),
     path("manifest.webmanifest", web_manifest, name="web_manifest"),
     path("sw.js", service_worker, name="service_worker"),
+    path("apple-touch-icon.png", pwa_icon_180, name="apple_touch_icon"),
+    path("apple-touch-icon-precomposed.png", pwa_icon_180, name="apple_touch_icon_precomposed"),
+    path("pwa/icon-180.png", pwa_icon_180, name="pwa_icon_180"),
+    path("pwa/icon-192.png", pwa_icon_192, name="pwa_icon_192"),
+    path("pwa/icon-512.png", pwa_icon_512, name="pwa_icon_512"),
     path("admin/", admin.site.urls),
     path("bootstrap-admin/", bootstrap_admin, name="bootstrap_admin"),
     path("bootstrap-setup/", bootstrap_setup, name="bootstrap_setup"),
