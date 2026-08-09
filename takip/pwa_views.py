@@ -30,7 +30,7 @@ def web_manifest(request):
             "display": "standalone",
             "orientation": "any",
             "theme_color": PWA_THEME_COLOR,
-            "background_color": "#ffffff",
+            "background_color": "#0a1f4a",
             "lang": "tr",
             "icons": [
                 {
