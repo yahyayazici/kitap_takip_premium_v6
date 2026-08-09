@@ -36,11 +36,15 @@
         var tables = document.querySelectorAll(
             ".responsive-table .report-data-table, " +
             ".responsive-table .yonetim-data-table, " +
-            ".responsive-table .profile-data-table"
+            ".responsive-table .profile-data-table, " +
+            ".ktt-table-wrap .ktt-table, " +
+            ".at-table-wrap .at-table, " +
+            ".st-table-wrap .st-table, " +
+            ".fn-table-wrap .fn-table"
         );
         tables.forEach(enhanceTable);
 
-        document.querySelectorAll(".responsive-table").forEach(function (wrap) {
+        document.querySelectorAll(".responsive-table, .ktt-table-wrap, .at-table-wrap, .st-table-wrap, .fn-table-wrap").forEach(function (wrap) {
             if (wrap.querySelector(".cs-mobile-ready")) {
                 wrap.classList.add("cs-mobile-cards");
             }
