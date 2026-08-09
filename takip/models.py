@@ -2037,6 +2037,12 @@ from takip.disiplin_kurul_models import (  # noqa: E402,F401
 
 from takip.gunluk_takip_models import GunlukTakipKaydi  # noqa: E402,F401
 
+from takip.pazar_izin_donus_models import (  # noqa: E402,F401
+    PazarIzinDonusGunAyar,
+    PazarIzinDonusKaydi,
+    PazarIzinDonusOturum,
+)
+
 from takip.yazili_takip_models import (  # noqa: E402,F401
     YaziliKamp,
     YaziliSinav,

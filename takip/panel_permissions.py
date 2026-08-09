@@ -334,6 +334,17 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         nav_group="Eğitim",
     ),
     PanelNavItem(
+        key="pazar_izin_donus",
+        label="Pazar İzin Dönüşü",
+        url_name="pazar_izin_donus_panel",
+        roller=EGITIM_MODULU_ROLLER,
+        active_names=(
+            "pazar_izin_donus_panel",
+            "pazar_izin_donus_rapor",
+        ),
+        nav_group="Disiplin & Takip",
+    ),
+    PanelNavItem(
         key="rehberlik",
         label="Rehberlik",
         url_name="rehberlik_listesi",
@@ -649,6 +660,13 @@ def namaz_yoklama_modulu_erisimi_var(user: User) -> bool:
     return modul_erisimi_var(user, "namaz_yoklama")
 
 
+def pazar_izin_donus_modulu_erisimi_var(user: User) -> bool:
+    if not PANEL_MODULES.get("pazar_izin_donus", {}).get("enabled", False):
+        return False
+
+    return modul_erisimi_var(user, "pazar_izin_donus")
+
+
 def ogretmen_odeme_modulu_erisimi_var(user: User) -> bool:
     if not PANEL_MODULES.get("ogretmen_odeme", {}).get("enabled", False):
         return False
@@ -749,6 +767,10 @@ def panel_nav_items(user: User) -> list[PanelNavItem]:
         ):
             continue
         if item.key == "namaz_yoklama" and not namaz_yoklama_modulu_erisimi_var(user):
+            continue
+        if item.key == "pazar_izin_donus" and not pazar_izin_donus_modulu_erisimi_var(
+            user
+        ):
             continue
         if item.key == "ogretmen_odeme" and not ogretmen_odeme_modulu_erisimi_var(user):
             continue

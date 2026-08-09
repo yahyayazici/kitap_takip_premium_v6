@@ -1,0 +1,115 @@
+{% load static %}
+{% if deneme_performans %}
+<link rel="stylesheet" href="{% static 'css/deneme-performans.css' %}">
+<div class="dp-wrap" data-dp-root>
+    <section class="dp-summary">
+        <div class="dp-summary-head">
+            <h3>{{ deneme_performans.baslik }}</h3>
+        </div>
+
+        <div class="dp-meta-row">
+            <div class="dp-meta-item">
+                <span>Soru</span>
+                <strong>{{ deneme_performans.soru }}</strong>
+            </div>
+            <div class="dp-meta-item">
+                <span>Taban</span>
+                <strong>{{ deneme_performans.taban }}</strong>
+            </div>
+            <div class="dp-meta-item">
+                <span>Tavan</span>
+                <strong>{{ deneme_performans.tavan }}</strong>
+            </div>
+        </div>
+
+        <div class="dp-avg-box">
+            <small>Ortalamanız</small>
+            <div class="dp-avg-stats">
+                <div>
+                    <span>Puan</span>
+                    <strong>{{ deneme_performans.ortalama_puan }}</strong>
+                </div>
+                <div>
+                    <span>Net</span>
+                    <strong>{{ deneme_performans.ortalama_net }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="dp-extremes">
+            <div class="dp-extreme">
+                En Yüksek Puanınız
+                <strong>{{ deneme_performans.en_yuksek_puan }}</strong>
+            </div>
+            <div class="dp-extreme">
+                En Düşük Puanınız
+                <strong>{{ deneme_performans.en_dusuk_puan }}</strong>
+            </div>
+        </div>
+
+        <div class="dp-overall-bar">
+            <div class="bar" aria-hidden="true">
+                <span style="width:{{ deneme_performans.genel_yuzde }}%;"></span>
+            </div>
+            <em>% {{ deneme_performans.genel_yuzde }}</em>
+        </div>
+    </section>
+
+    <section class="profile-card" style="padding:16px 18px;">
+        <div class="dp-history-head">
+            <div>
+                <h4>📅 SINAV GEÇMİŞİ</h4>
+                <p>Toplam {{ deneme_performans.toplam_sinav }} Sınav</p>
+            </div>
+            {% if deneme_performans.grafik %}
+            <button type="button" class="dp-graph-btn" data-dp-graph-toggle aria-expanded="false">
+                📈 Gelişim Grafiği
+            </button>
+            {% endif %}
+        </div>
+
+        {% if deneme_performans.grafik %}
+        <div class="dp-chart-panel" data-dp-chart>
+            <div class="dp-chart-bars">
+                {% for bar in deneme_performans.grafik %}
+                <div class="dp-chart-bar" title="{{ bar.baslik }}">
+                    <strong>{{ bar.net }}</strong>
+                    <div class="bar" style="height:{{ bar.net_yuzde }}%;"></div>
+                    <small>{{ bar.etiket }}</small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <input type="search" class="dp-search" placeholder="Ara" data-dp-search aria-label="Deneme ara">
+
+        <div class="dp-history-list">
+            {% for kayit in deneme_performans.gecmis %}
+            <article class="dp-history-item" data-dp-item data-dp-search-text="{{ kayit.ad }}">
+                <div class="dp-history-main">
+                    <strong>{{ kayit.ad }}</strong>
+                    <div class="dp-history-meta">
+                        {% if deneme_detay_goster %}
+                        <a href="{% url 'deneme_detay' kayit.deneme_id %}">Detaylar</a>
+                        {% endif %}
+                        <time datetime="{{ kayit.tarih|date:'Y-m-d' }}">{{ kayit.tarih|date:"d.m.Y" }}</time>
+                    </div>
+                </div>
+                <div class="dp-history-score">
+                    <label>{{ deneme_performans.baslik }} :</label>
+                    <strong>{{ kayit.puan }}</strong>
+                    <div class="dp-score-bar">
+                        <div class="bar" aria-hidden="true"><span style="width:{{ kayit.yuzde }}%;"></span></div>
+                        <small>%{{ kayit.yuzde }}</small>
+                    </div>
+                </div>
+            </article>
+            {% empty %}
+            <div class="dp-empty">Deneme sonucu bulunmuyor.</div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+<script src="{% static 'js/deneme-performans.js' %}"></script>
+{% endif %}

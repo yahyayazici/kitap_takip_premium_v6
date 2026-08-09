@@ -23,11 +23,14 @@
         <aside class="at-form-card" id="yeni-kayit">
             <div class="at-form-card-head">⊕ Yeni Müdahale Kaydı</div>
             <div class="at-form-card-body">
-                <form method="post">
+                <div class="at-kayit-modu" role="tablist">
+                    <button type="button" class="at-mod-btn is-active" data-mod="tek" role="tab">Tek öğrenci</button>
+                    <button type="button" class="at-mod-btn" data-mod="toplu" role="tab">Tüm sınıf</button>
+                </div>
+
+                <form method="post" id="form-tek-ogrenci" class="at-kayit-form is-active">
                     {% csrf_token %}
-                    {% if form.non_field_errors %}
-                    <div class="at-field">{{ form.non_field_errors }}</div>
-                    {% endif %}
+                    <input type="hidden" name="kayit_modu" value="tek">
 
                     <div class="at-field">
                         <label for="panel_sinif">Sınıf <span class="req">*</span></label>
@@ -35,9 +38,6 @@
                             <option value="">Sınıf Seçin</option>
                             {% for ss in sinif_subeler %}
                             <option value="{{ ss.id }}">{{ ss.sinif }}-{{ ss.sube }}</option>
-                            {% empty %}
-                            <option value="7-A">7-A</option>
-                            <option value="7-B">7-B</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -82,6 +82,55 @@
 
                     <button type="submit" class="at-submit-btn">+ Müdahale Kaydı Ekle</button>
                 </form>
+
+                {% if toplu_form %}
+                <form method="post" id="form-toplu-sinif" class="at-kayit-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="kayit_modu" value="toplu">
+
+                    <p class="at-toplu-info">Seçilen sınıftaki <strong>tüm öğrencilere</strong> aynı konu ve müdahale türüyle kayıt oluşturulur.</p>
+
+                    <div class="at-field">
+                        <label for="{{ toplu_form.sinif_sube.id_for_label }}">Sınıf <span class="req">*</span></label>
+                        {{ toplu_form.sinif_sube }}
+                        {{ toplu_form.sinif_sube.errors }}
+                    </div>
+
+                    <div class="at-field">
+                        <label for="{{ toplu_form.mudahale_turu.id_for_label }}">Müdahale Türü <span class="req">*</span></label>
+                        {{ toplu_form.mudahale_turu }}
+                        {{ toplu_form.mudahale_turu.errors }}
+                    </div>
+
+                    <div class="at-field">
+                        <label for="{{ toplu_form.ders.id_for_label }}">Ders</label>
+                        {{ toplu_form.ders }}
+                        {{ toplu_form.ders.errors }}
+                    </div>
+
+                    <div class="at-field">
+                        <label for="{{ toplu_form.konu.id_for_label }}">Konu Adı</label>
+                        {{ toplu_form.konu }}
+                        {{ toplu_form.konu.errors }}
+                    </div>
+
+                    <div class="at-field">
+                        <label for="{{ toplu_form.sure_dakika.id_for_label }}">Süre (dakika)</label>
+                        {{ toplu_form.sure_dakika }}
+                        {{ toplu_form.sure_dakika.errors }}
+                    </div>
+
+                    <div id="ek-alanlar-toplu" class="at-ek-grid"></div>
+
+                    <div class="at-field">
+                        <label for="{{ toplu_form.degerlendirme_notu.id_for_label }}">Değerlendirme Notu</label>
+                        {{ toplu_form.degerlendirme_notu }}
+                        {{ toplu_form.degerlendirme_notu.errors }}
+                    </div>
+
+                    <button type="submit" class="at-submit-btn at-submit-btn--toplu">+ Sınıfa Toplu Kayıt Ekle</button>
+                </form>
+                {% endif %}
             </div>
         </aside>
         {% endif %}
@@ -132,10 +181,16 @@
 (function () {
     const talebeler = {{ talebeler_json|safe }};
     const semalar = {{ tur_semalari_json|safe }};
+    const baslangicMod = "{{ kayit_modu|default:'tek' }}";
     const sinifSelect = document.getElementById("panel_sinif");
     const talebeSelect = document.getElementById("id_talebe");
     const turSelect = document.getElementById("id_mudahale_turu");
     const ekContainer = document.getElementById("ek-alanlar");
+    const ekContainerToplu = document.getElementById("ek-alanlar-toplu");
+    const modBtns = document.querySelectorAll(".at-mod-btn");
+    const formTek = document.getElementById("form-tek-ogrenci");
+    const formToplu = document.getElementById("form-toplu-sinif");
+    const turToplu = document.getElementById("id_mudahale_turu_toplu");
 
     function sinifEtiket(t) {
         if (t.sinif_sube_id) return String(t.sinif_sube_id);
@@ -168,10 +223,10 @@
         });
     }
 
-    function renderEkAlanlar() {
-        if (!ekContainer || !turSelect) return;
-        ekContainer.innerHTML = "";
-        const turId = turSelect.value;
+    function renderEkAlanlar(selectEl, container) {
+        if (!container || !selectEl) return;
+        container.innerHTML = "";
+        const turId = selectEl.value;
         if (!turId || !semalar[turId]) return;
         semalar[turId].forEach(function (alan) {
             const wrap = document.createElement("div");
@@ -185,19 +240,44 @@
             input.type = alan.type === "number" ? "number" : "text";
             wrap.appendChild(label);
             wrap.appendChild(input);
-            ekContainer.appendChild(wrap);
+            container.appendChild(wrap);
         });
     }
+
+    function setMod(mod) {
+        modBtns.forEach(function (btn) {
+            btn.classList.toggle("is-active", btn.dataset.mod === mod);
+        });
+        if (formTek) formTek.classList.toggle("is-active", mod === "tek");
+        if (formToplu) formToplu.classList.toggle("is-active", mod === "toplu");
+    }
+
+    modBtns.forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            setMod(btn.dataset.mod);
+        });
+    });
 
     if (sinifSelect) {
         if (sinifSelect.options.length > 1) sinifSelect.selectedIndex = 1;
         sinifSelect.addEventListener("change", renderTalebeler);
     }
     if (turSelect) {
-        turSelect.addEventListener("change", renderEkAlanlar);
+        turSelect.addEventListener("change", function () {
+            renderEkAlanlar(turSelect, ekContainer);
+        });
     }
+    const turToplu = document.getElementById("id_mudahale_turu_toplu");
+    if (turToplu) {
+        turToplu.addEventListener("change", function () {
+            renderEkAlanlar(turToplu, ekContainerToplu);
+        });
+    }
+
     renderTalebeler();
-    renderEkAlanlar();
+    renderEkAlanlar(turSelect, ekContainer);
+    renderEkAlanlar(turToplu, ekContainerToplu);
+    setMod(baslangicMod === "toplu" ? "toplu" : "tek");
 })();
 </script>
 {% endif %}

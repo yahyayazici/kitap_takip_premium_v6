@@ -15,8 +15,8 @@
         {% for m in mudahaleler %}
         <article class="dash-feed-item dash-accent-navy">
             <span class="dash-feed-tag">{{ m.tarih|date:"d.m.Y" }}</span>
-            <h3>{% if m.mudahale_turu %}{{ m.mudahale_turu }}{% else %}Müdahale{% endif %}</h3>
-            <p>{% if m.ders %}{{ m.ders.ad }} · {% endif %}{{ m.veli_ozet }}</p>
+            <h3>{{ m.mudahale_turu.ad }}</h3>
+            <p>{{ m.veli_ozet }}</p>
         </article>
         {% empty %}
         <p class="og-empty-note">Görüntülenecek akademik müdahale kaydı yok.</p>

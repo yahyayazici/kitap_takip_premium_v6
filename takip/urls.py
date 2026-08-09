@@ -4,6 +4,7 @@ from django.urls import path
 from . import etut_plan_views
 from . import dini_ders_takip_views
 from . import namaz_yoklama_views
+from . import pazar_izin_donus_views
 from . import ogretmen_odeme_views
 from . import mezun_views
 from . import aidat_views
@@ -408,6 +409,17 @@ urlpatterns = [
         "namaz-yoklama/rapor/",
         namaz_yoklama_views.namaz_yoklama_rapor,
         name="namaz_yoklama_rapor",
+    ),
+
+    path(
+        "pazar-izin-donus/",
+        pazar_izin_donus_views.pazar_izin_donus_panel,
+        name="pazar_izin_donus_panel",
+    ),
+    path(
+        "pazar-izin-donus/rapor/",
+        pazar_izin_donus_views.pazar_izin_donus_rapor,
+        name="pazar_izin_donus_rapor",
     ),
 
     path(

@@ -128,6 +128,11 @@ PANEL_MODULES = {
         "enabled": True,
         "nav_group": "Eğitim",
     },
+    "pazar_izin_donus": {
+        "label": "Pazar İzin Dönüşü",
+        "enabled": True,
+        "nav_group": "Disiplin & Takip",
+    },
     "yazili_takip": {
         "label": "Yazılı Takip",
         "enabled": True,

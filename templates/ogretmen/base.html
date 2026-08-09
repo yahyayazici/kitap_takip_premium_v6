@@ -1,4 +1,4 @@
-﻿{% load static %}
+{% load static %}
 <!doctype html>
 <html lang="tr">
 <head>
@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="{% static 'css/topnav-v3.css' %}">
     <link rel="stylesheet" href="{% static 'css/premium-system-v5.css' %}">
     <link rel="stylesheet" href="{% static 'css/premium-system-v6.css' %}">
-    <link rel="stylesheet" href="{% static 'css/nav-groups.css' %}">
+    <link rel="stylesheet" href="{% static 'css/nav-groups.css' %}?v=mob-logout1">
     <link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}?v=sc-mob5">
     <link rel="stylesheet" href="{% static 'css/panel-unified.css' %}?v=nizam6">
     <link rel="stylesheet" href="{% static 'css/choice-chip-grid.css' %}?v=chip1">
@@ -51,6 +51,10 @@
             <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
                 <button type="submit" class="ghost-btn yonetim-ghost-light panel-logout-btn">Çıkış</button>
+            </form>
+            <form method="post" action="{% url 'logout' %}" class="v3-logout-mobile-form">
+                {% csrf_token %}
+                <button class="v3-logout-mobile" type="submit" aria-label="Çıkış yap" title="Çıkış">⎋</button>
             </form>
         </div>
     </div>

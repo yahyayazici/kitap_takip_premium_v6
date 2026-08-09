@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Pazar İzin Dönüşü · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pazar-izin-donus.css' %}?v=pid2">
+{% endblock %}
+
+{% block content %}
+<div class="pid-page" data-pid-panel>
+
+<header class="pid-head">
+    <div>
+        <p class="pid-eyebrow">Yoklama</p>
+        <h1>Pazar İzin Dönüşü Yoklaması</h1>
+        <p class="pid-sub">Gelen <strong>GELDİ</strong> · İzinli <strong>İZİNLİ</strong> · Geç <strong>GEÇ GELDİ</strong> · Gelmeyen <strong>GELMEDİ</strong> (varsayılan)</p>
+    </div>
+    <div class="pid-head-actions">
+        <a href="{% url 'pazar_izin_donus_rapor' %}" class="pid-chip">Raporlar ve PDF</a>
+    </div>
+</header>
+
+<form method="get" class="pid-filter-card dashboard-card">
+    <div class="pid-filter-row">
+        <label class="pid-field">
+            <span>Sınıf / Kurum</span>
+            <select name="sinif_sube" onchange="this.form.submit()">
+                <option value="tum" {% if secili_sinif == 'tum' %}selected{% endif %}>Tüm Kurum</option>
+                {% for ss in sinif_subeler %}
+                <option value="{{ ss.id }}" {% if secili_sinif == ss.id|stringformat:'s' %}selected{% endif %}>{{ ss.sinif }}-{{ ss.sube }}</option>
+                {% empty %}
+                {% if not tam_yetki %}<option value="">Sınıf yok</option>{% endif %}
+                {% endfor %}
+            </select>
+        </label>
+        <label class="pid-field">
+            <span>Yoklama Tarihi</span>
+            <input type="date" name="tarih" value="{{ tarih|date:'Y-m-d' }}" onchange="this.form.submit()">
+        </label>
+    </div>
+</form>
+
+{% if secili_sinif %}
+<form method="post" class="pid-board" id="pid-form">
+    {% csrf_token %}
+    <input type="hidden" name="sinif_sube" value="{{ secili_sinif }}">
+    <input type="hidden" name="tarih" value="{{ tarih|date:'Y-m-d' }}">
+
+    <section class="dashboard-card pid-beklenen-card">
+        <div class="card-heading">
+            <div>
+                <p class="card-kicker">BEKLENEN GİRİŞ</p>
+                <h2>İzin dönüş saati</h2>
+            </div>
+        </div>
+        <div class="pid-beklenen-inline">
+            <label class="pid-field pid-field-inline">
+                <span>Tarih</span>
+                <input type="date" name="beklenen_giris_tarihi" id="pid-beklenen-tarih"
+                       value="{{ beklenen_giris_tarihi|date:'Y-m-d' }}"
+                       {% if not kaydedebilir %}disabled{% endif %}
+                       data-pid-beklenen-tarih>
+            </label>
+            <label class="pid-field pid-field-inline">
+                <span>Saat</span>
+                <input type="time" name="beklenen_giris_saati" id="pid-beklenen-saat"
+                       value="{{ beklenen_giris_saati|time:'H:i' }}"
+                       {% if not kaydedebilir %}disabled{% endif %}
+                       data-pid-beklenen-saat>
+            </label>
+            {% if kaydedebilir %}
+            <button type="submit" name="islem" value="toplu_saat" class="primary-btn pid-saat-kaydet">
+                Kaydet
+            </button>
+            {% endif %}
+            <p class="pid-beklenen-note">Gecikme (dk) bu tarih ve saate göre hesaplanır; kayıt tüm sınıflara uygulanır.</p>
+        </div>
+    </section>
+
+    <section class="dashboard-card pid-table-card">
+        <div class="card-heading">
+            <div>
+                <p class="card-kicker">YOKLAMA LİSTESİ</p>
+                <h2>{{ talebe_sayisi }} öğrenci{% if tum_kurum %} · Tüm kurum{% endif %}</h2>
+            </div>
+            {% if kaydedebilir %}
+            <button type="submit" name="islem" value="kaydet" class="primary-btn">Yoklamayı Kaydet</button>
+            {% endif %}
+        </div>
+
+        <div class="responsive-table">
+            <table class="report-data-table pid-table">
+                <thead>
+                    <tr>
+                        {% if tum_kurum %}<th>Sınıf</th>{% endif %}
+                        <th>Öğrenci Adı</th>
+                        <th>Durum</th>
+                        <th>Giriş Saati</th>
+                        <th>Gecikme (Dk)</th>
+                        <th>Açıklama</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in satirlar %}
+                    <tr data-pid-row data-talebe-id="{{ s.talebe.id }}">
+                        {% if tum_kurum %}
+                        <td class="pid-sinif">{% if s.talebe.sinif_sube %}{{ s.talebe.sinif_sube.sinif }}-{{ s.talebe.sinif_sube.sube }}{% else %}—{% endif %}</td>
+                        {% endif %}
+                        <td class="pid-name">{{ s.talebe.ad_soyad }}</td>
+                        <td>
+                            <select name="s_{{ s.talebe.id }}_durum" class="input pid-durum"
+                                    data-pid-durum {% if not kaydedebilir %}disabled{% endif %}>
+                                {% for val, label in durum_secenekleri %}
+                                <option value="{{ val }}" {% if s.durum == val %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td class="pid-giris-cell">
+                            <input type="time" name="s_{{ s.talebe.id }}_giris_saati"
+                                   class="input pid-giris-saat" data-pid-giris-saat
+                                   value="{% if s.giris_saati %}{{ s.giris_saati|time:'H:i' }}{% endif %}"
+                                   {% if not kaydedebilir or s.durum != 'gec_geldi' %}disabled{% endif %}
+                                   hidden>
+                            <span class="pid-giris-placeholder" data-pid-giris-placeholder>—</span>
+                        </td>
+                        <td>
+                            <span class="pid-gecikme" data-pid-gecikme>{% if s.durum == 'gec_geldi' %}{{ s.gecikme_dk }}{% else %}—{% endif %}</span>
+                        </td>
+                        <td>
+                            <input type="text" name="s_{{ s.talebe.id }}_aciklama" class="input"
+                                   placeholder="Açıklama..." value="{{ s.aciklama }}"
+                                   {% if not kaydedebilir %}disabled{% endif %}>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="{% if tum_kurum %}6{% else %}5{% endif %}" class="report-empty">Öğrenci bulunamadı.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</form>
+{% else %}
+<section class="dashboard-card">
+    <div class="pid-empty">Yetkiniz dahilinde sınıf bulunamadı.</div>
+</section>
+{% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pazar-izin-donus.js' %}?v=pid2"></script>
+{% endblock %}

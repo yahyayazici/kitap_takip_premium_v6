@@ -57,7 +57,7 @@ from .dini_ders_takip_service import talebe_ilerleme_ozeti
 from .veli_service import kullanici_veli_mi
 from .talebe_panel_service import kullanici_talebe_mi
 from .ogretmen_service import ogretmen_paneli_kullanicisi_mi
-from .deneme_service import BRANS_ETIKETLERI, talebe_deneme_sonuclari
+from .deneme_service import BRANS_ETIKETLERI, talebe_deneme_performans_ozeti, talebe_deneme_sonuclari
 from .permissions.service import can
 from .duyuru_service import kullaniciya_gorunur_duyurular
 from .dashboard_service import (
@@ -819,7 +819,13 @@ def _talebe_profil_verisi(user, talebe):
     )
     akademik_ozet = talebe_akademik_ozet(talebe)
 
-    deneme_sonuclari = list(talebe_deneme_sonuclari(talebe)[:15])
+    deneme_erisim = can(user, "deneme", "view")
+    deneme_sonuclari = (
+        list(talebe_deneme_sonuclari(talebe)[:15]) if deneme_erisim else []
+    )
+    deneme_performans = (
+        talebe_deneme_performans_ozeti(talebe) if deneme_erisim else None
+    )
     dini_ders_ozet = talebe_ilerleme_ozeti(talebe)
 
     toplam_okunan = sum(kayit.okunan_miktar for kayit in kayitlar)
@@ -850,6 +856,8 @@ def _talebe_profil_verisi(user, talebe):
         "akademik_mudahaleler": akademik_mudahaleler,
         "akademik_ozet": akademik_ozet,
         "deneme_sonuclari": deneme_sonuclari,
+        "deneme_performans": deneme_performans,
+        "deneme_erisim": deneme_erisim,
         "deneme_brans_etiketleri": BRANS_ETIKETLERI,
         "dini_ders_ozet": dini_ders_ozet,
         "toplam_okunan": toplam_okunan,

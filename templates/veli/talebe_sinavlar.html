@@ -145,6 +145,9 @@
     </section>
 
     {% elif sinav_tab == 'deneme' %}
+    {% if deneme_performans %}
+    {% include "includes/deneme_performans_karti.html" with deneme_detay_goster=False %}
+    {% else %}
     <section class="dash-panel">
         <div class="dash-panel-head">
             <div>
@@ -152,36 +155,9 @@
                 <h2>Deneme sınavları</h2>
             </div>
         </div>
-        <div class="responsive-table">
-            <table class="veli-table">
-                <thead>
-                    <tr>
-                        <th>Tarih</th>
-                        <th>Deneme</th>
-                        <th>Toplam Net</th>
-                        <th>Puan</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for s in deneme_sonuclari %}
-                    <tr>
-                        <td>{{ s.deneme.sinav_tarihi|date:"d.m.Y" }}</td>
-                        <td><strong>{{ s.deneme.ad }}</strong></td>
-                        <td><strong>{{ s.toplam_net }}</strong></td>
-                        <td>
-                            <div class="veli-score-bar">
-                                <div class="bar"><span style="width:{{ s.puan }}%;"></span></div>
-                                <small>{{ s.puan }}</small>
-                            </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="4" class="og-empty-note">Deneme sonucu bulunmuyor.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        <p class="og-empty-note">Deneme sonucu bulunmuyor.</p>
     </section>
+    {% endif %}
     {% endif %}
 </div>
 {% endblock %}

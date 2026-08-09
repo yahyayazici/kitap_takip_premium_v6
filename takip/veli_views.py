@@ -36,6 +36,7 @@ from takip.veli_service import (
     talebe_namaz_30_gun,
     talebe_sinif_goster,
     talebe_soru_detay,
+    talebe_veli_mudahaleleri,
     talebe_veli_ozeti,
     talebe_yakinlik,
     talebe_yoklama_30_gun,
@@ -129,7 +130,7 @@ def veli_talebe_profil(request, talebe_id: int):
     if not kullanici_veli_mi(request.user):
         return redirect("dashboard")
     veli, talebe = _veli_talebe_yukle(request, talebe_id)
-    ozet = talebe_veli_ozeti(talebe)
+    ozet = talebe_veli_ozeti(talebe, sinav_verisi=False)
     sayfa_goruntulendi(veli, "veli_talebe_profil", talebe=talebe)
     return _talebe_sayfa(
         request,
@@ -151,7 +152,7 @@ def veli_talebe_sinavlar(request, talebe_id: int):
     if not kullanici_veli_mi(request.user):
         return redirect("dashboard")
     veli, talebe = _veli_talebe_yukle(request, talebe_id)
-    ozet = talebe_veli_ozeti(talebe)
+    ozet = talebe_veli_ozeti(talebe, sinav_verisi=True)
     tab = request.GET.get("tab", "ktt")
     if tab not in {"ktt", "deneme", "ogretmen", "yazili"}:
         tab = "ktt"
@@ -173,6 +174,7 @@ def veli_talebe_sinavlar(request, talebe_id: int):
             "sinav_tab": tab,
             "ktt_sonuclari": ozet["ktt_sonuclari"],
             "deneme_sonuclari": ozet["deneme_sonuclari"],
+            "deneme_performans": ozet["deneme_performans"],
             "yazili_sonuclari": ozet["yazili_sonuclari"],
             "ogretmen_notlari": ozet["ogretmen_notlari"],
         },
@@ -319,7 +321,6 @@ def veli_talebe_mudahale(request, talebe_id: int):
     if not kullanici_veli_mi(request.user):
         return redirect("dashboard")
     veli, talebe = _veli_talebe_yukle(request, talebe_id)
-    ozet = talebe_veli_ozeti(talebe)
     sayfa_goruntulendi(veli, "veli_talebe_mudahale", talebe=talebe)
     return _talebe_sayfa(
         request,
@@ -327,7 +328,7 @@ def veli_talebe_mudahale(request, talebe_id: int):
         talebe,
         "veli/talebe_mudahale.html",
         "mudahale",
-        {"mudahaleler": ozet["mudahaleler"]},
+        {"mudahaleler": talebe_veli_mudahaleleri(talebe)},
     )
 
 

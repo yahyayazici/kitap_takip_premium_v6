@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>Pazar İzin Dönüşü Raporu</title>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 11px; color: #1a1a1a; margin: 24px; }
+        h1 { font-size: 18px; margin: 0 0 4px; color: #071b3a; }
+        .sub { color: #666; margin-bottom: 16px; }
+        .stats { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+        .stat { border: 1px solid #cdd6e4; border-radius: 8px; padding: 8px 12px; min-width: 80px; }
+        .stat strong { display: block; font-size: 16px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border-bottom: 1px solid #dde3ec; padding: 6px 8px; text-align: left; }
+        th { background: #f5f7fa; font-weight: 700; }
+        .durum-gec { color: #c62828; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <h1>{{ panel_org }} — Pazar İzin Dönüşü Raporu</h1>
+    <p class="sub">Oluşturulma: {% now "d.m.Y H:i" %}</p>
+
+    <div class="stats">
+        <div class="stat"><span>Toplam</span><strong>{{ istatistik.toplam }}</strong></div>
+        <div class="stat"><span>Geldi</span><strong>{{ istatistik.geldi }}</strong></div>
+        <div class="stat"><span>Geç Geldi</span><strong>{{ istatistik.gec_geldi }}</strong></div>
+        <div class="stat"><span>Gelmedi</span><strong>{{ istatistik.gelmedi }}</strong></div>
+        <div class="stat"><span>Ort. Gecikme</span><strong>{{ istatistik.gec_ort_dk }} dk</strong></div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Tarih</th>
+                <th>Sınıf</th>
+                <th>Talebe</th>
+                <th>Etüt</th>
+                <th>Durum</th>
+                <th>Giriş</th>
+                <th>Gecikme</th>
+                <th>Açıklama</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for k in kayitlar %}
+            <tr>
+                <td>{{ k.oturum.tarih|date:"d.m.Y" }}</td>
+                <td>{% if k.talebe.sinif_sube %}{{ k.talebe.sinif_sube.sinif }}-{{ k.talebe.sinif_sube.sube }}{% else %}—{% endif %}</td>
+                <td>{{ k.talebe.ad_soyad }}</td>
+                <td>{% if k.talebe.etut_hocasi %}{{ k.talebe.etut_hocasi.ad_soyad }}{% else %}—{% endif %}</td>
+                <td{% if k.durum == 'gec_geldi' %} class="durum-gec"{% endif %}>{{ k.get_durum_display }}</td>
+                <td>{% if k.giris_tarihi and k.giris_saati %}{{ k.giris_tarihi|date:"d.m.Y" }} {{ k.giris_saati|time:"H:i" }}{% else %}—{% endif %}</td>
+                <td>{% if k.durum == 'gec_geldi' %}{{ k.gecikme_dk }} dk{% else %}—{% endif %}</td>
+                <td>{{ k.aciklama|default:"—" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8">Kayıt yok.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

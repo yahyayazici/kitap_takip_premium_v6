@@ -250,6 +250,59 @@ class AkademikMudahaleForm(StyledModelForm):
         self.fields["ders"].required = False
 
 
+class AkademikMudahaleTopluForm(StyledModelForm):
+    """Sınıftaki tüm öğrencilere aynı müdahale kaydı."""
+
+    sinif_sube = forms.ModelChoiceField(
+        queryset=None,
+        label="Sınıf",
+        required=True,
+        widget=forms.Select(attrs={"class": "input", "id": "id_sinif_sube_toplu"}),
+    )
+
+    class Meta:
+        from takip.models import AkademikMudahale
+
+        model = AkademikMudahale
+        fields = [
+            "ders",
+            "konu",
+            "mudahale_turu",
+            "sure_dakika",
+            "degerlendirme_notu",
+        ]
+        widgets = {
+            "degerlendirme_notu": forms.Textarea(attrs={"rows": 3}),
+        }
+
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from takip.models import Ders, MudahaleTuru, SinifSube
+        from takip.permissions.scope import yetkili_talebeler
+
+        sinif_ids = (
+            yetkili_talebeler(user, aktif_only=True)
+            .exclude(sinif_sube__isnull=True)
+            .values_list("sinif_sube_id", flat=True)
+            .distinct()
+        )
+        self.fields["sinif_sube"].queryset = SinifSube.objects.filter(
+            pk__in=sinif_ids, aktif=True
+        ).order_by("sinif", "sube")
+        self.fields["ders"].queryset = Ders.objects.filter(aktif=True).order_by(
+            "sira", "ad"
+        )
+        self.fields["mudahale_turu"].queryset = MudahaleTuru.objects.filter(
+            aktif=True
+        ).order_by("sira", "ad")
+        self.fields["ders"].required = False
+        self.fields["mudahale_turu"].widget.attrs["id"] = "id_mudahale_turu_toplu"
+        self.fields["ders"].widget.attrs["id"] = "id_ders_toplu"
+        self.fields["konu"].widget.attrs["id"] = "id_konu_toplu"
+        self.fields["sure_dakika"].widget.attrs["id"] = "id_sure_dakika_toplu"
+        self.fields["degerlendirme_notu"].widget.attrs["id"] = "id_degerlendirme_notu_toplu"
+
+
 class MudahaleTuruForm(StyledModelForm):
     class Meta:
         from takip.models import MudahaleTuru

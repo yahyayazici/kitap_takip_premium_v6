@@ -16,10 +16,10 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
             </div>
             <div>
-                <span class="veli-wow-metric-label">Son deneme</span>
+                <span class="veli-wow-metric-label">Son deneme puanı</span>
                 {% if kpi.son_deneme %}
-                <strong class="veli-wow-metric-value">{{ kpi.son_deneme.toplam_net }}</strong>
-                <span class="veli-wow-metric-note">{{ kpi.son_deneme.deneme.ad|truncatechars:28 }}</span>
+                <strong class="veli-wow-metric-value">{{ kpi.son_deneme.puan }}</strong>
+                <span class="veli-wow-metric-note">Net {{ kpi.son_deneme.toplam_net }} · {{ kpi.son_deneme.deneme.ad|truncatechars:22 }}</span>
                 {% else %}
                 <strong class="veli-wow-metric-value">—</strong>
                 <span class="veli-wow-metric-note">Kayıt yok</span>

@@ -29,7 +29,7 @@ from takip.models import (
 )
 from takip.ogretmen_not_models import OgretmenSinavNotu, OgretmenSinifYoklama
 from takip.ogretmen_not_service import talebe_ogretmen_notlari
-from takip.deneme_service import BRANS_ETIKETLERI, talebe_deneme_sonuclari
+from takip.deneme_service import BRANS_ETIKETLERI, talebe_deneme_performans_ozeti, talebe_deneme_sonuclari
 from takip.yazili_takip_service import talebe_yazili_sonuclari
 from takip.duyuru_service import veli_duyurulari
 from takip.soru_takip_service import aylik_ozet, haftalik_ozet
@@ -111,7 +111,17 @@ def _not_ortalamasi(qs: QuerySet[OgretmenSinavNotu]) -> Decimal | None:
     return Decimal(agg["ort"]).quantize(Decimal("0.1"))
 
 
-def talebe_veli_ozeti(talebe: Talebe) -> dict:
+def _veli_yazili_sonuclari_guvenli(talebe: Talebe) -> list:
+    """Yazılı tablosu migration bekliyorsa boş liste döner."""
+    from django.db.utils import OperationalError, ProgrammingError
+
+    try:
+        return list(talebe_yazili_sonuclari(talebe)[:20])
+    except (OperationalError, ProgrammingError):
+        return []
+
+
+def talebe_veli_ozeti(talebe: Talebe, *, sinav_verisi: bool = False) -> dict:
     bugun = localdate()
     hafta = haftalik_ozet(talebe, bugun)
     ay = aylik_ozet(talebe, bugun)
@@ -127,20 +137,6 @@ def talebe_veli_ozeti(talebe: Talebe) -> dict:
         .order_by("-tarih", "-id")[:7]
     )
 
-    ktt_sonuclari = list(
-        KttSonucu.objects.filter(
-            talebe=talebe,
-            ktt__veliye_goster=True,
-            ktt__aktif=True,
-        )
-        .select_related("ktt", "ktt__ders")
-        .order_by("-ktt__sinav_tarihi", "-id")[:10]
-    )
-
-    deneme_sonuclari = list(talebe_deneme_sonuclari(talebe)[:10])
-
-    yazili_sonuclari = list(talebe_yazili_sonuclari(talebe)[:20])
-
     personel_notlari = list(
         TalebePersonelNotu.objects.filter(
             talebe=talebe,
@@ -149,21 +145,47 @@ def talebe_veli_ozeti(talebe: Talebe) -> dict:
         .order_by("-olusturulma")[:5]
     )
 
-    return {
+    ozet = {
         "talebe": talebe,
         "zimmetler": aktif_zimmetler(talebe),
         "haftalik_soru": hafta,
         "aylik_soru": ay,
         "mudahaleler": mudahaleler,
         "soru_kayitlari": soru_kayitlari,
-        "ktt_sonuclari": ktt_sonuclari,
-        "deneme_sonuclari": deneme_sonuclari,
-        "deneme_brans_etiketleri": BRANS_ETIKETLERI,
-        "yazili_sonuclari": yazili_sonuclari,
-        "ogretmen_notlari": list(talebe_ogretmen_notlari(talebe, limit=50)),
         "dini_ders_ozet": talebe_ilerleme_ozeti(talebe),
         "personel_notlari": personel_notlari,
+        "ktt_sonuclari": [],
+        "deneme_sonuclari": [],
+        "deneme_performans": None,
+        "deneme_brans_etiketleri": BRANS_ETIKETLERI,
+        "yazili_sonuclari": [],
+        "ogretmen_notlari": [],
     }
+
+    if sinav_verisi:
+        ozet["ktt_sonuclari"] = list(
+            KttSonucu.objects.filter(
+                talebe=talebe,
+                ktt__veliye_goster=True,
+                ktt__aktif=True,
+            )
+            .select_related("ktt", "ktt__ders")
+            .order_by("-ktt__sinav_tarihi", "-id")[:10]
+        )
+        ozet["deneme_sonuclari"] = list(talebe_deneme_sonuclari(talebe)[:10])
+        ozet["deneme_performans"] = talebe_deneme_performans_ozeti(talebe)
+        ozet["yazili_sonuclari"] = _veli_yazili_sonuclari_guvenli(talebe)
+        ozet["ogretmen_notlari"] = list(talebe_ogretmen_notlari(talebe, limit=50))
+
+    return ozet
+
+
+def talebe_veli_mudahaleleri(talebe: Talebe) -> list[AkademikMudahale]:
+    return list(
+        AkademikMudahale.objects.filter(talebe=talebe, veliye_goster=True)
+        .select_related("mudahale_turu", "ders")
+        .order_by("-tarih", "-id")[:20]
+    )
 
 
 def veli_dashboard_verisi(veli: VeliHesap) -> dict:

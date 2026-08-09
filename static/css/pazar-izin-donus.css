@@ -1,0 +1,538 @@
+/* Pazar İzin Dönüşü Yoklaması */
+
+.pid-page {
+    --pid-navy: #071b3a;
+    --pid-text: #1d1d1f;
+    --pid-muted: #86868b;
+    --pid-line: #cdd6e4;
+    --pid-ok: #059669;
+    --pid-warn: #d97706;
+    --pid-bad: #dc2626;
+    width: 100%;
+    max-width: none;
+    padding: 0 0 5rem;
+    color: var(--pid-text);
+}
+
+.pid-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.pid-eyebrow {
+    margin: 0 0 0.2rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--pid-muted);
+    text-transform: uppercase;
+}
+
+.pid-head h1 {
+    margin: 0;
+    font-size: clamp(1.35rem, 2.4vw, 1.7rem);
+    font-weight: 700;
+    color: var(--pid-navy);
+}
+
+.pid-sub {
+    margin: 0.35rem 0 0;
+    color: var(--pid-muted);
+    font-size: 0.92rem;
+}
+
+.pid-head-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.pid-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 0.85rem;
+    border-radius: 999px;
+    border: 1px solid var(--pid-line);
+    background: #fff;
+    color: var(--pid-navy);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.pid-chip-pdf { border-color: #fecaca; background: #fef2f2; }
+.pid-chip-excel { border-color: #bbf7d0; background: #f0fdf4; }
+
+.pid-filter-card { margin-bottom: 14px; }
+
+.pid-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: flex-end;
+}
+
+.pid-filter-note {
+    margin: 0;
+    flex: 1 1 200px;
+    font-size: 0.82rem;
+    color: var(--pid-muted);
+}
+
+.pid-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 140px;
+}
+
+.pid-field span {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--pid-muted);
+}
+
+.pid-field input,
+.pid-field select {
+    min-height: 38px;
+}
+
+.pid-beklenen-card { margin-bottom: 14px; }
+
+.pid-beklenen-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+}
+
+.pid-field-inline {
+    min-width: 0;
+    flex: 0 0 auto;
+}
+
+.pid-field-inline input {
+    width: 150px;
+}
+
+.pid-saat-kaydet {
+    flex-shrink: 0;
+    min-height: 38px;
+    align-self: flex-end;
+}
+
+.pid-beklenen-note {
+    flex: 1 1 100%;
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--pid-muted);
+}
+
+.pid-beklenen-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: flex-end;
+}
+
+.pid-toplu-btn { white-space: nowrap; }
+
+.pid-table-card .card-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.pid-table .pid-name {
+    font-weight: 600;
+    min-width: 160px;
+}
+
+.pid-durum { min-width: 130px; }
+
+.pid-giris-cell {
+    min-width: 100px;
+}
+
+.pid-giris-saat {
+    min-width: 110px;
+}
+
+.pid-sinif {
+    font-size: 0.85rem;
+    color: var(--pid-muted);
+    white-space: nowrap;
+}
+
+.pid-gecikme {
+    font-weight: 700;
+    color: var(--pid-warn);
+}
+
+.pid-empty {
+    padding: 2rem;
+    text-align: center;
+    color: var(--pid-muted);
+}
+
+/* ——— Rapor sayfası ——— */
+.pid-rapor-page {
+    padding-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.pid-rapor-page .pid-chip-pdf {
+    color: #b91c1c !important;
+    border-color: #fecaca !important;
+    background: #fff5f5 !important;
+}
+
+.pid-rapor-page .pid-chip-excel {
+    color: #15803d !important;
+    border-color: #bbf7d0 !important;
+    background: #f0fdf4 !important;
+}
+
+.pid-rapor-card {
+    background: #fff;
+    border: 1px solid var(--pid-line);
+    border-radius: 16px;
+    box-shadow: 0 1px 2px rgba(15, 40, 80, 0.04), 0 8px 20px rgba(15, 40, 80, 0.05);
+    padding: 16px 18px;
+}
+
+.pid-rapor-filters {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px 14px;
+    align-items: end;
+}
+
+.pid-rapor-field {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    min-width: 0;
+}
+
+.pid-rapor-field > span {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--pid-muted);
+}
+
+.pid-rapor-field input,
+.pid-rapor-field select,
+.pid-rapor-field .ms-filter-trigger {
+    width: 100%;
+    min-height: 40px;
+    border: 1px solid var(--pid-line) !important;
+    border-radius: 10px !important;
+    padding: 0 0.7rem !important;
+    font: inherit !important;
+    font-size: 0.84rem !important;
+    color: var(--pid-text) !important;
+    background: #fff !important;
+    box-shadow: none !important;
+}
+
+.pid-rapor-field .ms-filter-wrap {
+    width: 100%;
+}
+
+.pid-rapor-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    padding-top: 2px;
+}
+
+.pid-btn-export {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0 1rem;
+    border-radius: 10px;
+    font-size: 0.84rem;
+    font-weight: 650;
+    text-decoration: none;
+    border: 1px solid transparent;
+    white-space: nowrap;
+}
+
+.pid-btn-export.pid-btn-sm {
+    min-height: 32px;
+    padding: 0 0.75rem;
+    font-size: 0.78rem;
+    border-radius: 8px;
+}
+
+.pid-btn-pdf {
+    background: #fff5f5;
+    color: #b91c1c;
+    border-color: #fecaca;
+}
+
+.pid-btn-pdf:hover {
+    background: #fee2e2;
+}
+
+.pid-btn-excel {
+    background: #f0fdf4;
+    color: #15803d;
+    border-color: #bbf7d0;
+}
+
+.pid-btn-excel:hover {
+    background: #dcfce7;
+}
+
+.pid-rapor-list-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.pid-rapor-list-actions > span {
+    font-size: 0.78rem;
+    font-weight: 650;
+    color: var(--pid-muted);
+}
+
+.pid-btn-save {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
+    min-height: 40px;
+    padding: 0 1.25rem;
+    border: 0;
+    border-radius: 10px;
+    background: var(--pid-navy);
+    color: #fff;
+    font-size: 0.88rem;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.pid-btn-save:hover {
+    filter: brightness(1.08);
+}
+
+.pid-rapor-stats {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.pid-rapor-stat {
+    display: grid;
+    gap: 4px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    color: #fff;
+    border: 1px solid transparent;
+    min-height: 76px;
+    align-content: center;
+}
+
+.pid-rapor-stat span {
+    font-size: 0.72rem;
+    font-weight: 650;
+    opacity: 0.92;
+    letter-spacing: 0.02em;
+}
+
+.pid-rapor-stat strong {
+    font-size: 1.45rem;
+    font-weight: 750;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+
+.pid-rapor-stat.is-toplam { background: #5b21b6; }
+.pid-rapor-stat.is-geldi { background: #15803d; }
+.pid-rapor-stat.is-gec { background: #c2410c; }
+.pid-rapor-stat.is-gelmedi { background: #0369a1; }
+.pid-rapor-stat.is-ort { background: #334155; }
+
+.pid-rapor-list {
+    padding: 0;
+    overflow: hidden;
+}
+
+.pid-rapor-list-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px 18px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.pid-rapor-list-head h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 750;
+    color: var(--pid-navy);
+}
+
+.pid-rapor-list-head span {
+    font-size: 0.78rem;
+    font-weight: 650;
+    color: var(--pid-muted);
+}
+
+.pid-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.pid-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.86rem;
+}
+
+.pid-table th,
+.pid-table td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    vertical-align: middle;
+}
+
+.pid-rapor-table th {
+    background: #f8fafc;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #64748b;
+    white-space: nowrap;
+}
+
+.pid-rapor-table tbody tr:hover {
+    background: #fafbfc;
+}
+
+.pid-td-name {
+    font-weight: 650;
+    color: var(--pid-navy);
+}
+
+.pid-td-muted {
+    color: var(--pid-muted);
+    font-size: 0.84rem;
+}
+
+.pid-td-date {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.pid-td-giris {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+}
+
+.pid-td-gecikme strong {
+    color: var(--pid-warn);
+    font-variant-numeric: tabular-nums;
+}
+
+.pid-durum-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.55rem;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.pid-durum-geldi {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.pid-durum-gelmedi {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.pid-durum-gec_geldi {
+    background: #ffedd5;
+    color: #c2410c;
+}
+
+.pid-durum-izinli {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.pid-rapor-empty {
+    text-align: center;
+    color: var(--pid-muted);
+    padding: 1.5rem 1rem !important;
+}
+
+@media (max-width: 980px) {
+    .pid-rapor-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .pid-rapor-stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 720px) {
+    .pid-filter-row,
+    .pid-beklenen-inline,
+    .pid-beklenen-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .pid-field-inline input { width: 100%; }
+    .pid-field { width: 100%; }
+
+    .pid-table-card .card-heading {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .pid-rapor-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 560px) {
+    .pid-rapor-filters {
+        grid-template-columns: 1fr;
+    }
+    .pid-rapor-stats {
+        grid-template-columns: 1fr 1fr;
+    }
+    .pid-rapor-actions {
+        justify-content: stretch;
+    }
+    .pid-btn-save {
+        width: 100%;
+    }
+}

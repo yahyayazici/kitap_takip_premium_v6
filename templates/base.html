@@ -1,4 +1,4 @@
-﻿{% load static %}
+{% load static %}
 <!doctype html>
 <html lang="tr">
 <head>
@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="{% static 'css/premium-typography-v4.css' %}">
     <link rel="stylesheet" href="{% static 'css/premium-system-v5.css' %}">
     <link rel="stylesheet" href="{% static 'css/premium-system-v6.css' %}">
-    <link rel="stylesheet" href="{% static 'css/nav-groups.css' %}?v=bell-nav2">
+    <link rel="stylesheet" href="{% static 'css/nav-groups.css' %}?v=mob-logout1">
     <link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}?v=sc-mob5">
     <link rel="stylesheet" href="{% static 'css/panel-unified.css' %}?v=nizam7">
     <link rel="stylesheet" href="{% static 'css/panel-mobile-shared.css' %}?v=pm1">
@@ -51,6 +51,7 @@
 
         <nav class="v3-nav" id="v3-nav">
             {% include "includes/panel_nav.html" %}
+            {% include "includes/panel_mobile_logout.html" %}
         </nav>
 
         <div class="v3-user-area">
@@ -63,6 +64,10 @@
             <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
                 <button class="v3-logout" type="submit">Çıkış</button>
+            </form>
+            <form method="post" action="{% url 'logout' %}" class="v3-logout-mobile-form">
+                {% csrf_token %}
+                <button class="v3-logout-mobile" type="submit" aria-label="Çıkış yap" title="Çıkış">⎋</button>
             </form>
         </div>
     </div>

@@ -1,4 +1,4 @@
-﻿{% load static %}
+{% load static %}
 <!doctype html>
 <html lang="tr">
 <head>
@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{% static 'yonetim/css/yonetim.css' %}">
     <link rel="stylesheet" href="{% static 'css/premium-system-v5.css' %}">
     <link rel="stylesheet" href="{% static 'css/premium-system-v6.css' %}">
-    <link rel="stylesheet" href="{% static 'css/nav-groups.css' %}?v=bell-nav1">
+    <link rel="stylesheet" href="{% static 'css/nav-groups.css' %}?v=mob-logout1">
     <link rel="stylesheet" href="{% static 'css/yonetim-nav.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}?v=sc-mob5">
     <link rel="stylesheet" href="{% static 'css/panel-unified.css' %}?v=nizam6">
@@ -50,6 +50,7 @@
 
         <nav class="cs-v6-nav v3-nav" id="yonetim-nav">
             {% include "yonetim/includes/nav.html" %}
+            {% include "includes/panel_mobile_logout.html" %}
         </nav>
 
         <div class="cs-v6-actions yonetim-v6-actions">
@@ -63,6 +64,10 @@
             <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
                 <button type="submit" class="yonetim-logout">Çıkış</button>
+            </form>
+            <form method="post" action="{% url 'logout' %}" class="v3-logout-mobile-form">
+                {% csrf_token %}
+                <button class="v3-logout-mobile" type="submit" aria-label="Çıkış yap" title="Çıkış">⎋</button>
             </form>
         </div>
     </div>

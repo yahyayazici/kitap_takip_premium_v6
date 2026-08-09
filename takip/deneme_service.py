@@ -111,3 +111,88 @@ def talebe_deneme_sonuclari(talebe: Talebe) -> QuerySet[DenemeSonucu]:
         .prefetch_related("brans_satirlari")
         .order_by("-deneme__sinav_tarihi", "-id")
     )
+
+
+DENEME_SINAV_SABITLERI: dict[str, dict] = {
+    "8": {"baslik": "LGS", "soru": 85, "taban": 100, "tavan": 500},
+    "7": {"baslik": "Deneme", "soru": 90, "taban": 0, "tavan": 500},
+    "6": {"baslik": "Deneme", "soru": 90, "taban": 0, "tavan": 500},
+}
+
+
+def _talebe_sinif_seviyesi(talebe: Talebe) -> str:
+    if getattr(talebe, "sinif_sube_id", None):
+        ss = talebe.sinif_sube
+        if ss:
+            return str(ss.sinif).strip()
+    return str(talebe.sinif or "8").strip()
+
+
+def deneme_puan_yuzdesi(puan: float, taban: float, tavan: float) -> int:
+    if tavan <= taban:
+        return 0
+    yuzde = (float(puan) - taban) / (tavan - taban) * 100
+    return max(0, min(100, round(yuzde)))
+
+
+def talebe_deneme_performans_ozeti(
+    talebe: Talebe,
+    *,
+    gecmis_limit: int | None = None,
+) -> dict | None:
+    """Öğrenci deneme özeti — LGS tarzı kart + sınav geçmişi."""
+    sonuclar = list(talebe_deneme_sonuclari(talebe))
+    if not sonuclar:
+        return None
+
+    sinif = _talebe_sinif_seviyesi(talebe)
+    sabit = DENEME_SINAV_SABITLERI.get(sinif, DENEME_SINAV_SABITLERI["8"])
+    taban = float(sabit["taban"])
+    tavan = float(sabit["tavan"])
+
+    puanlar = [float(s.puan or 0) for s in sonuclar]
+    netler = [float(s.toplam_net or 0) for s in sonuclar]
+    ort_puan = round(sum(puanlar) / len(puanlar), 2)
+    ort_net = round(sum(netler) / len(netler), 2)
+
+    gecmis = []
+    for sonuc in sonuclar[: gecmis_limit or len(sonuclar)]:
+        puan = float(sonuc.puan or 0)
+        gecmis.append(
+            {
+                "deneme_id": sonuc.deneme_id,
+                "ad": sonuc.deneme.ad,
+                "tarih": sonuc.deneme.sinav_tarihi,
+                "puan": puan,
+                "net": float(sonuc.toplam_net or 0),
+                "yuzde": deneme_puan_yuzdesi(puan, taban, tavan),
+            }
+        )
+
+    grafik_kaynak = list(reversed(sonuclar[:10]))
+    max_net = max(float(s.toplam_net or 0) for s in grafik_kaynak) or 1
+    grafik = [
+        {
+            "etiket": s.deneme.sinav_tarihi.strftime("%d.%m"),
+            "baslik": s.deneme.ad,
+            "net": float(s.toplam_net or 0),
+            "puan": float(s.puan or 0),
+            "net_yuzde": round(float(s.toplam_net or 0) * 100 / max_net, 1),
+        }
+        for s in grafik_kaynak
+    ]
+
+    return {
+        "baslik": sabit["baslik"],
+        "soru": sabit["soru"],
+        "taban": int(sabit["taban"]),
+        "tavan": int(sabit["tavan"]),
+        "ortalama_puan": ort_puan,
+        "ortalama_net": ort_net,
+        "en_yuksek_puan": round(max(puanlar), 2),
+        "en_dusuk_puan": round(min(puanlar), 2),
+        "genel_yuzde": deneme_puan_yuzdesi(ort_puan, taban, tavan),
+        "toplam_sinav": len(sonuclar),
+        "gecmis": gecmis,
+        "grafik": grafik,
+    }

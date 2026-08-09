@@ -119,6 +119,9 @@ def _legacy_islem_izin(rol_slug: str | None, modul_kod: str, islem_kod: str) -> 
     if islem_kod in {"export_pdf", "export_excel"}:
         if modul_kod == "egitim_kitap" and rol_slug in {"etut_mesul", "sinif_mesul"}:
             return True
+        # Yoklama modülleri — modül erişimi olan herkes filtreli rapor indirebilir
+        if modul_kod in {"pazar_izin_donus", "namaz_yoklama", "gunluk_takip"}:
+            return _legacy_modul_erisim(rol_slug, modul_kod)
         return rol_slug in LEGACY_TUM_TALEBE_ROLLER or rol_slug in LEGACY_IDARE_ROLLER or rol_slug == "muhasebeci"
 
     if islem_kod == "view_financial":

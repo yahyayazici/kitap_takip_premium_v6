@@ -21,13 +21,14 @@ from takip.akademik_mudahale_service import (
     mudahale_olusturabilir,
     mudahale_silebilir,
     mudahale_sinif_secenekleri,
+    mudahale_toplu_sinif_olustur,
     mudahaleleri_filtrele,
     rapor_istatistikleri,
     talebe_panel_verisi,
     yetkili_mudahaleler,
 )
 from takip.filter_utils import get_int_list
-from takip.forms import AkademikMudahaleForm
+from takip.forms import AkademikMudahaleForm, AkademikMudahaleTopluForm
 from takip.models import AkademikMudahale, MudahaleTuru
 from takip.permissions.decorators import require_permission
 from takip.permissions.scope import yetkili_talebeler
@@ -60,22 +61,57 @@ def _mudahale_panel_form(user, data=None, instance=None):
 def mudahale_listesi(request):
     olusturabilir = mudahale_olusturabilir(request.user)
     form = None
+    toplu_form = None
+    kayit_modu = request.POST.get("kayit_modu", "tek") if request.method == "POST" else "tek"
     turler = aktif_mudahale_turleri()
     tur_semalari = {str(t.id): t.form_semasi or [] for t in turler}
 
     if request.method == "POST" and olusturabilir:
-        form = _mudahale_panel_form(request.user, request.POST)
-        if form.is_valid():
-            tur = form.cleaned_data["mudahale_turu"]
-            mudahale = _form_kaydet(request, form, tur)
-            messages.success(request, "Müdahale kaydı eklendi.")
-            url = reverse("akademik_mudahale_listesi")
-            sinif_q = request.GET.get("sinif_sube", "")
-            if sinif_q:
-                url = f"{url}?sinif_sube={sinif_q}"
-            return redirect(url)
+        if kayit_modu == "toplu":
+            toplu_form = AkademikMudahaleTopluForm(request.user, request.POST)
+            if toplu_form.is_valid():
+                tur = toplu_form.cleaned_data["mudahale_turu"]
+                ss = toplu_form.cleaned_data["sinif_sube"]
+                adet = mudahale_toplu_sinif_olustur(
+                    request.user,
+                    sinif_sube_id=ss.id,
+                    mudahale_turu=tur,
+                    ders=toplu_form.cleaned_data.get("ders"),
+                    konu=toplu_form.cleaned_data.get("konu") or "",
+                    sure_dakika=toplu_form.cleaned_data.get("sure_dakika") or 0,
+                    degerlendirme_notu=toplu_form.cleaned_data.get("degerlendirme_notu") or "",
+                    veliye_goster=True,
+                    ek_alanlar=ek_alanlari_topla(request.POST, tur),
+                )
+                if adet:
+                    messages.success(
+                        request,
+                        f"{ss} sınıfına {adet} öğrenci için müdahale kaydı eklendi.",
+                    )
+                else:
+                    messages.warning(request, "Bu sınıfta kayıt oluşturulacak öğrenci bulunamadı.")
+                url = reverse("akademik_mudahale_listesi")
+                return redirect(f"{url}?sinif_sube={ss.id}")
+        else:
+            form = _mudahale_panel_form(request.user, request.POST)
+            if form.is_valid():
+                tur = form.cleaned_data["mudahale_turu"]
+                _form_kaydet(request, form, tur)
+                messages.success(request, "Müdahale kaydı eklendi.")
+                url = reverse("akademik_mudahale_listesi")
+                sinif_q = request.GET.get("sinif_sube", "")
+                if sinif_q:
+                    url = f"{url}?sinif_sube={sinif_q}"
+                return redirect(url)
     elif olusturabilir:
         form = _mudahale_panel_form(request.user)
+        toplu_form = AkademikMudahaleTopluForm(request.user)
+
+    if olusturabilir:
+        if form is None:
+            form = _mudahale_panel_form(request.user)
+        if toplu_form is None:
+            toplu_form = AkademikMudahaleTopluForm(request.user)
 
     kayitlar = yetkili_mudahaleler(request.user).order_by("-tarih", "-id")
     sinif_sube_id = request.GET.get("sinif_sube", "")
@@ -87,6 +123,8 @@ def mudahale_listesi(request):
         {
             "kayitlar": kayitlar,
             "form": form,
+            "toplu_form": toplu_form,
+            "kayit_modu": kayit_modu,
             "turler": turler,
             "tur_semalari_json": json.dumps(tur_semalari),
             "talebeler_json": json.dumps(talebe_panel_verisi(request.user)),

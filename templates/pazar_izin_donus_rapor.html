@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% load static filter_tags %}
+{% block title %}Pazar İzin Dönüş Raporu · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pazar-izin-donus.css' %}?v=pid-rapor4">
+{% endblock %}
+
+{% block content %}
+<div class="pid-page pid-rapor-page">
+    <header class="pid-head">
+        <div>
+            <p class="pid-eyebrow">Rapor</p>
+            <h1>Pazar İzin Dönüşü Raporu</h1>
+            <p class="pid-sub">Tarih aralığı, sınıf, etüt ve talebe bazlı filtreleme</p>
+        </div>
+        <div class="pid-head-actions">
+            {% if pdf_yetkisi %}
+            <a href="{{ pdf_url }}" class="pid-chip pid-chip-pdf">PDF İndir</a>
+            {% endif %}
+            {% if excel_yetkisi %}
+            <a href="{{ excel_url }}" class="pid-chip pid-chip-excel">Excel İndir</a>
+            {% endif %}
+            <a href="{% url 'pazar_izin_donus_panel' %}" class="pid-chip">Yoklama Paneli</a>
+        </div>
+    </header>
+
+    <section class="pid-rapor-card" aria-label="Filtreler">
+        <form method="get" class="pid-rapor-filters">
+            <label class="pid-rapor-field">
+                <span>Sınıf</span>
+                <select name="sinif_sube" class="ms-filter" multiple data-placeholder="Tüm sınıflar">
+                    {% for ss in sinif_subeler %}
+                    <option value="{{ ss.id }}" {% if ss.id|in_filter:filtre.sinif_sube %}selected{% endif %}>{{ ss.sinif }}-{{ ss.sube }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="pid-rapor-field">
+                <span>Etüt</span>
+                <select name="etut_hocasi" class="ms-filter" multiple data-placeholder="Tüm etütler">
+                    {% for h in etut_hocalari %}
+                    <option value="{{ h.id }}" {% if h.id|in_filter:filtre.etut_hocasi %}selected{% endif %}>{{ h.ad_soyad }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="pid-rapor-field">
+                <span>Talebe</span>
+                <select name="talebe" class="ms-filter" multiple data-placeholder="Tüm talebeler">
+                    {% for t in talebeler %}
+                    <option value="{{ t.id }}" {% if t.id|in_filter:filtre.talebe %}selected{% endif %}>{{ t.ad_soyad }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="pid-rapor-field">
+                <span>Durum</span>
+                <select name="durum" class="ms-filter" multiple data-placeholder="Tüm durumlar">
+                    {% for k, l in durum_labels.items %}
+                    <option value="{{ k }}" {% if k|in_filter:filtre.durum %}selected{% endif %}>{{ l }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="pid-rapor-field">
+                <span>Dönem</span>
+                <select name="donem">
+                    <option value="">Tümü</option>
+                    <option value="haftalik" {% if filtre.donem == 'haftalik' %}selected{% endif %}>Haftalık</option>
+                    <option value="aylik" {% if filtre.donem == 'aylik' %}selected{% endif %}>Aylık</option>
+                    <option value="donemlik" {% if filtre.donem == 'donemlik' %}selected{% endif %}>Dönemlik</option>
+                </select>
+            </label>
+            <label class="pid-rapor-field">
+                <span>Başlangıç</span>
+                <input type="date" name="baslangic" value="{{ filtre.baslangic }}">
+            </label>
+            <label class="pid-rapor-field">
+                <span>Bitiş</span>
+                <input type="date" name="bitis" value="{{ filtre.bitis }}">
+            </label>
+            <div class="pid-rapor-actions">
+                <button type="submit" class="pid-btn-save">Filtrele</button>
+                {% if pdf_yetkisi %}
+                <a href="{{ pdf_url }}" class="pid-btn-export pid-btn-pdf">PDF İndir</a>
+                {% endif %}
+                {% if excel_yetkisi %}
+                <a href="{{ excel_url }}" class="pid-btn-export pid-btn-excel">Excel İndir</a>
+                {% endif %}
+            </div>
+        </form>
+    </section>
+
+    <div class="pid-rapor-stats" aria-label="Özet">
+        <article class="pid-rapor-stat is-toplam">
+            <span>Toplam Kayıt</span>
+            <strong>{{ istatistik.toplam }}</strong>
+        </article>
+        <article class="pid-rapor-stat is-geldi">
+            <span>Geldi</span>
+            <strong>{{ istatistik.geldi }}</strong>
+        </article>
+        <article class="pid-rapor-stat is-gec">
+            <span>Geç Geldi</span>
+            <strong>{{ istatistik.gec_geldi }}</strong>
+        </article>
+        <article class="pid-rapor-stat is-gelmedi">
+            <span>Gelmedi</span>
+            <strong>{{ istatistik.gelmedi }}</strong>
+        </article>
+        <article class="pid-rapor-stat is-ort">
+            <span>Ort. Gecikme</span>
+            <strong>{{ istatistik.gec_ort_dk|floatformat:0 }} dk</strong>
+        </article>
+    </div>
+
+    <section class="pid-rapor-card pid-rapor-list">
+        <div class="pid-rapor-list-head">
+            <h2>Kayıt Listesi</h2>
+            <div class="pid-rapor-list-actions">
+                <span>{{ kayitlar|length }} satır</span>
+                {% if pdf_yetkisi %}
+                <a href="{{ pdf_url }}" class="pid-btn-export pid-btn-pdf pid-btn-sm">PDF</a>
+                {% endif %}
+                {% if excel_yetkisi %}
+                <a href="{{ excel_url }}" class="pid-btn-export pid-btn-excel pid-btn-sm">Excel</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="pid-table-wrap">
+            <table class="pid-table pid-rapor-table">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Sınıf</th>
+                        <th>Talebe</th>
+                        <th>Etüt</th>
+                        <th>Durum</th>
+                        <th>Giriş</th>
+                        <th>Gecikme</th>
+                        <th>Açıklama</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for k in kayitlar %}
+                    <tr>
+                        <td class="pid-td-date">{{ k.oturum.tarih|date:"d.m.Y" }}</td>
+                        <td>{% if k.talebe.sinif_sube %}{{ k.talebe.sinif_sube.sinif }}-{{ k.talebe.sinif_sube.sube }}{% else %}—{% endif %}</td>
+                        <td><strong class="pid-td-name">{{ k.talebe.ad_soyad }}</strong></td>
+                        <td class="pid-td-muted">{% if k.talebe.etut_hocasi %}{{ k.talebe.etut_hocasi.ad_soyad }}{% else %}—{% endif %}</td>
+                        <td>
+                            <span class="pid-durum-badge pid-durum-{{ k.durum }}">{{ k.get_durum_display }}</span>
+                        </td>
+                        <td class="pid-td-giris">
+                            {% if k.durum == 'gec_geldi' and k.giris_saati %}
+                            {{ k.giris_saati|time:"H:i" }}
+                            {% else %}—{% endif %}
+                        </td>
+                        <td class="pid-td-gecikme">
+                            {% if k.durum == 'gec_geldi' %}<strong>{{ k.gecikme_dk }} dk</strong>{% else %}—{% endif %}
+                        </td>
+                        <td class="pid-td-muted">{{ k.aciklama|default:"—" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="pid-rapor-empty">Kayıt bulunamadı.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

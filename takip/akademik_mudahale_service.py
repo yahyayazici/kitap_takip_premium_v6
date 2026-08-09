@@ -225,6 +225,51 @@ def mudahale_sinif_secenekleri(user: User):
     return ktt_sinif_secenekleri(user)
 
 
+def mudahale_toplu_sinif_olustur(
+    user: User,
+    *,
+    sinif_sube_id: int,
+    mudahale_turu: MudahaleTuru,
+    ders,
+    konu: str,
+    sure_dakika: int,
+    degerlendirme_notu: str,
+    veliye_goster: bool,
+    ek_alanlar: dict,
+    tarih: date | None = None,
+) -> int:
+    """Seçilen sınıftaki tüm yetkili talebelere aynı müdahale kaydını ekler."""
+    from takip.models import SinifSube
+
+    if not SinifSube.objects.filter(pk=sinif_sube_id, aktif=True).exists():
+        return 0
+
+    talebeler = yetkili_talebeler(user, aktif_only=True).filter(
+        sinif_sube_id=sinif_sube_id
+    )
+    if not talebeler.exists():
+        return 0
+
+    kayit_tarihi = tarih or date.today()
+    kayitlar = [
+        AkademikMudahale(
+            talebe=talebe,
+            ders=ders,
+            konu=konu or "",
+            mudahale_turu=mudahale_turu,
+            tarih=kayit_tarihi,
+            sure_dakika=sure_dakika or 0,
+            olusturan=user,
+            degerlendirme_notu=degerlendirme_notu or "",
+            veliye_goster=veliye_goster,
+            ek_alanlar=ek_alanlar or {},
+        )
+        for talebe in talebeler
+    ]
+    AkademikMudahale.objects.bulk_create(kayitlar)
+    return len(kayitlar)
+
+
 def talebe_panel_verisi(user: User) -> list[dict]:
     talebeler = yetkili_talebeler(user, aktif_only=True).select_related("sinif_sube")
     veri = []
