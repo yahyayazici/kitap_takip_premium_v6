@@ -178,13 +178,18 @@ class HizliTalebeForm(forms.ModelForm):
             "telefon",
             "dogum_tarihi",
             "dini_ders_seviyesi",
+            "dini_ders_hocasi",
         ]
         widgets = {
             "ad_soyad": forms.TextInput(
                 attrs=_cs({"placeholder": "Talebe adı soyadı"})
             ),
-            "sinif_sube": forms.Select(attrs={"class": "cs-input"}),
-            "etut_hocasi": forms.Select(attrs={"class": "cs-input"}),
+            "sinif_sube": forms.Select(
+                attrs={"class": "cs-input", "data-yk-sinif-sec": "1"}
+            ),
+            "etut_hocasi": forms.Select(
+                attrs={"class": "cs-input", "data-yk-etut-sec": "1"}
+            ),
             "telefon": forms.TextInput(
                 attrs=_cs({"placeholder": "Opsiyonel"})
             ),
@@ -192,7 +197,12 @@ class HizliTalebeForm(forms.ModelForm):
                 attrs=_cs({"type": "date"}),
                 format="%Y-%m-%d",
             ),
-            "dini_ders_seviyesi": forms.Select(attrs={"class": "cs-input"}),
+            "dini_ders_seviyesi": forms.Select(
+                attrs={"class": "cs-input", "data-yk-dini-seviye-sec": "1"}
+            ),
+            "dini_ders_hocasi": forms.Select(
+                attrs={"class": "cs-input", "data-yk-dini-hoca-sec": "1"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
@@ -204,16 +214,57 @@ class HizliTalebeForm(forms.ModelForm):
         hoca_qs = EtutHocasi.objects.filter(aktif=True).order_by("ad_soyad")
         self.fields["etut_hocasi"].queryset = hoca_qs
         self.fields["etut_hocasi"].empty_label = "Etüt hocası seçin"
+        self.fields["etut_hocasi"].help_text = (
+            "Sınıf seçince zimmetli etüt hocası otomatik gelir."
+        )
         self.fields["dini_ders_seviyesi"].queryset = DiniDersSeviyesi.objects.filter(
             aktif=True
         ).order_by("sira", "ad")
         self.fields["dini_ders_seviyesi"].required = False
-        self.fields["dini_ders_seviyesi"].empty_label = "—"
+        self.fields["dini_ders_seviyesi"].empty_label = "Seviye seçin"
+        self.fields["dini_ders_hocasi"].queryset = hoca_qs
+        self.fields["dini_ders_hocasi"].required = False
+        self.fields["dini_ders_hocasi"].empty_label = "Dini ders hocası seçin"
+        self.fields["dini_ders_hocasi"].help_text = (
+            "Önce dini ders seviyesini seçin; o seviyedeki hocalar listelenir."
+        )
         self.fields["telefon"].required = False
         self.fields["dogum_tarihi"].required = False
 
     def clean(self):
         cleaned = super().clean()
+        sinif_sube = cleaned.get("sinif_sube")
+        etut = cleaned.get("etut_hocasi")
+        seviye = cleaned.get("dini_ders_seviyesi")
+        dini_hoca = cleaned.get("dini_ders_hocasi")
+
+        if sinif_sube and etut:
+            if not etut.sorumlu_sinif_subeler.filter(pk=sinif_sube.pk).exists():
+                self.add_error(
+                    "etut_hocasi",
+                    "Seçilen etüt hocası bu sınıftan sorumlu değil.",
+                )
+
+        if seviye and not dini_hoca:
+            self.add_error(
+                "dini_ders_hocasi",
+                "Dini ders seviyesi seçildiğinde dini ders hocası zorunludur.",
+            )
+        elif seviye and dini_hoca:
+            if not seviye.hocalar.filter(pk=dini_hoca.pk).exists():
+                self.add_error(
+                    "dini_ders_hocasi",
+                    f"Seçilen hoca «{seviye.ad}» seviyesinden sorumlu değil.",
+                )
+        elif not seviye and dini_hoca:
+            self.add_error(
+                "dini_ders_seviyesi",
+                "Dini ders hocası seçmeden önce seviye seçin.",
+            )
+
+        if etut and not dini_hoca and not seviye:
+            cleaned["dini_ders_hocasi"] = etut
+
         veli_ad = (cleaned.get("veli_ad_soyad") or "").strip()
         hesap = cleaned.get("veli_hesap_olustur")
         veli_user = (cleaned.get("veli_kullanici_adi") or "").strip().lower()
@@ -298,6 +349,13 @@ class HizliOgretmenForm(forms.Form):
         required=False,
         widget=forms.CheckboxSelectMultiple(attrs={"class": "choice-chip-grid"}),
     )
+    dini_ders_seviyeleri = forms.ModelMultipleChoiceField(
+        label="Sorumlu dini ders seviyeleri",
+        queryset=DiniDersSeviyesi.objects.none(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "choice-chip-grid"}),
+        help_text="Etüt hocasının ders verdiği dini ders seviyelerini işaretleyin.",
+    )
     brans = forms.ModelChoiceField(
         label="Branş",
         queryset=Brans.objects.none(),
@@ -318,6 +376,9 @@ class HizliOgretmenForm(forms.Form):
         self.fields["sorumlu_sinif_subeler"].queryset = SinifSube.objects.filter(
             aktif=True
         ).order_by("sinif", "sube")
+        self.fields["dini_ders_seviyeleri"].queryset = DiniDersSeviyesi.objects.filter(
+            aktif=True
+        ).order_by("sira", "ad")
         self.fields["brans"].queryset = Brans.objects.filter(aktif=True).order_by(
             "sira", "ad"
         )
@@ -335,6 +396,9 @@ class HizliOgretmenForm(forms.Form):
         return ogretmen_olustur(
             ad_soyad=self.cleaned_data["ad_soyad"],
             siniflar=list(self.cleaned_data.get("sorumlu_sinif_subeler") or []),
+            dini_ders_seviyeleri=list(
+                self.cleaned_data.get("dini_ders_seviyeleri") or []
+            ),
             brans=self.cleaned_data.get("brans"),
             saatlik_ucret=self.cleaned_data.get("saatlik_ucret") or Decimal("0"),
         )
@@ -359,6 +423,12 @@ class TopluOgretmenForm(forms.Form):
         required=False,
         widget=forms.CheckboxSelectMultiple(attrs={"class": "choice-chip-grid"}),
     )
+    dini_ders_seviyeleri = forms.ModelMultipleChoiceField(
+        label="Sorumlu dini ders seviyeleri",
+        queryset=DiniDersSeviyesi.objects.none(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "choice-chip-grid"}),
+    )
     brans = forms.ModelChoiceField(
         label="Branş",
         queryset=Brans.objects.none(),
@@ -379,6 +449,9 @@ class TopluOgretmenForm(forms.Form):
         self.fields["sorumlu_sinif_subeler"].queryset = SinifSube.objects.filter(
             aktif=True
         ).order_by("sinif", "sube")
+        self.fields["dini_ders_seviyeleri"].queryset = DiniDersSeviyesi.objects.filter(
+            aktif=True
+        ).order_by("sira", "ad")
         self.fields["brans"].queryset = Brans.objects.filter(aktif=True).order_by(
             "sira", "ad"
         )

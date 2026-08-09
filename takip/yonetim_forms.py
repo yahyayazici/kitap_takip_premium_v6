@@ -5,6 +5,7 @@ from django.forms import inlineformset_factory
 
 from .models import (
     CumaDurumMetni,
+    DiniDersSeviyesi,
     Duyuru,
     EtutHocasi,
     HaftalikSohbetMevzuu,
@@ -394,8 +395,13 @@ class TalebeForm(forms.ModelForm):
         self.fields["dini_ders_hocasi"].queryset = hoca_qs
         self.fields["dini_ders_hocasi"].required = False
         self.fields["dini_ders_hocasi"].help_text = (
-            "Etüt mesulünden farklı olabilir. Boş bırakılırsa etüt mesulü atanır."
+            "Önce dini ders seviyesini seçin. Boş bırakılırsa etüt mesulü atanır."
         )
+        self.fields["dini_ders_seviyesi"].queryset = DiniDersSeviyesi.objects.filter(
+            aktif=True
+        ).order_by("sira", "ad")
+        self.fields["dini_ders_seviyesi"].required = False
+        self.fields["dini_ders_seviyesi"].empty_label = "Seviye seçin"
         self.fields["talebe_no"].required = False
         self.fields["talebe_no"].help_text = (
             "Boş bırakırsanız sistem otomatik numara atar (ör. 1, 2, 3)."
@@ -419,8 +425,26 @@ class TalebeForm(forms.ModelForm):
         cleaned = super().clean()
         etut = cleaned.get("etut_hocasi")
         dini = cleaned.get("dini_ders_hocasi")
+        seviye = cleaned.get("dini_ders_seviyesi")
 
-        if etut and not dini:
+        if seviye and not dini:
+            self.add_error(
+                "dini_ders_hocasi",
+                "Dini ders seviyesi seçildiğinde dini ders hocası zorunludur.",
+            )
+        elif seviye and dini:
+            if not seviye.hocalar.filter(pk=dini.pk).exists():
+                self.add_error(
+                    "dini_ders_hocasi",
+                    f"Seçilen hoca «{seviye.ad}» seviyesinden sorumlu değil.",
+                )
+        elif not seviye and dini:
+            self.add_error(
+                "dini_ders_seviyesi",
+                "Dini ders hocası seçmeden önce seviye seçin.",
+            )
+
+        if etut and not dini and not seviye:
             cleaned["dini_ders_hocasi"] = etut
 
         ad = (cleaned.get("ad_soyad") or "").strip()

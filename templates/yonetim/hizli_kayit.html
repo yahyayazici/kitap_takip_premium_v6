@@ -50,9 +50,10 @@
         {% if tur == "talebe" %}
         <div class="yk-section">
             <h3 class="yk-section-title">Talebe Bilgileri</h3>
-            <div class="yk-grid">
+            <div class="yk-grid" id="yk-talebe-grid">
+                {% with talebe_alanlar="ad_soyad sinif_sube etut_hocasi telefon dogum_tarihi dini_ders_seviyesi dini_ders_hocasi" %}
                 {% for field in form %}
-                    {% if field.name != "veli_ad_soyad" and field.name != "veli_telefon" and field.name != "veli_yakinlik" and field.name != "veli_hesap_olustur" and field.name != "veli_kullanici_adi" and field.name != "veli_sifre" %}
+                    {% if field.name in talebe_alanlar.split %}
                     <div class="yk-field{% if field.name == 'ad_soyad' %} yk-field-wide{% endif %}">
                         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                         {{ field }}
@@ -61,6 +62,7 @@
                     </div>
                     {% endif %}
                 {% endfor %}
+                {% endwith %}
             </div>
         </div>
 
@@ -117,6 +119,14 @@
                 {{ form.sorumlu_sinif_subeler }}
             </div>
             {% for error in form.sorumlu_sinif_subeler.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+        </div>
+        <div class="yk-section">
+            <h3 class="yk-section-title">Dini Ders Seviyeleri</h3>
+            <p class="yk-section-note">Etüt hocasının sorumlu olduğu dini ders seviyelerini işaretleyin.</p>
+            <div class="yk-checkbox-grid">
+                {{ form.dini_ders_seviyeleri }}
+            </div>
+            {% for error in form.dini_ders_seviyeleri.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
         </div>
 
         {% elif tur == "personel" %}
@@ -242,6 +252,14 @@
                 </div>
                 {% for error in toplu_ogretmen_form.sorumlu_sinif_subeler.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
             </div>
+            <div class="yk-section">
+                <h3 class="yk-section-title">Dini Ders Seviyeleri</h3>
+                <p class="yk-section-note">Toplu eklenen öğretmenlere aynı dini ders seviyeleri atanır.</p>
+                <div class="yk-checkbox-grid">
+                    {{ toplu_ogretmen_form.dini_ders_seviyeleri }}
+                </div>
+                {% for error in toplu_ogretmen_form.dini_ders_seviyeleri.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+            </div>
             <button type="submit" class="primary-btn yk-excel-submit">Toplu Ekle ve ZIP İndir</button>
         </form>
     </div>
@@ -251,13 +269,17 @@
     <div class="yk-section yk-section-excel">
         <h3 class="yk-section-title">Excel ile Veli &amp; TC Yükle</h3>
         <p class="yk-section-note">
-            Kayıtlı talebe listesini indirin; <strong>Talebe TC</strong>, anne/baba ad ve telefon sütunlarını doldurup yükleyin.
-            Eksik satırlar ve boş alanlar kabul edilir — doldurduğunuz bilgiler güncellenir.
-            Veli paneli: <strong>kullanıcı adı = talebe TC</strong>, <strong>şifre = TC son 4 hane</strong> (anne ve baba aynı hesap).
+            Kayıtlı talebe listesini indirin; sınıf, etüt, dini ders seviyesi ve hoca sütunlarını
+            listeden seçebilir veya yazabilirsiniz. Dini ders hocası etüt hocası ile aynı olsa bile
+            adını ayrıca yazın. Veli paneli: <strong>kullanıcı adı = talebe TC</strong>,
+            <strong>şifre = TC son 4 hane</strong>.
         </p>
         <div class="yk-excel-actions">
             <a href="{% url 'yonetim:talebe_excel_mevcut_indir' %}" class="ghost-btn yk-excel-btn">
                 Mevcut Listeyi İndir (.xlsx)
+            </a>
+            <a href="{% url 'yonetim:talebe_excel_sablon_indir' %}" class="ghost-btn yk-excel-btn">
+                Boş Şablon (.xlsx)
             </a>
         </div>
         <form method="post" enctype="multipart/form-data" class="yk-excel-form">
@@ -309,5 +331,10 @@
     });
 })();
 </script>
+{% endif %}
+
+{% if tur == "talebe" and talebe_form_meta %}
+{{ talebe_form_meta|json_script:"yk-talebe-meta" }}
+<script src="{% static 'js/yonetim-hizli-kayit.js' %}"></script>
 {% endif %}
 {% endblock %}

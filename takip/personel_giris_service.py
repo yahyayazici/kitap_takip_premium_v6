@@ -203,6 +203,7 @@ def ogretmen_olustur(
     *,
     ad_soyad: str,
     siniflar: list[SinifSube] | None = None,
+    dini_ders_seviyeleri: list | None = None,
     brans: Brans | None = None,
     saatlik_ucret=None,
 ) -> OgretmenGirisKaydi | None:
@@ -225,6 +226,9 @@ def ogretmen_olustur(
     if siniflar:
         hoca.sorumlu_sinif_subeler.set(siniflar)
 
+    for seviye in dini_ders_seviyeleri or []:
+        seviye.hocalar.add(hoca)
+
     OgretmenOdemeProfili.objects.create(
         etut_hocasi=hoca,
         brans=brans,
@@ -243,6 +247,7 @@ def toplu_ogretmen_olustur(
     isimler: list[str],
     *,
     siniflar: list[SinifSube] | None = None,
+    dini_ders_seviyeleri: list | None = None,
     brans: Brans | None = None,
     saatlik_ucret=None,
 ) -> tuple[list[OgretmenGirisKaydi], list[str]]:
@@ -257,6 +262,7 @@ def toplu_ogretmen_olustur(
             kayit = ogretmen_olustur(
                 ad_soyad=ad,
                 siniflar=siniflar,
+                dini_ders_seviyeleri=dini_ders_seviyeleri,
                 brans=brans,
                 saatlik_ucret=saatlik_ucret,
             )

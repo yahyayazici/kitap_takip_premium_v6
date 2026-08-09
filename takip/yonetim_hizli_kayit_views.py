@@ -18,6 +18,7 @@ from takip.personel_giris_service import (
 )
 from takip.talebe_excel import talebe_excel_ice_aktar
 from takip.yonetim_forms import TalebeExcelForm
+from takip.models import DiniDersSeviyesi, EtutHocasi, SinifSube
 from takip.yonetim_hizli_kayit_forms import (
     HizliOgretmenForm,
     HizliPersonelForm,
@@ -32,6 +33,55 @@ TUR_SECENEKLERI = (
     ("talebe", "Talebe", "Talebe kaydı — veli bilgisi aynı formda veya Excel ile"),
     ("ogretmen", "Öğretmen", "Etüt hocası — giriş bilgileri otomatik PDF"),
 )
+
+
+def _talebe_form_meta() -> dict:
+    sinif_etut: dict[str, list[int]] = {}
+    for ss in SinifSube.objects.filter(aktif=True).prefetch_related("etut_hocalari"):
+        sinif_etut[str(ss.pk)] = [
+            h.pk for h in ss.etut_hocalari.filter(aktif=True).order_by("ad_soyad")
+        ]
+
+    seviye_hocalar: dict[str, list[int]] = {}
+    for seviye in DiniDersSeviyesi.objects.filter(aktif=True).prefetch_related(
+        "hocalar"
+    ):
+        seviye_hocalar[str(seviye.pk)] = [
+            h.pk for h in seviye.hocalar.filter(aktif=True).order_by("ad_soyad")
+        ]
+
+    hocalar = {
+        str(h.pk): h.ad_soyad
+        for h in EtutHocasi.objects.filter(aktif=True).order_by("ad_soyad")
+    }
+    return {
+        "sinif_etut": sinif_etut,
+        "seviye_hocalar": seviye_hocalar,
+        "hocalar": hocalar,
+    }
+
+
+def _render_context(
+    *,
+    tur: str,
+    form,
+    excel_form,
+    excel_sonuc,
+    toplu_personel_form,
+    toplu_ogretmen_form,
+) -> dict:
+    ctx = {
+        "tur": tur,
+        "tur_secenekleri": TUR_SECENEKLERI,
+        "form": form,
+        "excel_form": excel_form,
+        "excel_sonuc": excel_sonuc,
+        "toplu_personel_form": toplu_personel_form,
+        "toplu_ogretmen_form": toplu_ogretmen_form,
+    }
+    if tur == "talebe":
+        ctx["talebe_form_meta"] = _talebe_form_meta()
+    return ctx
 
 
 def _form_for_tur(tur: str, data=None):
@@ -99,15 +149,14 @@ def hizli_kayit(request):
         return render(
             request,
             "yonetim/hizli_kayit.html",
-            {
-                "tur": tur,
-                "tur_secenekleri": TUR_SECENEKLERI,
-                "form": form,
-                "excel_form": excel_form,
-                "excel_sonuc": excel_sonuc,
-                "toplu_personel_form": toplu_personel_form,
-                "toplu_ogretmen_form": toplu_ogretmen_form,
-            },
+            _render_context(
+                tur=tur,
+                form=form,
+                excel_form=excel_form,
+                excel_sonuc=excel_sonuc,
+                toplu_personel_form=toplu_personel_form,
+                toplu_ogretmen_form=toplu_ogretmen_form,
+            ),
         )
 
     if request.method == "POST" and request.POST.get("islem") == "toplu_ogretmen":
@@ -117,6 +166,9 @@ def hizli_kayit(request):
                 toplu_ogretmen_form.cleaned_data["isim_listesi"],
                 siniflar=list(
                     toplu_ogretmen_form.cleaned_data.get("sorumlu_sinif_subeler") or []
+                ),
+                dini_ders_seviyeleri=list(
+                    toplu_ogretmen_form.cleaned_data.get("dini_ders_seviyeleri") or []
                 ),
                 brans=toplu_ogretmen_form.cleaned_data.get("brans"),
                 saatlik_ucret=toplu_ogretmen_form.cleaned_data.get("saatlik_ucret"),
@@ -146,15 +198,14 @@ def hizli_kayit(request):
         return render(
             request,
             "yonetim/hizli_kayit.html",
-            {
-                "tur": tur,
-                "tur_secenekleri": TUR_SECENEKLERI,
-                "form": form,
-                "excel_form": excel_form,
-                "excel_sonuc": excel_sonuc,
-                "toplu_personel_form": toplu_personel_form,
-                "toplu_ogretmen_form": toplu_ogretmen_form,
-            },
+            _render_context(
+                tur=tur,
+                form=form,
+                excel_form=excel_form,
+                excel_sonuc=excel_sonuc,
+                toplu_personel_form=toplu_personel_form,
+                toplu_ogretmen_form=toplu_ogretmen_form,
+            ),
         )
 
     if request.method == "POST" and request.POST.get("islem") == "toplu_personel":
@@ -193,15 +244,14 @@ def hizli_kayit(request):
         return render(
             request,
             "yonetim/hizli_kayit.html",
-            {
-                "tur": tur,
-                "tur_secenekleri": TUR_SECENEKLERI,
-                "form": form,
-                "excel_form": excel_form,
-                "excel_sonuc": excel_sonuc,
-                "toplu_personel_form": toplu_personel_form,
-                "toplu_ogretmen_form": toplu_ogretmen_form,
-            },
+            _render_context(
+                tur=tur,
+                form=form,
+                excel_form=excel_form,
+                excel_sonuc=excel_sonuc,
+                toplu_personel_form=toplu_personel_form,
+                toplu_ogretmen_form=toplu_ogretmen_form,
+            ),
         )
 
     form = _form_for_tur(tur, request.POST or None)
@@ -230,13 +280,12 @@ def hizli_kayit(request):
     return render(
         request,
         "yonetim/hizli_kayit.html",
-        {
-            "tur": tur,
-            "tur_secenekleri": TUR_SECENEKLERI,
-            "form": form,
-            "excel_form": excel_form,
-            "excel_sonuc": excel_sonuc,
-            "toplu_personel_form": toplu_personel_form,
-            "toplu_ogretmen_form": toplu_ogretmen_form,
-        },
+        _render_context(
+            tur=tur,
+            form=form,
+            excel_form=excel_form,
+            excel_sonuc=excel_sonuc,
+            toplu_personel_form=toplu_personel_form,
+            toplu_ogretmen_form=toplu_ogretmen_form,
+        ),
     )
