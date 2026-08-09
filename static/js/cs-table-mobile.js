@@ -56,7 +56,9 @@
             "table.rh-table, " +
             "table.mz-table, " +
             "table.program-table, " +
-            "table.gt-etut-table"
+            "table.gt-etut-table, " +
+            ".pid-table-wrap .pid-table, " +
+            "table.pid-table"
         );
         tables.forEach(enhanceTable);
 
@@ -64,7 +66,7 @@
             ".responsive-table, .ktt-table-wrap, .at-table-wrap, .st-table-wrap, " +
             ".fn-table-wrap, .ep-table-wrap, .dk-table-wrap, .im-table-wrap, " +
             ".tz-table-wrap, .rh-table-wrap, .mz-table-wrap, .program-table-wrap, " +
-            ".gt-etut-table-wrap"
+            ".gt-etut-table-wrap, .pid-table-wrap"
         ).forEach(function (wrap) {
             if (wrap.querySelector(".cs-mobile-ready")) {
                 wrap.classList.add("cs-mobile-cards");
