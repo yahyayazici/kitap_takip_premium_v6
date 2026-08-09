@@ -4,7 +4,7 @@
     <div class="dp-mob-merged {% if satir.tur == 'namaz' %}is-namaz{% elif satir.tur == 'yemek' %}is-yemek{% endif %}">
         <time>{{ satir.saat }}</time>
         <div>
-            <strong>{{ satir.birlestirilmis_metin|default:satir.metin }}</strong>
+            <strong>{% firstof satir.birlestirilmis_metin satir.metin %}</strong>
             {% if satir.tur_etiket %}<span>{{ satir.tur_etiket }}</span>{% endif %}
         </div>
     </div>
@@ -20,7 +20,7 @@
             {% for hucre in satir.hucreler %}
             {% if duzenleyebilir %}
             <div class="dp-mob-group dp-droppable {% if hucre.bos %}is-empty{% endif %}"
-                 style="{% if not hucre.bos %}--cell-bg: {{ hucre.renk }};{% endif %}"
+                 style="{% if not hucre.bos %}--cell-accent: {{ hucre.renk }};{% endif %}"
                  data-blok-id="{{ satir.blok_id }}"
                  data-grup-id="{{ hucre.grup_id }}"
                  role="button"
@@ -35,7 +35,7 @@
                 {% endif %}
             </div>
             {% else %}
-            <div class="dp-mob-group {% if hucre.bos %}is-empty{% endif %}" style="{% if not hucre.bos %}--cell-bg: {{ hucre.renk }};{% endif %}">
+            <div class="dp-mob-group {% if hucre.bos %}is-empty{% endif %}" style="{% if not hucre.bos %}--cell-accent: {{ hucre.renk }};{% endif %}">
                 <span class="dp-mob-grup-label">{{ hucre.grup_etiket }}</span>
                 {% if hucre.bos %}
                 <span class="dp-mob-empty">Boş</span>

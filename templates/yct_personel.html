@@ -1,47 +1,65 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}YÇT · {{ ay_adi_tr }} {{ yil }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/yct-takvim-premium.css' %}?v=3">
+{% endblock %}
 {% block content %}
-<div class="dash-home">
+<div class="dash-home yct-page yct-personel-page">
+
 {% include "includes/panel_hero.html" with eyebrow="Yıllık Çalışma Takvimi" title="Aylık plan" meta="Kurum çalışma takvimi" show_date=False %}
-<p style="margin:-8px 0 12px;font-size:18px;font-weight:750;">{{ ay_adi_tr }} {{ yil }}</p>
-<div style="display:flex;gap:10px;margin-bottom:14px;">
-    <a class="dash-text-btn" href="?yil={{ onceki.yil }}&ay={{ onceki.ay }}">‹ Önceki</a>
-    <a class="dash-text-btn" href="?yil={{ sonraki.yil }}&ay={{ sonraki.ay }}">Sonraki ›</a>
-</div>
-<section class="dash-panel" style="overflow:auto;">
-    <table class="og-grade-table" style="min-width:720px;">
-        <thead><tr><th>Pzt</th><th>Sal</th><th>Çar</th><th>Per</th><th>Cum</th><th>Cmt</th><th>Paz</th></tr></thead>
+
+<nav class="yct-nav" aria-label="Ay gezinme">
+    <a class="dash-text-btn" href="?yil={{ onceki.yil }}&ay={{ onceki.ay }}">‹ {{ onceki.ay }}/{{ onceki.yil }}</a>
+    <p class="yct-nav-title">{{ ay_adi_tr }} {{ yil }}</p>
+    <a class="dash-text-btn" href="?yil={{ sonraki.yil }}&ay={{ sonraki.ay }}">{{ sonraki.ay }}/{{ sonraki.yil }} ›</a>
+</nav>
+
+<section class="dash-panel dash-panel-lined yct-calendar-panel">
+    <table class="og-grade-table yct-grid">
+        <thead>
+            <tr>
+                <th>Pzt</th><th>Sal</th><th>Çar</th><th>Per</th><th>Cum</th><th>Cmt</th><th>Paz</th>
+            </tr>
+        </thead>
         <tbody>
         {% for week in weeks %}
-        <tr>
+            <tr>
             {% for cell in week %}
-            <td style="vertical-align:top;min-width:96px;height:84px;">
-                {% if cell.day %}
-                <strong style="font-size:12px;color:#64748b;">{{ cell.day }}</strong>
-                {% for o in cell.olaylar %}
-                <div style="margin-top:4px;padding:4px 6px;border-radius:8px;background:#eef4ff;font-size:11px;font-weight:650;">{{ o.baslik|truncatechars:26 }}</div>
-                {% endfor %}
-                {% endif %}
-            </td>
+                <td class="{% if not cell.day %}is-empty{% endif %}">
+                    {% if cell.day %}
+                    <span class="yct-day-num">{{ cell.day }}</span>
+                    {% for o in cell.olaylar %}
+                    <div class="yct-event" title="{{ o.baslik }}">{{ o.baslik|truncatechars:26 }}</div>
+                    {% endfor %}
+                    {% endif %}
+                </td>
             {% endfor %}
-        </tr>
+            </tr>
         {% endfor %}
         </tbody>
     </table>
 </section>
-<section class="dash-panel" style="margin-top:14px;">
-    <div class="dash-panel-head"><div><p class="dash-eyebrow">Liste</p><h2>Bu ay</h2></div></div>
-    <div class="dash-feed" style="padding:12px 16px 18px;">
+
+<section class="dash-panel dash-panel-lined yct-list-panel">
+    <div class="dash-panel-head">
+        <div>
+            <p class="dash-eyebrow dash-accent-eyebrow-amber">Liste</p>
+            <h2>Bu ay</h2>
+        </div>
+    </div>
+    <div class="dash-feed yct-feed">
         {% for o in olaylar %}
-        <article class="dash-feed-item">
-            <span class="dash-feed-tag">{{ o.baslangic|date:"d.m.Y" }} · {{ o.get_kategori_display }}</span>
+        <article class="yct-feed-item">
+            <span class="yct-feed-tag">{{ o.baslangic|date:"d.m.Y" }}{% if o.bitis %} – {{ o.bitis|date:"d.m.Y" }}{% endif %} · {{ o.get_kategori_display }}</span>
             <h3>{{ o.baslik }}</h3>
             {% if o.aciklama %}<p>{{ o.aciklama|linebreaksbr }}</p>{% endif %}
         </article>
         {% empty %}
-        <p class="og-empty-note">Bu aya ait plan yok.</p>
+        <p class="yct-empty og-empty-note">Bu aya ait plan yok.</p>
         {% endfor %}
     </div>
 </section>
+
 </div>
 {% endblock %}

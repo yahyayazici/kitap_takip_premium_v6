@@ -214,7 +214,7 @@
                     <td>
                         {% if duzenleyebilir %}
                         <div class="dp-cell dp-droppable {% if hucre.bos %}dp-cell-empty{% endif %}"
-                            style="{% if not hucre.bos %}background: {{ hucre.renk }};{% endif %}"
+                            style="{% if not hucre.bos %}--cell-accent: {{ hucre.renk }};{% endif %}"
                             data-blok-id="{{ satir.blok_id }}"
                             data-grup-id="{{ hucre.grup_id }}"
                             role="button"
@@ -228,7 +228,7 @@
                             {% endif %}
                         </div>
                         {% else %}
-                        <div class="dp-cell" style="background: {{ hucre.renk }};">
+                        <div class="dp-cell" style="--cell-accent: {{ hucre.renk }};">
                             {% if not hucre.bos %}
                             <strong class="dp-cell-ders">{{ hucre.ders }}</strong>
                             <span class="dp-cell-ogretmen">{{ hucre.ogretmen }}</span>
