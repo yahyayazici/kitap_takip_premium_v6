@@ -41,6 +41,13 @@ class KttSinav(models.Model):
         verbose_name="Veli panelinde göster",
     )
     aktif = models.BooleanField(default=True, verbose_name="Aktif")
+    haric_talebeler = models.ManyToManyField(
+        "Talebe",
+        blank=True,
+        related_name="ktt_haric",
+        verbose_name="Katılmayan / hariç talebeler",
+        help_text="Sınava katılmayan ve sonuç listesinden çıkarılan öğrenciler.",
+    )
     olusturan = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,

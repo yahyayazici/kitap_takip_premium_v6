@@ -2,23 +2,23 @@
 {% load static %}
 {% block title %}Dini Ders Takip · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}?v=dd-mob3">
+<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}?v=dd-tip1">
 {% endblock %}
 {% block content %}
 <div class="dd-page">
 
-<header class="page-head patterned-page-head dd-page-head">
-    <div>
+<header class="page-head patterned-page-head dd-page-head dd-hero">
+    <div class="dd-head-main">
         <p class="kicker">DİNİ DERS TAKİP</p>
         <h1>Dini Ders Takip Matrisi</h1>
-        <p class="muted">Seviye ve takip alanı seçin · Talebe × konu ilerleme işaretleme</p>
-    </div>
-    <div class="result-header-actions">
-        {% if seviye and alan %}
-        <a href="{% url 'yonetim:dini_ders_konu_listesi' %}" class="result-secondary-button">Konu Listesini Düzenle</a>
-        {% endif %}
-        <a href="{% url 'dini_ders_rapor' %}{% if seviye and alan %}?seviye={{ seviye.id }}&alan={{ alan.id }}{% endif %}" class="result-secondary-button">Rapor</a>
-        <a href="{% url 'dashboard' %}" class="result-back-button">Ana Sayfa</a>
+        <p class="dd-head-desc">Seviye ve takip alanı seçin · Talebe × konu ilerleme işaretleme</p>
+        <div class="result-header-actions dd-head-actions">
+            {% if seviye and alan %}
+            <a href="{% url 'yonetim:dini_ders_konu_listesi' %}" class="result-secondary-button">Konu Listesini Düzenle</a>
+            {% endif %}
+            <a href="{% url 'dini_ders_rapor' %}{% if seviye and alan %}?seviye={{ seviye.id }}&alan={{ alan.id }}{% endif %}" class="result-secondary-button">Rapor</a>
+            <a href="{% url 'dashboard' %}" class="result-back-button">Ana Sayfa</a>
+        </div>
     </div>
 </header>
 
@@ -66,13 +66,17 @@
                 <p class="dd-eyebrow">Çizelge Görünümü</p>
                 <h2>{{ seviye.ad }} · {{ alan.ad }}</h2>
             </div>
-            <span class="dd-pill dd-pill-blue">{{ konular|length }} konu · {{ talebeler|length }} talebe</span>
+            <div class="dd-matrix-head-actions">
+                <span class="dd-pill dd-pill-blue">{{ konular|length }} konu · {{ talebeler|length }} talebe</span>
+                <button type="button" class="dd-btn dd-btn-sm dd-topic-all-btn" id="dd-topic-all-btn">Tüm konu adları</button>
+            </div>
         </div>
 
         <div class="dd-legend" aria-label="Durum renkleri">
             <span class="dd-legend-item dd-legend-tamam"><em>✓</em> Tamamlandı</span>
             <span class="dd-legend-item dd-legend-devam"><em>⏳</em> Devam</span>
             <span class="dd-legend-item dd-legend-bos"><em>○</em> İşlenmedi</span>
+            <span class="dd-legend-item dd-legend-hint">Başlığa tıklayın — tam ad görünür</span>
         </div>
 
         {% if duzenleyebilir %}
@@ -86,7 +90,13 @@
                         <tr>
                             <th class="dd-sticky-col">Talebe</th>
                             {% for konu in konular %}
-                            <th class="dd-topic-col" title="{{ konu.ad }}"><span>{{ konu.ad }}</span></th>
+                            <th class="dd-topic-col"
+                                data-full-name="{{ konu.ad }}"
+                                tabindex="0"
+                                role="button"
+                                aria-label="{{ konu.ad }} — tam adı göster">
+                                <span>{{ konu.ad }}</span>
+                            </th>
                             {% endfor %}
                         </tr>
                     </thead>
@@ -151,7 +161,13 @@
                     <tr>
                         <th class="dd-sticky-col">Talebe</th>
                         {% for konu in konular %}
-                        <th class="dd-topic-col" title="{{ konu.ad }}"><span>{{ konu.ad }}</span></th>
+                        <th class="dd-topic-col"
+                            data-full-name="{{ konu.ad }}"
+                            tabindex="0"
+                            role="button"
+                            aria-label="{{ konu.ad }} — tam adı göster">
+                            <span>{{ konu.ad }}</span>
+                        </th>
                         {% endfor %}
                     </tr>
                 </thead>
@@ -279,6 +295,27 @@
 </section>
 {% endif %}
 </div>
+
+<div id="dd-topic-popover" class="dd-topic-popover" hidden role="dialog" aria-modal="false" aria-live="polite">
+    <p class="dd-topic-popover-text"></p>
+    <button type="button" class="dd-topic-popover-close" aria-label="Kapat">×</button>
+</div>
+
+<div id="dd-topic-modal" class="dd-topic-modal" hidden role="dialog" aria-modal="true" aria-labelledby="dd-topic-modal-title">
+    <div class="dd-topic-modal-backdrop" data-dd-topic-close></div>
+    <div class="dd-topic-modal-panel">
+        <header class="dd-topic-modal-head">
+            <h3 id="dd-topic-modal-title">Tüm konu adları</h3>
+            <button type="button" class="dd-topic-modal-close" data-dd-topic-close aria-label="Kapat">×</button>
+        </header>
+        <ol class="dd-topic-modal-list">
+            {% for konu in konular %}
+            <li>{{ konu.ad }}</li>
+            {% endfor %}
+        </ol>
+    </div>
+</div>
+
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     function syncDdInputs() {
@@ -292,6 +329,108 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     syncDdInputs();
     window.addEventListener("resize", syncDdInputs);
+
+    var popover = document.getElementById("dd-topic-popover");
+    var popoverText = popover ? popover.querySelector(".dd-topic-popover-text") : null;
+    var popoverClose = popover ? popover.querySelector(".dd-topic-popover-close") : null;
+    var modal = document.getElementById("dd-topic-modal");
+    var allBtn = document.getElementById("dd-topic-all-btn");
+    var activeHead = null;
+
+    function markTruncatedHeaders() {
+        document.querySelectorAll(".dd-topic-col").forEach(function (th) {
+            var span = th.querySelector("span");
+            if (!span) return;
+            if (span.scrollHeight > span.clientHeight + 2 || span.scrollWidth > span.clientWidth + 2) {
+                th.classList.add("is-truncated");
+            }
+        });
+    }
+
+    function hidePopover() {
+        if (!popover) return;
+        popover.hidden = true;
+        activeHead = null;
+    }
+
+    function showPopover(th) {
+        if (!popover || !popoverText) return;
+        var name = th.getAttribute("data-full-name") || th.textContent.trim();
+        popoverText.textContent = name;
+        popover.hidden = false;
+        activeHead = th;
+
+        var rect = th.getBoundingClientRect();
+        var popRect = popover.getBoundingClientRect();
+        var top = rect.bottom + 8;
+        var left = rect.left + rect.width / 2 - popRect.width / 2;
+        left = Math.max(12, Math.min(left, window.innerWidth - popRect.width - 12));
+        if (top + popRect.height > window.innerHeight - 12) {
+            top = rect.top - popRect.height - 8;
+        }
+        popover.style.top = top + "px";
+        popover.style.left = left + "px";
+    }
+
+    function openModal() {
+        if (!modal) return;
+        modal.hidden = false;
+        document.body.classList.add("dd-topic-modal-open");
+    }
+
+    function closeModal() {
+        if (!modal) return;
+        modal.hidden = true;
+        document.body.classList.remove("dd-topic-modal-open");
+    }
+
+    document.querySelectorAll(".dd-topic-col").forEach(function (th) {
+        th.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (activeHead === th && !popover.hidden) {
+                hidePopover();
+                return;
+            }
+            showPopover(th);
+        });
+        th.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                th.click();
+            }
+        });
+    });
+
+    if (popoverClose) {
+        popoverClose.addEventListener("click", hidePopover);
+    }
+
+    document.addEventListener("click", function (e) {
+        if (!popover || popover.hidden) return;
+        if (popover.contains(e.target) || e.target.closest(".dd-topic-col")) return;
+        hidePopover();
+    });
+
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
+            hidePopover();
+            closeModal();
+        }
+    });
+
+    if (allBtn) {
+        allBtn.addEventListener("click", openModal);
+    }
+
+    if (modal) {
+        modal.querySelectorAll("[data-dd-topic-close]").forEach(function (el) {
+            el.addEventListener("click", closeModal);
+        });
+    }
+
+    markTruncatedHeaders();
+    window.addEventListener("resize", markTruncatedHeaders);
 });
 </script>
 {% endblock %}

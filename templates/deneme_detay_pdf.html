@@ -1,9 +1,9 @@
-﻿{% load static pdf_extras %}
+{% load static pdf_extras %}
 <!doctype html>
 <html lang="tr">
 <head>
     <meta charset="utf-8">
-    <title>{{ ktt.ad }} · KTT Sonuç Tablosu</title>
+    <title>{{ deneme.ad }} · Deneme Sonuç Tablosu</title>
     <style>
         {% include "includes/pdf_karne_fonts.html" %}
         {% include "includes/pdf_karne_a4_css.html" %}
@@ -13,77 +13,58 @@
             margin: 4mm 6mm 3mm;
         }
 
-        /* KTT — tek sayfa, okunaklı nizam */
-        .pdf-karne.ktt-detay-pdf {
-            font-size: 7px;
-        }
-
-        .pdf-karne.ktt-detay-pdf .brand-logo-wrap { width: 48px; height: 48px; }
-        .pdf-karne.ktt-detay-pdf .brand-logo { width: 48px; height: 48px; }
-        .pdf-karne.ktt-detay-pdf .header-text-cell { padding-left: 10px; }
-        .pdf-karne.ktt-detay-pdf .brand-name { font-size: 12px; }
-        .pdf-karne.ktt-detay-pdf .brand-sub {
+        .pdf-karne.deneme-detay-pdf { font-size: 7px; }
+        .pdf-karne.deneme-detay-pdf .brand-logo-wrap { width: 48px; height: 48px; }
+        .pdf-karne.deneme-detay-pdf .brand-logo { width: 48px; height: 48px; }
+        .pdf-karne.deneme-detay-pdf .header-text-cell { padding-left: 10px; }
+        .pdf-karne.deneme-detay-pdf .brand-name { font-size: 12px; }
+        .pdf-karne.deneme-detay-pdf .brand-sub {
             margin-top: 3px;
             font-size: 7px;
             letter-spacing: 0.55px;
             text-transform: uppercase;
         }
-        .pdf-karne.ktt-detay-pdf .doc-title { font-size: 7px; }
-
-        .pdf-karne.ktt-detay-pdf .gap6 { height: 4px; }
-        .pdf-karne.ktt-detay-pdf .gap8 { height: 5px; }
-
-        .pdf-karne.ktt-detay-pdf .hero {
-            padding: 8px 10px;
-            border-radius: 8px;
-        }
-
-        .pdf-karne.ktt-detay-pdf .hero-title { font-size: 13px; margin-top: 3px; }
-        .pdf-karne.ktt-detay-pdf .hero-meta { font-size: 6px; margin-top: 3px; }
-
-        .pdf-karne.ktt-detay-pdf .stat-cell { padding: 5px 6px; border-radius: 8px; }
-        .pdf-karne.ktt-detay-pdf .stat-metric { font-size: 13px; margin-top: 2px; }
-        .pdf-karne.ktt-detay-pdf .stat-label { font-size: 5.5px; }
-        .pdf-karne.ktt-detay-pdf .stat-sub { font-size: 5.5px; }
-
-        .pdf-karne.ktt-detay-pdf .table-panel-head { padding: 6px 8px 0; }
-        .pdf-karne.ktt-detay-pdf .section-title { font-size: 9px; }
-
-        .pdf-karne.ktt-detay-pdf .results-wrap {
+        .pdf-karne.deneme-detay-pdf .doc-title { font-size: 7px; }
+        .pdf-karne.deneme-detay-pdf .gap6 { height: 4px; }
+        .pdf-karne.deneme-detay-pdf .gap8 { height: 5px; }
+        .pdf-karne.deneme-detay-pdf .hero { padding: 8px 10px; border-radius: 8px; }
+        .pdf-karne.deneme-detay-pdf .hero-title { font-size: 13px; margin-top: 3px; }
+        .pdf-karne.deneme-detay-pdf .hero-meta { font-size: 6px; margin-top: 3px; }
+        .pdf-karne.deneme-detay-pdf .stat-cell { padding: 5px 6px; border-radius: 8px; }
+        .pdf-karne.deneme-detay-pdf .stat-metric { font-size: 13px; margin-top: 2px; }
+        .pdf-karne.deneme-detay-pdf .stat-label { font-size: 5.5px; }
+        .pdf-karne.deneme-detay-pdf .stat-sub { font-size: 5.5px; }
+        .pdf-karne.deneme-detay-pdf .table-panel-head { padding: 6px 8px 0; }
+        .pdf-karne.deneme-detay-pdf .section-title { font-size: 9px; }
+        .pdf-karne.deneme-detay-pdf .table-panel-accent { background: #7c3aed; }
+        .pdf-karne.deneme-detay-pdf .results-wrap {
             column-count: 1 !important;
             padding: 0 6px 6px;
         }
-
-        .pdf-karne.ktt-detay-pdf table.results {
+        .pdf-karne.deneme-detay-pdf table.results {
             width: 100%;
             table-layout: fixed;
         }
-
-        .pdf-karne.ktt-detay-pdf table.results thead th {
+        .pdf-karne.deneme-detay-pdf table.results thead th {
             padding: 4px 3px;
             font-size: 5.8px;
         }
-
-        .pdf-karne.ktt-detay-pdf table.results tbody td {
+        .pdf-karne.deneme-detay-pdf table.results tbody td {
             padding: 2.5px 3px;
             font-size: 7px;
         }
-
-        .pdf-karne.ktt-detay-pdf .student-name {
+        .pdf-karne.deneme-detay-pdf .student-name {
             font-size: 7.2px;
             line-height: 1.2;
             white-space: normal;
             word-wrap: break-word;
         }
-
-        .pdf-karne.ktt-detay-pdf .student-meta {
+        .pdf-karne.deneme-detay-pdf .student-meta {
             font-size: 5.8px;
             margin-top: 1px;
         }
-
-        .pdf-karne.ktt-detay-pdf .num-cell { font-size: 7.2px; }
-
-        .pdf-karne.ktt-detay-pdf .rank-no {
+        .pdf-karne.deneme-detay-pdf .num-cell { font-size: 7.2px; }
+        .pdf-karne.deneme-detay-pdf .rank-no {
             display: inline-block;
             min-width: 14px;
             font-size: 6.8px;
@@ -92,41 +73,28 @@
             color: #475569;
             text-align: center;
         }
-
-        .pdf-karne.ktt-detay-pdf .ktt-split-layout {
+        .pdf-karne.deneme-detay-pdf .deneme-split-layout {
             width: 100%;
             border-collapse: separate;
             border-spacing: 6px 0;
             table-layout: fixed;
         }
-
-        .pdf-karne.ktt-detay-pdf .ktt-split-col {
+        .pdf-karne.deneme-detay-pdf .deneme-split-col {
             width: 50%;
             vertical-align: top;
         }
-
-        .pdf-karne.ktt-detay-pdf .results-kompakt tbody td {
-            padding: 2px 2px;
-        }
-
-        .pdf-karne.ktt-detay-pdf .results-kompakt .student-name {
-            font-size: 6.8px;
-        }
-
-        .pdf-karne.ktt-detay-pdf .results-kompakt .num-cell {
-            font-size: 6.8px;
-        }
-
-        .pdf-karne.ktt-detay-pdf .results-kompakt thead th {
+        .pdf-karne.deneme-detay-pdf .results-kompakt tbody td { padding: 2px 2px; }
+        .pdf-karne.deneme-detay-pdf .results-kompakt .student-name { font-size: 6.8px; }
+        .pdf-karne.deneme-detay-pdf .results-kompakt .num-cell { font-size: 6.8px; }
+        .pdf-karne.deneme-detay-pdf .results-kompakt thead th {
             padding: 3px 2px;
             font-size: 5.5px;
         }
-
-        .pdf-karne.ktt-detay-pdf .footer-table { margin-top: 4px; }
-        .pdf-karne.ktt-detay-pdf .footer-table td { padding-top: 3px; font-size: 5.5px; }
+        .pdf-karne.deneme-detay-pdf .footer-table { margin-top: 4px; }
+        .pdf-karne.deneme-detay-pdf .footer-table td { padding-top: 3px; font-size: 5.5px; }
     </style>
 </head>
-<body class="pdf-karne ktt-detay-pdf {{ sonuclar|length|pdf_density_class }}">
+<body class="pdf-karne deneme-detay-pdf {{ sonuclar|length|pdf_density_class }}">
 
 <div class="pdf-sheet">
 <table class="layout">
@@ -144,7 +112,7 @@
                         <div class="brand-sub">{{ panel_tagline }}</div>
                     </td>
                     <td class="header-right">
-                        <div class="doc-title">KTT Sonuç Tablosu</div>
+                        <div class="doc-title">Deneme Sonuç Tablosu</div>
                     </td>
                 </tr>
             </table>
@@ -161,11 +129,11 @@
                 <rect x="28" y="32" width="42" height="4" rx="2" fill="#FFFFFF" opacity="0.45"/>
             </svg>
             <div class="hero-inner">
-                <div class="hero-tag">Kazanım Tarama Testi</div>
-                <div class="hero-title">{{ ktt.ad }}</div>
+                <div class="hero-tag">Deneme Sınavı</div>
+                <div class="hero-title">{{ deneme.ad }}</div>
                 <div class="hero-meta">
-                    {{ ktt.ders.ad }} · {{ ktt.sinif_goster }} · {{ ktt.soru_sayisi }} soru ·
-                    {{ ktt.sinav_tarihi|date:"d.m.Y" }} · Net = Doğru − Yanlış/4
+                    {{ deneme.sinif_seviyesi }}. sınıf · {{ deneme.sinav_tarihi|date:"d.m.Y" }} ·
+                    {{ ozet.ogrenci_sayisi }} öğrenci
                 </div>
             </div>
         </td>
@@ -193,7 +161,7 @@
                         <div class="stat-accent"></div>
                         <div class="stat-label">Ort. Puan</div>
                         <div class="stat-metric">{{ ozet.ortalama_puan }}</div>
-                        <div class="stat-sub">100 üzerinden</div>
+                        <div class="stat-sub">Ortalama</div>
                     </td>
                     <td width="25%" class="stat-cell tone-purple">
                         <div class="stat-accent"></div>
@@ -213,33 +181,28 @@
             <div class="table-panel">
                 <div class="table-panel-accent"></div>
                 <div class="table-panel-head">
-                    <div class="section-kicker">Sonuç Listesi</div>
-                    <div class="section-title">KTT Sonuç Tablosu</div>
+                    <div class="section-kicker">Genel Sıralama</div>
+                    <div class="section-title">Deneme Sonuç Tablosu</div>
                 </div>
                 <div class="results-wrap">
                     {% if sonuc_split %}
-                    <table class="ktt-split-layout" cellpadding="0" cellspacing="0">
+                    <table class="deneme-split-layout" cellpadding="0" cellspacing="0">
                         <tr>
-                            <td class="ktt-split-col">
-                                {% include "includes/ktt_pdf_sonuc_kolon.html" with kolon=sonuclar_sol sira_offset=0 kompakt=True %}
+                            <td class="deneme-split-col">
+                                {% include "includes/deneme_pdf_sonuc_kolon.html" with kolon=sonuclar_sol sira_offset=0 kompakt=True %}
                             </td>
-                            <td class="ktt-split-col">
-                                {% include "includes/ktt_pdf_sonuc_kolon.html" with kolon=sonuclar_sag sira_offset=split_at kompakt=True %}
+                            <td class="deneme-split-col">
+                                {% include "includes/deneme_pdf_sonuc_kolon.html" with kolon=sonuclar_sag sira_offset=split_at kompakt=True %}
                             </td>
                         </tr>
                     </table>
                     {% else %}
-                    {% include "includes/ktt_pdf_sonuc_kolon.html" with kolon=sonuclar sira_offset=0 kompakt=False %}
+                    {% include "includes/deneme_pdf_sonuc_kolon.html" with kolon=sonuclar sira_offset=0 kompakt=False %}
                     {% endif %}
                 </div>
             </div>
         </td>
     </tr>
-
-    {% if analiz_goster %}
-    <tr><td class="gap8"></td></tr>
-    {% include "includes/ktt_analiz_pdf.html" %}
-    {% endif %}
 
     <tr>
         <td>

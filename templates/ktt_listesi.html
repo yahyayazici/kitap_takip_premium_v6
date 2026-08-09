@@ -6,18 +6,18 @@
 {% endblock %}
 {% block content %}
 <div class="ktt-page">
-    <header class="ktt-page-head ktt-page-head-row">
-        <div>
+    <header class="page-head patterned-page-head ktt-page-head ktt-hero">
+        <div class="ktt-head-main">
             <p class="kicker">KAZANIM TARAMA TESTİ</p>
             <h1>Konu Tarama Testleri (KTT)</h1>
-        </div>
-        <div class="ktt-head-actions">
-            {% if olusturabilir and form %}
-            <button type="button" class="ktt-solid-btn" id="ktt-open-form" aria-controls="ktt-form-modal" aria-expanded="false">
-                + KTT Ekle
-            </button>
-            {% endif %}
-            <a href="{% url 'ktt_rapor' %}" class="ktt-outline-btn green">Rapor &amp; Analiz</a>
+            <div class="ktt-head-actions profile-head-actions">
+                {% if olusturabilir and form %}
+                <button type="button" class="ktt-solid-btn primary-btn" id="ktt-open-form" aria-controls="ktt-form-modal" aria-expanded="false">
+                    + KTT Ekle
+                </button>
+                {% endif %}
+                <a href="{% url 'ktt_rapor' %}" class="ktt-outline-btn green ghost-btn">Rapor &amp; Analiz</a>
+            </div>
         </div>
     </header>
 

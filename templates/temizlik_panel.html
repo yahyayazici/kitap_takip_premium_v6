@@ -9,18 +9,19 @@
 {% block content %}
 <div class="tz-page tz-personel">
 
-<header class="tz-head">
-    <div>
+<header class="page-head patterned-page-head tz-hero">
+    <div class="tz-head-main">
+        <p class="kicker">GÖREV MODÜLÜ</p>
         <h1>Temizlik Görevleri</h1>
-        <p class="tz-sub">{{ secili_tarih|date:"d F Y, l" }} · Sorumlu olduğunuz katlar</p>
-    </div>
-    <div class="tz-head-actions">
-        {% if secili_liste %}
-        <a href="{% url 'temizlik_pdf' secili_liste.pk %}" class="tz-btn" target="_blank" rel="noopener">PDF</a>
-        {% endif %}
-        {% if yonetim_modulu and secili_liste %}
-        <a href="{% url 'yonetim:temizlik_gorev_panel' secili_liste.pk %}" class="tz-btn tz-btn-primary">Yönetim</a>
-        {% endif %}
+        <p class="muted">{{ secili_tarih|date:"d F Y, l" }} · Sorumlu olduğunuz katlar</p>
+        <div class="tz-head-actions profile-head-actions">
+            {% if secili_liste %}
+            <a href="{% url 'temizlik_pdf' secili_liste.pk %}" class="primary-btn" target="_blank" rel="noopener">PDF İndir</a>
+            {% endif %}
+            {% if yonetim_modulu and secili_liste %}
+            <a href="{% url 'yonetim:temizlik_gorev_panel' secili_liste.pk %}" class="ghost-btn">Yönetim</a>
+            {% endif %}
+        </div>
     </div>
 </header>
 

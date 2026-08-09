@@ -1,16 +1,17 @@
 {% extends "base.html" %}
 {% block title %}Rehberlik · {{ panel_short }}{% endblock %}
 {% block content %}
-<header class="page-head patterned-page-head">
-    <div>
+<div class="rh-page">
+<header class="page-head patterned-page-head rh-hero">
+    <div class="rh-head-main">
         <p class="kicker">REHBERLİK</p>
         <h1>Öğrenci Görüşmeleri</h1>
-        <p class="muted">Rehberlik görüşme kayıtları.</p>
+        <p class="rh-head-desc">Rehberlik görüşme kayıtları.</p>
     </div>
 </header>
 
 {% if duzenleyebilir and form %}
-<section class="dashboard-card">
+<section class="dashboard-card rh-card rh-form-card">
     <div class="card-heading"><div><p class="card-kicker">YENİ</p><h2>Görüşme Ekle</h2></div></div>
     <form method="post">
         {% csrf_token %}
@@ -20,7 +21,7 @@
 </section>
 {% endif %}
 
-<section class="dashboard-card">
+<section class="dashboard-card rh-card rh-list-card">
     <div class="card-heading"><div><p class="card-kicker">FİLTRE</p><h2>Kayıtlar</h2></div></div>
     <form method="get" class="filter-row">
         <input type="search" name="q" value="{{ filtre_q }}" class="input" placeholder="Ara...">
@@ -49,4 +50,5 @@
         </table>
     </div>
 </section>
+</div>
 {% endblock %}

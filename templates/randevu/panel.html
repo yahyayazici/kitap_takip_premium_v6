@@ -2,18 +2,19 @@
 {% load static %}
 {% block title %}Veli Randevuları · {{ panel_short }}{% endblock %}
 {% block content %}
-<header class="page-head patterned-page-head">
-    <div>
+<div class="randevu-page">
+<header class="page-head patterned-page-head randevu-hero">
+    <div class="randevu-head-main">
         <p class="kicker">İLETİŞİM</p>
         <h1>Veli Randevuları</h1>
-        <p class="muted">Planlanan görüşmeleriniz ve görüşme notları.</p>
-    </div>
-    <div class="page-head-actions">
-        {% if user.is_superuser %}<a href="{% url 'randevu_raporlar' %}" class="ghost-btn">Raporlar</a>{% endif %}
+        <p class="randevu-head-desc">Planlanan görüşmeleriniz ve görüşme notları.</p>
+        <div class="page-head-actions randevu-head-actions">
+            {% if user.is_superuser %}<a href="{% url 'randevu_raporlar' %}" class="ghost-btn">Raporlar</a>{% endif %}
+        </div>
     </div>
 </header>
 
-<section class="dashboard-card">
+<section class="dashboard-card randevu-list-card">
     <div class="card-heading"><div><p class="card-kicker">YAKLAŞAN</p><h2>Randevular</h2></div></div>
     <div class="responsive-table">
         <table class="report-data-table">
@@ -37,4 +38,5 @@
         </table>
     </div>
 </section>
+</div>
 {% endblock %}

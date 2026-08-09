@@ -9,6 +9,7 @@ PANEL_SHORT = os.environ.get("PANEL_SHORT", "Çinili Saray Proje")
 PANEL_MOBILE_SHORT = os.environ.get("PANEL_MOBILE_SHORT", "Çinili Saray")
 PANEL_MODULE_LABEL = os.environ.get("PANEL_MODULE_LABEL", "Eğitim Modülü")
 PANEL_ORG = os.environ.get("PANEL_ORG", "Çinili Saray Proje")
+PANEL_TAGLINE = os.environ.get("PANEL_TAGLINE", "Öğrenmenin En Akıllı Yolu")
 PANEL_FOOTER = os.environ.get("PANEL_FOOTER", "Çinili Saray Proje")
 
 
@@ -17,6 +18,7 @@ def panel_branding_context() -> dict[str, str]:
         "panel_name": PANEL_NAME,
         "panel_short": PANEL_SHORT,
         "panel_org": PANEL_ORG,
+        "panel_tagline": PANEL_TAGLINE,
         "panel_footer": PANEL_FOOTER,
     }
 

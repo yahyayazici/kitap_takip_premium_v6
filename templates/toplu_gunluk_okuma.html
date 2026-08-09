@@ -6,25 +6,15 @@
 
 <div class="daily-page">
 
-    <header class="daily-header">
-
-        <div>
-            <p class="daily-kicker">
-                {{ bugun|date:"d F Y"|upper }}
-            </p>
-
+    <header class="page-head patterned-page-head daily-header daily-hero">
+        <div class="daily-head-main">
+            <p class="kicker">{{ bugun|date:"d F Y"|upper }}</p>
             <h1>Toplu Günlük Okuma</h1>
-
-            <p class="daily-description">
-                Talebelerin bugün ulaştığı son sayfaları girin.
-                Okunan miktar otomatik hesaplanır.
-            </p>
+            <p class="daily-head-desc">Talebelerin bugün ulaştığı son sayfaları girin. Okunan miktar otomatik hesaplanır.</p>
+            <div class="daily-head-actions">
+                <a href="{% url 'dashboard' %}" class="daily-secondary-button">Genel Bakışa Dön</a>
+            </div>
         </div>
-
-        <a href="{% url 'dashboard' %}" class="daily-secondary-button">
-            Genel Bakışa Dön
-        </a>
-
     </header>
 
 

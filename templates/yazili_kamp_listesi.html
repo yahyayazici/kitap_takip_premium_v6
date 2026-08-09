@@ -5,27 +5,27 @@
 <link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=yazili-mob1">
 {% endblock %}
 {% block content %}
-<div class="ktt-page">
-    <header class="ktt-page-head ktt-page-head-row">
-        <div>
+<div class="ktt-page yazili-page">
+    <header class="page-head patterned-page-head ktt-page-head ktt-hero yazili-hero">
+        <div class="ktt-head-main">
             <p class="kicker">YAZILI TAKİP</p>
             <h1>Yazılı Sınavlar</h1>
-            <p class="muted">
+            <p class="yazili-head-desc">
                 {% if aktif_tur == 'gercek' %}
                 Okuldan gelen gerçek notları dönem ve yazılı numarasına göre kaydedin.
                 {% else %}
                 Örnek yazılı oluşturun ve puan girişi yapın.
                 {% endif %}
             </p>
-        </div>
-        <div class="ktt-head-actions">
-            {% if olusturabilir and form %}
-            <button type="button" class="ktt-solid-btn" id="ktt-open-form" aria-controls="ktt-form-modal" aria-expanded="false">
-                {% if aktif_tur == 'gercek' %}+ Gerçek not ekle{% else %}+ Yazılı ekle{% endif %}
-            </button>
-            {% endif %}
-            <a href="{% url 'yazili_kamp_listesi' %}?tur=ornek" class="ktt-outline-btn {% if aktif_tur == 'ornek' %}is-active{% endif %}">Örnek yazılı</a>
-            <a href="{% url 'yazili_kamp_listesi' %}?tur=gercek" class="ktt-outline-btn {% if aktif_tur == 'gercek' %}is-active{% endif %}">Gerçek okul notu</a>
+            <div class="ktt-head-actions profile-head-actions">
+                {% if olusturabilir and form %}
+                <button type="button" class="ktt-solid-btn primary-btn" id="ktt-open-form" aria-controls="ktt-form-modal" aria-expanded="false">
+                    {% if aktif_tur == 'gercek' %}+ Gerçek not ekle{% else %}+ Yazılı ekle{% endif %}
+                </button>
+                {% endif %}
+                <a href="{% url 'yazili_kamp_listesi' %}?tur=ornek" class="ktt-outline-btn {% if aktif_tur == 'ornek' %}is-active{% endif %}">Örnek yazılı</a>
+                <a href="{% url 'yazili_kamp_listesi' %}?tur=gercek" class="ktt-outline-btn {% if aktif_tur == 'gercek' %}is-active{% endif %}">Gerçek okul notu</a>
+            </div>
         </div>
     </header>
 

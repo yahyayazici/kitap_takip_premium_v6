@@ -8,24 +8,24 @@
 {% block content %}
 <div class="dk-page">
 
-<header class="dk-head">
-    <div>
-        <p class="dk-eyebrow">Kurum Yönetimi</p>
+<header class="page-head patterned-page-head dk-head dk-hero">
+    <div class="dk-head-main">
+        <p class="kicker">KURUM YÖNETİMİ</p>
         <h1>{{ kurul_adi|default:"İstişare ve Disiplin Kurulu" }}</h1>
-        <p class="dk-sub">Gündem hazırlayın, toplantıları yönetin, kararları ve uygulama süreçlerini takip edin.</p>
-    </div>
-    <div class="dk-actions">
-        {% if duzenleyebilir %}
-        <a href="{% url 'disiplin_kurul_olustur' %}" class="dk-btn dk-btn-ghost">+ Yeni Kurul</a>
-        {% endif %}
-        {% if tam_yetki %}
-        <a href="{% url 'disiplin_kurul_ayarlar' %}" class="dk-btn dk-btn-ghost">Kurul Ayarları</a>
-        {% endif %}
-        <a href="{% url 'disiplin_kurul_arsiv' %}" class="dk-btn dk-btn-ghost">PDF Arşivi</a>
-        <a href="{% url 'disiplin_kurul_rapor' %}" class="dk-btn dk-btn-ghost">Raporlar</a>
-        {% if duzenleyebilir %}
-        <a href="{% url 'disiplin_kurul_olustur' %}" class="dk-btn dk-btn-primary">Kurul Oluştur</a>
-        {% endif %}
+        <p class="dk-head-desc">Gündem hazırlayın, toplantıları yönetin, kararları ve uygulama süreçlerini takip edin.</p>
+        <div class="dk-actions dk-head-actions">
+            {% if duzenleyebilir %}
+            <a href="{% url 'disiplin_kurul_olustur' %}" class="dk-btn dk-btn-ghost">+ Yeni Kurul</a>
+            {% endif %}
+            {% if tam_yetki %}
+            <a href="{% url 'disiplin_kurul_ayarlar' %}" class="dk-btn dk-btn-ghost">Kurul Ayarları</a>
+            {% endif %}
+            <a href="{% url 'disiplin_kurul_arsiv' %}" class="dk-btn dk-btn-ghost">PDF Arşivi</a>
+            <a href="{% url 'disiplin_kurul_rapor' %}" class="dk-btn dk-btn-ghost">Raporlar</a>
+            {% if duzenleyebilir %}
+            <a href="{% url 'disiplin_kurul_olustur' %}" class="dk-btn dk-btn-primary">Kurul Oluştur</a>
+            {% endif %}
+        </div>
     </div>
 </header>
 

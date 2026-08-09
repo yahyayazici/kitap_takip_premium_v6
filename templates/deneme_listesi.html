@@ -1,15 +1,19 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Denemeler · {{ panel_short }}{% endblock %}
 {% block content %}
-<div class="library-page deneme-archive-page">
-    <header class="page-head patterned-page-head library-page-head">
-        <div class="library-head-copy">
+<div class="deneme-page">
+    <header class="page-head patterned-page-head deneme-page-head deneme-hero">
+        <div class="deneme-head-main">
             <p class="kicker">DENEME SONUÇLARI</p>
             <h1>Deneme Arşivi</h1>
-            <p class="library-panel-desc">Kurum geneli deneme sınav sonuçları.</p>
+            <p class="deneme-head-desc">Kurum geneli deneme sınav sonuçları.</p>
         </div>
     </header>
-    <section class="library-panel">
+
+    <section class="library-panel deneme-list-panel">
+        <h2>Mevcut Denemeler</h2>
+        <p class="deneme-list-hint">Detay için satırdaki bağlantıyı kullanın.</p>
         <div class="responsive-table">
             <table class="report-data-table">
                 <thead>
@@ -27,7 +31,7 @@
                         <td>{{ d.sinav_tarihi|date:"d.m.Y" }}</td>
                         <td><strong>{{ d.ad }}</strong></td>
                         <td>{{ d.sinif_seviyesi }}</td>
-                        <td>{{ d.sonuc_sayisi }} öğrenci</td>
+                        <td><span class="deneme-katilim">{{ d.sonuc_sayisi }} öğrenci</span></td>
                         <td><a href="{% url 'deneme_detay' d.pk %}" class="ghost-btn">Detay</a></td>
                     </tr>
                     {% empty %}

@@ -214,11 +214,14 @@ urlpatterns = [
     path("ktt/<int:pk>/", ktt_views.ktt_detay, name="ktt_detay"),
     path("ktt/<int:pk>/duzenle/", ktt_views.ktt_duzenle, name="ktt_duzenle"),
     path("ktt/<int:pk>/sonuclar/", ktt_views.ktt_sonuc_gir, name="ktt_sonuc_gir"),
+    path("ktt/<int:pk>/katilmayan-cikar/", ktt_views.ktt_katilmayan_cikar, name="ktt_katilmayan_cikar"),
     path("ktt/<int:pk>/excel/", ktt_views.ktt_excel_indir, name="ktt_excel_indir"),
     path("ktt/<int:pk>/pdf/", ktt_views.ktt_detay_pdf, name="ktt_detay_pdf"),
 
     path("denemeler/", deneme_views.deneme_listesi, name="deneme_listesi"),
     path("denemeler/<int:pk>/", deneme_views.deneme_detay, name="deneme_detay"),
+    path("denemeler/<int:pk>/excel/", deneme_views.deneme_excel_indir, name="deneme_excel_indir"),
+    path("denemeler/<int:pk>/pdf/", deneme_views.deneme_detay_pdf, name="deneme_detay_pdf"),
 
     path("yazili-takip/", yazili_takip_views.yazili_kamp_listesi, name="yazili_kamp_listesi"),
     path(

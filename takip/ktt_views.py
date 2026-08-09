@@ -8,7 +8,7 @@ from io import StringIO
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.text import slugify
@@ -18,6 +18,9 @@ from takip.forms import KttSinavForm
 from takip.ktt_service import (
     hedef_siniflar_kaydet,
     ktt_duzenleyebilir,
+    ktt_gercek_katilim,
+    ktt_katilmayan_talebeler,
+    ktt_katilmayanlari_haric_yap,
     ktt_olusturabilir,
     ktt_rapor_filtre_dict,
     ktt_rapor_filtre_etiketleri,
@@ -333,8 +336,11 @@ def ktt_sonuc_gir(request, pk):
                 "bos": sonuc.bos if sonuc else toplam_soru,
                 "net": sonuc.net if sonuc else 0,
                 "puan": sonuc.puan if sonuc else 0,
+                "katilmayan": not ktt_gercek_katilim(sonuc, toplam_soru),
             }
         )
+
+    katilmayan_sayisi = sum(1 for satir in satirlar if satir["katilmayan"])
 
     return render(
         request,
@@ -343,8 +349,52 @@ def ktt_sonuc_gir(request, pk):
             "ktt": ktt,
             "satirlar": satirlar,
             "toplam_soru": toplam_soru,
+            "katilmayan_sayisi": katilmayan_sayisi,
             "pdf_yetkisi": can(request.user, "ktt", "export_pdf"),
         },
+    )
+
+
+@login_required
+@require_permission("ktt", "edit")
+def ktt_katilmayan_cikar(request, pk):
+    ktt = get_object_or_404(yetkili_ktt_sinavlari(request.user), pk=pk)
+
+    if not ktt_duzenleyebilir(request.user, ktt):
+        return JsonResponse(
+            {"ok": False, "hata": "Bu KTT için işlem yapamazsınız."},
+            status=403,
+        )
+
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "hata": "Geçersiz istek."}, status=405)
+
+    try:
+        talebe_ids = [int(x) for x in request.POST.getlist("talebe_ids") if str(x).strip()]
+    except (TypeError, ValueError):
+        return JsonResponse({"ok": False, "hata": "Geçersiz öğrenci seçimi."})
+
+    if not talebe_ids:
+        return JsonResponse({"ok": False, "hata": "En az bir öğrenci seçin."})
+
+    izinli_ids = set(
+        ktt_katilmayan_talebeler(request.user, ktt).values_list("pk", flat=True)
+    )
+    secilen = [tid for tid in talebe_ids if tid in izinli_ids]
+    if not secilen:
+        return JsonResponse(
+            {"ok": False, "hata": "Seçilen öğrenciler listeden çıkarılamaz."},
+        )
+
+    talebeler = list(Talebe.objects.filter(id__in=secilen))
+    adet = ktt_katilmayanlari_haric_yap(ktt, talebeler)
+    return JsonResponse(
+        {
+            "ok": True,
+            "adet": adet,
+            "talebe_ids": secilen,
+            "mesaj": f"{adet} öğrenci sonuç listesinden çıkarıldı.",
+        }
     )
 
 
@@ -412,6 +462,9 @@ def ktt_detay_pdf(request, pk):
     ozet = _ktt_sonuc_ozeti(sonuclar_list)
     analiz = ktt_sinav_grup_analizi(ktt, sonuclar_list, ozet)
     pdf_sayfa = coz_pdf_sayfa(request)
+    adet = len(sonuclar_list)
+    split_at = (adet + 1) // 2
+    sonuc_split = adet > 24
 
     html = render(
         request,
@@ -419,6 +472,11 @@ def ktt_detay_pdf(request, pk):
         {
             "ktt": ktt,
             "sonuclar": sonuclar_list,
+            "sonuclar_sol": sonuclar_list[:split_at],
+            "sonuclar_sag": sonuclar_list[split_at:],
+            "sonuc_split": sonuc_split,
+            "split_at": split_at,
+            "analiz_goster": not sonuc_split,
             "ozet": ozet,
             "analiz": analiz,
             "olusturma_tarihi": now(),

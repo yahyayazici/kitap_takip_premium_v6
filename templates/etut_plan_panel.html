@@ -1,25 +1,25 @@
 {% extends "base.html" %}
 {% block title %}Haftalık Etüt Planı · {{ panel_short }}{% endblock %}
 {% block content %}
-<div class="program-page">
-    <header class="page-head patterned-page-head">
-        <div>
+<div class="program-page ep-panel">
+    <header class="page-head patterned-page-head ep-head">
+        <div class="ep-head-main">
             <p class="kicker">HAFTALIK ETÜT PLANI</p>
             <h1>Bu Hafta</h1>
             <p class="muted">{{ hafta_baslangic|date:"d F" }} – {{ hafta_bitis|date:"d F Y" }}</p>
-        </div>
-        <div class="profile-head-actions">
-            <a href="{% url 'etut_plan_arsiv' %}" class="ghost-btn">Arşiv</a>
-            {% if plan %}
-            <a href="{% url 'etut_plan_detay' plan.pk %}" class="primary-btn">Planı Yönet</a>
-            {% elif olusturabilir %}
-            <a href="{% url 'etut_plan_olustur' %}{% if hoca %}?hoca={{ hoca.id }}{% endif %}" class="primary-btn">Plan Oluştur</a>
-            {% endif %}
+            <div class="profile-head-actions ep-head-actions">
+                <a href="{% url 'etut_plan_arsiv' %}" class="ghost-btn">Arşiv</a>
+                {% if plan %}
+                <a href="{% url 'etut_plan_detay' plan.pk %}" class="primary-btn">Planı Yönet</a>
+                {% elif olusturabilir %}
+                <a href="{% url 'etut_plan_olustur' %}{% if hoca %}?hoca={{ hoca.id }}{% endif %}" class="primary-btn">Plan Oluştur</a>
+                {% endif %}
+            </div>
         </div>
     </header>
 
     {% if hocalar %}
-    <section class="library-panel" style="margin-bottom:20px;">
+    <section class="library-panel ep-filter-panel">
         <form method="get">
             <label>Etüt hocası
                 <select name="hoca" class="input" onchange="this.form.submit()">
@@ -33,22 +33,22 @@
     {% endif %}
 
     {% if hoca %}
-    <p class="library-panel-desc" style="margin-bottom:16px;">Etüt hocası: <strong>{{ hoca.ad_soyad }}</strong></p>
+    <p class="library-panel-desc ep-hoca-note">Etüt hocası: <strong>{{ hoca.ad_soyad }}</strong></p>
     {% endif %}
 
     {% if plan and ozet %}
-    <section class="daily-stat-grid" style="margin-bottom:20px;">
+    <section class="daily-stat-grid ep-stat-grid">
         <article class="daily-stat-card"><div><span>TOPLAM</span><strong>{{ ozet.toplam }}</strong></div></article>
         <article class="daily-stat-card"><div><span>TAMAMLANDI</span><strong>{{ ozet.tamamlandi }}</strong></div></article>
         <article class="daily-stat-card"><div><span>DEVAM</span><strong>{{ ozet.devam }}</strong></div></article>
         <article class="daily-stat-card"><div><span>BEKLİYOR</span><strong>{{ ozet.bekliyor }}</strong></div></article>
     </section>
     {% elif olusturabilir %}
-    <section class="library-panel">
+    <section class="library-panel ep-empty-panel">
         <p class="report-empty">Bu hafta için plan henüz oluşturulmadı.</p>
     </section>
     {% else %}
-    <section class="library-panel">
+    <section class="library-panel ep-empty-panel">
         <p class="report-empty">Görüntülenecek plan bulunamadı.</p>
     </section>
     {% endif %}

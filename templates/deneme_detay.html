@@ -9,6 +9,13 @@
             <p class="result-description">{{ deneme.sinif_seviyesi }}. sınıf · {{ sonuclar|length }} sonuç</p>
         </div>
         <div class="result-header-actions">
+            {% if pdf_yetkisi %}
+            {% url 'deneme_detay_pdf' deneme.pk as deneme_pdf_href %}
+            {% include "includes/pdf_sayfa_secici.html" with pdf_href=deneme_pdf_href pdf_sayfa=pdf_sayfa pdf_btn_class="result-secondary-button" pdf_btn_label="PDF İndir" %}
+            {% endif %}
+            {% if excel_yetkisi %}
+            <a href="{% url 'deneme_excel_indir' deneme.pk %}" class="result-secondary-button">Excel İndir</a>
+            {% endif %}
             <a href="{% url 'deneme_listesi' %}" class="result-back-button">Denemeler</a>
         </div>
     </header>

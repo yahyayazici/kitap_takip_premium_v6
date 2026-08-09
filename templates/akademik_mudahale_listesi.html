@@ -6,17 +6,19 @@
 {% endblock %}
 {% block content %}
 <div class="at-page">
-    <header class="at-page-head">
-        <h1>Akademik Takip</h1>
-        <p>Öğrencilerin akademik eksikliklerine yönelik müdahalelerinizi kaydedin ve takip edin.</p>
+    <header class="page-head patterned-page-head at-page-head at-hero">
+        <div class="at-head-main">
+            <p class="kicker">AKADEMİK MÜDAHALE</p>
+            <h1>Akademik Takip</h1>
+            <p class="at-head-desc">Öğrencilerin akademik eksikliklerine yönelik müdahalelerinizi kaydedin ve takip edin.</p>
+            <div class="at-top-actions at-head-actions">
+                {% if olusturabilir %}
+                <a href="#yeni-kayit" class="at-purple-btn">+ Yeni Kayıt ve Günlük</a>
+                {% endif %}
+                <a href="{% url 'akademik_mudahale_rapor' %}" class="at-outline-btn">Rapor & Analiz</a>
+            </div>
+        </div>
     </header>
-
-    <div class="at-top-actions">
-        {% if olusturabilir %}
-        <a href="#yeni-kayit" class="at-purple-btn">+ Yeni Kayıt ve Günlük</a>
-        {% endif %}
-        <a href="{% url 'akademik_mudahale_rapor' %}" class="at-outline-btn">Rapor & Analiz</a>
-    </div>
 
     <div class="at-split">
         {% if olusturabilir and form %}

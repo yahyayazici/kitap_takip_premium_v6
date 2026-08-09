@@ -3,42 +3,47 @@
 {% block title %}{{ panel_cfg.baslik }} · {{ panel_short }}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/choice-chip-grid.css' %}?v=chip1">
-<link rel="stylesheet" href="{% static 'css/rehberlik-premium.css' %}?v=nizam5">
+<link rel="stylesheet" href="{% static 'css/rehberlik-premium.css' %}?v=nizam7">
 {% endblock %}
 
 {% block content %}
 <div class="rh-page" data-rehberlik-panel>
 
-<header class="page-head patterned-page-head rh-page-head">
-    <div>
+<header class="page-head patterned-page-head rh-page-head rh-hero">
+    <div class="rh-head-main">
         <p class="kicker">{{ panel_cfg.eyebrow|upper }}</p>
         <h1>{% if talebe %}{{ talebe.ad_soyad }}{% else %}Öğrenci Seçin{% endif %}</h1>
-        <p class="muted">{{ panel_cfg.aciklama }}</p>
+        <p class="rh-head-desc">{{ panel_cfg.aciklama }}</p>
+        {% if talebe %}
+        <div class="result-header-actions rh-head-actions">
+            <form method="get" class="rh-picker-inline">
+                <select name="talebe" class="rh-picker-search" onchange="this.form.submit()" aria-label="Öğrenci seç">
+                    {% for t in talebeler %}
+                    <option value="{{ t.pk }}" {% if t.pk == talebe.pk %}selected{% endif %}>{{ t.ad_soyad }}{% if t.sinif_sube %} · {{ t.sinif_sube }}{% endif %}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+        {% endif %}
     </div>
-    {% if talebe %}
-    <div class="result-header-actions">
-        <form method="get" class="rh-picker-inline">
-            <select name="talebe" class="rh-picker-search" onchange="this.form.submit()" aria-label="Öğrenci seç">
-                {% for t in talebeler %}
-                <option value="{{ t.pk }}" {% if t.pk == talebe.pk %}selected{% endif %}>{{ t.ad_soyad }}{% if t.sinif_sube %} · {{ t.sinif_sube }}{% endif %}</option>
-                {% endfor %}
-            </select>
-        </form>
-    </div>
-    {% endif %}
 </header>
 
 {% if not talebe %}
-<section class="rh-card rh-picker">
-    <p class="rh-muted">{{ panel_cfg.baslik }} paneline devam etmek için bir öğrenci seçin.</p>
-    <input type="search" class="rh-picker-search" placeholder="Öğrenci ara..." data-rh-search>
+<section class="rh-card rh-picker rh-picker-shell">
+    <div class="rh-picker-intro">
+        <p class="rh-picker-kicker">{{ panel_cfg.baslik|upper }}</p>
+        <p class="rh-picker-lead">Rehberlik paneline devam etmek için bir öğrenci seçin.</p>
+    </div>
+    <div class="rh-picker-search-wrap">
+        <input type="search" class="rh-picker-search" placeholder="Öğrenci ara..." data-rh-search autocomplete="off">
+    </div>
     <div class="rh-picker-grid" data-rh-picker-grid>
         {% for t in talebeler %}
         <a href="?talebe={{ t.pk }}" class="rh-picker-item" data-rh-name="{{ t.ad_soyad|lower }}">
-            <span class="rh-avatar">{{ t.ad_soyad|slice:":1"|upper }}</span>
-            <span>
-                <strong>{{ t.ad_soyad }}</strong><br>
-                <small class="rh-muted">{% if t.sinif_sube %}{{ t.sinif_sube }}{% else %}{{ t.sinif }}{% if t.sube %} / {{ t.sube }}{% endif %}{% endif %}</small>
+            <span class="rh-avatar rh-picker-avatar">{{ t.ad_soyad|slice:":1"|upper }}</span>
+            <span class="rh-picker-item-body">
+                <strong class="rh-picker-name">{{ t.ad_soyad }}</strong>
+                <span class="rh-picker-class">{% if t.sinif_sube %}{{ t.sinif_sube }}{% else %}{{ t.sinif }}{% if t.sube %} / {{ t.sube }}{% endif %}{% endif %}</span>
             </span>
         </a>
         {% empty %}

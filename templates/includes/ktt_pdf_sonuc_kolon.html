@@ -1,0 +1,35 @@
+<table class="results{% if kompakt %} results-kompakt{% endif %}">
+    <thead>
+        <tr>
+            <th style="width:9%;">Sıra</th>
+            <th class="left" style="width:{% if kompakt %}38{% else %}42{% endif %}%;">Talebe</th>
+            <th style="width:9%;">D</th>
+            <th style="width:9%;">Y</th>
+            <th style="width:9%;">B</th>
+            <th style="width:13%;">Net</th>
+            <th style="width:13%;">Puan</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for sonuc in kolon %}
+        <tr>
+            <td><span class="rank-no">{{ forloop.counter|add:sira_offset }}</span></td>
+            <td class="left">
+                <div class="student-name">{{ sonuc.talebe.ad_soyad }}</div>
+                {% if not kompakt %}
+                <div class="student-meta">{{ sonuc.talebe.sinif_sube|default:"—" }}</div>
+                {% endif %}
+            </td>
+            <td class="num-cell">{{ sonuc.dogru }}</td>
+            <td class="num-cell">{{ sonuc.yanlis }}</td>
+            <td class="num-cell">{{ sonuc.bos }}</td>
+            <td class="num-cell">{{ sonuc.net }}</td>
+            <td class="num-cell">{{ sonuc.puan }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7" class="left" style="padding:8px;">—</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

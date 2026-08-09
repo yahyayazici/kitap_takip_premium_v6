@@ -8,23 +8,23 @@
 {% block content %}
 <div class="fn-page">
 
-<header class="fn-head">
-    <div>
-        <p class="fn-eyebrow">Kurum İçi · Finans Merkezi</p>
+<header class="page-head patterned-page-head fn-head fn-hero">
+    <div class="fn-head-main">
+        <p class="kicker">KURUM · FİNANS MERKEZİ</p>
         <h1>Finans Yönetimi</h1>
-        <p class="fn-sub">Ücret politikalarını, tahsilatları ve ödeme planlarını yönetin. Etüt hocası yalnızca kendi grubunun tahsilatını girer.</p>
-    </div>
-    <div class="fn-head-actions">
-        {% if yonetebilir and dosyasiz_talebeler %}
-        <button type="button" class="fn-btn fn-btn-primary" onclick="document.getElementById('fn-toplu-kayit').scrollIntoView({behavior:'smooth'})">Toplu Aidat</button>
-        {% endif %}
-        {% if yonetebilir and yeni_form %}
-        <button type="button" class="fn-btn" onclick="document.getElementById('fn-yeni-kayit').scrollIntoView({behavior:'smooth'})">+ Tek Kayıt</button>
-        {% endif %}
-        <a href="{% url 'finans_raporlar' %}" class="fn-btn">Raporlar</a>
-        {% if yonetebilir %}
-        <a href="{% url 'finans_politikalar' %}" class="fn-btn">Finans Ayarları</a>
-        {% endif %}
+        <p class="fn-head-desc">Ücret politikalarını, tahsilatları ve ödeme planlarını yönetin. Etüt hocası yalnızca kendi grubunun tahsilatını girer.</p>
+        <div class="fn-head-actions">
+            {% if yonetebilir and dosyasiz_talebeler %}
+            <button type="button" class="fn-btn fn-btn-primary" onclick="document.getElementById('fn-toplu-kayit').scrollIntoView({behavior:'smooth'})">Toplu Aidat</button>
+            {% endif %}
+            {% if yonetebilir and yeni_form %}
+            <button type="button" class="fn-btn" onclick="document.getElementById('fn-yeni-kayit').scrollIntoView({behavior:'smooth'})">+ Tek Kayıt</button>
+            {% endif %}
+            <a href="{% url 'finans_raporlar' %}" class="fn-btn">Raporlar</a>
+            {% if yonetebilir %}
+            <a href="{% url 'finans_politikalar' %}" class="fn-btn">Finans Ayarları</a>
+            {% endif %}
+        </div>
     </div>
 </header>
 

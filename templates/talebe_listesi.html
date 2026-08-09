@@ -8,16 +8,17 @@
 {% endblock %}
 
 {% block content %}
+<div class="tl-page">
 
-<header class="page-head">
-    <div>
+<header class="page-head patterned-page-head tl-page-head tl-hero">
+    <div class="tl-head-main">
         <p class="kicker">TALEBE YÖNETİMİ</p>
         <h1>Talebeler</h1>
-        <p class="muted">Etüdünüzdeki talebelerin kitap ve okuma durumlarını görüntüleyin.</p>
-    </div>
-    <div class="page-head-actions">
-        <a href="{{ rapor_excel_url }}" class="ghost-btn">Excel İndir</a>
-        {% include "includes/talebe_liste_rapor_panel.html" %}
+        <p class="tl-head-desc">Etüdünüzdeki talebelerin kitap ve okuma durumlarını görüntüleyin.</p>
+        <div class="page-head-actions tl-head-actions">
+            <a href="{{ rapor_excel_url }}" class="ghost-btn">Excel İndir</a>
+            {% include "includes/talebe_liste_rapor_panel.html" %}
+        </div>
     </div>
 </header>
 
@@ -81,6 +82,8 @@
         {% endfor %}
     </div>
 </section>
+
+</div>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {

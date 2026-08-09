@@ -104,6 +104,28 @@ def deneme_sonuclari(user: User, deneme: DenemeSinavi) -> QuerySet[DenemeSonucu]
     return qs.order_by("-toplam_net", "talebe__ad_soyad")
 
 
+def deneme_sonuc_ozeti(sonuclar) -> dict:
+    kayitlar = list(sonuclar)
+    if not kayitlar:
+        return {
+            "ogrenci_sayisi": 0,
+            "ortalama_net": "—",
+            "ortalama_puan": "—",
+            "en_yuksek_puan": "—",
+        }
+
+    toplam_net = sum(float(s.toplam_net or 0) for s in kayitlar)
+    toplam_puan = sum(float(s.puan or 0) for s in kayitlar)
+    en_yuksek = max(float(s.puan or 0) for s in kayitlar)
+    adet = len(kayitlar)
+    return {
+        "ogrenci_sayisi": adet,
+        "ortalama_net": round(toplam_net / adet, 2),
+        "ortalama_puan": round(toplam_puan / adet, 2),
+        "en_yuksek_puan": round(en_yuksek, 2),
+    }
+
+
 def talebe_deneme_sonuclari(talebe: Talebe) -> QuerySet[DenemeSonucu]:
     return (
         DenemeSonucu.objects.filter(talebe=talebe, deneme__durum=DenemeSinavi.Durum.AKTIF)

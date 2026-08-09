@@ -10,19 +10,19 @@
 {% block content %}
 <div class="program-page im-panel">
 
-<header class="page-head patterned-page-head">
-    <div>
+<header class="page-head patterned-page-head im-head">
+    <div class="im-head-main">
         <p class="kicker">GÖREV MODÜLÜ</p>
         <h1>İmam / Müezzin</h1>
         <p class="muted">{{ bugun|date:"d F Y, l" }} · Günlük namaz görev listesi</p>
-    </div>
-    <div class="profile-head-actions">
-        {% if secili_liste %}
-        <a href="{% url 'imam_muezzin_pdf' secili_liste.pk %}" class="primary-btn" target="_blank">PDF İndir</a>
-        {% endif %}
-        {% if yonetim_modulu %}
-        <a href="{% url 'yonetim:imam_listesi' %}" class="ghost-btn">Yönetim</a>
-        {% endif %}
+        <div class="profile-head-actions im-head-actions">
+            {% if secili_liste %}
+            <a href="{% url 'imam_muezzin_pdf' secili_liste.pk %}" class="primary-btn" target="_blank" rel="noopener">PDF İndir</a>
+            {% endif %}
+            {% if yonetim_modulu %}
+            <a href="{% url 'yonetim:imam_listesi' %}" class="ghost-btn">Yönetim</a>
+            {% endif %}
+        </div>
     </div>
 </header>
 

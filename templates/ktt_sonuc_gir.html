@@ -1,7 +1,15 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}{{ ktt.ad }} · Sonuç{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=ktt-katilmayan3">
+{% endblock %}
 {% block content %}
-<div class="result-entry-page">
+<div
+    class="result-entry-page"
+    id="kttSonucGirPage"
+    data-cikar-url="{% url 'ktt_katilmayan_cikar' ktt.pk %}"
+>
     <header class="result-entry-header">
         <div>
             <p class="result-kicker">{{ ktt.sinav_tarihi|date:"d F Y"|upper }}</p>
@@ -17,13 +25,47 @@
         </div>
     </header>
 
-    <form method="post">
+    {% if katilmayan_sayisi %}
+    <section class="result-card ktt-katilmayan-bar" id="kttKatilmayanBar">
+        <div class="ktt-katilmayan-bar-text">
+            <p class="ktt-katilmayan-note">
+                <strong id="kttKatilmayanCount">{{ katilmayan_sayisi }}</strong> öğrenci sınava katılmadı.
+                Soldan seçip listeden çıkarabilirsiniz.
+            </p>
+            <p class="ktt-katilmayan-feedback" id="kttKatilmayanFeedback" hidden></p>
+        </div>
+        <button
+            type="button"
+            class="result-secondary-button ktt-katilmayan-btn"
+            id="kttSecilenleriCikar"
+            disabled
+        >
+            Seçilenleri listeden çıkar (<span id="kttSecimSayisi">0</span>)
+        </button>
+    </section>
+    {% endif %}
+
+    <form method="post" id="kttSonucForm">
         {% csrf_token %}
         <section class="result-card">
+            <div class="ktt-sonuc-save-bar">
+                <button type="submit" class="primary-btn">Sonuçları Kaydet</button>
+            </div>
             <div class="responsive-table">
-                <table class="report-data-table">
+                <table class="report-data-table" id="kttSonucTable">
                     <thead>
                         <tr>
+                            <th class="ktt-check-col">
+                                {% if katilmayan_sayisi %}
+                                <input
+                                    type="checkbox"
+                                    id="kttSelectAllKatilmayan"
+                                    class="ktt-check-input"
+                                    title="Tüm katılmayanları seç"
+                                    aria-label="Tüm katılmayanları seç"
+                                >
+                                {% endif %}
+                            </th>
                             <th>Talebe</th>
                             <th>Doğru</th>
                             <th>Yanlış</th>
@@ -34,8 +76,24 @@
                     </thead>
                     <tbody>
                         {% for satir in satirlar %}
-                        <tr>
-                            <td><strong>{{ satir.talebe.ad_soyad }}</strong></td>
+                        <tr
+                            data-talebe-id="{{ satir.talebe.id }}"
+                            {% if satir.katilmayan %}class="ktt-row-katilmayan" data-katilmayan="1"{% endif %}
+                        >
+                            <td class="ktt-check-col">
+                                {% if satir.katilmayan %}
+                                <input
+                                    type="checkbox"
+                                    class="ktt-katilmayan-check ktt-check-input"
+                                    value="{{ satir.talebe.id }}"
+                                    aria-label="{{ satir.talebe.ad_soyad }} seç"
+                                >
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong>{{ satir.talebe.ad_soyad }}</strong>
+                                {% if satir.katilmayan %}<span class="ktt-katilmayan-tag">Katılmadı</span>{% endif %}
+                            </td>
                             <td><input type="number" min="0" max="{{ toplam_soru }}" name="dogru_{{ satir.talebe.id }}" value="{{ satir.dogru }}" class="input" style="width:70px;"></td>
                             <td><input type="number" min="0" max="{{ toplam_soru }}" name="yanlis_{{ satir.talebe.id }}" value="{{ satir.yanlis }}" class="input" style="width:70px;"></td>
                             <td><input type="number" min="0" max="{{ toplam_soru }}" name="bos_{{ satir.talebe.id }}" value="{{ satir.bos }}" class="input" style="width:70px;"></td>
@@ -46,10 +104,11 @@
                     </tbody>
                 </table>
             </div>
-            <div style="margin-top:20px;">
-                <button type="submit" class="primary-btn">Sonuçları Kaydet</button>
-            </div>
         </section>
     </form>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/ktt-sonuc-gir.js' %}?v=1"></script>
 {% endblock %}

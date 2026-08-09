@@ -209,7 +209,17 @@ def seed_ktt_demo() -> None:
             )
 
 
-def ktt_sonuc_talebeleri(user: User, ktt: KttSinav) -> QuerySet[Talebe]:
+def ktt_gercek_katilim(sonuc: KttSonucu | None, soru_sayisi: int) -> bool:
+    if not sonuc:
+        return False
+    return not (
+        int(sonuc.dogru or 0) == 0
+        and int(sonuc.yanlis or 0) == 0
+        and int(sonuc.bos or 0) == int(soru_sayisi or 0)
+    )
+
+
+def ktt_hedef_talebeleri(user: User, ktt: KttSinav) -> QuerySet[Talebe]:
     from takip.permissions.scope import yetkili_talebeler
 
     talebeler = yetkili_talebeler(user, aktif_only=True)
@@ -222,6 +232,48 @@ def ktt_sonuc_talebeleri(user: User, ktt: KttSinav) -> QuerySet[Talebe]:
         return talebeler.order_by("ad_soyad")
 
     return Talebe.objects.none()
+
+
+def ktt_sonuc_talebeleri(user: User, ktt: KttSinav) -> QuerySet[Talebe]:
+    return ktt_hedef_talebeleri(user, ktt).exclude(
+        id__in=ktt.haric_talebeler.values_list("pk", flat=True)
+    )
+
+
+def ktt_katilmayan_talebeler(user: User, ktt: KttSinav) -> QuerySet[Talebe]:
+    talebeler = list(ktt_sonuc_talebeleri(user, ktt))
+    if not talebeler:
+        return Talebe.objects.none()
+
+    mevcut = {
+        s.talebe_id: s
+        for s in KttSonucu.objects.filter(ktt=ktt, talebe__in=talebeler)
+    }
+    soru_sayisi = int(ktt.soru_sayisi or 0)
+    katilmayan_ids = [
+        talebe.id
+        for talebe in talebeler
+        if not ktt_gercek_katilim(mevcut.get(talebe.id), soru_sayisi)
+    ]
+    if not katilmayan_ids:
+        return Talebe.objects.none()
+    return Talebe.objects.filter(id__in=katilmayan_ids).order_by("ad_soyad")
+
+
+def ktt_katilmayanlari_haric_yap(ktt: KttSinav, talebeler) -> int:
+    talebe_list = list(talebeler)
+    if not talebe_list:
+        return 0
+
+    ktt.haric_talebeler.add(*talebe_list)
+    KttSonucu.objects.filter(
+        ktt=ktt,
+        talebe__in=talebe_list,
+        dogru=0,
+        yanlis=0,
+        bos=ktt.soru_sayisi,
+    ).delete()
+    return len(talebe_list)
 
 
 def yetkili_ktt_sonuclari(user: User) -> QuerySet[KttSonucu]:
