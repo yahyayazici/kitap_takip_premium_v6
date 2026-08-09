@@ -16,7 +16,7 @@ from takip.hizli_kayit_service import (
     son_kayitlar,
     talebe_pasif_et,
 )
-from takip.models import EtutHocasi, PersonelProfili, Talebe
+from takip.models import DiniDersSeviyesi, EtutHocasi, PersonelProfili, SinifSube, Talebe
 from takip.personel_giris_service import (
     OgretmenGirisKaydi,
     PersonelGirisKaydi,
@@ -27,7 +27,6 @@ from takip.personel_giris_service import (
 )
 from takip.talebe_excel import talebe_excel_ice_aktar
 from takip.yonetim_forms import TalebeExcelForm
-from takip.models import DiniDersSeviyesi, EtutHocasi, SinifSube
 from takip.yonetim_hizli_kayit_forms import (
     HizliOgretmenForm,
     HizliPersonelForm,
@@ -43,26 +42,29 @@ TUR_SECENEKLERI = (
     ("ogretmen", "Öğretmen", "Ana ders öğretmeni — branş ve ders ücreti"),
 )
 
+SESSION_GIRIS_ANAHTAR = "yk_son_giris"
+
 
 def _talebe_form_meta() -> dict:
+    from django.db.models import Prefetch
+
+    aktif_hocalar = EtutHocasi.objects.filter(aktif=True).only("pk", "ad_soyad")
     sinif_etut: dict[str, list[int]] = {}
-    for ss in SinifSube.objects.filter(aktif=True).prefetch_related("etut_hocalari"):
-        sinif_etut[str(ss.pk)] = [
-            h.pk for h in ss.etut_hocalari.filter(aktif=True).order_by("ad_soyad")
-        ]
+    for ss in SinifSube.objects.filter(aktif=True).prefetch_related(
+        Prefetch(
+            "etut_hocalari",
+            queryset=aktif_hocalar.order_by("ad_soyad"),
+        )
+    ).only("pk"):
+        sinif_etut[str(ss.pk)] = [h.pk for h in ss.etut_hocalari.all()]
 
     seviye_hocalar: dict[str, list[int]] = {}
     for seviye in DiniDersSeviyesi.objects.filter(aktif=True).prefetch_related(
-        "hocalar"
-    ):
-        seviye_hocalar[str(seviye.pk)] = [
-            h.pk for h in seviye.hocalar.filter(aktif=True).order_by("ad_soyad")
-        ]
+        Prefetch("hocalar", queryset=aktif_hocalar.order_by("ad_soyad"))
+    ).only("pk"):
+        seviye_hocalar[str(seviye.pk)] = [h.pk for h in seviye.hocalar.all()]
 
-    hocalar = {
-        str(h.pk): h.ad_soyad
-        for h in EtutHocasi.objects.filter(aktif=True).order_by("ad_soyad")
-    }
+    hocalar = {str(h.pk): h.ad_soyad for h in aktif_hocalar.order_by("ad_soyad")}
     return {
         "sinif_etut": sinif_etut,
         "seviye_hocalar": seviye_hocalar,
@@ -70,8 +72,26 @@ def _talebe_form_meta() -> dict:
     }
 
 
+def _giris_bilgisi_kaydet(
+    request,
+    kayit: PersonelGirisKaydi | OgretmenGirisKaydi,
+    *,
+    tur: str,
+) -> None:
+    request.session[SESSION_GIRIS_ANAHTAR] = {
+        "tur": tur,
+        "ad_soyad": kayit.ad_soyad,
+        "kullanici_adi": kayit.kullanici_adi,
+        "sifre": kayit.sifre,
+        "rol_etiket": kayit.rol_etiket,
+        "personel_id": getattr(kayit, "personel", None) and kayit.personel.pk,
+        "hoca_id": getattr(kayit, "hoca", None) and kayit.hoca.pk,
+    }
+
+
 def _render_context(
     *,
+    request,
     tur: str,
     form,
     excel_form,
@@ -88,6 +108,7 @@ def _render_context(
         "toplu_personel_form": toplu_personel_form,
         "toplu_ogretmen_form": toplu_ogretmen_form,
         "son_kayitlar": son_kayitlar(tur),
+        "giris_bilgisi": request.session.get(SESSION_GIRIS_ANAHTAR),
     }
     if tur == "talebe":
         ctx["talebe_form_meta"] = _talebe_form_meta()
@@ -173,6 +194,35 @@ def kayit_sil(request):
 
 
 @yonetici_gerekli
+def hizli_kayit_giris_pdf(request):
+    data = request.session.get(SESSION_GIRIS_ANAHTAR)
+    if not data:
+        messages.error(request, "Giriş bilgisi bulunamadı veya süresi doldu.")
+        return redirect("yonetim:hizli_kayit")
+
+    tur = data.get("tur")
+    if tur == "personel" and data.get("personel_id"):
+        personel = get_object_or_404(PersonelProfili, pk=data["personel_id"])
+        kayit = PersonelGirisKaydi(
+            personel=personel,
+            kullanici_adi=data["kullanici_adi"],
+            sifre=data["sifre"],
+        )
+    elif tur == "ogretmen" and data.get("hoca_id"):
+        hoca = get_object_or_404(EtutHocasi, pk=data["hoca_id"])
+        kayit = OgretmenGirisKaydi(
+            hoca=hoca,
+            kullanici_adi=data["kullanici_adi"],
+            sifre=data["sifre"],
+        )
+    else:
+        messages.error(request, "PDF oluşturulamadı.")
+        return redirect(f"{reverse('yonetim:hizli_kayit')}?tur={tur or 'personel'}")
+
+    return _giris_pdf_yanit(request, kayit)
+
+
+@yonetici_gerekli
 def hizli_kayit(request):
     tur = request.GET.get("tur") or request.POST.get("tur") or "talebe"
     if tur not in {t[0] for t in TUR_SECENEKLERI}:
@@ -199,6 +249,7 @@ def hizli_kayit(request):
             request,
             "yonetim/hizli_kayit.html",
             _render_context(
+                request=request,
                 tur=tur,
                 form=form,
                 excel_form=excel_form,
@@ -242,6 +293,7 @@ def hizli_kayit(request):
             request,
             "yonetim/hizli_kayit.html",
             _render_context(
+                request=request,
                 tur=tur,
                 form=form,
                 excel_form=excel_form,
@@ -291,6 +343,7 @@ def hizli_kayit(request):
             request,
             "yonetim/hizli_kayit.html",
             _render_context(
+                request=request,
                 tur=tur,
                 form=form,
                 excel_form=excel_form,
@@ -310,11 +363,15 @@ def hizli_kayit(request):
                 kullanici_adi=form.cleaned_data["kullanici_adi"],
                 sifre=form.cleaned_data["sifre"],
             )
-            return _giris_pdf_yanit(request, kayit)
+            _giris_bilgisi_kaydet(request, kayit, tur="personel")
+            messages.success(request, f"{personel.ad_soyad} eklendi.")
+            return redirect(f"{reverse('yonetim:hizli_kayit')}?tur=personel")
 
         if tur == "ogretmen":
             kayit = form.save()
-            return _giris_pdf_yanit(request, kayit)
+            _giris_bilgisi_kaydet(request, kayit, tur="ogretmen")
+            messages.success(request, f"{kayit.ad_soyad} eklendi.")
+            return redirect(f"{reverse('yonetim:hizli_kayit')}?tur=ogretmen")
 
         talebe, veli = form.save_with_veli()
         mesaj = f"{talebe.ad_soyad} eklendi (No: {talebe.talebe_no})."
@@ -327,6 +384,7 @@ def hizli_kayit(request):
         request,
         "yonetim/hizli_kayit.html",
         _render_context(
+            request=request,
             tur=tur,
             form=form,
             excel_form=excel_form,

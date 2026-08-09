@@ -26,6 +26,20 @@
     {% endfor %}
 </nav>
 
+{% if giris_bilgisi %}
+<div class="yk-giris-banner dashboard-card">
+    <div>
+        <p class="yk-giris-banner-title">{{ giris_bilgisi.ad_soyad }} eklendi</p>
+        <p class="yk-giris-banner-meta">
+            <span>{{ giris_bilgisi.rol_etiket }}</span>
+            · Kullanıcı: <strong>{{ giris_bilgisi.kullanici_adi }}</strong>
+            · Şifre: <strong>{{ giris_bilgisi.sifre }}</strong>
+        </p>
+    </div>
+    <a href="{% url 'yonetim:hizli_kayit_giris_pdf' %}" class="ghost-btn yk-giris-pdf-btn">PDF İndir</a>
+</div>
+{% endif %}
+
 <section class="dashboard-card yk-card">
     <div class="yk-card-head">
         {% for kod, baslik, aciklama in tur_secenekleri %}
@@ -157,9 +171,7 @@
         {% endif %}
 
         <div class="yk-actions">
-            <button type="submit" class="primary-btn yk-submit">
-                {% if tur == "personel" or tur == "ogretmen" %}Kaydet ve PDF İndir{% else %}Kaydet{% endif %}
-            </button>
+            <button type="submit" class="primary-btn yk-submit">Kaydet</button>
             {% if tur == "personel" %}
             <a href="{% url 'yonetim:personel_listesi' %}" class="ghost-btn">Personel Listesi</a>
             {% elif tur == "ogretmen" %}
@@ -289,9 +301,9 @@
         {% endif %}
     </div>
     {% endif %}
-</section>
 
-{% include "yonetim/includes/hizli_kayit_son_liste.html" %}
+    {% include "yonetim/includes/hizli_kayit_son_liste.html" %}
+</section>
 
 </div>
 

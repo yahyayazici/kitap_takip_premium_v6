@@ -71,6 +71,11 @@ urlpatterns = [
         yonetim_hizli_kayit_views.kayit_sil,
         name="kayit_sil",
     ),
+    path(
+        "ekle/giris-pdf/",
+        yonetim_hizli_kayit_views.hizli_kayit_giris_pdf,
+        name="hizli_kayit_giris_pdf",
+    ),
 
     path(
         "siniflar/",
