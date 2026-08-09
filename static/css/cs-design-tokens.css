@@ -1,0 +1,169 @@
+/* ============================================================
+   ÇİNİLİ SARAY PROJE — Design Tokens
+   Global UI anayasası · tek kaynak renk / boşluk / tipografi
+   ============================================================ */
+
+:root {
+    /* —— Marka renkleri —— */
+    --cs-primary: #15427f;
+    --cs-primary-dark: #071b3a;
+    --cs-primary-mid: #1f5a9e;
+    --cs-primary-light: #2a6cb8;
+    --cs-accent: #2f6ff3;
+    --cs-accent-soft: #3778ff;
+    --cs-soft-blue: #e8f0ff;
+    --cs-navy-deep: #0f203c;
+
+    /* —— Yüzeyler —— */
+    --cs-background: #eef1f6;
+    --cs-background-warm: #f3f5f8;
+    --cs-surface: #ffffff;
+    --cs-surface-muted: #f8fafc;
+    --cs-surface-elevated: #ffffff;
+    --cs-surface-translucent: rgba(255, 255, 255, 0.92);
+
+    /* —— Çizgi & metin —— */
+    --cs-border: #d2dce8;
+    --cs-border-subtle: rgba(0, 0, 0, 0.07);
+    --cs-border-strong: #c5d4ea;
+    --cs-text-primary: #0f203c;
+    --cs-text-secondary: #546173;
+    --cs-text-tertiary: #708097;
+    --cs-text-muted: #8491a3;
+    --cs-text-inverse: #f0f4fc;
+    --cs-label: #465668;
+
+    /* —— Durum —— */
+    --cs-success: #1aa477;
+    --cs-success-bg: #e9f7f1;
+    --cs-warning: #ee8a24;
+    --cs-warning-bg: #fff0df;
+    --cs-danger: #d74a4a;
+    --cs-danger-bg: #fff3f3;
+    --cs-info: #2563eb;
+    --cs-info-bg: #eef3ff;
+
+    /* —— Hero / header gradient (kontrollü) —— */
+    --cs-hero-gradient: linear-gradient(118deg, #15427f 0%, #1f5a9e 42%, #2a6cb8 100%);
+    --cs-hero-glow:
+        radial-gradient(circle 280px at 12% 20%, rgba(130, 178, 255, 0.22), transparent 68%),
+        radial-gradient(circle 320px at 88% 75%, rgba(160, 140, 255, 0.16), transparent 70%);
+
+    /* —— Radius —— */
+    --cs-radius-xs: 8px;
+    --cs-radius-sm: 10px;
+    --cs-radius-md: 14px;
+    --cs-radius-lg: 18px;
+    --cs-radius-xl: 22px;
+    --cs-radius-pill: 999px;
+
+    /* —— Gölge (neredeyse hissedilir) —— */
+    --cs-shadow-xs: 0 1px 2px rgba(15, 40, 80, 0.04);
+    --cs-shadow-sm: 0 1px 2px rgba(16, 33, 61, 0.04), 0 6px 16px rgba(23, 52, 94, 0.05);
+    --cs-shadow-md: 0 1px 2px rgba(16, 33, 61, 0.04), 0 14px 36px rgba(23, 52, 94, 0.06);
+    --cs-shadow-lg: 0 18px 48px rgba(21, 66, 127, 0.14);
+    --cs-shadow-card:
+        0 1px 0 rgba(255, 255, 255, 0.75) inset,
+        0 12px 32px rgba(22, 52, 94, 0.065);
+    --cs-shadow-focus: 0 0 0 3px rgba(47, 111, 243, 0.22);
+
+    /* —— Boşluk ölçeği —— */
+    --cs-space-1: 4px;
+    --cs-space-2: 8px;
+    --cs-space-3: 12px;
+    --cs-space-4: 16px;
+    --cs-space-5: 20px;
+    --cs-space-6: 24px;
+    --cs-space-7: 32px;
+    --cs-space-8: 40px;
+    --cs-space-9: 48px;
+    --cs-space-10: 64px;
+
+    /* —— Layout —— */
+    --cs-content-max: min(100%, 1680px);
+    --cs-content-wide: min(100%, 1920px);
+    --cs-page-gutter: clamp(14px, 2.2vw, 28px);
+    --cs-section-gap: clamp(18px, 2.5vw, 28px);
+    --cs-header-h: clamp(56px, 8vw, 68px);
+
+    /* —— Tipografi —— */
+    --cs-font: "Poppins", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+    --cs-font-display: clamp(2rem, 3.8vw, 2.75rem);
+    --cs-font-page-title: clamp(1.375rem, 2.4vw, 2rem);
+    --cs-font-section: clamp(1.0625rem, 1.6vw, 1.25rem);
+    --cs-font-card-title: clamp(1rem, 1.3vw, 1.125rem);
+    --cs-font-body: clamp(0.8125rem, 1vw, 0.875rem);
+    --cs-font-secondary: clamp(0.75rem, 0.95vw, 0.8125rem);
+    --cs-font-caption: 0.6875rem;
+    --cs-font-label: 0.6875rem;
+    --cs-line-height-tight: 1.2;
+    --cs-line-height-body: 1.55;
+    --cs-letter-tight: -0.022em;
+    --cs-letter-kicker: 0.08em;
+
+    /* —— Bileşen —— */
+    --cs-btn-h: 44px;
+    --cs-btn-h-sm: 36px;
+    --cs-input-h: 44px;
+    --cs-touch-min: 44px;
+    --cs-transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+    --cs-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* —— Safe area —— */
+    --cs-safe-top: env(safe-area-inset-top, 0px);
+    --cs-safe-bottom: env(safe-area-inset-bottom, 0px);
+    --cs-safe-left: env(safe-area-inset-left, 0px);
+    --cs-safe-right: env(safe-area-inset-right, 0px);
+
+    /* —— Yoğunluk modları —— */
+    --cs-density-gap: var(--cs-section-gap);
+    --cs-density-card-pad: clamp(20px, 2.5vw, 28px);
+
+    /* —— Geriye dönük köprü (mevcut CSS bozulmasın) —— */
+    --v6-navy: var(--cs-primary-dark);
+    --v6-blue: var(--cs-accent);
+    --v6-bg: var(--cs-background);
+    --v6-bg-soft: var(--cs-background-warm);
+    --v6-surface: var(--cs-surface-muted);
+    --v6-surface-elevated: var(--cs-surface);
+    --v6-line: var(--cs-border);
+    --v6-text: var(--cs-text-primary);
+    --v6-label: var(--cs-label);
+    --v6-muted: var(--cs-text-secondary);
+    --v6-muted-soft: var(--cs-text-tertiary);
+    --v6-shadow-soft: var(--cs-shadow-sm);
+    --v6-shadow-card: var(--cs-shadow-card);
+    --v6-shell-max: var(--cs-content-wide);
+    --v6-page-gutter: var(--cs-page-gutter);
+
+    --dash-bg: var(--cs-background-warm);
+    --dash-surface: var(--cs-surface);
+    --dash-line: var(--cs-border-subtle);
+    --dash-text: var(--cs-text-primary);
+    --dash-secondary: var(--cs-text-secondary);
+    --dash-tertiary: var(--cs-text-tertiary);
+    --dash-accent: var(--cs-accent);
+    --dash-radius: var(--cs-radius-lg);
+    --dash-radius-sm: var(--cs-radius-md);
+    --dash-shadow: var(--cs-shadow-md);
+    --dash-hero-bg: var(--cs-hero-gradient);
+
+    --v5-font: var(--cs-font);
+    --v5-ink: var(--cs-text-primary);
+    --v5-text: var(--cs-text-primary);
+    --v5-muted: var(--cs-text-tertiary);
+    --v5-blue: var(--cs-accent);
+    --v5-border: var(--cs-border);
+    --v5-bg: var(--cs-background-warm);
+    --v5-radius: var(--cs-radius-lg);
+    --v5-shadow: var(--cs-shadow-md);
+}
+
+/* Yoğun tablo / rapor ekranları */
+.cs-density-compact,
+.report-page,
+.fn-page,
+.yonetim-table-card {
+    --cs-density-gap: clamp(14px, 2vw, 20px);
+    --cs-density-card-pad: clamp(16px, 2vw, 22px);
+}

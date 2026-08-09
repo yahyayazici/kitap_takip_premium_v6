@@ -1,0 +1,342 @@
+/* ============================================================
+   ÇİNİLİ SARAY PROJE — Global UI / UX Design Constitution
+   Yalnızca görsel katman · işleyişe dokunmaz
+   ============================================================ */
+
+html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+body.v3-body,
+body.yonetim-body,
+body.ogretmen-body,
+body.veli-body,
+body.talebe-body {
+    font-family: var(--cs-font) !important;
+    font-size: var(--cs-font-body);
+    line-height: var(--cs-line-height-body);
+    color: var(--cs-text-primary);
+    background:
+        radial-gradient(120% 80% at 50% -12%, #f8fafd 0%, transparent 55%),
+        var(--cs-background) !important;
+    min-height: 100dvh;
+    overflow-x: clip;
+    padding-left: var(--cs-safe-left);
+    padding-right: var(--cs-safe-right);
+}
+
+img, svg, video, canvas {
+    max-width: 100%;
+    height: auto;
+}
+
+.v3-main .page-content,
+.cs-v6-main,
+.dashboard-page,
+.report-page,
+.library-page,
+.profile-page,
+.yonetim-page {
+    width: 100%;
+    max-width: var(--cs-content-wide);
+    margin-inline: auto;
+    box-sizing: border-box;
+}
+
+.v3-main .page-content {
+    padding:
+        calc(var(--cs-space-5) + var(--cs-safe-top))
+        var(--cs-page-gutter)
+        calc(var(--cs-space-8) + var(--cs-safe-bottom)) !important;
+}
+
+.cs-v6-main {
+    padding:
+        calc(var(--cs-space-6) + var(--cs-safe-top))
+        var(--cs-page-gutter)
+        calc(var(--cs-space-9) + var(--cs-safe-bottom)) !important;
+}
+
+.library-page,
+.report-page,
+.profile-page,
+.dashboard-page:not(.dash-home),
+.yonetim-page,
+.exam-create-page,
+.daily-page,
+.ktt-page,
+.at-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cs-density-gap) !important;
+    min-width: 0;
+}
+
+h1, .welcome-title {
+    font-size: var(--cs-font-page-title);
+    font-weight: 650;
+    letter-spacing: var(--cs-letter-tight);
+    line-height: var(--cs-line-height-tight);
+}
+
+h2, .card-heading h2 {
+    font-size: var(--cs-font-section);
+    font-weight: 600;
+    letter-spacing: -0.018em;
+}
+
+.kicker, .card-kicker, .dash-eyebrow {
+    font-size: var(--cs-font-label) !important;
+    font-weight: 600 !important;
+    letter-spacing: var(--cs-letter-kicker) !important;
+    text-transform: uppercase;
+}
+
+.welcome-panel .welcome-title,
+.dash-home .welcome-panel h1 {
+    font-size: var(--cs-font-display);
+}
+
+.v3-header-inner,
+.cs-v6-inner {
+    min-height: var(--cs-header-h) !important;
+    padding-inline: var(--cs-page-gutter) !important;
+}
+
+.v3-nav-link,
+.cs-v6-nav a {
+    min-height: var(--cs-touch-min);
+    display: inline-flex;
+    align-items: center;
+    transition: color var(--cs-transition), background var(--cs-transition);
+}
+
+.v3-user-copy strong,
+.panel-user-copy strong,
+.yonetim-user-copy strong {
+    display: block;
+    font-size: var(--cs-font-secondary);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: min(160px, 28vw);
+}
+
+.yonetim-page > .yonetim-page-head,
+.report-page > .page-head,
+.report-page > .patterned-page-head,
+.library-page > .page-head,
+.profile-page > .page-head,
+.exam-create-page > .page-head,
+.daily-page > .daily-header,
+.ktt-page > .ktt-page-head,
+.at-page > .at-page-head {
+    padding: clamp(18px, 2.8vw, 26px) clamp(20px, 3vw, 30px) !important;
+    min-height: unset !important;
+}
+
+.yonetim-page > .yonetim-page-head h1,
+.report-page > .page-head h1,
+.report-page > .patterned-page-head h1,
+.library-page > .page-head h1 {
+    font-size: clamp(1.25rem, 2.2vw, 1.625rem) !important;
+}
+
+.dash-home .welcome-panel,
+.yonetim-page > .welcome-panel.yonetim-welcome {
+    padding: clamp(24px, 4vw, 36px) !important;
+    min-height: clamp(140px, 22vw, 180px) !important;
+}
+
+.primary-btn,
+.ghost-btn,
+.small-button,
+.yonetim-head-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--cs-btn-h);
+    padding: 0 clamp(14px, 2vw, 20px);
+    border-radius: var(--cs-radius-sm) !important;
+    font-size: var(--cs-font-secondary) !important;
+    font-weight: 500 !important;
+    transition:
+        background var(--cs-transition),
+        border-color var(--cs-transition),
+        box-shadow var(--cs-transition),
+        transform var(--cs-transition-fast);
+}
+
+.primary-btn:hover,
+.ghost-btn:hover {
+    transform: translateY(-1px);
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+select,
+textarea,
+.yonetim-input {
+    min-height: var(--cs-input-h);
+    border-radius: var(--cs-radius-sm);
+    font-size: max(16px, var(--cs-font-body));
+    transition: border-color var(--cs-transition), box-shadow var(--cs-transition);
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+a:focus-visible {
+    outline: none;
+    box-shadow: var(--cs-shadow-focus);
+}
+
+.dashboard-card,
+.report-table-card,
+.metric-card,
+.yonetim-table-card,
+.library-panel,
+.profile-card,
+.dash-panel,
+.veli-card {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-lg) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+    min-width: 0;
+}
+
+.report-data-table thead th,
+.yonetim-data-table thead th {
+    font-size: var(--cs-font-caption);
+    font-weight: 600;
+    letter-spacing: var(--cs-letter-kicker);
+    text-transform: uppercase;
+    color: var(--cs-label);
+}
+
+.report-data-table .num-col,
+.yonetim-data-table .num-col {
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 640px) {
+    .report-data-table.cs-mobile-ready thead,
+    .yonetim-data-table.cs-mobile-ready thead {
+        display: none;
+    }
+
+    .report-data-table.cs-mobile-ready tbody,
+    .yonetim-data-table.cs-mobile-ready tbody {
+        display: flex;
+        flex-direction: column;
+        gap: var(--cs-space-3);
+    }
+
+    .report-data-table.cs-mobile-ready tbody tr,
+    .yonetim-data-table.cs-mobile-ready tbody tr {
+        display: flex;
+        flex-direction: column;
+        gap: var(--cs-space-2);
+        padding: var(--cs-space-4);
+        border: 1px solid var(--cs-border);
+        border-radius: var(--cs-radius-md);
+        background: var(--cs-surface);
+    }
+
+    .report-data-table.cs-mobile-ready tbody td,
+    .yonetim-data-table.cs-mobile-ready tbody td {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--cs-space-3);
+        padding: 0 !important;
+        border: none !important;
+    }
+
+    .report-data-table.cs-mobile-ready tbody td::before,
+    .yonetim-data-table.cs-mobile-ready tbody td::before {
+        content: attr(data-label);
+        flex: 0 0 38%;
+        font-size: var(--cs-font-caption);
+        font-weight: 600;
+        text-transform: uppercase;
+        color: var(--cs-text-tertiary);
+    }
+
+    .report-data-table.cs-mobile-ready tbody td:first-child::before,
+    .yonetim-data-table.cs-mobile-ready tbody td:first-child::before {
+        display: none;
+    }
+
+    .report-data-table.cs-mobile-ready tbody td:first-child,
+    .yonetim-data-table.cs-mobile-ready tbody td:first-child {
+        flex-direction: column;
+        padding-bottom: var(--cs-space-2) !important;
+        border-bottom: 1px solid var(--cs-border-subtle) !important;
+    }
+
+    .yonetim-data-table.cs-mobile-ready .yonetim-action-group {
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .yonetim-data-table.cs-mobile-ready .yonetim-action-group .yonetim-action-btn,
+    .yonetim-data-table.cs-mobile-ready .yonetim-action-group button {
+        flex: 1 1 calc(50% - 4px);
+        min-height: var(--cs-touch-min);
+    }
+}
+
+.report-empty,
+.yonetim-empty-inline,
+.library-empty {
+    padding: clamp(24px, 5vw, 40px) var(--cs-space-5) !important;
+    color: var(--cs-text-tertiary) !important;
+    font-size: var(--cs-font-secondary);
+}
+
+@media (max-width: 900px) {
+    .v3-nav, .cs-v6-nav {
+        order: 3;
+        flex-basis: 100%;
+        max-height: min(60dvh, 420px);
+        overflow-y: auto;
+    }
+
+    .v3-user-copy, .panel-user-copy, .yonetim-user-copy {
+        display: none;
+    }
+
+    .page-head-actions,
+    .yonetim-page-head-actions {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .metric-grid,
+    .dashboard-main-grid,
+    .yonetim-metrics,
+    .library-grid,
+    .student-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (min-width: 2560px) {
+    .v3-main .page-content,
+    .cs-v6-main {
+        max-width: var(--cs-content-wide);
+        margin-inline: auto;
+    }
+}
