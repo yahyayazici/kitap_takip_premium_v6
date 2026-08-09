@@ -115,12 +115,12 @@ def _render_context(
     return ctx
 
 
-def _form_for_tur(tur: str, data=None):
+def _form_for_tur(tur: str, data=None, files=None):
     if tur == "personel":
         return HizliPersonelForm(data)
     if tur == "ogretmen":
         return HizliOgretmenForm(data)
-    return HizliTalebeForm(data)
+    return HizliTalebeForm(data, files)
 
 
 def _excel_sonuc_mesajlari(request, sonuc) -> None:
@@ -353,7 +353,7 @@ def hizli_kayit(request):
             ),
         )
 
-    form = _form_for_tur(tur, request.POST or None)
+    form = _form_for_tur(tur, request.POST or None, request.FILES or None)
 
     if request.method == "POST" and form.is_valid():
         if tur == "personel":

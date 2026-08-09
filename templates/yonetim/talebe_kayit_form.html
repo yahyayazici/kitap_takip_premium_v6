@@ -14,11 +14,18 @@
 </header>
 
 <section class="dashboard-card yonetim-form-card">
-    <form method="post" class="yonetim-form-layout">
+    <form method="post" class="yonetim-form-layout" enctype="multipart/form-data">
         {% csrf_token %}
 
         {% if form.non_field_errors %}
         <div class="yonetim-form-errors">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        {% if form.instance.pk and form.instance.biyometrik_foto %}
+        <div class="yonetim-form-section talebe-foto-onizleme">
+            <h2 class="yonetim-form-section-title">Mevcut fotoğraf</h2>
+            <img src="{{ form.instance.biyometrik_foto.url }}" alt="{{ form.instance.ad_soyad }}" class="talebe-foto talebe-foto-lg">
+        </div>
         {% endif %}
 
         {% for bolum_baslik, alan_adlari in form.bolumler %}

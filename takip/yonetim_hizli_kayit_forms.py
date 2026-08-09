@@ -18,6 +18,7 @@ from takip.models import (
 )
 from takip.ogretmen_odeme_models import OgretmenOdemeProfili
 from takip.panel_permissions import ROL_ETUT_MESUL, ROL_SINIF_MESUL
+from takip.talebe_foto_util import dogrula_biyometrik_foto
 from takip.wave0_models import Brans, VeliHesap, VeliTalebeBaglantisi
 from takip.personel_giris_service import (
     OgretmenGirisKaydi,
@@ -220,6 +221,7 @@ class HizliTalebeForm(forms.ModelForm):
         model = Talebe
         fields = [
             "ad_soyad",
+            "biyometrik_foto",
             "sinif_sube",
             "etut_hocasi",
             "telefon",
@@ -230,6 +232,9 @@ class HizliTalebeForm(forms.ModelForm):
         widgets = {
             "ad_soyad": forms.TextInput(
                 attrs=_cs({"placeholder": "Talebe adı soyadı"})
+            ),
+            "biyometrik_foto": forms.ClearableFileInput(
+                attrs=_cs({"accept": "image/jpeg,image/png,image/webp"})
             ),
             "sinif_sube": forms.Select(
                 attrs={"class": "cs-input", "data-yk-sinif-sec": "1"}
@@ -346,6 +351,11 @@ class HizliTalebeForm(forms.ModelForm):
                 )
 
         return cleaned
+
+    def clean_biyometrik_foto(self):
+        foto = self.cleaned_data.get("biyometrik_foto")
+        dogrula_biyometrik_foto(foto)
+        return foto
 
     @transaction.atomic
     def save_with_veli(self) -> tuple[Talebe, VeliHesap | None]:

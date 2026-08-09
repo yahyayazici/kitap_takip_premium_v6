@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static talebe_tags %}
 
 {% block title %}{{ talebe.ad_soyad }}{% endblock %}
 
@@ -14,7 +14,9 @@
 
     <header class="page-head patterned-page-head profile-head">
         <div class="profile-head-main">
-            <div class="profile-avatar">{{ talebe.ad_soyad|slice:":1" }}</div>
+            <div class="profile-avatar">
+                {% talebe_foto talebe size="lg" %}
+            </div>
             <div>
                 <p class="kicker">TALEBE PROFİLİ</p>
                 <h1>{{ talebe.ad_soyad }}</h1>

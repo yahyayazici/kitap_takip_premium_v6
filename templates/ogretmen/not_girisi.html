@@ -49,7 +49,14 @@
             {% for ogrenci in ogrenciler %}
             <label class="og-yoklama-item">
                 <input type="checkbox" name="yok_talebe" value="{{ ogrenci.id }}" {% if ogrenci.yok %}checked{% endif %}>
-                <span class="og-yoklama-name">{{ ogrenci.ad_soyad|upper }}</span>
+                <span class="og-yoklama-cell">
+                    {% if ogrenci.foto_url %}
+                    <img src="{{ ogrenci.foto_url }}" alt="" class="talebe-foto talebe-foto-sm">
+                    {% else %}
+                    <span class="talebe-foto talebe-foto-fallback talebe-foto-sm">{{ ogrenci.bas_harf }}</span>
+                    {% endif %}
+                    <span class="og-yoklama-name">{{ ogrenci.ad_soyad|upper }}</span>
+                </span>
                 <span class="og-yoklama-yok">(YOK)</span>
             </label>
             {% empty %}
@@ -86,7 +93,16 @@
                 <tbody>
                     {% for ogrenci in ogrenciler %}
                     <tr>
-                        <td class="og-ogrenci-ad" data-label="Öğrenci">{{ ogrenci.ad_soyad|upper }}</td>
+                        <td class="og-ogrenci-ad" data-label="Öğrenci">
+                            <span class="og-ogrenci-cell">
+                                {% if ogrenci.foto_url %}
+                                <img src="{{ ogrenci.foto_url }}" alt="" class="talebe-foto talebe-foto-sm">
+                                {% else %}
+                                <span class="talebe-foto talebe-foto-fallback talebe-foto-sm">{{ ogrenci.bas_harf }}</span>
+                                {% endif %}
+                                <span>{{ ogrenci.ad_soyad|upper }}</span>
+                            </span>
+                        </td>
                         <td data-label="Katılım (30%)">
                             <input type="number" inputmode="decimal" name="katilim_{{ ogrenci.id }}" min="0" max="100" step="0.01" value="{{ ogrenci.katilim }}" placeholder="0-100" required>
                         </td>

@@ -449,7 +449,7 @@ def talebe_liste_excel(request):
 
 @yonetici_gerekli
 def talebe_ekle(request):
-    form = TalebeForm(request.POST or None)
+    form = TalebeForm(request.POST or None, request.FILES or None)
 
     if form.is_valid():
         talebe = form.save()
@@ -480,6 +480,7 @@ def talebe_duzenle(request, pk):
     talebe = get_object_or_404(Talebe, pk=pk)
     form = TalebeForm(
         request.POST or None,
+        request.FILES or None,
         instance=talebe,
     )
 

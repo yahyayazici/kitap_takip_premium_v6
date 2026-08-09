@@ -8,6 +8,7 @@ from decimal import Decimal, InvalidOperation
 from django.db.models import QuerySet
 from django.utils.timezone import localdate
 
+from takip.talebe_foto_util import talebe_foto_meta
 from takip.models import Ders, EtutHocasi, SinifSube, Talebe
 from takip.ogretmen_not_models import (
     OgretmenHaftalikKonu,
@@ -106,10 +107,13 @@ def ogretmen_not_girisi_verisi(
 
             for ogrenci in ogrenciler:
                 not_kaydi = mevcut_notlar.get(ogrenci.id)
+                meta = talebe_foto_meta(ogrenci)
                 ogrenci_satirlari.append(
                     {
                         "id": ogrenci.id,
                         "ad_soyad": ogrenci.ad_soyad,
+                        "foto_url": meta["foto_url"],
+                        "bas_harf": meta["bas_harf"],
                         "katilim": not_kaydi.katilim if not_kaydi and not_kaydi.katilim is not None else "",
                         "takip": not_kaydi.takip if not_kaydi and not_kaydi.takip is not None else "",
                         "disiplin": not_kaydi.disiplin if not_kaydi and not_kaydi.disiplin is not None else "",

@@ -1,0 +1,5 @@
+{% if foto_url %}
+<img src="{{ foto_url }}" alt="{{ ad_soyad|default:'Talebe' }}" class="talebe-foto talebe-foto-{{ size|default:'md' }}" loading="lazy" decoding="async">
+{% else %}
+<span class="talebe-foto talebe-foto-fallback talebe-foto-{{ size|default:'md' }}" aria-hidden="true">{{ bas_harf|default:"?" }}</span>
+{% endif %}

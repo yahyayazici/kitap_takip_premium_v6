@@ -331,6 +331,13 @@ class Talebe(models.Model):
         blank=True,
         verbose_name="E-posta",
     )
+    biyometrik_foto = models.ImageField(
+        upload_to="talebeler/biyometrik/",
+        blank=True,
+        null=True,
+        verbose_name="Biyometrik fotoğraf",
+        help_text="Vesikalık fotoğraf — profil ve not girişinde görünür.",
+    )
 
     class Meta:
         verbose_name = "Talebe"

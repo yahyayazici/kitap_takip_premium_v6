@@ -25,6 +25,7 @@ from .models import (
 )
 from .imam_muezzin_service import parse_haric_tarih_metni
 from .panel_permissions import PERSONEL_ROLLER, ROL_ETUT_MESUL, ROL_SINIF_MESUL
+from .talebe_foto_util import dogrula_biyometrik_foto
 
 
 class SinifSubeForm(forms.ModelForm):
@@ -257,6 +258,7 @@ class TalebeForm(forms.ModelForm):
         (
             "Kimlik bilgileri",
             (
+                "biyometrik_foto",
                 "kimlik_adi",
                 "kimlik_soyadi",
                 "ad_soyad",
@@ -303,6 +305,7 @@ class TalebeForm(forms.ModelForm):
     class Meta:
         model = Talebe
         fields = [
+            "biyometrik_foto",
             "kimlik_adi",
             "kimlik_soyadi",
             "ad_soyad",
@@ -330,6 +333,9 @@ class TalebeForm(forms.ModelForm):
             "aktif",
         ]
         widgets = {
+            "biyometrik_foto": forms.ClearableFileInput(
+                attrs={"class": "cs-input", "accept": "image/jpeg,image/png,image/webp"}
+            ),
             "kimlik_adi": forms.TextInput(attrs={"class": "cs-input"}),
             "kimlik_soyadi": forms.TextInput(attrs={"class": "cs-input"}),
             "ad_soyad": forms.TextInput(
@@ -456,6 +462,11 @@ class TalebeForm(forms.ModelForm):
                 cleaned["ad_soyad"] = birlesik
 
         return cleaned
+
+    def clean_biyometrik_foto(self):
+        foto = self.cleaned_data.get("biyometrik_foto")
+        dogrula_biyometrik_foto(foto)
+        return foto
 
     def veli_kaydet(self, talebe: Talebe) -> None:
         from takip.talebe_excel import _veli_kisi_guncelle
