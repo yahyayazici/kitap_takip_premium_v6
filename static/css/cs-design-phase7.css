@@ -1,0 +1,460 @@
+/* ============================================================
+   ÇİNİLİ SARAY — Design Constitution Phase 7
+   Kalan extra_css modülleri · KTT · namaz · mezun · hızlı kayıt
+   Yalnızca görsel — işleyişe dokunmaz
+   ============================================================ */
+
+/* —— Token köprüsü (extra_css sonrası) —— */
+.ny-page {
+    --ny-navy: var(--cs-primary-dark);
+    --ny-text: var(--cs-text-primary);
+    --ny-muted: var(--cs-text-tertiary);
+    --ny-line: var(--cs-border);
+    --ny-line-soft: var(--cs-border-subtle);
+    --ny-bg: var(--cs-background-warm);
+    --ny-surface: var(--cs-surface);
+    --ny-radius: var(--cs-radius-lg);
+    --ny-radius-sm: var(--cs-radius-md);
+    --ny-shadow: var(--cs-shadow-card);
+    gap: var(--cs-section-gap) !important;
+}
+
+.mz-page {
+    --mz-bg: var(--cs-surface);
+    --mz-surface: var(--cs-surface-muted);
+    --mz-border: var(--cs-border);
+    --mz-navy: var(--cs-primary-dark);
+    --mz-blue: var(--cs-accent);
+    --mz-text: var(--cs-text-primary);
+    --mz-muted: var(--cs-text-secondary);
+    --mz-radius: var(--cs-radius-lg);
+    --mz-shadow: var(--cs-shadow-card);
+}
+
+.yk-page {
+    --yk-accent: var(--cs-accent);
+    --yk-line: var(--cs-border);
+    --yk-navy: var(--cs-navy-deep);
+    gap: var(--cs-section-gap) !important;
+}
+
+.at-page {
+    gap: var(--cs-density-gap) !important;
+    min-width: 0;
+    padding-bottom: calc(var(--cs-space-8) + var(--cs-safe-bottom));
+}
+
+.pid-page {
+    --pid-navy: var(--cs-primary-dark);
+    --pid-text: var(--cs-text-primary);
+    --pid-muted: var(--cs-text-tertiary);
+    --pid-line: var(--cs-border);
+    --pid-ok: var(--cs-success);
+    --pid-warn: var(--cs-warning);
+    --pid-bad: var(--cs-danger);
+}
+
+.yc-page {
+    --yc-line: var(--cs-border);
+    --yc-navy: var(--cs-primary-dark);
+    --yc-muted: var(--cs-text-tertiary);
+    --yc-accent: var(--cs-accent);
+    --yc-radius: var(--cs-radius-lg);
+    --yc-shadow: var(--cs-shadow-card);
+}
+
+.pa-page {
+    --pa-line: var(--cs-border);
+    --pa-muted: var(--cs-text-secondary);
+    --pa-text: var(--cs-text-primary);
+    --pa-radius: var(--cs-radius-md);
+}
+
+.cd-page {
+    --cd-navy: var(--cs-primary-dark);
+    --cd-muted: var(--cs-text-secondary);
+    --cd-line: var(--cs-border);
+}
+
+/* —— Sayfa kabuğu —— */
+.ny-page,
+.mz-page,
+.at-page,
+.pid-page,
+.yc-page,
+.pa-page,
+.cd-page,
+.ktt-page {
+    min-width: 0;
+    max-width: var(--cs-content-wide);
+    margin-inline: auto;
+    box-sizing: border-box;
+}
+
+/* —— Başlıklar —— */
+.ny-head h1,
+.mz-head h1,
+.at-page-head h1,
+.pid-head h1,
+.yc-head h1,
+.cd-head h1,
+.ktt-page-head h1 {
+    font-size: var(--cs-font-page-title) !important;
+    font-weight: 650 !important;
+    letter-spacing: var(--cs-letter-tight) !important;
+    color: var(--cs-text-primary) !important;
+}
+
+.ny-eyebrow,
+.mz-eyebrow,
+.pid-eyebrow,
+.cd-kicker,
+.at-page-head .kicker {
+    font-size: var(--cs-font-label) !important;
+    font-weight: 600 !important;
+    letter-spacing: var(--cs-letter-kicker) !important;
+    text-transform: uppercase;
+    color: var(--cs-text-tertiary) !important;
+}
+
+.ny-sub,
+.mz-sub,
+.pid-sub,
+.yc-sub,
+.cd-head-meta,
+.at-page-head p {
+    color: var(--cs-text-secondary) !important;
+    font-size: var(--cs-font-secondary);
+    line-height: 1.45;
+}
+
+/* KTT / AT liste başlığı — navy hero yerine kompakt */
+.ktt-page-head,
+.at-page-head {
+    animation: none !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin-bottom: var(--cs-space-4) !important;
+}
+
+.ktt-page-head h1,
+.ktt-page-head .kicker {
+    color: var(--cs-text-primary) !important;
+}
+
+.ktt-page-head .kicker {
+    color: var(--cs-text-tertiary) !important;
+}
+
+/* —— Kartlar —— */
+.ny-card,
+.ny-panel,
+.mz-card,
+.mz-kpi,
+.at-card,
+.pid-card,
+.pid-panel,
+.yc-card,
+.yc-panel,
+.pa-card,
+.cd-card,
+.cd-panel,
+.ktt-card,
+.ktt-panel,
+.ktt-modal-card,
+.yk-card,
+.oo-card {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-lg) !important;
+    background: var(--cs-surface) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+}
+
+.yk-card::before,
+.yonetim-page .yk-card::before {
+    display: none !important;
+}
+
+.yk-card {
+    background: var(--cs-surface) !important;
+    padding: clamp(18px, 2.8vw, 28px) !important;
+}
+
+/* —— Hızlı kayıt sekmeleri —— */
+.yk-tab {
+    min-height: var(--cs-btn-h-sm) !important;
+    border-radius: var(--cs-radius-sm) !important;
+    border-color: var(--cs-border) !important;
+    font-size: var(--cs-font-secondary) !important;
+    font-weight: 500 !important;
+    box-shadow: var(--cs-shadow-xs) !important;
+}
+
+.yk-tab.is-active,
+.yk-tab.active {
+    background: linear-gradient(160deg, var(--cs-primary-mid), var(--cs-accent)) !important;
+    border-color: transparent !important;
+    color: #fff !important;
+    box-shadow: var(--cs-shadow-sm) !important;
+}
+
+.yk-giris-banner {
+    border-color: #bfdbfe !important;
+    background: var(--cs-info-bg) !important;
+    border-radius: var(--cs-radius-md) !important;
+}
+
+/* —— Butonlar —— */
+.ny-btn,
+.mz-btn,
+.at-purple-btn,
+.at-outline-btn,
+.pid-btn,
+.yc-btn,
+.pa-btn,
+.cd-btn,
+.ktt-solid-btn,
+.ktt-outline-btn {
+    min-height: var(--cs-btn-h-sm) !important;
+    border-radius: var(--cs-radius-sm) !important;
+    font-size: var(--cs-font-secondary) !important;
+    font-weight: 500 !important;
+}
+
+.ny-btn-primary,
+.mz-btn-primary,
+.at-purple-btn,
+.pid-btn-primary,
+.yc-btn-primary,
+.ktt-solid-btn {
+    background: linear-gradient(160deg, var(--cs-primary-mid), var(--cs-accent)) !important;
+    color: #fff !important;
+    border-color: transparent !important;
+}
+
+/* —— Inputlar —— */
+.ny-input,
+.mz-input,
+.at-filter-grid input,
+.at-filter-grid select,
+.pid-input,
+.yc-input,
+.yk-field input,
+.yk-field select,
+.yk-field textarea,
+.oo-create-form .input,
+.oo-donem-form select,
+.oo-donem-form input,
+.oo-donem-form textarea,
+.oo-report-filter input,
+.oo-report-filter select {
+    min-height: var(--cs-input-h) !important;
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-sm) !important;
+    font-size: max(16px, var(--cs-font-body)) !important;
+    color: var(--cs-text-primary) !important;
+    background: var(--cs-surface) !important;
+}
+
+/* —— Mezun KPI —— */
+.mz-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
+    gap: var(--cs-space-3);
+}
+
+.mz-kpi {
+    min-height: clamp(96px, 14vw, 118px);
+    padding: var(--cs-space-4) !important;
+}
+
+.mz-kpi-value {
+    font-variant-numeric: tabular-nums;
+}
+
+/* —— Namaz yoklama kart grid —— */
+.ny-vakit-tabs {
+    gap: var(--cs-space-2);
+}
+
+.ny-card-grid {
+    gap: var(--cs-space-3);
+}
+
+.ny-talebe-card {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-md) !important;
+    box-shadow: var(--cs-shadow-xs) !important;
+}
+
+/* —— KTT split —— */
+.ktt-split,
+.at-split {
+    gap: var(--cs-section-gap) !important;
+}
+
+@media (max-width: 980px) {
+    .ktt-split,
+    .at-split {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* —— Gelişim dosyası —— */
+.gelisim-dosyasi {
+    gap: var(--cs-section-gap);
+}
+
+.gelisim-panel,
+.gelisim-card {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-lg) !important;
+    background: var(--cs-surface) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+}
+
+.gelisim-kimlik-grid dt {
+    color: var(--cs-text-secondary) !important;
+    font-size: var(--cs-font-secondary) !important;
+}
+
+.gelisim-kimlik-grid dd {
+    color: var(--cs-text-primary) !important;
+}
+
+/* —— Bildirim merkezi (inline style override) —— */
+.bn-page {
+    max-width: min(760px, 100%);
+    gap: var(--cs-section-gap) !important;
+}
+
+.bn-page > header {
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: space-between !important;
+    gap: var(--cs-space-3) !important;
+    flex-wrap: wrap !important;
+}
+
+.bn-page > header p:first-of-type {
+    margin: 0 0 4px !important;
+    font-size: var(--cs-font-label) !important;
+    font-weight: 600 !important;
+    letter-spacing: var(--cs-letter-kicker) !important;
+    text-transform: uppercase !important;
+    color: var(--cs-accent) !important;
+}
+
+.bn-page > header h1 {
+    margin: 0 !important;
+    font-size: var(--cs-font-page-title) !important;
+    font-weight: 650 !important;
+    color: var(--cs-text-primary) !important;
+}
+
+.bn-page > header p:last-of-type {
+    margin: var(--cs-space-1) 0 0 !important;
+    color: var(--cs-text-secondary) !important;
+    font-size: var(--cs-font-secondary) !important;
+}
+
+.bn-page-card {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-lg) !important;
+    background: var(--cs-surface) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+}
+
+/* —— Öğretmen ödeme —— */
+.oo-card {
+    margin-bottom: var(--cs-space-4);
+}
+
+.oo-form-grid {
+    gap: var(--cs-space-3);
+}
+
+.oo-report-filter {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 148px), 1fr));
+    gap: var(--cs-space-3);
+}
+
+.oo-teacher-chip {
+    border-radius: var(--cs-radius-pill);
+    background: var(--cs-surface-muted);
+    color: var(--cs-text-secondary);
+}
+
+/* —— Mobil —— */
+@media (max-width: 640px) {
+    .ny-head,
+    .mz-head,
+    .at-page-head,
+    .pid-head,
+    .yc-head,
+    .cd-head,
+    .ktt-page-head-row,
+    .ktt-head-actions,
+    .at-top-actions,
+    .ny-head-actions,
+    .pid-head-actions {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    .ny-btn,
+    .mz-btn,
+    .at-purple-btn,
+    .at-outline-btn,
+    .pid-btn,
+    .yc-btn,
+    .ktt-solid-btn,
+    .ktt-outline-btn,
+    .ktt-head-actions > *,
+    .at-top-actions > *,
+    .yk-tabs {
+        width: 100%;
+    }
+
+    .yk-tab {
+        flex: 1 1 auto;
+        justify-content: center;
+        min-height: var(--cs-touch-min) !important;
+    }
+
+    .oo-form-grid,
+    .oo-report-filter,
+    .gelisim-top-grid,
+    .gelisim-kimlik-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .ny-card-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .mz-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .mz-kpi-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* —— Ultrawide —— */
+@media (min-width: 1920px) {
+    .ny-page,
+    .mz-page,
+    .at-page,
+    .pid-page,
+    .yc-page,
+    .ktt-page {
+        max-width: var(--cs-content-wide);
+        margin-inline: auto;
+    }
+}
