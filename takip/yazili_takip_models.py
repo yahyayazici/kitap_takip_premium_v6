@@ -75,6 +75,11 @@ class YaziliSinav(models.Model):
         verbose_name="Yazılı no",
         help_text="Örn. 1. yazılı, 2. yazılı",
     )
+    donem = models.PositiveSmallIntegerField(
+        default=1,
+        verbose_name="Dönem",
+        help_text="Gerçek okul yazılıları için 1 veya 2. dönem",
+    )
     tur = models.CharField(
         max_length=10,
         choices=Tur.choices,
@@ -115,7 +120,7 @@ class YaziliSinav(models.Model):
     class Meta:
         verbose_name = "Yazılı sınav"
         verbose_name_plural = "Yazılı sınavlar"
-        ordering = ["sinav_tarihi", "yazili_no", "id"]
+        ordering = ["sinav_tarihi", "donem", "yazili_no", "id"]
 
     def __str__(self):
         return self.ad
@@ -135,14 +140,25 @@ class YaziliSinav(models.Model):
         return self.ders_ad
 
     @property
+    def donem_yazili_goster(self) -> str:
+        if self.tur == self.Tur.GERCEK:
+            return f"{self.donem}. Dönem · {self.yazili_no}. Yazılı"
+        return f"{self.yazili_no}. Yazılı"
+
+    @property
     def etiket(self) -> str:
         tur = self.get_tur_display()
-        return f"{self.ders_ad} · {self.yazili_no}. yazılı ({tur})"
+        return f"{self.ders_ad} · {self.donem_yazili_goster} ({tur})"
 
     def clean(self):
         super().clean()
         if self.yazili_no < 1:
             raise ValidationError({"yazili_no": "Yazılı no en az 1 olmalıdır."})
+        if self.tur == self.Tur.GERCEK:
+            if self.yazili_no > 2:
+                raise ValidationError({"yazili_no": "Gerçek yazılı için 1 veya 2 seçin."})
+            if self.donem < 1 or self.donem > 2:
+                raise ValidationError({"donem": "Dönem 1 veya 2 olmalıdır."})
         if self.soru_sayisi is not None and self.soru_sayisi < 0:
             raise ValidationError({"soru_sayisi": "Soru sayısı negatif olamaz."})
 

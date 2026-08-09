@@ -1,0 +1,55 @@
+<div class="dp-mob-flow" aria-label="Mobil program görünümü">
+    {% for satir in matris %}
+    {% if satir.birlestirilmis %}
+    <div class="dp-mob-merged {% if satir.tur == 'namaz' %}is-namaz{% elif satir.tur == 'yemek' %}is-yemek{% endif %}">
+        <time>{{ satir.saat }}</time>
+        <div>
+            <strong>{{ satir.birlestirilmis_metin|default:satir.metin }}</strong>
+            {% if satir.tur_etiket %}<span>{{ satir.tur_etiket }}</span>{% endif %}
+        </div>
+    </div>
+    {% else %}
+    <article class="dp-mob-block">
+        <header class="dp-mob-block-head">
+            <span class="dp-mob-time">{{ satir.saat }}</span>
+            {% if satir.tur_etiket %}
+            <span class="dp-badge {{ satir.tur_sinif }}">{{ satir.tur_etiket }}</span>
+            {% endif %}
+        </header>
+        <div class="dp-mob-groups">
+            {% for hucre in satir.hucreler %}
+            {% if duzenleyebilir %}
+            <div class="dp-mob-group dp-droppable {% if hucre.bos %}is-empty{% endif %}"
+                 style="{% if not hucre.bos %}--cell-bg: {{ hucre.renk }};{% endif %}"
+                 data-blok-id="{{ satir.blok_id }}"
+                 data-grup-id="{{ hucre.grup_id }}"
+                 role="button"
+                 tabindex="0"
+                 data-dp-assign='{"blok":{{ satir.blok_id }},"grup":{{ hucre.grup_id }},"ders":"{{ hucre.ders|escapejs }}","ogretmen":"{{ hucre.ogretmen|escapejs }}"}'>
+                <span class="dp-mob-grup-label">{{ hucre.grup_etiket }}</span>
+                {% if hucre.bos %}
+                <span class="dp-mob-empty">+ Ders ekle</span>
+                {% else %}
+                <strong class="dp-mob-ders">{{ hucre.ders }}</strong>
+                <span class="dp-mob-ogretmen">{{ hucre.ogretmen }}</span>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="dp-mob-group {% if hucre.bos %}is-empty{% endif %}" style="{% if not hucre.bos %}--cell-bg: {{ hucre.renk }};{% endif %}">
+                <span class="dp-mob-grup-label">{{ hucre.grup_etiket }}</span>
+                {% if hucre.bos %}
+                <span class="dp-mob-empty">Boş</span>
+                {% else %}
+                <strong class="dp-mob-ders">{{ hucre.ders }}</strong>
+                <span class="dp-mob-ogretmen">{{ hucre.ogretmen }}</span>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </article>
+    {% endif %}
+    {% empty %}
+    <p class="dp-mob-empty-page">Bu gün için program satırı yok.</p>
+    {% endfor %}
+</div>

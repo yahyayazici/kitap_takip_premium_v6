@@ -1,0 +1,603 @@
+/* Cuma Durum Stüdyosu — WhatsApp 9:16 story */
+
+.cd-page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 0 48px;
+}
+
+.cd-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+.cd-kicker {
+    margin: 0 0 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #64748b;
+}
+
+.cd-head h1 {
+    margin: 0;
+    font-size: clamp(1.75rem, 4vw, 2.25rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: #0f172a;
+}
+
+.cd-head-meta {
+    margin: 8px 0 0;
+    font-size: 14px;
+    color: #64748b;
+    max-width: 520px;
+    line-height: 1.5;
+}
+
+.cd-layout {
+    display: grid;
+    grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
+    gap: 28px;
+    align-items: start;
+}
+
+@media (max-width: 960px) {
+    .cd-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Telefon çerçevesi */
+.cd-preview-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: sticky;
+    top: 88px;
+}
+
+@media (max-width: 960px) {
+    .cd-preview-col {
+        position: static;
+    }
+}
+
+.cd-phone {
+    width: min(100%, 320px);
+    padding: 14px 10px 18px;
+    border-radius: 36px;
+    background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+    box-shadow:
+        0 24px 60px rgba(15, 23, 42, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.cd-phone-notch {
+    width: 96px;
+    height: 22px;
+    margin: 0 auto 10px;
+    border-radius: 0 0 14px 14px;
+    background: #020617;
+}
+
+.cd-phone-screen {
+    border-radius: 24px;
+    overflow: hidden;
+    background: #000;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.cd-preview-hint {
+    margin: 14px 0 0;
+    font-size: 12px;
+    color: #94a3b8;
+    text-align: center;
+    max-width: 280px;
+    line-height: 1.45;
+}
+
+/* Story kart — export boyutu 1080×1920, ekranda ölçekli */
+.cd-story {
+    position: relative;
+    width: 1080px;
+    height: 1920px;
+    transform: scale(0.2778);
+    transform-origin: top left;
+    margin-bottom: calc(1920px * 0.2778 - 1920px);
+    overflow: hidden;
+    font-family: "Poppins", system-ui, sans-serif;
+    color: #fff;
+}
+
+.cd-phone-screen .cd-story {
+    /* scale container to fit phone width ~300px */
+    width: 1080px;
+    height: 1920px;
+}
+
+.cd-phone-screen {
+    width: 300px;
+    height: calc(300px * 16 / 9);
+    max-height: 533px;
+    position: relative;
+}
+
+.cd-phone-screen .cd-story {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: scale(calc(300 / 1080));
+    transform-origin: top left;
+}
+
+/* Temalar */
+.cd-story-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+
+.cd-theme-gece .cd-story-bg {
+    background:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(126, 180, 255, 0.35), transparent 55%),
+        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(196, 181, 253, 0.2), transparent 50%),
+        linear-gradient(165deg, #071b3a 0%, #0a2048 42%, #061530 100%);
+}
+
+.cd-theme-zumrut .cd-story-bg {
+    background:
+        radial-gradient(ellipse 70% 45% at 20% 0%, rgba(110, 231, 183, 0.28), transparent 50%),
+        linear-gradient(165deg, #064e3b 0%, #065f46 40%, #022c22 100%);
+}
+
+.cd-theme-mor .cd-story-bg {
+    background:
+        radial-gradient(ellipse 75% 50% at 80% 10%, rgba(216, 180, 254, 0.32), transparent 52%),
+        linear-gradient(165deg, #3b0764 0%, #581c87 45%, #2e1065 100%);
+}
+
+.cd-theme-altin .cd-story-bg {
+    background:
+        radial-gradient(ellipse 80% 55% at 50% 0%, rgba(251, 191, 36, 0.28), transparent 55%),
+        linear-gradient(165deg, #78350f 0%, #92400e 38%, #451a03 100%);
+}
+
+.cd-theme-lacivert .cd-story-bg {
+    background:
+        radial-gradient(ellipse 65% 45% at 50% 100%, rgba(56, 189, 248, 0.22), transparent 50%),
+        linear-gradient(165deg, #0c4a6e 0%, #075985 42%, #082f49 100%);
+}
+
+.cd-story-ornament {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    z-index: 1;
+    pointer-events: none;
+}
+
+.cd-story-ornament-a {
+    width: 680px;
+    height: 680px;
+    top: -220px;
+    right: -180px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.04) 0%, transparent 70%);
+}
+
+.cd-story-ornament-b {
+    width: 520px;
+    height: 520px;
+    bottom: -120px;
+    left: -160px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.03) 0%, transparent 68%);
+}
+
+.cd-story-inner {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    padding: 88px 72px 96px;
+    box-sizing: border-box;
+}
+
+.cd-story-top {
+    text-align: center;
+}
+
+.cd-story-logo {
+    width: 120px;
+    height: auto;
+    margin: 0 auto 20px;
+    display: block;
+    filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.25));
+}
+
+.cd-story-org {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    opacity: 0.92;
+}
+
+.cd-story-mid {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 48px 0;
+}
+
+.cd-story-badge {
+    margin: 0 0 40px;
+    display: inline-block;
+    padding: 14px 36px;
+    border-radius: 999px;
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    backdrop-filter: blur(8px);
+}
+
+.cd-story-quote {
+    margin: 0;
+    max-width: 920px;
+    font-size: 42px;
+    font-weight: 500;
+    line-height: 1.55;
+    letter-spacing: -0.01em;
+    text-shadow: 0 2px 24px rgba(0, 0, 0, 0.2);
+}
+
+.cd-story-quote:empty::before {
+    content: "Metin seçin veya yazın…";
+    opacity: 0.45;
+    font-style: italic;
+    font-weight: 400;
+}
+
+.cd-story-source {
+    margin: 36px 0 0;
+    font-size: 28px;
+    font-weight: 500;
+    opacity: 0.78;
+    font-style: italic;
+}
+
+.cd-story-source:empty {
+    display: none;
+}
+
+.cd-story-bottom {
+    text-align: center;
+}
+
+.cd-story-person-line {
+    display: block;
+    width: 80px;
+    height: 3px;
+    margin: 0 auto 28px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+}
+
+.cd-story-name {
+    margin: 0;
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.cd-story-role {
+    margin: 8px 0 0;
+    font-size: 24px;
+    font-weight: 500;
+    opacity: 0.72;
+}
+
+.cd-story-role:empty {
+    display: none;
+}
+
+.cd-story-date {
+    margin: 32px 0 0;
+    font-size: 22px;
+    font-weight: 500;
+    opacity: 0.55;
+    letter-spacing: 0.04em;
+}
+
+/* Kontroller */
+.cd-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.cd-panel {
+    padding: 20px 22px;
+    border-radius: 18px;
+    background: #fff;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: 0 8px 32px rgba(15, 23, 42, 0.05);
+}
+
+.cd-panel-title {
+    margin: 0 0 6px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.cd-panel-lead {
+    margin: 0 0 16px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #64748b;
+}
+
+.cd-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    padding: 4px;
+    border-radius: 12px;
+    background: #f1f5f9;
+}
+
+.cd-tab {
+    flex: 1;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: background 0.16s, color 0.16s, box-shadow 0.16s;
+}
+
+.cd-tab.is-active {
+    background: #fff;
+    color: #0f172a;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+.cd-tab-panel {
+    display: none;
+}
+
+.cd-tab-panel.is-active {
+    display: block;
+}
+
+.cd-quote-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 340px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.cd-quote-card {
+    text-align: left;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    background: #fafbfc;
+    cursor: pointer;
+    transition: border-color 0.16s, background 0.16s, box-shadow 0.16s;
+}
+
+.cd-quote-card:hover {
+    border-color: #cbd5e1;
+    background: #fff;
+}
+
+.cd-quote-card.is-selected {
+    border-color: #3b82f6;
+    background: linear-gradient(180deg, #eff6ff 0%, #fff 100%);
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2);
+}
+
+.cd-quote-card strong {
+    display: block;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #0f172a;
+    font-weight: 600;
+}
+
+.cd-quote-card small {
+    display: block;
+    margin-top: 6px;
+    font-size: 11px;
+    color: #64748b;
+}
+
+.cd-quote-card .cd-badge-oneri {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #1d4ed8;
+    background: rgba(59, 130, 246, 0.12);
+}
+
+.cd-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+
+.cd-field span {
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.cd-input {
+    width: 100%;
+    padding: 11px 14px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    font: inherit;
+    font-size: 14px;
+    color: #0f172a;
+    background: #fff;
+    transition: border-color 0.16s, box-shadow 0.16s;
+    box-sizing: border-box;
+}
+
+.cd-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+textarea.cd-input {
+    resize: vertical;
+    min-height: 100px;
+    line-height: 1.5;
+}
+
+.cd-theme-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+}
+
+.cd-theme-chip {
+    padding: 12px 10px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    text-align: center;
+    line-height: 1.3;
+    transition: transform 0.14s, box-shadow 0.14s;
+}
+
+.cd-theme-chip:hover {
+    transform: translateY(-1px);
+}
+
+.cd-theme-chip.is-active {
+    border-color: #fff;
+    box-shadow: 0 0 0 2px #0f172a, 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.cd-theme-chip[data-theme="gece"] { background: linear-gradient(135deg, #0a2048, #071b3a); }
+.cd-theme-chip[data-theme="zumrut"] { background: linear-gradient(135deg, #065f46, #064e3b); }
+.cd-theme-chip[data-theme="mor"] { background: linear-gradient(135deg, #581c87, #3b0764); }
+.cd-theme-chip[data-theme="altin"] { background: linear-gradient(135deg, #92400e, #78350f); }
+.cd-theme-chip[data-theme="lacivert"] { background: linear-gradient(135deg, #075985, #0c4a6e); }
+
+.cd-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 14px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.14s, box-shadow 0.14s, opacity 0.14s;
+}
+
+.cd-btn:active {
+    transform: scale(0.98);
+}
+
+.cd-btn-primary {
+    color: #fff;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.32);
+}
+
+.cd-btn-primary:hover {
+    box-shadow: 0 12px 28px rgba(37, 99, 235, 0.38);
+}
+
+.cd-btn-soft {
+    width: 100%;
+    color: #1d4ed8;
+    background: #eff6ff;
+}
+
+.cd-btn-soft:hover {
+    background: #dbeafe;
+}
+
+.cd-btn:disabled {
+    opacity: 0.55;
+    cursor: wait;
+}
+
+.cd-tip {
+    padding: 16px 18px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.cd-tip strong {
+    display: block;
+    font-size: 13px;
+    color: #065f46;
+    margin-bottom: 4px;
+}
+
+.cd-tip p {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #047857;
+}
+
+/* Export sırasında telefon dışında tam boyut klon */
+.cd-export-clone {
+    position: fixed;
+    left: -9999px;
+    top: 0;
+    z-index: -1;
+    pointer-events: none;
+}
+
+@media (max-width: 640px) {
+    .cd-head-actions {
+        width: 100%;
+    }
+
+    .cd-btn-primary {
+        width: 100%;
+    }
+}

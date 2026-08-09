@@ -1,42 +1,299 @@
 {% extends "base.html" %}
 {% block title %}{{ deneme.ad }}{% endblock %}
 {% block content %}
-<div class="result-entry-page">
+<div class="result-entry-page deneme-detail-page">
     <header class="result-entry-header">
         <div>
             <p class="result-kicker">{{ deneme.sinav_tarihi|date:"d F Y"|upper }}</p>
             <h1>{{ deneme.ad }}</h1>
             <p class="result-description">{{ deneme.sinif_seviyesi }}. sınıf · {{ sonuclar|length }} sonuç</p>
         </div>
-        <a href="{% url 'deneme_listesi' %}" class="result-back-button">Denemeler</a>
+        <div class="result-header-actions">
+            <a href="{% url 'deneme_listesi' %}" class="result-back-button">Denemeler</a>
+        </div>
     </header>
+
     <section class="result-card">
-        <div class="responsive-table">
+        <h2 class="deneme-section-title">Genel Sıralama</h2>
+        <div class="responsive-table deneme-result-table">
             <table class="report-data-table">
                 <thead>
                     <tr>
                         <th>#</th>
                         <th>Talebe</th>
                         <th>Sınıf</th>
-                        <th>Toplam Net</th>
-                        <th>Puan</th>
+                        <th class="num-col">Doğru</th>
+                        <th class="num-col">Yanlış</th>
+                        <th class="num-col">Boş</th>
+                        <th class="num-col">Net</th>
+                        <th class="num-col">Puan</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for sonuc in sonuclar %}
-                    <tr>
-                        <td class="num-col">{{ forloop.counter }}</td>
-                        <td><strong>{{ sonuc.talebe.ad_soyad }}</strong></td>
-                        <td>{{ sonuc.talebe.sinif_sube }}</td>
-                        <td class="num-col profile-score">{{ sonuc.toplam_net }}</td>
-                        <td class="num-col">{{ sonuc.puan }}</td>
+                    <tr class="deneme-result-row">
+                        <td class="num-col" data-label="#">{{ forloop.counter }}</td>
+                        <td data-label="Talebe"><strong>{{ sonuc.talebe.ad_soyad }}</strong></td>
+                        <td data-label="Sınıf">{{ sonuc.talebe.sinif_sube }}</td>
+                        <td class="num-col" data-label="Doğru">{{ sonuc.toplam_dogru }}</td>
+                        <td class="num-col" data-label="Yanlış">{{ sonuc.toplam_yanlis }}</td>
+                        <td class="num-col" data-label="Boş">{{ sonuc.toplam_bos }}</td>
+                        <td class="num-col profile-score" data-label="Net">{{ sonuc.toplam_net }}</td>
+                        <td class="num-col" data-label="Puan">{{ sonuc.puan }}</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="5" class="report-empty">Sonuç bulunamadı.</td></tr>
+                    <tr><td colspan="8" class="report-empty">Sonuç bulunamadı.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </section>
+
+    {% if detay_satirlari %}
+    <section class="result-card deneme-branches-section">
+        <h2 class="deneme-section-title">Detaylı Başarı Listesi</h2>
+        <p class="deneme-section-desc">Türkçe, Matematik, Fen, Sosyal ve İngilizce — ders ders doğru / yanlış / boş</p>
+
+        <div class="responsive-table deneme-branches-table deneme-branches-desktop">
+            <table class="report-data-table">
+                <thead>
+                    <tr>
+                        <th rowspan="2">#</th>
+                        <th rowspan="2">Talebe</th>
+                        <th rowspan="2">Sınıf</th>
+                        {% for baslik in detay_brans_basliklari %}
+                        <th colspan="3" class="brans-group-head">{{ baslik }}</th>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        {% for kod in detay_branslar %}
+                        <th class="num-col brans-sub">D</th>
+                        <th class="num-col brans-sub">Y</th>
+                        <th class="num-col brans-sub">B</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for satir in detay_satirlari %}
+                    <tr>
+                        <td class="num-col">{{ satir.sira }}</td>
+                        <td><strong>{{ satir.sonuc.talebe.ad_soyad }}</strong></td>
+                        <td>{{ satir.sonuc.talebe.sinif_sube }}</td>
+                        {% for brans in satir.branslar %}
+                        <td class="num-col">{{ brans.dogru }}</td>
+                        <td class="num-col">{{ brans.yanlis }}</td>
+                        <td class="num-col">{{ brans.bos }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="deneme-branches-mobile">
+            {% for satir in detay_satirlari %}
+            <article class="deneme-branches-card">
+                <header class="deneme-branches-card-head">
+                    <span class="deneme-branches-rank">#{{ satir.sira }}</span>
+                    <div>
+                        <strong>{{ satir.sonuc.talebe.ad_soyad }}</strong>
+                        <span>{{ satir.sonuc.talebe.sinif_sube }}</span>
+                    </div>
+                </header>
+                <div class="deneme-branches-grid">
+                    {% for brans in satir.branslar %}
+                    <div class="deneme-branches-item">
+                        <span class="deneme-branches-label">{{ brans.etiket }}</span>
+                        <span class="deneme-branches-stats">
+                            <span class="d-stat">{{ brans.dogru }}<small>D</small></span>
+                            <span class="y-stat">{{ brans.yanlis }}<small>Y</small></span>
+                            <span class="b-stat">{{ brans.bos }}<small>B</small></span>
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if ai_platform_aktif and sonuclar %}
+    {% include "includes/ai_zekasi_widget.html" with ai_tur="deneme_analiz" ai_deneme_id=deneme.id ai_kicker="Deneme analizi" ai_baslik=deneme.ad|add:" · Akademik değerlendirme" ai_collapsed=True %}
+    {% endif %}
 </div>
+<style>
+.deneme-section-title {
+    margin: 0 0 8px;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+.deneme-section-desc {
+    margin: 0 0 16px;
+    font-size: 13px;
+    color: #64748b;
+}
+.deneme-branches-section {
+    margin-top: 20px;
+}
+.deneme-branches-table .brans-group-head {
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: 0.03em;
+    border-bottom: 1px solid #e2e8f0;
+}
+.deneme-branches-table .brans-sub {
+    font-size: 10px;
+    color: #64748b;
+}
+.deneme-branches-mobile {
+    display: none;
+}
+.deneme-branches-card {
+    margin-bottom: 12px;
+    padding: 14px;
+    border: 1px solid #dbe3ef;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(15, 40, 80, 0.05);
+}
+.deneme-branches-card-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
+    text-align: left;
+}
+.deneme-branches-rank {
+    font-size: 12px;
+    font-weight: 800;
+    color: #64748b;
+    min-width: 28px;
+}
+.deneme-branches-card-head strong {
+    display: block;
+    font-size: 15px;
+}
+.deneme-branches-card-head span {
+    font-size: 12px;
+    color: #64748b;
+}
+.deneme-branches-grid {
+    display: grid;
+    gap: 8px;
+}
+.deneme-branches-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 0;
+    border-top: 1px solid #eef2f7;
+}
+.deneme-branches-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+}
+.deneme-branches-stats {
+    display: flex;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 700;
+}
+.deneme-branches-stats small {
+    font-size: 9px;
+    font-weight: 800;
+    margin-left: 2px;
+    opacity: 0.65;
+}
+.d-stat { color: #15803d; }
+.y-stat { color: #b91c1c; }
+.b-stat { color: #64748b; }
+
+@media (max-width: 768px) {
+    .deneme-detail-page .result-entry-header {
+        align-items: flex-start;
+        flex-direction: column;
+        text-align: left;
+    }
+    .deneme-detail-page .result-entry-header > div {
+        width: 100%;
+        text-align: left;
+    }
+    .deneme-detail-page .result-header-actions {
+        width: 100%;
+        justify-content: flex-start !important;
+    }
+    .deneme-result-table {
+        overflow: visible;
+        margin-top: 0;
+    }
+    .deneme-result-table table,
+    .deneme-result-table tbody,
+    .deneme-result-table tr,
+    .deneme-result-table td {
+        display: block;
+        width: 100%;
+    }
+    .deneme-result-table thead {
+        display: none;
+    }
+    .deneme-result-table tr.deneme-result-row {
+        margin-bottom: 12px;
+        padding: 14px;
+        border: 1px solid #dbe3ef;
+        border-radius: 14px;
+        background: #fff;
+        box-shadow: 0 2px 10px rgba(15, 40, 80, 0.05);
+    }
+    .deneme-result-table tr.deneme-result-row td {
+        display: grid;
+        grid-template-columns: minmax(72px, 34%) 1fr;
+        gap: 8px;
+        padding: 8px 0;
+        border-top: 1px solid #eef2f7;
+        text-align: left !important;
+    }
+    .deneme-result-table tr.deneme-result-row td:first-child {
+        display: block;
+        padding: 0 0 10px;
+        border-top: 0;
+        font-size: 12px;
+        font-weight: 700;
+        color: #64748b;
+    }
+    .deneme-result-table tr.deneme-result-row td:first-child::before {
+        content: "Sıra";
+        display: inline-block;
+        margin-right: 8px;
+        font-size: 10px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+    .deneme-result-table tr.deneme-result-row td[data-label="Talebe"] {
+        display: block;
+        padding: 0 0 12px;
+        border-top: 0;
+    }
+    .deneme-result-table tr.deneme-result-row td[data-label="Talebe"]::before {
+        display: none;
+    }
+    .deneme-result-table tr.deneme-result-row td:not([data-label="Talebe"])::before {
+        content: attr(data-label);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #64748b;
+    }
+    .deneme-branches-desktop {
+        display: none;
+    }
+    .deneme-branches-mobile {
+        display: block;
+    }
+}
+</style>
 {% endblock %}

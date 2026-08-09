@@ -365,6 +365,9 @@ class YaziliSinavForm(StyledModelForm):
 class YaziliSinavPanelForm(StyledModelForm):
     """Etüt hocası paneli — KTT benzeri yazılı oluşturma."""
 
+    DONEM_SECENEKLERI = [(1, "1. Dönem"), (2, "2. Dönem")]
+    YAZILI_SECENEKLERI = [(1, "1. Yazılı"), (2, "2. Yazılı")]
+
     class Meta:
         from takip.models import YaziliSinav
 
@@ -373,6 +376,7 @@ class YaziliSinavPanelForm(StyledModelForm):
             "ad",
             "sinav_tarihi",
             "ders",
+            "donem",
             "yazili_no",
             "tur",
         ]
@@ -386,14 +390,35 @@ class YaziliSinavPanelForm(StyledModelForm):
         super().__init__(*args, **kwargs)
         from takip.models import Ders, YaziliSinav
 
+        self._aktif_tur = aktif_tur
         self.fields["ders"].queryset = Ders.objects.filter(aktif=True).order_by(
             "sira", "ad"
         )
         self.fields["ders"].required = True
-        self.fields["ad"].required = False
-        self.fields["ad"].help_text = "Boş bırakılırsa ders + yazılı no ile doldurulur."
+        self.fields["tur"].widget = forms.HiddenInput()
+
+        if aktif_tur == YaziliSinav.Tur.GERCEK:
+            self.fields.pop("ad", None)
+            self.fields["donem"].widget = forms.Select(
+                choices=self.DONEM_SECENEKLERI,
+                attrs={"class": "input"},
+            )
+            self.fields["donem"].required = True
+            self.fields["yazili_no"].widget = forms.Select(
+                choices=self.YAZILI_SECENEKLERI,
+                attrs={"class": "input"},
+            )
+            if not self.is_bound:
+                self.initial.setdefault("donem", 1)
+                self.initial.setdefault("yazili_no", 1)
+        else:
+            self.fields.pop("donem", None)
+            self.fields["ad"].required = False
+            self.fields["ad"].help_text = (
+                "Boş bırakılırsa ders + yazılı no ile doldurulur."
+            )
+
         if aktif_tur in {YaziliSinav.Tur.ORNEK, YaziliSinav.Tur.GERCEK}:
-            self.fields["tur"].widget = forms.HiddenInput()
             if not self.is_bound:
                 self.initial.setdefault("tur", aktif_tur)
 

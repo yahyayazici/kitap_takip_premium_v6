@@ -1,0 +1,25 @@
+{% load static %}
+{% if ai_platform_aktif %}
+<section class="ai-zekasi-widget{% if ai_collapsed %} is-collapsed{% endif %}" data-ai-tur="{{ ai_tur }}"{% if ai_talebe_id %} data-ai-talebe="{{ ai_talebe_id }}"{% endif %}{% if ai_deneme_id %} data-ai-deneme="{{ ai_deneme_id }}"{% endif %}{% if ai_gorusme_id %} data-ai-gorusme="{{ ai_gorusme_id }}"{% endif %}{% if ai_collapsed %} data-ai-collapsed="1"{% endif %}>
+    <header class="ai-zekasi-widget-head">
+        <div>
+            <p class="ai-zekasi-kicker">{{ ai_kicker|default:"Gelişim Zekası" }}</p>
+            <h2 class="ai-zekasi-title">{{ ai_baslik|default:"Yapay zeka analizi" }}</h2>
+        </div>
+        <div class="ai-zekasi-actions">
+            {% if ai_collapsed %}
+            <button type="button" class="ai-zekasi-expand primary-btn">Analizi göster</button>
+            {% else %}
+            <button type="button" class="ai-zekasi-yenile ghost-btn" title="Yenile">↻</button>
+            {% endif %}
+        </div>
+    </header>
+    <div class="ai-zekasi-panel"{% if ai_collapsed %} hidden{% endif %}>
+        {% if ai_collapsed %}
+        <p class="ai-zekasi-hint">İsteğe bağlı — tıklayınca yüklenir.</p>
+        {% else %}
+        <p class="ai-zekasi-loading">Analiz hazırlanıyor…</p>
+        {% endif %}
+    </div>
+</section>
+{% endif %}

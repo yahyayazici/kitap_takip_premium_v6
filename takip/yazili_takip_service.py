@@ -277,6 +277,7 @@ def yazili_sinav_olustur(
     tur: str,
     sinif_etiketleri: list[str],
     ad: str = "",
+    donem: int = 1,
 ) -> YaziliSinav:
     if not sinif_etiketleri:
         raise ValueError("En az bir sınıf seçin.")
@@ -288,7 +289,10 @@ def yazili_sinav_olustur(
     brans = ders.brans.ad if ders.brans_id else ""
     baslik = (ad or "").strip()
     if not baslik:
-        baslik = f"{ders.ad} {yazili_no}. Yazılı"
+        if tur == YaziliSinav.Tur.GERCEK:
+            baslik = f"{ders.ad} · {donem}. Dönem {yazili_no}. Yazılı"
+        else:
+            baslik = f"{ders.ad} {yazili_no}. Yazılı"
 
     return YaziliSinav.objects.create(
         kamp=kamp,
@@ -298,6 +302,7 @@ def yazili_sinav_olustur(
         ders_ad=ders.ad,
         brans=brans,
         yazili_no=yazili_no,
+        donem=donem if tur == YaziliSinav.Tur.GERCEK else 1,
         tur=tur or YaziliSinav.Tur.ORNEK,
         hedef_siniflar=", ".join(sinif_etiketleri),
         soru_sayisi=0,

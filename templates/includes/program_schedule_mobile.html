@@ -1,0 +1,21 @@
+<div class="pg-mob-flow" aria-label="Günlük program akışı">
+    {% for satir in satirlar %}
+    <article class="pg-mob-item pg-mob-{{ satir.faaliyet_turu }}{% if satir.faaliyet_durumu == 'pasif' %} is-passive{% endif %}">
+        <div class="pg-mob-rail" aria-hidden="true">
+            <span class="pg-mob-dot"></span>
+            {% if not forloop.last %}<span class="pg-mob-line"></span>{% endif %}
+        </div>
+        <div class="pg-mob-card">
+            <div class="pg-mob-head">
+                <span class="pg-mob-time">{{ satir.baslangic_saati|time:"H:i" }} – {{ satir.bitis_saati|time:"H:i" }}</span>
+                <span class="pg-mob-tur">{{ satir.get_faaliyet_turu_display }}</span>
+                <span class="pg-mob-durum">{{ satir.get_faaliyet_durumu_display }}</span>
+            </div>
+            <h3 class="pg-mob-title">{{ satir.faaliyet_adi }}</h3>
+            <p class="pg-mob-sure">{{ satir.sure_goster }}</p>
+        </div>
+    </article>
+    {% empty %}
+    <p class="pg-mob-empty">Program satırı yok.</p>
+    {% endfor %}
+</div>

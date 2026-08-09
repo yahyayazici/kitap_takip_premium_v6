@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from .models import (
+    CumaDurumMetni,
     Duyuru,
     EtutHocasi,
     HaftalikSohbetMevzuu,
@@ -71,6 +72,7 @@ from .talebe_excel import (
     talebe_excel_ice_aktar,
 )
 from .yonetim_forms import (
+    CumaDurumMetniForm,
     DuyuruForm,
     HaftalikSohbetMevzuuForm,
     ImamMuezzinAtamaFormSet,
@@ -385,6 +387,7 @@ def talebe_ekle(request):
 
     if form.is_valid():
         talebe = form.save()
+        form.veli_kaydet(talebe)
         messages.success(
             request,
             f"{talebe.ad_soyad} başarıyla eklendi. "
@@ -394,12 +397,12 @@ def talebe_ekle(request):
 
     return render(
         request,
-        "yonetim/form.html",
+        "yonetim/talebe_kayit_form.html",
         {
             "form": form,
             "sayfa_basligi": "Talebe Ekle",
             "sayfa_aciklama": (
-                "Talebenin sınıfını ve etüt hocasını belirleyin."
+                "Kimlik, eğitim ve veli bilgilerini eksiksiz doldurun."
             ),
             "geri_url": "yonetim:talebe_listesi",
         },
@@ -416,6 +419,7 @@ def talebe_duzenle(request, pk):
 
     if form.is_valid():
         talebe = form.save()
+        form.veli_kaydet(talebe)
         messages.success(
             request,
             f"{talebe.ad_soyad} güncellendi.",
@@ -424,7 +428,7 @@ def talebe_duzenle(request, pk):
 
     return render(
         request,
-        "yonetim/form.html",
+        "yonetim/talebe_kayit_form.html",
         {
             "form": form,
             "sayfa_basligi": "Talebe Düzenle",
@@ -680,6 +684,69 @@ def sohbet_mevzuu_sil(request, pk):
     mevzu.delete()
     messages.success(request, f"“{baslik}” silindi.")
     return redirect("yonetim:sohbet_mevzuu_listesi")
+
+
+@yonetici_gerekli
+def cuma_durum_listesi(request):
+    metinler = CumaDurumMetni.objects.select_related("olusturan").order_by(
+        "sira", "-id"
+    )
+    return render(
+        request,
+        "yonetim/cuma_durum_listesi.html",
+        {"metinler": metinler},
+    )
+
+
+@yonetici_gerekli
+def cuma_durum_ekle(request):
+    form = CumaDurumMetniForm(request.POST or None)
+    if form.is_valid():
+        kayit = form.save(commit=False)
+        kayit.olusturan = request.user
+        kayit.save()
+        messages.success(request, "Cuma durum metni eklendi.")
+        return redirect("yonetim:cuma_durum_listesi")
+    return render(
+        request,
+        "yonetim/form.html",
+        {
+            "form": form,
+            "baslik": "Cuma Durum Metni Ekle",
+            "aciklama": "Personelin WhatsApp durumunda kullanacağı hadis veya söz.",
+            "geri_url": "yonetim:cuma_durum_listesi",
+        },
+    )
+
+
+@yonetici_gerekli
+def cuma_durum_duzenle(request, pk):
+    kayit = get_object_or_404(CumaDurumMetni, pk=pk)
+    form = CumaDurumMetniForm(request.POST or None, instance=kayit)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Metin güncellendi.")
+        return redirect("yonetim:cuma_durum_listesi")
+    return render(
+        request,
+        "yonetim/form.html",
+        {
+            "form": form,
+            "baslik": "Cuma Durum Metni Düzenle",
+            "aciklama": "Hadis metni, kaynak, tema veya belirli Cuma ataması.",
+            "geri_url": "yonetim:cuma_durum_listesi",
+        },
+    )
+
+
+@yonetici_gerekli
+@require_POST
+def cuma_durum_sil(request, pk):
+    kayit = get_object_or_404(CumaDurumMetni, pk=pk)
+    ozet = str(kayit)[:40]
+    kayit.delete()
+    messages.success(request, f"“{ozet}” silindi.")
+    return redirect("yonetim:cuma_durum_listesi")
 
 
 @yonetici_gerekli

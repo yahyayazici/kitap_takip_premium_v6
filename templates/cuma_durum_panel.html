@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Cuma Durumu · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/cuma-durum-premium.css' %}?v=cd1">
+{% endblock %}
+{% block content %}
+<div class="cd-page">
+    <header class="cd-head">
+        <div class="cd-head-copy">
+            <p class="cd-kicker">Personel · WhatsApp durumu</p>
+            <h1>Cuma Stüdyosu</h1>
+            <p class="cd-head-meta">{{ personel_ad }} · {{ cuma_tarihi }} Cuması · Kurum logolu görseli indirip durumda paylaşın</p>
+        </div>
+        <div class="cd-head-actions">
+            <button type="button" class="cd-btn cd-btn-primary" id="cd-download-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v12m0 0l4-4m-4 4L8 11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                Görseli indir
+            </button>
+        </div>
+    </header>
+
+    <div class="cd-layout">
+        <section class="cd-preview-col" aria-label="Önizleme">
+            <div class="cd-phone">
+                <div class="cd-phone-notch" aria-hidden="true"></div>
+                <div class="cd-phone-screen">
+                    <div id="cd-story-export" class="cd-story cd-theme-gece" data-theme="gece">
+                        <div class="cd-story-bg" aria-hidden="true"></div>
+                        <div class="cd-story-ornament cd-story-ornament-a" aria-hidden="true"></div>
+                        <div class="cd-story-ornament cd-story-ornament-b" aria-hidden="true"></div>
+                        <div class="cd-story-inner">
+                            <div class="cd-story-top">
+                                <img class="cd-story-logo" src="{% static 'images/cinili-saray-logo-white.png' %}" alt="{{ panel_org }}" crossorigin="anonymous">
+                                <p class="cd-story-org">{{ panel_org }}</p>
+                            </div>
+                            <div class="cd-story-mid">
+                                <p class="cd-story-badge">Hayırlı Cumalar</p>
+                                <blockquote class="cd-story-quote" id="cd-preview-metin"></blockquote>
+                                <p class="cd-story-source" id="cd-preview-kaynak"></p>
+                            </div>
+                            <div class="cd-story-bottom">
+                                <div class="cd-story-person">
+                                    <span class="cd-story-person-line" aria-hidden="true"></span>
+                                    <p class="cd-story-name" id="cd-preview-ad">{{ personel_ad }}</p>
+                                    <p class="cd-story-role" id="cd-preview-rol"></p>
+                                </div>
+                                <p class="cd-story-date" id="cd-preview-tarih">{{ cuma_tarihi }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="cd-preview-hint">9:16 WhatsApp durum formatı · İndirdikten sonra galeriden duruma ekleyin</p>
+        </section>
+
+        <aside class="cd-controls" aria-label="Düzenleme">
+            <div class="cd-panel">
+                <div class="cd-tabs" role="tablist">
+                    <button type="button" class="cd-tab is-active" data-tab="havuz" role="tab" aria-selected="true">Hazır metinler</button>
+                    <button type="button" class="cd-tab" data-tab="ozel" role="tab" aria-selected="false">Kendin yaz</button>
+                </div>
+
+                <div class="cd-tab-panel is-active" data-panel="havuz">
+                    <p class="cd-panel-lead">Yönetimin eklediği hadis ve sözler. Bu hafta için önerilen metin otomatik seçilir.</p>
+                    <div class="cd-quote-list" id="cd-quote-list"></div>
+                </div>
+
+                <div class="cd-tab-panel" data-panel="ozel">
+                    <label class="cd-field">
+                        <span>Hadis / söz</span>
+                        <textarea id="cd-ozel-metin" rows="5" class="cd-input" placeholder="Paylaşmak istediğiniz metni yazın…"></textarea>
+                    </label>
+                    <label class="cd-field">
+                        <span>Kaynak</span>
+                        <input type="text" id="cd-ozel-kaynak" class="cd-input" placeholder="Kaynak (isteğe bağlı)">
+                    </label>
+                    <button type="button" class="cd-btn cd-btn-soft" id="cd-ozel-uygula">Önizlemeye uygula</button>
+                </div>
+            </div>
+
+            <div class="cd-panel">
+                <h2 class="cd-panel-title">Görünüm</h2>
+                <p class="cd-panel-lead">Tema rengi — indirilen görselde de aynı kalır.</p>
+                <div class="cd-theme-grid" id="cd-theme-grid"></div>
+            </div>
+
+            <div class="cd-panel">
+                <h2 class="cd-panel-title">İmza</h2>
+                <label class="cd-field">
+                    <span>Görünen adınız</span>
+                    <input type="text" id="cd-person-ad" class="cd-input" value="{{ personel_ad }}">
+                </label>
+                <label class="cd-field">
+                    <span>Ünvan / rol (isteğe bağlı)</span>
+                    <input type="text" id="cd-person-rol" class="cd-input" placeholder="Örn. Eğitim Mesulü">
+                </label>
+            </div>
+
+            <div class="cd-tip">
+                <strong>WhatsApp ipucu</strong>
+                <p>Görseli indirin → WhatsApp → Durum → Galeriden seçin. Metni değiştirdikten sonra tekrar indirin.</p>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<script id="cd-stuyo-data" type="application/json">{{ stuyo_json|safe }}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="{% static 'js/cuma-durum-studio.js' %}?v=cd1"></script>
+{% endblock %}

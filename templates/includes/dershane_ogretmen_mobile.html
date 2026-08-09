@@ -1,0 +1,37 @@
+<div class="dp-mob-flow dp-mob-flow-ogretmen" aria-label="Mobil öğretmen programı">
+    {% for satir in satirlar %}
+    {% if satir.birlestirilmis %}
+    <div class="dp-mob-merged {% if satir.tur == 'namaz' %}is-namaz{% elif satir.tur == 'yemek' %}is-yemek{% endif %}">
+        <time>{{ satir.saat }}</time>
+        <div>
+            <strong>{{ satir.metin }}</strong>
+        </div>
+    </div>
+    {% else %}
+    <article class="dp-mob-block">
+        <header class="dp-mob-block-head">
+            <span class="dp-mob-time">{{ satir.saat }}</span>
+        </header>
+        <div class="dp-mob-groups">
+            {% for hucre in satir.hucreler %}
+            <div class="dp-mob-group {% if hucre.bos %}is-empty{% endif %}">
+                <span class="dp-mob-grup-label">{{ hucre.ogretmen }}</span>
+                {% if hucre.bos %}
+                <span class="dp-mob-empty">Boş</span>
+                {% else %}
+                {% for k in hucre.kayitlar %}
+                <div class="dp-mob-ogretmen-slot" style="--cell-bg: {{ k.renk }};">
+                    <strong>{{ k.ders }}</strong>
+                    <span>{{ k.grup }}</span>
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </article>
+    {% endif %}
+    {% empty %}
+    <p class="dp-mob-empty-page">Bu gün için öğretmen ataması yok.</p>
+    {% endfor %}
+</div>

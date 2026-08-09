@@ -15,6 +15,7 @@ from . import gunluk_takip_views
 from . import deneme_views
 from . import yazili_takip_views
 from . import personel_vazife_views
+from . import cuma_durum_views
 from . import bildirim_views
 from . import akademik_mudahale_views
 from . import ktt_views
@@ -24,6 +25,7 @@ from . import talebe_panel_views
 from . import veli_views
 from . import veli_randevu_views
 from . import asistan_views
+from . import ai_views
 from . import dershane_program_views
 from . import yemekci_views
 from . import views
@@ -43,6 +45,12 @@ urlpatterns = [
     path("panel/", views.dashboard, name="dashboard"),
     path("panel/yct/", personel_vazife_views.yct_personel, name="yct_personel"),
     path("panel/vazifelerim/", personel_vazife_views.vazife_personel, name="vazife_personel"),
+    path("panel/cuma-durum/", cuma_durum_views.cuma_durum_panel, name="cuma_durum_panel"),
+    path(
+        "panel/cuma-durum/api/",
+        cuma_durum_views.cuma_durum_api_havuz,
+        name="cuma_durum_api_havuz",
+    ),
     path("panel/vazifelerim/<int:pk>/durum/",
         personel_vazife_views.vazife_personel_durum,
         name="vazife_personel_durum",
@@ -66,6 +74,8 @@ urlpatterns = [
     ),
 
     path("panel/asistan/chat/", asistan_views.asistan_chat_api, name="asistan_chat_api"),
+    path("panel/ai/analiz/", ai_views.ai_analiz_api, name="ai_analiz_api"),
+    path("panel/ai/analiz/html/", ai_views.ai_analiz_html, name="ai_analiz_html"),
 
     path("programlar/", views.program_panel, name="program_panel"),
     path("programlar/<int:pk>/", views.program_detay, name="program_detay"),

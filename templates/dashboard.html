@@ -275,6 +275,23 @@
 </section>
 {% endif %}
 
+{% if ai_platform_aktif and ai_kurum_erisim %}
+<section class="dash-panel dash-panel-lined dash-ai-strip dash-ai-bottom">
+    {% include "includes/ai_zekasi_widget.html" with ai_tur="kurum_zekasi" ai_kicker="Gelişim Zekası" ai_baslik="Kurum özeti ve öncelikli talebeler" ai_collapsed=True %}
+    {% if mudahale_adaylari %}
+    <div class="mudahale-ai-list">
+        {% for aday in mudahale_adaylari %}
+        <a href="{% url 'talebe_detay' aday.talebe_id %}?sekme=gelisim" class="mudahale-ai-item">
+            <strong>{{ aday.ad_soyad }} · {{ aday.sinif }}</strong>
+            <span>Risk skoru: {{ aday.skor }}/100</span>
+            {% if aday.nedenler %}<em>{{ aday.nedenler.0 }}</em>{% endif %}
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+</section>
+{% endif %}
+
 </div>
 {% endblock %}
 

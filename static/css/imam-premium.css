@@ -273,3 +273,212 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* —— Personel görüntüleme paneli —— */
+.im-panel .page-head {
+    align-items: flex-start !important;
+    text-align: left;
+}
+
+.im-panel .page-head > div {
+    width: 100%;
+    text-align: left;
+}
+
+.im-panel .profile-head-actions {
+    align-self: flex-start;
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.im-panel .program-selector-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.im-panel .program-selector-form select {
+    width: 100%;
+}
+
+.im-panel .program-schedule-card .card-heading {
+    align-items: flex-start !important;
+    text-align: left;
+    margin-bottom: 14px !important;
+}
+
+.im-panel .program-schedule-card .card-heading > div {
+    text-align: left;
+}
+
+.im-panel .program-schedule-card .responsive-table {
+    margin: 0 !important;
+    border: 1px solid var(--im-line);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.im-panel .im-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+}
+
+.im-panel .im-table thead th {
+    text-align: left;
+    white-space: nowrap;
+}
+
+.im-panel .im-table thead th:first-child,
+.im-panel .im-table tbody td:first-child {
+    padding-left: 16px !important;
+}
+
+.im-panel .program-row-today td {
+    background: #ecfdf5 !important;
+}
+
+.im-panel .program-row-today td:first-child strong {
+    color: #047857;
+}
+
+.im-mob-list {
+    display: none;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.im-mob-card {
+    border: 1px solid var(--im-line);
+    border-radius: 14px;
+    background: #fff;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(15, 40, 80, 0.04);
+}
+
+.im-mob-card.is-today {
+    border-color: #86efac;
+    background: linear-gradient(135deg, #f0fdf4 0%, #fff 100%);
+    box-shadow: 0 4px 14px rgba(34, 197, 94, 0.1);
+}
+
+.im-mob-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.65rem;
+    padding: 0.75rem 0.9rem;
+    border-bottom: 1px solid var(--im-line);
+    background: #f8fafc;
+}
+
+.im-mob-head strong {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: var(--im-navy);
+    font-variant-numeric: tabular-nums;
+}
+
+.im-mob-head span {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--im-muted);
+}
+
+.im-mob-badge {
+    margin-left: auto;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.62rem;
+    font-weight: 800;
+    font-style: normal;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #047857;
+    background: #dcfce7;
+}
+
+.im-mob-body {
+    display: grid;
+    gap: 0.45rem;
+    padding: 0.75rem 0.9rem;
+}
+
+.im-mob-row {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    gap: 0.5rem;
+    align-items: baseline;
+}
+
+.im-mob-label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--im-muted);
+}
+
+.im-mob-value {
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: var(--im-navy);
+    line-height: 1.35;
+}
+
+.im-mob-empty {
+    padding: 1.25rem 1rem;
+    text-align: center;
+    color: var(--im-muted);
+    font-size: 0.88rem;
+    border: 1px dashed var(--im-line);
+    border-radius: 12px;
+    background: #fafbfc;
+}
+
+@media (max-width: 768px) {
+    .im-panel .page-head {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+
+    .im-panel .profile-head-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .im-panel .profile-head-actions .primary-btn,
+    .im-panel .profile-head-actions .ghost-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .im-panel .program-schedule-card .card-heading {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 10px;
+    }
+
+    .im-panel .program-schedule-card .status-pill {
+        align-self: flex-start;
+    }
+
+    .im-panel .im-desktop-table {
+        display: none !important;
+    }
+
+    .im-mob-list {
+        display: flex;
+    }
+
+    .im-panel .program-selector-form {
+        padding: 0 0 4px;
+    }
+}

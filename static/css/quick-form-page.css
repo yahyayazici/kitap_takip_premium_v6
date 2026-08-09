@@ -1,6 +1,7 @@
-/* Hızlı form sayfaları — kitap ekle vb. */
+/* Hızlı form sayfaları — kitap ekle, sınav ekle vb. */
 
-.quick-form-page {
+.quick-form-page,
+.exam-create-page {
     display: flex;
     flex-direction: column;
     gap: 28px;
@@ -9,11 +10,103 @@
     margin: 0 auto;
 }
 
-.quick-form-page .quick-form-head {
+/* —— Hero —— */
+.quick-form-page .quick-form-head,
+.exam-create-page .exam-page-head {
     margin-bottom: 0 !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    text-align: left;
 }
 
-.quick-form-layout {
+.quick-form-page .quick-form-head > div,
+.exam-create-page .exam-page-head > div:first-child {
+    width: 100%;
+    max-width: 100%;
+    text-align: left;
+}
+
+.quick-form-page .page-head-actions,
+.exam-create-page .page-head-actions {
+    align-self: flex-start !important;
+    justify-content: flex-start !important;
+    width: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.quick-form-page .quick-form-head .ghost-btn,
+.exam-create-page .page-head-actions .ghost-btn {
+    align-self: flex-start;
+    flex-shrink: 0;
+}
+
+/* —— Kart başlığı (ikon + metin) —— */
+.quick-form-page .exam-form-head,
+.exam-create-page .exam-form-head {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    gap: 14px !important;
+    width: 100%;
+    margin-bottom: 20px !important;
+    text-align: left;
+}
+
+.quick-form-page .exam-form-icon,
+.exam-create-page .exam-form-icon {
+    flex-shrink: 0;
+    width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 13px;
+    background: linear-gradient(145deg, #eff6ff 0%, #dbeafe 100%);
+    color: #2563eb;
+    border: 1px solid #bfdbfe;
+}
+
+.quick-form-page .exam-form-icon svg,
+.exam-create-page .exam-form-icon svg {
+    width: 22px;
+    height: 22px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.quick-form-page .exam-form-head > div:last-child,
+.exam-create-page .exam-form-head > div:last-child {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+}
+
+.quick-form-page .exam-form-head h2,
+.exam-create-page .exam-form-head h2 {
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: left !important;
+    line-height: 1.25 !important;
+}
+
+.quick-form-page .exam-form-head p,
+.exam-create-page .exam-form-head p {
+    margin: 5px 0 0 !important;
+    padding: 0 !important;
+    text-align: left !important;
+    color: var(--dash-secondary, #64748b) !important;
+    font-size: 13px !important;
+    line-height: 1.45 !important;
+}
+
+/* —— Form alanları —— */
+.quick-form-layout,
+.exam-create-page .exam-layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
     gap: 18px;
@@ -22,39 +115,178 @@
 }
 
 .quick-form-card,
-.quick-form-aside {
+.quick-form-aside,
+.exam-create-page .exam-form-card,
+.exam-create-page .exam-process-card {
     max-width: none !important;
     margin-inline: 0 !important;
     width: 100%;
 }
 
-.quick-form-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+.quick-form-grid,
+.exam-create-page .exam-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
 }
 
-.quick-form-grid .exam-field-full {
+.quick-form-grid .exam-field-full,
+.exam-create-page .exam-form-grid .exam-field-full {
     grid-column: 1 / -1;
+}
+
+.quick-form-page .exam-field,
+.exam-create-page .exam-field {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    min-width: 0;
+    text-align: left;
+}
+
+.quick-form-page .exam-field label,
+.exam-create-page .exam-field label {
+    display: block;
+    width: 100%;
+    text-align: left;
+    margin: 0;
+}
+
+.quick-form-page .exam-field-help,
+.quick-form-page .exam-field-error,
+.exam-create-page .exam-field-help,
+.exam-create-page .exam-field-error {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    text-align: left;
+    line-height: 1.4;
 }
 
 .quick-form-page .exam-field .input,
 .quick-form-page .exam-field input,
 .quick-form-page .exam-field select,
-.quick-form-page .exam-field textarea {
+.quick-form-page .exam-field textarea,
+.exam-create-page .exam-field input,
+.exam-create-page .exam-field select,
+.exam-create-page .exam-field textarea {
     width: 100%;
+    box-sizing: border-box;
+}
+
+.quick-form-page .exam-form-footer,
+.exam-create-page .exam-form-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-start;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.exam-create-page .exam-form-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin: 4px 0 8px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid #dbeafe;
+    background: #f8fafc;
+    text-align: left;
+}
+
+.exam-create-page .exam-form-note p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #475569;
+    text-align: left;
+}
+
+.exam-create-page .exam-note-icon {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-size: 14px;
+    font-weight: 700;
 }
 
 @media (max-width: 980px) {
-    .quick-form-layout {
+    .quick-form-layout,
+    .exam-create-page .exam-layout {
         grid-template-columns: 1fr;
     }
 
-    .quick-form-grid {
+    .quick-form-grid,
+    .exam-create-page .exam-form-grid {
         grid-template-columns: 1fr;
+    }
+
+    .quick-form-aside,
+    .exam-create-page .exam-process-card {
+        display: none;
     }
 }
 
 @media (min-width: 981px) and (max-width: 1180px) {
     .quick-form-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .quick-form-page,
+    .exam-create-page {
+        gap: 18px;
+    }
+
+    .quick-form-page .quick-form-head,
+    .exam-create-page .exam-page-head {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+
+    .quick-form-page .page-head-actions,
+    .exam-create-page .page-head-actions {
+        justify-content: flex-start !important;
+        align-items: flex-start !important;
+    }
+
+    .quick-form-page .quick-form-head .ghost-btn,
+    .quick-form-page .page-head-actions .ghost-btn,
+    .exam-create-page .page-head-actions .ghost-btn {
+        width: auto !important;
+        min-width: 0 !important;
+        flex: 0 0 auto !important;
+        align-self: flex-start !important;
+        justify-content: center !important;
+    }
+
+    .quick-form-page .exam-form-head,
+    .exam-create-page .exam-form-head {
+        align-items: flex-start !important;
+    }
+
+    .quick-form-page .exam-form-footer,
+    .exam-create-page .exam-form-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .quick-form-page .exam-form-footer .ghost-btn,
+    .quick-form-page .exam-form-footer .primary-btn,
+    .exam-create-page .exam-form-footer .ghost-btn,
+    .exam-create-page .exam-form-footer .primary-btn {
+        width: 100%;
+        justify-content: center;
     }
 }

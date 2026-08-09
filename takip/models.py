@@ -246,6 +246,87 @@ class Talebe(models.Model):
         blank=True,
         verbose_name="TC kimlik no",
     )
+    kimlik_adi = models.CharField(
+        max_length=60,
+        blank=True,
+        verbose_name="Kimlikteki adı",
+    )
+    kimlik_soyadi = models.CharField(
+        max_length=60,
+        blank=True,
+        verbose_name="Kimlikteki soyadı",
+    )
+
+    class Cinsiyet(models.TextChoices):
+        ERKEK = "erkek", "Erkek"
+        KADIN = "kadin", "Kadın"
+
+    cinsiyet = models.CharField(
+        max_length=10,
+        choices=Cinsiyet.choices,
+        blank=True,
+        verbose_name="Cinsiyet",
+    )
+    baba_adi = models.CharField(
+        max_length=80,
+        blank=True,
+        verbose_name="Baba adı",
+    )
+    anne_adi = models.CharField(
+        max_length=80,
+        blank=True,
+        verbose_name="Anne adı",
+    )
+    dogum_yeri = models.CharField(
+        max_length=120,
+        blank=True,
+        verbose_name="Doğum yeri",
+    )
+    memleket = models.CharField(
+        max_length=120,
+        blank=True,
+        verbose_name="Memleketi",
+    )
+    diller = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name="Bildiği diller",
+    )
+    dahili_seviye = models.CharField(
+        max_length=80,
+        blank=True,
+        verbose_name="Dahili seviyesi",
+    )
+    dahili_ders_mesulu = models.CharField(
+        max_length=120,
+        blank=True,
+        verbose_name="Dahili ders mesulü",
+    )
+    dahili_ders_grubu = models.CharField(
+        max_length=80,
+        blank=True,
+        verbose_name="Dahili ders grubu",
+    )
+    okul_seviyesi = models.CharField(
+        max_length=80,
+        blank=True,
+        verbose_name="Okul seviyesi",
+    )
+
+    class AileDurumu(models.TextChoices):
+        BERABER = "beraber", "Anne – baba beraber"
+        AYRI = "ayri", "Anne – baba ayrı"
+        AYRI_BABA_UVEY = "ayri_baba_uvey", "Anne – baba ayrı – baba üvey"
+        AYRI_ANNE_UVEY = "ayri_anne_uvey", "Anne – baba ayrı – anne üvey"
+        ANNE_VEFAT = "anne_vefat", "Anne vefat"
+        ANNE_VEFAT_ANNE_UVEY = "anne_vefat_anne_uvey", "Anne vefat – anne üvey"
+
+    aile_durumu = models.CharField(
+        max_length=30,
+        choices=AileDurumu.choices,
+        blank=True,
+        verbose_name="Aile durumu",
+    )
     eposta = models.EmailField(
         blank=True,
         verbose_name="E-posta",
@@ -1988,6 +2069,10 @@ from takip.ogretmen_not_models import (  # noqa: E402,F401
 from takip.veli_goruntuleme_models import VeliIcerikGoruntuleme  # noqa: E402,F401
 
 from takip.sohbet_mevzuu_models import HaftalikSohbetMevzuu  # noqa: E402,F401
+
+from takip.cuma_durum_models import CumaDurumMetni  # noqa: E402,F401
+
+from takip.ai_models import AiUretimKaydi  # noqa: E402,F401
 
 from takip.panel_kisayol_models import PanelKisayol, PanelKisayolGorsel  # noqa: E402,F401
 

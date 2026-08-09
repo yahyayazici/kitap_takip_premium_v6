@@ -114,13 +114,14 @@
     /* ——— Ders sürükle-bırak ——— */
     let draggedDers = null;
 
+    function findAssignmentCell(blokId, grupId) {
+        return document.querySelector(
+            `[data-blok-id="${blokId}"][data-grup-id="${grupId}"]`
+        );
+    }
+
     function updateCell(cell, result) {
         if (!cell || !result.ok) return;
-        cell.classList.remove("dp-cell-empty");
-        cell.style.background = result.renk || "#f8fafc";
-        cell.innerHTML =
-            `<strong class="dp-cell-ders">${result.ders}</strong>` +
-            `<span class="dp-cell-ogretmen">${result.ogretmen || "—"}</span>`;
         const assignData = {
             blok: result.blok_id,
             grup: result.grup_id,
@@ -128,6 +129,23 @@
             ogretmen: result.ogretmen || "",
         };
         cell.dataset.dpAssign = JSON.stringify(assignData);
+
+        if (cell.classList.contains("dp-mob-group")) {
+            cell.classList.remove("is-empty");
+            cell.style.setProperty("--cell-bg", result.renk || "#f8fafc");
+            const grupLabel = cell.querySelector(".dp-mob-grup-label")?.textContent || "";
+            cell.innerHTML =
+                `<span class="dp-mob-grup-label">${grupLabel}</span>` +
+                `<strong class="dp-mob-ders">${result.ders}</strong>` +
+                `<span class="dp-mob-ogretmen">${result.ogretmen || "—"}</span>`;
+            return;
+        }
+
+        cell.classList.remove("dp-cell-empty");
+        cell.style.background = result.renk || "#f8fafc";
+        cell.innerHTML =
+            `<strong class="dp-cell-ders">${result.ders}</strong>` +
+            `<span class="dp-cell-ogretmen">${result.ogretmen || "—"}</span>`;
     }
 
     async function surukleAtama(target, payload) {
@@ -157,10 +175,7 @@
             }
             (data.sonuclar || []).forEach((result) => {
                 if (!result.ok) return;
-                const cell = document.querySelector(
-                    `.dp-cell[data-blok-id="${result.blok_id}"][data-grup-id="${result.grup_id}"]`
-                );
-                updateCell(cell, result);
+                updateCell(findAssignmentCell(result.blok_id, result.grup_id), result);
             });
         } catch (error) {
             window.alert(error.message || "Atama kaydedilemedi.");

@@ -152,6 +152,9 @@ OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 AI_ASSISTANT_MODEL = os.environ.get("AI_ASSISTANT_MODEL", "gpt-4o-mini")
 AI_KTT_ANALYSIS_ENABLED = os.environ.get("AI_KTT_ANALYSIS_ENABLED", "True").lower() == "true"
 AI_KTT_ANALYSIS_MAX_TOKENS = int(os.environ.get("AI_KTT_ANALYSIS_MAX_TOKENS", "2200"))
+AI_PLATFORM_ENABLED = os.environ.get("AI_PLATFORM_ENABLED", "True").lower() == "true"
+AI_PLATFORM_MAX_TOKENS = int(os.environ.get("AI_PLATFORM_MAX_TOKENS", "2000"))
+AI_CACHE_HOURS = int(os.environ.get("AI_CACHE_HOURS", "24"))
 
 # —— Bildirim e-posta ——
 # SMTP yoksa console backend ile DEBUG'ta mail içeriği terminale yazılır.

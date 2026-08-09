@@ -62,7 +62,7 @@ def asistan_kullanilabilir(user: User) -> bool:
     if kullanici_veli_mi(user) or ogretmen_paneli_kullanicisi_mi(user):
         return True
     if kullanici_talebe_mi(user):
-        return False
+        return getattr(settings, "AI_ASSISTANT_ENABLED", True)
     return can(user, "asistan", "view") or user.is_superuser
 
 
@@ -612,12 +612,58 @@ def mesaj_isle(user: User, message: str, history: list[dict] | None = None) -> d
     history = history or []
     message = (message or "").strip()
 
-    ozel = kullanici_veli_mi(user) or ogretmen_paneli_kullanicisi_mi(user)
+    ozel = kullanici_veli_mi(user) or ogretmen_paneli_kullanicisi_mi(user) or kullanici_talebe_mi(user)
     if ozel:
         if not message:
             yanit = _ozel_panel_asistan_yanit(user, "")
-            return (yanit or AsistanYanit(reply="Merhaba! Size nasıl yardımcı olabilirim?")).as_dict()
+            if yanit:
+                return yanit.as_dict()
+            if kullanici_talebe_mi(user):
+                return AsistanYanit(
+                    reply=(
+                        "Merhaba! Talebe panelinde sana yardımcı olabilirim.\n\n"
+                        "• **Haftalık soru** ve okuma durumun\n"
+                        "• **Gelişim özeti** ve çalışma önerileri\n"
+                        "• **Program** ve görevler\n\n"
+                        "Ne merak ediyorsun?"
+                    ),
+                    suggestions=["Bu hafta kaç soru çözdüm?", "Gelişim özetim", "Bugün ne yapmalıyım?"],
+                ).as_dict()
+            return AsistanYanit(reply="Merhaba! Size nasıl yardımcı olabilirim?").as_dict()
+        if kullanici_talebe_mi(user):
+            from takip.talebe_panel_service import talebe_hesabi_for_user
+            from takip.ai_service import gelisim_zekasi_analizi
+
+            hesap = talebe_hesabi_for_user(user)
+            talebe = hesap.talebe if hesap else None
+            norm = _normalize_asistan(message)
+            if talebe and any(k in norm for k in ("gelisim", "gelişim", "ozet", "özet", "analiz", "durumum")):
+                analiz = gelisim_zekasi_analizi(user, talebe)
+                ozet_bolum = analiz.bolumler[0].icerik if analiz.bolumler else analiz.tam_metin
+                return AsistanYanit(
+                    reply=f"**Gelişim özeti**\n\n{ozet_bolum}",
+                    suggestions=["Bu hafta kaç soru çözdüm?", "Ne yapmalıyım?"],
+                ).as_dict()
+            if talebe and any(k in norm for k in ("soru", "kac", "kaç", "hafta")):
+                from takip.soru_takip_service import haftalik_ozet
+
+                hafta = haftalik_ozet(talebe)
+                return AsistanYanit(
+                    reply=(
+                        f"Bu hafta **{hafta.get('toplam_soru', 0)}** soru çözdün, "
+                        f"net **{hafta.get('toplam_net', 0)}**, başarı **%{hafta.get('basari_orani', 0)}**."
+                    ),
+                    suggestions=["Gelişim özetim", "Ne yapmalıyım?"],
+                ).as_dict()
         yanit = _ozel_panel_asistan_yanit(user, message)
+        if kullanici_talebe_mi(user) and not yanit:
+            return AsistanYanit(
+                reply=(
+                    "Sana yardımcı olabilirim! **Gelişim özetim**, **bu hafta kaç soru çözdüm** "
+                    "veya **bugün ne yapmalıyım** diye sorabilirsin."
+                ),
+                suggestions=["Gelişim özetim", "Bu hafta kaç soru çözdüm?"],
+            ).as_dict()
         if yanit:
             # Kısa yönlendirme; mesaja göre ufak uyarlama
             norm = _normalize_asistan(message)

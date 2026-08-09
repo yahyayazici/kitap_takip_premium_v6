@@ -205,3 +205,359 @@
     background: #fff;
     color: #0f172a;
 }
+
+/* —— Program sayfası genel —— */
+.program-page {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    width: 100%;
+    max-width: none;
+    padding-bottom: 40px;
+}
+
+.program-page .page-head {
+    align-items: flex-start !important;
+    text-align: left;
+}
+
+.program-page .page-head > div {
+    width: 100%;
+    text-align: left;
+}
+
+.program-page .profile-head-actions {
+    align-self: flex-start;
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.program-selector-card {
+    padding: 0;
+}
+
+.program-selector-form {
+    padding: 0 22px 22px;
+}
+
+.program-selector-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.program-selector-form select {
+    width: 100%;
+}
+
+.program-schedule-card .card-heading {
+    align-items: flex-start !important;
+    text-align: left;
+}
+
+.program-schedule-card .card-heading > div {
+    text-align: left;
+}
+
+.program-desc {
+    margin: 0 22px 16px;
+    font-size: 14px;
+    color: #64748b;
+    line-height: 1.45;
+}
+
+.program-row-passive {
+    opacity: 0.55;
+}
+
+.program-body-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.pg-desktop-table {
+    display: block;
+}
+
+.pg-mob-flow {
+    display: none;
+}
+
+/* —— Mobil timeline (program akışı) —— */
+.program-page .pg-mob-flow {
+    display: none;
+    flex-direction: column;
+    gap: 0;
+    padding: 8px 14px 16px;
+    margin: 0;
+}
+
+.program-page .pg-mob-item {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+    margin: 0;
+    padding: 0 0 12px;
+}
+
+.program-page .pg-mob-rail {
+    position: relative;
+    width: 18px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 18px;
+}
+
+.program-page .pg-mob-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #2563eb;
+    border: 3px solid #dbeafe;
+    box-shadow: 0 0 0 1px #93c5fd;
+    flex-shrink: 0;
+    z-index: 1;
+}
+
+.program-page .pg-mob-line {
+    flex: 1;
+    width: 2px;
+    min-height: 24px;
+    margin-top: 4px;
+    background: linear-gradient(180deg, #cbd5e1 0%, #e2e8f0 100%);
+    border-radius: 2px;
+}
+
+.program-page .pg-mob-card {
+    flex: 1;
+    min-width: 0;
+    padding: 14px 14px 12px;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.program-page .pg-mob-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+    margin-bottom: 8px;
+}
+
+.program-page .pg-mob-time {
+    font-size: 13px;
+    font-weight: 800;
+    color: #0f2744;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+}
+
+.program-page .pg-mob-tur {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.program-page .pg-mob-durum {
+    margin-left: auto;
+    padding: 3px 8px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #15803d;
+    background: #ecfdf5;
+    white-space: nowrap;
+}
+
+.program-page .pg-mob-title {
+    margin: 0 0 4px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.35;
+    letter-spacing: -0.02em;
+}
+
+.program-page .pg-mob-sure {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.program-page .pg-mob-item.is-passive {
+    opacity: 0.55;
+}
+
+.program-page .pg-mob-item.is-passive .pg-mob-durum {
+    color: #64748b;
+    background: #f1f5f9;
+}
+
+.program-page .pg-mob-namaz .pg-mob-dot { background: #ea580c; border-color: #ffedd5; box-shadow: 0 0 0 1px #fdba74; }
+.program-page .pg-mob-namaz .pg-mob-tur { background: #fff7ed; color: #c2410c; }
+.program-page .pg-mob-namaz .pg-mob-card { border-color: #fed7aa; background: linear-gradient(135deg, #fffbf5 0%, #fff 100%); }
+
+.program-page .pg-mob-yemek .pg-mob-dot { background: #d97706; border-color: #fef3c7; box-shadow: 0 0 0 1px #fcd34d; }
+.program-page .pg-mob-yemek .pg-mob-tur { background: #fffbeb; color: #b45309; }
+.program-page .pg-mob-yemek .pg-mob-card { border-color: #fde68a; background: linear-gradient(135deg, #fffdf5 0%, #fff 100%); }
+
+.program-page .pg-mob-ders .pg-mob-dot { background: #059669; border-color: #d1fae5; box-shadow: 0 0 0 1px #6ee7b7; }
+.program-page .pg-mob-ders .pg-mob-tur { background: #ecfdf5; color: #047857; }
+.program-page .pg-mob-ders .pg-mob-card { border-color: #a7f3d0; background: linear-gradient(135deg, #f6fffb 0%, #fff 100%); }
+
+.program-page .pg-mob-etut .pg-mob-dot { background: #2563eb; border-color: #dbeafe; box-shadow: 0 0 0 1px #93c5fd; }
+.program-page .pg-mob-etut .pg-mob-tur { background: #eff6ff; color: #1d4ed8; }
+.program-page .pg-mob-etut .pg-mob-card { border-color: #bfdbfe; background: linear-gradient(135deg, #f5f9ff 0%, #fff 100%); }
+
+.program-page .pg-mob-uyku .pg-mob-dot { background: #6366f1; border-color: #e0e7ff; box-shadow: 0 0 0 1px #a5b4fc; }
+.program-page .pg-mob-uyku .pg-mob-tur { background: #eef2ff; color: #4338ca; }
+
+.program-page .pg-mob-dinlenme .pg-mob-dot { background: #64748b; border-color: #e2e8f0; }
+.program-page .pg-mob-dinlenme .pg-mob-tur { background: #f8fafc; color: #475569; }
+
+.program-page .pg-mob-spor .pg-mob-dot { background: #db2777; border-color: #fce7f3; }
+.program-page .pg-mob-spor .pg-mob-tur { background: #fdf2f8; color: #be185d; }
+
+.program-page .pg-mob-empty {
+    margin: 0;
+    padding: 28px 16px;
+    text-align: center;
+    color: #64748b;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .program-page .page-head {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+
+    .program-page .profile-head-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .program-page .profile-head-actions .ghost-btn,
+    .program-page .profile-head-actions .primary-btn,
+    .program-page .profile-head-actions .pdf-sayfa-sec {
+        width: 100%;
+    }
+
+    .program-page .pdf-sayfa-sec {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .program-page .pdf-sayfa-sec-select {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .program-page .pdf-sayfa-sec-link,
+    .program-page .pdf-sayfa-sec a[data-pdf-sayfa-link] {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .program-body-stack {
+        gap: 14px;
+    }
+
+    .program-body-stack .program-schedule-card {
+        order: -1;
+    }
+
+    .program-schedule-card .card-heading {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 10px;
+        padding-bottom: 0;
+    }
+
+    .program-schedule-card .responsive-table,
+    .program-schedule-card > .responsive-table {
+        margin: 0 !important;
+    }
+
+    .program-desc {
+        margin-inline: 16px;
+    }
+
+    .pg-desktop-table {
+        display: none !important;
+    }
+
+    .program-page .pg-mob-flow {
+        display: flex !important;
+    }
+
+    .program-schedule-card {
+        overflow: hidden;
+    }
+
+    .program-schedule-card .card-heading {
+        padding: 18px 18px 10px;
+    }
+
+    .program-schedule-card .status-pill {
+        align-self: flex-start;
+    }
+
+    .pg-sure-top {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .pg-sure-tabs {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .pg-sure-tab {
+        width: 100%;
+        text-align: center;
+    }
+
+    .pg-sure-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .program-selector-form {
+        padding: 0 16px 18px;
+    }
+}
+
+@media (max-width: 420px) {
+    .program-page .pg-mob-head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .program-page .pg-mob-durum {
+        margin-left: 0;
+    }
+
+    .pg-sure-tabs {
+        grid-template-columns: 1fr 1fr;
+    }
+}

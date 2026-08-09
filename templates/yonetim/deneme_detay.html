@@ -24,23 +24,72 @@
 
     {% if deneme.durum == 'aktif' %}
     <section class="yonetim-card">
-        <h2>Net Sıralaması</h2>
-        <table class="yonetim-table">
-            <thead>
-                <tr><th>#</th><th>Talebe</th><th>Net</th><th>Puan</th></tr>
-            </thead>
-            <tbody>
-                {% for sonuc in sonuclar %}
-                <tr>
-                    <td>{{ forloop.counter }}</td>
-                    <td>{{ sonuc.talebe.ad_soyad }}</td>
-                    <td>{{ sonuc.toplam_net }}</td>
-                    <td>{{ sonuc.puan }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <h2>Genel Sıralama</h2>
+        <div class="responsive-table">
+            <table class="yonetim-table">
+                <thead>
+                    <tr><th>#</th><th>Talebe</th><th>Doğru</th><th>Yanlış</th><th>Boş</th><th>Net</th><th>Puan</th></tr>
+                </thead>
+                <tbody>
+                    {% for sonuc in sonuclar %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ sonuc.talebe.ad_soyad }}</td>
+                        <td>{{ sonuc.toplam_dogru }}</td>
+                        <td>{{ sonuc.toplam_yanlis }}</td>
+                        <td>{{ sonuc.toplam_bos }}</td>
+                        <td>{{ sonuc.toplam_net }}</td>
+                        <td>{{ sonuc.puan }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </section>
+
+    {% if detay_satirlari %}
+    <section class="yonetim-card" style="margin-top:20px;">
+        <h2>Detaylı Başarı Listesi</h2>
+        <p style="margin:0 0 12px;color:#64748b;font-size:13px;">Türkçe, Matematik, Fen, Sosyal, İngilizce — ders ders D / Y / B</p>
+        <div class="responsive-table">
+            <table class="yonetim-table">
+                <thead>
+                    <tr>
+                        <th rowspan="2">#</th>
+                        <th rowspan="2">Talebe</th>
+                        {% for baslik in detay_brans_basliklari %}
+                        <th colspan="3" style="text-align:center;">{{ baslik }}</th>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        {% for baslik in detay_brans_basliklari %}
+                        <th>D</th><th>Y</th><th>B</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for satir in detay_satirlari %}
+                    <tr>
+                        <td>{{ satir.sira }}</td>
+                        <td>{{ satir.sonuc.talebe.ad_soyad }}</td>
+                        {% for brans in satir.branslar %}
+                        <td>{{ brans.dogru }}</td>
+                        <td>{{ brans.yanlis }}</td>
+                        <td>{{ brans.bos }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if ai_platform_aktif and sonuclar %}
+    <section class="yonetim-card" style="margin-top:20px;">
+        {% include "includes/ai_zekasi_widget.html" with ai_tur="deneme_analiz" ai_deneme_id=deneme.id ai_kicker="Deneme analizi" ai_baslik=deneme.ad|add:" · Akademik değerlendirme" ai_collapsed=True %}
+    </section>
+    {% endif %}
     {% endif %}
 </div>
 {% endblock %}

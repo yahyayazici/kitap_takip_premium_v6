@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Haftalık Etüt Planı · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/etut-plan-premium.css' %}">
+<link rel="stylesheet" href="{% static 'css/etut-plan-premium.css' %}?v=ep-mob2">
 {% endblock %}
 
 {% block content %}
@@ -109,6 +109,49 @@
                         {% endfor %}
                     </tbody>
                 </table>
+            </div>
+
+            <div class="ep-mob-plan" data-ep-mob-plan>
+                {% for satir in grid.satirlar %}
+                <article class="ep-mob-time-block">
+                    <header class="ep-mob-time-head">{{ satir.saat.goster }}</header>
+                    <div class="ep-mob-cells">
+                        {% for hucre in satir.hucreler %}
+                        <div class="ep-mob-cell {% if hucre.bos %}is-empty{% endif %}"
+                             data-blok-id="{{ hucre.blok_id|default:'' }}"
+                             data-saat="{{ satir.saat.goster }}"
+                             data-gun="{{ hucre.gun_label|default:'' }}"
+                             data-drop="1">
+                            <span class="ep-mob-day">{{ hucre.gun_label }}</span>
+                            {% if hucre.faaliyet %}
+                            <article class="ep-activity"
+                                     data-faaliyet-id="{{ hucre.faaliyet.id }}"
+                                     style="--ep-kart-renk: {{ hucre.faaliyet.renk|default:'#eff6ff' }}">
+                                <div class="ep-activity-head">
+                                    <strong>{{ hucre.faaliyet.baslik }}</strong>
+                                    {% if duzenleyebilir %}
+                                    <button type="button" class="ep-icon-btn" data-ep-remove="{{ hucre.faaliyet.id }}" aria-label="Kaldır">×</button>
+                                    {% endif %}
+                                </div>
+                                {% if hucre.faaliyet.hedef %}<span class="ep-activity-hedef">{{ hucre.faaliyet.hedef }}</span>{% endif %}
+                                <div class="ep-activity-foot">
+                                    <select class="ep-durum-select" data-ep-durum="{{ hucre.faaliyet.id }}" {% if not duzenleyebilir %}disabled{% endif %}>
+                                        {% for val, label in durum_secenekleri %}
+                                        <option value="{{ val }}" {% if hucre.faaliyet.uygulama_durumu == val %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </article>
+                            {% elif duzenleyebilir %}
+                            <button type="button" class="ep-add-btn" data-ep-cell-add>+ Etkinlik Ekle</button>
+                            {% else %}
+                            <span class="ep-muted">Boş</span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </article>
+                {% endfor %}
             </div>
         </section>
 

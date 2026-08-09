@@ -1,9 +1,14 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}İmam / Müezzin{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/imam-premium.css' %}?v=im-mob2">
+{% endblock %}
+
 {% block content %}
-<div class="program-page">
+<div class="program-page im-panel">
 
 <header class="page-head patterned-page-head">
     <div>
@@ -62,8 +67,8 @@
         {% endif %}
     </div>
 
-    <div class="responsive-table">
-        <table class="report-data-table program-table">
+    <div class="responsive-table im-desktop-table">
+        <table class="report-data-table program-table im-table">
             <thead>
                 <tr>
                     <th>Tarih</th>
@@ -86,6 +91,30 @@
             </tbody>
         </table>
     </div>
+
+    <ul class="im-mob-list" aria-label="Günlük görev listesi">
+        {% for atama in atamalar %}
+        <li class="im-mob-card{% if atama.tarih == bugun %} is-today{% endif %}">
+            <header class="im-mob-head">
+                <strong>{{ atama.tarih|date:"d.m.Y" }}</strong>
+                <span>{{ atama.tarih|date:"l" }}</span>
+                {% if atama.tarih == bugun %}<em class="im-mob-badge">Bugün</em>{% endif %}
+            </header>
+            <div class="im-mob-body">
+                <div class="im-mob-row">
+                    <span class="im-mob-label">İmam</span>
+                    <span class="im-mob-value">{{ atama.imam.ad_soyad|default:"—" }}</span>
+                </div>
+                <div class="im-mob-row">
+                    <span class="im-mob-label">Müezzin</span>
+                    <span class="im-mob-value">{{ atama.muezzin.ad_soyad|default:"—" }}</span>
+                </div>
+            </div>
+        </li>
+        {% empty %}
+        <li class="im-mob-empty">Bu listeye henüz atama yapılmamış.</li>
+        {% endfor %}
+    </ul>
 </section>
 {% else %}
 <section class="dashboard-card"><div class="report-empty">Aktif imam / müezzin listesi bulunamadı.</div></section>

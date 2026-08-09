@@ -638,6 +638,10 @@ def deneme_sonuclari_aktar(
                 net=_ondalik(str(veri.get("net", "0"))),
             )
 
+        from takip.soru_takip_service import deneme_sonucu_soru_takibe_yansit
+
+        deneme_sonucu_soru_takibe_yansit(user=user, deneme=deneme, sonuc=sonuc)
+
         norm = normalize_ad(satir.excel_ad_soyad)
         DenemeEslestirmeAlias.objects.update_or_create(
             excel_adi=norm,

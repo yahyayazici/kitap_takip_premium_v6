@@ -1,0 +1,65 @@
+{% extends "yonetim/base.html" %}
+
+{% block title %}Cuma Durumu{% endblock %}
+
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">PERSONEL İLETİŞİM</p>
+        <h1>Cuma Durum Metinleri</h1>
+        <p class="muted">Personelin WhatsApp durumunda paylaşacağı hadis ve söz havuzunu yönetin. Belirli bir Cuma tarihi atayabilir veya otomatik sıraya bırakabilirsiniz.</p>
+    </div>
+    <div class="yonetim-page-head-actions">
+        <a href="{% url 'yonetim:cuma_durum_ekle' %}" class="primary-btn">Metin Ekle</a>
+    </div>
+</header>
+
+<section class="report-table-card yonetim-table-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">HAVUZ</p>
+            <h2>Hadis &amp; sözler</h2>
+        </div>
+        <span class="report-record-count">{{ metinler|length }} kayıt</span>
+    </div>
+
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <thead>
+                <tr>
+                    <th>Sıra</th>
+                    <th>Metin</th>
+                    <th>Kaynak</th>
+                    <th>Tema</th>
+                    <th>Atanan Cuma</th>
+                    <th>Durum</th>
+                    <th class="yonetim-action-col">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in metinler %}
+                <tr>
+                    <td>{{ m.sira }}</td>
+                    <td><strong>{{ m.metin|truncatechars:80 }}</strong></td>
+                    <td>{{ m.kaynak|default:"—" }}</td>
+                    <td>{{ m.get_sablon_display }}</td>
+                    <td>{% if m.cuma_tarihi %}{{ m.cuma_tarihi|date:"d.m.Y" }}{% else %}Otomatik{% endif %}</td>
+                    <td>{% if m.aktif %}Aktif{% else %}Pasif{% endif %}</td>
+                    <td class="yonetim-action-col">
+                        <a href="{% url 'yonetim:cuma_durum_duzenle' m.pk %}" class="ghost-btn">Düzenle</a>
+                        <form method="post" action="{% url 'yonetim:cuma_durum_sil' m.pk %}" style="display:inline;" onsubmit="return confirm('Silinsin mi?');">
+                            {% csrf_token %}
+                            <button type="submit" class="ghost-btn">Sil</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7">Henüz metin yok. Personel stüdyosu boş görünür.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

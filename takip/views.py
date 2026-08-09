@@ -490,6 +490,14 @@ def dashboard(request):
 
     vazife_bildirimleri = vazife_bildirim_kartlari(request.user, bugun=bugun)
 
+    mudahale_adaylari = []
+    from takip.ai_permissions import kurum_ai_erisebilir
+
+    if kurum_ai_erisebilir(request.user):
+        from takip.ai_service import mudahale_oneri_listesi
+
+        mudahale_adaylari = mudahale_oneri_listesi(request.user)[:6]
+
     return render(
         request,
         "dashboard.html",
@@ -526,6 +534,7 @@ def dashboard(request):
             "bugun_yemek_atamalari": bugun_yemek_atamalari,
             "yemekcilik_modulu": yemekcilik_modulu_erisimi_var(request.user),
             "vazife_bildirimleri": vazife_bildirimleri,
+            "mudahale_adaylari": mudahale_adaylari,
             **dashboard_widgets,
         },
     )

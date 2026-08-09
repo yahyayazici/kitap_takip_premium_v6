@@ -92,6 +92,7 @@ def yazili_kamp_listesi(request):
                     tur=kayit_tur,
                     sinif_etiketleri=sinif_etiketleri,
                     ad=form.cleaned_data.get("ad") or "",
+                    donem=int(form.cleaned_data.get("donem") or 1),
                 )
             except ValueError as exc:
                 messages.error(request, str(exc))

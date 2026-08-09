@@ -16,7 +16,13 @@ from takip.deneme_excel import (
     session_key,
     DenemeImportOnizleme,
 )
-from takip.deneme_service import BRANS_ETIKETLERI, deneme_sonuclari, deneme_yukleyebilir
+from takip.deneme_service import (
+    BRANS_ETIKETLERI,
+    DENEME_DETAY_BRANSLAR,
+    deneme_detay_satirlari,
+    deneme_sonuclari,
+    deneme_yukleyebilir,
+)
 from takip.forms import DenemeSinaviForm
 from takip.models import DenemeSinavi, Talebe
 from takip.permissions.service import can
@@ -82,7 +88,11 @@ def deneme_detay(request, pk):
         return redirect("yonetim:deneme_listesi")
 
     deneme = get_object_or_404(DenemeSinavi, pk=pk)
-    sonuclar = deneme_sonuclari(request.user, deneme) if deneme.durum == "aktif" else []
+    sonuclar = (
+        list(deneme_sonuclari(request.user, deneme))
+        if deneme.durum == "aktif"
+        else []
+    )
 
     if request.method == "POST" and request.FILES.get("excel"):
         if not deneme_yukleyebilir(request.user):
@@ -108,7 +118,10 @@ def deneme_detay(request, pk):
         {
             "deneme": deneme,
             "sonuclar": sonuclar,
+            "detay_satirlari": deneme_detay_satirlari(sonuclar),
             "brans_etiketleri": BRANS_ETIKETLERI,
+            "detay_branslar": DENEME_DETAY_BRANSLAR,
+            "detay_brans_basliklari": [BRANS_ETIKETLERI[k] for k in DENEME_DETAY_BRANSLAR],
             "yukleyebilir": deneme_yukleyebilir(request.user),
         },
     )

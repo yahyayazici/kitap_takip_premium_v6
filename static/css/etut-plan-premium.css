@@ -1075,3 +1075,108 @@ html.ep-modal-open body {
 
 .ep-empty { padding: 1.5rem; text-align: center; color: var(--ep-muted); }
 .ep-table-wrap { overflow-x: auto; }
+
+/* Mobil — saat satırı × gün kartları (yatay kaydırma yok) */
+.ep-mob-plan {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .ep-head {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .ep-head > div,
+    .ep-actions {
+        width: 100%;
+        text-align: left;
+    }
+
+    .ep-actions {
+        justify-content: flex-start;
+    }
+
+    .ep-grid-wrap {
+        display: none !important;
+    }
+
+    .ep-mob-plan {
+        display: grid;
+        gap: 12px;
+        padding: 12px;
+        background: #f8fafc;
+        border-top: 1px solid var(--ep-line);
+    }
+
+    .ep-mob-time-block {
+        border: 1px solid var(--ep-line);
+        border-radius: 14px;
+        background: #fff;
+        overflow: hidden;
+        box-shadow: var(--ep-shadow);
+    }
+
+    .ep-mob-time-head {
+        padding: 10px 14px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--ep-navy);
+        background: #f5f7fb;
+        border-bottom: 1px solid var(--ep-line);
+        text-align: left;
+    }
+
+    .ep-mob-cells {
+        display: grid;
+        gap: 0;
+    }
+
+    .ep-mob-cell {
+        display: grid;
+        gap: 8px;
+        padding: 12px 14px;
+        border-top: 1px solid var(--ep-line-soft);
+        text-align: left;
+    }
+
+    .ep-mob-cell:first-child {
+        border-top: 0;
+    }
+
+    .ep-mob-day {
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--ep-accent);
+    }
+
+    .ep-mob-cell .ep-activity {
+        margin: 0;
+    }
+
+    .ep-mob-cell .ep-durum-select {
+        min-height: 34px;
+        font-size: 0.78rem;
+        padding: 4px 8px;
+    }
+
+    .ep-mob-cell .ep-add-btn {
+        min-height: 40px !important;
+        font-size: 0.78rem !important;
+    }
+
+    .ep-layout-plan {
+        grid-template-columns: 1fr !important;
+    }
+
+    .ep-pool {
+        order: -1;
+    }
+
+    .ep-pool-grid {
+        max-height: 240px;
+    }
+}
+

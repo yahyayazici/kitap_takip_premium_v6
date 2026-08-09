@@ -8,8 +8,8 @@
             <h1>{{ sinav.ad }}</h1>
             <p class="muted">
                 {{ sinav.sinav_tarihi|date:"d F Y" }} · {{ sinav.ders_goster }} ·
-                {{ sinav.yazili_no }}. yazılı · {{ sinav.sinif_goster }} ·
-                Sadece puan (0–100)
+                {% if sinav.tur == 'gercek' %}{{ sinav.donem_yazili_goster }}{% else %}{{ sinav.yazili_no }}. yazılı{% endif %} ·
+                {{ sinav.sinif_goster }} · Sadece puan (0–100)
             </p>
         </div>
         <div class="result-header-actions">

@@ -166,6 +166,10 @@
         <p class="og-wow-empty">Dini ders seviyesi atanmamış.</p>
         {% endif %}
     </section>
+
+    {% if ai_platform_aktif %}
+    {% include "includes/ai_zekasi_widget.html" with ai_tur="veli_haftalik" ai_talebe_id=talebe.id ai_kicker="Haftalık özet" ai_baslik=talebe.ad_soyad|add:" · Veli brifingi" ai_collapsed=True %}
+    {% endif %}
 </div>
 {% endblock %}
 

@@ -18,6 +18,42 @@ BRANS_ETIKETLERI = {
     "ingilizce": "İngilizce",
 }
 
+# Deneme detay ekranı ve günlük soru takip eşlemesi (Din hariç 5 ders)
+DENEME_DETAY_BRANSLAR: tuple[str, ...] = (
+    "turkce",
+    "matematik",
+    "fen",
+    "sosyal",
+    "ingilizce",
+)
+
+DENEME_BRANS_DERS_MAP: dict[str, str] = {
+    kod: BRANS_ETIKETLERI[kod]
+    for kod in DENEME_DETAY_BRANSLAR
+}
+
+
+def deneme_detay_satirlari(sonuclar) -> list[dict]:
+    """Sıralama tablosu + ders ders D/Y/B için şablon satırları."""
+    rows: list[dict] = []
+    for sira, sonuc in enumerate(sonuclar, start=1):
+        brans_map = {b.brans: b for b in sonuc.brans_satirlari.all()}
+        branslar = []
+        for kod in DENEME_DETAY_BRANSLAR:
+            b = brans_map.get(kod)
+            branslar.append(
+                {
+                    "kod": kod,
+                    "etiket": BRANS_ETIKETLERI[kod],
+                    "dogru": int(b.dogru or 0) if b else 0,
+                    "yanlis": int(b.yanlis or 0) if b else 0,
+                    "bos": int(b.bos or 0) if b else 0,
+                    "net": b.net if b else 0,
+                }
+            )
+        rows.append({"sira": sira, "sonuc": sonuc, "branslar": branslar})
+    return rows
+
 
 def deneme_yukleyebilir(user: User) -> bool:
     from takip.permissions.registry import LEGACY_IDARE_ROLLER

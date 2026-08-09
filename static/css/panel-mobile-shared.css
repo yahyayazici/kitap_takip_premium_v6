@@ -1,0 +1,174 @@
+/* Mobil düzenlemeler — talebe profil, deneme arşivi, rapor butonları */
+
+.page-head .ghost-btn,
+.patterned-page-head .ghost-btn,
+.page-head .page-head-actions .ghost-btn,
+.page-head .talebe-rapor-wrap .ghost-btn,
+.page-head .talebe-rapor-ac,
+.patterned-page-head .page-head-actions .ghost-btn {
+    background: rgba(255, 255, 255, 0.96) !important;
+    color: #15427f !important;
+    border: 1px solid rgba(255, 255, 255, 0.88) !important;
+    box-shadow: 0 4px 14px rgba(8, 32, 72, 0.12) !important;
+}
+
+.page-head .result-secondary-button,
+.page-head .result-back-button,
+.patterned-page-head .result-secondary-button,
+.patterned-page-head .result-back-button {
+    background: rgba(255, 255, 255, 0.96) !important;
+    color: #15427f !important;
+    border: 1px solid rgba(255, 255, 255, 0.88) !important;
+    box-shadow: 0 4px 14px rgba(8, 32, 72, 0.12) !important;
+}
+
+.ny-head .ny-head-actions > a,
+.ny-head .ny-head-actions > button,
+.ny-head .ny-chip {
+    background: #fff !important;
+    color: #071b3a !important;
+    border: 1px solid #cdd6e4 !important;
+    box-shadow: 0 2px 8px rgba(15, 40, 80, 0.06) !important;
+}
+
+.ny-head .ny-chip.is-on {
+    background: #071b3a !important;
+    border-color: #071b3a !important;
+    color: #fff !important;
+}
+
+.deneme-archive-page .library-page-head,
+.deneme-archive-page .library-head-copy {
+    align-items: flex-start !important;
+    text-align: left !important;
+    width: 100%;
+}
+
+.deneme-archive-page .library-head-copy h1,
+.deneme-archive-page .library-head-copy .kicker,
+.deneme-archive-page .library-head-copy .library-panel-desc {
+    text-align: left !important;
+}
+
+.profile-page {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+}
+
+.profile-head-main,
+.profile-head-main > div {
+    text-align: left !important;
+}
+
+.profile-head-main h1 {
+    text-align: left !important;
+}
+
+.profile-head-badges {
+    display: flex;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.profile-action-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 120;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
+    background: rgba(255, 255, 255, 0.96);
+    border-top: 1px solid #dbe3ef;
+    box-shadow: 0 -8px 28px rgba(15, 40, 80, 0.1);
+    backdrop-filter: blur(8px);
+}
+
+.profile-action-bar .primary-btn,
+.profile-action-bar .ghost-btn {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 44px !important;
+    background: #fff !important;
+    color: #173b80 !important;
+    border: 1px solid #c7d7f5 !important;
+}
+
+.profile-action-bar .primary-btn {
+    background: linear-gradient(135deg, #2869ed, #625cee) !important;
+    color: #fff !important;
+    border-color: transparent !important;
+}
+
+@media (min-width: 901px) {
+    .profile-page {
+        padding-bottom: 0;
+    }
+
+    .profile-action-bar {
+        position: static;
+        margin-top: 8px;
+        padding: 0;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        backdrop-filter: none;
+    }
+
+    .profile-action-bar .primary-btn,
+    .profile-action-bar .ghost-btn {
+        flex: 0 1 auto;
+        width: auto;
+    }
+}
+
+@media (max-width: 900px) {
+    .profile-page .metric-grid.profile-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+    }
+
+    .profile-page .metric-grid.profile-metrics .metric-card {
+        min-height: 96px !important;
+        padding: 14px !important;
+    }
+
+    .profile-page .metric-grid.profile-metrics .metric-card strong {
+        font-size: 22px !important;
+        margin-top: 8px !important;
+    }
+
+    .profile-head {
+        align-items: flex-start !important;
+        flex-direction: column !important;
+        padding: 18px 16px !important;
+    }
+
+    .profile-head-main {
+        width: 100%;
+    }
+
+    .profile-tab-nav {
+        overflow-x: auto;
+        flex-wrap: nowrap !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .profile-tab-nav .ghost-btn {
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+
+    .profile-active-card {
+        grid-template-columns: 1fr !important;
+        padding: 16px !important;
+    }
+
+    .profile-main-grid {
+        grid-template-columns: 1fr !important;
+    }
+}

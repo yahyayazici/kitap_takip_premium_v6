@@ -45,7 +45,7 @@
         <section class="result-card">
 
             <div class="result-card-header">
-                <div>
+                <div class="result-card-intro">
                     <p class="result-section-kicker">SONUÇ GİRİŞİ</p>
                     <h2>Talebe Sonuçları</h2>
                     <p>
@@ -91,7 +91,7 @@
                                 class="result-row"
                                 data-total="{{ toplam_soru }}"
                             >
-                                <td>
+                                <td data-label="Talebe">
                                     <div class="student-cell">
                                         <span class="student-avatar">
                                             {{ satir.talebe.ad_soyad|slice:":1"|upper }}
@@ -112,7 +112,7 @@
                                     </div>
                                 </td>
 
-                                <td>
+                                <td data-label="Doğru">
                                     <input
                                         type="number"
                                         name="dogru_{{ satir.talebe.id }}"
@@ -124,7 +124,7 @@
                                     >
                                 </td>
 
-                                <td>
+                                <td data-label="Yanlış">
                                     <input
                                         type="number"
                                         name="yanlis_{{ satir.talebe.id }}"
@@ -136,7 +136,7 @@
                                     >
                                 </td>
 
-                                <td>
+                                <td data-label="Boş">
                                     <input
                                         type="number"
                                         name="bos_{{ satir.talebe.id }}"
@@ -148,13 +148,13 @@
                                     >
                                 </td>
 
-                                <td>
+                                <td data-label="Puan">
                                     <span class="score-pill">
                                         {{ satir.puan|floatformat:2 }}
                                     </span>
                                 </td>
 
-                                <td>
+                                <td data-label="Karne">
                                     {% if satir.sonuc %}
                                         <a
                                             href="{% url 'sinav_karne_pdf' sinav.id satir.talebe.id %}"
@@ -293,7 +293,7 @@
     .result-card-actions {
         display: inline-flex;
         align-items: center;
-        justify-content: flex-end;
+        justify-content: flex-start;
         gap: 10px;
         flex-wrap: wrap;
     }
@@ -360,15 +360,29 @@
     .result-card-header,
     .ranking-header {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: space-between;
         gap: 24px;
         padding: 24px 26px;
+        text-align: left;
+    }
+
+    .result-card-intro,
+    .ranking-header > div:first-child {
+        flex: 1;
+        min-width: 0;
+        text-align: left;
     }
 
     .result-card-header h2,
     .ranking-header h2 {
         font-size: 20px;
+        text-align: left;
+    }
+
+    .result-card-header p,
+    .result-card-intro p {
+        text-align: left;
     }
 
     .result-table-wrap {
@@ -616,20 +630,30 @@
 
     @media (max-width: 900px) {
         .result-entry-page {
-            padding: 20px 16px 36px;
+            padding: 16px 14px 32px;
         }
 
         .result-entry-header,
         .result-card-header,
         .ranking-header {
-            align-items: stretch;
+            align-items: flex-start;
             flex-direction: column;
+            padding: 18px 16px;
+        }
+
+        .result-entry-header > div:first-child,
+        .result-card-intro,
+        .ranking-header > div:first-child {
+            width: 100%;
+            text-align: left;
         }
 
         .result-header-actions,
         .result-card-actions {
             width: 100%;
             flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-start;
         }
 
         .result-secondary-button,
@@ -637,12 +661,165 @@
         .result-clear-button,
         .result-save-button {
             width: 100%;
+            min-width: 0;
         }
 
         .result-card-footer {
             align-items: flex-start;
             flex-direction: column;
-            padding: 18px 20px;
+            padding: 16px;
+            gap: 8px;
+        }
+
+        .ranking-header {
+            gap: 12px;
+        }
+
+        .ranking-count {
+            align-self: flex-start;
+        }
+
+        .ranking-list {
+            padding: 0 12px 16px;
+        }
+
+        /* Tablo → talebe kartları */
+        .result-table-wrap {
+            overflow: visible;
+            border-top: 1px solid #e4eaf2;
+            border-bottom: 1px solid #e4eaf2;
+            padding: 12px 12px 4px;
+            background: #f8fafc;
+        }
+
+        .result-table,
+        .result-table tbody,
+        .result-table tr,
+        .result-table td {
+            display: block;
+            width: 100%;
+        }
+
+        .result-table thead {
+            display: none;
+        }
+
+        .result-table tbody tr.result-row {
+            margin: 0 0 12px;
+            padding: 14px 14px 10px;
+            border: 1px solid #dbe3ef;
+            border-radius: 16px;
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(15, 40, 80, 0.05);
+        }
+
+        .result-table tbody tr.result-row td {
+            display: grid;
+            grid-template-columns: minmax(72px, 34%) minmax(0, 1fr);
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-top: 1px solid #eef2f7;
+        }
+
+        .result-table tbody tr.result-row td:first-child {
+            display: block;
+            grid-template-columns: none;
+            padding: 0 0 12px;
+            margin-bottom: 2px;
+            border-top: 0;
+        }
+
+        .result-table tbody tr.result-row td::before {
+            content: attr(data-label);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #64748b;
+        }
+
+        .result-table tbody tr.result-row td:first-child::before {
+            display: none;
+        }
+
+        .student-cell {
+            min-width: 0;
+        }
+
+        .student-copy strong {
+            font-size: 14px;
+        }
+
+        .student-copy small {
+            font-size: 12px;
+        }
+
+        .result-input {
+            width: 100%;
+            max-width: none;
+            height: 46px;
+            font-size: 16px;
+        }
+
+        .result-table tbody tr.result-row td[data-label="Puan"],
+        .result-table tbody tr.result-row td[data-label="Karne"] {
+            grid-template-columns: minmax(72px, 34%) minmax(0, 1fr);
+        }
+
+        .score-pill {
+            width: 100%;
+            min-width: 0;
+            min-height: 40px;
+            font-size: 13px;
+        }
+
+        .student-pdf-button {
+            width: 100%;
+            min-height: 40px;
+            font-size: 12px;
+        }
+
+        .pdf-waiting {
+            font-size: 12px;
+        }
+
+        /* Kaydet / temizle — altta sabit, sola hizalı */
+        .result-card-actions {
+            position: fixed !important;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 120;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            align-items: stretch !important;
+            justify-content: flex-start !important;
+            gap: 10px !important;
+            width: auto !important;
+            padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+            margin: 0 !important;
+            background: rgba(255, 255, 255, 0.96);
+            border-top: 1px solid #dbe3ef;
+            box-shadow: 0 -8px 28px rgba(15, 40, 80, 0.1);
+            backdrop-filter: blur(8px);
+        }
+
+        .result-clear-button {
+            flex: 0 0 auto !important;
+            width: auto !important;
+            min-width: 0 !important;
+            padding: 0 16px !important;
+        }
+
+        .result-save-button {
+            flex: 1 1 auto !important;
+            width: auto !important;
+            min-width: 0 !important;
+        }
+
+        .result-entry-page {
+            padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
         }
     }
 </style>

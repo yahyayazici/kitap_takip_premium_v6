@@ -12,31 +12,59 @@ from .wave0_models import VeliHesap, VeliKisi, VeliTalebeBaglantisi
 
 EXCEL_BASLIKLAR = [
     "Talebe No",
-    "Ad Soyad",
-    "Sınıf",
-    "Şube",
-    "Talebe TC",
-    "Talebe Telefon",
+    "Kimlik Adı",
+    "Kimlik Soyadı",
+    "Kullanılan Ad Soyad",
+    "TC Kimlik",
+    "Cinsiyet",
+    "Doğum Tarihi",
+    "Baba Adı",
+    "Anne Adı",
+    "Doğum Yeri",
+    "Memleket",
+    "Diller",
+    "Telefon",
+    "Dahili Seviye",
+    "Dahili Ders Mesulü",
+    "Dahili Ders Grubu",
+    "Okul Seviyesi",
+    "Okul Sınıf",
+    "Okul Şube",
+    "Etüt Mesulü",
+    "Aile Durumu",
     "Anne Ad Soyad",
     "Anne Telefon",
     "Baba Ad Soyad",
     "Baba Telefon",
-    "Etüt Hocası",
     "Aktif",
 ]
 
 ORNEK_SATIR = [
     "1",
+    "Ahmet",
+    "Yılmaz",
     "Ahmet Yılmaz",
-    "7",
-    "A",
     "12345678901",
+    "Erkek",
+    "2010-05-15",
+    "Mehmet Yılmaz",
+    "Ayşe Yılmaz",
+    "İstanbul",
+    "Trabzon",
+    "Türkçe",
     "05xx xxx xx xx",
+    "Ortaokul Seviye 1",
+    "",
+    "",
+    "Ortaokul 5",
+    "5",
+    "A",
+    "Yahya Yazıcı",
+    "Anne – baba beraber",
     "Ayşe Yılmaz",
     "05xx xxx xx xx",
     "Mehmet Yılmaz",
     "05xx xxx xx xx",
-    "Yahya Yazıcı",
     "Evet",
 ]
 
@@ -79,11 +107,22 @@ def _baslik_eslestir(satir: list[str]) -> dict[str, int]:
     eslesme = {}
     for index, hucre in enumerate(satir):
         anahtar = _hucre_degeri(hucre).lower()
-        if anahtar in {"ad soyad", "ad_soyad", "adsoyad", "isim"}:
+        if anahtar in {
+            "ad soyad",
+            "ad_soyad",
+            "adsoyad",
+            "isim",
+            "kullanılan ad soyad",
+            "kullanilan ad soyad",
+        }:
             eslesme["ad_soyad"] = index
-        elif anahtar in {"sınıf", "sinif", "class"}:
+        elif anahtar in {"kimlik adı", "kimlik adi", "kimlik_adi"}:
+            eslesme["kimlik_adi"] = index
+        elif anahtar in {"kimlik soyadı", "kimlik soyadi", "kimlik_soyadi"}:
+            eslesme["kimlik_soyadi"] = index
+        elif anahtar in {"sınıf", "sinif", "class", "okul sınıf", "okul sinif"}:
             eslesme["sinif"] = index
-        elif anahtar in {"şube", "sube"}:
+        elif anahtar in {"şube", "sube", "okul şube", "okul sube"}:
             eslesme["sube"] = index
         elif anahtar in {"talebe tc", "talebe_tc", "tc", "tc kimlik", "tc_kimlik"}:
             eslesme["talebe_tc"] = index
@@ -97,12 +136,36 @@ def _baslik_eslestir(satir: list[str]) -> dict[str, int]:
             eslesme["baba_ad"] = index
         elif anahtar in {"baba telefon", "baba_telefon"}:
             eslesme["baba_telefon"] = index
-        elif anahtar in {"etüt hocası", "etut hocasi", "etut_hocasi", "hoca"}:
+        elif anahtar in {"etüt mesulü", "etut mesulu", "etüt hocası", "etut hocasi", "etut_hocasi", "hoca"}:
             eslesme["etut_hocasi"] = index
         elif anahtar in {"talebe no", "talebe_no", "numara", "no"}:
             eslesme["talebe_no"] = index
         elif anahtar in {"aktif", "durum"}:
             eslesme["aktif"] = index
+        elif anahtar in {"cinsiyet"}:
+            eslesme["cinsiyet"] = index
+        elif anahtar in {"doğum tarihi", "dogum tarihi", "dogum_tarihi"}:
+            eslesme["dogum_tarihi"] = index
+        elif anahtar in {"baba adı", "baba adi", "baba_adi"}:
+            eslesme["baba_adi"] = index
+        elif anahtar in {"anne adı", "anne adi", "anne_adi"}:
+            eslesme["anne_adi"] = index
+        elif anahtar in {"doğum yeri", "dogum yeri", "dogum_yeri"}:
+            eslesme["dogum_yeri"] = index
+        elif anahtar in {"memleket", "memleketi"}:
+            eslesme["memleket"] = index
+        elif anahtar in {"diller", "bildiği diller", "bildigi diller"}:
+            eslesme["diller"] = index
+        elif anahtar in {"dahili seviye", "dahili_seviye"}:
+            eslesme["dahili_seviye"] = index
+        elif anahtar in {"dahili ders mesulü", "dahili ders mesulu", "dahili_ders_mesulu"}:
+            eslesme["dahili_ders_mesulu"] = index
+        elif anahtar in {"dahili ders grubu", "dahili_ders_grubu"}:
+            eslesme["dahili_ders_grubu"] = index
+        elif anahtar in {"okul seviyesi", "okul_seviyesi"}:
+            eslesme["okul_seviyesi"] = index
+        elif anahtar in {"aile durumu", "aile_durumu"}:
+            eslesme["aile_durumu"] = index
     return eslesme
 
 
@@ -110,6 +173,96 @@ def _satir_degeri(satir: list, index: int | None) -> str:
     if index is None or index >= len(satir):
         return ""
     return _hucre_degeri(satir[index])
+
+
+def _cinsiyet_eslestir(deger: str) -> str:
+    normalized = (deger or "").strip().lower()
+    if normalized in {"erkek", "e", "male", "m"}:
+        return Talebe.Cinsiyet.ERKEK
+    if normalized in {"kadın", "kadin", "k", "female", "f"}:
+        return Talebe.Cinsiyet.KADIN
+    return ""
+
+
+def _aile_durumu_eslestir(deger: str) -> str:
+    normalized = (deger or "").strip().lower()
+    for choice in Talebe.AileDurumu:
+        if normalized == choice.label.lower():
+            return choice.value
+    eski = {
+        "anne – baba beraber": Talebe.AileDurumu.BERABER,
+        "anne - baba beraber": Talebe.AileDurumu.BERABER,
+        "anne – baba ayrı": Talebe.AileDurumu.AYRI,
+        "anne - baba ayrı": Talebe.AileDurumu.AYRI,
+        "anne – baba ayrı – baba üvey": Talebe.AileDurumu.AYRI_BABA_UVEY,
+        "anne – baba ayrı – anne üvey": Talebe.AileDurumu.AYRI_ANNE_UVEY,
+        "anne vefat": Talebe.AileDurumu.ANNE_VEFAT,
+        "anne vefat – anne üvey": Talebe.AileDurumu.ANNE_VEFAT_ANNE_UVEY,
+    }
+    return eski.get(normalized, "")
+
+
+def _dogum_tarihi_eslestir(deger: str):
+    from datetime import datetime
+
+    deger = (deger or "").strip()
+    if not deger:
+        return None
+    for fmt in ("%Y-%m-%d", "%d.%m.%Y", "%d/%m/%Y"):
+        try:
+            return datetime.strptime(deger, fmt).date()
+        except ValueError:
+            continue
+    return None
+
+
+def _talebe_profil_satirdan(talebe: Talebe, satir: list, basliklar: dict[str, int]) -> bool:
+    degisti = False
+
+    def _guncelle(alan: str, deger: str) -> None:
+        nonlocal degisti
+        if deger and getattr(talebe, alan) != deger:
+            setattr(talebe, alan, deger)
+            degisti = True
+
+    kimlik_adi = _satir_degeri(satir, basliklar.get("kimlik_adi"))
+    kimlik_soyadi = _satir_degeri(satir, basliklar.get("kimlik_soyadi"))
+    ad_soyad = _satir_degeri(satir, basliklar.get("ad_soyad"))
+    if not ad_soyad and (kimlik_adi or kimlik_soyadi):
+        ad_soyad = f"{kimlik_adi} {kimlik_soyadi}".strip()
+
+    _guncelle("kimlik_adi", kimlik_adi)
+    _guncelle("kimlik_soyadi", kimlik_soyadi)
+    if ad_soyad:
+        _guncelle("ad_soyad", ad_soyad)
+
+    cinsiyet = _cinsiyet_eslestir(_satir_degeri(satir, basliklar.get("cinsiyet")))
+    if cinsiyet:
+        _guncelle("cinsiyet", cinsiyet)
+
+    dogum = _dogum_tarihi_eslestir(_satir_degeri(satir, basliklar.get("dogum_tarihi")))
+    if dogum and talebe.dogum_tarihi != dogum:
+        talebe.dogum_tarihi = dogum
+        degisti = True
+
+    for alan in (
+        "baba_adi",
+        "anne_adi",
+        "dogum_yeri",
+        "memleket",
+        "diller",
+        "dahili_seviye",
+        "dahili_ders_mesulu",
+        "dahili_ders_grubu",
+        "okul_seviyesi",
+    ):
+        _guncelle(alan, _satir_degeri(satir, basliklar.get(alan)))
+
+    aile = _aile_durumu_eslestir(_satir_degeri(satir, basliklar.get("aile_durumu")))
+    if aile:
+        _guncelle("aile_durumu", aile)
+
+    return degisti
 
 
 def _excel_satirlari(dosya) -> list[list]:
@@ -148,7 +301,7 @@ def _xlsx_kaydet(satirlar: list[list], *, sayfa_adi: str = "Talebeler") -> bytes
                 hucre.font = baslik_font
                 hucre.fill = baslik_fill
 
-    genislikler = [10, 28, 8, 8, 14, 16, 24, 16, 24, 16, 22, 8]
+    genislikler = [10, 14, 14, 24, 14, 10, 14, 14, 14, 14, 14, 16, 16, 18, 18, 16, 14, 8, 8, 20, 22, 22, 16, 22, 16, 8]
     for col, genislik in enumerate(genislikler, start=1):
         harf = chr(64 + col) if col <= 26 else "L"
         sayfa.column_dimensions[harf].width = genislik
@@ -182,19 +335,42 @@ def mevcut_talebeler_xlsx_olustur(*, talebe_qs=None) -> bytes:
 
         sinif = talebe.sinif_sube.sinif if talebe.sinif_sube_id else talebe.sinif
         sube = talebe.sinif_sube.sube if talebe.sinif_sube_id else talebe.sube
+        aile_etiket = ""
+        if talebe.aile_durumu:
+            aile_etiket = talebe.get_aile_durumu_display()
+        cinsiyet_etiket = ""
+        if talebe.cinsiyet:
+            cinsiyet_etiket = talebe.get_cinsiyet_display()
+        dogum = ""
+        if talebe.dogum_tarihi:
+            dogum = talebe.dogum_tarihi.isoformat()
         satirlar.append(
             [
                 talebe.talebe_no or "",
+                talebe.kimlik_adi or "",
+                talebe.kimlik_soyadi or "",
                 talebe.ad_soyad,
+                talebe.tc_kimlik or "",
+                cinsiyet_etiket,
+                dogum,
+                talebe.baba_adi or "",
+                talebe.anne_adi or "",
+                talebe.dogum_yeri or "",
+                talebe.memleket or "",
+                talebe.diller or "",
+                talebe.telefon or "",
+                talebe.dahili_seviye or "",
+                talebe.dahili_ders_mesulu or "",
+                talebe.dahili_ders_grubu or "",
+                talebe.okul_seviyesi or "",
                 sinif,
                 sube,
-                talebe.tc_kimlik or "",
-                talebe.telefon or "",
+                talebe.etut_hocasi.ad_soyad if talebe.etut_hocasi_id else "",
+                aile_etiket,
                 anne.ad_soyad if anne else "",
                 anne.telefon if anne else "",
                 baba.ad_soyad if baba else "",
                 baba.telefon if baba else "",
-                talebe.etut_hocasi.ad_soyad if talebe.etut_hocasi_id else "",
                 "Evet" if talebe.aktif else "Hayır",
             ]
         )

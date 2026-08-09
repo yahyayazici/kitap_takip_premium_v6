@@ -184,6 +184,15 @@ YONETIM_NAV_GROUPS: tuple[YonetimNavGroup, ...] = (
                 ),
             ),
             YonetimNavItem(
+                label="Cuma Durumu",
+                url_name="yonetim:cuma_durum_listesi",
+                active_names=(
+                    "cuma_durum_listesi",
+                    "cuma_durum_ekle",
+                    "cuma_durum_duzenle",
+                ),
+            ),
+            YonetimNavItem(
                 label="Veli Hesapları",
                 url_name="yonetim:veli_hesap_listesi",
                 active_names=(
@@ -320,6 +329,11 @@ YONETIM_NAV_GROUPS: tuple[YonetimNavGroup, ...] = (
                 active_names=("kitap_listesi", "kitap_ekle"),
             ),
             YonetimNavItem(
+                label="Okuma Raporları",
+                url_name="raporlar",
+                active_names=("raporlar", "okuma_raporu_pdf"),
+            ),
+            YonetimNavItem(
                 label="Sınav Sonuçları",
                 url_name="sinav_sonuc_paneli",
                 active_names=(
@@ -335,11 +349,6 @@ YONETIM_NAV_GROUPS: tuple[YonetimNavGroup, ...] = (
                     "ogretmen_degerlendirme_rapor",
                     "ogretmen_degerlendirme_karne_pdf",
                 ),
-            ),
-            YonetimNavItem(
-                label="Raporlar",
-                url_name="raporlar",
-                active_names=("raporlar", "okuma_raporu_pdf"),
             ),
         ),
     ),

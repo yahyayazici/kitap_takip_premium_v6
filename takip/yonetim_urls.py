@@ -276,6 +276,26 @@ urlpatterns = [
         name="sohbet_mevzuu_sil",
     ),
     path(
+        "cuma-durum/",
+        yonetim_views.cuma_durum_listesi,
+        name="cuma_durum_listesi",
+    ),
+    path(
+        "cuma-durum/ekle/",
+        yonetim_views.cuma_durum_ekle,
+        name="cuma_durum_ekle",
+    ),
+    path(
+        "cuma-durum/<int:pk>/duzenle/",
+        yonetim_views.cuma_durum_duzenle,
+        name="cuma_durum_duzenle",
+    ),
+    path(
+        "cuma-durum/<int:pk>/sil/",
+        yonetim_views.cuma_durum_sil,
+        name="cuma_durum_sil",
+    ),
+    path(
         "kisayol-gorselleri/",
         yonetim_views.kisayol_gorsel_listesi,
         name="kisayol_gorsel_listesi",

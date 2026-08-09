@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}{{ mod_baslik }} · Dershane Programı{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dershane-program-premium.css' %}?v=dp7">
+<link rel="stylesheet" href="{% static 'css/dershane-program-premium.css' %}?v=dp12">
 <link rel="stylesheet" href="{% static 'css/program-sure.css' %}">
 {% endblock %}
 {% block content %}
@@ -35,6 +35,11 @@
 
 {# Moda özel filtre #}
 <section class="dp-shell dp-view-shell">
+    {% if mod == "etut" and gorunum.tek_grup and gorunum.gruplar %}
+        {% include "includes/dershane_mob_context.html" with mob_etut_etiket=gorunum.gruplar.0.etiket %}
+    {% else %}
+        {% include "includes/dershane_mob_context.html" %}
+    {% endif %}
     <div class="dp-toolbar">
         <div>
             <h2>{{ gun_adi }}</h2>
@@ -130,6 +135,7 @@
                         </tbody>
                     </table>
                 </div>
+                {% include "includes/dershane_matrix_mobile.html" with matris=panel.satirlar duzenleyebilir=False %}
             </article>
             {% empty %}
             <p class="dp-empty-note">Gösterilecek sınıf bulunamadı.</p>
@@ -205,6 +211,7 @@
                     </tbody>
                 </table>
             </div>
+            {% include "includes/dershane_matrix_mobile.html" with matris=gorunum.satirlar duzenleyebilir=False %}
             {% endif %}
         </div>
 
@@ -251,10 +258,12 @@
                 </tbody>
             </table>
         </div>
+        {% include "includes/dershane_ogretmen_mobile.html" with satirlar=gorunum.satirlar %}
         {% endif %}
 
     {% else %}
         {# Genel #}
+        <p class="dp-scroll-hint">Saat sütunu sabit kalır — sütunları görmek için tabloda yatay kaydırın.</p>
         <div class="dp-matrix-scroll">
             <table class="dp-matrix">
                 <thead>
@@ -298,6 +307,7 @@
                 </tbody>
             </table>
         </div>
+        {% include "includes/dershane_matrix_mobile.html" with matris=matris duzenleyebilir=False %}
     {% endif %}
 </section>
 </div>

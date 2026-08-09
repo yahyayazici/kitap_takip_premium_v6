@@ -10,8 +10,8 @@
     <link rel="stylesheet" href="{% static 'css/premium-system-v5.css' %}">
     <link rel="stylesheet" href="{% static 'css/premium-system-v6.css' %}">
     <link rel="stylesheet" href="{% static 'css/nav-groups.css' %}">
-    <link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}?v=sc-mob4">
-    <link rel="stylesheet" href="{% static 'css/panel-unified.css' %}?v=nizam4">
+    <link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}?v=sc-mob5">
+    <link rel="stylesheet" href="{% static 'css/panel-unified.css' %}?v=nizam6">
     <link rel="stylesheet" href="{% static 'css/choice-chip-grid.css' %}?v=chip1">
     <link rel="stylesheet" href="{% static 'css/veli-panel.css' %}">
     <link rel="stylesheet" href="{% static 'css/panel-apple-polish.css' %}">
@@ -19,6 +19,10 @@
     <link rel="stylesheet" href="{% static 'css/bildirim-bell.css' %}?v=bell2">
     {% if asistan_aktif %}
     <link rel="stylesheet" href="{% static 'css/asistan.css' %}">
+    {% endif %}
+    {% if ai_platform_aktif %}
+    <link rel="stylesheet" href="{% static 'css/ktt-page.css' %}">
+    <link rel="stylesheet" href="{% static 'css/ai-zekasi.css' %}">
     {% endif %}
     {% block extra_css %}{% endblock %}
 </head>
@@ -68,6 +72,9 @@
 {% if asistan_aktif %}
 {% include "includes/asistan_widget.html" %}
 <script src="{% static 'js/asistan.js' %}"></script>
+{% endif %}
+{% if ai_platform_aktif %}
+<script src="{% static 'js/ai-zekasi.js' %}"></script>
 {% endif %}
 <script src="{% static 'js/bildirim-bell.js' %}"></script>
 {% block extra_js %}{% endblock %}

@@ -126,6 +126,14 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         nav_group="Genel",
     ),
     PanelNavItem(
+        key="cuma_durum",
+        label="Cuma Durumu",
+        url_name="cuma_durum_panel",
+        roller=TUM_PERSONEL_ROLLER,
+        active_names=("cuma_durum_panel",),
+        nav_group="Genel",
+    ),
+    PanelNavItem(
         key="program",
         label="Programlar",
         url_name="program_panel",
@@ -221,6 +229,14 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         url_name="sinav_sonuc_paneli",
         roller=EGITIM_MODULU_ROLLER,
         active_names=("sinav_sonuc_paneli", "sinav_sonuclari_gir"),
+        nav_group="Kitaplar",
+    ),
+    PanelNavItem(
+        key="raporlar",
+        label="Okuma Raporları",
+        url_name="raporlar",
+        roller=EGITIM_MODULU_ROLLER,
+        active_names=("raporlar", "okuma_raporu_pdf"),
         nav_group="Kitaplar",
     ),
     PanelNavItem(
@@ -432,14 +448,6 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
             "yazili_sinav_bireysel_talebe_pdf",
             "yazili_sinav_excel_sablon",
         ),
-        nav_group="Eğitim",
-    ),
-    PanelNavItem(
-        key="raporlar",
-        label="Raporlar",
-        url_name="raporlar",
-        roller=EGITIM_MODULU_ROLLER,
-        active_names=("raporlar", "okuma_raporu_pdf"),
         nav_group="Eğitim",
     ),
     PanelNavItem(

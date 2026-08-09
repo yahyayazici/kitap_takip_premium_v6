@@ -228,6 +228,7 @@ def talebe_matris_satirlari(
                 {
                     "talebe_id": talebe.id,
                     "konu_id": konu.id,
+                    "konu_ad": konu.ad,
                     "durum": durum,
                     "tamamlandi": durum == "tamam",
                 }

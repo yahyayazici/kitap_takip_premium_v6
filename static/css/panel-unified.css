@@ -184,6 +184,7 @@ body.veli-body {
 
 .page-head .kicker,
 .patterned-page-head .kicker,
+.page-hero .page-kicker,
 .yonetim-page-head .kicker,
 .welcome-kicker,
 .at-page-head .kicker,
@@ -199,6 +200,8 @@ body.veli-body {
 .page-head .muted,
 .page-head p:not(.kicker),
 .patterned-page-head .muted,
+.page-hero .page-description,
+.page-hero p:not(.page-kicker),
 .yonetim-page-head p:not(.kicker),
 .at-page-head p:not(.kicker):not(.at-kicker),
 .at-page-head .muted,
@@ -321,7 +324,6 @@ body.veli-body {
 .card-heading,
 .dash-panel-head,
 .library-panel-head,
-.exam-form-head,
 .profile-card .card-heading {
     display: flex !important;
     justify-content: space-between !important;
@@ -332,12 +334,22 @@ body.veli-body {
     border-bottom: none !important;
 }
 
+.exam-form-head {
+    display: flex !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    gap: 14px !important;
+    margin-bottom: 18px !important;
+    padding-bottom: 0 !important;
+    border-bottom: none !important;
+}
+
 .card-heading h2,
 .dash-panel-head h2,
 .library-panel-head h2,
 .exam-form-head h2,
 .profile-card h2 {
-    margin: 4px 0 0 !important;
+    margin: 0 !important;
     font-size: 22px !important;
     font-weight: 600 !important;
     letter-spacing: -0.022em !important;
@@ -1676,7 +1688,6 @@ table tbody td {
 .daily-header .page-head-actions > a,
 .exam-page-head .page-head-actions > a,
 .ogretmen-page-head .page-head-actions > a,
-.ny-head .ny-head-actions > a,
 .at-page-head .at-page-head-actions > a,
 .page-head .result-secondary-button,
 .page-head .result-back-button,
@@ -1765,6 +1776,129 @@ table tbody td {
     border-radius: var(--panel-head-btn-radius) !important;
     font-size: 13px !important;
     font-weight: 600 !important;
+}
+
+@media (max-width: 768px) {
+    /* Mobil hero — başlık sola, aksiyonlar alta (tüm paneller) */
+    .page-head,
+    .patterned-page-head,
+    .yonetim-page-head,
+    .welcome-panel,
+    .at-page-head,
+    .ktt-page-head,
+    .result-page-header,
+    .result-entry-header,
+    .daily-header,
+    .exam-page-head,
+    .page-hero,
+    .ogretmen-page-head,
+    .ny-head,
+    .profile-head {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+    }
+
+    .page-head > div,
+    .patterned-page-head > div,
+    .yonetim-page-head > div,
+    .welcome-panel > div,
+    .at-page-head > div,
+    .ktt-page-head > div,
+    .result-page-header > div,
+    .result-entry-header > div,
+    .daily-header > div,
+    .exam-page-head > div,
+    .page-hero > div,
+    .ogretmen-page-head > div,
+    .ny-head > div,
+    .profile-head > div {
+        width: 100%;
+        max-width: 100%;
+        text-align: left;
+    }
+
+    .page-head-actions,
+    .yonetim-page-head-actions,
+    .result-header-actions,
+    .welcome-actions,
+    .profile-head-actions,
+    .ny-head-actions,
+    .at-page-head-actions,
+    .dash-hero-actions,
+    .page-hero-actions,
+    .ktt-page-head-row > .ktt-head-actions,
+    .ktt-page-head > .ktt-actions,
+    .ktt-report-actions {
+        width: 100% !important;
+        justify-content: flex-start !important;
+        align-items: stretch !important;
+    }
+
+    .page-head-actions > a,
+    .page-head-actions > button,
+    .page-head-actions > .primary-btn,
+    .page-head-actions > .ghost-btn,
+    .exam-page-head .page-head-actions > a,
+    .exam-page-head .page-head-actions > .ghost-btn,
+    .patterned-page-head .page-head-actions > .ghost-btn,
+    .yonetim-page-head-actions > a,
+    .yonetim-page-head-actions > button,
+    .result-header-actions > a,
+    .result-header-actions > button,
+    .welcome-actions > a,
+    .welcome-actions > button,
+    .profile-head-actions > a,
+    .profile-head-actions > button,
+    .profile-head-actions > .primary-btn,
+    .profile-head-actions > .ghost-btn,
+    .ny-head-actions > a,
+    .at-page-head-actions > a,
+    .ktt-page-head-row > .ktt-head-actions > a,
+    .ktt-page-head-row > .ktt-head-actions > button,
+    .ktt-report-actions > a {
+        flex: 0 1 auto !important;
+        min-width: 0 !important;
+        width: auto !important;
+        max-width: 100%;
+        justify-content: center !important;
+    }
+
+    /* Doğrudan hero içindeki butonlar — sola hizalı kalsın */
+    .page-head > .ghost-btn,
+    .page-head > .primary-btn,
+    .patterned-page-head > .ghost-btn,
+    .exam-page-head > .ghost-btn {
+        align-self: flex-start !important;
+        width: auto !important;
+        flex: 0 0 auto !important;
+    }
+
+    .page-head-actions .pdf-sayfa-sec,
+    .profile-head-actions .pdf-sayfa-sec,
+    .patterned-page-head .pdf-sayfa-sec,
+    .result-header-actions .pdf-sayfa-sec,
+    .yonetim-page-head-actions .pdf-sayfa-sec {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        width: 100% !important;
+        gap: 8px !important;
+    }
+
+    .page-head-actions .pdf-sayfa-sec-select,
+    .profile-head-actions .pdf-sayfa-sec-select,
+    .patterned-page-head .pdf-sayfa-sec-select {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    .page-head-actions .pdf-sayfa-sec [data-pdf-sayfa-link],
+    .profile-head-actions .pdf-sayfa-sec [data-pdf-sayfa-link],
+    .patterned-page-head .pdf-sayfa-sec [data-pdf-sayfa-link] {
+        width: 100% !important;
+        justify-content: center !important;
+    }
 }
 
 @media (max-width: 700px) {

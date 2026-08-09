@@ -1,6 +1,11 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Yeni Sınav Ekle{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/quick-form-page.css' %}?v=qf-mob4">
+{% endblock %}
 
 {% block content %}
 
@@ -15,7 +20,9 @@
                 Etüt hocası sistem tarafından otomatik belirlenir.
             </p>
         </div>
-        <a href="{% url 'sinav_sonuc_paneli' %}" class="ghost-btn">Sonuç Giriş Paneli</a>
+        <div class="page-head-actions">
+            <a href="{% url 'sinav_sonuc_paneli' %}" class="ghost-btn">Sonuç Giriş Paneli</a>
+        </div>
     </header>
 
     <section class="exam-layout">

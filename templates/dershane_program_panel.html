@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Dershane Programı · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dershane-program-premium.css' %}?v=dp7">
+<link rel="stylesheet" href="{% static 'css/dershane-program-premium.css' %}?v=dp12">
 {% endblock %}
 
 {% block content %}
@@ -57,6 +57,7 @@
 {% include "includes/dershane_mod_sekmeleri.html" %}
 
 <section class="dp-shell">
+    {% include "includes/dershane_mob_context.html" with duzenle=True ctx_baslik=gun_adi|add:" · Düzenle" %}
     <div class="dp-toolbar">
         <div>
             <h2>{{ gun_adi }}</h2>
@@ -163,6 +164,8 @@
         {% endif %}
     </div>
 
+    <p class="dp-scroll-hint">Saat sütunu sabit kalır — sütunları görmek için tabloda yatay kaydırın.</p>
+
     <div class="dp-matrix-scroll" data-dp-matrix data-atama-url="{% url 'dershane_program_atama_surukle' %}?program={{ program.pk }}&gun={{ gun }}">
         <table class="dp-matrix">
             <thead>
@@ -242,6 +245,8 @@
             </tbody>
         </table>
     </div>
+
+    {% include "includes/dershane_matrix_mobile.html" with matris=matris duzenleyebilir=duzenleyebilir %}
 </section>
 
 <div class="dp-footer">
@@ -415,5 +420,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/dershane-program-panel.js' %}?v=dp4"></script>
+<script src="{% static 'js/dershane-program-panel.js' %}?v=dp6"></script>
 {% endblock %}

@@ -334,6 +334,9 @@ def _deneme_tablo(talebe: Talebe, *, limit: int = 8) -> dict:
                 "brans_netleri": [
                     brans_map.get(kod) for kod in BRANS_ETIKETLERI
                 ],
+                "toplam_dogru": sonuc.toplam_dogru,
+                "toplam_yanlis": sonuc.toplam_yanlis,
+                "toplam_bos": sonuc.toplam_bos,
                 "toplam_net": sonuc.toplam_net,
                 "puan": sonuc.puan,
             }

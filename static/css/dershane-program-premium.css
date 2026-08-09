@@ -17,6 +17,8 @@
     padding: 0 0 2.5rem;
     color: var(--dp-text);
     box-sizing: border-box;
+    /* panel-unified overflow-x:clip sticky sütunu kırar */
+    overflow-x: visible !important;
 }
 
 /* Matris sayfada tam genişlik kullansın */
@@ -160,7 +162,7 @@
 .dp-view-panel {
     border: 1px solid var(--dp-line);
     border-radius: var(--dp-radius-sm);
-    overflow: hidden;
+    overflow: visible;
     background: #fff;
 }
 
@@ -397,7 +399,7 @@
     border: 1px solid var(--dp-line);
     border-radius: var(--dp-radius);
     box-shadow: var(--dp-shadow);
-    overflow: hidden;
+    overflow: visible;
 }
 
 .dp-toolbar {
@@ -607,6 +609,11 @@
     overflow: auto;
     max-width: 100%;
     max-height: min(78vh, 900px);
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    position: relative;
+    background: #fff;
+    border-radius: 0 0 var(--dp-radius) var(--dp-radius);
 }
 
 .dp-matrix {
@@ -623,6 +630,7 @@
     border-bottom: 1px solid var(--dp-line-soft);
     padding: 0;
     vertical-align: top;
+    background-clip: padding-box;
 }
 
 .dp-matrix thead th {
@@ -639,16 +647,29 @@
 }
 
 .dp-matrix .dp-time-col {
+    position: -webkit-sticky;
     position: sticky;
     left: 0;
-    z-index: 3;
-    min-width: 108px;
-    background: #fff;
+    z-index: 5;
+    min-width: 96px;
+    width: 96px;
+    max-width: 96px;
     padding: 0.55rem 0.6rem;
+    background-color: #fbfbfd !important;
+    box-shadow: 4px 0 8px -4px rgba(15, 40, 80, 0.18);
 }
 
-.dp-matrix thead .dp-time-col { z-index: 4; background: #f8fafc; }
-.dp-matrix tbody .dp-time-col { background: #fbfbfd; }
+.dp-matrix thead .dp-time-col {
+    left: 0;
+    top: 0;
+    z-index: 7;
+    background-color: #f8fafc !important;
+    box-shadow: 4px 0 8px -4px rgba(15, 40, 80, 0.12), 0 2px 0 #f8fafc;
+}
+
+.dp-matrix tbody .dp-time-col {
+    background-color: #fbfbfd !important;
+}
 
 .dp-time-main {
     display: block;
@@ -986,9 +1007,437 @@
     .dp-footer { grid-template-columns: 1fr; }
     .dp-filter-toggles { margin-left: 0; width: 100%; }
     .dp-view-grid { grid-template-columns: 1fr; }
+
+    .dp-filter-bar {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+    }
+
+    .dp-filter-bar .dp-field select {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .dp-filter-toggles {
+        grid-column: 1 / -1;
+        justify-content: space-between;
+    }
+
+    .dp-ders-chips {
+        gap: 0.35rem;
+    }
+}
+
+/* Tablet: matris + kaydırma ipucu */
+.dp-scroll-hint {
+    display: none;
+    margin: 0;
+    padding: 0.45rem 1rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--dp-accent);
+    background: #f0f7ff;
+    border-bottom: 1px solid #dbeafe;
+}
+
+@media (min-width: 901px) and (max-width: 1100px) {
+    .dp-scroll-hint {
+        display: block;
+    }
+
+    .dp-matrix-scroll {
+        box-shadow: inset -12px 0 14px -12px rgba(15, 40, 80, 0.12);
+    }
+}
+
+/* Mobil: dikey timeline — matris gizli */
+.dp-mob-ctx {
+    display: none;
+}
+
+.dp-mob-flow {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .dp-scroll-hint,
+    .dp-matrix-scroll,
+    .dp-view-panel .dp-matrix-scroll {
+        display: none !important;
+    }
+
+    .dp-mob-ctx {
+        display: block;
+        margin: 0 0 0.65rem;
+        padding: 0.85rem 1rem;
+        border-radius: 14px;
+        border: 1px solid #bfdbfe;
+        background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%);
+        text-align: left;
+    }
+
+    .dp-mob-ctx-chips:empty {
+        display: none;
+        margin: 0;
+    }
+
+    .dp-mob-ctx-kicker {
+        margin: 0 0 0.25rem;
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--dp-accent);
+    }
+
+    .dp-mob-ctx-title {
+        margin: 0;
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: var(--dp-navy);
+        letter-spacing: -0.02em;
+        line-height: 1.25;
+    }
+
+    .dp-mob-ctx-meta {
+        margin: 0.35rem 0 0.55rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #475569;
+        line-height: 1.4;
+    }
+
+    .dp-mob-ctx-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        margin-bottom: 0.45rem;
+    }
+
+    .dp-mob-ctx-chip {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.2rem 0.55rem;
+        border-radius: 999px;
+        border: 1px solid #dbeafe;
+        background: #fff;
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: #1e40af;
+    }
+
+    .dp-mob-ctx-chip.is-active {
+        background: var(--dp-accent);
+        border-color: var(--dp-accent);
+        color: #fff;
+    }
+
+    .dp-mob-ctx-hint {
+        margin: 0;
+        font-size: 0.68rem;
+        font-weight: 600;
+        color: #64748b;
+    }
+
+    .dp-mob-flow {
+        display: flex;
+        flex-direction: column;
+        gap: 0.7rem;
+        padding: 0.75rem 0.85rem 1rem;
+        position: relative;
+    }
+
+    .dp-mob-flow::before {
+        content: "";
+        position: absolute;
+        left: 1.35rem;
+        top: 1rem;
+        bottom: 1rem;
+        width: 2px;
+        background: linear-gradient(180deg, #dbeafe 0%, #e2e8f0 50%, #dbeafe 100%);
+        border-radius: 2px;
+        pointer-events: none;
+    }
+
+    .dp-head-actions,
+    .dp-actions {
+        width: 100%;
+    }
+
+    .dp-metrics-inline {
+        width: 100%;
+        margin-right: 0;
+    }
+
+    .dp-filter-bar {
+        grid-template-columns: 1fr;
+    }
+
+    .dp-tools {
+        position: sticky;
+        top: calc(var(--v3-header-height, 64px) - 1px);
+        z-index: 8;
+        background: #fff;
+        box-shadow: 0 4px 12px rgba(15, 40, 80, 0.06);
+    }
+
+    /* Namaz / yemek — tam genişlik banner */
+    .dp-mob-merged {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.85rem 1rem 0.85rem 2.5rem;
+        border-radius: 14px;
+        border: 1px solid var(--dp-line);
+        background: #f8fafc;
+        position: relative;
+        z-index: 1;
+    }
+
+    .dp-mob-merged::before {
+        content: "";
+        position: absolute;
+        left: 0.95rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #94a3b8;
+        box-shadow: 0 0 0 3px #fff;
+    }
+
+    .dp-mob-merged time {
+        flex-shrink: 0;
+        font-size: 0.76rem;
+        font-weight: 700;
+        color: var(--dp-navy);
+        font-variant-numeric: tabular-nums;
+        min-width: 4.5rem;
+    }
+
+    .dp-mob-merged strong {
+        display: block;
+        font-size: 0.88rem;
+        color: var(--dp-navy);
+        letter-spacing: 0.02em;
+    }
+
+    .dp-mob-merged span {
+        display: block;
+        margin-top: 0.15rem;
+        font-size: 0.68rem;
+        color: var(--dp-muted);
+        font-weight: 600;
+    }
+
+    .dp-mob-merged.is-namaz {
+        background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+        border-color: #bbf7d0;
+    }
+
+    .dp-mob-merged.is-namaz::before {
+        background: #22c55e;
+    }
+
+    .dp-mob-merged.is-yemek {
+        background: linear-gradient(135deg, #fff7ed 0%, #fffbeb 100%);
+        border-color: #fed7aa;
+    }
+
+    .dp-mob-merged.is-yemek::before {
+        background: #f97316;
+    }
+
+    /* Saat bloğu kartı */
+    .dp-mob-block {
+        position: relative;
+        z-index: 1;
+        margin-left: 0;
+        padding-left: 2.5rem;
+        border: 0;
+        background: transparent;
+    }
+
+    .dp-mob-block::before {
+        content: "";
+        position: absolute;
+        left: 0.95rem;
+        top: 1.1rem;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--dp-accent);
+        box-shadow: 0 0 0 3px #fff, 0 0 0 5px rgba(0, 113, 227, 0.15);
+    }
+
+    .dp-mob-block-head {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+        margin-bottom: 0.55rem;
+    }
+
+    .dp-mob-time {
+        font-size: 0.92rem;
+        font-weight: 800;
+        color: var(--dp-navy);
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.01em;
+    }
+
+    .dp-mob-groups {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.45rem;
+    }
+
+    @media (min-width: 420px) {
+        .dp-mob-groups {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    .dp-mob-group {
+        padding: 0.7rem 0.75rem;
+        border-radius: 12px;
+        border: 1px solid var(--dp-line);
+        background: color-mix(in srgb, var(--cell-bg, #f8fafc) 42%, #fff);
+        border-left: 4px solid color-mix(in srgb, var(--cell-bg, #94a3b8) 75%, #64748b);
+        box-shadow: 0 1px 3px rgba(15, 40, 80, 0.04);
+    }
+
+    .dp-mob-group.is-empty {
+        border-style: dashed;
+        border-left-style: dashed;
+        border-left-color: #cbd5e1;
+        background: #fafbfc;
+    }
+
+    .dp-mob-grup-label {
+        display: block;
+        font-size: 0.62rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--dp-muted);
+        margin-bottom: 0.3rem;
+    }
+
+    .dp-mob-ders {
+        display: block;
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--dp-navy);
+        line-height: 1.3;
+    }
+
+    .dp-mob-ogretmen {
+        display: block;
+        margin-top: 0.22rem;
+        font-size: 0.76rem;
+        color: #475569;
+    }
+
+    .dp-mob-empty {
+        font-size: 0.8rem;
+        font-weight: 650;
+        color: var(--dp-accent);
+    }
+
+    .dp-mob-empty-page {
+        padding: 1.5rem 1rem;
+        text-align: center;
+        color: var(--dp-muted);
+        font-size: 0.88rem;
+    }
+
+    .dp-mob-group.dp-droppable.dp-drop-over {
+        outline: 2px solid var(--dp-accent);
+        background: #eff6ff !important;
+    }
+
+    .dp-mob-ogretmen-slot {
+        margin-top: 0.35rem;
+        padding: 0.45rem 0.55rem;
+        border-radius: 8px;
+        border: 1px solid rgba(15, 40, 80, 0.06);
+        background: color-mix(in srgb, var(--cell-bg, #f8fafc) 45%, #fff);
+    }
+
+    .dp-mob-ogretmen-slot:first-of-type {
+        margin-top: 0.15rem;
+    }
+
+    .dp-mob-ogretmen-slot strong {
+        display: block;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--dp-navy);
+    }
+
+    .dp-mob-ogretmen-slot span {
+        display: block;
+        margin-top: 0.12rem;
+        font-size: 0.72rem;
+        color: #64748b;
+    }
+
+    .dp-page .dp-head {
+        align-items: flex-start !important;
+    }
+
+    .dp-page .dp-head > div,
+    .dp-page .dp-sub {
+        text-align: left;
+    }
+
+    .dp-page .dp-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .dp-mode-tabs {
+        margin-bottom: 0.45rem;
+    }
+
+    .dp-toolbar-sub {
+        display: none;
+    }
+
+    /* Etüt modu: mevcut dikey timeline mobilde kalsın */
+    .dp-view-etut .dp-timeline {
+        padding: 0.5rem 0.85rem 1rem;
+    }
+
+    .dp-view-etut .dp-timeline-item {
+        grid-template-columns: 1fr;
+        gap: 0.35rem;
+    }
+
+    .dp-view-etut .dp-timeline-item time {
+        padding-top: 0;
+        font-size: 0.88rem;
+    }
+
+    /* Görüntüle modu: sınıf panelleri timeline'a düşsün */
+    .dp-view-stack .dp-view-panel {
+        border: 0;
+        box-shadow: none;
+        background: transparent;
+    }
+
+    .dp-view-panel-head {
+        padding-left: 0.85rem;
+        padding-right: 0.85rem;
+        background: #f8fafc;
+        border-radius: 12px;
+        margin-bottom: 0.5rem;
+    }
 }
 
 @media (max-width: 640px) {
-    .dp-day-tab { min-width: 6.2rem; }
-    .dp-matrix-scroll { max-height: 60vh; }
+    .dp-day-tab { min-width: 3.2rem; }
 }

@@ -86,6 +86,12 @@
     </section>
     {% endif %}
 
+    {% if ai_platform_aktif %}
+    <div class="dash-ai-strip">
+        {% include "includes/ai_zekasi_widget.html" with ai_tur="gelisim_zekasi" ai_talebe_id=talebe.id ai_kicker="Gelişim analizi" ai_baslik=talebe.ad_soyad|add:" · Bütüncül değerlendirme" ai_collapsed=True %}
+    </div>
+    {% endif %}
+
     {% if gor.deneme_grafik and gelisim.deneme_grafik %}
     <section class="profile-card">
         <div class="card-heading gelisim-section-head">
@@ -413,6 +419,9 @@
                         {% for kod, etiket in gelisim.deneme_tablo.brans_etiketleri.items %}
                         <th class="num-col">{{ etiket }}</th>
                         {% endfor %}
+                        <th class="num-col">Doğru</th>
+                        <th class="num-col">Yanlış</th>
+                        <th class="num-col">Boş</th>
                         <th class="num-col">Net</th>
                         <th class="num-col">Puan</th>
                         <th></th>
@@ -426,6 +435,9 @@
                         {% for net in satir.brans_netleri %}
                         <td class="num-col">{% if net is not None %}{{ net }}{% else %}—{% endif %}</td>
                         {% endfor %}
+                        <td class="num-col">{{ satir.toplam_dogru }}</td>
+                        <td class="num-col">{{ satir.toplam_yanlis }}</td>
+                        <td class="num-col">{{ satir.toplam_bos }}</td>
                         <td class="num-col profile-score">{{ satir.toplam_net }}</td>
                         <td class="num-col">{{ satir.puan }}</td>
                         <td><a href="{% url 'deneme_detay' satir.deneme_id %}" class="ghost-btn">Detay</a></td>

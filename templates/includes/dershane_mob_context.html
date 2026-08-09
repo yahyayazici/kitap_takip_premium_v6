@@ -1,0 +1,25 @@
+<div class="dp-mob-ctx" aria-label="Bulunduğunuz sayfa">
+    <p class="dp-mob-ctx-kicker">Dershane Programı</p>
+    <h2 class="dp-mob-ctx-title">{% if ctx_baslik %}{{ ctx_baslik }}{% elif mod_baslik %}{{ mod_baslik }}{% else %}Program{% endif %}</h2>
+    <p class="dp-mob-ctx-meta">{{ gun_adi }}{% if program %} · {{ program.ad }}{% endif %}</p>
+    <div class="dp-mob-ctx-chips">
+        {% if duzenle %}
+        <span class="dp-mob-ctx-chip is-active">Düzenleme</span>
+        {% elif mod %}
+        <span class="dp-mob-ctx-chip is-active">{{ mod_baslik }}</span>
+        {% endif %}
+        {% if filtre.sinif %}
+        <span class="dp-mob-ctx-chip">{{ filtre.sinif }}. Sınıf</span>
+        {% endif %}
+        {% if filtre.ogretmen %}
+        <span class="dp-mob-ctx-chip">{{ filtre.ogretmen }}</span>
+        {% endif %}
+        {% if mob_etut_etiket %}
+        <span class="dp-mob-ctx-chip">{{ mob_etut_etiket }}</span>
+        {% endif %}
+        {% if filtre.ders %}
+        <span class="dp-mob-ctx-chip">{{ filtre.ders }}</span>
+        {% endif %}
+    </div>
+    <p class="dp-mob-ctx-hint">Dikey liste görünümü — yatay kaydırma yok.</p>
+</div>

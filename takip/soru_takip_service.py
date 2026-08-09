@@ -653,3 +653,78 @@ def ktt_sonucu_soru_takibe_yansit(
             "bos": yeni_b,
         },
     )
+
+
+def deneme_sonucu_soru_takibe_yansit(
+    *,
+    user: User,
+    deneme,
+    sonuc,
+) -> None:
+    """
+    Deneme branş sonuçlarını sınav tarihindeki günlük soru takibine ekler.
+
+    KTT ile aynı mantık: aynı günün ilgili ders satırına D/Y/B eklenir.
+    """
+    from takip.deneme_service import DENEME_BRANS_DERS_MAP, DENEME_DETAY_BRANSLAR
+
+    tarih = getattr(deneme, "sinav_tarihi", None)
+    talebe = getattr(sonuc, "talebe", None)
+    if tarih is None or talebe is None:
+        return
+
+    kayit, _ = GunlukSoruKaydi.objects.get_or_create(
+        talebe=talebe,
+        tarih=tarih,
+        defaults={"kaydeden": user},
+    )
+
+    not_ek = f"Deneme: {deneme.ad}"
+    mevcut_not = (kayit.gunluk_not or "").strip()
+    if not_ek not in mevcut_not:
+        kayit.gunluk_not = f"{mevcut_not}\n{not_ek}".strip() if mevcut_not else not_ek
+    kayit.kaydeden = user
+    kayit.save(update_fields=["gunluk_not", "kaydeden", "guncellenme"])
+
+    brans_map = {b.brans: b for b in sonuc.brans_satirlari.all()}
+
+    for kod in DENEME_DETAY_BRANSLAR:
+        brans_satir = brans_map.get(kod)
+        if not brans_satir:
+            continue
+
+        ders_ad = DENEME_BRANS_DERS_MAP.get(kod)
+        if not ders_ad:
+            continue
+
+        ders = Ders.objects.filter(ad=ders_ad, aktif=True).first()
+        if not ders:
+            continue
+
+        dogru = int(brans_satir.dogru or 0)
+        yanlis = int(brans_satir.yanlis or 0)
+        bos = int(brans_satir.bos or 0)
+        toplam = dogru + yanlis + bos
+        if toplam <= 0:
+            continue
+
+        satir = GunlukSoruDersSatiri.objects.filter(kayit=kayit, ders=ders).first()
+        cur_d = int(satir.dogru or 0) if satir else 0
+        cur_y = int(satir.yanlis or 0) if satir else 0
+        cur_b = int(satir.bos or 0) if satir else 0
+
+        yeni_d = cur_d + dogru
+        yeni_y = cur_y + yanlis
+        yeni_b = cur_b + bos
+        yeni_toplam = yeni_d + yeni_y + yeni_b
+
+        GunlukSoruDersSatiri.objects.update_or_create(
+            kayit=kayit,
+            ders=ders,
+            defaults={
+                "toplam_soru": yeni_toplam,
+                "dogru": yeni_d,
+                "yanlis": yeni_y,
+                "bos": yeni_b,
+            },
+        )

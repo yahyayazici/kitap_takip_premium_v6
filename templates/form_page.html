@@ -4,7 +4,7 @@
 {% block title %}{{ baslik }}{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/quick-form-page.css' %}">
+<link rel="stylesheet" href="{% static 'css/quick-form-page.css' %}?v=qf-mob4">
 {% endblock %}
 
 {% block content %}
@@ -17,7 +17,9 @@
             <p class="muted">{{ aciklama }}</p>
         </div>
         {% if geri_url %}
-        <a href="{{ geri_url }}" class="ghost-btn">{{ geri_etiket|default:"Geri" }}</a>
+        <div class="page-head-actions">
+            <a href="{{ geri_url }}" class="ghost-btn">{{ geri_etiket|default:"Geri" }}</a>
+        </div>
         {% endif %}
     </header>
 

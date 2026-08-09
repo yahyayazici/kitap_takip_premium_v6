@@ -4,6 +4,7 @@ from django.db import transaction
 from django.forms import inlineformset_factory
 
 from .models import (
+    CumaDurumMetni,
     Duyuru,
     EtutHocasi,
     HaftalikSohbetMevzuu,
@@ -230,54 +231,157 @@ EtutHocasiForm = PersonelProfiliForm
 
 
 class TalebeForm(forms.ModelForm):
+    anne_ad_soyad = forms.CharField(
+        required=False,
+        label="Anne ad soyad",
+        widget=forms.TextInput(attrs={"class": "cs-input", "placeholder": "Veli / anne adı soyadı"}),
+    )
+    anne_telefon = forms.CharField(
+        required=False,
+        label="Anne telefon",
+        widget=forms.TextInput(attrs={"class": "cs-input", "placeholder": "05xx xxx xx xx"}),
+    )
+    baba_ad_soyad = forms.CharField(
+        required=False,
+        label="Baba ad soyad",
+        widget=forms.TextInput(attrs={"class": "cs-input", "placeholder": "Veli / baba adı soyadı"}),
+    )
+    baba_telefon = forms.CharField(
+        required=False,
+        label="Baba telefon",
+        widget=forms.TextInput(attrs={"class": "cs-input", "placeholder": "05xx xxx xx xx"}),
+    )
+
+    bolumler = (
+        (
+            "Kimlik bilgileri",
+            (
+                "kimlik_adi",
+                "kimlik_soyadi",
+                "ad_soyad",
+                "tc_kimlik",
+                "cinsiyet",
+                "dogum_tarihi",
+            ),
+        ),
+        (
+            "Diğer bilgiler",
+            (
+                "baba_adi",
+                "anne_adi",
+                "dogum_yeri",
+                "memleket",
+                "diller",
+                "telefon",
+                "eposta",
+            ),
+        ),
+        (
+            "Eğitim bilgileri",
+            (
+                "dahili_seviye",
+                "dahili_ders_mesulu",
+                "dahili_ders_grubu",
+                "okul_seviyesi",
+                "etut_hocasi",
+                "sinif_sube",
+                "dini_ders_hocasi",
+                "dini_ders_seviyesi",
+            ),
+        ),
+        (
+            "Aile ve veli",
+            ("aile_durumu", "anne_ad_soyad", "anne_telefon", "baba_ad_soyad", "baba_telefon"),
+        ),
+        (
+            "Kayıt durumu",
+            ("talebe_no", "durum", "aktif"),
+        ),
+    )
+
     class Meta:
         model = Talebe
         fields = [
+            "kimlik_adi",
+            "kimlik_soyadi",
             "ad_soyad",
-            "talebe_no",
-            "sinif_sube",
-            "etut_hocasi",
-            "dini_ders_hocasi",
-            "durum",
-            "dini_ders_seviyesi",
+            "tc_kimlik",
+            "cinsiyet",
             "dogum_tarihi",
+            "baba_adi",
+            "anne_adi",
+            "dogum_yeri",
+            "memleket",
+            "diller",
             "telefon",
             "eposta",
+            "dahili_seviye",
+            "dahili_ders_mesulu",
+            "dahili_ders_grubu",
+            "okul_seviyesi",
+            "etut_hocasi",
+            "sinif_sube",
+            "dini_ders_hocasi",
+            "dini_ders_seviyesi",
+            "aile_durumu",
+            "talebe_no",
+            "durum",
             "aktif",
         ]
         widgets = {
+            "kimlik_adi": forms.TextInput(attrs={"class": "cs-input"}),
+            "kimlik_soyadi": forms.TextInput(attrs={"class": "cs-input"}),
             "ad_soyad": forms.TextInput(
                 attrs={
                     "class": "cs-input",
-                    "placeholder": "Talebenin adını ve soyadını yazın",
+                    "placeholder": "Günlük kullanılan ad soyad",
                 }
             ),
+            "tc_kimlik": forms.TextInput(
+                attrs={"class": "cs-input", "placeholder": "11 haneli TC kimlik no"}
+            ),
+            "cinsiyet": forms.Select(attrs={"class": "cs-input"}),
+            "dogum_tarihi": forms.DateInput(
+                attrs={"class": "cs-input", "type": "date"}
+            ),
+            "baba_adi": forms.TextInput(attrs={"class": "cs-input"}),
+            "anne_adi": forms.TextInput(attrs={"class": "cs-input"}),
+            "dogum_yeri": forms.TextInput(attrs={"class": "cs-input"}),
+            "memleket": forms.TextInput(attrs={"class": "cs-input"}),
+            "diller": forms.TextInput(
+                attrs={"class": "cs-input", "placeholder": "Örn. Türkçe, Arapça"}
+            ),
+            "telefon": forms.TextInput(attrs={"class": "cs-input"}),
+            "eposta": forms.EmailInput(attrs={"class": "cs-input"}),
+            "dahili_seviye": forms.TextInput(attrs={"class": "cs-input"}),
+            "dahili_ders_mesulu": forms.TextInput(attrs={"class": "cs-input"}),
+            "dahili_ders_grubu": forms.TextInput(attrs={"class": "cs-input"}),
+            "okul_seviyesi": forms.TextInput(attrs={"class": "cs-input"}),
+            "sinif_sube": forms.RadioSelect(attrs={"class": "choice-chip-radio"}),
+            "etut_hocasi": forms.Select(attrs={"class": "cs-input"}),
+            "dini_ders_hocasi": forms.Select(attrs={"class": "cs-input"}),
+            "dini_ders_seviyesi": forms.Select(attrs={"class": "cs-input"}),
+            "aile_durumu": forms.Select(attrs={"class": "cs-input"}),
             "talebe_no": forms.TextInput(
                 attrs={
                     "class": "cs-input",
                     "placeholder": "Boş bırakılırsa otomatik atanır",
                 }
             ),
-            "sinif_sube": forms.RadioSelect(
-                attrs={"class": "choice-chip-radio"}
-            ),
-            "etut_hocasi": forms.Select(
-                attrs={"class": "cs-input"}
-            ),
-            "dini_ders_hocasi": forms.Select(
-                attrs={"class": "cs-input"}
-            ),
-            "aktif": forms.CheckboxInput(
-                attrs={"class": "cs-checkbox"}
-            ),
+            "durum": forms.Select(attrs={"class": "cs-input"}),
+            "aktif": forms.CheckboxInput(attrs={"class": "cs-checkbox"}),
+        }
+        labels = {
+            "ad_soyad": "Kullanılan adı soyadı",
+            "sinif_sube": "Okul sınıf / şube",
+            "etut_hocasi": "Etüt mesulü",
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.fields["sinif_sube"].queryset = (
-            SinifSube.objects.filter(aktif=True)
-            .order_by("sinif", "sube")
+            SinifSube.objects.filter(aktif=True).order_by("sinif", "sube")
         )
         self.fields["sinif_sube"].empty_label = "Atanmadı"
 
@@ -290,12 +394,26 @@ class TalebeForm(forms.ModelForm):
         self.fields["dini_ders_hocasi"].queryset = hoca_qs
         self.fields["dini_ders_hocasi"].required = False
         self.fields["dini_ders_hocasi"].help_text = (
-            "Etüt hocasından farklı olabilir. Boş bırakılırsa etüt hocası atanır."
+            "Etüt mesulünden farklı olabilir. Boş bırakılırsa etüt mesulü atanır."
         )
         self.fields["talebe_no"].required = False
         self.fields["talebe_no"].help_text = (
             "Boş bırakırsanız sistem otomatik numara atar (ör. 1, 2, 3)."
         )
+        self.fields["tc_kimlik"].required = False
+        self.fields["cinsiyet"].required = False
+        self.fields["aile_durumu"].required = False
+
+        if self.instance.pk:
+            from takip.wave0_models import VeliKisi
+
+            for veli in self.instance.veli_kisileri.all():
+                if veli.yakinlik == VeliKisi.Yakinlik.ANNE:
+                    self.fields["anne_ad_soyad"].initial = veli.ad_soyad
+                    self.fields["anne_telefon"].initial = veli.telefon
+                elif veli.yakinlik == VeliKisi.Yakinlik.BABA:
+                    self.fields["baba_ad_soyad"].initial = veli.ad_soyad
+                    self.fields["baba_telefon"].initial = veli.telefon
 
     def clean(self):
         cleaned = super().clean()
@@ -305,7 +423,32 @@ class TalebeForm(forms.ModelForm):
         if etut and not dini:
             cleaned["dini_ders_hocasi"] = etut
 
+        ad = (cleaned.get("ad_soyad") or "").strip()
+        if not ad:
+            kimlik_ad = (cleaned.get("kimlik_adi") or "").strip()
+            kimlik_soyad = (cleaned.get("kimlik_soyadi") or "").strip()
+            birlesik = f"{kimlik_ad} {kimlik_soyad}".strip()
+            if birlesik:
+                cleaned["ad_soyad"] = birlesik
+
         return cleaned
+
+    def veli_kaydet(self, talebe: Talebe) -> None:
+        from takip.talebe_excel import _veli_kisi_guncelle
+        from takip.wave0_models import VeliKisi
+
+        _veli_kisi_guncelle(
+            talebe,
+            VeliKisi.Yakinlik.ANNE,
+            self.cleaned_data.get("anne_ad_soyad", ""),
+            self.cleaned_data.get("anne_telefon", ""),
+        )
+        _veli_kisi_guncelle(
+            talebe,
+            VeliKisi.Yakinlik.BABA,
+            self.cleaned_data.get("baba_ad_soyad", ""),
+            self.cleaned_data.get("baba_telefon", ""),
+        )
 
 
 class DuyuruForm(forms.ModelForm):
@@ -407,6 +550,37 @@ class HaftalikSohbetMevzuuForm(forms.ModelForm):
             "hafta_baslangic": forms.DateInput(
                 attrs={"class": "cs-input", "type": "date"}
             ),
+            "aktif": forms.CheckboxInput(attrs={"class": "cs-checkbox"}),
+        }
+
+
+class CumaDurumMetniForm(forms.ModelForm):
+    class Meta:
+        model = CumaDurumMetni
+        fields = [
+            "metin",
+            "kaynak",
+            "sablon",
+            "cuma_tarihi",
+            "sira",
+            "aktif",
+        ]
+        widgets = {
+            "metin": forms.Textarea(
+                attrs={
+                    "class": "cs-input",
+                    "rows": 5,
+                    "placeholder": "Hadis, ayet veya söz metni",
+                }
+            ),
+            "kaynak": forms.TextInput(
+                attrs={"class": "cs-input", "placeholder": "Kaynak (isteğe bağlı)"}
+            ),
+            "sablon": forms.Select(attrs={"class": "cs-input"}),
+            "cuma_tarihi": forms.DateInput(
+                attrs={"class": "cs-input", "type": "date"},
+            ),
+            "sira": forms.NumberInput(attrs={"class": "cs-input", "min": 0}),
             "aktif": forms.CheckboxInput(attrs={"class": "cs-checkbox"}),
         }
 

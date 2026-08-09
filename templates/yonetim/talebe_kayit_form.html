@@ -1,0 +1,54 @@
+{% extends "yonetim/base.html" %}
+
+{% block title %}{{ sayfa_basligi }}{% endblock %}
+
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">KAYIT FORMU</p>
+        <h1>{{ sayfa_basligi }}</h1>
+        <p class="muted">{{ sayfa_aciklama }}</p>
+    </div>
+    <a href="{% url geri_url %}" class="ghost-btn">Listeye Dön</a>
+</header>
+
+<section class="dashboard-card yonetim-form-card">
+    <form method="post" class="yonetim-form-layout">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="yonetim-form-errors">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        {% for bolum_baslik, alan_adlari in form.bolumler %}
+        <div class="yonetim-form-section">
+            <h2 class="yonetim-form-section-title">{{ bolum_baslik }}</h2>
+            <div class="yonetim-form-grid">
+                {% for field in form %}
+                {% if field.name in alan_adlari %}
+                {% with w=field.field.widget %}
+                <div class="yonetim-field{% if w.input_type == 'checkbox' and w.allow_multiple_selected %} yonetim-field-checkbox-grid{% elif field.field.widget.attrs.rows %} yonetim-field-wide{% endif %}">
+                    {% if w.input_type == 'checkbox' and not w.allow_multiple_selected %}
+                    <label class="yonetim-check-label">{{ field }} {{ field.label }}</label>
+                    {% else %}
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    <div class="yonetim-field-control{% if w.input_type == 'checkbox' and w.allow_multiple_selected %} choice-chip-wrap{% endif %}">{{ field }}</div>
+                    {% endif %}
+                    {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                    {% for error in field.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+                </div>
+                {% endwith %}
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="yonetim-form-actions">
+            <button type="submit" class="primary-btn">Kaydet</button>
+        </div>
+    </form>
+</section>
+
+{% endblock %}

@@ -3,7 +3,7 @@
 
 {% block title %}Programlar{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/program-sure.css' %}?v=sayfa2">
+<link rel="stylesheet" href="{% static 'css/program-sure.css' %}?v=pg-mob2">
 {% endblock %}
 
 {% block content %}
@@ -44,6 +44,7 @@
 </section>
 
 {% if secili_program %}
+<div class="program-body-stack">
 {% include "includes/program_sure_ozeti.html" with baslangic_kapali=True %}
 
 <section class="report-table-card program-schedule-card">
@@ -58,7 +59,9 @@
     </div>
     {% if secili_program.aciklama %}<p class="program-desc">{{ secili_program.aciklama }}</p>{% endif %}
 
-    <div class="responsive-table">
+    {% include "includes/program_schedule_mobile.html" with satirlar=satirlar %}
+
+    <div class="pg-desktop-table responsive-table">
         <table class="report-data-table program-table">
             <thead>
                 <tr>
@@ -87,6 +90,7 @@
         </table>
     </div>
 </section>
+</div>
 {% else %}
 <section class="dashboard-card"><div class="report-empty">Bugün için tanımlı program bulunamadı.</div></section>
 {% endif %}

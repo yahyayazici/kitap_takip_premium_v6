@@ -35,22 +35,14 @@
                 </p>
             </div>
         </div>
-        <div class="profile-head-actions">
+        <div class="profile-head-badges">
             {% if talebe.durum == "aktif" %}
                 <span class="status-pill status-okunuyor">Aktif Talebe</span>
             {% elif talebe.durum == "mezun" %}
                 <span class="status-pill status-tamamlandi">Mezun</span>
-                {% if mezun_profil %}
-                <a href="{% url 'mezun_detay' mezun_profil.pk %}" class="ghost-btn">Mezun Profili</a>
-                {% endif %}
             {% else %}
                 <span class="status-pill status-iade">{{ talebe.get_durum_display }}</span>
             {% endif %}
-            {% if mezun_etkin %}
-            <a href="{% url 'mezun_ekle' %}?talebe={{ talebe.pk }}" class="primary-btn">Mezun Et</a>
-            {% endif %}
-            <a href="{% url 'talebe_profil_karne_pdf' talebe.id %}" class="primary-btn" target="_blank" rel="noopener">Kitap Karnesi PDF</a>
-            <a href="{% url 'talebe_listesi' %}" class="ghost-btn">Talebe Listesine Dön</a>
         </div>
     </header>
 
@@ -395,19 +387,25 @@
                     <tr>
                         <th>Tarih</th>
                         <th>Deneme</th>
-                        <th>Toplam Net</th>
-                        <th>Puan</th>
+                        <th class="num-col">Doğru</th>
+                        <th class="num-col">Yanlış</th>
+                        <th class="num-col">Boş</th>
+                        <th class="num-col">Toplam Net</th>
+                        <th class="num-col">Puan</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for sonuc in deneme_sonuclari %}
                     <tr>
-                        <td>{{ sonuc.deneme.sinav_tarihi|date:"d.m.Y" }}</td>
-                        <td><strong>{{ sonuc.deneme.ad }}</strong></td>
-                        <td class="num-col profile-score">{{ sonuc.toplam_net }}</td>
-                        <td class="num-col">{{ sonuc.puan }}</td>
-                        <td><a href="{% url 'deneme_detay' sonuc.deneme_id %}" class="ghost-btn">Sıralama</a></td>
+                        <td data-label="Tarih">{{ sonuc.deneme.sinav_tarihi|date:"d.m.Y" }}</td>
+                        <td data-label="Deneme"><strong>{{ sonuc.deneme.ad }}</strong></td>
+                        <td class="num-col" data-label="Doğru">{{ sonuc.toplam_dogru }}</td>
+                        <td class="num-col" data-label="Yanlış">{{ sonuc.toplam_yanlis }}</td>
+                        <td class="num-col" data-label="Boş">{{ sonuc.toplam_bos }}</td>
+                        <td class="num-col profile-score" data-label="Net">{{ sonuc.toplam_net }}</td>
+                        <td class="num-col" data-label="Puan">{{ sonuc.puan }}</td>
+                        <td data-label=""><a href="{% url 'deneme_detay' sonuc.deneme_id %}" class="ghost-btn">Sıralama</a></td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -471,6 +469,17 @@
         </div>
     </section>
     {% endif %}
+
+    <footer class="profile-action-bar">
+        {% if talebe.durum == "mezun" and mezun_profil %}
+        <a href="{% url 'mezun_detay' mezun_profil.pk %}" class="ghost-btn">Mezun Profili</a>
+        {% endif %}
+        {% if mezun_etkin %}
+        <a href="{% url 'mezun_ekle' %}?talebe={{ talebe.pk }}" class="ghost-btn">Mezun Et</a>
+        {% endif %}
+        <a href="{% url 'talebe_profil_karne_pdf' talebe.id %}" class="primary-btn" target="_blank" rel="noopener">Kitap Karnesi PDF</a>
+        <a href="{% url 'talebe_listesi' %}" class="ghost-btn">Talebe Listesine Dön</a>
+    </footer>
 
 </div>
 {% endblock %}

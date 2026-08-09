@@ -7,20 +7,18 @@
     <div class="assignment-page">
 
         <!-- SAYFA BAŞLIĞI -->
-        <section class="page-hero">
+        <header class="page-head patterned-page-head">
             <div>
-                <p class="page-kicker">TOPLU İŞLEM</p>
+                <p class="kicker">TOPLU İŞLEM</p>
                 <h1>Gruba Kitap Zimmetle</h1>
-                <p class="page-description">
+                <p class="muted">
                     Kitabı seçin, sayfa sayısını kontrol edin ve talebelere
                     tek işlemle zimmetleyin.
                 </p>
             </div>
 
-            <a href="{% url 'dashboard' %}" class="secondary-button">
-                Genel Bakışa Dön
-            </a>
-        </section>
+            <a href="{% url 'dashboard' %}" class="ghost-btn">Genel Bakışa Dön</a>
+        </header>
 
 
         <form method="post" id="assignment-form">
@@ -262,83 +260,17 @@
             margin: 0 auto;
         }
 
-
-        /* SAYFA BAŞLIĞI */
-
-        .page-hero {
-            position: relative;
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            gap: 32px;
-            margin-bottom: 22px;
-            padding: 29px 31px;
-            overflow: hidden;
-            border: 1px solid rgba(52, 103, 204, .13);
-            border-radius: 22px;
-            background: linear-gradient(
-                    135deg,
-                    rgba(255, 255, 255, .98),
-                    rgba(238, 244, 255, .96)
-            );
-            box-shadow: 0 16px 40px rgba(26, 52, 94, .07);
+        .assignment-page .page-head {
+            margin-bottom: 22px !important;
+            align-items: flex-start !important;
         }
 
-        .page-hero::before {
-            content: "";
-            position: absolute;
-            width: 290px;
-            height: 290px;
-            top: -190px;
-            right: 80px;
-            border-radius: 50%;
-            background: rgba(55, 112, 240, .08);
+        .assignment-page .page-head > div {
+            text-align: left;
         }
 
-        .page-hero::after {
-            content: "";
-            position: absolute;
-            width: 180px;
-            height: 180px;
-            right: -75px;
-            bottom: -110px;
-            border: 1px solid rgba(94, 78, 224, .10);
-            border-radius: 50%;
-            box-shadow: 0 0 0 30px rgba(94, 78, 224, .025),
-            0 0 0 60px rgba(94, 78, 224, .018);
-        }
-
-        .page-hero > * {
-            position: relative;
-            z-index: 1;
-        }
-
-        .page-kicker,
-        .card-kicker {
-            margin: 0 0 8px;
-            color: #326cf3;
-            font-size: 11px;
-            font-weight: 500;
-            letter-spacing: .14em;
-        }
-
-        .page-hero h1 {
-            margin: 0;
-            color: #102140;
-            font-family: "Poppins", "Segoe UI", sans-serif;
-            font-size: clamp(28px, 3vw, 40px);
-            font-weight: 500;
-            line-height: 1.14;
-            letter-spacing: -.045em;
-        }
-
-        .page-description {
-            max-width: 690px;
-            margin: 11px 0 0;
-            color: #6e7a90;
-            font-size: 14px;
-            font-weight: 300;
-            line-height: 1.7;
+        .assignment-page .page-head .ghost-btn {
+            align-self: flex-start;
         }
 
 
@@ -359,6 +291,14 @@
             border-bottom: 1px solid #e5ebf3;
         }
 
+        .card-kicker {
+            margin: 0 0 8px;
+            color: #2563eb;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .08em;
+        }
+
         .card-header h2,
         .student-section-header h2 {
             margin: 0;
@@ -372,10 +312,10 @@
         .card-header p:not(.card-kicker),
         .student-section-header p:not(.card-kicker) {
             margin: 7px 0 0;
-            color: #7b879b;
-            font-size: 12px;
-            font-weight: 300;
-            line-height: 1.65;
+            color: #475569;
+            font-size: 13px;
+            font-weight: 400;
+            line-height: 1.55;
         }
 
 
@@ -397,9 +337,9 @@
         .field-group label {
             display: block;
             margin-bottom: 8px;
-            color: #3f4e66;
-            font-size: 11px;
-            font-weight: 400;
+            color: #1e293b;
+            font-size: 13px;
+            font-weight: 600;
         }
 
         .field-group label span {
@@ -432,9 +372,10 @@
         .field-group small {
             display: block;
             margin-top: 7px;
-            color: #929bad;
-            font-size: 9px;
-            font-weight: 300;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 1.45;
         }
 
 
@@ -484,17 +425,18 @@
 
         .option-copy strong {
             display: block;
-            color: #24344f;
-            font-size: 11px;
-            font-weight: 500;
+            color: #0f172a;
+            font-size: 13px;
+            font-weight: 600;
         }
 
         .option-copy small {
             display: block;
             margin-top: 4px;
-            color: #8692a6;
-            font-size: 9px;
-            font-weight: 300;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 1.45;
         }
 
 
@@ -592,9 +534,9 @@
         .student-information small {
             display: block;
             margin-top: 5px;
-            color: #8490a3;
-            font-size: 9px;
-            font-weight: 300;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 400;
         }
 
         .student-checkmark {
@@ -684,9 +626,9 @@
         }
 
         .selection-summary span {
-            color: #657289;
-            font-size: 11px;
-            font-weight: 300;
+            color: #475569;
+            font-size: 13px;
+            font-weight: 500;
         }
 
         .footer-actions {
@@ -696,9 +638,9 @@
         }
 
         .cancel-link {
-            color: #5e6b80;
-            font-size: 11px;
-            font-weight: 400;
+            color: #334155;
+            font-size: 13px;
+            font-weight: 500;
         }
 
         .empty-state {
@@ -727,7 +669,16 @@
         }
 
         @media (max-width: 700px) {
-            .page-hero,
+            .assignment-page .page-head {
+                flex-direction: column !important;
+                align-items: stretch !important;
+            }
+
+            .assignment-page .page-head .ghost-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
             .student-section-header,
             .form-footer {
                 align-items: stretch;

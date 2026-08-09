@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Dini Ders Takip · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}?v=nizam1">
+<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}?v=dd-mob3">
 {% endblock %}
 {% block content %}
 <div class="dd-page">
@@ -115,6 +115,30 @@
                     </tbody>
                 </table>
             </div>
+
+            <div class="dd-mob-list">
+                {% for satir in talebe_satirlari %}
+                <article class="dd-mob-card">
+                    <header class="dd-mob-head">
+                        <span class="dd-student-no">{{ satir.sira }}</span>
+                        <strong>{{ satir.talebe.ad_soyad }}</strong>
+                    </header>
+                    <div class="dd-mob-topics">
+                        {% for hucre in satir.hucreler %}
+                        <label class="dd-mob-topic" title="{{ hucre.konu_ad }}">
+                            <input type="checkbox"
+                                   name="k_{{ hucre.talebe_id }}_{{ hucre.konu_id }}"
+                                   value="1"
+                                   {% if hucre.tamamlandi %}checked{% endif %}>
+                            <span class="dd-mob-topic-name">{{ hucre.konu_ad }}</span>
+                            <span class="dd-cell-box" aria-hidden="true"></span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+
             <div class="dd-form-foot">
                 <button type="submit" class="dd-btn dd-btn-primary">Kaydet</button>
                 <span class="dd-desc">Yeşil tik = tamamlandı · Boş = işlenmedi / devam</span>
@@ -155,6 +179,31 @@
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+
+        <div class="dd-mob-list dd-mob-list-readonly">
+            {% for satir in talebe_satirlari %}
+            <article class="dd-mob-card">
+                <header class="dd-mob-head">
+                    <span class="dd-student-no">{{ satir.sira }}</span>
+                    <strong>{{ satir.talebe.ad_soyad }}</strong>
+                </header>
+                <div class="dd-mob-topics">
+                    {% for hucre in satir.hucreler %}
+                    <div class="dd-mob-topic dd-mob-topic-readonly">
+                        <span class="dd-mob-topic-name">{{ hucre.konu_ad }}</span>
+                        {% if hucre.durum == 'tamam' %}
+                        <span class="dd-status dd-status-tamam">✓</span>
+                        {% elif hucre.durum == 'devam' %}
+                        <span class="dd-status dd-status-devam">⏳</span>
+                        {% else %}
+                        <span class="dd-status dd-status-bos">○</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </article>
+            {% endfor %}
         </div>
         {% endif %}
     </section>
@@ -230,4 +279,19 @@
 </section>
 {% endif %}
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    function syncDdInputs() {
+        var mobile = window.matchMedia("(max-width: 640px)").matches;
+        document.querySelectorAll(".dd-matrix-wrap input[type=checkbox]").forEach(function (el) {
+            el.disabled = mobile;
+        });
+        document.querySelectorAll(".dd-mob-list input[type=checkbox]").forEach(function (el) {
+            el.disabled = !mobile;
+        });
+    }
+    syncDdInputs();
+    window.addEventListener("resize", syncDdInputs);
+});
+</script>
 {% endblock %}

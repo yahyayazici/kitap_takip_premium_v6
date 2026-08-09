@@ -195,21 +195,21 @@
 .rh-avatar {
     width: 48px;
     height: 48px;
-    border-radius: 14px;
+    border-radius: 8px;
     display: grid;
     place-items: center;
     font-weight: 700;
     font-size: 1.05rem;
     color: var(--rh-navy);
-    background: linear-gradient(145deg, #e8eef8, #f8fafc);
-    border: 1px solid var(--rh-border);
+    background: #eef2f8;
+    border: 1px solid #cdd6e4;
     flex-shrink: 0;
 }
 
 .rh-avatar-sm {
     width: 36px;
     height: 36px;
-    border-radius: 11px;
+    border-radius: 6px;
     font-size: 0.85rem;
 }
 
@@ -234,6 +234,8 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 0.55rem 0.75rem;
+    justify-content: flex-start;
+    text-align: left;
 }
 
 .rh-student-meta h2 {
@@ -243,6 +245,7 @@
     letter-spacing: -0.02em;
     color: var(--rh-navy);
     line-height: 1.2;
+    text-align: left;
 }
 
 .rh-meta-chips {
@@ -256,7 +259,7 @@
     align-items: baseline;
     gap: 0.35rem;
     padding: 0.35rem 0.65rem;
-    border-radius: 10px;
+    border-radius: 6px;
     background: var(--rh-surface);
     border: 1px solid var(--rh-border);
     font-size: 0.8125rem;
@@ -1114,7 +1117,25 @@
     }
 
     .rh-student-card {
-        grid-template-columns: 1fr;
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 0.75rem;
+        text-align: left;
+    }
+
+    .rh-student-meta {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .rh-page-head > div:first-child {
+        text-align: left;
+        width: 100%;
+    }
+
+    .rh-page-head h1 {
+        text-align: left;
     }
 
     .rh-timeline-row {
@@ -1124,6 +1145,11 @@
     .rh-timeline-side {
         text-align: left;
         grid-auto-flow: row;
+    }
+
+    .rh-student-actions {
+        width: 100%;
+        justify-content: flex-start;
     }
 }
 
