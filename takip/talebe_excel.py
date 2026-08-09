@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass, field
 from io import BytesIO
 
@@ -8,6 +7,8 @@ from django.contrib.auth.models import User
 from django.db import transaction
 
 from .models import DiniDersSeviyesi, EtutHocasi, SinifSube, Talebe
+from .tc_util import tc_normalize as _tc_normalize
+from .veli_hesap_util import veli_panel_ensure as _veli_panel_ensure
 from .wave0_models import VeliHesap, VeliKisi, VeliTalebeBaglantisi
 
 EXCEL_BASLIKLAR = [
@@ -89,10 +90,6 @@ def _hucre_degeri(deger) -> str:
     if isinstance(deger, float) and deger.is_integer():
         return str(int(deger))
     return str(deger).strip()
-
-
-def _tc_normalize(deger: str) -> str:
-    return re.sub(r"\D", "", deger or "")
 
 
 def _aktif_mi(deger: str) -> bool:
@@ -567,59 +564,6 @@ def _veli_kisi_guncelle(
         telefon=telefon,
         birincil=yakinlik == VeliKisi.Yakinlik.ANNE,
     )
-
-
-def _veli_panel_ensure(
-    talebe: Talebe,
-    tc: str,
-    veli_ad: str,
-    veli_telefon: str,
-) -> bool:
-    tc = _tc_normalize(tc)
-    if len(tc) != 11:
-        return False
-
-    username = tc
-    sifre = tc[-4:]
-    mevcut_user = User.objects.filter(username__iexact=username).exclude(
-        veli_hesabi__talebe_baglantilari__talebe=talebe
-    ).first()
-    if mevcut_user:
-        return False
-
-    user = User.objects.filter(username__iexact=username).first()
-    if user:
-        user.set_password(sifre)
-        if veli_ad:
-            user.first_name = veli_ad[:150]
-        user.save()
-    else:
-        user = User(username=username[:150], first_name=(veli_ad or "")[:150])
-        user.set_password(sifre)
-        user.save()
-
-    veli_hesap, olusturuldu = VeliHesap.objects.get_or_create(
-        user=user,
-        defaults={
-            "ad_soyad": veli_ad or talebe.ad_soyad,
-            "telefon": veli_telefon,
-            "aktif": True,
-        },
-    )
-    if not olusturuldu:
-        if veli_ad:
-            veli_hesap.ad_soyad = veli_ad
-        if veli_telefon:
-            veli_hesap.telefon = veli_telefon
-        veli_hesap.aktif = True
-        veli_hesap.save()
-
-    VeliTalebeBaglantisi.objects.get_or_create(
-        veli=veli_hesap,
-        talebe=talebe,
-        defaults={"yakinlik": VeliKisi.Yakinlik.VELI},
-    )
-    return True
 
 
 def _talebe_bul(

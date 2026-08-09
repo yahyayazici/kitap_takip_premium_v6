@@ -19,7 +19,9 @@ from takip.models import (
 from takip.ogretmen_odeme_models import OgretmenOdemeProfili
 from takip.panel_permissions import ROL_ETUT_MESUL, ROL_SINIF_MESUL
 from takip.talebe_foto_util import dogrula_biyometrik_foto
-from takip.wave0_models import Brans, VeliHesap, VeliTalebeBaglantisi
+from takip.tc_util import tc_dogrula
+from takip.veli_hesap_util import veli_panel_ensure
+from takip.wave0_models import Brans, VeliHesap
 from takip.personel_giris_service import (
     OgretmenGirisKaydi,
     PersonelGirisKaydi,
@@ -198,29 +200,15 @@ class HizliTalebeForm(forms.ModelForm):
         label="Veli panel hesabı oluştur",
         required=False,
         initial=True,
+        help_text="Giriş: talebe TC · şifre: TC'nin son 4 hanesi.",
         widget=forms.CheckboxInput(attrs={"class": "cs-checkbox"}),
-    )
-    veli_kullanici_adi = forms.CharField(
-        label="Veli kullanıcı adı",
-        max_length=150,
-        required=False,
-        widget=forms.TextInput(
-            attrs=_cs({"placeholder": "Boş bırakılırsa otomatik önerilir", "autocomplete": "off"})
-        ),
-    )
-    veli_sifre = forms.CharField(
-        label="Veli şifre",
-        required=False,
-        widget=forms.PasswordInput(
-            attrs=_cs({"placeholder": "Veli paneli için", "autocomplete": "new-password"}),
-            render_value=False,
-        ),
     )
 
     class Meta:
         model = Talebe
         fields = [
             "ad_soyad",
+            "tc_kimlik",
             "biyometrik_foto",
             "sinif_sube",
             "etut_hocasi",
@@ -232,6 +220,16 @@ class HizliTalebeForm(forms.ModelForm):
         widgets = {
             "ad_soyad": forms.TextInput(
                 attrs=_cs({"placeholder": "Talebe adı soyadı"})
+            ),
+            "tc_kimlik": forms.TextInput(
+                attrs=_cs(
+                    {
+                        "placeholder": "11 haneli TC kimlik no",
+                        "inputmode": "numeric",
+                        "maxlength": "11",
+                        "autocomplete": "off",
+                    }
+                )
             ),
             "biyometrik_foto": forms.ClearableFileInput(
                 attrs=_cs({"accept": "image/jpeg,image/png,image/webp"})
@@ -282,6 +280,10 @@ class HizliTalebeForm(forms.ModelForm):
         )
         self.fields["telefon"].required = False
         self.fields["dogum_tarihi"].required = False
+        self.fields["tc_kimlik"].required = True
+        self.fields["tc_kimlik"].help_text = (
+            "Veli panel girişi: kullanıcı adı talebe TC, şifre TC'nin son 4 hanesi."
+        )
 
     def clean(self):
         cleaned = super().clean()
@@ -319,8 +321,7 @@ class HizliTalebeForm(forms.ModelForm):
 
         veli_ad = (cleaned.get("veli_ad_soyad") or "").strip()
         hesap = cleaned.get("veli_hesap_olustur")
-        veli_user = (cleaned.get("veli_kullanici_adi") or "").strip().lower()
-        veli_sifre = cleaned.get("veli_sifre") or ""
+        tc = cleaned.get("tc_kimlik") or ""
 
         if hesap:
             if not veli_ad:
@@ -328,29 +329,22 @@ class HizliTalebeForm(forms.ModelForm):
                     "veli_ad_soyad",
                     "Veli panel hesabı için veli adı girin.",
                 )
-            if not veli_sifre or len(veli_sifre) < 8:
+            if User.objects.filter(username__iexact=tc).exists():
                 self.add_error(
-                    "veli_sifre",
-                    "Veli hesabı için en az 8 karakterlik şifre girin.",
-                )
-            if not veli_user:
-                ad = cleaned.get("ad_soyad", "")
-                oneri = _veli_kullanici_oneri(ad, veli_ad)
-                cleaned["veli_kullanici_adi"] = oneri
-                veli_user = oneri
-            if User.objects.filter(username__iexact=veli_user).exists():
-                self.add_error(
-                    "veli_kullanici_adi",
-                    "Bu veli kullanıcı adı zaten kullanılıyor.",
-                )
-        elif veli_ad and veli_user:
-            if User.objects.filter(username__iexact=veli_user).exists():
-                self.add_error(
-                    "veli_kullanici_adi",
-                    "Bu kullanıcı adı kullanılıyor.",
+                    "tc_kimlik",
+                    "Bu TC ile veli panel hesabı zaten kayıtlı.",
                 )
 
         return cleaned
+
+    def clean_tc_kimlik(self):
+        tc = tc_dogrula(self.cleaned_data.get("tc_kimlik"))
+        qs = Talebe.objects.filter(tc_kimlik=tc)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError("Bu TC kimlik no başka bir talebede kayıtlı.")
+        return tc
 
     def clean_biyometrik_foto(self):
         foto = self.cleaned_data.get("biyometrik_foto")
@@ -373,23 +367,16 @@ class HizliTalebeForm(forms.ModelForm):
             )
 
         if self.cleaned_data.get("veli_hesap_olustur") and veli_ad:
-            username = self.cleaned_data["veli_kullanici_adi"].strip().lower()
-            user = User.objects.create_user(
-                username=username,
-                password=self.cleaned_data["veli_sifre"],
-                first_name=veli_ad,
-            )
-            veli_hesap = VeliHesap.objects.create(
-                user=user,
-                ad_soyad=veli_ad,
-                telefon=self.cleaned_data.get("veli_telefon", ""),
-                aktif=True,
-            )
-            VeliTalebeBaglantisi.objects.create(
-                veli=veli_hesap,
-                talebe=talebe,
-                yakinlik=self.cleaned_data.get("veli_yakinlik") or "veli",
-            )
+            tc = self.cleaned_data["tc_kimlik"]
+            if veli_panel_ensure(
+                talebe,
+                tc,
+                veli_ad,
+                self.cleaned_data.get("veli_telefon", ""),
+            ):
+                veli_hesap = VeliHesap.objects.filter(
+                    user__username__iexact=tc
+                ).first()
 
         return talebe, veli_hesap
 
@@ -479,19 +466,3 @@ class TopluOgretmenForm(forms.Form):
         if not isimler:
             raise forms.ValidationError("En az bir öğretmen adı girin.")
         return isimler
-
-
-def _veli_kullanici_oneri(talebe_ad: str, veli_ad: str) -> str:
-    kaynak = veli_ad or talebe_ad
-    parcalar = [
-        p.lower()
-        for p in kaynak.replace("'", "").split()
-        if p.strip()
-    ]
-    taban = ".".join(parcalar[:2]) if parcalar else "veli"
-    aday = taban
-    sayac = 1
-    while User.objects.filter(username__iexact=aday).exists():
-        sayac += 1
-        aday = f"{taban}{sayac}"
-    return aday[:150]

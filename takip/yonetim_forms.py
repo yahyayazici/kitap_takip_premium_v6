@@ -26,6 +26,7 @@ from .models import (
 from .imam_muezzin_service import parse_haric_tarih_metni
 from .panel_permissions import PERSONEL_ROLLER, ROL_ETUT_MESUL, ROL_SINIF_MESUL
 from .talebe_foto_util import dogrula_biyometrik_foto
+from .tc_util import tc_dogrula
 
 
 class SinifSubeForm(forms.ModelForm):
@@ -412,7 +413,10 @@ class TalebeForm(forms.ModelForm):
         self.fields["talebe_no"].help_text = (
             "Boş bırakırsanız sistem otomatik numara atar (ör. 1, 2, 3)."
         )
-        self.fields["tc_kimlik"].required = False
+        self.fields["tc_kimlik"].required = True
+        self.fields["tc_kimlik"].help_text = (
+            "Veli panel girişi: kullanıcı adı talebe TC, şifre TC'nin son 4 hanesi."
+        )
         self.fields["cinsiyet"].required = False
         self.fields["aile_durumu"].required = False
 
@@ -467,6 +471,15 @@ class TalebeForm(forms.ModelForm):
         foto = self.cleaned_data.get("biyometrik_foto")
         dogrula_biyometrik_foto(foto)
         return foto
+
+    def clean_tc_kimlik(self):
+        tc = tc_dogrula(self.cleaned_data.get("tc_kimlik"))
+        qs = Talebe.objects.filter(tc_kimlik=tc)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError("Bu TC kimlik no başka bir talebede kayıtlı.")
+        return tc
 
     def veli_kaydet(self, talebe: Talebe) -> None:
         from takip.talebe_excel import _veli_kisi_guncelle

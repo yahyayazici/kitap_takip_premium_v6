@@ -375,8 +375,11 @@ def hizli_kayit(request):
 
         talebe, veli = form.save_with_veli()
         mesaj = f"{talebe.ad_soyad} eklendi (No: {talebe.talebe_no})."
-        if veli:
-            mesaj += f" Veli hesabı: {veli.user.username}"
+        if veli and talebe.tc_kimlik:
+            mesaj += (
+                f" Veli giriş: {talebe.tc_kimlik} · "
+                f"şifre: {talebe.tc_kimlik[-4:]}"
+            )
         messages.success(request, mesaj)
         return redirect(f"{reverse('yonetim:hizli_kayit')}?tur=talebe")
 
