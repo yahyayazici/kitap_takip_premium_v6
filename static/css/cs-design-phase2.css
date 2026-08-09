@@ -1,0 +1,576 @@
+/* ============================================================
+   ÇİNİLİ SARAY — Design Constitution Phase 2
+   9 Forms · 10 Modals · 11 Empty states · 12 Dashboard
+   13 Duyuru · 14 Filter bar
+   Yalnızca görsel — işleyişe dokunmaz
+   ============================================================ */
+
+/* —— 9. FORMS —— */
+.quick-form-page,
+.exam-create-page,
+.yonetim-form-card,
+.form-page {
+    gap: var(--cs-density-gap) !important;
+}
+
+.exam-form-grid,
+.quick-form-grid,
+.yonetim-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(14px, 2vw, 20px);
+    align-items: start;
+}
+
+.exam-field,
+.yonetim-field,
+.quick-form-card .exam-field {
+    min-width: 0;
+}
+
+.exam-field label,
+.yonetim-field > label,
+.report-filter-card label {
+    display: block;
+    margin-bottom: var(--cs-space-2);
+    font-size: var(--cs-font-secondary);
+    font-weight: 500;
+    color: var(--cs-label);
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+.exam-field-help,
+.exam-field-error,
+.yonetim-field small,
+.yonetim-field-error {
+    display: block;
+    margin-top: var(--cs-space-2);
+    font-size: var(--cs-font-caption);
+    line-height: 1.45;
+}
+
+.exam-field-error,
+.yonetim-field-error {
+    color: var(--cs-danger);
+}
+
+.exam-form-footer,
+.yonetim-form-actions,
+.quick-form-card .exam-form-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--cs-space-3);
+    margin-top: var(--cs-space-6);
+    padding-top: var(--cs-space-5);
+    border-top: 1px solid var(--cs-border-subtle);
+}
+
+.exam-form-alert,
+.yonetim-form-errors {
+    padding: var(--cs-space-4);
+    border-radius: var(--cs-radius-md);
+    border: 1px solid rgba(215, 74, 74, 0.25);
+    background: var(--cs-danger-bg);
+    color: var(--cs-danger);
+    font-size: var(--cs-font-secondary);
+}
+
+.yonetim-field ul {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr));
+    gap: var(--cs-space-2);
+}
+
+.yonetim-field li label {
+    display: flex;
+    align-items: center;
+    gap: var(--cs-space-2);
+    min-height: var(--cs-touch-min);
+    padding: var(--cs-space-2) var(--cs-space-3);
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-sm);
+    background: var(--cs-surface-muted);
+    cursor: pointer;
+    font-weight: 400;
+    transition: border-color var(--cs-transition), background var(--cs-transition);
+}
+
+.yonetim-field li label:has(input:checked) {
+    border-color: var(--cs-accent);
+    background: var(--cs-info-bg);
+}
+
+@media (max-width: 768px) {
+    .exam-form-grid,
+    .quick-form-grid,
+    .yonetim-form-grid,
+    .quick-form-layout,
+    .exam-layout {
+        grid-template-columns: 1fr !important;
+    }
+
+    .exam-process-card,
+    .quick-form-aside {
+        position: static !important;
+    }
+
+    .exam-form-footer,
+    .yonetim-form-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .exam-form-footer .primary-btn,
+    .exam-form-footer .ghost-btn,
+    .yonetim-form-actions .primary-btn,
+    .yonetim-form-actions .ghost-btn {
+        width: 100%;
+        min-height: var(--cs-touch-min);
+    }
+}
+
+/* —— 10. MODALS & DROPDOWNS —— */
+.ep-modal,
+.dp-modal-backdrop,
+.modal-overlay,
+.v3-modal,
+[data-ep-modal] {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+}
+
+.ep-modal-backdrop,
+.dp-modal-backdrop,
+.modal-overlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding:
+        calc(var(--cs-space-4) + var(--cs-safe-top))
+        calc(var(--cs-space-4) + var(--cs-safe-right))
+        calc(var(--cs-space-4) + var(--cs-safe-bottom))
+        calc(var(--cs-space-4) + var(--cs-safe-left));
+    background: rgba(7, 27, 58, 0.42);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    overflow: auto;
+    overscroll-behavior: contain;
+}
+
+.ep-modal-card,
+.dp-modal,
+.modal-dialog,
+.v3-dropdown-panel,
+.bildirim-panel {
+    width: min(100%, 520px);
+    max-height: min(85dvh, 680px);
+    margin: auto;
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-lg);
+    background: var(--cs-surface);
+    box-shadow: var(--cs-shadow-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.ep-modal-head,
+.dp-modal-head,
+.modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--cs-space-3);
+    padding: var(--cs-space-5) var(--cs-space-5) var(--cs-space-4);
+    border-bottom: 1px solid var(--cs-border-subtle);
+    background: linear-gradient(180deg, var(--cs-surface-muted), var(--cs-surface));
+}
+
+.ep-modal-form,
+.dp-modal-body,
+.modal-body {
+    padding: var(--cs-space-5);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.ep-modal-foot,
+.dp-modal-actions,
+.modal-footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--cs-space-2);
+    padding: var(--cs-space-4) var(--cs-space-5);
+    border-top: 1px solid var(--cs-border-subtle);
+    background: var(--cs-surface-muted);
+}
+
+.ep-modal-close,
+.modal-close {
+    min-width: var(--cs-touch-min);
+    min-height: var(--cs-touch-min);
+    display: grid;
+    place-items: center;
+    border: none;
+    border-radius: var(--cs-radius-sm);
+    background: transparent;
+    color: var(--cs-text-secondary);
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: background var(--cs-transition);
+}
+
+.ep-modal-close:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+@media (max-width: 640px) {
+    .ep-modal-card,
+    .dp-modal,
+    .modal-dialog {
+        width: 100%;
+        max-height: min(92dvh, 720px);
+        border-radius: var(--cs-radius-lg) var(--cs-radius-lg) 0 0;
+        align-self: flex-end;
+    }
+
+    .ep-modal-backdrop,
+    .dp-modal-backdrop {
+        align-items: flex-end;
+        padding-bottom: 0;
+    }
+
+    .ep-modal-foot,
+    .dp-modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    .ep-modal-foot .primary-btn,
+    .ep-modal-foot .ghost-btn,
+    .dp-modal-actions .primary-btn,
+    .dp-modal-actions .ghost-btn {
+        width: 100%;
+        min-height: var(--cs-touch-min);
+    }
+}
+
+/* —— 11. EMPTY STATES —— */
+.empty-state,
+.dash-empty-note,
+.yonetim-empty-inline,
+.yonetim-empty-card,
+.report-empty,
+.profile-empty,
+.library-empty,
+.duyuru-empty-state,
+.ktt-empty,
+.st-empty {
+    display: grid;
+    justify-items: center;
+    gap: var(--cs-space-3);
+    padding: clamp(28px, 6vw, 48px) var(--cs-space-5) !important;
+    text-align: center;
+    border-radius: var(--cs-radius-lg);
+    background: linear-gradient(180deg, #fbfcfe 0%, var(--cs-surface-muted) 100%);
+    border: 1px dashed var(--cs-border);
+    color: var(--cs-text-tertiary) !important;
+    font-size: var(--cs-font-secondary);
+    line-height: 1.5;
+    max-width: 100%;
+}
+
+.empty-state::before,
+.dash-empty-note::before {
+    content: "";
+    width: 48px;
+    height: 48px;
+    border-radius: var(--cs-radius-md);
+    background:
+        linear-gradient(135deg, var(--cs-soft-blue), rgba(47, 111, 243, 0.08));
+    border: 1px solid rgba(47, 111, 243, 0.12);
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Cpath d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20'/%3E%3Cpath d='M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z'/%3E%3C/svg%3E");
+    mask-size: 24px;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Cpath d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20'/%3E%3Cpath d='M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z'/%3E%3C/svg%3E");
+    -webkit-mask-size: 24px;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    background-color: var(--cs-accent);
+}
+
+.empty-state strong,
+.dash-empty-note strong,
+.duyuru-empty-state strong,
+.library-empty strong {
+    font-size: var(--cs-font-card-title);
+    font-weight: 600;
+    color: var(--cs-text-primary);
+}
+
+.empty-state span,
+.dash-empty-note {
+    max-width: 36ch;
+}
+
+/* Tablo içi boş satır — dev panel olmasın */
+.report-data-table .report-empty,
+.yonetim-data-table .report-empty {
+    border: none;
+    background: transparent;
+    padding: var(--cs-space-6) var(--cs-space-4) !important;
+}
+
+.report-data-table .report-empty::before,
+.yonetim-data-table .report-empty::before {
+    display: none;
+}
+
+/* —— 12. DASHBOARD —— */
+.dash-home {
+    gap: var(--cs-section-gap) !important;
+}
+
+.dash-panel,
+.dash-panel-lined {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-lg) !important;
+    background: var(--cs-surface) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.dash-panel-head {
+    padding: clamp(16px, 2.5vw, 22px) clamp(18px, 2.8vw, 24px) clamp(12px, 2vw, 16px) !important;
+    border-bottom: 1px solid var(--cs-border-subtle);
+    background: linear-gradient(180deg, var(--cs-surface-muted), var(--cs-surface));
+}
+
+.dash-panel-head h2 {
+    margin: 4px 0 0 !important;
+    font-size: var(--cs-font-section) !important;
+    font-weight: 600 !important;
+    color: var(--cs-text-primary) !important;
+}
+
+.dash-stat-strip,
+.dash-metrik-strip,
+.metric-grid.dash-metrik-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
+    gap: var(--cs-space-3);
+}
+
+.metric-card,
+.dash-stat-card {
+    min-height: clamp(96px, 14vw, 120px) !important;
+    padding: clamp(14px, 2vw, 20px) !important;
+}
+
+.metric-card strong,
+.dash-stat-card strong {
+    font-variant-numeric: tabular-nums;
+    font-weight: 500 !important;
+}
+
+/* Kısayol kartları — rafine, gaming değil */
+.dash-shortcuts-grid {
+    gap: clamp(10px, 1.5vw, 14px) !important;
+    padding: clamp(14px, 2vw, 20px) !important;
+}
+
+.dash-shortcut-card {
+    border: 1px solid var(--cs-border-subtle) !important;
+    border-radius: var(--cs-radius-md) !important;
+    box-shadow: var(--cs-shadow-xs) !important;
+    transition:
+        transform var(--cs-transition-fast),
+        box-shadow var(--cs-transition),
+        border-color var(--cs-transition);
+}
+
+.dash-shortcut-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--cs-border-strong) !important;
+    box-shadow: var(--cs-shadow-sm) !important;
+}
+
+.dash-sc-banner {
+    border-radius: var(--cs-radius-md) var(--cs-radius-md) 0 0;
+}
+
+.dash-shortcut-card .dash-sc-label {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+/* Liste tipi kısayollar */
+.dash-shortcut {
+    min-height: var(--cs-touch-min);
+    padding: var(--cs-space-3) var(--cs-space-4) !important;
+    transition: background var(--cs-transition);
+}
+
+.dash-shortcut:hover {
+    background: var(--cs-surface-muted) !important;
+}
+
+.dash-shortcut-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--cs-radius-sm);
+}
+
+.personel-top-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.85fr);
+    gap: var(--cs-section-gap);
+    min-width: 0;
+}
+
+@media (max-width: 1024px) {
+    .personel-top-split {
+        grid-template-columns: 1fr;
+    }
+
+    .dash-shortcuts-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .dash-shortcuts-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* —— 13. DUYURU —— */
+.duyuru-carousel-shell {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-lg) !important;
+    padding: clamp(16px, 2.5vw, 24px) !important;
+    background: var(--cs-surface) !important;
+}
+
+.duyuru-carousel-head h2 {
+    font-size: var(--cs-font-section) !important;
+    font-weight: 600 !important;
+    color: var(--cs-text-primary) !important;
+}
+
+.duyuru-slide {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-md) !important;
+    background: var(--cs-surface) !important;
+    box-shadow: var(--cs-shadow-xs) !important;
+    transition: box-shadow var(--cs-transition), transform var(--cs-transition-fast);
+}
+
+.duyuru-slide:hover {
+    box-shadow: var(--cs-shadow-sm) !important;
+}
+
+.duyuru-slide-copy strong {
+    font-size: var(--cs-font-body);
+    font-weight: 600;
+    color: var(--cs-text-primary);
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.duyuru-slide-copy p {
+    font-size: var(--cs-font-secondary);
+    color: var(--cs-text-secondary);
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.duyuru-slide-tag {
+    font-size: var(--cs-font-caption);
+    font-weight: 600;
+    letter-spacing: var(--cs-letter-kicker);
+    color: var(--cs-accent);
+}
+
+@media (max-width: 640px) {
+    .duyuru-carousel-track {
+        grid-auto-columns: minmax(calc(100% - 8px), 1fr) !important;
+    }
+
+    .duyuru-slide {
+        grid-template-columns: 72px 1fr;
+        min-height: auto;
+        padding: var(--cs-space-3);
+    }
+
+    .duyuru-slide-visual {
+        height: 64px;
+        border-radius: var(--cs-radius-sm);
+    }
+}
+
+/* —— 14. FİLTRE BAR —— */
+.report-filter-card,
+.st-filter-bar,
+.ktt-filter-bar,
+.filter-bar,
+.yonetim-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--cs-space-3);
+    padding: var(--cs-space-5) !important;
+    min-width: 0;
+}
+
+.report-page .report-filter-card {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 160px), 1fr));
+    gap: var(--cs-space-3);
+    align-items: end;
+}
+
+.report-filter-card > div,
+.report-filter-card label + *,
+.st-filter-bar > * {
+    min-width: 0;
+}
+
+.search-box,
+.library-search,
+.yonetim-search {
+    flex: 1 1 min(100%, 280px);
+    min-width: 0;
+}
+
+.search-box input,
+.library-search,
+.yonetim-search .yonetim-input {
+    width: 100%;
+}
+
+@media (max-width: 640px) {
+    .report-page .report-filter-card {
+        grid-template-columns: 1fr;
+    }
+
+    .report-filter-card .primary-btn,
+    .report-filter-card .ghost-btn,
+    .yonetim-search-btn {
+        width: 100%;
+        min-height: var(--cs-touch-min);
+    }
+}
