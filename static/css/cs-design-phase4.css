@@ -1,0 +1,708 @@
+/* ============================================================
+   ÇİNİLİ SARAY — Design Constitution Phase 4
+   Modül token köprüsü · ortak kabuk · giriş · QA
+   Yalnızca görsel — işleyişe dokunmaz
+   ============================================================ */
+
+/* —— Modül değişkenleri → CS token köprüsü —— */
+.ep-page {
+    --ep-bg: var(--cs-background-warm);
+    --ep-surface: var(--cs-surface);
+    --ep-line: var(--cs-border);
+    --ep-navy: var(--cs-primary-dark);
+    --ep-text: var(--cs-text-primary);
+    --ep-muted: var(--cs-text-tertiary);
+    --ep-accent: var(--cs-accent);
+    --ep-radius: var(--cs-radius-lg);
+    --ep-radius-sm: var(--cs-radius-md);
+    --ep-shadow: var(--cs-shadow-card);
+}
+
+.dp-page {
+    --dp-line: var(--cs-border);
+    --dp-navy: var(--cs-primary-dark);
+    --dp-text: var(--cs-text-primary);
+    --dp-muted: var(--cs-text-tertiary);
+    --dp-accent: var(--cs-accent);
+    --dp-radius: var(--cs-radius-lg);
+    --dp-radius-sm: var(--cs-radius-md);
+    --dp-shadow: var(--cs-shadow-card);
+}
+
+.im-page {
+    --im-bg: var(--cs-background);
+    --im-card: var(--cs-surface);
+    --im-line: var(--cs-border-subtle);
+    --im-navy: var(--cs-primary-dark);
+    --im-blue: var(--cs-accent);
+    --im-muted: var(--cs-text-secondary);
+    --im-radius: var(--cs-radius-lg);
+}
+
+.tz-page {
+    --tz-bg: var(--cs-background);
+    --tz-card: var(--cs-surface);
+    --tz-line: var(--cs-border);
+    --tz-navy: var(--cs-primary-dark);
+    --tz-blue: var(--cs-accent);
+    --tz-muted: var(--cs-text-secondary);
+    --tz-radius: var(--cs-radius-lg);
+    --tz-shadow: var(--cs-shadow-card);
+}
+
+.rh-page {
+    --rh-bg: var(--cs-surface);
+    --rh-surface: var(--cs-surface-muted);
+    --rh-border: var(--cs-border-subtle);
+    --rh-navy: var(--cs-primary-dark);
+    --rh-text: var(--cs-text-primary);
+    --rh-muted: var(--cs-text-secondary);
+    --rh-radius: var(--cs-radius-md);
+    --rh-shadow: var(--cs-shadow-card);
+}
+
+.dd-page {
+    --dd-navy: var(--cs-primary-dark);
+    --dd-muted: var(--cs-text-secondary);
+    --dd-line: var(--cs-border);
+    --dd-accent: var(--cs-accent);
+}
+
+.dk-page {
+    --dk-bg: var(--cs-background-warm);
+    --dk-surface: var(--cs-surface);
+    --dk-line: var(--cs-border-subtle);
+    --dk-navy: var(--cs-primary-dark);
+    --dk-text: var(--cs-text-primary);
+    --dk-muted: var(--cs-text-secondary);
+    --dk-accent: var(--cs-accent);
+    --dk-radius: var(--cs-radius-lg);
+    --dk-shadow: var(--cs-shadow-card);
+}
+
+.mz-page {
+    --mz-navy: var(--cs-primary-dark);
+    --mz-muted: var(--cs-text-secondary);
+    --mz-line: var(--cs-border);
+    --mz-accent: var(--cs-accent);
+}
+
+.ny-page {
+    --ny-navy: var(--cs-primary-dark);
+    --ny-text: var(--cs-text-primary);
+    --ny-muted: var(--cs-text-tertiary);
+    --ny-line: var(--cs-border);
+    --ny-bg: var(--cs-background-warm);
+    --ny-surface: var(--cs-surface);
+    --ny-radius: var(--cs-radius-lg);
+    --ny-shadow: var(--cs-shadow-card);
+}
+
+.gt-etut-page {
+    --gt-line: var(--cs-border-subtle);
+    --gt-navy: var(--cs-primary-dark);
+    --gt-muted: var(--cs-text-secondary);
+}
+
+/* —— Ortak modül sayfa kabuğu —— */
+.ep-page,
+.dp-page,
+.im-page,
+.tz-page,
+.rh-page,
+.dd-page,
+.dk-page,
+.mz-page,
+.ny-page,
+.gt-etut-page,
+.cd-page,
+.program-page,
+.im-panel,
+.vz-page,
+.pazar-page,
+.rehberlik-page,
+.og-odeme-page,
+.personel-toplanti-page {
+    gap: var(--cs-section-gap) !important;
+    min-width: 0;
+    max-width: var(--cs-content-wide);
+    margin-inline: auto;
+    padding-bottom: calc(var(--cs-space-8) + var(--cs-safe-bottom));
+    box-sizing: border-box;
+}
+
+/* Modül başlıkları — tutarlı tipografi */
+.ep-head h1,
+.dp-head h1,
+.im-head h1,
+.tz-head h1,
+.rh-head h1,
+.dk-head h1,
+.mz-head h1,
+.ny-head h1,
+.gt-etut-head h1,
+.cd-head h1,
+.program-page-head h1 {
+    font-size: var(--cs-font-page-title) !important;
+    font-weight: 650 !important;
+    letter-spacing: var(--cs-letter-tight) !important;
+    color: var(--cs-text-primary) !important;
+    line-height: var(--cs-line-height-tight);
+    word-break: break-word;
+}
+
+.ep-eyebrow,
+.dp-eyebrow,
+.im-eyebrow,
+.tz-crumb,
+.rh-eyebrow,
+.dk-eyebrow,
+.mz-eyebrow,
+.ny-kicker,
+.cd-kicker,
+.gt-date-label {
+    font-size: var(--cs-font-label) !important;
+    font-weight: 600 !important;
+    letter-spacing: var(--cs-letter-kicker) !important;
+    text-transform: uppercase;
+    color: var(--cs-text-tertiary) !important;
+}
+
+.ep-sub,
+.dp-sub,
+.im-sub,
+.tz-sub,
+.rh-muted,
+.dk-sub,
+.mz-sub,
+.ny-desc,
+.cd-desc {
+    color: var(--cs-text-secondary) !important;
+    font-size: var(--cs-font-secondary);
+    line-height: 1.45;
+}
+
+/* —— Modül kartları —— */
+.ep-card,
+.dp-card,
+.im-card,
+.tz-card,
+.rh-card,
+.dk-card,
+.mz-card,
+.ny-card,
+.gt-etut-card,
+.cd-card,
+.program-card,
+.ep-admin-card,
+.dp-view-panel {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-lg) !important;
+    background: var(--cs-surface) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+    min-width: 0;
+}
+
+/* —— Modül butonları —— */
+.ep-btn,
+.ep-btn-sm,
+.dp-btn,
+.dp-btn-sm,
+.dk-btn,
+.dk-btn-sm,
+.im-btn,
+.im-btn-sm,
+.tz-btn,
+.tz-btn-sm,
+.dd-btn,
+.dd-tab,
+.st-btn,
+.st-btn-sm,
+.rh-btn,
+.mz-btn,
+.ny-chip,
+.cd-btn,
+.gt-btn,
+.program-btn,
+.personel-toplanti-btn {
+    min-height: var(--cs-btn-h-sm) !important;
+    border-radius: var(--cs-radius-sm) !important;
+    font-size: var(--cs-font-secondary) !important;
+    font-weight: 500 !important;
+    transition:
+        background var(--cs-transition),
+        border-color var(--cs-transition),
+        transform var(--cs-transition-fast),
+        box-shadow var(--cs-transition);
+}
+
+.ep-btn-primary,
+.dp-btn-primary,
+.dk-btn-primary,
+.im-btn-primary,
+.tz-btn-primary,
+.st-btn-primary,
+.rh-btn-primary {
+    background: linear-gradient(160deg, var(--cs-primary-mid), var(--cs-accent)) !important;
+    color: #fff !important;
+    border-color: transparent !important;
+}
+
+.ep-btn:hover,
+.dp-btn:hover,
+.dk-btn:hover,
+.im-btn:hover,
+.tz-btn:hover,
+.st-btn:hover,
+.rh-btn:hover {
+    transform: translateY(-1px);
+}
+
+/* —— Modül inputları —— */
+.ep-input,
+.ep-input-sm,
+.dp-input,
+.dk-input,
+.im-input,
+.tz-input,
+.dd-input,
+.st-input,
+.rh-input,
+.ms-filter-trigger {
+    min-height: var(--cs-input-h) !important;
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-sm) !important;
+    font-size: max(16px, var(--cs-font-body)) !important;
+    color: var(--cs-text-primary) !important;
+    background: var(--cs-surface) !important;
+    transition: border-color var(--cs-transition), box-shadow var(--cs-transition);
+}
+
+.ep-input:focus,
+.dp-input:focus,
+.dk-input:focus,
+.im-input:focus,
+.ms-filter-trigger:focus {
+    border-color: var(--cs-accent) !important;
+    box-shadow: var(--cs-shadow-focus) !important;
+    outline: none;
+}
+
+/* —— Chip / checkbox grid —— */
+div.choice-chip-grid,
+ul.choice-chip-grid,
+.ktt-checkbox-grid,
+.yk-checkbox-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 96px), 1fr)) !important;
+    gap: var(--cs-space-2) !important;
+}
+
+div.choice-chip-grid label,
+ul.choice-chip-grid label,
+.ktt-checkbox-grid label,
+.yk-checkbox-grid label {
+    min-height: var(--cs-touch-min) !important;
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-sm) !important;
+    background: var(--cs-surface-muted) !important;
+    font-size: var(--cs-font-secondary) !important;
+    transition: border-color var(--cs-transition), background var(--cs-transition);
+}
+
+div.choice-chip-grid label:has(input:checked),
+ul.choice-chip-grid label:has(input:checked),
+.ktt-checkbox-grid label:has(input:checked) {
+    border-color: var(--cs-accent) !important;
+    background: var(--cs-info-bg) !important;
+    color: var(--cs-navy-deep);
+    font-weight: 600;
+}
+
+/* —— Multi-select dropdown —— */
+.ms-filter-panel {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-md) !important;
+    box-shadow: var(--cs-shadow-lg) !important;
+    max-height: min(60dvh, 360px);
+    overflow: auto;
+    overscroll-behavior: contain;
+}
+
+.ms-filter-option {
+    min-height: var(--cs-touch-min);
+    padding: var(--cs-space-2) var(--cs-space-4);
+    font-size: var(--cs-font-secondary);
+}
+
+.ms-filter-option:hover,
+.ms-filter-option.is-selected {
+    background: var(--cs-info-bg);
+}
+
+/* —— Program matrisi —— */
+.dp-matrix-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--cs-border-subtle);
+    border-radius: var(--cs-radius-md);
+}
+
+.dp-matrix thead th {
+    font-size: var(--cs-font-caption);
+    font-weight: 600;
+    letter-spacing: var(--cs-letter-kicker);
+    text-transform: uppercase;
+    color: var(--cs-label);
+    background: var(--cs-surface-muted);
+}
+
+.dp-matrix tbody td {
+    font-size: var(--cs-font-secondary);
+    vertical-align: middle;
+}
+
+/* —— Modül tabloları —— */
+.ep-admin-table,
+.dk-table,
+.im-table,
+.tz-table,
+.rh-table,
+.mz-table,
+.program-table,
+.gt-etut-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ep-admin-table thead th,
+.dk-table thead th,
+.im-table thead th,
+.tz-table thead th,
+.rh-table thead th,
+.mz-table thead th,
+.program-table thead th,
+.gt-etut-table thead th {
+    padding: 12px 14px;
+    font-size: var(--cs-font-caption);
+    font-weight: 600;
+    letter-spacing: var(--cs-letter-kicker);
+    text-transform: uppercase;
+    color: var(--cs-label);
+    background: var(--cs-surface-muted);
+    border-bottom: 1px solid var(--cs-border);
+    text-align: left;
+}
+
+.ep-admin-table tbody td,
+.dk-table tbody td,
+.im-table tbody td,
+.tz-table tbody td,
+.rh-table tbody td,
+.mz-table tbody td,
+.program-table tbody td,
+.gt-etut-table tbody td {
+    padding: 12px 14px;
+    font-size: var(--cs-font-body);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    vertical-align: middle;
+}
+
+.ep-table-wrap,
+.dk-table-wrap,
+.im-table-wrap,
+.program-table-wrap {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+}
+
+/* Mobil modül tablo kart */
+@media (max-width: 640px) {
+    .ep-admin-table.cs-mobile-ready thead,
+    .dk-table.cs-mobile-ready thead,
+    .im-table.cs-mobile-ready thead,
+    .tz-table.cs-mobile-ready thead,
+    .rh-table.cs-mobile-ready thead,
+    .mz-table.cs-mobile-ready thead,
+    .program-table.cs-mobile-ready thead,
+    .gt-etut-table.cs-mobile-ready thead {
+        display: none;
+    }
+
+    .ep-admin-table.cs-mobile-ready tbody,
+    .dk-table.cs-mobile-ready tbody,
+    .im-table.cs-mobile-ready tbody,
+    .tz-table.cs-mobile-ready tbody,
+    .rh-table.cs-mobile-ready tbody,
+    .mz-table.cs-mobile-ready tbody,
+    .program-table.cs-mobile-ready tbody,
+    .gt-etut-table.cs-mobile-ready tbody {
+        display: flex;
+        flex-direction: column;
+        gap: var(--cs-space-3);
+    }
+
+    .ep-admin-table.cs-mobile-ready tbody tr,
+    .dk-table.cs-mobile-ready tbody tr,
+    .im-table.cs-mobile-ready tbody tr,
+    .tz-table.cs-mobile-ready tbody tr,
+    .rh-table.cs-mobile-ready tbody tr,
+    .mz-table.cs-mobile-ready tbody tr,
+    .program-table.cs-mobile-ready tbody tr,
+    .gt-etut-table.cs-mobile-ready tbody tr {
+        display: flex;
+        flex-direction: column;
+        gap: var(--cs-space-2);
+        padding: var(--cs-space-4);
+        border: 1px solid var(--cs-border);
+        border-radius: var(--cs-radius-md);
+        background: var(--cs-surface);
+    }
+
+    .ep-admin-table.cs-mobile-ready tbody td,
+    .dk-table.cs-mobile-ready tbody td,
+    .im-table.cs-mobile-ready tbody td,
+    .tz-table.cs-mobile-ready tbody td,
+    .rh-table.cs-mobile-ready tbody td,
+    .mz-table.cs-mobile-ready tbody td,
+    .program-table.cs-mobile-ready tbody td,
+    .gt-etut-table.cs-mobile-ready tbody td {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--cs-space-3);
+        padding: 0 !important;
+        border: none !important;
+    }
+
+    .ep-admin-table.cs-mobile-ready tbody td::before,
+    .dk-table.cs-mobile-ready tbody td::before,
+    .im-table.cs-mobile-ready tbody td::before,
+    .tz-table.cs-mobile-ready tbody td::before,
+    .rh-table.cs-mobile-ready tbody td::before,
+    .mz-table.cs-mobile-ready tbody td::before,
+    .program-table.cs-mobile-ready tbody td::before,
+    .gt-etut-table.cs-mobile-ready tbody td::before {
+        content: attr(data-label);
+        flex: 0 0 40%;
+        font-size: var(--cs-font-caption);
+        font-weight: 600;
+        text-transform: uppercase;
+        color: var(--cs-text-tertiary);
+    }
+
+    .ep-admin-table.cs-mobile-ready tbody td:first-child::before,
+    .dk-table.cs-mobile-ready tbody td:first-child::before,
+    .im-table.cs-mobile-ready tbody td:first-child::before,
+    .tz-table.cs-mobile-ready tbody td:first-child::before,
+    .rh-table.cs-mobile-ready tbody td:first-child::before,
+    .mz-table.cs-mobile-ready tbody td:first-child::before,
+    .program-table.cs-mobile-ready tbody td:first-child::before,
+    .gt-etut-table.cs-mobile-ready tbody td:first-child::before {
+        display: none;
+    }
+
+    .ep-admin-table.cs-mobile-ready tbody td:first-child,
+    .dk-table.cs-mobile-ready tbody td:first-child,
+    .im-table.cs-mobile-ready tbody td:first-child,
+    .tz-table.cs-mobile-ready tbody td:first-child,
+    .rh-table.cs-mobile-ready tbody td:first-child,
+    .mz-table.cs-mobile-ready tbody td:first-child,
+    .program-table.cs-mobile-ready tbody td:first-child,
+    .gt-etut-table.cs-mobile-ready tbody td:first-child {
+        flex-direction: column;
+        padding-bottom: var(--cs-space-2) !important;
+        border-bottom: 1px solid var(--cs-border-subtle) !important;
+    }
+
+    .ep-table-wrap,
+    .dk-table-wrap,
+    .im-table-wrap {
+        overflow-x: visible;
+        border: none;
+    }
+}
+
+/* —— Hızlı kayıt sekmeleri —— */
+.yk-tabs,
+.hizli-kayit-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--cs-space-2);
+    padding: var(--cs-space-2);
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-md);
+    background: var(--cs-surface-muted);
+}
+
+.yk-tab,
+.hizli-kayit-tab {
+    min-height: var(--cs-touch-min);
+    padding: 0 var(--cs-space-4);
+    border-radius: var(--cs-radius-sm);
+    font-size: var(--cs-font-secondary);
+    font-weight: 500;
+    transition: background var(--cs-transition), color var(--cs-transition);
+}
+
+.yk-tab.is-active,
+.hizli-kayit-tab.active {
+    background: var(--cs-surface);
+    color: var(--cs-accent);
+    box-shadow: var(--cs-shadow-xs);
+    font-weight: 600;
+}
+
+/* —— Bildirim zili —— */
+.bildirim-panel {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-lg) !important;
+    box-shadow: var(--cs-shadow-lg) !important;
+    max-width: min(calc(100vw - 24px), 380px);
+}
+
+@media (max-width: 640px) {
+    .bildirim-panel {
+        position: fixed !important;
+        left: var(--cs-space-3) !important;
+        right: var(--cs-space-3) !important;
+        top: calc(var(--cs-header-h) + var(--cs-safe-top) + 8px) !important;
+        width: auto !important;
+        max-width: none;
+    }
+}
+
+/* —— Giriş portalı (login-portal.css ile uyum) —— */
+:root {
+    --gate-blue: var(--cs-accent, #2f6ff3);
+    --gate-navy: var(--cs-primary-dark, #071b3a);
+}
+
+.gate-layout {
+    padding:
+        calc(var(--cs-space-6) + var(--cs-safe-top))
+        var(--cs-page-gutter)
+        calc(var(--cs-space-6) + var(--cs-safe-bottom));
+}
+
+.gate-form input {
+    min-height: var(--cs-input-h, 44px);
+    font-size: max(16px, 1rem);
+    border-radius: var(--cs-radius-sm, 10px);
+}
+
+.gate-form button[type="submit"] {
+    min-height: var(--cs-touch-min, 44px);
+    border-radius: var(--cs-radius-sm, 10px);
+}
+
+@media (max-width: 900px) {
+    .gate-showcase {
+        display: none;
+    }
+
+    .gate-layout {
+        grid-template-columns: 1fr !important;
+        min-height: 100dvh;
+        align-items: center;
+    }
+
+    .gate-card {
+        width: 100%;
+        max-width: min(100%, 420px);
+        margin-inline: auto;
+    }
+}
+
+/* —— Global QA: taşma & sticky —— */
+.v3-header,
+.cs-v6-header {
+    padding-top: var(--cs-safe-top);
+}
+
+.v3-main,
+.cs-v6-main {
+    min-width: 0;
+}
+
+[class*="-page"]:not(.dp-page):not(.ep-page) {
+    overflow-x: clip;
+}
+
+/* Modül head aksiyonları mobil */
+@media (max-width: 640px) {
+    .ep-head,
+    .dp-head,
+    .im-head,
+    .tz-head,
+    .rh-head,
+    .dk-head,
+    .mz-head,
+    .ny-head,
+    .dp-actions,
+    .ep-head-actions,
+    .dk-head-actions,
+    .rh-head-actions {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    .ep-btn,
+    .dp-btn,
+    .dk-btn,
+    .im-btn,
+    .tz-btn,
+    .st-btn,
+    .rh-btn,
+    .mz-btn,
+    .ny-head-actions > *,
+    .dp-actions > * {
+        width: 100%;
+        min-height: var(--cs-touch-min) !important;
+        justify-content: center;
+    }
+
+    .yk-tabs,
+    .hizli-kayit-tabs {
+        flex-direction: column;
+    }
+
+    .yk-tab,
+    .hizli-kayit-tab {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* —— Asistan widget —— */
+.asistan-fab {
+    bottom: calc(var(--cs-space-5) + var(--cs-safe-bottom)) !important;
+    right: calc(var(--cs-space-5) + var(--cs-safe-right)) !important;
+}
+
+.asistan-panel {
+    border-radius: var(--cs-radius-lg) !important;
+    box-shadow: var(--cs-shadow-lg) !important;
+    max-height: min(70dvh, 520px);
+}
+
+@media (max-width: 640px) {
+    .asistan-panel {
+        left: var(--cs-space-3) !important;
+        right: var(--cs-space-3) !important;
+        bottom: calc(var(--cs-space-5) + var(--cs-safe-bottom)) !important;
+        width: auto !important;
+    }
+}
+
+/* —— Ultrawide modül denge —— */
+@media (min-width: 1920px) {
+    .ep-page,
+    .dp-page,
+    .rh-page,
+    .dk-page {
+        max-width: var(--cs-content-wide);
+        margin-inline: auto;
+    }
+}

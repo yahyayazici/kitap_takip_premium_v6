@@ -40,11 +40,32 @@
             ".ktt-table-wrap .ktt-table, " +
             ".at-table-wrap .at-table, " +
             ".st-table-wrap .st-table, " +
-            ".fn-table-wrap .fn-table"
+            ".fn-table-wrap .fn-table, " +
+            ".ep-table-wrap .ep-admin-table, " +
+            ".dk-table-wrap .dk-table, " +
+            ".im-table-wrap .im-table, " +
+            ".tz-table-wrap .tz-table, " +
+            ".rh-table-wrap .rh-table, " +
+            ".mz-table-wrap .mz-table, " +
+            ".program-table-wrap .program-table, " +
+            ".gt-etut-table-wrap .gt-etut-table, " +
+            "table.ep-admin-table, " +
+            "table.dk-table, " +
+            "table.im-table, " +
+            "table.tz-table, " +
+            "table.rh-table, " +
+            "table.mz-table, " +
+            "table.program-table, " +
+            "table.gt-etut-table"
         );
         tables.forEach(enhanceTable);
 
-        document.querySelectorAll(".responsive-table, .ktt-table-wrap, .at-table-wrap, .st-table-wrap, .fn-table-wrap").forEach(function (wrap) {
+        document.querySelectorAll(
+            ".responsive-table, .ktt-table-wrap, .at-table-wrap, .st-table-wrap, " +
+            ".fn-table-wrap, .ep-table-wrap, .dk-table-wrap, .im-table-wrap, " +
+            ".tz-table-wrap, .rh-table-wrap, .mz-table-wrap, .program-table-wrap, " +
+            ".gt-etut-table-wrap"
+        ).forEach(function (wrap) {
             if (wrap.querySelector(".cs-mobile-ready")) {
                 wrap.classList.add("cs-mobile-cards");
             }
