@@ -99,6 +99,16 @@ urlpatterns = [
         name="personel_listesi",
     ),
     path(
+        "personeller/giris-pdf/",
+        yonetim_views.personel_giris_pdf_toplu,
+        name="personel_giris_pdf_toplu",
+    ),
+    path(
+        "personeller/<int:pk>/giris-pdf/",
+        yonetim_views.personel_giris_pdf_tek,
+        name="personel_giris_pdf_tek",
+    ),
+    path(
         "personeller/ekle/",
         yonetim_views.personel_ekle,
         name="personel_ekle",

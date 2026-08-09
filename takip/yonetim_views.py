@@ -65,6 +65,12 @@ from .temizlik_yonetim_service import (
     yonetim_merkezi,
 )
 from .panel_permissions import yonetim_erisimi_var
+from .personel_giris_service import (
+    personel_giris_kaydi_yenile,
+    personel_giris_kayitlari_yenile,
+    personel_giris_pdf_olustur,
+    personel_giris_zip_olustur,
+)
 from .program_service import bugunun_programi
 from .talebe_excel import (
     mevcut_talebeler_xlsx_olustur,
@@ -235,12 +241,72 @@ def personel_listesi(request):
         )
         .order_by("ad_soyad")
     )
+    aktif_personel_sayisi = PersonelProfili.objects.filter(
+        aktif=True,
+        user__isnull=False,
+        user__is_active=True,
+    ).count()
 
     return render(
         request,
         "yonetim/personel_listesi.html",
-        {"personeller": personeller},
+        {
+            "personeller": personeller,
+            "aktif_personel_sayisi": aktif_personel_sayisi,
+        },
     )
+
+
+@yonetici_gerekli
+@require_POST
+def personel_giris_pdf_toplu(request):
+    from takip.pdf_utils import pdf_error_response
+
+    personeller = (
+        PersonelProfili.objects
+        .select_related("user")
+        .filter(aktif=True, user__isnull=False, user__is_active=True)
+        .order_by("ad_soyad")
+    )
+    kayitlar = personel_giris_kayitlari_yenile(personeller)
+    if not kayitlar:
+        messages.error(request, "PDF oluşturulacak aktif personel bulunamadı.")
+        return redirect("yonetim:personel_listesi")
+
+    zip_dosya = personel_giris_zip_olustur(kayitlar, request=request)
+    if not zip_dosya:
+        return pdf_error_response("Giriş PDF arşivi oluşturulamadı.")
+
+    response = HttpResponse(zip_dosya, content_type="application/zip")
+    response["Content-Disposition"] = (
+        'attachment; filename="personel-giris-bilgileri.zip"'
+    )
+    return response
+
+
+@yonetici_gerekli
+@require_POST
+def personel_giris_pdf_tek(request, pk):
+    from takip.pdf_utils import pdf_error_response
+
+    personel = get_object_or_404(
+        PersonelProfili.objects.select_related("user"),
+        pk=pk,
+        aktif=True,
+    )
+    kayit = personel_giris_kaydi_yenile(personel)
+    if not kayit:
+        messages.error(request, "Bu personel için giriş bilgisi oluşturulamadı.")
+        return redirect("yonetim:personel_listesi")
+
+    pdf = personel_giris_pdf_olustur(kayit, request=request)
+    if not pdf:
+        return pdf_error_response("Giriş PDF'i oluşturulamadı.")
+
+    dosya = personel.ad_soyad.lower().replace(" ", "-")
+    response = HttpResponse(pdf, content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="giris-{dosya}.pdf"'
+    return response
 
 
 @yonetici_gerekli

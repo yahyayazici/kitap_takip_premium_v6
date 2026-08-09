@@ -314,6 +314,38 @@ def personel_giris_pdf_olustur(
     return html_to_pdf(html, base_url=request.build_absolute_uri("/"))
 
 
+@transaction.atomic
+def personel_giris_kayitlari_yenile(
+    personeller,
+) -> list[PersonelGirisKaydi]:
+    """Aktif personel için yeni şifre üretir ve giriş kaydı döner."""
+    kayitlar: list[PersonelGirisKaydi] = []
+    for personel in personeller:
+        if not personel.aktif or not personel.user_id:
+            continue
+        user = personel.user
+        if not user.is_active:
+            continue
+        sifre = sifre_uret()
+        user.set_password(sifre)
+        user.save(update_fields=["password"])
+        kayitlar.append(
+            PersonelGirisKaydi(
+                personel=personel,
+                kullanici_adi=user.username,
+                sifre=sifre,
+            )
+        )
+    return kayitlar
+
+
+def personel_giris_kaydi_yenile(
+    personel: PersonelProfili,
+) -> PersonelGirisKaydi | None:
+    kayitlar = personel_giris_kayitlari_yenile([personel])
+    return kayitlar[0] if kayitlar else None
+
+
 def personel_giris_zip_olustur(
     kayitlar: list[PersonelGirisKaydi | OgretmenGirisKaydi],
     *,

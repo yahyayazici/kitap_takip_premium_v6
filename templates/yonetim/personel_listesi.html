@@ -10,7 +10,15 @@
         <h1>Kurum Personeli</h1>
         <p class="muted">Rol, kullanıcı hesabı ve yetkileri yönetin.</p>
     </div>
-    <a href="{% url 'yonetim:personel_ekle' %}" class="primary-btn">Personel Ekle</a>
+    <div class="yonetim-page-head-actions">
+        {% if aktif_personel_sayisi %}
+        <form method="post" action="{% url 'yonetim:personel_giris_pdf_toplu' %}" class="yonetim-inline-action" onsubmit="return confirm('{{ aktif_personel_sayisi }} aktif personelin şifreleri yenilenecek ve giriş bilgileri ZIP olarak indirilecek. Devam edilsin mi?');">
+            {% csrf_token %}
+            <button type="submit" class="ghost-btn yonetim-head-ghost">Giriş Bilgileri PDF</button>
+        </form>
+        {% endif %}
+        <a href="{% url 'yonetim:personel_ekle' %}" class="primary-btn">Personel Ekle</a>
+    </div>
 </header>
 
 <section class="report-table-card yonetim-table-card">
@@ -79,6 +87,12 @@
                     <td class="yonetim-action-col">
                         <div class="yonetim-action-group">
                             <a href="{% url 'yonetim:personel_duzenle' personel.pk %}" class="yonetim-action-btn">Düzenle</a>
+                            {% if personel.aktif and personel.user %}
+                            <form method="post" action="{% url 'yonetim:personel_giris_pdf_tek' personel.pk %}" class="yonetim-inline-action" onsubmit="return confirm('{{ personel.ad_soyad|escapejs }} için yeni şifre oluşturulup PDF indirilecek. Devam edilsin mi?');">
+                                {% csrf_token %}
+                                <button type="submit" class="yonetim-action-btn">PDF</button>
+                            </form>
+                            {% endif %}
                             <form method="post" action="{% url 'yonetim:kayit_sil' %}" class="yonetim-inline-action" onsubmit="return confirm('{{ personel.ad_soyad|escapejs }} pasif edilsin mi? Giriş kapanır.');">
                                 {% csrf_token %}
                                 <input type="hidden" name="tur" value="personel">
