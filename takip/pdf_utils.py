@@ -448,9 +448,28 @@ def pdf_engine_status() -> str:
     return "xhtml2pdf"
 
 
+def _safe_download_filename(
+    filename: str, *, default: str = "dosya.pdf"
+) -> tuple[str, str]:
+    """Tarayıcı/uyumluluk için ASCII dosya adı + UTF-8 encoded ad."""
+    from urllib.parse import quote
+
+    raw = (filename or default).strip() or default
+    ascii_name = re.sub(r"[^A-Za-z0-9._-]+", "-", raw).strip(".-") or default
+    if not ascii_name.lower().endswith(".pdf") and raw.lower().endswith(".pdf"):
+        ascii_name += ".pdf"
+    return ascii_name, quote(raw)
+
+
 def make_pdf_response(pdf_bytes: bytes, filename: str) -> HttpResponse:
-    response = HttpResponse(pdf_bytes, content_type="application/pdf")
-    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    ascii_name, utf8_name = _safe_download_filename(filename)
+    # octet-stream: tarayıcı PDF panelinde açmak yerine indirmeyi zorlar
+    response = HttpResponse(pdf_bytes, content_type="application/octet-stream")
+    response["Content-Disposition"] = (
+        f'attachment; filename="{ascii_name}"; filename*=UTF-8\'\'{utf8_name}'
+    )
+    response["X-Content-Type-Options"] = "nosniff"
+    response["Cache-Control"] = "no-store"
     return response
 
 

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from django import forms
 from django.contrib import messages
-from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -17,7 +16,7 @@ from takip.personel_giris_service import (
     ogretmen_giris_kaydi_yenile,
     personel_giris_pdf_olustur,
 )
-from takip.pdf_utils import pdf_error_response
+from takip.pdf_utils import make_pdf_response, pdf_error_response
 from takip.wave0_models import Brans
 from takip.yonetim_views import yonetici_gerekli
 
@@ -115,6 +114,4 @@ def ogretmen_giris_pdf_tek(request, pk: int):
         return pdf_error_response("Giriş PDF'i oluşturulamadı.")
 
     dosya = hoca.ad_soyad.lower().replace(" ", "-")
-    response = HttpResponse(pdf, content_type="application/pdf")
-    response["Content-Disposition"] = f'attachment; filename="giris-{dosya}.pdf"'
-    return response
+    return make_pdf_response(pdf, f"giris-{dosya}.pdf")

@@ -148,13 +148,13 @@ def _excel_sonuc_mesajlari(request, sonuc) -> None:
 
 
 def _giris_pdf_yanit(request, kayit: PersonelGirisKaydi | OgretmenGirisKaydi) -> HttpResponse:
+    from takip.pdf_utils import make_pdf_response
+
     pdf = personel_giris_pdf_olustur(kayit, request=request)
     if not pdf:
         return pdf_error_response("Giriş PDF'i oluşturulamadı.")
     dosya = kayit.ad_soyad.lower().replace(" ", "-")
-    response = HttpResponse(pdf, content_type="application/pdf")
-    response["Content-Disposition"] = f'attachment; filename="giris-{dosya}.pdf"'
-    return response
+    return make_pdf_response(pdf, f"giris-{dosya}.pdf")
 
 
 @yonetici_gerekli
@@ -205,9 +205,10 @@ def kayit_sil(request):
 
 
 @yonetici_gerekli
+@require_POST
 def hizli_kayit_giris_pdf(request):
     from takip.personel_giris_service import giris_bilgisi_pdf_olustur
-    from takip.pdf_utils import pdf_error_response
+    from takip.pdf_utils import make_pdf_response, pdf_error_response
 
     data = request.session.get(SESSION_GIRIS_ANAHTAR)
     if not data or not data.get("kullanici_adi") or not data.get("sifre"):
@@ -260,9 +261,7 @@ def hizli_kayit_giris_pdf(request):
     if not pdf:
         return pdf_error_response("Giriş PDF'i oluşturulamadı.")
     dosya = ad_soyad.lower().replace(" ", "-")
-    response = HttpResponse(pdf, content_type="application/pdf")
-    response["Content-Disposition"] = f'attachment; filename="giris-{dosya}.pdf"'
-    return response
+    return make_pdf_response(pdf, f"giris-{dosya}.pdf")
 
 
 @yonetici_gerekli

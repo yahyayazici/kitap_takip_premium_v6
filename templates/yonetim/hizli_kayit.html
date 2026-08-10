@@ -27,17 +27,28 @@
 </nav>
 
 {% if giris_bilgisi %}
-<div class="yk-giris-banner dashboard-card">
-    <div>
-        <p class="yk-giris-banner-title">{{ giris_bilgisi.ad_soyad }} eklendi</p>
-        <p class="yk-giris-banner-meta">
-            <span>{{ giris_bilgisi.rol_etiket }}</span>
-            · Kullanıcı: <strong>{{ giris_bilgisi.kullanici_adi }}</strong>
-            · Şifre: <strong>{{ giris_bilgisi.sifre }}</strong>
-        </p>
+<section class="yk-giris-success">
+    <div class="yk-giris-card">
+        <p class="yk-giris-kicker">Kayıt tamam</p>
+        <h2 class="yk-giris-name">{{ giris_bilgisi.ad_soyad }}</h2>
+        <p class="yk-giris-role">{{ giris_bilgisi.rol_etiket }}</p>
+        <div class="yk-giris-creds">
+            <div class="yk-giris-cred">
+                <span>Kullanıcı adı</span>
+                <strong>{{ giris_bilgisi.kullanici_adi }}</strong>
+            </div>
+            <div class="yk-giris-cred">
+                <span>Şifre</span>
+                <strong>{{ giris_bilgisi.sifre }}</strong>
+            </div>
+        </div>
+        <form method="post" action="{% url 'yonetim:hizli_kayit_giris_pdf' %}" class="yk-giris-pdf-form">
+            {% csrf_token %}
+            <button type="submit" class="primary-btn yk-giris-pdf-btn">PDF İndir</button>
+        </form>
+        <p class="yk-giris-hint">PDF doğrudan indirilir; tarayıcıda açılmaz.</p>
     </div>
-    <a href="{% url 'yonetim:hizli_kayit_giris_pdf' %}" class="ghost-btn yk-giris-pdf-btn">PDF İndir</a>
-</div>
+</section>
 {% endif %}
 
 <section class="dashboard-card yk-card">

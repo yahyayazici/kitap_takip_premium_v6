@@ -414,14 +414,14 @@ def personel_giris_pdf_tek(request, pk):
         messages.error(request, "Bu personel için giriş bilgisi oluşturulamadı.")
         return redirect("yonetim:personel_listesi")
 
+    from takip.pdf_utils import make_pdf_response
+
     pdf = personel_giris_pdf_olustur(kayit, request=request)
     if not pdf:
         return pdf_error_response("Giriş PDF'i oluşturulamadı.")
 
     dosya = personel.ad_soyad.lower().replace(" ", "-")
-    response = HttpResponse(pdf, content_type="application/pdf")
-    response["Content-Disposition"] = f'attachment; filename="giris-{dosya}.pdf"'
-    return response
+    return make_pdf_response(pdf, f"giris-{dosya}.pdf")
 
 
 @yonetici_gerekli
