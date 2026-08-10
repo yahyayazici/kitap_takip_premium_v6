@@ -116,9 +116,15 @@
         });
 
         if (finePointer.matches) {
+            var leaveTimer = null;
+
             dropdown.addEventListener('mouseenter', function () {
                 if (isCollapsedNav()) {
                     return;
+                }
+                if (leaveTimer) {
+                    window.clearTimeout(leaveTimer);
+                    leaveTimer = null;
                 }
                 openDropdown(dropdown);
             });
@@ -127,9 +133,19 @@
                 if (isCollapsedNav()) {
                     return;
                 }
-                dropdown.classList.remove('open');
-                trigger.setAttribute('aria-expanded', 'false');
-                updateBackdrop();
+                // Kısa gecikme: scrollbar/layout titremesinde yanlışlıkla kapanmayı önler
+                if (leaveTimer) {
+                    window.clearTimeout(leaveTimer);
+                }
+                leaveTimer = window.setTimeout(function () {
+                    leaveTimer = null;
+                    if (dropdown.matches(':hover')) {
+                        return;
+                    }
+                    dropdown.classList.remove('open');
+                    trigger.setAttribute('aria-expanded', 'false');
+                    updateBackdrop();
+                }, 120);
             });
         }
     });
