@@ -9,7 +9,7 @@ from django.db import transaction
 from .models import DiniDersSeviyesi, EtutHocasi, SinifSube, Talebe
 from .tc_util import tc_normalize as _tc_normalize
 from .telefon_util import telefon_formatla
-from .turkiye_il_ilce import memleket_gecerli, tum_ilceler, turkiye_illeri
+from .turkiye_il_ilce import memleket_gecerli, turkiye_illeri
 from .veli_hesap_util import veli_panel_ensure as _veli_panel_ensure
 from .wave0_models import VeliKisi
 
@@ -92,6 +92,20 @@ def _hucre_degeri(deger) -> str:
     return str(deger).strip()
 
 
+def _baslik_normalize(deger: str) -> str:
+    """Türkçe İ/I farkını gidererek başlık eşleştirmesi yapar."""
+    metin = _hucre_degeri(deger).casefold()
+    return (
+        metin.replace("i̇", "i")
+        .replace("ı", "i")
+        .replace("ş", "s")
+        .replace("ğ", "g")
+        .replace("ü", "u")
+        .replace("ö", "o")
+        .replace("ç", "c")
+    )
+
+
 def _aktif_mi(deger: str) -> bool:
     if not deger:
         return True
@@ -107,23 +121,22 @@ def _aktif_mi(deger: str) -> bool:
 def _baslik_eslestir(satir: list[str]) -> dict[str, int]:
     eslesme = {}
     for index, hucre in enumerate(satir):
-        anahtar = _hucre_degeri(hucre).lower()
+        anahtar = _baslik_normalize(hucre)
         if anahtar in {
             "ad soyad",
             "ad_soyad",
             "adsoyad",
             "isim",
-            "kullanılan ad soyad",
             "kullanilan ad soyad",
         }:
             eslesme["ad_soyad"] = index
-        elif anahtar in {"kimlik adı", "kimlik adi", "kimlik_adi"}:
+        elif anahtar in {"kimlik adi", "kimlik_adi"}:
             eslesme["kimlik_adi"] = index
-        elif anahtar in {"kimlik soyadı", "kimlik soyadi", "kimlik_soyadi"}:
+        elif anahtar in {"kimlik soyadi", "kimlik_soyadi"}:
             eslesme["kimlik_soyadi"] = index
-        elif anahtar in {"sınıf", "sinif", "class", "okul sınıf", "okul sinif"}:
+        elif anahtar in {"sinif", "class", "okul sinif"}:
             eslesme["sinif"] = index
-        elif anahtar in {"şube", "sube", "okul şube", "okul sube"}:
+        elif anahtar in {"sube", "okul sube"}:
             eslesme["sube"] = index
         elif anahtar in {"talebe tc", "talebe_tc", "tc", "tc kimlik", "tc_kimlik"}:
             eslesme["talebe_tc"] = index
@@ -138,9 +151,7 @@ def _baslik_eslestir(satir: list[str]) -> dict[str, int]:
         elif anahtar in {"baba telefon", "baba_telefon"}:
             eslesme["baba_telefon"] = index
         elif anahtar in {
-            "etüt mesulü",
             "etut mesulu",
-            "etüt hocası",
             "etut hocasi",
             "etut_hocasi",
             "hoca",
@@ -154,7 +165,6 @@ def _baslik_eslestir(satir: list[str]) -> dict[str, int]:
         }:
             eslesme["dini_ders_seviyesi"] = index
         elif anahtar in {
-            "dini ders hocası",
             "dini ders hocasi",
             "dini_ders_hocasi",
             "dini hoca",
@@ -166,17 +176,17 @@ def _baslik_eslestir(satir: list[str]) -> dict[str, int]:
             eslesme["aktif"] = index
         elif anahtar in {"cinsiyet"}:
             eslesme["cinsiyet"] = index
-        elif anahtar in {"doğum tarihi", "dogum tarihi", "dogum_tarihi"}:
+        elif anahtar in {"dogum tarihi", "dogum_tarihi"}:
             eslesme["dogum_tarihi"] = index
-        elif anahtar in {"baba adı", "baba adi", "baba_adi"}:
+        elif anahtar in {"baba adi", "baba_adi"}:
             eslesme["baba_adi"] = index
-        elif anahtar in {"anne adı", "anne adi", "anne_adi"}:
+        elif anahtar in {"anne adi", "anne_adi"}:
             eslesme["anne_adi"] = index
-        elif anahtar in {"doğum yeri", "dogum yeri", "dogum_yeri"}:
+        elif anahtar in {"dogum yeri", "dogum_yeri"}:
             eslesme["dogum_yeri"] = index
         elif anahtar in {"memleket il", "memleket ili", "memleket"}:
             eslesme["memleket"] = index
-        elif anahtar in {"memleket ilçe", "memleket ilce", "memleket_ilce"}:
+        elif anahtar in {"memleket ilce", "memleket_ilce"}:
             eslesme["memleket_ilce"] = index
         elif anahtar in {"okul seviyesi", "okul_seviyesi"}:
             eslesme["okul_seviyesi"] = index
@@ -300,22 +310,43 @@ def _talebe_profil_satirdan(talebe: Talebe, satir: list, basliklar: dict[str, in
     return degisti
 
 
+def _baslik_satiri_mi(degerler: list) -> bool:
+    metinler = {_hucre_degeri(h).lower() for h in degerler if _hucre_degeri(h)}
+    return (
+        "kimlik adı" in metinler
+        or "kimlik adi" in metinler
+        or "talebe no" in metinler
+        or "kullanılan ad soyad" in metinler
+        or "kullanilan ad soyad" in metinler
+    )
+
+
 def _excel_satirlari(dosya) -> list[list]:
+    """Logo'lu şablonda başlık satırını otomatik bulur."""
     from openpyxl import load_workbook
 
     workbook = load_workbook(dosya, read_only=True, data_only=True)
     sayfa = workbook.active
-    satirlar = []
+    ham: list[list] = []
 
     for satir in sayfa.iter_rows(values_only=True):
         if not satir:
             continue
         degerler = list(satir)
         if any(_hucre_degeri(h) for h in degerler):
-            satirlar.append(degerler)
+            ham.append(degerler)
 
     workbook.close()
-    return satirlar
+    if not ham:
+        return []
+
+    baslik_idx = 0
+    for idx, satir in enumerate(ham[:20]):
+        if _baslik_satiri_mi(satir):
+            baslik_idx = idx
+            break
+
+    return ham[baslik_idx:]
 
 
 def _xlsx_kaydet(
@@ -324,45 +355,68 @@ def _xlsx_kaydet(
     sayfa_adi: str = "Talebeler",
     dogrulama: bool = True,
 ) -> bytes:
-    from openpyxl import Workbook
-    from openpyxl.styles import Font, PatternFill
     from openpyxl.utils import get_column_letter
+    from openpyxl.workbook.defined_name import DefinedName
     from openpyxl.worksheet.datavalidation import DataValidation
 
-    workbook = Workbook()
-    sayfa = workbook.active
-    sayfa.title = sayfa_adi
+    from takip.excel_rapor import (
+        EXCEL_RAPOR_BASLIK_SATIRI,
+        ExcelKolon,
+        ExcelRapor,
+        rapor_workbook_olustur,
+    )
+    from takip.turkiye_il_ilce import il_ilce_haritasi
 
-    baslik_font = Font(bold=True, color="FFFFFF")
-    baslik_fill = PatternFill("solid", fgColor="1A4FA8")
+    if not satirlar:
+        satirlar = [EXCEL_BASLIKLAR]
 
-    for row_idx, satir in enumerate(satirlar, start=1):
-        for col_idx, deger in enumerate(satir, start=1):
-            hucre = sayfa.cell(row=row_idx, column=col_idx, value=deger)
-            if row_idx == 1:
-                hucre.font = baslik_font
-                hucre.fill = baslik_fill
-
+    basliklar = [str(x) for x in satirlar[0]]
+    veri_satirlari = [list(s) for s in satirlar[1:]]
     genislikler = [
         10, 14, 14, 14, 10, 14, 14, 14, 14, 14, 14, 16, 14, 10, 10, 20, 20, 20, 22,
         18, 16, 18, 16, 28, 8,
     ]
-    for col, genislik in enumerate(genislikler, start=1):
-        sayfa.column_dimensions[get_column_letter(col)].width = genislik
+    kolonlar = [
+        ExcelKolon(
+            baslik=ad,
+            genislik=genislikler[i] if i < len(genislikler) else 14,
+            tip="vurgu" if i in {1, 2} else ("durum" if i == len(basliklar) - 1 else "metin"),
+        )
+        for i, ad in enumerate(basliklar)
+    ]
+
+    rapor = ExcelRapor(
+        baslik="Talebe Kayıt Listesi",
+        alt_baslik="Sınıf / etüt / dini ders ve veli bilgileri",
+        kolonlar=kolonlar,
+        satirlar=veri_satirlari,
+        sayfa_adi=sayfa_adi,
+        kilitli=False,
+        basliklari_buyuk_harf=False,
+        satir_yukseklik=22,
+    )
+    workbook = rapor_workbook_olustur(rapor)
+    sayfa = workbook.active
+    header_row = EXCEL_RAPOR_BASLIK_SATIRI
+    ilk_veri = header_row + 1
+    son_satir = max(ilk_veri + len(veri_satirlari) + 200, ilk_veri + 400)
 
     baslik_map = {
         str(baslik).strip().lower(): idx + 1
-        for idx, baslik in enumerate(satirlar[0])
-    } if satirlar else {}
+        for idx, baslik in enumerate(basliklar)
+    }
     kol_dogum = baslik_map.get("doğum tarihi") or baslik_map.get("dogum tarihi")
     if kol_dogum:
-        for row_idx in range(2, max(len(satirlar) + 200, 500) + 1):
-            hucre = sayfa.cell(row=row_idx, column=kol_dogum)
-            hucre.number_format = "DD.MM.YYYY"
+        for row_idx in range(ilk_veri, son_satir + 1):
+            sayfa.cell(row=row_idx, column=kol_dogum).number_format = "DD.MM.YYYY"
 
-    if dogrulama and satirlar:
+    if dogrulama:
         liste = workbook.create_sheet("_Listeler")
         liste.sheet_state = "hidden"
+        ilce_sayfa = workbook.create_sheet("_Ilceler")
+        ilce_sayfa.sheet_state = "hidden"
+        il_map = workbook.create_sheet("_IlMap")
+        il_map.sheet_state = "hidden"
 
         siniflar = sorted(
             {
@@ -389,7 +443,7 @@ def _xlsx_kaydet(
             .values_list("ad_soyad", flat=True)
         )
         iller = turkiye_illeri()
-        ilceler = tum_ilceler()
+        harita = il_ilce_haritasi()
         cinsiyetler = ["Erkek", "Kadın"]
         aile_secenekleri = [c.label for c in Talebe.AileDurumu]
         aktif_secenekleri = ["Evet", "Hayır"]
@@ -403,11 +457,22 @@ def _xlsx_kaydet(
             aile_secenekleri,
             aktif_secenekleri,
             iller,
-            ilceler,
         ]
         for kol_idx, degerler in enumerate(listeler):
             for satir_idx, deger in enumerate(degerler, start=1):
                 liste.cell(row=satir_idx, column=kol_idx + 1, value=deger)
+
+        for col_idx, il in enumerate(iller, start=1):
+            ilceler = harita.get(il) or []
+            slug = f"ILCE_{col_idx}"
+            il_map.cell(row=col_idx, column=1, value=il)
+            il_map.cell(row=col_idx, column=2, value=slug)
+            for row_idx, ilce in enumerate(ilceler, start=1):
+                ilce_sayfa.cell(row=row_idx, column=col_idx, value=ilce)
+            if ilceler:
+                harf = get_column_letter(col_idx)
+                ref = f"'_Ilceler'!${harf}$1:${harf}${len(ilceler)}"
+                workbook.defined_names.add(DefinedName(name=slug, attr_text=ref))
 
         def _liste_formulu(kol_harf: str, uzunluk: int) -> str:
             if uzunluk <= 0:
@@ -428,8 +493,6 @@ def _xlsx_kaydet(
             sayfa.add_data_validation(dv)
             dv.add(hucre_araligi)
 
-        son_satir = max(len(satirlar) + 200, 500)
-
         def _kolon(baslik: str) -> str | None:
             idx = baslik_map.get(baslik.lower())
             if not idx:
@@ -446,15 +509,23 @@ def _xlsx_kaydet(
             ("Aile Durumu", "F", len(aile_secenekleri)),
             ("Aktif", "G", len(aktif_secenekleri)),
             ("Memleket İl", "H", len(iller)),
-            ("Memleket İlçe", "I", len(ilceler)),
         ]
         for baslik, harf, uzunluk in eslesmeler:
             kol = _kolon(baslik)
             if kol:
                 _dogrulama_ekle(
                     _liste_formulu(harf, uzunluk),
-                    f"{kol}2:{kol}{son_satir}",
+                    f"{kol}{ilk_veri}:{kol}{son_satir}",
                 )
+
+        kol_il = _kolon("Memleket İl")
+        kol_ilce = _kolon("Memleket İlçe")
+        if kol_il and kol_ilce and iller:
+            # İl seçilince yalnızca o ile ait ilçeler (named range + VLOOKUP)
+            formul = (
+                f'INDIRECT(VLOOKUP({kol_il}{ilk_veri},_IlMap!$A$1:$B${len(iller)},2,FALSE))'
+            )
+            _dogrulama_ekle(formul, f"{kol_ilce}{ilk_veri}:{kol_ilce}{son_satir}")
 
     buffer = BytesIO()
     workbook.save(buffer)

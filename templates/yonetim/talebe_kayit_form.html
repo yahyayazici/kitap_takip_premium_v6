@@ -14,7 +14,7 @@
 </header>
 
 <section class="dashboard-card yonetim-form-card">
-    <form method="post" class="yonetim-form-layout" enctype="multipart/form-data">
+    <form method="post" class="yonetim-form-layout" enctype="multipart/form-data" id="talebe-kayit-form">
         {% csrf_token %}
 
         {% if form.non_field_errors %}
@@ -61,37 +61,52 @@
 {{ il_ilce_json|json_script:"talebe-il-ilce-data" }}
 <script>
 (function () {
-    const dataEl = document.getElementById("talebe-il-ilce-data");
-    if (!dataEl) return;
-    let harita = {};
-    try { harita = JSON.parse(dataEl.textContent); } catch (e) { return; }
+    function hazirla() {
+        var dataEl = document.getElementById("talebe-il-ilce-data");
+        var form = document.getElementById("talebe-kayit-form");
+        if (!dataEl || !form) return;
 
-    const il = document.getElementById("id_memleket");
-    const ilce = document.getElementById("id_memleket_ilce");
-    if (!il || !ilce) return;
+        var harita = {};
+        try { harita = JSON.parse(dataEl.textContent); } catch (e) { return; }
 
-    const seciliIlce = ilce.value;
+        var il = form.querySelector('[name="memleket"]');
+        var ilce = form.querySelector('[name="memleket_ilce"]');
+        if (!il || !ilce) return;
 
-    function doldur() {
-        const secilen = il.value || "";
-        const liste = harita[secilen] || [];
-        ilce.innerHTML = "";
-        const bos = document.createElement("option");
-        bos.value = "";
-        bos.textContent = secilen ? "İlçe seçin" : "Önce il seçin";
-        ilce.appendChild(bos);
-        liste.forEach(function (ad) {
-            const opt = document.createElement("option");
-            opt.value = ad;
-            opt.textContent = ad;
-            if (ad === seciliIlce) opt.selected = true;
-            ilce.appendChild(opt);
+        var ilkIlce = ilce.value || "";
+
+        function doldur(koruSecim) {
+            var secilen = (il.value || "").trim();
+            var liste = harita[secilen] || [];
+            var onceki = koruSecim ? (ilce.value || ilkIlce) : "";
+            ilce.innerHTML = "";
+
+            var bos = document.createElement("option");
+            bos.value = "";
+            bos.textContent = secilen ? "İlçe seçin" : "Önce il seçin";
+            ilce.appendChild(bos);
+
+            liste.forEach(function (ad) {
+                var opt = document.createElement("option");
+                opt.value = ad;
+                opt.textContent = ad;
+                if (onceki && ad === onceki) opt.selected = true;
+                ilce.appendChild(opt);
+            });
+        }
+
+        il.addEventListener("change", function () {
+            ilkIlce = "";
+            doldur(false);
         });
+        doldur(true);
     }
 
-    il.addEventListener("change", function () {
-        doldur();
-    });
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", hazirla);
+    } else {
+        hazirla();
+    }
 })();
 </script>
 
