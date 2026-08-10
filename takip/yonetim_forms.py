@@ -606,7 +606,7 @@ class TalebeForm(forms.ModelForm):
 
 
 class TalebeProfilTamamlaForm(forms.ModelForm):
-    """Etüt hocasının talebe profilindeki boş kimlik/veli alanlarını doldurması."""
+    """Etüt / personel — hızlı kayıttan sonra kalan tüm alanlar (foto dahil)."""
 
     anne_ad_soyad = forms.CharField(
         required=False,
@@ -637,11 +637,14 @@ class TalebeProfilTamamlaForm(forms.ModelForm):
         model = Talebe
         fields = [
             "biyometrik_foto",
+            "ad_soyad",
             "kimlik_adi",
             "kimlik_soyadi",
             "tc_kimlik",
             "cinsiyet",
             "dogum_tarihi",
+            "sinif_sube",
+            "dini_ders_seviyesi",
             "baba_adi",
             "anne_adi",
             "dogum_yeri",
@@ -656,6 +659,7 @@ class TalebeProfilTamamlaForm(forms.ModelForm):
             "biyometrik_foto": forms.ClearableFileInput(
                 attrs={"class": "cs-input", "accept": "image/jpeg,image/png,image/webp"}
             ),
+            "ad_soyad": forms.TextInput(attrs={"class": "cs-input"}),
             "kimlik_adi": forms.TextInput(attrs={"class": "cs-input"}),
             "kimlik_soyadi": forms.TextInput(attrs={"class": "cs-input"}),
             "tc_kimlik": forms.TextInput(
@@ -671,6 +675,8 @@ class TalebeProfilTamamlaForm(forms.ModelForm):
                 format="%Y-%m-%d",
                 attrs={"class": "cs-input", "type": "date"},
             ),
+            "sinif_sube": forms.Select(attrs={"class": "cs-input"}),
+            "dini_ders_seviyesi": forms.Select(attrs={"class": "cs-input"}),
             "baba_adi": forms.TextInput(attrs={"class": "cs-input"}),
             "anne_adi": forms.TextInput(attrs={"class": "cs-input"}),
             "dogum_yeri": forms.TextInput(attrs={"class": "cs-input"}),
@@ -703,6 +709,17 @@ class TalebeProfilTamamlaForm(forms.ModelForm):
         self.fields["tc_kimlik"].required = False
         self.fields["cinsiyet"].required = False
         self.fields["aile_durumu"].required = False
+        self.fields["ad_soyad"].required = True
+        self.fields["sinif_sube"].queryset = SinifSube.objects.filter(aktif=True).order_by(
+            "sinif", "sube"
+        )
+        self.fields["sinif_sube"].required = False
+        self.fields["sinif_sube"].empty_label = "Sınıf seçin"
+        self.fields["dini_ders_seviyesi"].queryset = DiniDersSeviyesi.objects.filter(
+            aktif=True
+        ).order_by("sira", "ad")
+        self.fields["dini_ders_seviyesi"].required = False
+        self.fields["dini_ders_seviyesi"].empty_label = "Seviye seçin"
         for ad in (
             "kimlik_adi",
             "kimlik_soyadi",

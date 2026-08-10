@@ -48,17 +48,22 @@
             {% if profil_eksik %}
                 <span class="status-pill status-iade">Profil eksik</span>
             {% endif %}
+            {% if yonetim_erisim %}
+            <a href="{% url 'yonetim:talebe_duzenle' talebe.id %}" class="primary-btn">Öğrenciyi düzenle</a>
+            {% elif profil_duzenle %}
+            <a href="?sekme=kimlik" class="primary-btn">Öğrenciyi düzenle</a>
+            {% endif %}
         </div>
     </header>
 
     {% if gelisim_erisim or kimlik_erisim %}
-    <nav class="profile-tab-nav" style="display:flex;gap:8px;margin-bottom:8px;">
-        <a href="?sekme=egitim" class="ghost-btn"{% if aktif_sekme == 'egitim' %} style="background:#eef3ff;color:#173b80;"{% endif %}>Eğitim & Kitap</a>
+    <nav class="profile-tab-nav" aria-label="Profil sekmeleri">
+        <a href="?sekme=egitim" class="ghost-btn{% if aktif_sekme == 'egitim' %} is-active{% endif %}">Eğitim &amp; Kitap</a>
         {% if gelisim_erisim %}
-        <a href="?sekme=gelisim" class="ghost-btn"{% if aktif_sekme == 'gelisim' %} style="background:#eef3ff;color:#173b80;"{% endif %}>Gelişim Dosyası</a>
+        <a href="?sekme=gelisim" class="ghost-btn{% if aktif_sekme == 'gelisim' %} is-active{% endif %}">Gelişim Dosyası</a>
         {% endif %}
         {% if kimlik_erisim %}
-        <a href="?sekme=kimlik" class="ghost-btn"{% if aktif_sekme == 'kimlik' %} style="background:#eef3ff;color:#173b80;"{% endif %}>Kimlik & Veli{% if profil_eksik %} · tamamla{% endif %}</a>
+        <a href="?sekme=kimlik" class="ghost-btn{% if aktif_sekme == 'kimlik' %} is-active{% endif %}">Kimlik &amp; Veli{% if profil_eksik %} · tamamla{% endif %}</a>
         {% endif %}
     </nav>
     {% endif %}
@@ -436,10 +441,10 @@
     <section class="profile-card">
         <div class="card-heading">
             <div>
-                <p class="card-kicker">PROFİL</p>
-                <h2>Kimlik &amp; Veli Tamamla</h2>
+                <p class="card-kicker">ÖĞRENCİYİ DÜZENLE</p>
+                <h2>Kimlik, fotoğraf ve veli</h2>
                 <p class="muted" style="margin:6px 0 0;font-size:13px;">
-                    Hızlı kayıtta girilmeyen alanları burada doldurun.
+                    Hızlı kayıtta girilmeyen alanları (fotoğraf dahil) burada doldurun.
                     {% if profil_eksik_alanlar %}
                     Eksik: {{ profil_eksik_alanlar|join:", " }}.
                     {% endif %}

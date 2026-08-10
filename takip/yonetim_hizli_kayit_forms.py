@@ -177,44 +177,16 @@ class TopluPersonelForm(forms.Form):
 
 
 class HizliTalebeForm(forms.ModelForm):
-    veli_ad_soyad = forms.CharField(
-        label="Veli ad soyad",
-        max_length=120,
-        required=False,
-        widget=forms.TextInput(attrs=_cs({"placeholder": "Veli adı soyadı"})),
-    )
-    veli_telefon = forms.CharField(
-        label="Veli telefon",
-        max_length=20,
-        required=False,
-        widget=forms.TextInput(attrs=_cs({"placeholder": "05xx xxx xx xx"})),
-    )
-    veli_yakinlik = forms.ChoiceField(
-        label="Yakınlık",
-        choices=VeliKisi.Yakinlik.choices,
-        initial=VeliKisi.Yakinlik.VELI,
-        required=False,
-        widget=forms.Select(attrs={"class": "cs-input"}),
-    )
-    veli_hesap_olustur = forms.BooleanField(
-        label="Veli panel hesabı oluştur",
-        required=False,
-        initial=True,
-        help_text="Giriş: talebe TC · şifre: TC'nin son 4 hanesi.",
-        widget=forms.CheckboxInput(attrs={"class": "cs-checkbox"}),
-    )
+    """İlk kayıt: ad soyad, TC, etüt hocası, dini ders hocası.
+    Diğer alanlar etüt/admin «Öğrenciyi düzenle» ile tamamlanır.
+    """
 
     class Meta:
         model = Talebe
         fields = [
             "ad_soyad",
             "tc_kimlik",
-            "biyometrik_foto",
-            "sinif_sube",
             "etut_hocasi",
-            "telefon",
-            "dogum_tarihi",
-            "dini_ders_seviyesi",
             "dini_ders_hocasi",
         ]
         widgets = {
@@ -231,109 +203,57 @@ class HizliTalebeForm(forms.ModelForm):
                     }
                 )
             ),
-            "biyometrik_foto": forms.ClearableFileInput(
-                attrs=_cs({"accept": "image/jpeg,image/png,image/webp"})
-            ),
-            "sinif_sube": forms.Select(
-                attrs={"class": "cs-input", "data-yk-sinif-sec": "1"}
-            ),
-            "etut_hocasi": forms.Select(
-                attrs={"class": "cs-input", "data-yk-etut-sec": "1"}
-            ),
-            "telefon": forms.TextInput(
-                attrs=_cs({"placeholder": "Opsiyonel"})
-            ),
-            "dogum_tarihi": forms.DateInput(
-                attrs=_cs({"type": "date"}),
-                format="%Y-%m-%d",
-            ),
-            "dini_ders_seviyesi": forms.Select(
-                attrs={"class": "cs-input", "data-yk-dini-seviye-sec": "1"}
-            ),
-            "dini_ders_hocasi": forms.Select(
-                attrs={"class": "cs-input", "data-yk-dini-hoca-sec": "1"}
-            ),
+            "etut_hocasi": forms.Select(attrs={"class": "cs-input"}),
+            "dini_ders_hocasi": forms.Select(attrs={"class": "cs-input"}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["sinif_sube"].queryset = SinifSube.objects.filter(
-            aktif=True
-        ).order_by("sinif", "sube")
-        self.fields["sinif_sube"].empty_label = "Sınıf seçin"
         hoca_qs = EtutHocasi.objects.filter(aktif=True).order_by("ad_soyad")
         self.fields["etut_hocasi"].queryset = hoca_qs
         self.fields["etut_hocasi"].empty_label = "Etüt hocası seçin"
-        self.fields["etut_hocasi"].help_text = (
-            "Sınıf seçince zimmetli etüt hocası otomatik gelir."
-        )
-        self.fields["dini_ders_seviyesi"].queryset = DiniDersSeviyesi.objects.filter(
-            aktif=True
-        ).order_by("sira", "ad")
-        self.fields["dini_ders_seviyesi"].required = False
-        self.fields["dini_ders_seviyesi"].empty_label = "Seviye seçin"
+        self.fields["etut_hocasi"].required = True
         self.fields["dini_ders_hocasi"].queryset = hoca_qs
-        self.fields["dini_ders_hocasi"].required = False
         self.fields["dini_ders_hocasi"].empty_label = "Dini ders hocası seçin"
+        self.fields["dini_ders_hocasi"].required = True
         self.fields["dini_ders_hocasi"].help_text = (
-            "Önce dini ders seviyesini seçin; o seviyedeki hocalar listelenir."
+            "Aynı kişi ise etüt hocasını tekrar seçin."
         )
-        self.fields["telefon"].required = False
-        self.fields["dogum_tarihi"].required = False
         self.fields["tc_kimlik"].required = True
         self.fields["tc_kimlik"].help_text = (
-            "Veli panel girişi: kullanıcı adı talebe TC, şifre TC'nin son 4 hanesi."
+            "Veli paneli için: kullanıcı adı TC, şifre TC'nin son 4 hanesi "
+            "(veli bilgisi sonra doldurulur)."
         )
+        self.fields["ad_soyad"].required = True
 
     def clean(self):
         cleaned = super().clean()
-        sinif_sube = cleaned.get("sinif_sube")
         etut = cleaned.get("etut_hocasi")
-        seviye = cleaned.get("dini_ders_seviyesi")
         dini_hoca = cleaned.get("dini_ders_hocasi")
 
-        if sinif_sube and etut:
-            if not etut.sorumlu_sinif_subeler.filter(pk=sinif_sube.pk).exists():
-                self.add_error(
-                    "etut_hocasi",
-                    "Seçilen etüt hocası bu sınıftan sorumlu değil.",
-                )
-
-        if seviye and not dini_hoca:
-            self.add_error(
-                "dini_ders_hocasi",
-                "Dini ders seviyesi seçildiğinde dini ders hocası zorunludur.",
-            )
-        elif seviye and dini_hoca:
-            if not seviye.hocalar.filter(pk=dini_hoca.pk).exists():
-                self.add_error(
-                    "dini_ders_hocasi",
-                    f"Seçilen hoca «{seviye.ad}» seviyesinden sorumlu değil.",
-                )
-        elif not seviye and dini_hoca:
-            self.add_error(
-                "dini_ders_seviyesi",
-                "Dini ders hocası seçmeden önce seviye seçin.",
-            )
-
-        if etut and not dini_hoca and not seviye:
+        if etut and not dini_hoca:
             cleaned["dini_ders_hocasi"] = etut
+            dini_hoca = etut
 
-        veli_ad = (cleaned.get("veli_ad_soyad") or "").strip()
-        hesap = cleaned.get("veli_hesap_olustur")
-        tc = cleaned.get("tc_kimlik") or ""
+        # Sınıf: etüt hocasının ilk sorumlu sınıfı (sonra düzenlenebilir)
+        if etut and not cleaned.get("sinif_sube"):
+            sinif = (
+                etut.sorumlu_sinif_subeler.filter(aktif=True)
+                .order_by("sinif", "sube")
+                .first()
+            )
+            if sinif:
+                cleaned["sinif_sube"] = sinif
 
-        if hesap:
-            if not veli_ad:
-                self.add_error(
-                    "veli_ad_soyad",
-                    "Veli panel hesabı için veli adı girin.",
-                )
-            if User.objects.filter(username__iexact=tc).exists():
-                self.add_error(
-                    "tc_kimlik",
-                    "Bu TC ile veli panel hesabı zaten kayıtlı.",
-                )
+        # Dini seviye: hocanın sorumlu olduğu ilk seviye (opsiyonel)
+        if dini_hoca and not cleaned.get("dini_ders_seviyesi"):
+            seviye = (
+                dini_hoca.sorumlu_dini_ders_seviyeleri.filter(aktif=True)
+                .order_by("sira", "ad")
+                .first()
+            )
+            if seviye:
+                cleaned["dini_ders_seviyesi"] = seviye
 
         return cleaned
 
@@ -346,39 +266,19 @@ class HizliTalebeForm(forms.ModelForm):
             raise forms.ValidationError("Bu TC kimlik no başka bir talebede kayıtlı.")
         return tc
 
-    def clean_biyometrik_foto(self):
-        foto = self.cleaned_data.get("biyometrik_foto")
-        dogrula_biyometrik_foto(foto)
-        return foto
-
     @transaction.atomic
     def save_with_veli(self) -> tuple[Talebe, VeliHesap | None]:
-        talebe = self.save()
-        veli_ad = (self.cleaned_data.get("veli_ad_soyad") or "").strip()
-        veli_hesap = None
-
-        if veli_ad:
-            VeliKisi.objects.create(
-                talebe=talebe,
-                ad_soyad=veli_ad,
-                telefon=self.cleaned_data.get("veli_telefon", ""),
-                yakinlik=self.cleaned_data.get("veli_yakinlik") or VeliKisi.Yakinlik.VELI,
-                birincil=True,
-            )
-
-        if self.cleaned_data.get("veli_hesap_olustur") and veli_ad:
-            tc = self.cleaned_data["tc_kimlik"]
-            if veli_panel_ensure(
-                talebe,
-                tc,
-                veli_ad,
-                self.cleaned_data.get("veli_telefon", ""),
-            ):
-                veli_hesap = VeliHesap.objects.filter(
-                    user__username__iexact=tc
-                ).first()
-
-        return talebe, veli_hesap
+        talebe = super().save(commit=False)
+        sinif = self.cleaned_data.get("sinif_sube")
+        if sinif:
+            talebe.sinif_sube = sinif
+        seviye = self.cleaned_data.get("dini_ders_seviyesi")
+        if seviye:
+            talebe.dini_ders_seviyesi = seviye
+        if not talebe.dini_ders_hocasi_id and talebe.etut_hocasi_id:
+            talebe.dini_ders_hocasi = talebe.etut_hocasi
+        talebe.save()
+        return talebe, None
 
 
 class HizliOgretmenForm(forms.Form):

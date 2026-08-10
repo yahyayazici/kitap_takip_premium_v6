@@ -259,7 +259,21 @@ def veli_talebe_dini_ders(request, talebe_id: int):
 
 @login_required
 def veli_talebe_aidat(request, talebe_id: int):
-    return redirect("veli_talebe_dashboard", talebe_id=talebe_id)
+    if not kullanici_veli_mi(request.user):
+        return redirect("dashboard")
+    from takip.aidat_service import talebe_aidat_ozeti
+    from takip.veli_goruntuleme_service import aidat_goruntulendi
+
+    veli, talebe = _veli_talebe_yukle(request, talebe_id)
+    aidat_goruntulendi(veli, talebe)
+    return _talebe_sayfa(
+        request,
+        veli,
+        talebe,
+        "veli/talebe_aidat.html",
+        "aidat",
+        {"aidat_ozet": talebe_aidat_ozeti(talebe)},
+    )
 
 
 @login_required

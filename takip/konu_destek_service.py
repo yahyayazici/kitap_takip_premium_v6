@@ -448,7 +448,8 @@ def konu_detay_verisi(talebe: Talebe, konu_id: int) -> dict[str, Any] | None:
     son_test = (
         KonuTestOturu.objects.filter(talebe=talebe, konu=konu).order_by("-baslama").first()
     )
-    test_meta = konu_test_meta(konu)
+    # Detayda kişiselleştirilmiş tam üretim yapma; ortak havuz / etiket yeterli.
+    test_meta = konu_test_meta(konu, talebe=None)
     return {
         "konu": konu,
         "videolar": video_satirlari,
@@ -490,19 +491,24 @@ def video_izleme_guncelle(
     return izleme
 
 
-def konu_test_sorulari(konu: KonuKatalogu, limit: int = 10) -> tuple[list[KonuSorusu], str]:
+def konu_test_sorulari(
+    konu: KonuKatalogu,
+    limit: int = 10,
+    *,
+    talebe: Talebe | None = None,
+) -> tuple[list[KonuSorusu], str]:
     from takip.konu_destek_ai import konu_ai_sorulari_hazirla
 
-    return konu_ai_sorulari_hazirla(konu, hedef=min(limit, 5))
+    return konu_ai_sorulari_hazirla(konu, hedef=min(limit, 5), talebe=talebe)
 
 
-def konu_test_meta(konu: KonuKatalogu) -> dict:
-    sorular, kaynak = konu_test_sorulari(konu)
+def konu_test_meta(konu: KonuKatalogu, *, talebe: Talebe | None = None) -> dict:
+    sorular, kaynak = konu_test_sorulari(konu, talebe=talebe)
     return {
         "soru_sayisi": len(sorular),
         "kaynak": kaynak,
         "ai_etiket": {
-            "ai": "Yapay zeka · yeni nesil set",
+            "ai": "Yapay zeka · denetimli yeni nesil set",
             "kural": "Bağlam temelli soru seti",
             "havuz": "Hazır soru bankası",
         }.get(kaynak, ""),
@@ -511,7 +517,7 @@ def konu_test_meta(konu: KonuKatalogu) -> dict:
 
 @transaction.atomic
 def konu_test_oturumu_baslat(talebe: Talebe, konu: KonuKatalogu) -> KonuTestOturu | None:
-    sorular, _ = konu_test_sorulari(konu)
+    sorular, _ = konu_test_sorulari(konu, talebe=talebe)
     if not sorular:
         return None
     return KonuTestOturu.objects.create(

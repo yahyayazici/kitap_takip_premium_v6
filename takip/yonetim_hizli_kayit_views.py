@@ -41,7 +41,7 @@ TUR_SECENEKLERI = (
     (
         "talebe",
         "Talebe",
-        "Hızlı kayıt: ad, TC, sınıf, etüt. Kimlik/veli detaylarını etüt hocası profilde tamamlar; Excel de kullanılabilir.",
+        "Hızlı kayıt: ad soyad, TC, etüt ve dini ders hocası. Fotoğraf ve diğer bilgiler sonra «Öğrenciyi düzenle» ile tamamlanır.",
     ),
     ("ogretmen", "Öğretmen", "Ana ders öğretmeni — branş ve ders ücreti"),
 )

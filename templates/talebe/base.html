@@ -31,7 +31,7 @@
     <link rel="stylesheet" href="{% static 'css/cs-design-phase6.css' %}?v=2">
     {% block extra_css %}{% endblock %}
     <link rel="stylesheet" href="{% static 'css/cs-design-phase7.css' %}?v=2">
-    <link rel="stylesheet" href="{% static 'css/cs-design-phase8.css' %}?v=15">
+    <link rel="stylesheet" href="{% static 'css/cs-design-phase8.css' %}?v=16">
 </head>
 <body class="v3-body talebe-body">
 <header class="cs-v6-header talebe-header" style="position:relative;">
@@ -54,7 +54,6 @@
             <a href="{% url 'talebe_okuma_soru' %}" class="{% if request.resolver_match.url_name == 'talebe_okuma_soru' %}active{% endif %}">Okuma & Soru</a>
             <a href="{% url 'talebe_konu_destek' %}" class="{% if 'konu_destek' in request.resolver_match.url_name or 'konu_video' in request.resolver_match.url_name or 'konu_test' in request.resolver_match.url_name %}active{% endif %}">Konu Destek</a>
             <a href="{% url 'talebe_profil' %}" class="{% if request.resolver_match.url_name == 'talebe_profil' %}active{% endif %}">Profil</a>
-            <a href="{% url 'talebe_gorevler' %}" class="{% if request.resolver_match.url_name == 'talebe_gorevler' %}active{% endif %}">Görevler</a>
         </nav>
         <div class="cs-v6-actions panel-user-actions">
             {% include "includes/bildirim_zili.html" %}

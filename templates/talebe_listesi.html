@@ -4,7 +4,7 @@
 {% block title %}Talebeler{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/talebe-listesi.css' %}?v=tl3">
+<link rel="stylesheet" href="{% static 'css/talebe-listesi.css' %}?v=tl4">
 {% endblock %}
 
 {% block content %}
@@ -75,7 +75,14 @@
                 </div>
             </dl>
 
-            <a href="{% url 'talebe_detay' talebe.id %}{% if talebe.profil_eksik %}?sekme=kimlik{% endif %}" class="student-detail-btn tl-btn">{% if talebe.profil_eksik %}Profili Tamamla{% else %}Profili Aç{% endif %}</a>
+            <div class="tl-card-actions">
+                <a href="{% url 'talebe_detay' talebe.id %}" class="student-detail-btn tl-btn">Profili Aç</a>
+                {% if yonetim_erisim %}
+                <a href="{% url 'yonetim:talebe_duzenle' talebe.id %}" class="ghost-btn tl-btn-edit">Öğrenciyi düzenle</a>
+                {% else %}
+                <a href="{% url 'talebe_detay' talebe.id %}?sekme=kimlik" class="ghost-btn tl-btn-edit">Öğrenciyi düzenle</a>
+                {% endif %}
+            </div>
         </article>
         {% empty %}
         <div class="empty-state">

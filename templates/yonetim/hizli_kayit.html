@@ -73,45 +73,21 @@
         {% endif %}
 
         {% if tur == "talebe" %}
-        <p class="muted" style="margin:0 0 14px;font-size:13px;">
-            Zorunlu olanlar ad, TC, sınıf ve etüt. Kimlik / memleket / aile detaylarını etüt hocası
-            talebe profilinde (Kimlik &amp; Veli) sonra tamamlayabilir.
+        <p class="yk-section-note">
+            İlk kayıtta yalnızca ad soyad, TC, etüt ve dini ders hocası yeterlidir.
+            Fotoğraf, sınıf, veli ve kimlik detaylarını etüt hocası kendi talebesinde;
+            yönetim herkes için <strong>Öğrenciyi düzenle</strong> ile tamamlar.
         </p>
         <div class="yk-section">
             <h3 class="yk-section-title">Talebe Bilgileri</h3>
             <div class="yk-grid" id="yk-talebe-grid">
-                {% with talebe_alanlar="ad_soyad tc_kimlik biyometrik_foto sinif_sube etut_hocasi telefon dogum_tarihi dini_ders_seviyesi dini_ders_hocasi" %}
                 {% for field in form %}
-                    {% if field.name in talebe_alanlar.split %}
-                    <div class="yk-field{% if field.name == 'ad_soyad' or field.name == 'tc_kimlik' or field.name == 'biyometrik_foto' %} yk-field-wide{% endif %}">
-                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                        {{ field }}
-                        {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
-                        {% for error in field.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
-                    </div>
-                    {% endif %}
-                {% endfor %}
-                {% endwith %}
-            </div>
-        </div>
-
-        <div class="yk-section yk-section-veli">
-            <h3 class="yk-section-title">Veli Bilgileri</h3>
-            <p class="yk-section-note">Veli kişi kaydı otomatik oluşturulur. Panel hesabı açılırsa giriş bilgileri: <strong>kullanıcı adı = talebe TC</strong>, <strong>şifre = TC'nin son 4 hanesi</strong>.</p>
-            <div class="yk-grid">
-                {% for field in form %}
-                    {% if field.name == "veli_ad_soyad" or field.name == "veli_telefon" or field.name == "veli_yakinlik" or field.name == "veli_hesap_olustur" %}
-                    <div class="yk-field{% if field.name == 'veli_hesap_olustur' %} yk-field-check{% endif %}{% if field.name == 'veli_ad_soyad' %} yk-field-wide{% endif %}">
-                        {% if field.name == "veli_hesap_olustur" %}
-                        <label class="yk-check-label">{{ field }} {{ field.label }}</label>
-                        {% else %}
-                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                        {{ field }}
-                        {% endif %}
-                        {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
-                        {% for error in field.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
-                    </div>
-                    {% endif %}
+                <div class="yk-field{% if field.name == 'ad_soyad' or field.name == 'tc_kimlik' %} yk-field-wide{% endif %}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                    {% for error in field.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+                </div>
                 {% endfor %}
             </div>
         </div>

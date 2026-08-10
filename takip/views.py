@@ -594,7 +594,7 @@ def talebe_listesi(request):
         )
         talebe.profil_eksik = profil_eksik_mi(talebe)
 
-    from takip.panel_permissions import tum_talebe_erisimi_var
+    from takip.panel_permissions import tum_talebe_erisimi_var, yonetim_erisimi_var
     from takip.talebe_liste_raporu_service import erisilebilir_siniflar
 
     talebe_qs = _yetkili_talebeler(request.user)
@@ -611,6 +611,7 @@ def talebe_listesi(request):
             "kurum_raporu_goster": (
                 request.user.is_superuser or tum_talebe_erisimi_var(request.user)
             ),
+            "yonetim_erisim": yonetim_erisimi_var(request.user),
         },
     )
 
@@ -767,16 +768,19 @@ def talebe_detay(
         context["profil_form"] = pf
         context["profil_form_bolumleri"] = [
             (
+                "Fotoğraf ve ad",
+                [pf[n] for n in ("biyometrik_foto", "ad_soyad", "kimlik_adi", "kimlik_soyadi")],
+            ),
+            (
                 "Kimlik bilgileri",
                 [
                     pf[n]
                     for n in (
-                        "biyometrik_foto",
-                        "kimlik_adi",
-                        "kimlik_soyadi",
                         "tc_kimlik",
                         "cinsiyet",
                         "dogum_tarihi",
+                        "sinif_sube",
+                        "dini_ders_seviyesi",
                     )
                 ],
             ),
@@ -852,6 +856,9 @@ def talebe_detay(
 
     context["mezun_profil"] = MezunProfil.objects.filter(talebe=talebe).first()
     context["mezun_etkin"] = can(request.user, "mezun", "create") and talebe.durum != Talebe.Durum.MEZUN
+    from takip.panel_permissions import yonetim_erisimi_var
+
+    context["yonetim_erisim"] = yonetim_erisimi_var(request.user)
 
     return render(
         request,
