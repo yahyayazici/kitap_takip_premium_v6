@@ -1,0 +1,56 @@
+{% extends "yonetim/base.html" %}
+
+{% block title %}Dersler{% endblock %}
+
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">ÖĞRETMEN</p>
+        <h1>Dersler</h1>
+        <p class="muted">Not girişinde kullanılan dersleri branşlarla birlikte yönetin.</p>
+    </div>
+    <div class="yonetim-page-head-actions">
+        <a href="{% url 'yonetim:brans_listesi' %}" class="ghost-btn">Branşlar</a>
+        <a href="{% url 'yonetim:ders_ekle' %}" class="primary-btn">Yeni Ders</a>
+    </div>
+</header>
+
+<section class="report-table-card yonetim-table-card">
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <thead>
+                <tr>
+                    <th>Sıra</th>
+                    <th>Ders</th>
+                    <th>Branş</th>
+                    <th>Durum</th>
+                    <th class="yonetim-action-col">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in dersler %}
+                <tr>
+                    <td class="num-col">{{ d.sira }}</td>
+                    <td><strong>{{ d.ad }}</strong></td>
+                    <td>{% if d.brans %}{{ d.brans.ad }}{% else %}—{% endif %}</td>
+                    <td>
+                        {% if d.aktif %}
+                        <span class="status-pill status-okunuyor">Aktif</span>
+                        {% else %}
+                        <span class="status-pill status-iade">Pasif</span>
+                        {% endif %}
+                    </td>
+                    <td class="yonetim-action-col">
+                        <a href="{% url 'yonetim:ders_duzenle' d.pk %}" class="yonetim-link">Düzenle</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="report-empty">Henüz ders yok. Yeni ders ekleyin.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

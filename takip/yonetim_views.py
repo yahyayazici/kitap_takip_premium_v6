@@ -231,6 +231,121 @@ def sinif_duzenle(request, pk):
 
 
 @yonetici_gerekli
+def brans_listesi(request):
+    from takip.models import Brans
+
+    branslar = (
+        Brans.objects.annotate(ders_sayisi=Count("dersler", distinct=True))
+        .order_by("sira", "ad")
+    )
+    return render(
+        request,
+        "yonetim/brans_listesi.html",
+        {"branslar": branslar},
+    )
+
+
+@yonetici_gerekli
+def brans_ekle(request):
+    from takip.yonetim_forms import BransForm
+
+    form = BransForm(request.POST or None)
+    if form.is_valid():
+        brans = form.save()
+        messages.success(request, f"«{brans.ad}» branşı eklendi.")
+        return redirect("yonetim:brans_listesi")
+    return render(
+        request,
+        "yonetim/form.html",
+        {
+            "form": form,
+            "sayfa_basligi": "Branş Ekle",
+            "sayfa_aciklama": "Öğretmen branşlarını buradan tanımlayın.",
+            "geri_url": "yonetim:brans_listesi",
+        },
+    )
+
+
+@yonetici_gerekli
+def brans_duzenle(request, pk):
+    from takip.models import Brans
+    from takip.yonetim_forms import BransForm
+
+    brans = get_object_or_404(Brans, pk=pk)
+    form = BransForm(request.POST or None, instance=brans)
+    if form.is_valid():
+        brans = form.save()
+        messages.success(request, f"«{brans.ad}» branşı güncellendi.")
+        return redirect("yonetim:brans_listesi")
+    return render(
+        request,
+        "yonetim/form.html",
+        {
+            "form": form,
+            "sayfa_basligi": "Branş Düzenle",
+            "sayfa_aciklama": "Branş adını, sırasını veya durumunu güncelleyin.",
+            "geri_url": "yonetim:brans_listesi",
+        },
+    )
+
+
+@yonetici_gerekli
+def ders_listesi(request):
+    from takip.models import Ders
+
+    dersler = Ders.objects.select_related("brans").order_by("sira", "ad")
+    return render(
+        request,
+        "yonetim/ders_listesi.html",
+        {"dersler": dersler},
+    )
+
+
+@yonetici_gerekli
+def ders_ekle(request):
+    from takip.yonetim_forms import DersForm
+
+    form = DersForm(request.POST or None)
+    if form.is_valid():
+        ders = form.save()
+        messages.success(request, f"«{ders.ad}» dersi eklendi.")
+        return redirect("yonetim:ders_listesi")
+    return render(
+        request,
+        "yonetim/form.html",
+        {
+            "form": form,
+            "sayfa_basligi": "Ders Ekle",
+            "sayfa_aciklama": "Öğretmen not girişinde görünen dersleri tanımlayın.",
+            "geri_url": "yonetim:ders_listesi",
+        },
+    )
+
+
+@yonetici_gerekli
+def ders_duzenle(request, pk):
+    from takip.models import Ders
+    from takip.yonetim_forms import DersForm
+
+    ders = get_object_or_404(Ders, pk=pk)
+    form = DersForm(request.POST or None, instance=ders)
+    if form.is_valid():
+        ders = form.save()
+        messages.success(request, f"«{ders.ad}» dersi güncellendi.")
+        return redirect("yonetim:ders_listesi")
+    return render(
+        request,
+        "yonetim/form.html",
+        {
+            "form": form,
+            "sayfa_basligi": "Ders Düzenle",
+            "sayfa_aciklama": "Ders adı, branş ve sırayı güncelleyin.",
+            "geri_url": "yonetim:ders_listesi",
+        },
+    )
+
+
+@yonetici_gerekli
 def personel_listesi(request):
     personeller = (
         PersonelProfili.objects
@@ -1674,12 +1789,23 @@ def yemekci_pdf(request, pk):
 
 @yonetici_gerekli
 def ogretmen_degerlendirme_rapor(request):
+    from datetime import datetime
+
     from django.utils.timezone import localdate
+    from django.template.loader import render_to_string
 
     from config.branding import panel_branding_context
-    from takip.ogretmen_not_service import admin_degerlendirme_qs, talebe_karne_verisi
-    from takip.pdf_utils import html_to_pdf, make_pdf_response, pdf_engine_status, pdf_error_response
-    from django.template.loader import render_to_string
+    from takip.ogretmen_not_service import (
+        admin_degerlendirme_qs,
+        ogretmen_haftalik_takip_ozeti,
+    )
+    from takip.ogretmen_service import _hafta_araligi
+    from takip.pdf_utils import (
+        html_to_pdf,
+        make_pdf_response,
+        pdf_engine_status,
+        pdf_error_response,
+    )
 
     def _int_or_none(raw):
         try:
@@ -1691,13 +1817,27 @@ def ogretmen_degerlendirme_rapor(request):
     talebe_id = _int_or_none(request.GET.get("talebe"))
     hoca_id = _int_or_none(request.GET.get("hoca"))
 
+    hafta_raw = (request.GET.get("hafta") or "").strip()
+    hafta_baslangic = None
+    if hafta_raw:
+        try:
+            gun = datetime.strptime(hafta_raw, "%Y-%m-%d").date()
+            _, hafta_baslangic, _ = _hafta_araligi(gun)
+        except ValueError:
+            hafta_baslangic = None
+    if hafta_baslangic is None:
+        _, hafta_baslangic, _ = _hafta_araligi(localdate())
+
     notlar = list(
         admin_degerlendirme_qs(
             sinif_id=sinif_id,
             talebe_id=talebe_id,
             hoca_id=hoca_id,
+            hafta_baslangic=hafta_baslangic,
         )[:500]
     )
+    takip = ogretmen_haftalik_takip_ozeti(hafta_baslangic)
+    _, _, hafta_bitis = _hafta_araligi(hafta_baslangic)
 
     siniflar = SinifSube.objects.filter(aktif=True).order_by("sinif", "sube")
     hocalar = EtutHocasi.objects.filter(aktif=True).order_by("ad_soyad")
@@ -1706,7 +1846,9 @@ def ogretmen_degerlendirme_rapor(request):
         talebe_qs = talebe_qs.filter(sinif_sube_id=sinif_id)
     talebeler = list(talebe_qs[:300])
 
-    filtre_parcalari = []
+    filtre_parcalari = [
+        f"Hafta: {hafta_baslangic.strftime('%d.%m.%Y')} – {hafta_bitis.strftime('%d.%m.%Y')}"
+    ]
     if sinif_id:
         s = next((x for x in siniflar if x.id == sinif_id), None)
         filtre_parcalari.append(f"Sınıf: {s}" if s else "Sınıf filtreli")
@@ -1716,7 +1858,7 @@ def ogretmen_degerlendirme_rapor(request):
     if hoca_id:
         h = next((x for x in hocalar if x.id == hoca_id), None)
         filtre_parcalari.append(f"Öğretmen: {h.ad_soyad}" if h else "Öğretmen filtreli")
-    filtre_ozet = " · ".join(filtre_parcalari) if filtre_parcalari else "Tüm kayıtlar"
+    filtre_ozet = " · ".join(filtre_parcalari)
 
     if request.GET.get("format") == "pdf":
         html_metni = render_to_string(
@@ -1747,6 +1889,10 @@ def ogretmen_degerlendirme_rapor(request):
             "secili_sinif_id": sinif_id,
             "secili_talebe_id": talebe_id,
             "secili_hoca_id": hoca_id,
+            "secili_hafta": hafta_baslangic.isoformat(),
+            "hafta_baslangic": hafta_baslangic,
+            "hafta_bitis": hafta_bitis,
+            "takip": takip,
             "filtre_ozet": filtre_ozet,
         },
     )

@@ -4,7 +4,9 @@ from django.db import transaction
 from django.forms import inlineformset_factory
 
 from .models import (
+    Brans,
     CumaDurumMetni,
+    Ders,
     DiniDersSeviyesi,
     Duyuru,
     EtutHocasi,
@@ -50,6 +52,41 @@ class SinifSubeForm(forms.ModelForm):
                 attrs={"class": "cs-checkbox"}
             ),
         }
+
+
+class BransForm(forms.ModelForm):
+    class Meta:
+        model = Brans
+        fields = ["ad", "sira", "aktif"]
+        widgets = {
+            "ad": forms.TextInput(
+                attrs={"class": "cs-input", "placeholder": "Örn. Matematik, Türkçe"}
+            ),
+            "sira": forms.NumberInput(attrs={"class": "cs-input", "min": 0}),
+            "aktif": forms.CheckboxInput(attrs={"class": "cs-checkbox"}),
+        }
+
+
+class DersForm(forms.ModelForm):
+    class Meta:
+        model = Ders
+        fields = ["ad", "brans", "sira", "aktif"]
+        widgets = {
+            "ad": forms.TextInput(
+                attrs={"class": "cs-input", "placeholder": "Örn. Matematik"}
+            ),
+            "brans": forms.Select(attrs={"class": "cs-input"}),
+            "sira": forms.NumberInput(attrs={"class": "cs-input", "min": 0}),
+            "aktif": forms.CheckboxInput(attrs={"class": "cs-checkbox"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["brans"].queryset = Brans.objects.filter(aktif=True).order_by(
+            "sira", "ad"
+        )
+        self.fields["brans"].required = False
+        self.fields["brans"].empty_label = "Branş seçin (opsiyonel)"
 
 
 class PersonelProfiliForm(forms.ModelForm):

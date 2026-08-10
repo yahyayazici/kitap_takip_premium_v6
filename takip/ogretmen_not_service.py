@@ -326,6 +326,70 @@ def admin_degerlendirme_qs(
     return qs.order_by("-hafta_baslangic", "talebe__sinif_sube__sinif", "talebe__ad_soyad")
 
 
+def ogretmen_haftalik_takip_ozeti(hafta_baslangic: date) -> dict:
+    """Aktif öğretmenlerin seçilen haftada not girip girmediği özeti."""
+    hocalar = list(
+        EtutHocasi.objects.filter(aktif=True)
+        .select_related("odeme_profili", "odeme_profili__brans")
+        .prefetch_related("sorumlu_sinif_subeler")
+        .order_by("ad_soyad")
+    )
+    giren_ids = set(
+        OgretmenSinavNotu.objects.filter(hafta_baslangic=hafta_baslangic)
+        .values_list("etut_hocasi_id", flat=True)
+        .distinct()
+    )
+    konu_ids = set(
+        OgretmenHaftalikKonu.objects.filter(hafta_baslangic=hafta_baslangic)
+        .exclude(konu="")
+        .values_list("etut_hocasi_id", flat=True)
+        .distinct()
+    )
+    from django.db.models import Count
+
+    not_sayilari = {
+        row["etut_hocasi_id"]: row["adet"]
+        for row in (
+            OgretmenSinavNotu.objects.filter(hafta_baslangic=hafta_baslangic)
+            .values("etut_hocasi_id")
+            .annotate(adet=Count("id"))
+        )
+    }
+
+    satirlar = []
+    for hoca in hocalar:
+        girdi = hoca.id in giren_ids
+        brans = ""
+        try:
+            profil = hoca.odeme_profili
+        except Exception:
+            profil = None
+        if profil and getattr(profil, "brans_id", None):
+            brans = profil.brans.ad
+        siniflar = ", ".join(
+            str(s) for s in hoca.sorumlu_sinif_subeler.all() if s.aktif
+        )
+        satirlar.append(
+            {
+                "hoca": hoca,
+                "brans": brans or "—",
+                "siniflar": siniflar or "—",
+                "girdi": girdi,
+                "konu_girdi": hoca.id in konu_ids,
+                "not_sayisi": not_sayilari.get(hoca.id, 0),
+            }
+        )
+
+    giren = sum(1 for s in satirlar if s["girdi"])
+    return {
+        "hafta_baslangic": hafta_baslangic,
+        "satirlar": satirlar,
+        "toplam_hoca": len(satirlar),
+        "giren": giren,
+        "girmeyen": len(satirlar) - giren,
+    }
+
+
 def talebe_karne_verisi(talebe: Talebe, *, sadece_veliye_acik: bool = True) -> dict:
     qs = _not_qs_base().filter(talebe=talebe)
     if sadece_veliye_acik:

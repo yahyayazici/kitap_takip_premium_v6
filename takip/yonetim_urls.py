@@ -96,6 +96,37 @@ urlpatterns = [
     ),
 
     path(
+        "branslar/",
+        yonetim_views.brans_listesi,
+        name="brans_listesi",
+    ),
+    path(
+        "branslar/ekle/",
+        yonetim_views.brans_ekle,
+        name="brans_ekle",
+    ),
+    path(
+        "branslar/<int:pk>/duzenle/",
+        yonetim_views.brans_duzenle,
+        name="brans_duzenle",
+    ),
+    path(
+        "dersler/",
+        yonetim_views.ders_listesi,
+        name="ders_listesi",
+    ),
+    path(
+        "dersler/ekle/",
+        yonetim_views.ders_ekle,
+        name="ders_ekle",
+    ),
+    path(
+        "dersler/<int:pk>/duzenle/",
+        yonetim_views.ders_duzenle,
+        name="ders_duzenle",
+    ),
+
+    path(
         "personeller/",
         yonetim_views.personel_listesi,
         name="personel_listesi",

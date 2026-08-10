@@ -86,6 +86,16 @@ YONETIM_NAV_GROUPS: tuple[YonetimNavGroup, ...] = (
                 ),
             ),
             YonetimNavItem(
+                label="Branşlar",
+                url_name="yonetim:brans_listesi",
+                active_names=("brans_listesi", "brans_ekle", "brans_duzenle"),
+            ),
+            YonetimNavItem(
+                label="Dersler",
+                url_name="yonetim:ders_listesi",
+                active_names=("ders_listesi", "ders_ekle", "ders_duzenle"),
+            ),
+            YonetimNavItem(
                 label="Talebeler",
                 url_name="yonetim:talebe_listesi",
                 active_names=(
@@ -363,7 +373,7 @@ YONETIM_NAV_GROUPS: tuple[YonetimNavGroup, ...] = (
                 ),
             ),
             YonetimNavItem(
-                label="Öğretmen Notları",
+                label="Haftalık Not Takibi",
                 url_name="yonetim:ogretmen_degerlendirme_rapor",
                 active_names=(
                     "ogretmen_degerlendirme_rapor",
