@@ -177,15 +177,14 @@ class TopluPersonelForm(forms.Form):
 
 
 class HizliTalebeForm(forms.ModelForm):
-    """İlk kayıt: ad soyad, TC, etüt hocası, dini ders hocası.
-    Diğer alanlar etüt/admin «Öğrenciyi düzenle» ile tamamlanır.
-    """
+    """İlk kayıt: ad soyad, TC, sınıf, etüt hocası, dini ders hocası."""
 
     class Meta:
         model = Talebe
         fields = [
             "ad_soyad",
             "tc_kimlik",
+            "sinif_sube",
             "etut_hocasi",
             "dini_ders_hocasi",
         ]
@@ -203,13 +202,28 @@ class HizliTalebeForm(forms.ModelForm):
                     }
                 )
             ),
-            "etut_hocasi": forms.Select(attrs={"class": "cs-input"}),
-            "dini_ders_hocasi": forms.Select(attrs={"class": "cs-input"}),
+            "sinif_sube": forms.Select(
+                attrs={"class": "cs-input", "data-yk-sinif-sec": "1"}
+            ),
+            "etut_hocasi": forms.Select(
+                attrs={"class": "cs-input", "data-yk-etut-sec": "1"}
+            ),
+            "dini_ders_hocasi": forms.Select(
+                attrs={"class": "cs-input", "data-yk-dini-hoca-sec": "1"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         hoca_qs = EtutHocasi.objects.filter(aktif=True).order_by("ad_soyad")
+        self.fields["sinif_sube"].queryset = SinifSube.objects.filter(aktif=True).order_by(
+            "sinif", "sube"
+        )
+        self.fields["sinif_sube"].empty_label = "Sınıf seçin"
+        self.fields["sinif_sube"].required = True
+        self.fields["sinif_sube"].help_text = (
+            "Sınıf seçilince o sınıfa zimmetli etüt hocası otomatik gelir."
+        )
         self.fields["etut_hocasi"].queryset = hoca_qs
         self.fields["etut_hocasi"].empty_label = "Etüt hocası seçin"
         self.fields["etut_hocasi"].required = True
@@ -228,24 +242,36 @@ class HizliTalebeForm(forms.ModelForm):
 
     def clean(self):
         cleaned = super().clean()
+        sinif_sube = cleaned.get("sinif_sube")
         etut = cleaned.get("etut_hocasi")
         dini_hoca = cleaned.get("dini_ders_hocasi")
+
+        if sinif_sube and not etut:
+            etut = (
+                sinif_sube.etut_hocalari.filter(aktif=True)
+                .order_by("ad_soyad")
+                .first()
+            )
+            if etut:
+                cleaned["etut_hocasi"] = etut
+            else:
+                self.add_error(
+                    "sinif_sube",
+                    f"«{sinif_sube}» için zimmetli etüt hocası tanımlı değil. "
+                    "Önce personel/etüt mesulüne sınıf zimmeti verin.",
+                )
+
+        if sinif_sube and etut:
+            if not etut.sorumlu_sinif_subeler.filter(pk=sinif_sube.pk).exists():
+                self.add_error(
+                    "etut_hocasi",
+                    "Seçilen etüt hocası bu sınıftan sorumlu değil.",
+                )
 
         if etut and not dini_hoca:
             cleaned["dini_ders_hocasi"] = etut
             dini_hoca = etut
 
-        # Sınıf: etüt hocasının ilk sorumlu sınıfı (sonra düzenlenebilir)
-        if etut and not cleaned.get("sinif_sube"):
-            sinif = (
-                etut.sorumlu_sinif_subeler.filter(aktif=True)
-                .order_by("sinif", "sube")
-                .first()
-            )
-            if sinif:
-                cleaned["sinif_sube"] = sinif
-
-        # Dini seviye: hocanın sorumlu olduğu ilk seviye (opsiyonel)
         if dini_hoca and not cleaned.get("dini_ders_seviyesi"):
             seviye = (
                 dini_hoca.sorumlu_dini_ders_seviyeleri.filter(aktif=True)

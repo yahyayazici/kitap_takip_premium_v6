@@ -72,10 +72,9 @@
 
     var sinifSelect = document.querySelector("[data-yk-sinif-sec]");
     var etutSelect = document.querySelector("[data-yk-etut-sec]");
-    var seviyeSelect = document.querySelector("[data-yk-dini-seviye-sec]");
     var diniHocaSelect = document.querySelector("[data-yk-dini-hoca-sec]");
 
-    if (!sinifSelect || !etutSelect || !seviyeSelect || !diniHocaSelect) return;
+    if (!sinifSelect || !etutSelect || !diniHocaSelect) return;
 
     var allEtutOptions = Array.from(etutSelect.options).map(function (opt) {
         return { value: opt.value, text: opt.text, selected: opt.selected };
@@ -117,44 +116,13 @@
 
         if (hocaIds.length >= 1) {
             etutSelect.value = String(hocaIds[0]);
-            if (!seviyeSelect.value) {
-                diniHocaSelect.value = String(hocaIds[0]);
-            }
+            diniHocaSelect.value = String(hocaIds[0]);
         } else {
             etutSelect.value = "";
         }
     }
 
-    function filterDiniHocaForSeviye() {
-        var seviyeId = seviyeSelect.value;
-        if (!seviyeId) {
-            if (etutSelect.value) {
-                diniHocaSelect.value = etutSelect.value;
-            } else {
-                rebuildSelect(diniHocaSelect, allDiniOptions);
-            }
-            return;
-        }
-
-        var hocaIds = meta.seviye_hocalar[seviyeId] || [];
-        var filtered = allDiniOptions.filter(function (opt) {
-            return !opt.value || hocaIds.indexOf(parseInt(opt.value, 10)) !== -1;
-        });
-
-        rebuildSelect(diniHocaSelect, filtered.length > 0 ? filtered : allDiniOptions);
-
-        if (hocaIds.length >= 1) {
-            diniHocaSelect.value = String(hocaIds[0]);
-        } else if (!hocaIds.some(function (id) {
-            return String(id) === diniHocaSelect.value;
-        })) {
-            diniHocaSelect.value = "";
-        }
-    }
-
     sinifSelect.addEventListener("change", filterEtutForSinif);
-    seviyeSelect.addEventListener("change", filterDiniHocaForSeviye);
 
     filterEtutForSinif();
-    filterDiniHocaForSeviye();
 })();
