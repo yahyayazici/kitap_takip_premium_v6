@@ -11,7 +11,11 @@ from django.utils.timezone import localdate
 
 from config.branding import panel_branding_context
 from takip.duyuru_service import veli_duyurulari
-from takip.ogretmen_not_service import talebe_karne_verisi
+from takip.ogretmen_not_service import (
+    talebe_haftalik_karne_verisi,
+    talebe_karne_verisi,
+)
+from takip.ogretmen_service import aktif_hafta_baslangic
 from takip.pdf_utils import html_to_pdf, make_pdf_response, pdf_engine_status, pdf_error_response
 from takip.veli_goruntuleme_service import (
     dini_ders_goruntulendi,
@@ -186,23 +190,39 @@ def veli_talebe_degerlendirme_karne_pdf(request, talebe_id: int):
     if not kullanici_veli_mi(request.user):
         return redirect("dashboard")
     _veli, talebe = _veli_talebe_yukle(request, talebe_id)
-    ctx = talebe_karne_verisi(talebe, sadece_veliye_acik=True)
+
+    if request.GET.get("tum") == "1":
+        ctx = talebe_karne_verisi(talebe, sadece_veliye_acik=True)
+        sablon = "ogretmen_degerlendirme_karne_pdf.html"
+        dosya_ek = "degerlendirme-karnesi"
+        geri = "veli_talebe_sinavlar"
+    else:
+        from datetime import date
+
+        raw = (request.GET.get("hafta") or "").strip()
+        try:
+            hafta = date.fromisoformat(raw) if raw else aktif_hafta_baslangic()
+        except ValueError:
+            hafta = aktif_hafta_baslangic()
+        ctx = talebe_haftalik_karne_verisi(
+            talebe, hafta, sadece_veliye_acik=True
+        )
+        sablon = "ogretmen_haftalik_egitim_karne_pdf.html"
+        dosya_ek = "haftalik-egitim-karnesi"
+        geri = "veli_talebe_ders_notlari"
+
     ctx.update(panel_branding_context())
     ctx["bugun"] = localdate()
-    html_metni = render_to_string(
-        "ogretmen_degerlendirme_karne_pdf.html",
-        ctx,
-        request=request,
-    )
+    html_metni = render_to_string(sablon, ctx, request=request)
     pdf_verisi = html_to_pdf(html_metni, base_url=request.build_absolute_uri("/"))
     if not pdf_verisi:
         messages.error(
             request,
             f"Karne PDF oluşturulamadı. (Motor: {pdf_engine_status()})",
         )
-        return redirect("veli_talebe_sinavlar", talebe_id=talebe.id)
+        return redirect(geri, talebe_id=talebe.id)
     ad = talebe.ad_soyad.replace(" ", "-")
-    return make_pdf_response(pdf_verisi, f"{ad}-degerlendirme-karnesi.pdf")
+    return make_pdf_response(pdf_verisi, f"{ad}-{dosya_ek}.pdf")
 
 
 @login_required
@@ -239,7 +259,21 @@ def veli_talebe_dini_ders(request, talebe_id: int):
 
 @login_required
 def veli_talebe_aidat(request, talebe_id: int):
-    return redirect("veli_talebe_dashboard", talebe_id=talebe_id)
+    if not kullanici_veli_mi(request.user):
+        return redirect("dashboard")
+    from takip.aidat_service import talebe_aidat_ozeti
+    from takip.veli_goruntuleme_service import aidat_goruntulendi
+
+    veli, talebe = _veli_talebe_yukle(request, talebe_id)
+    aidat_goruntulendi(veli, talebe)
+    return _talebe_sayfa(
+        request,
+        veli,
+        talebe,
+        "veli/talebe_aidat.html",
+        "aidat",
+        {"aidat_ozet": talebe_aidat_ozeti(talebe)},
+    )
 
 
 @login_required

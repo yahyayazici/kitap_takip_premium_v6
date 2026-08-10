@@ -3,6 +3,18 @@
 Canlı panel: **https://cinilisarayproje.com**  
 Render yedek adres: **https://kitap-takip-premium-v6.onrender.com**
 
+## Performans (önerilen ücretli plan)
+
+Free plan boşta uykuya geçer; ilk tıklamada 10–40 sn bekletir. Üretim için:
+
+| Servis | Plan | Yaklaşık |
+|--------|------|----------|
+| Web | **Starter** | ~$7/ay |
+| Postgres | **Basic 256 MB** | ~$6/ay |
+
+Dashboard: servis → **Settings** → **Instance Type** → Starter.  
+Veritabanı → **Settings** → **Instance Type** → Basic-256mb.
+
 ## 1. Kodu GitHub'a gönder
 
 ```bash

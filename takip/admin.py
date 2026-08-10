@@ -14,6 +14,7 @@ from .models import (
     KitapSinavi,
     OkumaKaydi,
     PersonelProfili,
+    ProgramFaaliyetTuru,
     ProgramPlan,
     ProgramSatir,
     Sinav,
@@ -271,6 +272,16 @@ class ProgramPlanAdmin(admin.ModelAdmin):
     list_filter = ("aktif",)
     search_fields = ("ad",)
     inlines = [ProgramSatirInline]
+
+
+@admin.register(ProgramFaaliyetTuru)
+class ProgramFaaliyetTuruAdmin(admin.ModelAdmin):
+    list_display = ("ad", "kod", "renk", "sira", "aktif")
+    list_display_links = ("ad",)
+    list_editable = ("sira", "aktif")
+    list_filter = ("aktif", "renk")
+    search_fields = ("ad", "kod")
+    prepopulated_fields = {"kod": ("ad",)}
 
 
 # =========================================================

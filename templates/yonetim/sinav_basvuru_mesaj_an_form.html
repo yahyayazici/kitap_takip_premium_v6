@@ -1,0 +1,35 @@
+{% extends "yonetim/base.html" %}
+{% block title %}{{ sablon.baslik }} · Mesaj Anı{% endblock %}
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker"><a href="{% url 'yonetim:sinav_basvuru_mesaj_an_listesi' %}">Mesaj Anları</a></p>
+        <h1>{{ sablon.baslik }}</h1>
+        <p class="muted"><code>{{ sablon.an_kodu }}</code> — değişkenler: {ad_soyad}, {sinav_adi}, {il}, {ilce}, {baba_adi}, {anne_adi}</p>
+    </div>
+</header>
+
+<section class="report-table-card yonetim-table-card">
+    <form method="post" style="display:grid;gap:1rem;max-width:42rem;">
+        {% csrf_token %}
+        {% for field in form %}
+        <div>
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {% if field.field.widget.input_type == "checkbox" %}
+            <div>{{ field }}</div>
+            {% else %}
+            {{ field.as_widget }}
+            {% endif %}
+            {% if field.help_text %}<p class="muted" style="margin:0.35rem 0 0;font-size:0.9rem;">{{ field.help_text }}</p>{% endif %}
+            {% if field.errors %}<p class="muted" style="color:#b91c1c;">{{ field.errors.0 }}</p>{% endif %}
+        </div>
+        {% endfor %}
+        <div style="display:flex;flex-wrap:wrap;gap:0.75rem;">
+            <button type="submit" class="primary-btn">Kaydet</button>
+            <a href="{% url 'yonetim:sinav_basvuru_mesaj_an_listesi' %}" class="secondary-btn">İptal</a>
+        </div>
+    </form>
+</section>
+
+{% endblock %}

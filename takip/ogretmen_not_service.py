@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import date
+from collections import defaultdict
+from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
 
 from django.db.models import QuerySet
@@ -15,7 +16,13 @@ from takip.ogretmen_not_models import (
     OgretmenSinavNotu,
     OgretmenSinifYoklama,
 )
-from takip.ogretmen_service import _demo_siniflar, _hafta_araligi
+from takip.ogretmen_service import (
+    HAFTA_KAPANIS_SAAT,
+    _demo_siniflar,
+    _hafta_araligi,
+    aktif_hafta_baslangic,
+    hafta_yazilabilir_mi,
+)
 
 
 def ogretmen_sinif_ogrencileri(hoca: EtutHocasi, sinif: SinifSube) -> list[Talebe]:
@@ -30,8 +37,18 @@ def ogretmen_sinif_ogrencileri(hoca: EtutHocasi, sinif: SinifSube) -> list[Taleb
     )
 
 
-def ogretmen_dersleri() -> list[Ders]:
-    return list(Ders.objects.filter(aktif=True).order_by("sira", "ad"))
+def ogretmen_dersleri(hoca: EtutHocasi | None = None) -> list[Ders]:
+    """Aktif dersler — öğretmenin branşı varsa yalnızca o branşın dersleri."""
+    qs = Ders.objects.filter(aktif=True).select_related("brans").order_by("sira", "ad")
+    if hoca is None:
+        return list(qs)
+    try:
+        profil = hoca.odeme_profili
+    except Exception:
+        profil = None
+    if profil and getattr(profil, "brans_id", None):
+        qs = qs.filter(brans_id=profil.brans_id)
+    return list(qs)
 
 
 def _parse_puan(raw: str) -> Decimal | None:
@@ -57,7 +74,8 @@ def ogretmen_not_girisi_verisi(
     siniflar = _demo_siniflar(hoca)
     hafta_no, baslangic, bitis = _hafta_araligi()
     tarih = tarih or localdate()
-    dersler = ogretmen_dersleri()
+    dersler = ogretmen_dersleri(hoca)
+    yazilabilir = hafta_yazilabilir_mi()
 
     secili = None
     if sinif_id:
@@ -134,6 +152,8 @@ def ogretmen_not_girisi_verisi(
         "hafta_baslangic": baslangic,
         "hafta_bitis": bitis,
         "bugun": tarih,
+        "hafta_yazilabilir": yazilabilir,
+        "hafta_kapanis_saat": HAFTA_KAPANIS_SAAT,
     }
 
 
@@ -148,6 +168,11 @@ def ogretmen_not_kaydet(
     hatalar: list[str] = []
     hafta_no, hafta_baslangic, _ = _hafta_araligi(tarih)
 
+    if not hafta_yazilabilir_mi():
+        return [
+            f"Bu hafta kapandı. Not girişi Pazar saat {HAFTA_KAPANIS_SAAT:02d}:00’e kadar açıktır."
+        ], None
+
     sinif = SinifSube.objects.filter(pk=sinif_id).first()
     if not sinif:
         return ["Sınıf bulunamadı."], None
@@ -156,9 +181,10 @@ def ogretmen_not_kaydet(
         ders_id = int(post_data.get("ders_id") or 0)
     except (TypeError, ValueError):
         ders_id = 0
+    izinli_ders_ids = {d.id for d in ogretmen_dersleri(hoca)}
     ders = Ders.objects.filter(pk=ders_id, aktif=True).first()
-    if not ders:
-        return ["Geçerli bir ders seçin."], None
+    if not ders or ders.id not in izinli_ders_ids:
+        return ["Geçerli bir ders seçin (branşınıza ait ders)."], None
 
     ogrenciler = ogretmen_sinif_ogrencileri(hoca, sinif)
     if not ogrenciler:
@@ -326,6 +352,69 @@ def admin_degerlendirme_qs(
     return qs.order_by("-hafta_baslangic", "talebe__sinif_sube__sinif", "talebe__ad_soyad")
 
 
+def ogretmen_haftalik_takip_ozeti(hafta_baslangic: date) -> dict:
+    """Aktif branş öğretmenlerinin seçilen haftada not girip girmediği özeti."""
+    from takip.ogretmen_odeme_service import aktif_ogretmenler
+
+    hocalar = list(
+        aktif_ogretmenler().prefetch_related("sorumlu_sinif_subeler")
+    )
+    giren_ids = set(
+        OgretmenSinavNotu.objects.filter(hafta_baslangic=hafta_baslangic)
+        .values_list("etut_hocasi_id", flat=True)
+        .distinct()
+    )
+    konu_ids = set(
+        OgretmenHaftalikKonu.objects.filter(hafta_baslangic=hafta_baslangic)
+        .exclude(konu="")
+        .values_list("etut_hocasi_id", flat=True)
+        .distinct()
+    )
+    from django.db.models import Count
+
+    not_sayilari = {
+        row["etut_hocasi_id"]: row["adet"]
+        for row in (
+            OgretmenSinavNotu.objects.filter(hafta_baslangic=hafta_baslangic)
+            .values("etut_hocasi_id")
+            .annotate(adet=Count("id"))
+        )
+    }
+
+    satirlar = []
+    for hoca in hocalar:
+        girdi = hoca.id in giren_ids
+        brans = ""
+        try:
+            profil = hoca.odeme_profili
+        except Exception:
+            profil = None
+        if profil and getattr(profil, "brans_id", None):
+            brans = profil.brans.ad
+        siniflar = ", ".join(
+            str(s) for s in hoca.sorumlu_sinif_subeler.all() if s.aktif
+        )
+        satirlar.append(
+            {
+                "hoca": hoca,
+                "brans": brans or "—",
+                "siniflar": siniflar or "—",
+                "girdi": girdi,
+                "konu_girdi": hoca.id in konu_ids,
+                "not_sayisi": not_sayilari.get(hoca.id, 0),
+            }
+        )
+
+    giren = sum(1 for s in satirlar if s["girdi"])
+    return {
+        "hafta_baslangic": hafta_baslangic,
+        "satirlar": satirlar,
+        "toplam_hoca": len(satirlar),
+        "giren": giren,
+        "girmeyen": len(satirlar) - giren,
+    }
+
+
 def talebe_karne_verisi(talebe: Talebe, *, sadece_veliye_acik: bool = True) -> dict:
     qs = _not_qs_base().filter(talebe=talebe)
     if sadece_veliye_acik:
@@ -353,6 +442,119 @@ def talebe_karne_verisi(talebe: Talebe, *, sadece_veliye_acik: bool = True) -> d
         "disiplin_ort": disiplin_ort,
         "kayit_sayisi": len(notlar),
         "son_not": son_not,
+    }
+
+
+def talebe_haftalik_karne_verisi(
+    talebe: Talebe,
+    hafta_baslangic: date | None = None,
+    *,
+    sadece_veliye_acik: bool = True,
+) -> dict:
+    """Tek haftalık eğitim değerlendirme karnesi verisi."""
+    baslangic = hafta_baslangic or aktif_hafta_baslangic()
+    bitis = baslangic + timedelta(days=6)
+    qs = _not_qs_base().filter(talebe=talebe, hafta_baslangic=baslangic)
+    if sadece_veliye_acik:
+        qs = qs.filter(veliye_goster=True)
+    notlar = list(qs.order_by("ders__ad", "etut_hocasi__ad_soyad"))
+
+    konu_map: dict[tuple[int, int], str] = {}
+    if talebe.sinif_sube_id:
+        for k in OgretmenHaftalikKonu.objects.filter(
+            sinif_sube_id=talebe.sinif_sube_id,
+            hafta_baslangic=baslangic,
+        ):
+            konu_map[(k.etut_hocasi_id, k.ders_id)] = (k.konu or "").strip()
+
+    satirlar = []
+    for n in notlar:
+        satirlar.append(
+            {
+                "ogretmen": n.etut_hocasi.ad_soyad,
+                "ders": n.ders.ad if n.ders_id else "—",
+                "konu": konu_map.get((n.etut_hocasi_id, n.ders_id), "") or "—",
+                "puan": n.puan,
+                "degerlendirme": (n.aciklama or "").strip() or "—",
+                "not": n,
+            }
+        )
+
+    puanlar = [s["puan"] for s in satirlar if s["puan"] is not None]
+    ortalama = (
+        (sum(puanlar) / len(puanlar)).quantize(Decimal("0.01")) if puanlar else None
+    )
+
+    return {
+        "talebe": talebe,
+        "hafta_baslangic": baslangic,
+        "hafta_bitis": bitis,
+        "satirlar": satirlar,
+        "ortalama": ortalama,
+        "kayit_sayisi": len(satirlar),
+    }
+
+
+def etut_haftalik_karne_listesi(
+    hoca: EtutHocasi,
+    hafta_baslangic: date | None = None,
+) -> dict:
+    """Etüt hocasının talebeleri için haftalık karne özeti."""
+    baslangic = hafta_baslangic or aktif_hafta_baslangic()
+    bitis = baslangic + timedelta(days=6)
+    talebeler = list(
+        Talebe.objects.filter(etut_hocasi=hoca, aktif=True)
+        .select_related("sinif_sube")
+        .order_by("sinif_sube__sinif", "sinif_sube__sube", "ad_soyad")
+    )
+    notlar = list(
+        _not_qs_base().filter(
+            talebe__etut_hocasi=hoca,
+            hafta_baslangic=baslangic,
+            veliye_goster=True,
+        )
+    )
+    by_talebe: dict[int, list[OgretmenSinavNotu]] = defaultdict(list)
+    for n in notlar:
+        by_talebe[n.talebe_id].append(n)
+
+    arsiv_haftalar = list(
+        OgretmenSinavNotu.objects.filter(
+            talebe__etut_hocasi=hoca,
+            veliye_goster=True,
+        )
+        .values_list("hafta_baslangic", flat=True)
+        .distinct()
+        .order_by("-hafta_baslangic")[:16]
+    )
+
+    satirlar = []
+    for talebe in talebeler:
+        ns = by_talebe.get(talebe.id, [])
+        puanlar = [n.puan for n in ns if n.puan is not None]
+        ortalama = (
+            (sum(puanlar) / len(puanlar)).quantize(Decimal("0.01")) if puanlar else None
+        )
+        satirlar.append(
+            {
+                "talebe": talebe,
+                "not_sayisi": len(ns),
+                "ortalama": ortalama,
+                "notlar": ns,
+            }
+        )
+
+    aktif = aktif_hafta_baslangic()
+    return {
+        "hoca": hoca,
+        "hafta_baslangic": baslangic,
+        "hafta_bitis": bitis,
+        "aktif_hafta": aktif,
+        "arsiv_modu": baslangic != aktif,
+        "arsiv_haftalar": arsiv_haftalar,
+        "satirlar": satirlar,
+        "talebe_sayisi": len(satirlar),
+        "not_girilen": sum(1 for s in satirlar if s["not_sayisi"]),
     }
 
 

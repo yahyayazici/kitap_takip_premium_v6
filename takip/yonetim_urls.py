@@ -14,6 +14,8 @@ from . import ogretmen_odeme_yonetim_views
 from . import mezun_yonetim_views
 from . import aidat_yonetim_views
 from . import veli_randevu_yonetim_views
+from . import sinav_basvuru_yonetim_views
+from . import sinav_basvuru_mesaj_yonetim_views
 from . import yonetim_hizli_kayit_views
 from . import idareci_views
 from . import personel_toplanti_views
@@ -91,6 +93,37 @@ urlpatterns = [
         "siniflar/<int:pk>/duzenle/",
         yonetim_views.sinif_duzenle,
         name="sinif_duzenle",
+    ),
+
+    path(
+        "branslar/",
+        yonetim_views.brans_listesi,
+        name="brans_listesi",
+    ),
+    path(
+        "branslar/ekle/",
+        yonetim_views.brans_ekle,
+        name="brans_ekle",
+    ),
+    path(
+        "branslar/<int:pk>/duzenle/",
+        yonetim_views.brans_duzenle,
+        name="brans_duzenle",
+    ),
+    path(
+        "dersler/",
+        yonetim_views.ders_listesi,
+        name="ders_listesi",
+    ),
+    path(
+        "dersler/ekle/",
+        yonetim_views.ders_ekle,
+        name="ders_ekle",
+    ),
+    path(
+        "dersler/<int:pk>/duzenle/",
+        yonetim_views.ders_duzenle,
+        name="ders_duzenle",
     ),
 
     path(
@@ -174,6 +207,11 @@ urlpatterns = [
         "ogretmen-odeme-profilleri/<int:pk>/sil/",
         ogretmen_odeme_yonetim_views.ogretmen_odeme_profil_sil,
         name="ogretmen_odeme_profil_sil",
+    ),
+    path(
+        "ogretmen-odeme-profilleri/<int:pk>/giris-pdf/",
+        ogretmen_odeme_yonetim_views.ogretmen_giris_pdf_tek,
+        name="ogretmen_giris_pdf_tek",
     ),
 
     path(
@@ -371,6 +409,21 @@ urlpatterns = [
         yonetim_views.program_excel,
         name="program_excel",
     ),
+    path(
+        "programlar/turler/",
+        yonetim_views.program_tur_listesi,
+        name="program_tur_listesi",
+    ),
+    path(
+        "programlar/turler/ekle/",
+        yonetim_views.program_tur_ekle,
+        name="program_tur_ekle",
+    ),
+    path(
+        "programlar/turler/<int:pk>/duzenle/",
+        yonetim_views.program_tur_duzenle,
+        name="program_tur_duzenle",
+    ),
 
     path(
         "imam-muezzin/",
@@ -523,6 +576,47 @@ urlpatterns = [
     ),
 
     path(
+        "sinav-basvurulari/",
+        sinav_basvuru_yonetim_views.sinav_basvuru_listesi,
+        name="sinav_basvuru_listesi",
+    ),
+    path(
+        "sinav-basvurulari/excel/",
+        sinav_basvuru_yonetim_views.sinav_basvuru_excel,
+        name="sinav_basvuru_excel",
+    ),
+    path(
+        "sinav-basvurulari/toplu-mesaj/",
+        sinav_basvuru_yonetim_views.sinav_basvuru_toplu_mesaj,
+        name="sinav_basvuru_toplu_mesaj",
+    ),
+    path(
+        "sinav-basvurulari/<int:pk>/",
+        sinav_basvuru_yonetim_views.sinav_basvuru_detay,
+        name="sinav_basvuru_detay",
+    ),
+    path(
+        "sinav-basvurulari/<int:pk>/sil/",
+        sinav_basvuru_yonetim_views.sinav_basvuru_sil,
+        name="sinav_basvuru_sil",
+    ),
+    path(
+        "sinav-basvuru-mesaj-anlari/",
+        sinav_basvuru_mesaj_yonetim_views.mesaj_an_listesi,
+        name="sinav_basvuru_mesaj_an_listesi",
+    ),
+    path(
+        "sinav-basvuru-mesaj-anlari/<int:pk>/",
+        sinav_basvuru_mesaj_yonetim_views.mesaj_an_duzenle,
+        name="sinav_basvuru_mesaj_an_duzenle",
+    ),
+    path(
+        "sinav-basvuru-mesaj-anlari/<int:pk>/toggle/",
+        sinav_basvuru_mesaj_yonetim_views.mesaj_an_toggle,
+        name="sinav_basvuru_mesaj_an_toggle",
+    ),
+
+    path(
         "dini-ders/seviyeler/",
         dini_ders_takip_yonetim_views.dini_ders_seviye_listesi,
         name="dini_ders_seviye_listesi",
@@ -587,6 +681,21 @@ urlpatterns = [
         "denemeler/<int:pk>/onizleme/",
         deneme_yonetim_views.deneme_onizleme,
         name="deneme_onizleme",
+    ),
+    path(
+        "denemeler/<int:pk>/gap/",
+        deneme_yonetim_views.deneme_gap_yukle,
+        name="deneme_gap_yukle",
+    ),
+    path(
+        "denemeler/<int:pk>/gap/<int:rapor_id>/eslestir/",
+        deneme_yonetim_views.deneme_gap_eslestir,
+        name="deneme_gap_eslestir",
+    ),
+    path(
+        "denemeler/<int:pk>/gap/<int:rapor_id>/sil/",
+        deneme_yonetim_views.deneme_gap_sil,
+        name="deneme_gap_sil",
     ),
 
     path(

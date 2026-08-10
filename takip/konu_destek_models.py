@@ -237,6 +237,13 @@ class KonuSorusu(models.Model):
         C = "C", "C"
         D = "D", "D"
 
+    class SoruTuru(models.TextChoices):
+        TEMEL = "temel", "Temel"
+        KAVRAMA = "kavrama", "Kavrama"
+        UYGULAMA = "uygulama", "Uygulama"
+        YENI_NESIL = "yeni_nesil", "Yeni nesil"
+        KISISEL = "kisisel", "Kişisel pekiştirme"
+
     konu = models.ForeignKey(
         KonuKatalogu,
         on_delete=models.CASCADE,
@@ -244,6 +251,12 @@ class KonuSorusu(models.Model):
         verbose_name="Konu",
     )
     soru_metni = models.TextField(verbose_name="Soru metni")
+    soru_turu = models.CharField(
+        max_length=20,
+        choices=SoruTuru.choices,
+        default=SoruTuru.TEMEL,
+        verbose_name="Soru türü",
+    )
     secenek_a = models.CharField(max_length=500, verbose_name="A şıkkı")
     secenek_b = models.CharField(max_length=500, verbose_name="B şıkkı")
     secenek_c = models.CharField(max_length=500, verbose_name="C şıkkı")

@@ -312,6 +312,17 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         nav_group="Eğitim",
     ),
     PanelNavItem(
+        key="etut_haftalik_karne",
+        label="Haftalık Karneler",
+        url_name="etut_haftalik_karneler",
+        roller=frozenset({ROL_ETUT_MESUL, ROL_SINIF_MESUL}),
+        active_names=(
+            "etut_haftalik_karneler",
+            "etut_talebe_haftalik_karne_pdf",
+        ),
+        nav_group="Eğitim",
+    ),
+    PanelNavItem(
         key="dini_ders_takip",
         label="Dini Ders Takip",
         url_name="dini_ders_panel",

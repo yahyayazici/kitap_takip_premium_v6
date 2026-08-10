@@ -86,6 +86,16 @@ YONETIM_NAV_GROUPS: tuple[YonetimNavGroup, ...] = (
                 ),
             ),
             YonetimNavItem(
+                label="Branşlar",
+                url_name="yonetim:brans_listesi",
+                active_names=("brans_listesi", "brans_ekle", "brans_duzenle"),
+            ),
+            YonetimNavItem(
+                label="Dersler",
+                url_name="yonetim:ders_listesi",
+                active_names=("ders_listesi", "ders_ekle", "ders_duzenle"),
+            ),
+            YonetimNavItem(
                 label="Talebeler",
                 url_name="yonetim:talebe_listesi",
                 active_names=(
@@ -230,6 +240,15 @@ YONETIM_NAV_GROUPS: tuple[YonetimNavGroup, ...] = (
                 ),
             ),
             YonetimNavItem(
+                label="Program Türleri",
+                url_name="yonetim:program_tur_listesi",
+                active_names=(
+                    "program_tur_listesi",
+                    "program_tur_ekle",
+                    "program_tur_duzenle",
+                ),
+            ),
+            YonetimNavItem(
                 label="İmam / Müezzin",
                 url_name="yonetim:imam_listesi",
                 active_names=("imam_listesi", "imam_ekle", "imam_duzenle", "imam_gorev_panel", "imam_onizleme", "imam_pdf"),
@@ -310,6 +329,26 @@ YONETIM_NAV_GROUPS: tuple[YonetimNavGroup, ...] = (
                 ),
             ),
             YonetimNavItem(
+                label="Sınav Başvuruları",
+                url_name="yonetim:sinav_basvuru_listesi",
+                active_names=(
+                    "sinav_basvuru_listesi",
+                    "sinav_basvuru_detay",
+                    "sinav_basvuru_sil",
+                    "sinav_basvuru_excel",
+                    "sinav_basvuru_toplu_mesaj",
+                ),
+            ),
+            YonetimNavItem(
+                label="Başvuru Mesaj Anları",
+                url_name="yonetim:sinav_basvuru_mesaj_an_listesi",
+                active_names=(
+                    "sinav_basvuru_mesaj_an_listesi",
+                    "sinav_basvuru_mesaj_an_duzenle",
+                    "sinav_basvuru_mesaj_an_toggle",
+                ),
+            ),
+            YonetimNavItem(
                 label="Dini Ders",
                 url_name="yonetim:dini_ders_alan_listesi",
                 active_names=(
@@ -343,7 +382,7 @@ YONETIM_NAV_GROUPS: tuple[YonetimNavGroup, ...] = (
                 ),
             ),
             YonetimNavItem(
-                label="Öğretmen Notları",
+                label="Haftalık Not Takibi",
                 url_name="yonetim:ogretmen_degerlendirme_rapor",
                 active_names=(
                     "ogretmen_degerlendirme_rapor",

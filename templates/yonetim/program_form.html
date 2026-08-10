@@ -3,7 +3,7 @@
 
 {% block title %}{{ program.ad }} · Düzenle{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/program-sure.css' %}">
+<link rel="stylesheet" href="{% static 'css/program-sure.css' %}?v=flow4">
 {% endblock %}
 
 {% block content %}
@@ -12,9 +12,10 @@
     <div>
         <p class="kicker">PROGRAM DÜZENLEME</p>
         <h1>{{ program.ad }}</h1>
-        <p class="muted">Saat aralığı girildiğinde süre otomatik hesaplanır. Tür seçince altta süre özeti güncellenir (kayıttan sonra).</p>
+        <p class="muted">Saat ve faaliyet girin; sıra otomatik oluşur. İstediğiniz kadar satır ekleyebilirsiniz.</p>
     </div>
     <div class="yonetim-page-head-actions">
+        <a href="{% url 'yonetim:program_tur_listesi' %}" class="ghost-btn yonetim-head-ghost">Türler</a>
         <a href="{% url 'yonetim:program_pdf' program.pk %}" class="ghost-btn yonetim-head-ghost" target="_blank">PDF İndir</a>
         <a href="{% url 'yonetim:program_excel' program.pk %}" class="ghost-btn yonetim-head-ghost">Excel İndir</a>
         <a href="{% url 'yonetim:program_listesi' %}" class="ghost-btn">Listeye Dön</a>
@@ -23,8 +24,14 @@
 
 {% include "includes/program_sure_ozeti.html" with baslangic_kapali=True %}
 
-<form method="post" class="program-edit-form">
+<form method="post" class="program-edit-form" id="program-edit-form">
     {% csrf_token %}
+
+    {% if form.errors or formset.errors or formset.non_form_errors %}
+    <div class="yonetim-form-errors" style="margin-bottom:1rem;">
+        Kayıt tamamlanamadı — satırlar PDF’e yansımaz. Üstteki tarih alanlarını ve satır hatalarını kontrol edip tekrar Kaydet’e basın.
+    </div>
+    {% endif %}
 
     <section class="dashboard-card yonetim-form-card">
         <div class="card-heading"><div><p class="card-kicker">PLAN BİLGİSİ</p><h2>Genel Ayarlar</h2></div></div>
@@ -46,6 +53,7 @@
                 <p class="card-kicker">GÜNLÜK SATIRLAR</p>
                 <h2>Program Akışı</h2>
             </div>
+            <button type="button" class="ghost-btn" id="pg-satir-ekle">Satır ekle</button>
         </div>
 
         {{ formset.management_form }}
@@ -55,37 +63,53 @@
             <table class="report-data-table yonetim-data-table program-lines-table">
                 <thead>
                     <tr>
-                        <th>Sıra</th>
                         <th>Başlangıç</th>
                         <th>Bitiş</th>
                         <th>Tür</th>
                         <th>Faaliyet</th>
-                        <th>Program Adı</th>
-                        <th>Durum</th>
                         <th>Sil</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="pg-satir-body">
                     {% for satir_form in formset %}
-                    <tr>
-                        {% for hidden in satir_form.hidden_fields %}{{ hidden }}{% endfor %}
-                        <td>{{ satir_form.sira }}</td>
-                        <td>{{ satir_form.baslangic_saati }}</td>
+                    <tr class="pg-satir-row">
+                        <td>
+                            {% for hidden in satir_form.hidden_fields %}{{ hidden }}{% endfor %}
+                            {{ satir_form.baslangic_saati }}
+                        </td>
                         <td>{{ satir_form.bitis_saati }}</td>
                         <td>{{ satir_form.faaliyet_turu }}</td>
                         <td>{{ satir_form.faaliyet_adi }}</td>
-                        <td>{{ satir_form.program_adi }}</td>
-                        <td>{{ satir_form.faaliyet_durumu }}</td>
                         <td>{% if satir_form.DELETE %}{{ satir_form.DELETE }}{% endif %}</td>
                     </tr>
                     {% if satir_form.errors %}
-                    <tr><td colspan="8" class="yonetim-field-error">{{ satir_form.errors }}</td></tr>
+                    <tr class="pg-satir-errors">
+                        <td colspan="5" class="yonetim-field-error">
+                            {% for err in satir_form.non_field_errors %}<div>{{ err }}</div>{% endfor %}
+                            {% for field in satir_form %}
+                                {% for err in field.errors %}<div>{{ field.label }}: {{ err }}</div>{% endfor %}
+                            {% endfor %}
+                        </td>
+                    </tr>
                     {% endif %}
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </section>
+
+    <template id="pg-satir-empty">
+        <tr class="pg-satir-row">
+            <td>
+                {% for hidden in formset.empty_form.hidden_fields %}{{ hidden }}{% endfor %}
+                {{ formset.empty_form.baslangic_saati }}
+            </td>
+            <td>{{ formset.empty_form.bitis_saati }}</td>
+            <td>{{ formset.empty_form.faaliyet_turu }}</td>
+            <td>{{ formset.empty_form.faaliyet_adi }}</td>
+            <td>{% if formset.empty_form.DELETE %}{{ formset.empty_form.DELETE }}{% endif %}</td>
+        </tr>
+    </template>
 
     {% if sure_donemler %}
     <div class="pg-sure-bottom">
@@ -116,9 +140,34 @@
     </div>
     {% endif %}
 
-    <div class="yonetim-form-actions program-form-actions">
+    <div class="program-form-actions">
         <button type="submit" class="primary-btn">Kaydet</button>
+        <button type="button" class="ghost-btn" id="pg-satir-ekle-alt">Satır ekle</button>
     </div>
 </form>
 
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+(function () {
+    var body = document.getElementById("pg-satir-body");
+    var template = document.getElementById("pg-satir-empty");
+    var total = document.getElementById("id_satirlar-TOTAL_FORMS");
+    if (!body || !template || !total) return;
+
+    function addRow() {
+        var index = parseInt(total.value, 10) || 0;
+        var html = template.innerHTML.replace(/__prefix__/g, String(index));
+        body.insertAdjacentHTML("beforeend", html);
+        total.value = String(index + 1);
+    }
+
+    ["pg-satir-ekle", "pg-satir-ekle-alt"].forEach(function (id) {
+        var btn = document.getElementById(id);
+        if (btn) btn.addEventListener("click", addRow);
+    });
+})();
+</script>
 {% endblock %}

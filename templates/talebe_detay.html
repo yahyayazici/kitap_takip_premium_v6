@@ -45,18 +45,30 @@
             {% else %}
                 <span class="status-pill status-iade">{{ talebe.get_durum_display }}</span>
             {% endif %}
+            {% if profil_eksik %}
+                <span class="status-pill status-iade">Profil eksik</span>
+            {% endif %}
+            {% if yonetim_erisim %}
+            <a href="{% url 'yonetim:talebe_duzenle' talebe.id %}" class="primary-btn">Öğrenciyi düzenle</a>
+            {% elif profil_duzenle %}
+            <a href="?sekme=kimlik" class="primary-btn">Öğrenciyi düzenle</a>
+            {% endif %}
         </div>
     </header>
 
-    {% if gelisim_erisim %}
-    <nav class="profile-tab-nav" style="display:flex;gap:8px;margin-bottom:8px;">
-        <a href="?sekme=egitim" class="ghost-btn"{% if aktif_sekme == 'egitim' %} style="background:#eef3ff;color:#173b80;"{% endif %}>Eğitim & Kitap</a>
-        <a href="?sekme=gelisim" class="ghost-btn"{% if aktif_sekme == 'gelisim' %} style="background:#eef3ff;color:#173b80;"{% endif %}>Gelişim Dosyası</a>
-        <a href="?sekme=kimlik" class="ghost-btn"{% if aktif_sekme == 'kimlik' %} style="background:#eef3ff;color:#173b80;"{% endif %}>Kimlik & Veli</a>
+    {% if gelisim_erisim or kimlik_erisim %}
+    <nav class="profile-tab-nav" aria-label="Profil sekmeleri">
+        <a href="?sekme=egitim" class="ghost-btn{% if aktif_sekme == 'egitim' %} is-active{% endif %}">Eğitim &amp; Kitap</a>
+        {% if gelisim_erisim %}
+        <a href="?sekme=gelisim" class="ghost-btn{% if aktif_sekme == 'gelisim' %} is-active{% endif %}">Gelişim Dosyası</a>
+        {% endif %}
+        {% if kimlik_erisim %}
+        <a href="?sekme=kimlik" class="ghost-btn{% if aktif_sekme == 'kimlik' %} is-active{% endif %}">Kimlik &amp; Veli{% if profil_eksik %} · tamamla{% endif %}</a>
+        {% endif %}
     </nav>
     {% endif %}
 
-    {% if aktif_sekme == 'egitim' or not gelisim_erisim %}
+    {% if aktif_sekme == 'egitim' or not gelisim_erisim and not kimlik_erisim %}
 
     <section class="metric-grid profile-metrics">
         <p class="card-kicker" style="grid-column:1/-1;margin:0 0 4px;">KİTAP KARNESİ</p>
@@ -424,7 +436,82 @@
     {% include "includes/gelisim_dosyasi.html" %}
     {% endif %}
 
-    {% if gelisim_erisim and aktif_sekme == 'kimlik' %}
+    {% if kimlik_erisim and aktif_sekme == 'kimlik' %}
+    {% if profil_duzenle and profil_form %}
+    <section class="profile-card">
+        <div class="card-heading">
+            <div>
+                <p class="card-kicker">ÖĞRENCİYİ DÜZENLE</p>
+                <h2>Kimlik, fotoğraf ve veli</h2>
+                <p class="muted" style="margin:6px 0 0;font-size:13px;">
+                    Hızlı kayıtta girilmeyen alanları (fotoğraf dahil) burada doldurun.
+                    {% if profil_eksik_alanlar %}
+                    Eksik: {{ profil_eksik_alanlar|join:", " }}.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        <form method="post" enctype="multipart/form-data" class="profil-tamamla-form" id="talebe-profil-form">
+            {% csrf_token %}
+            <input type="hidden" name="aksiyon" value="profil_tamamla">
+            {% if profil_form.non_field_errors %}
+            <div class="yonetim-form-errors" style="margin-bottom:12px;">{{ profil_form.non_field_errors }}</div>
+            {% endif %}
+
+            {% for baslik, alanlar in profil_form_bolumleri %}
+            <h3 style="font-size:14px;margin:0 0 10px;">{{ baslik }}</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:18px;">
+                {% for field in alanlar %}
+                <div{% if field.name == "biyometrik_foto" or field.name == "ev_adresi" %} style="grid-column:1/-1"{% endif %}>
+                    <label for="{{ field.id_for_label }}" style="display:block;font-size:12px;margin-bottom:4px;">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}<p style="color:#b91c1c;font-size:12px;margin:4px 0 0;">{{ field.errors.0 }}</p>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+
+            <button type="submit" class="primary-btn">Profili Kaydet</button>
+        </form>
+    </section>
+    {{ il_ilce_json|json_script:"talebe-il-ilce-data" }}
+    <script>
+    (function () {
+        function hazirla() {
+            var dataEl = document.getElementById("talebe-il-ilce-data");
+            var form = document.getElementById("talebe-profil-form");
+            if (!dataEl || !form) return;
+            var harita = {};
+            try { harita = JSON.parse(dataEl.textContent); } catch (e) { return; }
+            var il = form.querySelector('[name="memleket"]');
+            var ilce = form.querySelector('[name="memleket_ilce"]');
+            if (!il || !ilce) return;
+            var ilkIlce = ilce.value || "";
+            function doldur(koruSecim) {
+                var secilen = (il.value || "").trim();
+                var liste = harita[secilen] || [];
+                var onceki = koruSecim ? (ilce.value || ilkIlce) : "";
+                ilce.innerHTML = "";
+                var bos = document.createElement("option");
+                bos.value = "";
+                bos.textContent = secilen ? "İlçe seçin" : "Önce il seçin";
+                ilce.appendChild(bos);
+                liste.forEach(function (ad) {
+                    var opt = document.createElement("option");
+                    opt.value = ad;
+                    opt.textContent = ad;
+                    if (onceki && ad === onceki) opt.selected = true;
+                    ilce.appendChild(opt);
+                });
+            }
+            il.addEventListener("change", function () { ilkIlce = ""; doldur(false); });
+            doldur(true);
+        }
+        if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", hazirla);
+        else hazirla();
+    })();
+    </script>
+    {% else %}
     <section class="profile-card">
         <div class="card-heading">
             <div>
@@ -466,12 +553,13 @@
                         <td>{{ veli.eposta|default:"—" }}</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="4" class="report-empty">Veli kaydı yok — yönetim panelinden eklenebilir.</td></tr>
+                    <tr><td colspan="4" class="report-empty">Veli kaydı yok — etüt hocası veya yönetim doldurabilir.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </section>
+    {% endif %}
     {% endif %}
 
     <footer class="profile-action-bar">

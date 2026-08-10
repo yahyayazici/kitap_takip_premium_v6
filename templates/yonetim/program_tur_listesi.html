@@ -1,0 +1,51 @@
+{% extends "yonetim/base.html" %}
+
+{% block title %}Program Türleri{% endblock %}
+
+{% block content %}
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">GÜNLÜK PROGRAM</p>
+        <h1>Faaliyet Türleri</h1>
+        <p class="muted">Akışta kullanılan türleri buradan ekleyin veya düzenleyin (Ders, Namaz, Mola…).</p>
+    </div>
+    <div class="yonetim-page-head-actions">
+        <a href="{% url 'yonetim:program_listesi' %}" class="ghost-btn">Programlar</a>
+        <a href="{% url 'yonetim:program_tur_ekle' %}" class="primary-btn">Tür Ekle</a>
+    </div>
+</header>
+
+<section class="report-table-card yonetim-table-card">
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <thead>
+                <tr>
+                    <th>Sıra</th>
+                    <th>Kod</th>
+                    <th>Ad</th>
+                    <th>Renk</th>
+                    <th>Durum</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tur in turler %}
+                <tr>
+                    <td>{{ tur.sira }}</td>
+                    <td><code>{{ tur.kod }}</code></td>
+                    <td>
+                        <span class="pg-tur-swatch pg-flow-renk-{{ tur.renk }}"></span>
+                        {{ tur.ad }}
+                    </td>
+                    <td>{{ tur.renk }}</td>
+                    <td>{% if tur.aktif %}Aktif{% else %}Pasif{% endif %}</td>
+                    <td><a href="{% url 'yonetim:program_tur_duzenle' tur.pk %}" class="ghost-btn">Düzenle</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="report-empty">Tür yok. İlk türü ekleyin.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

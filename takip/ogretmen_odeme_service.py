@@ -10,7 +10,7 @@ from typing import Any
 
 from django.contrib.auth.models import User
 from django.db import transaction
-from django.db.models import QuerySet, Sum
+from django.db.models import Q, QuerySet, Sum
 from django.utils import timezone
 
 from takip.models import EtutHocasi, SinifSube
@@ -20,8 +20,14 @@ from takip.ogretmen_odeme_models import (
     OgretmenOdemeGunKaydi,
     OgretmenOdemeProfili,
 )
-from takip.permissions.service import can
+from takip.permissions.service import can, kullanici_rol_slugleri
+from takip.user_helpers import etut_hocasi_for_user
 from takip.wave0_models import Brans
+
+# Öğretmen ödemede kurum geneli gören roller (sınıf/etüt mesulü hariç)
+_ODEME_TAM_KAPSAM_ROLLER = frozenset(
+    {"idareci", "ic_mesul", "egitim_mesul", "muhasebeci"}
+)
 
 PARA = Decimal("0.01")
 SAAT = Decimal("0.01")
@@ -71,7 +77,62 @@ def ogretmen_profili(etut_hocasi: EtutHocasi) -> OgretmenOdemeProfili:
 
 
 def aktif_ogretmenler() -> QuerySet[EtutHocasi]:
-    return EtutHocasi.objects.filter(aktif=True).order_by("ad_soyad")
+    """Branş öğretmenleri — etüt/sınıf mesulü personel kayıtları hariç."""
+    return (
+        EtutHocasi.objects.filter(aktif=True, personel_kaydi__isnull=True)
+        .select_related("odeme_profili", "odeme_profili__brans")
+        .order_by("ad_soyad")
+    )
+
+
+def odeme_tam_kapsam_var(user: User) -> bool:
+    """Admin / idare / muhasebe tüm sınıf ve öğretmenleri görür; mesul kapsama girer."""
+    if not user.is_authenticated:
+        return False
+    if user.is_superuser:
+        return True
+    if can(user, "ogretmen_odeme", "view_financial"):
+        return True
+    return bool(kullanici_rol_slugleri(user) & _ODEME_TAM_KAPSAM_ROLLER)
+
+
+def yetkili_odeme_siniflari(user: User) -> QuerySet[SinifSube]:
+    qs = SinifSube.objects.filter(aktif=True)
+    if odeme_tam_kapsam_var(user):
+        return qs.order_by("sinif", "sube")
+
+    hoca = etut_hocasi_for_user(user)
+    if not hoca:
+        return qs.none()
+    return hoca.sorumlu_sinif_subeler.filter(aktif=True).order_by("sinif", "sube")
+
+
+def yetkili_odeme_ogretmenleri(
+    user: User,
+    *,
+    olusturma_icin: bool = False,
+) -> QuerySet[EtutHocasi]:
+    """
+    Etüt/sınıf mesulü: yalnızca kendi sınıflarına atanmış
+    (veya o sınıflarda saat kaydı olan) branş öğretmenleri.
+    """
+    qs = aktif_ogretmenler()
+    if odeme_tam_kapsam_var(user):
+        return qs
+
+    sinif_ids = list(yetkili_odeme_siniflari(user).values_list("id", flat=True))
+    if not sinif_ids:
+        return qs.none()
+
+    scoped = qs.filter(
+        Q(sorumlu_sinif_subeler__in=sinif_ids)
+        | Q(odeme_donemleri__gunler__dersler__sinif_sube_id__in=sinif_ids)
+    ).distinct()
+
+    # Sınıfa henüz öğretmen atanmadıysa dönem oluşturabilsin
+    if olusturma_icin and not scoped.exists():
+        return qs
+    return scoped
 
 
 def donem_qs() -> QuerySet[OgretmenOdemeDonemi]:
@@ -81,6 +142,21 @@ def donem_qs() -> QuerySet[OgretmenOdemeDonemi]:
         "etut_hocasi__odeme_profili__brans",
         "olusturan",
     )
+
+
+def yetkili_odeme_donemleri(user: User) -> QuerySet[OgretmenOdemeDonemi]:
+    qs = donem_qs()
+    if odeme_tam_kapsam_var(user):
+        return qs
+
+    sinif_ids = list(yetkili_odeme_siniflari(user).values_list("id", flat=True))
+    ogretmen_ids = list(yetkili_odeme_ogretmenleri(user).values_list("id", flat=True))
+    kosul = Q(olusturan=user)
+    if ogretmen_ids:
+        kosul |= Q(etut_hocasi_id__in=ogretmen_ids)
+    if sinif_ids:
+        kosul |= Q(gunler__dersler__sinif_sube_id__in=sinif_ids)
+    return qs.filter(kosul).distinct()
 
 
 @transaction.atomic
@@ -131,17 +207,30 @@ def _parse_ders_satirlari(post_data) -> dict[int, list[dict]]:
     return satirlar
 
 
-def donem_matris_verisi(donem: OgretmenOdemeDonemi) -> dict:
+def donem_matris_verisi(
+    donem: OgretmenOdemeDonemi,
+    *,
+    siniflar: list[SinifSube] | QuerySet[SinifSube] | None = None,
+) -> dict:
     """Sınıf × gün matrisi — mockup arayüzü için."""
-    siniflar = list(SinifSube.objects.filter(aktif=True).order_by("sinif", "sube"))
+    if siniflar is None:
+        sinif_list = list(SinifSube.objects.filter(aktif=True).order_by("sinif", "sube"))
+    else:
+        sinif_list = list(siniflar)
+    izinli_sinif_ids = {s.id for s in sinif_list}
     hucre_map: dict[tuple[int, int], Decimal] = {}
+    gun_kapsam_toplam: dict[int, Decimal] = defaultdict(lambda: Decimal("0.00"))
 
     gunler = []
     for gun in donem.gunler.order_by("tarih"):
         for ders in gun.dersler.all():
+            if izinli_sinif_ids and ders.sinif_sube_id not in izinli_sinif_ids:
+                continue
             hucre_map[(gun.id, ders.sinif_sube_id)] = ders.saat
+            gun_kapsam_toplam[gun.id] += ders.saat
         wd = gun.tarih.weekday()
         gun_kisalt = ["PZT", "SAL", "ÇAR", "PER", "CUM", "CMT", "PAZ"][wd]
+        kapsam_toplam = _yuvarla_saat(gun_kapsam_toplam[gun.id])
         gunler.append(
             {
                 "id": gun.id,
@@ -149,12 +238,12 @@ def donem_matris_verisi(donem: OgretmenOdemeDonemi) -> dict:
                 "gun_kisalt": gun_kisalt,
                 "tarih_kisa": gun.tarih.strftime("%d.%m"),
                 "hafta_sonu": wd in (4, 6),
-                "toplam_saat": gun.toplam_saat,
+                "toplam_saat": kapsam_toplam,
             }
         )
 
     satirlar = []
-    for sinif in siniflar:
+    for sinif in sinif_list:
         hucreler = []
         for gun in gunler:
             saat = hucre_map.get((gun["id"], sinif.id))
@@ -169,15 +258,18 @@ def donem_matris_verisi(donem: OgretmenOdemeDonemi) -> dict:
 
     profil = getattr(donem.etut_hocasi, "odeme_profili", None)
     brans_etiket = profil.brans.ad if profil and profil.brans_id else "—"
+    kapsam_toplam_saat = _yuvarla_saat(
+        sum((g["toplam_saat"] for g in gunler), Decimal("0.00"))
+    )
 
     return {
         "donem": donem,
-        "siniflar": siniflar,
+        "siniflar": sinif_list,
         "gunler": gunler,
         "satirlar": satirlar,
         "gun_toplamlari": [g["toplam_saat"] for g in gunler],
-        "toplam_saat": donem.toplam_saat,
-        "odenecek_tutar": donem.odenecek_tutar,
+        "toplam_saat": kapsam_toplam_saat,
+        "odenecek_tutar": _yuvarla_para(kapsam_toplam_saat * donem.saatlik_ucret),
         "ogretmen_bas_harf": donem.etut_hocasi.ad_soyad[:2].upper(),
         "brans_etiket": brans_etiket,
         "donem_yil": f"{donem.baslangic.year}-{donem.bitis.year}",
@@ -209,18 +301,28 @@ def _parse_matris_hucreleri(post_data) -> dict[tuple[int, int], Decimal]:
     return hucreler
 
 
-def _matris_kaydet(donem: OgretmenOdemeDonemi, post_data, user: User) -> None:
+def _matris_kaydet(
+    donem: OgretmenOdemeDonemi,
+    post_data,
+    user: User,
+    *,
+    izinli_sinif_ids: set[int] | None = None,
+) -> None:
     hucreler = _parse_matris_hucreleri(post_data)
     gunler = {gun.id: gun for gun in donem.gunler.all()}
     profil = ogretmen_profili(donem.etut_hocasi)
     varsayilan_brans = profil.brans if profil.brans_id else None
 
-    OgretmenOdemeDersKaydi.objects.filter(gun__donem=donem).delete()
+    ders_qs = OgretmenOdemeDersKaydi.objects.filter(gun__donem=donem)
+    if izinli_sinif_ids is not None:
+        ders_qs = ders_qs.filter(sinif_sube_id__in=izinli_sinif_ids)
+    ders_qs.delete()
 
-    gun_toplam: dict[int, Decimal] = defaultdict(lambda: Decimal("0.00"))
     yeni_kayitlar: list[OgretmenOdemeDersKaydi] = []
 
     for (gun_id, sinif_id), saat in hucreler.items():
+        if izinli_sinif_ids is not None and sinif_id not in izinli_sinif_ids:
+            continue
         gun = gunler.get(gun_id)
         if not gun:
             continue
@@ -232,33 +334,52 @@ def _matris_kaydet(donem: OgretmenOdemeDonemi, post_data, user: User) -> None:
                 saat=saat,
             )
         )
-        gun_toplam[gun_id] += saat
 
     if yeni_kayitlar:
         OgretmenOdemeDersKaydi.objects.bulk_create(yeni_kayitlar)
 
     for gun_id, gun in gunler.items():
-        gun.toplam_saat = _yuvarla_saat(gun_toplam.get(gun_id, Decimal("0.00")))
+        toplam = (
+            gun.dersler.aggregate(toplam=Sum("saat")).get("toplam")
+            or Decimal("0.00")
+        )
+        gun.toplam_saat = _yuvarla_saat(Decimal(toplam))
         gun.save(update_fields=["toplam_saat"])
 
 
 @transaction.atomic
-def donem_kaydet(donem: OgretmenOdemeDonemi, post_data, user: User) -> OgretmenOdemeDonemi:
+def donem_kaydet(
+    donem: OgretmenOdemeDonemi,
+    post_data,
+    user: User,
+    *,
+    izinli_sinif_ids: set[int] | None = None,
+) -> OgretmenOdemeDonemi:
     if any(k.startswith("cell_") for k in post_data):
-        _matris_kaydet(donem, post_data, user)
+        _matris_kaydet(
+            donem,
+            post_data,
+            user,
+            izinli_sinif_ids=izinli_sinif_ids,
+        )
     else:
         satirlar = _parse_ders_satirlari(post_data)
         gunler = {gun.id: gun for gun in donem.gunler.all()}
 
-        OgretmenOdemeDersKaydi.objects.filter(gun__donem=donem).delete()
+        ders_qs = OgretmenOdemeDersKaydi.objects.filter(gun__donem=donem)
+        if izinli_sinif_ids is not None:
+            ders_qs = ders_qs.filter(sinif_sube_id__in=izinli_sinif_ids)
+        ders_qs.delete()
 
         yeni_kayitlar: list[OgretmenOdemeDersKaydi] = []
         for gun_id, gun in gunler.items():
-            gun_toplam = Decimal("0.00")
             for satir in satirlar.get(gun_id, []):
                 sinif_id = satir.get("sinif_sube", "")
                 saat_raw = satir.get("saat", "").replace(",", ".")
                 if not sinif_id.isdigit() or not saat_raw:
+                    continue
+                sinif_no = int(sinif_id)
+                if izinli_sinif_ids is not None and sinif_no not in izinli_sinif_ids:
                     continue
                 try:
                     saat = _yuvarla_saat(Decimal(saat_raw))
@@ -273,17 +394,22 @@ def donem_kaydet(donem: OgretmenOdemeDonemi, post_data, user: User) -> OgretmenO
                 yeni_kayitlar.append(
                     OgretmenOdemeDersKaydi(
                         gun=gun,
-                        sinif_sube_id=int(sinif_id),
+                        sinif_sube_id=sinif_no,
                         brans=brans,
                         saat=saat,
                     )
                 )
-                gun_toplam += saat
-            gun.toplam_saat = _yuvarla_saat(gun_toplam)
-            gun.save(update_fields=["toplam_saat"])
 
         if yeni_kayitlar:
             OgretmenOdemeDersKaydi.objects.bulk_create(yeni_kayitlar)
+
+        for gun in gunler.values():
+            toplam = (
+                gun.dersler.aggregate(toplam=Sum("saat")).get("toplam")
+                or Decimal("0.00")
+            )
+            gun.toplam_saat = _yuvarla_saat(Decimal(toplam))
+            gun.save(update_fields=["toplam_saat"])
 
     donem.notlar = post_data.get("notlar", donem.notlar or "").strip()
 
@@ -359,8 +485,12 @@ def rapor_filtreleri(request_get) -> dict[str, Any]:
     }
 
 
-def _donem_qs_filtrele(filtre: dict[str, Any]) -> QuerySet[OgretmenOdemeDonemi]:
-    qs = donem_qs()
+def _donem_qs_filtrele(
+    filtre: dict[str, Any],
+    *,
+    user: User | None = None,
+) -> QuerySet[OgretmenOdemeDonemi]:
+    qs = yetkili_odeme_donemleri(user) if user is not None else donem_qs()
     if filtre["baslangic"]:
         qs = qs.filter(bitis__gte=filtre["baslangic"])
     if filtre["bitis"]:
@@ -374,16 +504,21 @@ def _donem_qs_filtrele(filtre: dict[str, Any]) -> QuerySet[OgretmenOdemeDonemi]:
     return qs.order_by("-baslangic", "etut_hocasi__ad_soyad")
 
 
-def rapor_ozet_satirlari(filtre: dict[str, Any], *, finans: bool) -> list[dict[str, Any]]:
+def rapor_ozet_satirlari(
+    filtre: dict[str, Any],
+    *,
+    finans: bool,
+    user: User | None = None,
+) -> list[dict[str, Any]]:
     gruplama = filtre.get("gruplama", "donemlik")
     if gruplama == "donemlik":
-        return _rapor_donemlik(filtre, finans=finans)
-    return _rapor_ders_bazli(filtre, finans=finans, gruplama=gruplama)
+        return _rapor_donemlik(filtre, finans=finans, user=user)
+    return _rapor_ders_bazli(filtre, finans=finans, gruplama=gruplama, user=user)
 
 
-def _rapor_donemlik(filtre: dict, *, finans: bool) -> list[dict]:
+def _rapor_donemlik(filtre: dict, *, finans: bool, user: User | None = None) -> list[dict]:
     satirlar = []
-    for donem in _donem_qs_filtrele(filtre):
+    for donem in _donem_qs_filtrele(filtre, user=user):
         profil = getattr(donem.etut_hocasi, "odeme_profili", None)
         satir = {
             "etiket": str(donem),
@@ -402,13 +537,23 @@ def _rapor_donemlik(filtre: dict, *, finans: bool) -> list[dict]:
     return satirlar
 
 
-def _rapor_ders_bazli(filtre: dict, *, finans: bool, gruplama: str) -> list[dict]:
+def _rapor_ders_bazli(
+    filtre: dict,
+    *,
+    finans: bool,
+    gruplama: str,
+    user: User | None = None,
+) -> list[dict]:
     ders_qs = OgretmenOdemeDersKaydi.objects.select_related(
         "gun__donem__etut_hocasi",
         "gun__donem__etut_hocasi__odeme_profili__brans",
         "sinif_sube",
         "brans",
-    ).filter(gun__donem__in=_donem_qs_filtrele(filtre))
+    ).filter(gun__donem__in=_donem_qs_filtrele(filtre, user=user))
+
+    if user is not None and not odeme_tam_kapsam_var(user):
+        sinif_ids = list(yetkili_odeme_siniflari(user).values_list("id", flat=True))
+        ders_qs = ders_qs.filter(sinif_sube_id__in=sinif_ids)
 
     if filtre["baslangic"]:
         ders_qs = ders_qs.filter(gun__tarih__gte=filtre["baslangic"])

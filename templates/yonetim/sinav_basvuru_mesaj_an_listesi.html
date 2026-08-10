@@ -1,0 +1,78 @@
+{% extends "yonetim/base.html" %}
+{% block title %}Başvuru Mesaj Anları{% endblock %}
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">EĞİTİM</p>
+        <h1>Başvuru Mesaj Anları</h1>
+        <p class="muted">WhatsApp Business mesajlarının ne zaman ve nasıl gideceğini yönetin.</p>
+    </div>
+    <a href="{% url 'yonetim:sinav_basvuru_listesi' %}" class="secondary-btn">Başvurulara dön</a>
+</header>
+
+{% if not whatsapp_aktif %}
+<section class="report-table-card yonetim-table-card" style="margin-bottom:1rem;">
+    <p class="muted" style="margin:0;">
+        WhatsApp şu an pasif. Render ortamına
+        <code>WHATSAPP_AKTIF=True</code>, <code>WHATSAPP_TOKEN</code> ve
+        <code>WHATSAPP_PHONE_NUMBER_ID</code> ekleyin. Anlar yine de düzenlenebilir.
+    </p>
+</section>
+{% endif %}
+
+<section class="report-table-card yonetim-table-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">MESAJ ANLARI</p>
+            <h2>Şablon listesi</h2>
+        </div>
+        <span class="report-record-count">{{ sablonlar|length }} an</span>
+    </div>
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <thead>
+                <tr>
+                    <th>Sıra</th>
+                    <th>An</th>
+                    <th>Başlık</th>
+                    <th>Alıcı</th>
+                    <th>Template</th>
+                    <th>Aktif</th>
+                    <th class="yonetim-action-col">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in sablonlar %}
+                <tr>
+                    <td class="num-col">{{ s.sira }}</td>
+                    <td><code>{{ s.an_kodu }}</code></td>
+                    <td><strong>{{ s.baslik }}</strong></td>
+                    <td>{{ s.get_alici_display }}</td>
+                    <td>{% if s.wa_template_name %}{{ s.wa_template_name }}{% else %}<span class="muted">metin</span>{% endif %}</td>
+                    <td>
+                        {% if s.aktif %}
+                        <span class="status-pill status-okunuyor">Aktif</span>
+                        {% else %}
+                        <span class="status-pill status-iade">Pasif</span>
+                        {% endif %}
+                    </td>
+                    <td class="yonetim-action-col">
+                        <a href="{% url 'yonetim:sinav_basvuru_mesaj_an_duzenle' s.pk %}" class="yonetim-link">Düzenle</a>
+                        <form method="post" action="{% url 'yonetim:sinav_basvuru_mesaj_an_toggle' s.pk %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="yonetim-link" style="background:none;border:0;padding:0;cursor:pointer;">
+                                {% if s.aktif %}Pasifleştir{% else %}Aktifleştir{% endif %}
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="report-empty">Mesaj anı yok. <code>python manage.py seed_sinav_basvuru_mesaj</code> çalıştırın.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

@@ -7,6 +7,7 @@ from config.branding import (
     PANEL_ORG,
     PANEL_SHORT,
     PANEL_TAGLINE,
+    SINAV_BASVURU_BASLIK,
 )
 from takip.panel_permissions import panel_nav_groups, panel_nav_items, rol_etiketi
 from takip.yonetim_nav import yonetim_nav_groups
@@ -108,6 +109,7 @@ def panel_branding(request):
         "panel_org": PANEL_ORG,
         "panel_tagline": PANEL_TAGLINE,
         "panel_footer": PANEL_FOOTER,
+        "sinav_basvuru_baslik": SINAV_BASVURU_BASLIK,
         "panel_modules": PANEL_MODULES,
         "panel_nav": nav,
         "panel_nav_groups": nav_groups,

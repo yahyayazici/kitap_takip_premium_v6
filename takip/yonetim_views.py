@@ -84,6 +84,7 @@ from .yonetim_forms import (
     ImamMuezzinAtamaFormSet,
     ImamMuezzinListesiForm,
     PersonelProfiliForm,
+    ProgramFaaliyetTuruForm,
     ProgramPlanForm,
     ProgramSatirFormSet,
     SinifSubeForm,
@@ -231,6 +232,121 @@ def sinif_duzenle(request, pk):
 
 
 @yonetici_gerekli
+def brans_listesi(request):
+    from takip.models import Brans
+
+    branslar = (
+        Brans.objects.annotate(ders_sayisi=Count("dersler", distinct=True))
+        .order_by("sira", "ad")
+    )
+    return render(
+        request,
+        "yonetim/brans_listesi.html",
+        {"branslar": branslar},
+    )
+
+
+@yonetici_gerekli
+def brans_ekle(request):
+    from takip.yonetim_forms import BransForm
+
+    form = BransForm(request.POST or None)
+    if form.is_valid():
+        brans = form.save()
+        messages.success(request, f"«{brans.ad}» branşı eklendi.")
+        return redirect("yonetim:brans_listesi")
+    return render(
+        request,
+        "yonetim/form.html",
+        {
+            "form": form,
+            "sayfa_basligi": "Branş Ekle",
+            "sayfa_aciklama": "Öğretmen branşlarını buradan tanımlayın.",
+            "geri_url": "yonetim:brans_listesi",
+        },
+    )
+
+
+@yonetici_gerekli
+def brans_duzenle(request, pk):
+    from takip.models import Brans
+    from takip.yonetim_forms import BransForm
+
+    brans = get_object_or_404(Brans, pk=pk)
+    form = BransForm(request.POST or None, instance=brans)
+    if form.is_valid():
+        brans = form.save()
+        messages.success(request, f"«{brans.ad}» branşı güncellendi.")
+        return redirect("yonetim:brans_listesi")
+    return render(
+        request,
+        "yonetim/form.html",
+        {
+            "form": form,
+            "sayfa_basligi": "Branş Düzenle",
+            "sayfa_aciklama": "Branş adını, sırasını veya durumunu güncelleyin.",
+            "geri_url": "yonetim:brans_listesi",
+        },
+    )
+
+
+@yonetici_gerekli
+def ders_listesi(request):
+    from takip.models import Ders
+
+    dersler = Ders.objects.select_related("brans").order_by("sira", "ad")
+    return render(
+        request,
+        "yonetim/ders_listesi.html",
+        {"dersler": dersler},
+    )
+
+
+@yonetici_gerekli
+def ders_ekle(request):
+    from takip.yonetim_forms import DersForm
+
+    form = DersForm(request.POST or None)
+    if form.is_valid():
+        ders = form.save()
+        messages.success(request, f"«{ders.ad}» dersi eklendi.")
+        return redirect("yonetim:ders_listesi")
+    return render(
+        request,
+        "yonetim/form.html",
+        {
+            "form": form,
+            "sayfa_basligi": "Ders Ekle",
+            "sayfa_aciklama": "Öğretmen not girişinde görünen dersleri tanımlayın.",
+            "geri_url": "yonetim:ders_listesi",
+        },
+    )
+
+
+@yonetici_gerekli
+def ders_duzenle(request, pk):
+    from takip.models import Ders
+    from takip.yonetim_forms import DersForm
+
+    ders = get_object_or_404(Ders, pk=pk)
+    form = DersForm(request.POST or None, instance=ders)
+    if form.is_valid():
+        ders = form.save()
+        messages.success(request, f"«{ders.ad}» dersi güncellendi.")
+        return redirect("yonetim:ders_listesi")
+    return render(
+        request,
+        "yonetim/form.html",
+        {
+            "form": form,
+            "sayfa_basligi": "Ders Düzenle",
+            "sayfa_aciklama": "Ders adı, branş ve sırayı güncelleyin.",
+            "geri_url": "yonetim:ders_listesi",
+        },
+    )
+
+
+@yonetici_gerekli
 def personel_listesi(request):
     personeller = (
         PersonelProfili.objects
@@ -299,14 +415,14 @@ def personel_giris_pdf_tek(request, pk):
         messages.error(request, "Bu personel için giriş bilgisi oluşturulamadı.")
         return redirect("yonetim:personel_listesi")
 
+    from takip.pdf_utils import make_pdf_response
+
     pdf = personel_giris_pdf_olustur(kayit, request=request)
     if not pdf:
         return pdf_error_response("Giriş PDF'i oluşturulamadı.")
 
     dosya = personel.ad_soyad.lower().replace(" ", "-")
-    response = HttpResponse(pdf, content_type="application/pdf")
-    response["Content-Disposition"] = f'attachment; filename="giris-{dosya}.pdf"'
-    return response
+    return make_pdf_response(pdf, f"giris-{dosya}.pdf")
 
 
 @yonetici_gerekli
@@ -375,6 +491,14 @@ def talebe_listesi(request):
 
     arama = request.GET.get("q", "").strip()
     sinif_id = request.GET.get("sinif", "").strip()
+    durum = (request.GET.get("durum") or "aktif").strip().lower()
+    if durum not in {"aktif", "pasif", "hepsi"}:
+        durum = "aktif"
+
+    if durum == "aktif":
+        talebeler = talebeler.filter(aktif=True)
+    elif durum == "pasif":
+        talebeler = talebeler.filter(aktif=False)
 
     if sinif_id.isdigit():
         talebeler = talebeler.filter(sinif_sube_id=int(sinif_id))
@@ -399,6 +523,7 @@ def talebe_listesi(request):
             "talebeler": talebeler,
             "arama": arama,
             "sinif_id": sinif_id,
+            "durum": durum,
             "rapor_siniflar": erisilebilir_siniflar(rapor_kaynak),
             "rapor_pdf_url": reverse("yonetim:talebe_liste_raporu_pdf"),
             "rapor_excel_url": reverse("yonetim:talebe_liste_excel"),
@@ -448,6 +573,19 @@ def talebe_liste_excel(request):
 
 
 @yonetici_gerekli
+def _talebe_form_context(form, *, sayfa_basligi, sayfa_aciklama):
+    from takip.turkiye_il_ilce import il_ilce_haritasi
+
+    return {
+        "form": form,
+        "sayfa_basligi": sayfa_basligi,
+        "sayfa_aciklama": sayfa_aciklama,
+        "geri_url": "yonetim:talebe_listesi",
+        "il_ilce_json": il_ilce_haritasi(),
+    }
+
+
+@yonetici_gerekli
 def talebe_ekle(request):
     form = TalebeForm(request.POST or None, request.FILES or None)
 
@@ -464,14 +602,11 @@ def talebe_ekle(request):
     return render(
         request,
         "yonetim/talebe_kayit_form.html",
-        {
-            "form": form,
-            "sayfa_basligi": "Talebe Ekle",
-            "sayfa_aciklama": (
-                "Kimlik, eğitim ve veli bilgilerini eksiksiz doldurun."
-            ),
-            "geri_url": "yonetim:talebe_listesi",
-        },
+        _talebe_form_context(
+            form,
+            sayfa_basligi="Talebe Ekle",
+            sayfa_aciklama="Kimlik, eğitim ve veli bilgilerini eksiksiz doldurun.",
+        ),
     )
 
 
@@ -496,14 +631,11 @@ def talebe_duzenle(request, pk):
     return render(
         request,
         "yonetim/talebe_kayit_form.html",
-        {
-            "form": form,
-            "sayfa_basligi": "Talebe Düzenle",
-            "sayfa_aciklama": (
-                "Talebenin kayıt bilgilerini güncelleyin."
-            ),
-            "geri_url": "yonetim:talebe_listesi",
-        },
+        _talebe_form_context(
+            form,
+            sayfa_basligi="Talebe Düzenle",
+            sayfa_aciklama="Talebenin kayıt bilgilerini güncelleyin.",
+        ),
     )
 
 
@@ -1031,9 +1163,25 @@ def program_duzenle(request, pk):
         with transaction.atomic():
             form.save()
             formset.save()
+            kalan = list(
+                program.satirlar.order_by("baslangic_saati", "id")
+            )
+            for index, satir in enumerate(kalan, start=1):
+                if satir.sira != index:
+                    satir.sira = index
+                    satir.save(update_fields=["sira"])
 
         messages.success(request, f"“{program.ad}” güncellendi.")
         return redirect("yonetim:program_duzenle", pk=program.pk)
+
+    import json
+
+    from takip.models import ProgramFaaliyetTuru
+
+    tur_renk = {
+        t.kod: t.renk
+        for t in ProgramFaaliyetTuru.objects.filter(aktif=True)
+    }
 
     return render(
         request,
@@ -1043,6 +1191,60 @@ def program_duzenle(request, pk):
             "formset": formset,
             "program": program,
             "sure_donemler": program_tum_donem_ozetleri(program),
+            "tur_renk_json": json.dumps(tur_renk, ensure_ascii=False),
+        },
+    )
+
+
+@yonetici_gerekli
+def program_tur_listesi(request):
+    from takip.models import ProgramFaaliyetTuru
+
+    turler = ProgramFaaliyetTuru.objects.order_by("sira", "ad")
+    return render(
+        request,
+        "yonetim/program_tur_listesi.html",
+        {"turler": turler},
+    )
+
+
+@yonetici_gerekli
+def program_tur_ekle(request):
+    form = ProgramFaaliyetTuruForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Faaliyet türü eklendi.")
+        return redirect("yonetim:program_tur_listesi")
+    return render(
+        request,
+        "yonetim/form.html",
+        {
+            "form": form,
+            "sayfa_basligi": "Faaliyet Türü Ekle",
+            "sayfa_aciklama": "Günlük program satırlarında kullanılacak türü tanımlayın.",
+            "geri_url": "yonetim:program_tur_listesi",
+        },
+    )
+
+
+@yonetici_gerekli
+def program_tur_duzenle(request, pk):
+    from takip.models import ProgramFaaliyetTuru
+
+    tur = get_object_or_404(ProgramFaaliyetTuru, pk=pk)
+    form = ProgramFaaliyetTuruForm(request.POST or None, instance=tur)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Faaliyet türü güncellendi.")
+        return redirect("yonetim:program_tur_listesi")
+    return render(
+        request,
+        "yonetim/form.html",
+        {
+            "form": form,
+            "sayfa_basligi": f"Tür · {tur.ad}",
+            "sayfa_aciklama": "Tür adını, rengini ve sırasını güncelleyin.",
+            "geri_url": "yonetim:program_tur_listesi",
         },
     )
 
@@ -1667,12 +1869,23 @@ def yemekci_pdf(request, pk):
 
 @yonetici_gerekli
 def ogretmen_degerlendirme_rapor(request):
+    from datetime import datetime
+
     from django.utils.timezone import localdate
+    from django.template.loader import render_to_string
 
     from config.branding import panel_branding_context
-    from takip.ogretmen_not_service import admin_degerlendirme_qs, talebe_karne_verisi
-    from takip.pdf_utils import html_to_pdf, make_pdf_response, pdf_engine_status, pdf_error_response
-    from django.template.loader import render_to_string
+    from takip.ogretmen_not_service import (
+        admin_degerlendirme_qs,
+        ogretmen_haftalik_takip_ozeti,
+    )
+    from takip.ogretmen_service import _hafta_araligi
+    from takip.pdf_utils import (
+        html_to_pdf,
+        make_pdf_response,
+        pdf_engine_status,
+        pdf_error_response,
+    )
 
     def _int_or_none(raw):
         try:
@@ -1684,22 +1897,40 @@ def ogretmen_degerlendirme_rapor(request):
     talebe_id = _int_or_none(request.GET.get("talebe"))
     hoca_id = _int_or_none(request.GET.get("hoca"))
 
+    hafta_raw = (request.GET.get("hafta") or "").strip()
+    hafta_baslangic = None
+    if hafta_raw:
+        try:
+            gun = datetime.strptime(hafta_raw, "%Y-%m-%d").date()
+            _, hafta_baslangic, _ = _hafta_araligi(gun)
+        except ValueError:
+            hafta_baslangic = None
+    if hafta_baslangic is None:
+        _, hafta_baslangic, _ = _hafta_araligi(localdate())
+
     notlar = list(
         admin_degerlendirme_qs(
             sinif_id=sinif_id,
             talebe_id=talebe_id,
             hoca_id=hoca_id,
+            hafta_baslangic=hafta_baslangic,
         )[:500]
     )
+    takip = ogretmen_haftalik_takip_ozeti(hafta_baslangic)
+    _, _, hafta_bitis = _hafta_araligi(hafta_baslangic)
+
+    from takip.ogretmen_odeme_service import aktif_ogretmenler
 
     siniflar = SinifSube.objects.filter(aktif=True).order_by("sinif", "sube")
-    hocalar = EtutHocasi.objects.filter(aktif=True).order_by("ad_soyad")
+    hocalar = list(aktif_ogretmenler())
     talebe_qs = Talebe.objects.filter(aktif=True).order_by("ad_soyad")
     if sinif_id:
         talebe_qs = talebe_qs.filter(sinif_sube_id=sinif_id)
     talebeler = list(talebe_qs[:300])
 
-    filtre_parcalari = []
+    filtre_parcalari = [
+        f"Hafta: {hafta_baslangic.strftime('%d.%m.%Y')} – {hafta_bitis.strftime('%d.%m.%Y')}"
+    ]
     if sinif_id:
         s = next((x for x in siniflar if x.id == sinif_id), None)
         filtre_parcalari.append(f"Sınıf: {s}" if s else "Sınıf filtreli")
@@ -1709,7 +1940,7 @@ def ogretmen_degerlendirme_rapor(request):
     if hoca_id:
         h = next((x for x in hocalar if x.id == hoca_id), None)
         filtre_parcalari.append(f"Öğretmen: {h.ad_soyad}" if h else "Öğretmen filtreli")
-    filtre_ozet = " · ".join(filtre_parcalari) if filtre_parcalari else "Tüm kayıtlar"
+    filtre_ozet = " · ".join(filtre_parcalari)
 
     if request.GET.get("format") == "pdf":
         html_metni = render_to_string(
@@ -1740,6 +1971,10 @@ def ogretmen_degerlendirme_rapor(request):
             "secili_sinif_id": sinif_id,
             "secili_talebe_id": talebe_id,
             "secili_hoca_id": hoca_id,
+            "secili_hafta": hafta_baslangic.isoformat(),
+            "hafta_baslangic": hafta_baslangic,
+            "hafta_bitis": hafta_bitis,
+            "takip": takip,
             "filtre_ozet": filtre_ozet,
         },
     )
@@ -1747,26 +1982,43 @@ def ogretmen_degerlendirme_rapor(request):
 
 @yonetici_gerekli
 def ogretmen_degerlendirme_karne_pdf(request, talebe_id: int):
+    from datetime import date
+
     from django.utils.timezone import localdate
 
     from config.branding import panel_branding_context
-    from takip.ogretmen_not_service import talebe_karne_verisi
+    from takip.ogretmen_not_service import (
+        talebe_haftalik_karne_verisi,
+        talebe_karne_verisi,
+    )
+    from takip.ogretmen_service import aktif_hafta_baslangic
     from takip.pdf_utils import html_to_pdf, make_pdf_response, pdf_engine_status, pdf_error_response
     from django.template.loader import render_to_string
 
     talebe = get_object_or_404(Talebe, pk=talebe_id)
-    ctx = talebe_karne_verisi(talebe, sadece_veliye_acik=False)
+    if request.GET.get("tum") == "1":
+        ctx = talebe_karne_verisi(talebe, sadece_veliye_acik=False)
+        sablon = "ogretmen_degerlendirme_karne_pdf.html"
+        dosya_ek = "degerlendirme-karnesi"
+    else:
+        raw = (request.GET.get("hafta") or "").strip()
+        try:
+            hafta = date.fromisoformat(raw) if raw else aktif_hafta_baslangic()
+        except ValueError:
+            hafta = aktif_hafta_baslangic()
+        ctx = talebe_haftalik_karne_verisi(
+            talebe, hafta, sadece_veliye_acik=False
+        )
+        sablon = "ogretmen_haftalik_egitim_karne_pdf.html"
+        dosya_ek = "haftalik-egitim-karnesi"
+
     ctx.update(panel_branding_context())
     ctx["bugun"] = localdate()
-    html_metni = render_to_string(
-        "ogretmen_degerlendirme_karne_pdf.html",
-        ctx,
-        request=request,
-    )
+    html_metni = render_to_string(sablon, ctx, request=request)
     pdf_verisi = html_to_pdf(html_metni, base_url=request.build_absolute_uri("/"))
     if not pdf_verisi:
         return pdf_error_response(
             f"Karne PDF oluşturulamadı. (Motor: {pdf_engine_status()})"
         )
     ad = talebe.ad_soyad.replace(" ", "-")
-    return make_pdf_response(pdf_verisi, f"{ad}-degerlendirme-karnesi.pdf")
+    return make_pdf_response(pdf_verisi, f"{ad}-{dosya_ek}.pdf")

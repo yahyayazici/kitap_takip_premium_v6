@@ -1,0 +1,142 @@
+{% extends "yonetim/base.html" %}
+{% block title %}{{ basvuru.ad_soyad }} · Başvuru{% endblock %}
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker"><a href="{% url 'yonetim:sinav_basvuru_listesi' %}">Sınav Başvuruları</a></p>
+        <h1>{{ basvuru.ad_soyad }}</h1>
+        <p class="muted">{{ basvuru.sinav_adi }} · {{ basvuru.olusturulma|date:"d.m.Y H:i" }}</p>
+    </div>
+    <span class="status-pill">{{ basvuru.durum.ad }}</span>
+</header>
+
+<section class="report-table-card yonetim-table-card" style="margin-bottom:1.25rem;">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">BAŞVURU</p>
+            <h2>Öğrenci bilgileri</h2>
+        </div>
+    </div>
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <tbody>
+                <tr><th style="width:12rem;">Ad soyad</th><td>{{ basvuru.ad_soyad }}</td></tr>
+                <tr><th>Baba adı</th><td>{{ basvuru.baba_adi }}</td></tr>
+                <tr><th>Baba telefon</th><td><a href="tel:{{ basvuru.baba_telefon }}">{{ basvuru.baba_telefon }}</a></td></tr>
+                <tr><th>Anne adı</th><td>{{ basvuru.anne_adi }}</td></tr>
+                <tr><th>Anne telefon</th><td><a href="tel:{{ basvuru.anne_telefon }}">{{ basvuru.anne_telefon }}</a></td></tr>
+                <tr><th>İl</th><td>{{ basvuru.il }}</td></tr>
+                <tr><th>İlçe</th><td>{{ basvuru.ilce }}</td></tr>
+                <tr><th>Doğum tarihi</th><td>{{ basvuru.dogum_tarihi|date:"d.m.Y" }}</td></tr>
+                <tr><th>Sınav</th><td>{{ basvuru.sinav_adi }}</td></tr>
+                <tr><th>Başvuru zamanı</th><td>{{ basvuru.olusturulma|date:"d.m.Y H:i" }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="report-table-card yonetim-table-card" style="margin-bottom:1.25rem;">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">YÖNETİM</p>
+            <h2>Durum ve not</h2>
+        </div>
+    </div>
+    <form method="post" style="display:grid;gap:1rem;max-width:36rem;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="kaydet">
+        <div>
+            <label for="durum">Durum</label>
+            <select class="cs-input" id="durum" name="durum">
+                {% for d in durumlar %}
+                <option value="{{ d.pk }}" {% if basvuru.durum_id == d.pk %}selected{% endif %}>{{ d.ad }}</option>
+                {% endfor %}
+                {% if basvuru.durum_id and not basvuru.durum.aktif %}
+                <option value="{{ basvuru.durum_id }}" selected>{{ basvuru.durum.ad }} (pasif)</option>
+                {% endif %}
+            </select>
+            <p class="muted" style="margin:0.4rem 0 0;font-size:0.9rem;">Kabul/Red seçilip kaydedilince ilgili mesaj anı aktifse WhatsApp gider.</p>
+        </div>
+        <div>
+            <label for="notlar">Yönetim notu</label>
+            <textarea class="cs-input" id="notlar" name="notlar" rows="4" placeholder="İç not…">{{ basvuru.notlar }}</textarea>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:0.75rem;">
+            <button type="submit" class="primary-btn">Kaydet</button>
+            <a href="{% url 'yonetim:sinav_basvuru_listesi' %}" class="secondary-btn">Listeye dön</a>
+        </div>
+    </form>
+
+    <form method="post" action="{% url 'yonetim:sinav_basvuru_sil' basvuru.pk %}" style="margin-top:1.5rem;" onsubmit="return confirm('Bu başvuruyu silmek istediğinize emin misiniz?');">
+        {% csrf_token %}
+        <button type="submit" class="secondary-btn" style="color:#b91c1c;">Başvuruyu sil</button>
+    </form>
+</section>
+
+<section class="report-table-card yonetim-table-card" style="margin-bottom:1.25rem;">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">WHATSAPP</p>
+            <h2>Mesaj gönder</h2>
+        </div>
+        {% if whatsapp_aktif %}
+        <span class="status-pill status-okunuyor">API aktif</span>
+        {% else %}
+        <span class="status-pill status-iade">API pasif</span>
+        {% endif %}
+    </div>
+    <form method="post" style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:end;max-width:36rem;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="mesaj_gonder">
+        <div style="flex:1;min-width:12rem;">
+            <label for="an_kodu">Mesaj anı</label>
+            <select class="cs-input" id="an_kodu" name="an_kodu" required>
+                {% for s in manuel_sablonlar %}
+                <option value="{{ s.an_kodu }}">{{ s.baslik }}{% if not s.aktif %} (pasif){% endif %}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="primary-btn" onclick="return confirm('Bu başvuruya mesaj gönderilsin mi?');">Gönder</button>
+    </form>
+</section>
+
+<section class="report-table-card yonetim-table-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">LOG</p>
+            <h2>Gönderim geçmişi</h2>
+        </div>
+        <span class="report-record-count">{{ mesaj_loglari|length }} kayıt</span>
+    </div>
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <thead>
+                <tr>
+                    <th>Zaman</th>
+                    <th>An</th>
+                    <th>Alıcı</th>
+                    <th>Telefon</th>
+                    <th>Durum</th>
+                    <th>Yanıt</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in mesaj_loglari %}
+                <tr>
+                    <td>{{ log.olusturulma|date:"d.m.Y H:i" }}</td>
+                    <td>{{ log.an_kodu }}</td>
+                    <td>{{ log.alici_etiket|default:"—" }}</td>
+                    <td>{{ log.telefon }}</td>
+                    <td>{{ log.get_durum_display }}</td>
+                    <td class="muted" style="max-width:16rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ log.provider_yanit }}">{{ log.provider_yanit|default:"—"|truncatechars:80 }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="report-empty">Henüz mesaj logu yok.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

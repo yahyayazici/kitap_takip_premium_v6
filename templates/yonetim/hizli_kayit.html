@@ -27,17 +27,28 @@
 </nav>
 
 {% if giris_bilgisi %}
-<div class="yk-giris-banner dashboard-card">
-    <div>
-        <p class="yk-giris-banner-title">{{ giris_bilgisi.ad_soyad }} eklendi</p>
-        <p class="yk-giris-banner-meta">
-            <span>{{ giris_bilgisi.rol_etiket }}</span>
-            · Kullanıcı: <strong>{{ giris_bilgisi.kullanici_adi }}</strong>
-            · Şifre: <strong>{{ giris_bilgisi.sifre }}</strong>
-        </p>
+<section class="yk-giris-success">
+    <div class="yk-giris-card">
+        <p class="yk-giris-kicker">Kayıt tamam</p>
+        <h2 class="yk-giris-name">{{ giris_bilgisi.ad_soyad }}</h2>
+        <p class="yk-giris-role">{{ giris_bilgisi.rol_etiket }}</p>
+        <div class="yk-giris-creds">
+            <div class="yk-giris-cred">
+                <span>Kullanıcı adı</span>
+                <strong>{{ giris_bilgisi.kullanici_adi }}</strong>
+            </div>
+            <div class="yk-giris-cred">
+                <span>Şifre</span>
+                <strong>{{ giris_bilgisi.sifre }}</strong>
+            </div>
+        </div>
+        <form method="post" action="{% url 'yonetim:hizli_kayit_giris_pdf' %}" class="yk-giris-pdf-form">
+            {% csrf_token %}
+            <button type="submit" class="primary-btn yk-giris-pdf-btn">PDF İndir</button>
+        </form>
+        <p class="yk-giris-hint">PDF doğrudan indirilir; tarayıcıda açılmaz.</p>
     </div>
-    <a href="{% url 'yonetim:hizli_kayit_giris_pdf' %}" class="ghost-btn yk-giris-pdf-btn">PDF İndir</a>
-</div>
+</section>
 {% endif %}
 
 <section class="dashboard-card yk-card">
@@ -62,6 +73,11 @@
         {% endif %}
 
         {% if tur == "talebe" %}
+        <p class="yk-section-note">
+            İlk kayıtta yalnızca ad soyad, TC, etüt ve dini ders hocası yeterlidir.
+            Fotoğraf, sınıf, veli ve kimlik detaylarını etüt hocası kendi talebesinde;
+            yönetim herkes için <strong>Öğrenciyi düzenle</strong> ile tamamlar.
+        </p>
         <div class="yk-section">
             <h3 class="yk-section-title">Talebe Bilgileri</h3>
             {% if sonraki_talebe_no %}
@@ -69,35 +85,12 @@
             {% endif %}
             <div class="yk-grid" id="yk-talebe-grid">
                 {% for field in form %}
-                    {% if field.name == "ad_soyad" or field.name == "tc_kimlik" or field.name == "biyometrik_foto" or field.name == "sinif_sube" or field.name == "etut_hocasi" or field.name == "telefon" or field.name == "dogum_tarihi" or field.name == "dini_ders_seviyesi" or field.name == "dini_ders_hocasi" %}
-                    <div class="yk-field{% if field.name == 'ad_soyad' or field.name == 'tc_kimlik' or field.name == 'biyometrik_foto' %} yk-field-wide{% endif %}{% if field.name == 'etut_hocasi' %} yk-field-auto{% endif %}">
-                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                        {{ field }}
-                        {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
-                        {% for error in field.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
-                    </div>
-                    {% endif %}
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="yk-section yk-section-veli">
-            <h3 class="yk-section-title">Veli Bilgileri</h3>
-            <p class="yk-section-note">Veli kişi kaydı otomatik oluşturulur. Panel hesabı açılırsa giriş bilgileri: <strong>kullanıcı adı = talebe TC</strong>, <strong>şifre = TC'nin son 4 hanesi</strong>.</p>
-            <div class="yk-grid">
-                {% for field in form %}
-                    {% if field.name == "veli_ad_soyad" or field.name == "veli_telefon" or field.name == "veli_yakinlik" or field.name == "veli_hesap_olustur" %}
-                    <div class="yk-field{% if field.name == 'veli_hesap_olustur' %} yk-field-check{% endif %}{% if field.name == 'veli_ad_soyad' %} yk-field-wide{% endif %}">
-                        {% if field.name == "veli_hesap_olustur" %}
-                        <label class="yk-check-label">{{ field }} {{ field.label }}</label>
-                        {% else %}
-                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                        {{ field }}
-                        {% endif %}
-                        {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
-                        {% for error in field.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
-                    </div>
-                    {% endif %}
+                <div class="yk-field{% if field.name == 'ad_soyad' or field.name == 'tc_kimlik' %} yk-field-wide{% endif %}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                    {% for error in field.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
+                </div>
                 {% endfor %}
             </div>
         </div>

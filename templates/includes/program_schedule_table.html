@@ -1,32 +1,22 @@
-<section class="report-table-card program-schedule-card">
-    <div class="pg-desktop-table responsive-table">
-        <table class="report-data-table program-table">
-            <thead>
-                <tr>
-                    <th>Saat</th>
-                    <th>Süre</th>
-                    <th>Tür</th>
-                    <th>Faaliyet</th>
-                    <th>Program</th>
-                    <th>Durum</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for satir in satirlar %}
-                <tr class="{% if satir.faaliyet_durumu == 'pasif' %}program-row-passive{% endif %}">
-                    <td><strong>{{ satir.baslangic_saati|time:"H:i" }} – {{ satir.bitis_saati|time:"H:i" }}</strong></td>
-                    <td>{{ satir.sure_goster }}</td>
-                    <td>{{ satir.get_faaliyet_turu_display }}</td>
-                    <td>{{ satir.faaliyet_adi }}</td>
-                    <td>{{ satir.gorunen_program_adi }}</td>
-                    <td>{{ satir.get_faaliyet_durumu_display }}</td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="6" class="report-empty">Program satırı yok.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+<div class="pg-desktop-flow" aria-label="Günlük program akışı">
+    {% for satir in satirlar %}
+    <article class="pg-view-item pg-flow-renk-{{ satir.tur_renk }}">
+        <div class="pg-view-rail" aria-hidden="true">
+            <span class="pg-view-dot"></span>
+            {% if not forloop.last %}<span class="pg-view-line"></span>{% endif %}
+        </div>
+        <div class="pg-view-body">
+            <p class="pg-view-time">{{ satir.baslangic_saati|time:"H:i" }} – {{ satir.bitis_saati|time:"H:i" }}</p>
+            <h3 class="pg-view-title">{{ satir.faaliyet_adi }}</h3>
+            <p class="pg-view-meta">
+                <span class="pg-view-tag">{{ satir.tur_etiket }}</span>
+                <span class="pg-view-sure">({{ satir.sure_dakika }} dk)</span>
+            </p>
+        </div>
+    </article>
+    {% empty %}
+    <p class="report-empty">Program satırı yok.</p>
+    {% endfor %}
+</div>
 
-    {% include "includes/program_schedule_mobile.html" with satirlar=satirlar %}
-</section>
+{% include "includes/program_schedule_mobile.html" with satirlar=satirlar %}

@@ -2,6 +2,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 
 from . import etut_plan_views
+from . import etut_karne_views
 from . import dini_ders_takip_views
 from . import namaz_yoklama_views
 from . import pazar_izin_donus_views
@@ -30,6 +31,7 @@ from . import asistan_views
 from . import ai_views
 from . import dershane_program_views
 from . import yemekci_views
+from . import sinav_basvuru_views
 from . import views
 from .auth_views import PanelLoginView
 
@@ -40,6 +42,17 @@ urlpatterns = [
         "giris/",
         PanelLoginView.as_view(),
         name="login",
+    ),
+
+    path(
+        "sinav-basvuru/",
+        sinav_basvuru_views.sinav_basvuru_form,
+        name="sinav_basvuru_form",
+    ),
+    path(
+        "sinav-basvuru/tesekkur/",
+        sinav_basvuru_views.sinav_basvuru_tesekkur,
+        name="sinav_basvuru_tesekkur",
     ),
 
     path("cikis/", auth_views.LogoutView.as_view(), name="logout"),
@@ -329,6 +342,16 @@ urlpatterns = [
         name="akademik_mudahale_sil",
     ),
 
+    path(
+        "etut-panel/haftalik-karneler/",
+        etut_karne_views.etut_haftalik_karneler,
+        name="etut_haftalik_karneler",
+    ),
+    path(
+        "etut-panel/haftalik-karneler/talebe/<int:talebe_id>/pdf/",
+        etut_karne_views.etut_talebe_haftalik_karne_pdf,
+        name="etut_talebe_haftalik_karne_pdf",
+    ),
     path("etut-plani/", etut_plan_views.etut_plan_panel, name="etut_plan_panel"),
     path(
         "etut-plani/yonetim/",

@@ -4,23 +4,42 @@ from __future__ import annotations
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils.timezone import localdate
 
 from config.branding import panel_branding_context
+
+from takip.models import Talebe
 from takip.ogretmen_not_service import (
     hoca_degerlendirme_paneli,
     ogretmen_not_girisi_verisi,
     ogretmen_not_kaydet,
+    ogretmen_sinif_ogrencileri,
+    talebe_haftalik_karne_verisi,
+    talebe_karne_verisi,
 )
 from takip.ogretmen_service import (
+    aktif_hafta_baslangic,
     kullanici_ogretmen_mi,
     ogretmen_dashboard_verisi,
     ogretmen_hocasi_for_user,
     ogretmen_program_verisi,
 )
 from takip.pdf_utils import html_to_pdf, make_pdf_response, pdf_engine_status, pdf_error_response
+
+
+def _hafta_query(request):
+    raw = (request.GET.get("hafta") or "").strip()
+    if not raw:
+        return aktif_hafta_baslangic()
+    from datetime import date
+
+    try:
+        return date.fromisoformat(raw)
+    except ValueError:
+        return aktif_hafta_baslangic()
 
 
 def _hoca_yukle(request):
@@ -173,8 +192,39 @@ def ogretmen_talebe_karne_pdf(request, talebe_id: int):
     if not kullanici_ogretmen_mi(request.user):
         return redirect("dashboard")
 
-    messages.info(
-        request,
-        "Öğretmen panelinden karne PDF indirilemez. Kayıtları Değerlendirmeler sayfasından inceleyebilirsiniz.",
+    hoca = _hoca_yukle(request)
+    if not hoca:
+        return redirect("logout")
+
+    talebe = get_object_or_404(Talebe, pk=talebe_id, aktif=True)
+    sinif_ogrencileri = (
+        ogretmen_sinif_ogrencileri(hoca, talebe.sinif_sube)
+        if talebe.sinif_sube_id
+        else []
     )
-    return redirect("ogretmen_degerlendirmeler")
+    if talebe.id not in {o.id for o in sinif_ogrencileri}:
+        messages.error(request, "Bu öğrencinin karnesine erişiminiz yok.")
+        return redirect("ogretmen_degerlendirmeler")
+
+    if request.GET.get("tum") == "1":
+        ctx = talebe_karne_verisi(talebe, sadece_veliye_acik=False)
+        sablon = "ogretmen_degerlendirme_karne_pdf.html"
+        dosya = f"{talebe.ad_soyad.replace(' ', '-')}-degerlendirme-karnesi.pdf"
+    else:
+        ctx = talebe_haftalik_karne_verisi(
+            talebe, _hafta_query(request), sadece_veliye_acik=False
+        )
+        sablon = "ogretmen_haftalik_egitim_karne_pdf.html"
+        dosya = (
+            f"{talebe.ad_soyad.replace(' ', '-')}-haftalik-egitim-karnesi.pdf"
+        )
+
+    ctx.update(panel_branding_context())
+    ctx["bugun"] = localdate()
+    html_metni = render_to_string(sablon, ctx, request=request)
+    pdf_verisi = html_to_pdf(html_metni, base_url=request.build_absolute_uri("/"))
+    if not pdf_verisi:
+        return pdf_error_response(
+            f"Karne PDF oluşturulamadı. (Motor: {pdf_engine_status()})"
+        )
+    return make_pdf_response(pdf_verisi, dosya)

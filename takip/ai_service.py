@@ -468,19 +468,29 @@ def veli_takip_zekasi_raporu(
 _DENEME_ETIKET = {
     "ozet": "Genel Tablo",
     "brans_analizi": "Branş Analizi",
+    "konu_analizi": "Konu Analizi (Gap + KTT)",
     "sinif_ozeti": "Sınıf Özeti",
     "etut_onerileri": "Etüt Önerileri",
     "risk_ve_firsatlar": "Risk ve Fırsatlar",
 }
 
 _DENEME_SISTEM = f"""Sen {PANEL_NAME} ölçme-değerlendirme uzmanısın.
-Deneme sonuçlarını branş bazında yorumla. Veri uydurma.
+Deneme sonuçlarını branş ve konu bazında yorumla. Veri uydurma.
+Veride şunlar olabilir:
+- sonuclar[].branslar: ders D/Y/B
+- sonuclar[].gap_konular: Gap PDF konu D/Y/B (yüzde < 70 zayıf)
+- sonuclar[].ktt_konular: aynı talebenin KTT konu/puan özeti
+- gap_zayif_konular_sinif: sınıf geneli Gap zayıf konular
+
+Gap ve KTT konularını birlikte ele al; örtüşen zayıf konuları özellikle belirt.
+Konu adı yoksa uydurma; yalnızca verilen listeleri kullan.
 JSON:
 {{
-  "ozet": "Sınıf geneli 2-3 cümle",
+  "ozet": "Sınıf geneli 2-3 cümle (Gap varsa konu düzeyine de değin)",
   "brans_analizi": "Türkçe/Mat/Fen/Sos/İng zayıf-güçlü branşlar",
+  "konu_analizi": "Gap + KTT zayıf/güçlü konular; örtüşme ve ayrışma",
   "sinif_ozeti": "Üst ve destek gerektiren gruplar",
-  "etut_onerileri": "Somut etüt planı önerileri",
+  "etut_onerileri": "Somut etüt planı — mümkünse konu adı ver",
   "risk_ve_firsatlar": "Acil müdahale gereken alanlar"
 }}"""
 
@@ -499,7 +509,7 @@ def deneme_zekasi_analizi(
         llm = ai_json_uret(
             system=_DENEME_SISTEM,
             user_prompt=f"Deneme verisi:\n{baglam_json(baglam)}",
-            max_tokens=2200,
+            max_tokens=2600,
         )
         if llm:
             return AiAnalizSonuc(
@@ -510,21 +520,52 @@ def deneme_zekasi_analizi(
             )
 
         ogrenci_s = baglam["deneme"]["ogrenci_sayisi"]
+        gap_s = baglam["deneme"].get("gap_rapor_sayisi") or 0
+        zayif = baglam.get("gap_zayif_konular_sinif") or []
+        zayif_metin = "\n".join(
+            f"• {z['talebe']}: {z['brans']} · «{z['konu']}» %{z['yuzde']:.0f} "
+            f"(D{z['D']} Y{z['Y']} B{z['B']})"
+            for z in zayif[:12]
+        )
+        bolumler = [
+            AiAnalizBolum(
+                "Genel Tablo",
+                f"{ogrenci_s} öğrencinin branş sonuçları değerlendirildi."
+                + (
+                    f" {gap_s} Gap / konu raporu yüklü."
+                    if gap_s
+                    else " Gap konusu henüz yüklenmedi."
+                ),
+                "notr",
+            ),
+        ]
+        if zayif_metin:
+            bolumler.append(
+                AiAnalizBolum(
+                    "Konu Analizi (Gap + KTT)",
+                    zayif_metin,
+                    "zayif",
+                )
+            )
+        else:
+            bolumler.append(
+                AiAnalizBolum(
+                    "Konu Analizi (Gap + KTT)",
+                    "Gap konu satırı yok; branş özeti ve varsa KTT kayıtları üzerinden ilerlenmeli.",
+                    "notr",
+                )
+            )
+        bolumler.append(
+            AiAnalizBolum(
+                "Etüt Önerileri",
+                "Zayıf branş ve Gap’te düşük yüzdeli konular için hedefli etüt grupları oluşturulmalı.",
+                "aksiyon",
+            )
+        )
         return AiAnalizSonuc(
             baslik=f"{deneme.ad} · Deneme Zekası",
             tur="deneme_analiz",
-            bolumler=[
-                AiAnalizBolum(
-                    "Genel Tablo",
-                    f"{ogrenci_s} öğrencinin sonuçları değerlendirildi.",
-                    "notr",
-                ),
-                AiAnalizBolum(
-                    "Etüt Önerileri",
-                    "Zayıf branşlar için hedefli etüt grupları oluşturulmalı.",
-                    "aksiyon",
-                ),
-            ],
+            bolumler=bolumler,
             yapay_zeka=False,
         )
 

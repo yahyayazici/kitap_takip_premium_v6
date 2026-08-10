@@ -4,7 +4,9 @@ from django.db import transaction
 from django.forms import inlineformset_factory
 
 from .models import (
+    Brans,
     CumaDurumMetni,
+    Ders,
     DiniDersSeviyesi,
     Duyuru,
     EtutHocasi,
@@ -12,6 +14,7 @@ from .models import (
     ImamMuezzinAtama,
     ImamMuezzinListesi,
     PersonelProfili,
+    ProgramFaaliyetTuru,
     ProgramPlan,
     ProgramSatir,
     SinifSube,
@@ -50,6 +53,41 @@ class SinifSubeForm(forms.ModelForm):
                 attrs={"class": "cs-checkbox"}
             ),
         }
+
+
+class BransForm(forms.ModelForm):
+    class Meta:
+        model = Brans
+        fields = ["ad", "sira", "aktif"]
+        widgets = {
+            "ad": forms.TextInput(
+                attrs={"class": "cs-input", "placeholder": "Örn. Matematik, Türkçe"}
+            ),
+            "sira": forms.NumberInput(attrs={"class": "cs-input", "min": 0}),
+            "aktif": forms.CheckboxInput(attrs={"class": "cs-checkbox"}),
+        }
+
+
+class DersForm(forms.ModelForm):
+    class Meta:
+        model = Ders
+        fields = ["ad", "brans", "sira", "aktif"]
+        widgets = {
+            "ad": forms.TextInput(
+                attrs={"class": "cs-input", "placeholder": "Örn. Matematik"}
+            ),
+            "brans": forms.Select(attrs={"class": "cs-input"}),
+            "sira": forms.NumberInput(attrs={"class": "cs-input", "min": 0}),
+            "aktif": forms.CheckboxInput(attrs={"class": "cs-checkbox"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["brans"].queryset = Brans.objects.filter(aktif=True).order_by(
+            "sira", "ad"
+        )
+        self.fields["brans"].required = False
+        self.fields["brans"].empty_label = "Branş seçin (opsiyonel)"
 
 
 class PersonelProfiliForm(forms.ModelForm):
@@ -242,7 +280,13 @@ class TalebeForm(forms.ModelForm):
     anne_telefon = forms.CharField(
         required=False,
         label="Anne telefon",
-        widget=forms.TextInput(attrs={"class": "cs-input", "placeholder": "05xx xxx xx xx"}),
+        widget=forms.TextInput(
+            attrs={
+                "class": "cs-input",
+                "placeholder": "05XX XXX XX XX",
+                "inputmode": "tel",
+            }
+        ),
     )
     baba_ad_soyad = forms.CharField(
         required=False,
@@ -252,7 +296,13 @@ class TalebeForm(forms.ModelForm):
     baba_telefon = forms.CharField(
         required=False,
         label="Baba telefon",
-        widget=forms.TextInput(attrs={"class": "cs-input", "placeholder": "05xx xxx xx xx"}),
+        widget=forms.TextInput(
+            attrs={
+                "class": "cs-input",
+                "placeholder": "05XX XXX XX XX",
+                "inputmode": "tel",
+            }
+        ),
     )
 
     bolumler = (
@@ -262,7 +312,6 @@ class TalebeForm(forms.ModelForm):
                 "biyometrik_foto",
                 "kimlik_adi",
                 "kimlik_soyadi",
-                "ad_soyad",
                 "tc_kimlik",
                 "cinsiyet",
                 "dogum_tarihi",
@@ -275,7 +324,7 @@ class TalebeForm(forms.ModelForm):
                 "anne_adi",
                 "dogum_yeri",
                 "memleket",
-                "diller",
+                "memleket_ilce",
                 "telefon",
                 "eposta",
             ),
@@ -283,19 +332,23 @@ class TalebeForm(forms.ModelForm):
         (
             "Eğitim bilgileri",
             (
-                "dahili_seviye",
-                "dahili_ders_mesulu",
-                "dahili_ders_grubu",
                 "okul_seviyesi",
-                "etut_hocasi",
                 "sinif_sube",
-                "dini_ders_hocasi",
+                "etut_hocasi",
                 "dini_ders_seviyesi",
+                "dini_ders_hocasi",
             ),
         ),
         (
             "Aile ve veli",
-            ("aile_durumu", "anne_ad_soyad", "anne_telefon", "baba_ad_soyad", "baba_telefon"),
+            (
+                "aile_durumu",
+                "anne_ad_soyad",
+                "anne_telefon",
+                "baba_ad_soyad",
+                "baba_telefon",
+                "ev_adresi",
+            ),
         ),
         (
             "Kayıt durumu",
@@ -317,18 +370,16 @@ class TalebeForm(forms.ModelForm):
             "anne_adi",
             "dogum_yeri",
             "memleket",
-            "diller",
+            "memleket_ilce",
             "telefon",
             "eposta",
-            "dahili_seviye",
-            "dahili_ders_mesulu",
-            "dahili_ders_grubu",
             "okul_seviyesi",
             "etut_hocasi",
             "sinif_sube",
             "dini_ders_hocasi",
             "dini_ders_seviyesi",
             "aile_durumu",
+            "ev_adresi",
             "talebe_no",
             "durum",
             "aktif",
@@ -339,37 +390,43 @@ class TalebeForm(forms.ModelForm):
             ),
             "kimlik_adi": forms.TextInput(attrs={"class": "cs-input"}),
             "kimlik_soyadi": forms.TextInput(attrs={"class": "cs-input"}),
-            "ad_soyad": forms.TextInput(
-                attrs={
-                    "class": "cs-input",
-                    "placeholder": "Günlük kullanılan ad soyad",
-                }
-            ),
+            "ad_soyad": forms.HiddenInput(),
             "tc_kimlik": forms.TextInput(
                 attrs={"class": "cs-input", "placeholder": "11 haneli TC kimlik no"}
             ),
             "cinsiyet": forms.Select(attrs={"class": "cs-input"}),
             "dogum_tarihi": forms.DateInput(
-                attrs={"class": "cs-input", "type": "date"}
+                format="%Y-%m-%d",
+                attrs={"class": "cs-input", "type": "date"},
             ),
             "baba_adi": forms.TextInput(attrs={"class": "cs-input"}),
             "anne_adi": forms.TextInput(attrs={"class": "cs-input"}),
             "dogum_yeri": forms.TextInput(attrs={"class": "cs-input"}),
-            "memleket": forms.TextInput(attrs={"class": "cs-input"}),
-            "diller": forms.TextInput(
-                attrs={"class": "cs-input", "placeholder": "Örn. Türkçe, Arapça"}
+            "memleket": forms.Select(attrs={"class": "cs-input", "id": "id_memleket"}),
+            "memleket_ilce": forms.Select(
+                attrs={"class": "cs-input", "id": "id_memleket_ilce"}
             ),
-            "telefon": forms.TextInput(attrs={"class": "cs-input"}),
+            "telefon": forms.TextInput(
+                attrs={
+                    "class": "cs-input",
+                    "placeholder": "05XX XXX XX XX",
+                    "inputmode": "tel",
+                }
+            ),
             "eposta": forms.EmailInput(attrs={"class": "cs-input"}),
-            "dahili_seviye": forms.TextInput(attrs={"class": "cs-input"}),
-            "dahili_ders_mesulu": forms.TextInput(attrs={"class": "cs-input"}),
-            "dahili_ders_grubu": forms.TextInput(attrs={"class": "cs-input"}),
             "okul_seviyesi": forms.TextInput(attrs={"class": "cs-input"}),
             "sinif_sube": forms.RadioSelect(attrs={"class": "choice-chip-radio"}),
             "etut_hocasi": forms.Select(attrs={"class": "cs-input"}),
             "dini_ders_hocasi": forms.Select(attrs={"class": "cs-input"}),
             "dini_ders_seviyesi": forms.Select(attrs={"class": "cs-input"}),
             "aile_durumu": forms.Select(attrs={"class": "cs-input"}),
+            "ev_adresi": forms.Textarea(
+                attrs={
+                    "class": "cs-input",
+                    "rows": 3,
+                    "placeholder": "Mahalle, cadde, bina no, ilçe / il",
+                }
+            ),
             "talebe_no": forms.TextInput(
                 attrs={
                     "class": "cs-input",
@@ -380,14 +437,20 @@ class TalebeForm(forms.ModelForm):
             "aktif": forms.CheckboxInput(attrs={"class": "cs-checkbox"}),
         }
         labels = {
-            "ad_soyad": "Kullanılan adı soyadı",
             "sinif_sube": "Okul sınıf / şube",
             "etut_hocasi": "Etüt mesulü",
+            "memleket": "Memleket ili",
+            "memleket_ilce": "Memleket ilçesi",
+            "ev_adresi": "Veli ev adresi",
         }
 
     def __init__(self, *args, **kwargs):
+        from takip.telefon_util import telefon_formatla
+        from takip.turkiye_il_ilce import il_secenekleri, ilce_secenekleri
+
         super().__init__(*args, **kwargs)
 
+        self.fields["dogum_tarihi"].input_formats = ["%Y-%m-%d", "%d.%m.%Y", "%d/%m/%Y"]
         self.fields["sinif_sube"].queryset = (
             SinifSube.objects.filter(aktif=True).order_by("sinif", "sube")
         )
@@ -399,8 +462,10 @@ class TalebeForm(forms.ModelForm):
             .order_by("ad_soyad")
         )
         self.fields["etut_hocasi"].queryset = hoca_qs
+        self.fields["etut_hocasi"].empty_label = "Etüt mesulü seçin"
         self.fields["dini_ders_hocasi"].queryset = hoca_qs
         self.fields["dini_ders_hocasi"].required = False
+        self.fields["dini_ders_hocasi"].empty_label = "Dini ders hocası seçin"
         self.fields["dini_ders_hocasi"].help_text = (
             "Önce dini ders seviyesini seçin. Boş bırakılırsa etüt mesulü atanır."
         )
@@ -408,7 +473,7 @@ class TalebeForm(forms.ModelForm):
             aktif=True
         ).order_by("sira", "ad")
         self.fields["dini_ders_seviyesi"].required = False
-        self.fields["dini_ders_seviyesi"].empty_label = "Seviye seçin"
+        self.fields["dini_ders_seviyesi"].empty_label = "Dini ders seviyesi seçin"
         self.fields["talebe_no"].required = False
         self.fields["talebe_no"].help_text = (
             "Boş bırakırsanız sistem otomatik numara atar (ör. 1, 2, 3)."
@@ -419,6 +484,22 @@ class TalebeForm(forms.ModelForm):
         )
         self.fields["cinsiyet"].required = False
         self.fields["aile_durumu"].required = False
+        self.fields["ad_soyad"].required = False
+
+        self.fields["memleket"].choices = il_secenekleri()
+        self.fields["memleket"].required = False
+        secili_il = ""
+        if self.data.get("memleket"):
+            secili_il = self.data.get("memleket")
+        elif self.instance.pk:
+            secili_il = self.instance.memleket or ""
+        elif self.initial.get("memleket"):
+            secili_il = self.initial.get("memleket")
+        self.fields["memleket_ilce"].choices = ilce_secenekleri(secili_il)
+        self.fields["memleket_ilce"].required = False
+
+        if self.instance.pk and self.instance.telefon:
+            self.initial["telefon"] = telefon_formatla(self.instance.telefon)
 
         if self.instance.pk:
             from takip.wave0_models import VeliKisi
@@ -426,12 +507,14 @@ class TalebeForm(forms.ModelForm):
             for veli in self.instance.veli_kisileri.all():
                 if veli.yakinlik == VeliKisi.Yakinlik.ANNE:
                     self.fields["anne_ad_soyad"].initial = veli.ad_soyad
-                    self.fields["anne_telefon"].initial = veli.telefon
+                    self.fields["anne_telefon"].initial = telefon_formatla(veli.telefon)
                 elif veli.yakinlik == VeliKisi.Yakinlik.BABA:
                     self.fields["baba_ad_soyad"].initial = veli.ad_soyad
-                    self.fields["baba_telefon"].initial = veli.telefon
+                    self.fields["baba_telefon"].initial = telefon_formatla(veli.telefon)
 
     def clean(self):
+        from takip.turkiye_il_ilce import memleket_gecerli
+
         cleaned = super().clean()
         etut = cleaned.get("etut_hocasi")
         dini = cleaned.get("dini_ders_hocasi")
@@ -457,15 +540,38 @@ class TalebeForm(forms.ModelForm):
         if etut and not dini and not seviye:
             cleaned["dini_ders_hocasi"] = etut
 
-        ad = (cleaned.get("ad_soyad") or "").strip()
-        if not ad:
-            kimlik_ad = (cleaned.get("kimlik_adi") or "").strip()
-            kimlik_soyad = (cleaned.get("kimlik_soyadi") or "").strip()
-            birlesik = f"{kimlik_ad} {kimlik_soyad}".strip()
-            if birlesik:
-                cleaned["ad_soyad"] = birlesik
+        kimlik_ad = (cleaned.get("kimlik_adi") or "").strip()
+        kimlik_soyad = (cleaned.get("kimlik_soyadi") or "").strip()
+        birlesik = f"{kimlik_ad} {kimlik_soyad}".strip()
+        if birlesik:
+            cleaned["ad_soyad"] = birlesik
+        elif not (cleaned.get("ad_soyad") or "").strip():
+            self.add_error("kimlik_adi", "Kimlik adı ve soyadı gerekli.")
+
+        il = (cleaned.get("memleket") or "").strip()
+        ilce = (cleaned.get("memleket_ilce") or "").strip()
+        if ilce and not memleket_gecerli(il, ilce):
+            self.add_error("memleket_ilce", "Seçilen ilçe bu ile ait değil.")
 
         return cleaned
+
+    def _telefon_temizle(self, alan: str) -> str:
+        from takip.telefon_util import telefon_temizle_veya_hata
+
+        deger = self.cleaned_data.get(alan) or ""
+        try:
+            return telefon_temizle_veya_hata(deger)
+        except ValueError as exc:
+            raise forms.ValidationError(str(exc)) from exc
+
+    def clean_telefon(self):
+        return self._telefon_temizle("telefon")
+
+    def clean_anne_telefon(self):
+        return self._telefon_temizle("anne_telefon")
+
+    def clean_baba_telefon(self):
+        return self._telefon_temizle("baba_telefon")
 
     def clean_biyometrik_foto(self):
         foto = self.cleaned_data.get("biyometrik_foto")
@@ -480,6 +586,235 @@ class TalebeForm(forms.ModelForm):
         if qs.exists():
             raise forms.ValidationError("Bu TC kimlik no başka bir talebede kayıtlı.")
         return tc
+
+    def veli_kaydet(self, talebe: Talebe) -> None:
+        from takip.talebe_excel import _veli_kisi_guncelle
+        from takip.wave0_models import VeliKisi
+
+        _veli_kisi_guncelle(
+            talebe,
+            VeliKisi.Yakinlik.ANNE,
+            self.cleaned_data.get("anne_ad_soyad", ""),
+            self.cleaned_data.get("anne_telefon", ""),
+        )
+        _veli_kisi_guncelle(
+            talebe,
+            VeliKisi.Yakinlik.BABA,
+            self.cleaned_data.get("baba_ad_soyad", ""),
+            self.cleaned_data.get("baba_telefon", ""),
+        )
+
+
+class TalebeProfilTamamlaForm(forms.ModelForm):
+    """Etüt / personel — hızlı kayıttan sonra kalan tüm alanlar (foto dahil)."""
+
+    anne_ad_soyad = forms.CharField(
+        required=False,
+        label="Anne ad soyad",
+        widget=forms.TextInput(attrs={"class": "cs-input", "placeholder": "Anne adı soyadı"}),
+    )
+    anne_telefon = forms.CharField(
+        required=False,
+        label="Anne telefon",
+        widget=forms.TextInput(
+            attrs={"class": "cs-input", "placeholder": "05XX XXX XX XX", "inputmode": "tel"}
+        ),
+    )
+    baba_ad_soyad = forms.CharField(
+        required=False,
+        label="Baba ad soyad",
+        widget=forms.TextInput(attrs={"class": "cs-input", "placeholder": "Baba adı soyadı"}),
+    )
+    baba_telefon = forms.CharField(
+        required=False,
+        label="Baba telefon",
+        widget=forms.TextInput(
+            attrs={"class": "cs-input", "placeholder": "05XX XXX XX XX", "inputmode": "tel"}
+        ),
+    )
+
+    class Meta:
+        model = Talebe
+        fields = [
+            "biyometrik_foto",
+            "ad_soyad",
+            "kimlik_adi",
+            "kimlik_soyadi",
+            "tc_kimlik",
+            "cinsiyet",
+            "dogum_tarihi",
+            "sinif_sube",
+            "dini_ders_seviyesi",
+            "baba_adi",
+            "anne_adi",
+            "dogum_yeri",
+            "memleket",
+            "memleket_ilce",
+            "telefon",
+            "eposta",
+            "aile_durumu",
+            "ev_adresi",
+        ]
+        widgets = {
+            "biyometrik_foto": forms.ClearableFileInput(
+                attrs={"class": "cs-input", "accept": "image/jpeg,image/png,image/webp"}
+            ),
+            "ad_soyad": forms.TextInput(attrs={"class": "cs-input"}),
+            "kimlik_adi": forms.TextInput(attrs={"class": "cs-input"}),
+            "kimlik_soyadi": forms.TextInput(attrs={"class": "cs-input"}),
+            "tc_kimlik": forms.TextInput(
+                attrs={
+                    "class": "cs-input",
+                    "placeholder": "11 haneli TC",
+                    "inputmode": "numeric",
+                    "maxlength": "11",
+                }
+            ),
+            "cinsiyet": forms.Select(attrs={"class": "cs-input"}),
+            "dogum_tarihi": forms.DateInput(
+                format="%Y-%m-%d",
+                attrs={"class": "cs-input", "type": "date"},
+            ),
+            "sinif_sube": forms.Select(attrs={"class": "cs-input"}),
+            "dini_ders_seviyesi": forms.Select(attrs={"class": "cs-input"}),
+            "baba_adi": forms.TextInput(attrs={"class": "cs-input"}),
+            "anne_adi": forms.TextInput(attrs={"class": "cs-input"}),
+            "dogum_yeri": forms.TextInput(attrs={"class": "cs-input"}),
+            "memleket": forms.Select(attrs={"class": "cs-input", "id": "id_memleket"}),
+            "memleket_ilce": forms.Select(
+                attrs={"class": "cs-input", "id": "id_memleket_ilce"}
+            ),
+            "telefon": forms.TextInput(
+                attrs={"class": "cs-input", "placeholder": "05XX XXX XX XX", "inputmode": "tel"}
+            ),
+            "eposta": forms.EmailInput(attrs={"class": "cs-input"}),
+            "aile_durumu": forms.Select(attrs={"class": "cs-input"}),
+            "ev_adresi": forms.Textarea(
+                attrs={
+                    "class": "cs-input",
+                    "rows": 3,
+                    "placeholder": "Mahalle, cadde, bina no, ilçe / il",
+                }
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        from takip.telefon_util import telefon_formatla
+        from takip.turkiye_il_ilce import il_secenekleri, ilce_secenekleri
+
+        super().__init__(*args, **kwargs)
+
+        self.fields["dogum_tarihi"].input_formats = ["%Y-%m-%d", "%d.%m.%Y", "%d/%m/%Y"]
+        self.fields["dogum_tarihi"].required = False
+        self.fields["tc_kimlik"].required = False
+        self.fields["cinsiyet"].required = False
+        self.fields["aile_durumu"].required = False
+        self.fields["ad_soyad"].required = True
+        self.fields["sinif_sube"].queryset = SinifSube.objects.filter(aktif=True).order_by(
+            "sinif", "sube"
+        )
+        self.fields["sinif_sube"].required = False
+        self.fields["sinif_sube"].empty_label = "Sınıf seçin"
+        self.fields["dini_ders_seviyesi"].queryset = DiniDersSeviyesi.objects.filter(
+            aktif=True
+        ).order_by("sira", "ad")
+        self.fields["dini_ders_seviyesi"].required = False
+        self.fields["dini_ders_seviyesi"].empty_label = "Seviye seçin"
+        for ad in (
+            "kimlik_adi",
+            "kimlik_soyadi",
+            "baba_adi",
+            "anne_adi",
+            "dogum_yeri",
+            "telefon",
+            "eposta",
+            "ev_adresi",
+            "biyometrik_foto",
+        ):
+            self.fields[ad].required = False
+
+        self.fields["memleket"].choices = il_secenekleri()
+        self.fields["memleket"].required = False
+        secili_il = ""
+        if self.data.get("memleket"):
+            secili_il = self.data.get("memleket")
+        elif self.instance.pk:
+            secili_il = self.instance.memleket or ""
+        self.fields["memleket_ilce"].choices = ilce_secenekleri(secili_il)
+        self.fields["memleket_ilce"].required = False
+
+        if self.instance.pk and self.instance.telefon:
+            self.initial["telefon"] = telefon_formatla(self.instance.telefon)
+
+        if self.instance.pk:
+            from takip.wave0_models import VeliKisi
+
+            for veli in self.instance.veli_kisileri.all():
+                if veli.yakinlik == VeliKisi.Yakinlik.ANNE:
+                    self.fields["anne_ad_soyad"].initial = veli.ad_soyad
+                    self.fields["anne_telefon"].initial = telefon_formatla(veli.telefon)
+                elif veli.yakinlik == VeliKisi.Yakinlik.BABA:
+                    self.fields["baba_ad_soyad"].initial = veli.ad_soyad
+                    self.fields["baba_telefon"].initial = telefon_formatla(veli.telefon)
+
+    def clean(self):
+        from takip.turkiye_il_ilce import memleket_gecerli
+
+        cleaned = super().clean()
+        kimlik_ad = (cleaned.get("kimlik_adi") or "").strip()
+        kimlik_soyad = (cleaned.get("kimlik_soyadi") or "").strip()
+        if kimlik_ad and kimlik_soyad:
+            cleaned["ad_soyad"] = f"{kimlik_ad} {kimlik_soyad}".strip()
+
+        il = (cleaned.get("memleket") or "").strip()
+        ilce = (cleaned.get("memleket_ilce") or "").strip()
+        if ilce and not memleket_gecerli(il, ilce):
+            self.add_error("memleket_ilce", "Seçilen ilçe bu ile ait değil.")
+        return cleaned
+
+    def _telefon_temizle(self, alan: str) -> str:
+        from takip.telefon_util import telefon_temizle_veya_hata
+
+        deger = self.cleaned_data.get(alan) or ""
+        try:
+            return telefon_temizle_veya_hata(deger)
+        except ValueError as exc:
+            raise forms.ValidationError(str(exc)) from exc
+
+    def clean_telefon(self):
+        return self._telefon_temizle("telefon")
+
+    def clean_anne_telefon(self):
+        return self._telefon_temizle("anne_telefon")
+
+    def clean_baba_telefon(self):
+        return self._telefon_temizle("baba_telefon")
+
+    def clean_biyometrik_foto(self):
+        foto = self.cleaned_data.get("biyometrik_foto")
+        dogrula_biyometrik_foto(foto)
+        return foto
+
+    def clean_tc_kimlik(self):
+        tc = tc_dogrula(self.cleaned_data.get("tc_kimlik"), zorunlu=False)
+        if not tc:
+            return ""
+        qs = Talebe.objects.filter(tc_kimlik=tc)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError("Bu TC kimlik no başka bir talebede kayıtlı.")
+        return tc
+
+    def save(self, commit=True):
+        talebe = super().save(commit=False)
+        ad_soyad = self.cleaned_data.get("ad_soyad")
+        if ad_soyad:
+            talebe.ad_soyad = ad_soyad
+        if commit:
+            talebe.save()
+            self.veli_kaydet(talebe)
+        return talebe
 
     def veli_kaydet(self, talebe: Talebe) -> None:
         from takip.talebe_excel import _veli_kisi_guncelle
@@ -651,13 +986,24 @@ class ProgramPlanForm(forms.ModelForm):
                 attrs={"class": "cs-input", "rows": 2}
             ),
             "baslangic_tarihi": forms.DateInput(
-                attrs={"class": "cs-input", "type": "date"}
+                format="%Y-%m-%d",
+                attrs={"class": "cs-input", "type": "date"},
             ),
             "bitis_tarihi": forms.DateInput(
-                attrs={"class": "cs-input", "type": "date"}
+                format="%Y-%m-%d",
+                attrs={"class": "cs-input", "type": "date"},
             ),
             "aktif": forms.CheckboxInput(attrs={"class": "cs-checkbox"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name in ("baslangic_tarihi", "bitis_tarihi"):
+            self.fields[name].input_formats = [
+                "%Y-%m-%d",
+                "%d/%m/%Y",
+                "%d.%m.%Y",
+            ]
 
     def clean(self):
         cleaned = super().clean()
@@ -677,30 +1023,90 @@ class ProgramSatirForm(forms.ModelForm):
     class Meta:
         model = ProgramSatir
         fields = [
-            "sira",
             "baslangic_saati",
             "bitis_saati",
             "faaliyet_turu",
             "faaliyet_adi",
-            "program_adi",
-            "faaliyet_durumu",
         ]
         widgets = {
-            "sira": forms.NumberInput(attrs={"class": "cs-input", "min": 0}),
             "baslangic_saati": forms.TimeInput(
-                attrs={"class": "cs-input", "type": "time"}
+                format="%H:%M",
+                attrs={"class": "cs-input pg-flow-time", "type": "time"},
             ),
             "bitis_saati": forms.TimeInput(
-                attrs={"class": "cs-input", "type": "time"}
+                format="%H:%M",
+                attrs={"class": "cs-input pg-flow-time", "type": "time"},
             ),
-            "faaliyet_turu": forms.Select(attrs={"class": "cs-input"}),
+            "faaliyet_turu": forms.Select(
+                attrs={"class": "cs-input pg-flow-tur", "data-pg-tur": "1"}
+            ),
             "faaliyet_adi": forms.TextInput(
-                attrs={"class": "cs-input", "placeholder": "Faaliyet adı"}
+                attrs={
+                    "class": "cs-input pg-flow-title",
+                    "placeholder": "Faaliyet adı",
+                }
             ),
-            "program_adi": forms.TextInput(
-                attrs={"class": "cs-input", "placeholder": "Opsiyonel"}
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from takip.models import ProgramFaaliyetTuru
+
+        for name in ("baslangic_saati", "bitis_saati"):
+            self.fields[name].input_formats = ["%H:%M", "%H:%M:%S"]
+
+        turler = ProgramFaaliyetTuru.objects.filter(aktif=True).order_by("sira", "ad")
+        choices = [(t.kod, t.ad) for t in turler]
+        if not choices:
+            choices = list(ProgramSatir.FaaliyetTuru.choices)
+        self.fields["faaliyet_turu"] = forms.ChoiceField(
+            label="Tür",
+            choices=choices,
+            widget=forms.Select(
+                attrs={"class": "cs-input pg-flow-tur", "data-pg-tur": "1"}
             ),
-            "faaliyet_durumu": forms.Select(attrs={"class": "cs-input"}),
+        )
+        if self.instance and self.instance.pk and self.instance.faaliyet_turu:
+            mevcut = self.instance.faaliyet_turu
+            if mevcut not in dict(choices):
+                self.fields["faaliyet_turu"].choices = [
+                    (mevcut, mevcut),
+                    *choices,
+                ]
+
+    def has_changed(self):
+        # Tür seçili kalsa bile boş ekstra satırı kayda alma
+        if not super().has_changed():
+            return False
+        bas = self.data.get(self.add_prefix("baslangic_saati")) if self.data else None
+        bit = self.data.get(self.add_prefix("bitis_saati")) if self.data else None
+        ad = self.data.get(self.add_prefix("faaliyet_adi")) if self.data else None
+        if self.is_bound and not (bas or bit or (ad or "").strip()):
+            return False
+        return True
+
+
+class ProgramFaaliyetTuruForm(forms.ModelForm):
+    class Meta:
+        model = ProgramFaaliyetTuru
+        fields = ["kod", "ad", "renk", "sira", "aktif"]
+        widgets = {
+            "kod": forms.TextInput(
+                attrs={"class": "cs-input", "placeholder": "orn. mola"}
+            ),
+            "ad": forms.TextInput(attrs={"class": "cs-input"}),
+            "renk": forms.Select(
+                choices=[
+                    ("green", "Yeşil"),
+                    ("blue", "Mavi"),
+                    ("amber", "Turuncu"),
+                    ("sky", "Açık mavi"),
+                    ("slate", "Gri"),
+                ],
+                attrs={"class": "cs-input"},
+            ),
+            "sira": forms.NumberInput(attrs={"class": "cs-input", "min": 0}),
+            "aktif": forms.CheckboxInput(attrs={"class": "cs-check"}),
         }
 
 
@@ -708,7 +1114,7 @@ ProgramSatirFormSet = inlineformset_factory(
     ProgramPlan,
     ProgramSatir,
     form=ProgramSatirForm,
-    extra=2,
+    extra=3,
     can_delete=True,
 )
 

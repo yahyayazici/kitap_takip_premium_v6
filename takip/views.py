@@ -584,14 +584,17 @@ def talebe_listesi(request):
                 zimmet.talebe_id
             ] = zimmet
 
+    from takip.talebe_profil_service import profil_eksik_mi
+
     for talebe in talebeler:
         talebe.aktif_zimmet = (
             aktif_zimmetler.get(
                 talebe.id
             )
         )
+        talebe.profil_eksik = profil_eksik_mi(talebe)
 
-    from takip.panel_permissions import tum_talebe_erisimi_var
+    from takip.panel_permissions import tum_talebe_erisimi_var, yonetim_erisimi_var
     from takip.talebe_liste_raporu_service import erisilebilir_siniflar
 
     talebe_qs = _yetkili_talebeler(request.user)
@@ -608,6 +611,7 @@ def talebe_listesi(request):
             "kurum_raporu_goster": (
                 request.user.is_superuser or tum_talebe_erisimi_var(request.user)
             ),
+            "yonetim_erisim": yonetim_erisimi_var(request.user),
         },
     )
 
@@ -670,58 +674,83 @@ def talebe_detay(
         id=talebe_id,
     )
 
+    from takip.talebe_profil_service import (
+        etut_profil_duzenleyebilir,
+        profil_eksik_alanlar,
+        profil_eksik_mi,
+    )
+    from takip.turkiye_il_ilce import il_ilce_haritasi
+    from takip.yonetim_forms import TalebeProfilTamamlaForm
+
     gelisim_erisim = gelisim_dosyasi_erisimi_var(request.user)
+    profil_duzenle = etut_profil_duzenleyebilir(request.user, talebe)
+    kimlik_erisim = gelisim_erisim or profil_duzenle
 
     sekme = request.GET.get("sekme")
     if sekme not in {"egitim", "gelisim", "kimlik"}:
         sekme = "gelisim" if gelisim_erisim else "egitim"
 
-    if request.method == "POST" and gelisim_erisim:
+    profil_form = None
+    if request.method == "POST":
         aksiyon = request.POST.get("aksiyon")
 
-        if aksiyon == "genel_durum" and can(request.user, "gelisim_dosyasi", "edit"):
-            form = TalebeGenelDurumForm(request.POST)
-            if form.is_valid():
-                kayit, _ = TalebeGenelDurum.objects.get_or_create(talebe=talebe)
-                kayit.durum_kodu = form.cleaned_data["durum_kodu"]
-                kayit.ozet = form.cleaned_data["ozet"]
-                kayit.guncelleyen = request.user
-                kayit.save()
-                messages.success(request, "Genel durum güncellendi.")
-                return redirect(f"{request.path}?sekme=gelisim")
+        if aksiyon == "profil_tamamla" and profil_duzenle:
+            profil_form = TalebeProfilTamamlaForm(
+                request.POST,
+                request.FILES,
+                instance=talebe,
+            )
+            if profil_form.is_valid():
+                profil_form.save()
+                messages.success(request, "Talebe profili güncellendi.")
+                return redirect(f"{request.path}?sekme=kimlik")
+            sekme = "kimlik"
+            messages.error(request, "Profil kaydedilemedi — eksik veya hatalı alanları kontrol edin.")
 
-        if aksiyon == "not_ekle" and can(request.user, "gelisim_dosyasi", "create"):
-            not_form = TalebePersonelNotuForm(request.POST)
-            if not_form.is_valid():
-                not_kaydi = not_form.save(commit=False)
-                not_kaydi.talebe = talebe
-                not_kaydi.yazar = request.user
-                not_kaydi.save()
-                messages.success(request, "Personel notu eklendi.")
-                return redirect(f"{request.path}?sekme=gelisim")
+        if gelisim_erisim:
+            if aksiyon == "genel_durum" and can(request.user, "gelisim_dosyasi", "edit"):
+                form = TalebeGenelDurumForm(request.POST)
+                if form.is_valid():
+                    kayit, _ = TalebeGenelDurum.objects.get_or_create(talebe=talebe)
+                    kayit.durum_kodu = form.cleaned_data["durum_kodu"]
+                    kayit.ozet = form.cleaned_data["ozet"]
+                    kayit.guncelleyen = request.user
+                    kayit.save()
+                    messages.success(request, "Genel durum güncellendi.")
+                    return redirect(f"{request.path}?sekme=gelisim")
 
-        if aksiyon == "dosya_yukle" and can(request.user, "gelisim_dosyasi", "create"):
-            dosya_form = TalebeDosyasiForm(request.POST, request.FILES)
-            if dosya_form.is_valid():
-                dosya = dosya_form.save(commit=False)
-                dosya.talebe = talebe
-                dosya.yukleyen = request.user
-                dosya.save()
-                messages.success(request, "Dosya yüklendi.")
-                return redirect(f"{request.path}?sekme=gelisim")
+            if aksiyon == "not_ekle" and can(request.user, "gelisim_dosyasi", "create"):
+                not_form = TalebePersonelNotuForm(request.POST)
+                if not_form.is_valid():
+                    not_kaydi = not_form.save(commit=False)
+                    not_kaydi.talebe = talebe
+                    not_kaydi.yazar = request.user
+                    not_kaydi.save()
+                    messages.success(request, "Personel notu eklendi.")
+                    return redirect(f"{request.path}?sekme=gelisim")
 
-        if aksiyon == "dosya_sil" and can(request.user, "gelisim_dosyasi", "delete"):
-            dosya_id = request.POST.get("dosya_id", "").strip()
-            if dosya_id.isdigit():
-                dosya = get_object_or_404(
-                    TalebeDosyasi,
-                    id=int(dosya_id),
-                    talebe=talebe,
-                )
-                dosya.dosya.delete(save=False)
-                dosya.delete()
-                messages.success(request, "Dosya silindi.")
-            return redirect(f"{request.path}?sekme=gelisim")
+            if aksiyon == "dosya_yukle" and can(request.user, "gelisim_dosyasi", "create"):
+                dosya_form = TalebeDosyasiForm(request.POST, request.FILES)
+                if dosya_form.is_valid():
+                    dosya = dosya_form.save(commit=False)
+                    dosya.talebe = talebe
+                    dosya.yukleyen = request.user
+                    dosya.save()
+                    messages.success(request, "Dosya yüklendi.")
+                    return redirect(f"{request.path}?sekme=gelisim")
+
+            if aksiyon == "dosya_sil" and can(request.user, "gelisim_dosyasi", "delete"):
+                dosya_id = request.POST.get("dosya_id", "").strip()
+                if dosya_id.isdigit():
+                    dosya = get_object_or_404(
+                        TalebeDosyasi,
+                        id=int(dosya_id),
+                        talebe=talebe,
+                    )
+                    dosya.dosya.delete(save=False)
+                    dosya.delete()
+                    messages.success(request, "Dosya silindi.")
+                return redirect(f"{request.path}?sekme=gelisim")
 
     context = _talebe_profil_verisi(
         request.user,
@@ -729,6 +758,62 @@ def talebe_detay(
     )
     context["aktif_sekme"] = sekme
     context["gelisim_erisim"] = gelisim_erisim
+    context["kimlik_erisim"] = kimlik_erisim
+    context["profil_duzenle"] = profil_duzenle
+    context["profil_eksik"] = profil_eksik_mi(talebe)
+    context["profil_eksik_alanlar"] = profil_eksik_alanlar(talebe)
+    context["il_ilce_json"] = il_ilce_haritasi()
+    if profil_duzenle:
+        pf = profil_form or TalebeProfilTamamlaForm(instance=talebe)
+        context["profil_form"] = pf
+        context["profil_form_bolumleri"] = [
+            (
+                "Fotoğraf ve ad",
+                [pf[n] for n in ("biyometrik_foto", "ad_soyad", "kimlik_adi", "kimlik_soyadi")],
+            ),
+            (
+                "Kimlik bilgileri",
+                [
+                    pf[n]
+                    for n in (
+                        "tc_kimlik",
+                        "cinsiyet",
+                        "dogum_tarihi",
+                        "sinif_sube",
+                        "dini_ders_seviyesi",
+                    )
+                ],
+            ),
+            (
+                "Diğer bilgiler",
+                [
+                    pf[n]
+                    for n in (
+                        "baba_adi",
+                        "anne_adi",
+                        "dogum_yeri",
+                        "memleket",
+                        "memleket_ilce",
+                        "telefon",
+                        "eposta",
+                    )
+                ],
+            ),
+            (
+                "Aile ve veli",
+                [
+                    pf[n]
+                    for n in (
+                        "aile_durumu",
+                        "anne_ad_soyad",
+                        "anne_telefon",
+                        "baba_ad_soyad",
+                        "baba_telefon",
+                        "ev_adresi",
+                    )
+                ],
+            ),
+        ]
 
     if gelisim_erisim:
         genel, _ = TalebeGenelDurum.objects.get_or_create(talebe=talebe)
@@ -771,6 +856,9 @@ def talebe_detay(
 
     context["mezun_profil"] = MezunProfil.objects.filter(talebe=talebe).first()
     context["mezun_etkin"] = can(request.user, "mezun", "create") and talebe.durum != Talebe.Durum.MEZUN
+    from takip.panel_permissions import yonetim_erisimi_var
+
+    context["yonetim_erisim"] = yonetim_erisimi_var(request.user)
 
     return render(
         request,

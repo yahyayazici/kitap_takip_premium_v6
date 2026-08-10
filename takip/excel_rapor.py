@@ -45,6 +45,8 @@ class ExcelRapor:
     kurum: str = ""
     satir_yukseklik: float = 20
     metin_kaydir: bool = False
+    kilitli: bool = True
+    basliklari_buyuk_harf: bool = True
 
 
 @dataclass
@@ -58,6 +60,8 @@ class ExcelSayfa:
     alt_baslik: str = ""
     satir_yukseklik: float = 28
     metin_kaydir: bool = True
+    kilitli: bool = True
+    basliklari_buyuk_harf: bool = True
 
 
 def _logo_yolu() -> Path | None:
@@ -241,11 +245,15 @@ def _sayfa_yaz(ws, rapor: ExcelRapor | ExcelSayfa) -> None:
     altin = Side(style="medium", color=_RENK_ALTIN)
     bos_kenar = Side(style=None)
 
+    baslik_buyuk = getattr(rapor, "basliklari_buyuk_harf", True)
     for idx, kolon in enumerate(rapor.kolonlar, start=1):
+        baslik_metin = str(kolon.baslik or "")
+        if baslik_buyuk:
+            baslik_metin = baslik_metin.upper()
         h = ws.cell(
             row=header_row,
             column=idx,
-            value=str(kolon.baslik or "").upper(),
+            value=baslik_metin,
         )
         h.font = Font(name="Calibri", bold=True, size=10, color=_RENK_METIN)
         h.alignment = Alignment(
@@ -317,23 +325,32 @@ def _sayfa_yaz(ws, rapor: ExcelRapor | ExcelSayfa) -> None:
     ws.page_setup.fitToHeight = 0
     ws.sheet_view.showGridLines = False
 
-    ws.protection.sheet = True
-    ws.protection.objects = True
-    ws.protection.scenarios = True
-    ws.protection.enable()
+    if getattr(rapor, "kilitli", True):
+        ws.protection.sheet = True
+        ws.protection.objects = True
+        ws.protection.scenarios = True
+        ws.protection.enable()
 
 
-def rapor_xlsx_olustur(rapor: ExcelRapor) -> bytes:
+def rapor_workbook_olustur(rapor: ExcelRapor):
+    """ExcelRapor'dan Workbook üretir (doğrulama vb. eklemek için)."""
     from openpyxl import Workbook
 
     wb = Workbook()
     ws = wb.active
     ws.title = (rapor.sayfa_adi or "Rapor")[:31]
     _sayfa_yaz(ws, rapor)
+    return wb
 
+
+def rapor_xlsx_olustur(rapor: ExcelRapor) -> bytes:
+    wb = rapor_workbook_olustur(rapor)
     buf = BytesIO()
     wb.save(buf)
     return buf.getvalue()
+
+# Başlık satırı (logo + boşluklardan sonra)
+EXCEL_RAPOR_BASLIK_SATIRI = 6
 
 
 def coklu_rapor_xlsx(sayfalar: Sequence[ExcelSayfa]) -> bytes:

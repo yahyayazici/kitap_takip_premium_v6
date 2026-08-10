@@ -23,6 +23,111 @@
     {% endif %}
 
     {% if deneme.durum == 'aktif' %}
+    {% if yukleyebilir %}
+    <section class="yonetim-card" style="margin-bottom:20px;">
+        <h2>Gap / konu raporu yükle</h2>
+        <p style="margin:0 0 12px;color:#64748b;font-size:13px;">
+            Öğrenci Gap PDF’lerini (çoklu seçim) yükleyin. Yapay zekâ / eşleştirme adı okur;
+            konu satırlarındaki D / Y / B kaydedilir ve Deneme Zekası + KTT konu analiziyle birleştirilir.
+        </p>
+        <form method="post" action="{% url 'yonetim:deneme_gap_yukle' deneme.pk %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="file" name="gap_pdf" accept=".pdf,application/pdf" class="input" multiple required>
+            <button type="submit" class="primary-btn" style="margin-top:12px;">PDF’leri yükle</button>
+        </form>
+        {% if gap_bekleyen %}
+        <p style="margin:12px 0 0;color:#b45309;font-size:13px;">{{ gap_bekleyen }} raporda isim onayı bekleniyor.</p>
+        {% endif %}
+    </section>
+    {% endif %}
+
+    {% if gap_raporlari %}
+    <section class="yonetim-card" style="margin-bottom:20px;">
+        <h2>Yüklenen Gap raporları</h2>
+        <div class="responsive-table">
+            <table class="yonetim-table">
+                <thead>
+                    <tr>
+                        <th>PDF adı</th>
+                        <th>Okunan ad</th>
+                        <th>Talebe</th>
+                        <th>Eşleşme</th>
+                        <th>Konu</th>
+                        <th>Durum</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rapor in gap_raporlari %}
+                    <tr>
+                        <td>{{ rapor.dosya_adi }}</td>
+                        <td>{{ rapor.ham_ad|default:"—" }}{% if rapor.sinif_metni %} <span class="muted">({{ rapor.sinif_metni }})</span>{% endif %}</td>
+                        <td>{% if rapor.talebe %}{{ rapor.talebe.ad_soyad }}{% else %}—{% endif %}</td>
+                        <td>{{ rapor.get_eslesme_display }}</td>
+                        <td>{{ rapor.konu_satirlari.all|length }}</td>
+                        <td>{{ rapor.get_durum_display }}</td>
+                        <td>
+                            {% if rapor.durum == 'eslesme_bekliyor' and yukleyebilir %}
+                            <form method="post" action="{% url 'yonetim:deneme_gap_eslestir' deneme.pk rapor.pk %}" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                                {% csrf_token %}
+                                <select name="talebe_id" class="input" required style="min-width:160px;">
+                                    <option value="">Talebe seç…</option>
+                                    {% for t in talebeler %}
+                                    <option value="{{ t.id }}"{% if rapor.oneri_talebe_id == t.id %} selected{% endif %}>{{ t.ad_soyad }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="ghost-btn">Eşleştir</button>
+                            </form>
+                            {% endif %}
+                            {% if yukleyebilir %}
+                            <form method="post" action="{% url 'yonetim:deneme_gap_sil' deneme.pk rapor.pk %}" style="display:inline;" onsubmit="return confirm('Bu Gap raporu silinsin mi?');">
+                                {% csrf_token %}
+                                <button type="submit" class="ghost-btn">Sil</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if zayif_konular %}
+    <section class="yonetim-card" style="margin-bottom:20px;">
+        <h2>Zayıf konular (Gap · %70 altı)</h2>
+        <div class="responsive-table">
+            <table class="yonetim-table">
+                <thead>
+                    <tr>
+                        <th>Talebe</th>
+                        <th>Branş</th>
+                        <th>Konu</th>
+                        <th>D</th>
+                        <th>Y</th>
+                        <th>B</th>
+                        <th>%</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for k in zayif_konular %}
+                    <tr>
+                        <td>{% if k.rapor.talebe %}{{ k.rapor.talebe.ad_soyad }}{% else %}{{ k.rapor.ham_ad }}{% endif %}</td>
+                        <td>{{ k.get_brans_display }}</td>
+                        <td>{{ k.konu_normalize|default:k.konu_ham }}</td>
+                        <td>{{ k.dogru }}</td>
+                        <td>{{ k.yanlis }}</td>
+                        <td>{{ k.bos }}</td>
+                        <td>{{ k.yuzde }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+
     <section class="yonetim-card">
         <h2>Genel Sıralama</h2>
         <div class="responsive-table">

@@ -14,7 +14,7 @@
 </header>
 
 <section class="dashboard-card yonetim-form-card">
-    <form method="post" class="yonetim-form-layout" enctype="multipart/form-data">
+    <form method="post" class="yonetim-form-layout" enctype="multipart/form-data" id="talebe-kayit-form">
         {% csrf_token %}
 
         {% if form.non_field_errors %}
@@ -57,5 +57,57 @@
         </div>
     </form>
 </section>
+
+{{ il_ilce_json|json_script:"talebe-il-ilce-data" }}
+<script>
+(function () {
+    function hazirla() {
+        var dataEl = document.getElementById("talebe-il-ilce-data");
+        var form = document.getElementById("talebe-kayit-form");
+        if (!dataEl || !form) return;
+
+        var harita = {};
+        try { harita = JSON.parse(dataEl.textContent); } catch (e) { return; }
+
+        var il = form.querySelector('[name="memleket"]');
+        var ilce = form.querySelector('[name="memleket_ilce"]');
+        if (!il || !ilce) return;
+
+        var ilkIlce = ilce.value || "";
+
+        function doldur(koruSecim) {
+            var secilen = (il.value || "").trim();
+            var liste = harita[secilen] || [];
+            var onceki = koruSecim ? (ilce.value || ilkIlce) : "";
+            ilce.innerHTML = "";
+
+            var bos = document.createElement("option");
+            bos.value = "";
+            bos.textContent = secilen ? "İlçe seçin" : "Önce il seçin";
+            ilce.appendChild(bos);
+
+            liste.forEach(function (ad) {
+                var opt = document.createElement("option");
+                opt.value = ad;
+                opt.textContent = ad;
+                if (onceki && ad === onceki) opt.selected = true;
+                ilce.appendChild(opt);
+            });
+        }
+
+        il.addEventListener("change", function () {
+            ilkIlce = "";
+            doldur(false);
+        });
+        doldur(true);
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", hazirla);
+    } else {
+        hazirla();
+    }
+})();
+</script>
 
 {% endblock %}

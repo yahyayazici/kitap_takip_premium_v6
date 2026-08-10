@@ -28,11 +28,15 @@
                 <tr>
                     <td><strong>{{ hoca.ad_soyad }}</strong></td>
                     <td>{{ hoca.odeme_profili_kayit.brans.ad|default:"—" }}</td>
-                    <td class="num-col">{{ hoca.odeme_profili_kayit.saatlik_ucret }} ₺</td>
-                    <td>{% if hoca.odeme_profili_kayit.aktif %}Aktif{% else %}Pasif{% endif %}</td>
+                    <td class="num-col">{% if hoca.odeme_profili_kayit %}{{ hoca.odeme_profili_kayit.saatlik_ucret }} ₺{% else %}—{% endif %}</td>
+                    <td>{% if hoca.odeme_profili_kayit and hoca.odeme_profili_kayit.aktif %}Aktif{% elif hoca.odeme_profili_kayit %}Pasif{% else %}Tanımsız{% endif %}</td>
                     <td class="yonetim-table-actions">
                         <div class="yonetim-action-group">
                             <a href="{% url 'yonetim:ogretmen_odeme_profil_duzenle' hoca.pk %}" class="yonetim-action-btn">Düzenle</a>
+                            <form method="post" action="{% url 'yonetim:ogretmen_giris_pdf_tek' hoca.pk %}" class="yonetim-inline-action" onsubmit="return confirm('{{ hoca.ad_soyad|escapejs }} için yeni şifre oluşturulup PDF indirilecek. Devam edilsin mi?');">
+                                {% csrf_token %}
+                                <button type="submit" class="yonetim-action-btn">Giriş PDF</button>
+                            </form>
                             <form method="post" action="{% url 'yonetim:ogretmen_odeme_profil_sil' hoca.pk %}" class="yonetim-inline-action" onsubmit="return confirm('{{ hoca.ad_soyad|escapejs }} pasif edilsin mi? Öğretmen panele giriş yapamaz.');">
                                 {% csrf_token %}
                                 <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger">Sil</button>

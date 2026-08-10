@@ -46,6 +46,7 @@
                     <th>Disiplin</th>
                     <th>Puan</th>
                     <th>Not</th>
+                    <th>Karne</th>
                 </tr>
             </thead>
             <tbody>
@@ -60,9 +61,13 @@
                     <td>{{ n.disiplin|default:"—" }}</td>
                     <td><strong>{{ n.puan|default:"—" }}</strong></td>
                     <td>{{ n.aciklama|truncatechars:60 }}</td>
+                    <td>
+                        <a href="{% url 'ogretmen_talebe_karne_pdf' n.talebe_id %}?hafta={{ n.hafta_baslangic|date:'Y-m-d' }}"
+                           target="_blank" class="dash-text-btn">PDF</a>
+                    </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="9" class="og-empty-note">Henüz girdiğiniz değerlendirme kaydı yok.</td></tr>
+                <tr><td colspan="10" class="og-empty-note">Henüz girdiğiniz değerlendirme kaydı yok.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

@@ -1,19 +1,23 @@
 {% extends "yonetim/base.html" %}
-{% block title %}Öğretmen Değerlendirme Raporu{% endblock %}
+{% block title %}Haftalık Not Takibi{% endblock %}
 {% block content %}
 <div class="yonetim-page">
     <div class="yonetim-page-head">
         <div>
-            <p class="muted">Raporlar</p>
-            <h1>Öğretmen Değerlendirme Raporu</h1>
-            <p class="muted">Sınıf, talebe ve öğretmen bazında haftalık notları görüntüleyin / PDF alın.</p>
+            <p class="muted">Öğretmen</p>
+            <h1>Haftalık Not Takibi</h1>
+            <p class="muted">Hangi öğretmen not girdi, kim girmedi — haftalık kontrol ve detay listesi.</p>
         </div>
         <div class="yonetim-page-actions">
             <a class="primary-btn" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}format=pdf" target="_blank">PDF İndir</a>
         </div>
     </div>
 
-    <form method="get" class="yonetim-filter-bar dash-panel" style="padding:16px;margin-bottom:16px;display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));align-items:end;">
+    <form method="get" class="yonetim-filter-bar dash-panel" style="padding:16px;margin-bottom:16px;display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));align-items:end;">
+        <div>
+            <label for="hafta">Hafta (herhangi bir gün)</label>
+            <input class="cs-input" type="date" id="hafta" name="hafta" value="{{ secili_hafta }}">
+        </div>
         <div>
             <label for="sinif">Sınıf</label>
             <select id="sinif" name="sinif" class="cs-input">
@@ -46,11 +50,66 @@
         </div>
     </form>
 
+    <section class="dash-panel" style="margin-bottom:16px;">
+        <div class="dash-panel-head">
+            <div>
+                <p class="dash-eyebrow">HAFTALIK TAKİP</p>
+                <h2>{{ hafta_baslangic|date:"d.m.Y" }} – {{ hafta_bitis|date:"d.m.Y" }}</h2>
+                <p class="muted">{{ takip.giren }} girdi · {{ takip.girmeyen }} girmedi · {{ takip.toplam_hoca }} öğretmen</p>
+            </div>
+        </div>
+        <div class="responsive-table">
+            <table class="yonetim-table">
+                <thead>
+                    <tr>
+                        <th>Öğretmen</th>
+                        <th>Branş</th>
+                        <th>Sınıflar</th>
+                        <th>Not girişi</th>
+                        <th>Konu</th>
+                        <th>Kayıt</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in takip.satirlar %}
+                    <tr>
+                        <td><strong>{{ s.hoca.ad_soyad }}</strong></td>
+                        <td>{{ s.brans }}</td>
+                        <td>{{ s.siniflar }}</td>
+                        <td>
+                            {% if s.girdi %}
+                            <span class="status-pill status-okunuyor">Girdi</span>
+                            {% else %}
+                            <span class="status-pill status-iade">Girmedi</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if s.konu_girdi %}
+                            <span class="status-pill status-okunuyor">Var</span>
+                            {% else %}
+                            <span class="muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="num-col">{{ s.not_sayisi }}</td>
+                        <td>
+                            <a class="yonetim-link" href="?hafta={{ secili_hafta }}&hoca={{ s.hoca.id }}">Detay</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="report-empty">Aktif öğretmen yok.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
     <section class="dash-panel">
         <div class="dash-panel-head">
             <div>
-                <p class="dash-eyebrow">Sonuç</p>
-                <h2>{{ notlar|length }} kayıt</h2>
+                <p class="dash-eyebrow">DETAY</p>
+                <h2>{{ notlar|length }} not kaydı</h2>
+                <p class="muted">{{ filtre_ozet }}</p>
             </div>
         </div>
         <div class="responsive-table">
@@ -81,10 +140,10 @@
                         <td>{{ n.disiplin|default:"—" }}</td>
                         <td><strong>{{ n.puan|default:"—" }}</strong></td>
                         <td>{{ n.etut_hocasi.ad_soyad }}</td>
-                        <td><a href="{% url 'yonetim:ogretmen_degerlendirme_karne_pdf' n.talebe_id %}" target="_blank">PDF</a></td>
+                        <td><a href="{% url 'yonetim:ogretmen_degerlendirme_karne_pdf' n.talebe_id %}?hafta={{ n.hafta_baslangic|date:'Y-m-d' }}" target="_blank">PDF</a></td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="10" class="report-empty">Kayıt bulunamadı.</td></tr>
+                    <tr><td colspan="10" class="report-empty">Bu filtrede not kaydı yok.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>

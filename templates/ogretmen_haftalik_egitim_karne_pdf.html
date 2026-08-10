@@ -1,0 +1,100 @@
+{% load static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>{{ talebe.ad_soyad }} · Haftalık Eğitim Değerlendirme Karnesi</title>
+    <style>
+        {% include "includes/pdf_kart_belge_css.html" %}
+    </style>
+</head>
+<body>
+<table class="kart-wrap" cellpadding="0" cellspacing="0">
+    <tr>
+        <td class="kart-head">
+            <div class="kart-brand">{{ panel_org }}</div>
+            <div class="kart-sub">Haftalık Eğitim Değerlendirme Karnesi</div>
+        </td>
+    </tr>
+    <tr>
+        <td class="kart-body">
+            <h1 class="kart-name">{{ talebe.ad_soyad }}</h1>
+            <p class="kart-role">
+                {{ talebe.sinif }}{% if talebe.sube %} / {{ talebe.sube }}{% endif %}
+                {% if talebe.talebe_no %} · No: {{ talebe.talebe_no }}{% endif %}
+            </p>
+
+            <table class="info-table" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="info-cell" style="width:50%; padding-right:4px;">
+                        <table class="info-box" cellpadding="0" cellspacing="0"><tr><td>
+                            <span class="info-label">Hafta</span>
+                            <div class="info-value" style="font-size:14px;">
+                                {{ hafta_baslangic|date:"d.m.Y" }} – {{ hafta_bitis|date:"d.m.Y" }}
+                            </div>
+                        </td></tr></table>
+                    </td>
+                    <td class="info-cell" style="width:25%; padding:0 4px;">
+                        <table class="info-box" cellpadding="0" cellspacing="0"><tr><td>
+                            <span class="info-label">Ders sayısı</span>
+                            <div class="info-value">{{ kayit_sayisi }}</div>
+                        </td></tr></table>
+                    </td>
+                    <td class="info-cell" style="width:25%; padding-left:4px;">
+                        <table class="info-box" cellpadding="0" cellspacing="0"><tr><td>
+                            <span class="info-label">Ortalama</span>
+                            <div class="info-value">{% if ortalama is not None %}{{ ortalama }}{% else %}—{% endif %}</div>
+                        </td></tr></table>
+                    </td>
+                </tr>
+            </table>
+
+            <div class="section-block">
+                <div class="section-head">Haftalık değerlendirmeler · Katılım %30 · Takip %30 · Disiplin %40</div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width:22%;">Öğretmen</th>
+                            <th style="width:22%;">Konu</th>
+                            <th style="width:10%;">Not</th>
+                            <th style="width:46%;">Değerlendirme</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in satirlar %}
+                        <tr>
+                            <td>
+                                <strong>{{ s.ogretmen }}</strong><br>
+                                <span style="color:#64748b;font-size:11px;">{{ s.ders }} öğretmeni</span>
+                            </td>
+                            <td>{{ s.konu }}</td>
+                            <td style="font-weight:600;">{% if s.puan is not None %}{{ s.puan }}{% else %}—{% endif %}</td>
+                            <td>{{ s.degerlendirme }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="section-empty">Bu haftaya ait değerlendirme kaydı yok.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="kart-note">
+                Bu belge {{ panel_org }} haftalık eğitim değerlendirme kayıtlarından oluşturulmuştur.
+            </p>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <table class="kart-foot" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="left">{{ panel_short }}</td>
+                    <td class="right">{{ bugun|date:"d.m.Y" }}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

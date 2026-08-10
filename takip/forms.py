@@ -680,13 +680,20 @@ class OgretmenOdemeDonemForm(forms.Form):
         widget=forms.Textarea(attrs={"class": "input", "rows": 2}),
     )
 
-    def __init__(self, *args, **kwargs):
-        from takip.models import EtutHocasi
-
+    def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["etut_hocasi"].queryset = EtutHocasi.objects.filter(
-            aktif=True
-        ).order_by("ad_soyad")
+        from takip.ogretmen_odeme_service import yetkili_odeme_ogretmenleri
+
+        self.user = user
+        if user is not None:
+            self.fields["etut_hocasi"].queryset = yetkili_odeme_ogretmenleri(
+                user,
+                olusturma_icin=True,
+            )
+        else:
+            from takip.ogretmen_odeme_service import aktif_ogretmenler
+
+            self.fields["etut_hocasi"].queryset = aktif_ogretmenler()
 
     def clean(self):
         cleaned = super().clean()
@@ -694,6 +701,15 @@ class OgretmenOdemeDonemForm(forms.Form):
         bitis = cleaned.get("bitis")
         if baslangic and bitis and bitis < baslangic:
             self.add_error("bitis", "Bitiş tarihi başlangıçtan önce olamaz.")
+        hoca = cleaned.get("etut_hocasi")
+        if self.user is not None and hoca is not None:
+            from takip.ogretmen_odeme_service import yetkili_odeme_ogretmenleri
+
+            if not yetkili_odeme_ogretmenleri(
+                self.user,
+                olusturma_icin=True,
+            ).filter(pk=hoca.pk).exists():
+                self.add_error("etut_hocasi", "Bu öğretmen için kayıt oluşturamazsınız.")
         return cleaned
 
 
@@ -1135,4 +1151,114 @@ class YctOlayForm(StyledModelForm):
         super().__init__(*args, **kwargs)
         self.fields["bitis"].required = False
         self.fields["aciklama"].required = False
+
+
+class SinavBasvuruForm(StyledModelForm):
+    bilgilendirme_onay = forms.BooleanField(
+        required=True,
+        label="Bilgilendirme ve değerlendirme metinlerini okudum, anladım.",
+        error_messages={
+            "required": "Devam etmek için bilgilendirme metnini onaylayın.",
+        },
+    )
+
+    class Meta:
+        from takip.models import SinavBasvuru
+
+        model = SinavBasvuru
+        fields = [
+            "ad_soyad",
+            "baba_adi",
+            "baba_telefon",
+            "anne_adi",
+            "anne_telefon",
+            "il",
+            "ilce",
+            "dogum_tarihi",
+        ]
+        widgets = {
+            "ad_soyad": forms.TextInput(
+                attrs={"placeholder": "Öğrencinin adı ve soyadı", "autocomplete": "name"}
+            ),
+            "baba_adi": forms.TextInput(attrs={"placeholder": "Baba adı"}),
+            "baba_telefon": forms.TextInput(
+                attrs={
+                    "placeholder": "05xx xxx xx xx",
+                    "autocomplete": "tel",
+                    "inputmode": "tel",
+                }
+            ),
+            "anne_adi": forms.TextInput(attrs={"placeholder": "Anne adı"}),
+            "anne_telefon": forms.TextInput(
+                attrs={
+                    "placeholder": "05xx xxx xx xx",
+                    "autocomplete": "tel",
+                    "inputmode": "tel",
+                }
+            ),
+            "il": forms.Select(attrs={"class": "sb-select"}),
+            "ilce": forms.Select(attrs={"class": "sb-select"}),
+            "dogum_tarihi": forms.DateInput(attrs={"type": "date"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        from takip.sinav_basvuru_choices import (
+            ISTANBUL,
+            ISTANBUL_ILCE_CHOICES,
+        )
+
+        super().__init__(*args, **kwargs)
+        self.fields["il"].choices = [(ISTANBUL, ISTANBUL)]
+        self.fields["il"].initial = ISTANBUL
+        self.fields["ilce"].choices = ISTANBUL_ILCE_CHOICES
+        if not self.is_bound and not self.initial.get("il"):
+            self.initial["il"] = ISTANBUL
+
+    def _clean_telefon_alan(self, alan: str) -> str:
+        telefon = (self.cleaned_data.get(alan) or "").strip()
+        digits = "".join(ch for ch in telefon if ch.isdigit())
+        if len(digits) < 10:
+            raise forms.ValidationError("Geçerli bir telefon numarası girin.")
+        return telefon
+
+    def clean_baba_telefon(self):
+        return self._clean_telefon_alan("baba_telefon")
+
+    def clean_anne_telefon(self):
+        return self._clean_telefon_alan("anne_telefon")
+
+    def clean_ad_soyad(self):
+        return (self.cleaned_data.get("ad_soyad") or "").strip()
+
+    def clean_il(self):
+        from takip.sinav_basvuru_choices import ISTANBUL
+
+        return ISTANBUL
+
+    def clean_ilce(self):
+        from takip.sinav_basvuru_choices import ISTANBUL_ILCELERI
+
+        ilce = (self.cleaned_data.get("ilce") or "").strip()
+        if ilce not in ISTANBUL_ILCELERI:
+            raise forms.ValidationError("İstanbul ilçelerinden birini seçin.")
+        return ilce
+
+
+class SinavBasvuruMesajSablonForm(StyledModelForm):
+    class Meta:
+        from takip.models import SinavBasvuruMesajSablon
+
+        model = SinavBasvuruMesajSablon
+        fields = [
+            "baslik",
+            "metin",
+            "aktif",
+            "alici",
+            "wa_template_name",
+            "wa_template_lang",
+            "sira",
+        ]
+        widgets = {
+            "metin": forms.Textarea(attrs={"rows": 6}),
+        }
 

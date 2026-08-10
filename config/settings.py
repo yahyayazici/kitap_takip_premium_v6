@@ -177,6 +177,16 @@ PANEL_PUBLIC_URL = os.environ.get("PANEL_PUBLIC_URL", "").strip()
 if not PANEL_PUBLIC_URL and not DEBUG:
     PANEL_PUBLIC_URL = "https://cinilisarayproje.com"
 
+# —— WhatsApp Cloud API (Meta Business) ——
+WHATSAPP_TOKEN = os.environ.get("WHATSAPP_TOKEN", "").strip()
+WHATSAPP_PHONE_NUMBER_ID = os.environ.get("WHATSAPP_PHONE_NUMBER_ID", "").strip()
+WHATSAPP_API_VERSION = os.environ.get("WHATSAPP_API_VERSION", "v21.0").strip()
+WHATSAPP_AKTIF = (
+    os.environ.get("WHATSAPP_AKTIF", "False").lower() == "true"
+    and bool(WHATSAPP_TOKEN)
+    and bool(WHATSAPP_PHONE_NUMBER_ID)
+)
+
 if EMAIL_HOST:
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 else:

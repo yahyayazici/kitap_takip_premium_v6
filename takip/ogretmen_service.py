@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta
 from typing import Any
 
 from django.contrib.auth.models import User
@@ -13,6 +13,9 @@ from takip.duyuru_service import ogretmen_duyurulari
 from takip.veli_randevu_service import ogretmen_randevu_listesi
 from takip.models import EtutHocasi, SinifSube, Talebe
 from takip.user_helpers import etut_hocasi_for_user
+
+# Haftalık not girişi: Pazar akşamı (İstanbul) kapanır
+HAFTA_KAPANIS_SAAT = 20
 
 
 @dataclass(frozen=True)
@@ -24,22 +27,27 @@ class OgretmenSinifKarti:
 
 
 def ogretmen_hocasi_for_user(user: User) -> EtutHocasi | None:
+    """Branş öğretmeni EtutHocasi — etüt/sınıf mesulü personel değil."""
     if not user.is_authenticated:
         return None
 
-    hoca = etut_hocasi_for_user(user)
-    if hoca and hoca.aktif:
-        return hoca
-
+    # Personel hesabı (etüt mesulü vb.) öğretmen paneline düşmesin
     try:
-        profil = user.personel_profili
+        personel = user.personel_profili
     except Exception:
+        personel = None
+    if personel is not None and personel.aktif:
         return None
 
-    if profil.aktif and profil.etut_hocasi_id and profil.etut_hocasi.aktif:
-        return profil.etut_hocasi
+    hoca = etut_hocasi_for_user(user)
+    if not hoca or not hoca.aktif:
+        return None
 
-    return None
+    kayit = getattr(hoca, "personel_kaydi", None)
+    if kayit is not None and kayit.aktif:
+        return None
+
+    return hoca
 
 
 def kullanici_ogretmen_mi(user: User) -> bool:
@@ -47,16 +55,10 @@ def kullanici_ogretmen_mi(user: User) -> bool:
 
 
 def ogretmen_paneli_kullanicisi_mi(user: User) -> bool:
-    """Yalnızca öğretmen paneline giden hesaplar (personel/idareci değil)."""
-    if not kullanici_ogretmen_mi(user):
-        return False
+    """Yalnızca branş öğretmeni paneline giden hesaplar (personel/idareci değil)."""
     if user.is_superuser:
         return False
-    try:
-        profil = user.personel_profili
-    except Exception:
-        return True
-    return not profil.aktif
+    return kullanici_ogretmen_mi(user)
 
 
 def ogretmen_brans_etiketi(hoca: EtutHocasi | None) -> str:
@@ -99,6 +101,29 @@ def _hafta_araligi(ref: date | None = None) -> tuple[int, date, date]:
     pazartesi = ref - timedelta(days=ref.weekday())
     pazar = pazartesi + timedelta(days=6)
     return hafta_no, pazartesi, pazar
+
+
+def aktif_hafta_baslangic(ref: date | None = None) -> date:
+    """Aktif akademik haftanın pazartesi tarihi."""
+    _, pazartesi, _ = _hafta_araligi(ref)
+    return pazartesi
+
+
+def hafta_kapanis_zamani(hafta_baslangic: date | None = None) -> datetime:
+    """Seçilen (veya aktif) haftanın Pazar 20:00 kapanış anı (aware)."""
+    baslangic = hafta_baslangic or aktif_hafta_baslangic()
+    pazar = baslangic + timedelta(days=6)
+    tz = timezone.get_current_timezone()
+    return timezone.make_aware(
+        datetime.combine(pazar, time(HAFTA_KAPANIS_SAAT, 0)),
+        tz,
+    )
+
+
+def hafta_yazilabilir_mi(now: datetime | None = None) -> bool:
+    """Öğretmenler yalnızca aktif haftada ve Pazar 20:00 öncesi yazabilir."""
+    now = timezone.localtime(now or timezone.now())
+    return now < hafta_kapanis_zamani(aktif_hafta_baslangic(now.date()))
 
 
 def _demo_siniflar(hoca: EtutHocasi) -> list[OgretmenSinifKarti]:

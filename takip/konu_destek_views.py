@@ -151,7 +151,7 @@ def talebe_konu_test(request, konu_id: int):
         return redirect("logout")
 
     konu = get_object_or_404(KonuKatalogu, pk=konu_id, aktif=True)
-    sorular, test_kaynak = konu_test_sorulari(konu)
+    sorular, test_kaynak = konu_test_sorulari(konu, talebe=hesap.talebe)
     if not sorular:
         messages.warning(request, "Bu konu için test soruları hazırlanamadı.")
         return redirect("talebe_konu_destek_detay", konu_id=konu_id)
@@ -203,8 +203,8 @@ def talebe_konu_test(request, konu_id: int):
         }
 
     ai_etiket = {
-        "ai": "Yapay zeka soruları",
-        "kural": "Akıllı şablon soruları",
+        "ai": "Yapay zeka · denetimli yeni nesil set",
+        "kural": "Bağlam temelli soru seti",
         "havuz": "Hazır soru bankası",
     }.get(test_kaynak, "")
 

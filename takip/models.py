@@ -1,5 +1,5 @@
 from decimal import Decimal, ROUND_HALF_UP
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -285,7 +285,12 @@ class Talebe(models.Model):
     memleket = models.CharField(
         max_length=120,
         blank=True,
-        verbose_name="Memleketi",
+        verbose_name="Memleket ili",
+    )
+    memleket_ilce = models.CharField(
+        max_length=120,
+        blank=True,
+        verbose_name="Memleket ilçesi",
     )
     diller = models.CharField(
         max_length=200,
@@ -311,6 +316,10 @@ class Talebe(models.Model):
         max_length=80,
         blank=True,
         verbose_name="Okul seviyesi",
+    )
+    ev_adresi = models.TextField(
+        blank=True,
+        verbose_name="Veli ev adresi",
     )
 
     class AileDurumu(models.TextChoices):
@@ -1087,6 +1096,34 @@ class Duyuru(models.Model):
         return "youtube.com/embed" in adres or "player.vimeo.com" in adres
 
 
+class ProgramFaaliyetTuru(models.Model):
+    """Günlük program satır türleri — yönetimden eklenebilir."""
+
+    kod = models.SlugField(
+        max_length=40,
+        unique=True,
+        verbose_name="Kod",
+        help_text="Küçük harf, örn. ders, namaz, mola",
+    )
+    ad = models.CharField(max_length=80, verbose_name="Ad")
+    renk = models.CharField(
+        max_length=20,
+        default="slate",
+        verbose_name="Renk",
+        help_text="green, blue, amber, sky, slate",
+    )
+    sira = models.PositiveIntegerField(default=0, verbose_name="Sıra")
+    aktif = models.BooleanField(default=True, verbose_name="Aktif")
+
+    class Meta:
+        verbose_name = "Program faaliyet türü"
+        verbose_name_plural = "Program faaliyet türleri"
+        ordering = ["sira", "ad"]
+
+    def __str__(self):
+        return self.ad
+
+
 class ProgramPlan(models.Model):
     ad = models.CharField(
         max_length=200,
@@ -1192,10 +1229,10 @@ class ProgramSatir(models.Model):
         verbose_name="Süre (dk)",
     )
     faaliyet_turu = models.CharField(
-        max_length=20,
-        choices=FaaliyetTuru.choices,
+        max_length=40,
         default=FaaliyetTuru.DERS,
         verbose_name="Faaliyet türü",
+        help_text="Tür listesi Program faaliyet türlerinden yönetilir.",
     )
     faaliyet_adi = models.CharField(
         max_length=200,
@@ -1228,13 +1265,12 @@ class ProgramSatir(models.Model):
 
     @classmethod
     def sure_dakika_hesapla(cls, baslangic, bitis) -> int:
+        """Geceyi aşan aralıkları destekler (örn. 22:00–06:00 uyku)."""
         bas = datetime.combine(date.min, baslangic)
         bit = datetime.combine(date.min, bitis)
 
         if bit <= bas:
-            raise ValidationError(
-                "Bitiş saati başlangıç saatinden sonra olmalıdır."
-            )
+            bit += timedelta(days=1)
 
         return int((bit - bas).total_seconds() // 60)
 
@@ -1272,6 +1308,37 @@ class ProgramSatir(models.Model):
     @property
     def gorunen_program_adi(self) -> str:
         return self.program_adi or self.program.ad
+
+    @property
+    def tur_etiket(self) -> str:
+        tur = ProgramFaaliyetTuru.objects.filter(kod=self.faaliyet_turu).first()
+        if tur:
+            return tur.ad
+        try:
+            return ProgramSatir.FaaliyetTuru(self.faaliyet_turu).label
+        except ValueError:
+            return self.faaliyet_turu
+
+    @property
+    def tur_renk(self) -> str:
+        tur = ProgramFaaliyetTuru.objects.filter(kod=self.faaliyet_turu).first()
+        if tur and tur.renk:
+            return tur.renk
+        fallback = {
+            "namaz": "green",
+            "yemek": "amber",
+            "ders": "blue",
+            "etut": "blue",
+            "uyku": "slate",
+            "dinlenme": "slate",
+            "mola": "slate",
+            "serbest_zaman": "sky",
+            "spor": "blue",
+            "gorev": "slate",
+            "toplanti": "slate",
+            "diger": "sky",
+        }
+        return fallback.get(self.faaliyet_turu, "slate")
 
 
 class ImamMuezzinListesi(models.Model):
@@ -1989,6 +2056,8 @@ from takip.namaz_yoklama_models import (  # noqa: E402,F401
 from takip.deneme_models import (  # noqa: E402,F401
     DenemeBransSonucu,
     DenemeEslestirmeAlias,
+    DenemeGapRaporu,
+    DenemeKonuSonucu,
     DenemeSinavi,
     DenemeSonucu,
 )
@@ -2142,4 +2211,13 @@ from takip.yemekci_sinif_models import (  # noqa: E402,F401
     YemekciGunAtama,
     YemekciHavuzKaydi,
     YemekciSinifHavuzu,
+)
+
+from takip.sinav_basvuru_models import (  # noqa: E402,F401
+    SinavBasvuru,
+    SinavBasvuruDurum,
+)
+from takip.sinav_basvuru_mesaj_models import (  # noqa: E402,F401
+    SinavBasvuruMesajLog,
+    SinavBasvuruMesajSablon,
 )
