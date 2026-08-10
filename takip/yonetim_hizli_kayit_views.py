@@ -38,7 +38,11 @@ from takip.yonetim_views import yonetici_gerekli
 
 TUR_SECENEKLERI = (
     ("personel", "Personel", "Kurum personeli — etüt mesulü, idareci vb."),
-    ("talebe", "Talebe", "Talebe kaydı — veli bilgisi aynı formda veya Excel ile"),
+    (
+        "talebe",
+        "Talebe",
+        "Hızlı kayıt: ad, TC, sınıf, etüt. Kimlik/veli detaylarını etüt hocası profilde tamamlar; Excel de kullanılabilir.",
+    ),
     ("ogretmen", "Öğretmen", "Ana ders öğretmeni — branş ve ders ücreti"),
 )
 

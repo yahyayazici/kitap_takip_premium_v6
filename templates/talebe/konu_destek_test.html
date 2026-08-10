@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}{{ konu.konu_ad }} · Mini Test{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/konu-destek.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'css/konu-destek.css' %}?v=3">
 {% endblock %}
 {% block content %}
 <div class="dash-home talebe-dash kd-test-page">
@@ -19,8 +19,13 @@
     {% csrf_token %}
     {% for soru in sorular %}
     <section class="dash-panel kd-soru-card">
-        <p class="kd-soru-no">Soru {{ forloop.counter }}</p>
-        <p class="kd-soru-metin">{{ soru.soru_metni }}</p>
+        <div class="kd-soru-head">
+            <p class="kd-soru-no">Soru {{ forloop.counter }}</p>
+            {% if soru.soru_turu %}
+            <span class="kd-soru-tur kd-soru-tur-{{ soru.soru_turu }}">{{ soru.get_soru_turu_display }}</span>
+            {% endif %}
+        </div>
+        <div class="kd-soru-metin">{{ soru.soru_metni|linebreaksbr }}</div>
         <div class="kd-secenekler">
             {% for harf, metin in soru.secenekler %}
             <label class="kd-secenek">

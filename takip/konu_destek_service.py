@@ -28,7 +28,7 @@ from takip.models import KttSonucu, Talebe
 ZAYIF_KTT_PUAN = Decimal("70")
 ZAYIF_DENEME_ORAN = Decimal("45")
 
-# Branş + video türüne göre panel içi oynatılabilir örnek videolar (MEB/LGS uyumlu kanallar)
+# Branş + video türüne göre panel içi oynatılabilir örnek videolar (oEmbed doğrulanmış ID’ler)
 BRANS_VARSAYILAN_YOUTUBE: dict[str, dict[str, str]] = {
     "din": {
         KonuEgitimVideosu.Tur.ANLATIM: "YDFthrRPKhA",
@@ -36,29 +36,30 @@ BRANS_VARSAYILAN_YOUTUBE: dict[str, dict[str, str]] = {
         KonuEgitimVideosu.Tur.TEKRAR: "G719VamMJnQ",
     },
     "matematik": {
-        KonuEgitimVideosu.Tur.ANLATIM: "kWOT9tF8yes",
-        KonuEgitimVideosu.Tur.COZUM: "kWOT9tF8yes",
-        KonuEgitimVideosu.Tur.TEKRAR: "kWOT9tF8yes",
+        KonuEgitimVideosu.Tur.ANLATIM: "4TmlPkb9VXU",  # Oran ve Orantı
+        KonuEgitimVideosu.Tur.COZUM: "tqWCEmlqZYI",  # Kesirler
+        KonuEgitimVideosu.Tur.TEKRAR: "ERYDkz8Ts64",
     },
     "turkce": {
-        KonuEgitimVideosu.Tur.ANLATIM: "xGcfBRkJS-E",
-        KonuEgitimVideosu.Tur.COZUM: "xGcfBRkJS-E",
-        KonuEgitimVideosu.Tur.TEKRAR: "xGcfBRkJS-E",
+        # Sınıf dışı / lise videosu bağlanmaz; arama sorgusu kullanılır
+        KonuEgitimVideosu.Tur.ANLATIM: "",
+        KonuEgitimVideosu.Tur.COZUM: "",
+        KonuEgitimVideosu.Tur.TEKRAR: "",
     },
     "fen": {
-        KonuEgitimVideosu.Tur.ANLATIM: "Hk9j9L0cQ0E",
-        KonuEgitimVideosu.Tur.COZUM: "Hk9j9L0cQ0E",
-        KonuEgitimVideosu.Tur.TEKRAR: "Hk9j9L0cQ0E",
+        KonuEgitimVideosu.Tur.ANLATIM: "yZ2mgHxk1JM",  # Madde ve ısı
+        KonuEgitimVideosu.Tur.COZUM: "yZ2mgHxk1JM",
+        KonuEgitimVideosu.Tur.TEKRAR: "yZ2mgHxk1JM",
     },
     "sosyal": {
-        KonuEgitimVideosu.Tur.ANLATIM: "jNQXAC9IVRw",
-        KonuEgitimVideosu.Tur.COZUM: "jNQXAC9IVRw",
-        KonuEgitimVideosu.Tur.TEKRAR: "jNQXAC9IVRw",
+        KonuEgitimVideosu.Tur.ANLATIM: "YDFthrRPKhA",
+        KonuEgitimVideosu.Tur.COZUM: "YDFthrRPKhA",
+        KonuEgitimVideosu.Tur.TEKRAR: "YDFthrRPKhA",
     },
     "ingilizce": {
-        KonuEgitimVideosu.Tur.ANLATIM: "jNQXAC9IVRw",
-        KonuEgitimVideosu.Tur.COZUM: "jNQXAC9IVRw",
-        KonuEgitimVideosu.Tur.TEKRAR: "jNQXAC9IVRw",
+        KonuEgitimVideosu.Tur.ANLATIM: "gnImk-2WEyw",
+        KonuEgitimVideosu.Tur.COZUM: "gnImk-2WEyw",
+        KonuEgitimVideosu.Tur.TEKRAR: "gnImk-2WEyw",
     },
 }
 
@@ -66,25 +67,110 @@ KONU_ANAHTAR_YOUTUBE: dict[str, str] = {
     "namaz": "P_sBqAcMZqo",
     "vakit": "P_sBqAcMZqo",
     "ibadet": "YDFthrRPKhA",
+    "oran": "4TmlPkb9VXU",
+    "orantı": "4TmlPkb9VXU",
+    "oranti": "4TmlPkb9VXU",
+    "kesir": "tqWCEmlqZYI",
+    "madde": "yZ2mgHxk1JM",
 }
 
 
+# Sınıf + branş (+ konu anahtarı) — yanlış sınıf videosu vermemek için
+# Bilinmeyen eşleşmede boş dönülür; panel arama sorgusu kullanılır.
+SINIF_BRANS_YOUTUBE: dict[str, dict[str, dict[str, str]]] = {
+    "5": {
+        "matematik": {
+            "kesir": "tqWCEmlqZYI",
+            "_": "tqWCEmlqZYI",
+        },
+        "fen": {
+            "madde": "yZ2mgHxk1JM",
+            "ısı": "yZ2mgHxk1JM",
+            "_": "yZ2mgHxk1JM",
+        },
+        # 9. sınıf edebiyat videosu ASLA bağlanmaz; ID boş → sınıf+konu araması
+        "turkce": {},
+    },
+    "7": {
+        "matematik": {
+            "oran": "4TmlPkb9VXU",
+            "orantı": "4TmlPkb9VXU",
+            "oranti": "4TmlPkb9VXU",
+            "_": "4TmlPkb9VXU",
+        },
+    },
+    "8": {
+        "matematik": {
+            "üs": "4TmlPkb9VXU",
+            "_": "ERYDkz8Ts64",
+        },
+    },
+}
+
+# Yanlış seviye / demo bozuk ID’ler — temizlenir
+YASAK_YOUTUBE_ID = frozenset(
+    {
+        "kWOT9tF8yes",
+        "xGcfBRkJS-E",
+        "Hk9j9L0cQ0E",
+        "jNQXAC9IVRw",
+        "gnImk-2WEyw",  # 9. sınıf edebiyat — 5. sınıfa verilmez
+    }
+)
+
+
 def _varsayilan_youtube_id(konu: KonuKatalogu, tur: str) -> str:
-    konu_lower = (konu.konu_ad or "").lower()
-    for anahtar, video_id in KONU_ANAHTAR_YOUTUBE.items():
-        if anahtar in konu_lower:
+    sinif = str(konu.sinif_seviyesi or "").strip()
+    konu_lower = (konu.konu_ad or "").casefold()
+
+    sinif_map = SINIF_BRANS_YOUTUBE.get(sinif, {}).get(konu.brans) or {}
+    for anahtar, video_id in sinif_map.items():
+        if anahtar != "_" and anahtar in konu_lower:
             return video_id
-    return (BRANS_VARSAYILAN_YOUTUBE.get(konu.brans) or {}).get(tur, "")
+    if sinif_map.get("_"):
+        return sinif_map["_"]
+
+    # Sınıfa özel yoksa yalnızca anahtar kelime (oran→7. sınıf videosu vb.)
+    # ama 5. sınıfa 7/9. sınıf videosu verme
+    if sinif in {"5", "6"}:
+        return ""
+
+    for anahtar, video_id in KONU_ANAHTAR_YOUTUBE.items():
+        if anahtar in konu_lower and video_id and video_id not in YASAK_YOUTUBE_ID:
+            return video_id
+    aday = (BRANS_VARSAYILAN_YOUTUBE.get(konu.brans) or {}).get(tur, "")
+    if aday in YASAK_YOUTUBE_ID:
+        return ""
+    return aday or ""
 
 
 def _video_youtube_id_tamamla(video: KonuEgitimVideosu, konu: KonuKatalogu) -> KonuEgitimVideosu:
-    if (video.youtube_id or "").strip():
-        return video
+    mevcut = (video.youtube_id or "").strip()
+    yasak_temizlendi = mevcut in YASAK_YOUTUBE_ID
+    if yasak_temizlendi:
+        mevcut = ""
+
     oneri = _varsayilan_youtube_id(konu, video.tur)
-    if not oneri:
-        return video
-    video.youtube_id = oneri
-    video.save(update_fields=["youtube_id"])
+    if oneri in YASAK_YOUTUBE_ID:
+        oneri = ""
+
+    sorgu = (
+        f"{konu.sinif_seviyesi}. sınıf {konu.brans_etiket} "
+        f"{konu.konu_ad} konu anlatımı"
+    )
+    yeni_id = oneri or ""
+    alanlar: list[str] = []
+
+    if (video.youtube_id or "").strip() != yeni_id:
+        video.youtube_id = yeni_id
+        alanlar.append("youtube_id")
+    if not (video.arama_sorgusu or "").strip() or yasak_temizlendi:
+        if (video.arama_sorgusu or "").strip() != sorgu:
+            video.arama_sorgusu = sorgu
+            alanlar.append("arama_sorgusu")
+
+    if alanlar:
+        video.save(update_fields=alanlar)
     return video
 
 DERS_BRANS_HARITASI = {
@@ -416,8 +502,8 @@ def konu_test_meta(konu: KonuKatalogu) -> dict:
         "soru_sayisi": len(sorular),
         "kaynak": kaynak,
         "ai_etiket": {
-            "ai": "Yapay zeka soruları",
-            "kural": "Akıllı şablon soruları",
+            "ai": "Yapay zeka · yeni nesil set",
+            "kural": "Bağlam temelli soru seti",
             "havuz": "Hazır soru bankası",
         }.get(kaynak, ""),
     }

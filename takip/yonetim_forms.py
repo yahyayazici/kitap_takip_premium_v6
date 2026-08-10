@@ -605,6 +605,218 @@ class TalebeForm(forms.ModelForm):
         )
 
 
+class TalebeProfilTamamlaForm(forms.ModelForm):
+    """Etüt hocasının talebe profilindeki boş kimlik/veli alanlarını doldurması."""
+
+    anne_ad_soyad = forms.CharField(
+        required=False,
+        label="Anne ad soyad",
+        widget=forms.TextInput(attrs={"class": "cs-input", "placeholder": "Anne adı soyadı"}),
+    )
+    anne_telefon = forms.CharField(
+        required=False,
+        label="Anne telefon",
+        widget=forms.TextInput(
+            attrs={"class": "cs-input", "placeholder": "05XX XXX XX XX", "inputmode": "tel"}
+        ),
+    )
+    baba_ad_soyad = forms.CharField(
+        required=False,
+        label="Baba ad soyad",
+        widget=forms.TextInput(attrs={"class": "cs-input", "placeholder": "Baba adı soyadı"}),
+    )
+    baba_telefon = forms.CharField(
+        required=False,
+        label="Baba telefon",
+        widget=forms.TextInput(
+            attrs={"class": "cs-input", "placeholder": "05XX XXX XX XX", "inputmode": "tel"}
+        ),
+    )
+
+    class Meta:
+        model = Talebe
+        fields = [
+            "biyometrik_foto",
+            "kimlik_adi",
+            "kimlik_soyadi",
+            "tc_kimlik",
+            "cinsiyet",
+            "dogum_tarihi",
+            "baba_adi",
+            "anne_adi",
+            "dogum_yeri",
+            "memleket",
+            "memleket_ilce",
+            "telefon",
+            "eposta",
+            "aile_durumu",
+            "ev_adresi",
+        ]
+        widgets = {
+            "biyometrik_foto": forms.ClearableFileInput(
+                attrs={"class": "cs-input", "accept": "image/jpeg,image/png,image/webp"}
+            ),
+            "kimlik_adi": forms.TextInput(attrs={"class": "cs-input"}),
+            "kimlik_soyadi": forms.TextInput(attrs={"class": "cs-input"}),
+            "tc_kimlik": forms.TextInput(
+                attrs={
+                    "class": "cs-input",
+                    "placeholder": "11 haneli TC",
+                    "inputmode": "numeric",
+                    "maxlength": "11",
+                }
+            ),
+            "cinsiyet": forms.Select(attrs={"class": "cs-input"}),
+            "dogum_tarihi": forms.DateInput(
+                format="%Y-%m-%d",
+                attrs={"class": "cs-input", "type": "date"},
+            ),
+            "baba_adi": forms.TextInput(attrs={"class": "cs-input"}),
+            "anne_adi": forms.TextInput(attrs={"class": "cs-input"}),
+            "dogum_yeri": forms.TextInput(attrs={"class": "cs-input"}),
+            "memleket": forms.Select(attrs={"class": "cs-input", "id": "id_memleket"}),
+            "memleket_ilce": forms.Select(
+                attrs={"class": "cs-input", "id": "id_memleket_ilce"}
+            ),
+            "telefon": forms.TextInput(
+                attrs={"class": "cs-input", "placeholder": "05XX XXX XX XX", "inputmode": "tel"}
+            ),
+            "eposta": forms.EmailInput(attrs={"class": "cs-input"}),
+            "aile_durumu": forms.Select(attrs={"class": "cs-input"}),
+            "ev_adresi": forms.Textarea(
+                attrs={
+                    "class": "cs-input",
+                    "rows": 3,
+                    "placeholder": "Mahalle, cadde, bina no, ilçe / il",
+                }
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        from takip.telefon_util import telefon_formatla
+        from takip.turkiye_il_ilce import il_secenekleri, ilce_secenekleri
+
+        super().__init__(*args, **kwargs)
+
+        self.fields["dogum_tarihi"].input_formats = ["%Y-%m-%d", "%d.%m.%Y", "%d/%m/%Y"]
+        self.fields["dogum_tarihi"].required = False
+        self.fields["tc_kimlik"].required = False
+        self.fields["cinsiyet"].required = False
+        self.fields["aile_durumu"].required = False
+        for ad in (
+            "kimlik_adi",
+            "kimlik_soyadi",
+            "baba_adi",
+            "anne_adi",
+            "dogum_yeri",
+            "telefon",
+            "eposta",
+            "ev_adresi",
+            "biyometrik_foto",
+        ):
+            self.fields[ad].required = False
+
+        self.fields["memleket"].choices = il_secenekleri()
+        self.fields["memleket"].required = False
+        secili_il = ""
+        if self.data.get("memleket"):
+            secili_il = self.data.get("memleket")
+        elif self.instance.pk:
+            secili_il = self.instance.memleket or ""
+        self.fields["memleket_ilce"].choices = ilce_secenekleri(secili_il)
+        self.fields["memleket_ilce"].required = False
+
+        if self.instance.pk and self.instance.telefon:
+            self.initial["telefon"] = telefon_formatla(self.instance.telefon)
+
+        if self.instance.pk:
+            from takip.wave0_models import VeliKisi
+
+            for veli in self.instance.veli_kisileri.all():
+                if veli.yakinlik == VeliKisi.Yakinlik.ANNE:
+                    self.fields["anne_ad_soyad"].initial = veli.ad_soyad
+                    self.fields["anne_telefon"].initial = telefon_formatla(veli.telefon)
+                elif veli.yakinlik == VeliKisi.Yakinlik.BABA:
+                    self.fields["baba_ad_soyad"].initial = veli.ad_soyad
+                    self.fields["baba_telefon"].initial = telefon_formatla(veli.telefon)
+
+    def clean(self):
+        from takip.turkiye_il_ilce import memleket_gecerli
+
+        cleaned = super().clean()
+        kimlik_ad = (cleaned.get("kimlik_adi") or "").strip()
+        kimlik_soyad = (cleaned.get("kimlik_soyadi") or "").strip()
+        if kimlik_ad and kimlik_soyad:
+            cleaned["ad_soyad"] = f"{kimlik_ad} {kimlik_soyad}".strip()
+
+        il = (cleaned.get("memleket") or "").strip()
+        ilce = (cleaned.get("memleket_ilce") or "").strip()
+        if ilce and not memleket_gecerli(il, ilce):
+            self.add_error("memleket_ilce", "Seçilen ilçe bu ile ait değil.")
+        return cleaned
+
+    def _telefon_temizle(self, alan: str) -> str:
+        from takip.telefon_util import telefon_temizle_veya_hata
+
+        deger = self.cleaned_data.get(alan) or ""
+        try:
+            return telefon_temizle_veya_hata(deger)
+        except ValueError as exc:
+            raise forms.ValidationError(str(exc)) from exc
+
+    def clean_telefon(self):
+        return self._telefon_temizle("telefon")
+
+    def clean_anne_telefon(self):
+        return self._telefon_temizle("anne_telefon")
+
+    def clean_baba_telefon(self):
+        return self._telefon_temizle("baba_telefon")
+
+    def clean_biyometrik_foto(self):
+        foto = self.cleaned_data.get("biyometrik_foto")
+        dogrula_biyometrik_foto(foto)
+        return foto
+
+    def clean_tc_kimlik(self):
+        tc = tc_dogrula(self.cleaned_data.get("tc_kimlik"), zorunlu=False)
+        if not tc:
+            return ""
+        qs = Talebe.objects.filter(tc_kimlik=tc)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError("Bu TC kimlik no başka bir talebede kayıtlı.")
+        return tc
+
+    def save(self, commit=True):
+        talebe = super().save(commit=False)
+        ad_soyad = self.cleaned_data.get("ad_soyad")
+        if ad_soyad:
+            talebe.ad_soyad = ad_soyad
+        if commit:
+            talebe.save()
+            self.veli_kaydet(talebe)
+        return talebe
+
+    def veli_kaydet(self, talebe: Talebe) -> None:
+        from takip.talebe_excel import _veli_kisi_guncelle
+        from takip.wave0_models import VeliKisi
+
+        _veli_kisi_guncelle(
+            talebe,
+            VeliKisi.Yakinlik.ANNE,
+            self.cleaned_data.get("anne_ad_soyad", ""),
+            self.cleaned_data.get("anne_telefon", ""),
+        )
+        _veli_kisi_guncelle(
+            talebe,
+            VeliKisi.Yakinlik.BABA,
+            self.cleaned_data.get("baba_ad_soyad", ""),
+            self.cleaned_data.get("baba_telefon", ""),
+        )
+
+
 class DuyuruForm(forms.ModelForm):
     class Meta:
         model = Duyuru

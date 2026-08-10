@@ -162,3 +162,123 @@ class DenemeEslestirmeAlias(models.Model):
 
     def __str__(self):
         return f"{self.excel_adi} → {self.talebe.ad_soyad}"
+
+
+class DenemeGapRaporu(models.Model):
+    class Eslesme(models.TextChoices):
+        OTOMATIK = "otomatik", "Otomatik"
+        ALIAS = "alias", "Alias"
+        ONERI = "oneri", "Öneri"
+        MANUEL = "manuel", "Manuel"
+        YOK = "yok", "Eşleşmedi"
+
+    class Durum(models.TextChoices):
+        ISLENDI = "islendi", "İşlendi"
+        ESLESME_BEKLIYOR = "eslesme_bekliyor", "Eşleşme bekliyor"
+        HATA = "hata", "Hata"
+
+    deneme = models.ForeignKey(
+        DenemeSinavi,
+        on_delete=models.CASCADE,
+        related_name="gap_raporlari",
+        verbose_name="Deneme",
+    )
+    talebe = models.ForeignKey(
+        "Talebe",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="deneme_gap_raporlari",
+        verbose_name="Talebe",
+    )
+    dosya_adi = models.CharField(max_length=255, verbose_name="Dosya adı")
+    ham_ad = models.CharField(max_length=200, blank=True, verbose_name="PDF’deki ad")
+    sinif_metni = models.CharField(max_length=40, blank=True, verbose_name="Sınıf (PDF)")
+    eslesme = models.CharField(
+        max_length=20,
+        choices=Eslesme.choices,
+        default=Eslesme.YOK,
+        verbose_name="Eşleşme",
+    )
+    durum = models.CharField(
+        max_length=20,
+        choices=Durum.choices,
+        default=Durum.ESLESME_BEKLIYOR,
+        verbose_name="Durum",
+    )
+    hata_mesaji = models.TextField(blank=True, verbose_name="Hata")
+    ham_metin_ozet = models.TextField(blank=True, verbose_name="Ham metin özeti")
+    oneri_talebe_id = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Öneri talebe id",
+    )
+    yukleyen = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="yukledigi_gap_raporlari",
+        verbose_name="Yükleyen",
+    )
+    olusturulma = models.DateTimeField(auto_now_add=True)
+    guncellenme = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Deneme gap raporu"
+        verbose_name_plural = "Deneme gap raporları"
+        ordering = ["-olusturulma", "-id"]
+
+    def __str__(self):
+        ad = self.ham_ad or self.dosya_adi
+        return f"{ad} · {self.deneme.ad}"
+
+
+class DenemeKonuSonucu(models.Model):
+    rapor = models.ForeignKey(
+        DenemeGapRaporu,
+        on_delete=models.CASCADE,
+        related_name="konu_satirlari",
+        verbose_name="Gap raporu",
+    )
+    sonuc = models.ForeignKey(
+        DenemeSonucu,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="konu_satirlari",
+        verbose_name="Deneme sonucu",
+    )
+    brans = models.CharField(
+        max_length=20,
+        choices=DenemeBransSonucu.Brans.choices,
+        verbose_name="Branş",
+    )
+    konu_ham = models.CharField(max_length=300, verbose_name="Konu (PDF)")
+    konu_normalize = models.CharField(
+        max_length=300,
+        blank=True,
+        verbose_name="Konu (normalize)",
+    )
+    toplam = models.PositiveIntegerField(default=0)
+    dogru = models.PositiveIntegerField(default=0)
+    yanlis = models.PositiveIntegerField(default=0)
+    bos = models.PositiveIntegerField(default=0)
+    yuzde = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        verbose_name="Başarı %",
+    )
+
+    class Meta:
+        verbose_name = "Deneme konu sonucu"
+        verbose_name_plural = "Deneme konu sonuçları"
+        ordering = ["brans", "yuzde", "konu_normalize", "id"]
+        indexes = [
+            models.Index(fields=["sonuc", "brans"]),
+            models.Index(fields=["rapor", "yuzde"]),
+        ]
+
+    def __str__(self):
+        return f"{self.konu_normalize or self.konu_ham} ({self.yuzde}%)"

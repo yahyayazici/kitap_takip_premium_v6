@@ -682,6 +682,21 @@ urlpatterns = [
         deneme_yonetim_views.deneme_onizleme,
         name="deneme_onizleme",
     ),
+    path(
+        "denemeler/<int:pk>/gap/",
+        deneme_yonetim_views.deneme_gap_yukle,
+        name="deneme_gap_yukle",
+    ),
+    path(
+        "denemeler/<int:pk>/gap/<int:rapor_id>/eslestir/",
+        deneme_yonetim_views.deneme_gap_eslestir,
+        name="deneme_gap_eslestir",
+    ),
+    path(
+        "denemeler/<int:pk>/gap/<int:rapor_id>/sil/",
+        deneme_yonetim_views.deneme_gap_sil,
+        name="deneme_gap_sil",
+    ),
 
     path(
         "yazili-takip/",

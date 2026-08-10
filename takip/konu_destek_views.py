@@ -203,8 +203,8 @@ def talebe_konu_test(request, konu_id: int):
         }
 
     ai_etiket = {
-        "ai": "Yapay zeka soruları",
-        "kural": "Akıllı şablon soruları",
+        "ai": "Yapay zeka · yeni nesil set",
+        "kural": "Bağlam temelli soru seti",
         "havuz": "Hazır soru bankası",
     }.get(test_kaynak, "")
 

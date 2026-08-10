@@ -225,25 +225,134 @@ def _mudahale_adaylari(user: User, *, limit: int = 10) -> list[dict[str, Any]]:
     return adaylar[:limit]
 
 
+def _deneme_gap_konulari(deneme, talebe_id: int | None, *, limit: int = 8) -> list[dict[str, Any]]:
+    from decimal import Decimal
+
+    from takip.deneme_models import DenemeGapRaporu, DenemeKonuSonucu
+
+    if not talebe_id:
+        return []
+    qs = (
+        DenemeKonuSonucu.objects.filter(
+            rapor__deneme=deneme,
+            rapor__talebe_id=talebe_id,
+            rapor__durum=DenemeGapRaporu.Durum.ISLENDI,
+        )
+        .order_by("yuzde", "brans")[:limit]
+    )
+    return [
+        {
+            "brans": k.get_brans_display(),
+            "konu": k.konu_normalize or k.konu_ham,
+            "D": k.dogru,
+            "Y": k.yanlis,
+            "B": k.bos,
+            "yuzde": float(k.yuzde or 0),
+            "zayif": (k.yuzde or Decimal("0")) < Decimal("70"),
+        }
+        for k in qs
+    ]
+
+
+def _deneme_ktt_konulari(talebe, *, limit: int = 6) -> list[dict[str, Any]]:
+    """Talebenin son KTT kayıtlarından zayıf/güçlü konu özeti."""
+    from decimal import Decimal
+
+    from takip.models import KttSonucu
+
+    if not talebe:
+        return []
+    kayitlar = list(
+        KttSonucu.objects.filter(talebe=talebe)
+        .select_related("ktt", "ktt__ders")
+        .order_by("-ktt__sinav_tarihi", "-id")[:24]
+    )
+    if not kayitlar:
+        return []
+    esik = Decimal("70")
+    zayif = [s for s in kayitlar if (s.puan or 0) < esik]
+    zayif.sort(key=lambda s: float(s.puan or 0))
+    guclu = sorted(kayitlar, key=lambda s: float(s.puan or 0), reverse=True)[:3]
+    sonuc: list[dict[str, Any]] = []
+    for s in zayif[:limit]:
+        sonuc.append(
+            {
+                "ktt": s.ktt.ad,
+                "ders": getattr(s.ktt.ders, "ad", "") or "—",
+                "puan": float(s.puan or 0),
+                "D": s.dogru,
+                "Y": s.yanlis,
+                "B": s.bos,
+                "tip": "zayif",
+            }
+        )
+    for s in guclu:
+        if any(x.get("ktt") == s.ktt.ad for x in sonuc):
+            continue
+        sonuc.append(
+            {
+                "ktt": s.ktt.ad,
+                "ders": getattr(s.ktt.ders, "ad", "") or "—",
+                "puan": float(s.puan or 0),
+                "D": s.dogru,
+                "Y": s.yanlis,
+                "B": s.bos,
+                "tip": "guclu",
+            }
+        )
+        if len(sonuc) >= limit + 2:
+            break
+    return sonuc[: limit + 2]
+
+
 def deneme_baglam(deneme, sonuclar) -> dict[str, Any]:
+    from decimal import Decimal
+
+    from takip.deneme_gap_pdf import deneme_zayif_konular
+    from takip.deneme_models import DenemeGapRaporu
     from takip.deneme_service import deneme_detay_satirlari
 
     satirlar = deneme_detay_satirlari(sonuclar)
     ogrenci_verileri = []
     for satir in satirlar[:40]:
+        sonuc = satir["sonuc"]
         brans_ozet = {}
         for b in satir["branslar"]:
             brans_ozet[b["etiket"]] = f"D{b['dogru']} Y{b['yanlis']} B{b['bos']}"
         ogrenci_verileri.append(
             {
                 "sira": satir["sira"],
-                "talebe": satir["sonuc"].talebe.ad_soyad,
-                "sinif": str(satir["sonuc"].talebe.sinif_sube or "—"),
-                "net": float(satir["sonuc"].toplam_net or 0),
-                "puan": float(satir["sonuc"].puan or 0),
+                "talebe": sonuc.talebe.ad_soyad,
+                "talebe_id": sonuc.talebe_id,
+                "sinif": str(sonuc.talebe.sinif_sube or "—"),
+                "net": float(sonuc.toplam_net or 0),
+                "puan": float(sonuc.puan or 0),
                 "branslar": brans_ozet,
+                "gap_konular": _deneme_gap_konulari(deneme, sonuc.talebe_id),
+                "ktt_konular": _deneme_ktt_konulari(sonuc.talebe),
             }
         )
+
+    sinif_zayif = [
+        {
+            "talebe": (
+                k.rapor.talebe.ad_soyad
+                if k.rapor.talebe_id
+                else k.rapor.ham_ad
+            ),
+            "brans": k.get_brans_display(),
+            "konu": k.konu_normalize or k.konu_ham,
+            "yuzde": float(k.yuzde or 0),
+            "D": k.dogru,
+            "Y": k.yanlis,
+            "B": k.bos,
+        }
+        for k in deneme_zayif_konular(deneme, esik=Decimal("70"), limit=25)
+    ]
+    gap_adet = DenemeGapRaporu.objects.filter(
+        deneme=deneme,
+        durum=DenemeGapRaporu.Durum.ISLENDI,
+    ).count()
 
     return {
         "deneme": {
@@ -251,8 +360,10 @@ def deneme_baglam(deneme, sonuclar) -> dict[str, Any]:
             "tarih": deneme.sinav_tarihi.isoformat(),
             "sinif": deneme.sinif_seviyesi,
             "ogrenci_sayisi": len(satirlar),
+            "gap_rapor_sayisi": gap_adet,
         },
         "sonuclar": ogrenci_verileri,
+        "gap_zayif_konular_sinif": sinif_zayif,
     }
 
 
