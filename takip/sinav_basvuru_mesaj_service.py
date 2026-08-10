@@ -161,9 +161,17 @@ def basvurularda_mesaj_gonder(
     return ozet
 
 
-def durum_icin_mesaj_an(durum: str) -> str | None:
-    if durum == SinavBasvuru.Durum.KABUL:
-        return SinavBasvuruMesajSablon.AnKodu.KABUL
-    if durum == SinavBasvuru.Durum.RED:
-        return SinavBasvuruMesajSablon.AnKodu.RED
+def durum_icin_mesaj_an(durum) -> str | None:
+    """Durum nesnesi veya koduna göre tetiklenecek mesaj anı."""
+    if durum is None:
+        return None
+    mesaj_kod = getattr(durum, "mesaj_an_kodu", None)
+    if mesaj_kod:
+        return str(mesaj_kod).strip() or None
+    kod = getattr(durum, "kod", None) or str(durum)
+    if kod in (
+        SinavBasvuruMesajSablon.AnKodu.KABUL,
+        SinavBasvuruMesajSablon.AnKodu.RED,
+    ):
+        return kod
     return None

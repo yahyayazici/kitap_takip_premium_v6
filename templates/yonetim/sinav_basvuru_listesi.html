@@ -6,7 +6,7 @@
     <div>
         <p class="kicker">EĞİTİM</p>
         <h1>Sınav Başvuruları</h1>
-        <p class="muted">Online formdan gelen başvuruları inceleyin; WhatsApp mesajı veya Excel ile dışa aktarın.</p>
+        <p class="muted">Durumları bu ekrandan yönetin; tek tek detaya girmenize gerek yok.</p>
     </div>
     <div style="display:flex;flex-wrap:wrap;gap:0.6rem;">
         <a href="{% url 'yonetim:sinav_basvuru_mesaj_an_listesi' %}" class="secondary-btn">Mesaj anları</a>
@@ -15,9 +15,89 @@
     </div>
 </header>
 
+<section class="report-table-card yonetim-table-card" style="margin-bottom:1.25rem;">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">DURUMLAR</p>
+            <h2>Durum yönetimi</h2>
+        </div>
+    </div>
+
+    <form method="post" style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:end;margin-bottom:1rem;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="durum_ekle">
+        <div>
+            <label for="durum_ad">Yeni durum adı</label>
+            <input class="cs-input" type="text" id="durum_ad" name="durum_ad" required placeholder="Örn: Yedek liste">
+        </div>
+        <div>
+            <label for="durum_kod">Kod (opsiyonel)</label>
+            <input class="cs-input" type="text" id="durum_kod" name="durum_kod" placeholder="yedek-liste">
+        </div>
+        <div>
+            <label for="mesaj_an_kodu">WhatsApp anı</label>
+            <select class="cs-input" id="mesaj_an_kodu" name="mesaj_an_kodu">
+                <option value="">Yok</option>
+                {% for value, label in mesaj_an_secenekleri %}
+                <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="primary-btn">Durum ekle</button>
+    </form>
+
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <thead>
+                <tr>
+                    <th>Sıra</th>
+                    <th>Ad</th>
+                    <th>Kod</th>
+                    <th>Mesaj anı</th>
+                    <th>Başvuru</th>
+                    <th>Aktif</th>
+                    <th class="yonetim-action-col">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in tum_durumlar %}
+                <tr>
+                    <td class="num-col">{{ d.sira }}</td>
+                    <td><strong>{{ d.ad }}</strong></td>
+                    <td><code>{{ d.kod }}</code></td>
+                    <td>{% if d.mesaj_an_kodu %}{{ d.mesaj_an_kodu }}{% else %}—{% endif %}</td>
+                    <td class="num-col">{{ d.basvuru_sayisi }}</td>
+                    <td>{% if d.aktif %}<span class="status-pill status-okunuyor">Aktif</span>{% else %}<span class="status-pill status-iade">Pasif</span>{% endif %}</td>
+                    <td class="yonetim-action-col">
+                        <form method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="durum_toggle">
+                            <input type="hidden" name="durum_id" value="{{ d.pk }}">
+                            <button type="submit" class="yonetim-link" style="background:none;border:0;padding:0;cursor:pointer;">
+                                {% if d.aktif %}Pasifleştir{% else %}Aktifleştir{% endif %}
+                            </button>
+                        </form>
+                        {% if d.basvuru_sayisi == 0 %}
+                        <form method="post" style="display:inline;" onsubmit="return confirm('“{{ d.ad|escapejs }}” silinsin mi?');">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="durum_sil">
+                            <input type="hidden" name="durum_id" value="{{ d.pk }}">
+                            <button type="submit" class="yonetim-link" style="background:none;border:0;padding:0;cursor:pointer;color:#b91c1c;">Sil</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="report-empty">Durum yok.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
 {% if not whatsapp_aktif %}
 <section class="report-table-card yonetim-table-card" style="margin-bottom:1rem;">
-    <p class="muted" style="margin:0;">WhatsApp pasif — mesaj denemeleri logda “atlandı” görünür. Env ayarlarını ekleyin.</p>
+    <p class="muted" style="margin:0;">WhatsApp pasif — durum değişince mesaj gitmez; logda “atlandı” görünür.</p>
 </section>
 {% endif %}
 
@@ -36,30 +116,49 @@
             <input class="cs-input" type="search" id="q" name="q" value="{{ arama }}" placeholder="Ad, baba/anne telefon…">
         </div>
         <div>
-            <label for="durum">Durum</label>
+            <label for="durum">Durum filtre</label>
             <select class="cs-input" id="durum" name="durum">
                 <option value="">Tümü</option>
-                {% for value, label in durum_secenekleri %}
-                <option value="{{ value }}" {% if durum_filtre == value %}selected{% endif %}>{{ label }}</option>
+                {% for d in durumlar %}
+                <option value="{{ d.pk }}" {% if durum_filtre == d.pk|stringformat:"s" or durum_filtre == d.kod %}selected{% endif %}>{{ d.ad }}</option>
                 {% endfor %}
             </select>
         </div>
         <button type="submit" class="primary-btn">Filtrele</button>
     </form>
 
-    <form method="post" action="{% url 'yonetim:sinav_basvuru_toplu_mesaj' %}" id="toplu-mesaj-form">
+    <form method="post" id="basvuru-yonetim-form">
         {% csrf_token %}
         <div style="display:flex;flex-wrap:wrap;gap:0.75rem;margin:0 0 1rem;align-items:end;">
             <div>
+                <label for="toplu_durum_id">Seçilenlerin durumu</label>
+                <select class="cs-input" id="toplu_durum_id" name="toplu_durum_id">
+                    <option value="">Durum seçin</option>
+                    {% for d in durumlar %}
+                    <option value="{{ d.pk }}">{{ d.ad }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" name="action" value="toplu_durum" class="primary-btn"
+                    onclick="return confirm('Seçili başvuruların durumu değiştirilsin mi?');">
+                Toplu uygula
+            </button>
+            <button type="submit" name="action" value="satir_durumlar" class="secondary-btn">
+                Satır durumlarını kaydet
+            </button>
+            <div>
                 <label for="an_kodu">Seçilenlere mesaj</label>
-                <select class="cs-input" id="an_kodu" name="an_kodu" required>
+                <select class="cs-input" id="an_kodu" name="an_kodu" form="toplu-mesaj-form">
                     <option value="">Mesaj anı seçin</option>
                     {% for s in manuel_sablonlar %}
                     <option value="{{ s.an_kodu }}">{{ s.baslik }}{% if not s.aktif %} (pasif){% endif %}</option>
                     {% endfor %}
                 </select>
             </div>
-            <button type="submit" class="primary-btn" onclick="return confirm('Seçili başvurulara mesaj gönderilsin mi?');">Gönder</button>
+            <button type="submit" form="toplu-mesaj-form" class="secondary-btn"
+                    onclick="return confirm('Seçili başvurulara mesaj gönderilsin mi?');">
+                Mesaj gönder
+            </button>
         </div>
 
         <div class="responsive-table">
@@ -72,7 +171,6 @@
                         <th>Anne tel</th>
                         <th>İl / İlçe</th>
                         <th>Doğum tarihi</th>
-                        <th>Sınav</th>
                         <th>Durum</th>
                         <th>Tarih</th>
                         <th class="yonetim-action-col">İşlem</th>
@@ -82,24 +180,23 @@
                     {% for b in basvurular %}
                     <tr>
                         <td class="yonetim-center-col">
-                            <input type="checkbox" name="basvuru_ids" value="{{ b.pk }}" class="basvuru-sec">
+                            <input type="checkbox" name="basvuru_ids" value="{{ b.pk }}" class="basvuru-sec" form="basvuru-yonetim-form">
+                            <input type="checkbox" name="basvuru_ids" value="{{ b.pk }}" class="basvuru-sec-mesaj" form="toplu-mesaj-form" style="display:none;" tabindex="-1" aria-hidden="true">
                         </td>
                         <td><strong>{{ b.ad_soyad }}</strong></td>
                         <td>{{ b.baba_telefon }}</td>
                         <td>{{ b.anne_telefon }}</td>
                         <td>{{ b.il }} / {{ b.ilce }}</td>
                         <td>{{ b.dogum_tarihi|date:"d.m.Y" }}</td>
-                        <td>{{ b.sinav_adi }}</td>
                         <td>
-                            {% if b.durum == "yeni" %}
-                            <span class="status-pill status-okunuyor">Yeni</span>
-                            {% elif b.durum == "inceleniyor" %}
-                            <span class="status-pill">İnceleniyor</span>
-                            {% elif b.durum == "kabul" %}
-                            <span class="status-pill status-okunuyor">Kabul</span>
-                            {% else %}
-                            <span class="status-pill status-iade">Red</span>
-                            {% endif %}
+                            <select class="cs-input" name="durum_{{ b.pk }}" style="min-width:9rem;">
+                                {% for d in durumlar %}
+                                <option value="{{ d.pk }}" {% if b.durum_id == d.pk %}selected{% endif %}>{{ d.ad }}</option>
+                                {% endfor %}
+                                {% if b.durum_id and not b.durum.aktif %}
+                                <option value="{{ b.durum_id }}" selected>{{ b.durum.ad }} (pasif)</option>
+                                {% endif %}
+                            </select>
                         </td>
                         <td>{{ b.olusturulma|date:"d.m.Y H:i" }}</td>
                         <td class="yonetim-action-col">
@@ -114,11 +211,15 @@
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="10" class="report-empty">Henüz başvuru yok.</td></tr>
+                    <tr><td colspan="9" class="report-empty">Henüz başvuru yok.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+    </form>
+
+    <form id="toplu-mesaj-form" method="post" action="{% url 'yonetim:sinav_basvuru_toplu_mesaj' %}">
+        {% csrf_token %}
     </form>
 
     {% for b in basvurular %}
@@ -132,9 +233,21 @@
 (function () {
     const hepsi = document.getElementById("sec-hepsi");
     if (!hepsi) return;
-    hepsi.addEventListener("change", function () {
+    function sync() {
+        const checked = hepsi.checked;
         document.querySelectorAll(".basvuru-sec").forEach(function (el) {
-            el.checked = hepsi.checked;
+            el.checked = checked;
+        });
+        document.querySelectorAll(".basvuru-sec-mesaj").forEach(function (el, i) {
+            const src = document.querySelectorAll(".basvuru-sec")[i];
+            el.checked = src ? src.checked : checked;
+        });
+    }
+    hepsi.addEventListener("change", sync);
+    document.querySelectorAll(".basvuru-sec").forEach(function (el, i) {
+        el.addEventListener("change", function () {
+            const twin = document.querySelectorAll(".basvuru-sec-mesaj")[i];
+            if (twin) twin.checked = el.checked;
         });
     });
 })();

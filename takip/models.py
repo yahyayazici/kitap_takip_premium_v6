@@ -2119,7 +2119,10 @@ from takip.yemekci_sinif_models import (  # noqa: E402,F401
     YemekciSinifHavuzu,
 )
 
-from takip.sinav_basvuru_models import SinavBasvuru  # noqa: E402,F401
+from takip.sinav_basvuru_models import (  # noqa: E402,F401
+    SinavBasvuru,
+    SinavBasvuruDurum,
+)
 from takip.sinav_basvuru_mesaj_models import (  # noqa: E402,F401
     SinavBasvuruMesajLog,
     SinavBasvuruMesajSablon,

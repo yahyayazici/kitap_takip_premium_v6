@@ -3,12 +3,18 @@
 from __future__ import annotations
 
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.text import slugify
 from django.views.decorators.http import require_http_methods, require_POST
 
 from takip.excel_rapor import basit_rapor_xlsx, excel_http_yanit
-from takip.models import SinavBasvuru, SinavBasvuruMesajLog, SinavBasvuruMesajSablon
+from takip.models import (
+    SinavBasvuru,
+    SinavBasvuruDurum,
+    SinavBasvuruMesajLog,
+    SinavBasvuruMesajSablon,
+)
 from takip.sinav_basvuru_mesaj_service import (
     basvuru_mesaji_gonder,
     basvurularda_mesaj_gonder,
@@ -17,7 +23,6 @@ from takip.sinav_basvuru_mesaj_service import (
 from takip.whatsapp_service import telefon_normalize, whatsapp_yapilandirilmis
 from takip.yonetim_views import yonetici_gerekli
 
-# Yönetimden manuel tetiklenebilen anlar
 MANUEL_ANLAR = (
     SinavBasvuruMesajSablon.AnKodu.SINAV_DAVETI,
     SinavBasvuruMesajSablon.AnKodu.SONUC_BILDIRIMI,
@@ -27,13 +32,25 @@ MANUEL_ANLAR = (
 )
 
 
+def _aktif_durumlar():
+    return SinavBasvuruDurum.objects.filter(aktif=True).order_by("sira", "ad")
+
+
+def _tum_durumlar():
+    return SinavBasvuruDurum.objects.annotate(
+        basvuru_sayisi=Count("basvurular")
+    ).order_by("sira", "ad")
+
+
 def _filtreli_basvurular(request):
-    basvurular = SinavBasvuru.objects.all()
+    basvurular = SinavBasvuru.objects.select_related("durum").all()
     durum = request.GET.get("durum", "").strip()
     arama = request.GET.get("q", "").strip()
 
-    if durum in SinavBasvuru.Durum.values:
-        basvurular = basvurular.filter(durum=durum)
+    if durum.isdigit():
+        basvurular = basvurular.filter(durum_id=int(durum))
+    elif durum:
+        basvurular = basvurular.filter(durum__kod=durum)
 
     if arama:
         basvurular = basvurular.filter(
@@ -48,8 +65,120 @@ def _filtreli_basvurular(request):
     return basvurular, durum, arama
 
 
+def _durum_degistir_ve_mesaj(basvuru: SinavBasvuru, yeni_durum: SinavBasvuruDurum) -> None:
+    onceki = basvuru.durum_id
+    if onceki == yeni_durum.pk:
+        return
+    basvuru.durum = yeni_durum
+    basvuru.save(update_fields=["durum", "guncellenme"])
+    an = durum_icin_mesaj_an(yeni_durum)
+    if an:
+        try:
+            basvuru_mesaji_gonder(basvuru, an, sadece_aktif=True)
+        except Exception:  # noqa: BLE001
+            pass
+
+
 @yonetici_gerekli
+@require_http_methods(["GET", "POST"])
 def sinav_basvuru_listesi(request):
+    if request.method == "POST":
+        action = request.POST.get("action", "").strip()
+
+        if action == "durum_ekle":
+            ad = request.POST.get("durum_ad", "").strip()
+            kod = slugify(request.POST.get("durum_kod", "").strip() or ad, allow_unicode=True)
+            mesaj_an = request.POST.get("mesaj_an_kodu", "").strip()
+            if not ad or not kod:
+                messages.error(request, "Durum adı gerekli.")
+            elif SinavBasvuruDurum.objects.filter(kod=kod).exists():
+                messages.error(request, "Bu kod zaten var.")
+            else:
+                sira = (SinavBasvuruDurum.objects.count() + 1) * 10
+                SinavBasvuruDurum.objects.create(
+                    ad=ad,
+                    kod=kod,
+                    sira=sira,
+                    aktif=True,
+                    mesaj_an_kodu=mesaj_an,
+                )
+                messages.success(request, f"“{ad}” durumu eklendi.")
+            return redirect("yonetim:sinav_basvuru_listesi")
+
+        if action == "durum_sil":
+            durum_id = request.POST.get("durum_id", "").strip()
+            durum = get_object_or_404(SinavBasvuruDurum, pk=durum_id)
+            if durum.basvurular.exists():
+                messages.error(
+                    request,
+                    f"“{durum.ad}” durumunda başvuru var; silinemez. Pasif yapın.",
+                )
+            else:
+                ad = durum.ad
+                durum.delete()
+                messages.success(request, f"“{ad}” silindi.")
+            return redirect("yonetim:sinav_basvuru_listesi")
+
+        if action == "durum_toggle":
+            durum = get_object_or_404(
+                SinavBasvuruDurum, pk=request.POST.get("durum_id")
+            )
+            durum.aktif = not durum.aktif
+            durum.save(update_fields=["aktif", "guncellenme"])
+            messages.success(
+                request,
+                f"“{durum.ad}” {'aktif' if durum.aktif else 'pasif'} yapıldı.",
+            )
+            return redirect("yonetim:sinav_basvuru_listesi")
+
+        if action == "toplu_durum":
+            durum_id = request.POST.get("toplu_durum_id", "").strip()
+            ids = request.POST.getlist("basvuru_ids")
+            if not durum_id:
+                messages.error(request, "Toplu uygulama için durum seçin.")
+                return redirect("yonetim:sinav_basvuru_listesi")
+            if not ids:
+                messages.error(request, "En az bir başvuru seçin.")
+                return redirect("yonetim:sinav_basvuru_listesi")
+            yeni = get_object_or_404(SinavBasvuruDurum, pk=durum_id, aktif=True)
+            qs = SinavBasvuru.objects.filter(pk__in=ids).select_related("durum")
+            say = 0
+            for basvuru in qs:
+                if basvuru.durum_id != yeni.pk:
+                    _durum_degistir_ve_mesaj(basvuru, yeni)
+                    say += 1
+            messages.success(request, f"{say} başvurunun durumu “{yeni.ad}” yapıldı.")
+            return redirect("yonetim:sinav_basvuru_listesi")
+
+        if action == "satir_durumlar":
+            aktif_ids = set(
+                SinavBasvuruDurum.objects.filter(aktif=True).values_list("pk", flat=True)
+            )
+            say = 0
+            for key, val in request.POST.items():
+                if not key.startswith("durum_"):
+                    continue
+                try:
+                    basvuru_id = int(key.replace("durum_", "", 1))
+                    durum_id = int(val)
+                except (TypeError, ValueError):
+                    continue
+                if durum_id not in aktif_ids:
+                    continue
+                basvuru = SinavBasvuru.objects.filter(pk=basvuru_id).select_related(
+                    "durum"
+                ).first()
+                if not basvuru or basvuru.durum_id == durum_id:
+                    continue
+                yeni = SinavBasvuruDurum.objects.get(pk=durum_id)
+                _durum_degistir_ve_mesaj(basvuru, yeni)
+                say += 1
+            messages.success(request, f"{say} durum güncellendi.")
+            return redirect("yonetim:sinav_basvuru_listesi")
+
+        messages.error(request, "Geçersiz işlem.")
+        return redirect("yonetim:sinav_basvuru_listesi")
+
     basvurular, durum, arama = _filtreli_basvurular(request)
     manuel_sablonlar = SinavBasvuruMesajSablon.objects.filter(
         an_kodu__in=MANUEL_ANLAR
@@ -62,9 +191,11 @@ def sinav_basvuru_listesi(request):
             "basvurular": basvurular,
             "durum_filtre": durum,
             "arama": arama,
-            "durum_secenekleri": SinavBasvuru.Durum.choices,
+            "durumlar": _aktif_durumlar(),
+            "tum_durumlar": _tum_durumlar(),
             "manuel_sablonlar": manuel_sablonlar,
             "whatsapp_aktif": whatsapp_yapilandirilmis(),
+            "mesaj_an_secenekleri": SinavBasvuruMesajSablon.AnKodu.choices,
         },
     )
 
@@ -87,7 +218,7 @@ def sinav_basvuru_excel(request):
                 b.ilce,
                 b.dogum_tarihi.strftime("%d.%m.%Y") if b.dogum_tarihi else "",
                 b.sinav_adi,
-                b.get_durum_display(),
+                b.durum.ad if b.durum_id else "",
                 b.olusturulma.strftime("%d.%m.%Y %H:%M") if b.olusturulma else "",
             ]
         )
@@ -132,8 +263,6 @@ def sinav_basvuru_toplu_mesaj(request):
         messages.error(request, "Mesaj için başvuru seçin.")
         return redirect("yonetim:sinav_basvuru_listesi")
 
-    # Yönetimden manuel gönderimde aktif kontrolü: pasif an da gönderilebilir
-    # (admin bilerek seçti); yine de şablon yoksa sessizce çıkar.
     ozet = basvurularda_mesaj_gonder(qs, an_kodu, sadece_aktif=False)
     messages.success(
         request,
@@ -150,8 +279,10 @@ def sinav_basvuru_toplu_mesaj(request):
 @yonetici_gerekli
 @require_http_methods(["GET", "POST"])
 def sinav_basvuru_detay(request, pk):
-    basvuru = get_object_or_404(SinavBasvuru, pk=pk)
-    onceki_durum = basvuru.durum
+    basvuru = get_object_or_404(
+        SinavBasvuru.objects.select_related("durum"), pk=pk
+    )
+    onceki_durum_id = basvuru.durum_id
 
     if request.method == "POST":
         action = request.POST.get("action", "kaydet").strip()
@@ -174,15 +305,25 @@ def sinav_basvuru_detay(request, pk):
                 messages.error(request, "Geçersiz mesaj anı.")
             return redirect("yonetim:sinav_basvuru_detay", pk=basvuru.pk)
 
-        yeni_durum = request.POST.get("durum", "").strip()
+        yeni_durum_id = request.POST.get("durum", "").strip()
         notlar = request.POST.get("notlar", "").strip()
-        if yeni_durum in SinavBasvuru.Durum.values:
-            basvuru.durum = yeni_durum
+        yeni = None
+        if yeni_durum_id.isdigit():
+            yeni = SinavBasvuruDurum.objects.filter(pk=int(yeni_durum_id)).first()
+            if (
+                yeni
+                and not yeni.aktif
+                and yeni.pk != onceki_durum_id
+            ):
+                messages.error(request, "Pasif duruma geçilemez.")
+                return redirect("yonetim:sinav_basvuru_detay", pk=basvuru.pk)
+        if yeni:
+            basvuru.durum = yeni
         basvuru.notlar = notlar
         basvuru.save(update_fields=["durum", "notlar", "guncellenme"])
 
-        if basvuru.durum != onceki_durum:
-            an = durum_icin_mesaj_an(basvuru.durum)
+        if yeni and yeni.pk != onceki_durum_id:
+            an = durum_icin_mesaj_an(yeni)
             if an:
                 try:
                     basvuru_mesaji_gonder(basvuru, an, sadece_aktif=True)
@@ -205,7 +346,7 @@ def sinav_basvuru_detay(request, pk):
         "yonetim/sinav_basvuru_detay.html",
         {
             "basvuru": basvuru,
-            "durum_secenekleri": SinavBasvuru.Durum.choices,
+            "durumlar": _aktif_durumlar(),
             "mesaj_loglari": loglar,
             "manuel_sablonlar": manuel_sablonlar,
             "whatsapp_aktif": whatsapp_yapilandirilmis(),

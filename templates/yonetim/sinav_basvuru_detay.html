@@ -8,7 +8,7 @@
         <h1>{{ basvuru.ad_soyad }}</h1>
         <p class="muted">{{ basvuru.sinav_adi }} · {{ basvuru.olusturulma|date:"d.m.Y H:i" }}</p>
     </div>
-    <span class="status-pill">{% if basvuru.durum == "yeni" %}Yeni{% elif basvuru.durum == "inceleniyor" %}İnceleniyor{% elif basvuru.durum == "kabul" %}Kabul{% else %}Red{% endif %}</span>
+    <span class="status-pill">{{ basvuru.durum.ad }}</span>
 </header>
 
 <section class="report-table-card yonetim-table-card" style="margin-bottom:1.25rem;">
@@ -49,9 +49,12 @@
         <div>
             <label for="durum">Durum</label>
             <select class="cs-input" id="durum" name="durum">
-                {% for value, label in durum_secenekleri %}
-                <option value="{{ value }}" {% if basvuru.durum == value %}selected{% endif %}>{{ label }}</option>
+                {% for d in durumlar %}
+                <option value="{{ d.pk }}" {% if basvuru.durum_id == d.pk %}selected{% endif %}>{{ d.ad }}</option>
                 {% endfor %}
+                {% if basvuru.durum_id and not basvuru.durum.aktif %}
+                <option value="{{ basvuru.durum_id }}" selected>{{ basvuru.durum.ad }} (pasif)</option>
+                {% endif %}
             </select>
             <p class="muted" style="margin:0.4rem 0 0;font-size:0.9rem;">Kabul/Red seçilip kaydedilince ilgili mesaj anı aktifse WhatsApp gider.</p>
         </div>
