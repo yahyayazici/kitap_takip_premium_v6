@@ -145,6 +145,10 @@ LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "dashboard"
 LOGOUT_REDIRECT_URL = "login"
 
+CSRF_FAILURE_VIEW = "takip.pwa_views.csrf_failure"
+CSRF_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SAMESITE = "Lax"
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AI_ASSISTANT_ENABLED = os.environ.get("AI_ASSISTANT_ENABLED", "True").lower() == "true"

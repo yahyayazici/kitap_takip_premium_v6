@@ -27,6 +27,101 @@
   color: #94a3b8;
 }
 
+.dash-ai-hero {
+  margin: 0 0 20px;
+  border: 1px solid #c7d2fe;
+  background: linear-gradient(135deg, #eef2ff 0%, #fff 55%);
+  box-shadow: 0 8px 28px rgba(99, 102, 241, 0.1);
+  padding: 16px 18px 18px 20px;
+  overflow: visible;
+}
+
+.dash-ai-hero .ai-setup-notice {
+  margin-top: 0;
+}
+
+.dash-ai-hero .ai-erken-uyari {
+  margin-bottom: 14px;
+}
+
+.dash-ai-hero .ai-zekasi-widget {
+  margin: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+  overflow: visible;
+}
+
+/* İç içe widget'ta çift sol şerit olmasın */
+.dash-ai-hero .ai-zekasi-widget::before,
+.dashboard-page .dash-ai-hero .ai-zekasi-widget::before {
+  display: none;
+}
+
+.ai-setup-notice {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  font-size: 13px;
+}
+
+.ai-setup-notice code {
+  font-size: 12px;
+}
+
+.ai-live-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  vertical-align: middle;
+}
+
+.ai-erken-uyari {
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid #fecaca;
+  background: #fff7f7;
+}
+
+.ai-erken-uyari-head h2 {
+  margin: 6px 0 4px;
+  font-size: 1rem;
+  color: #991b1b;
+}
+
+.ai-erken-uyari-head p {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.ai-erken-uyari-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mudahale-ai-list-compact {
+  margin-top: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
 .dash-ai-bottom {
   margin-top: 8px;
 }
@@ -40,11 +135,14 @@
 
 .ai-zekasi-widget {
   margin: 20px 0;
-  padding: 18px;
+  padding: 18px 18px 18px 20px;
   border: 1px solid #dbe3ef;
   border-radius: 16px;
   background: linear-gradient(135deg, #f8fafc 0%, #fff 60%);
   box-shadow: 0 4px 20px rgba(15, 40, 80, 0.06);
+  position: relative;
+  overflow: visible;
+  min-width: 0;
 }
 
 .ai-zekasi-widget-head {
@@ -54,6 +152,13 @@
   gap: 12px;
   margin-bottom: 14px;
   text-align: left;
+  position: relative;
+  z-index: 2;
+}
+
+.ai-zekasi-widget-head > div:first-child {
+  flex: 1;
+  min-width: 0;
 }
 
 .ai-zekasi-kicker {
@@ -63,6 +168,7 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #6366f1;
+  padding-left: 0;
 }
 
 .ai-zekasi-title {
@@ -70,6 +176,17 @@
   font-size: 1.05rem;
   font-weight: 800;
   color: #0f172a;
+  line-height: 1.35;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: normal;
+  padding-left: 0;
+}
+
+.ai-zekasi-panel {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
 }
 
 .ai-zekasi-yenile {
@@ -95,8 +212,48 @@
   background: transparent;
 }
 
-.ai-zekasi-card .ktt-analiz-kicker {
-  color: #6366f1;
+/* Mavi analiz başlığı — okunabilir kontrast */
+.ai-zekasi-panel .ktt-analiz-card .ktt-analiz-head {
+  color: #fff;
+}
+
+.ai-zekasi-panel .ktt-analiz-card .ktt-analiz-kicker,
+.ai-zekasi-card .ktt-analiz-head .ktt-analiz-kicker {
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+
+.ai-zekasi-panel .ktt-analiz-card .ktt-analiz-title {
+  color: #fff !important;
+}
+
+.ai-zekasi-panel .ktt-analiz-head .ktt-analiz-badge.is-data {
+  background: #fff !important;
+  color: #1e3a8a !important;
+  border: 1px solid rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.18);
+}
+
+.ai-zekasi-panel .ktt-analiz-head .ktt-analiz-badge.is-ai {
+  background: rgba(255, 255, 255, 0.22) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.45) !important;
+}
+
+.ai-zekasi-panel .ktt-analiz-section-title {
+  color: #1e3a8a;
+}
+
+.ai-zekasi-panel .ktt-analiz-section-body {
+  color: #334155;
+}
+
+.dash-ai-bottom {
+  margin-top: 24px;
+  margin-bottom: 8px;
+}
+
+.dash-ai-hero.dash-ai-bottom {
+  margin-top: 28px;
 }
 
 .dash-ai-strip {
@@ -141,7 +298,33 @@
 
 @media (max-width: 768px) {
   .ai-zekasi-widget {
-    padding: 14px;
+    padding: 14px 14px 14px 18px;
     border-radius: 12px;
+  }
+
+  .dash-ai-hero {
+    padding: 14px 14px 16px 16px;
+  }
+
+  .ai-zekasi-widget-head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .ai-zekasi-widget-head > div:first-child {
+    flex: none;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .ai-zekasi-actions {
+    width: auto;
+    align-self: flex-end;
+  }
+
+  .ai-zekasi-title {
+    font-size: 1rem;
+    line-height: 1.4;
   }
 }

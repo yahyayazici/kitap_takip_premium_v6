@@ -1,0 +1,60 @@
+{% extends "talebe/base.html" %}
+{% load static %}
+{% block title %}Konu Destek · Talebe Paneli{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/konu-destek.css' %}?v=1">
+{% endblock %}
+{% block content %}
+<div class="dash-home talebe-dash kd-home">
+
+{% include "includes/panel_hero.html" with title="Konu Destek Merkezi" meta="Eksik konular · Video · Mini test" show_date=True %}
+
+<section class="dash-panel kd-intro">
+    <p class="kd-intro-text">
+        KTT ve deneme sonuçlarına göre eksik olduğun konular burada listelenir.
+        Her konu için 3 video seçeneği sunulur; videoyu panel içinde izleyip ardından mini test çözebilirsin.
+    </p>
+</section>
+
+{% if konu_kartlari %}
+<div class="kd-konu-grid">
+    {% for kart in konu_kartlari %}
+    <article class="kd-konu-card">
+        <div class="kd-konu-head">
+            <span class="kd-brans">{{ kart.konu.brans_etiket }}</span>
+            <span class="kd-kaynak">{{ kart.kaynak_etiket }}</span>
+        </div>
+        <h2>{{ kart.konu.konu_ad }}</h2>
+        <p class="kd-meta">{{ kart.konu.sinif_seviyesi }}. sınıf · {{ kart.videolar|length }} video önerisi</p>
+
+        <div class="kd-video-chips">
+            {% for video in kart.videolar %}
+            <span class="kd-chip">{{ video.get_tur_display|default:"Video" }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="kd-card-stats">
+            {% if kart.video_izlendi %}
+            <span class="kd-stat ok">Video izlendi</span>
+            {% else %}
+            <span class="kd-stat warn">Video bekliyor</span>
+            {% endif %}
+            {% if kart.son_test %}
+            <span class="kd-stat">Test: %{{ kart.son_test.basari_yuzde|floatformat:0 }}</span>
+            {% elif kart.soru_sayisi %}
+            <span class="kd-stat">Test hazır</span>
+            {% endif %}
+        </div>
+
+        <a href="{% url 'talebe_konu_destek_detay' kart.konu.id %}" class="primary-btn kd-card-btn">Konuya git</a>
+    </article>
+    {% endfor %}
+</div>
+{% else %}
+<section class="dash-panel">
+    <p class="kd-empty">Şu an listelenecek eksik konu bulunamadı. KTT ve deneme sonuçların yüklendikçe burada görünecek.</p>
+</section>
+{% endif %}
+
+</div>
+{% endblock %}

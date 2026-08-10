@@ -381,3 +381,103 @@ def panel_istatistikleri(ozetler: list[VeliGoruntulemeOzet]) -> dict:
         "tamam": tamam,
         "simdi": timezone.localtime(),
     }
+
+
+def sinif_bazli_veli_takip_verisi() -> dict:
+    """Aktif sınıflar için veli giriş / okuma durumu — AI raporu kaynağı."""
+    from django.utils.timezone import localdate
+
+    from takip.models import SinifSube
+    from takip.wave0_models import VeliTalebeBaglantisi
+
+    ozet_map = {o.veli.pk: o for o in veli_goruntuleme_panel_listesi()}
+
+    talebe_veli: dict[int, VeliHesap] = {}
+    for bag in VeliTalebeBaglantisi.objects.filter(veli__aktif=True).select_related(
+        "veli", "talebe"
+    ):
+        if bag.talebe_id not in talebe_veli:
+            talebe_veli[bag.talebe_id] = bag.veli
+
+    sinif_bloklari: list[dict] = []
+    for sinif in SinifSube.objects.filter(aktif=True).order_by("sinif", "sube"):
+        ogrenciler = Talebe.objects.filter(
+            sinif_sube=sinif,
+            durum=Talebe.Durum.AKTIF,
+        ).order_by("ad_soyad")
+
+        if not ogrenciler.exists():
+            continue
+
+        satirlar: list[dict] = []
+        giris_yok: list[str] = []
+        eksik: list[str] = []
+        guncel: list[str] = []
+        veli_yok: list[str] = []
+
+        for talebe in ogrenciler:
+            veli = talebe_veli.get(talebe.pk)
+            if not veli:
+                veli_yok.append(talebe.ad_soyad)
+                satirlar.append(
+                    {
+                        "ogrenci": talebe.ad_soyad,
+                        "veli": None,
+                        "durum": "veli_yok",
+                        "durum_etiket": "Veli hesabı yok",
+                        "son_aktivite": None,
+                        "duyuru": "—",
+                        "ktt": "—",
+                        "deneme": "—",
+                    }
+                )
+                continue
+
+            oz = ozet_map.get(veli.pk) or veli_goruntuleme_ozeti(veli)
+            etiket = f"{talebe.ad_soyad} (veli: {veli.ad_soyad})"
+            if oz.durum == "hic_giris":
+                giris_yok.append(etiket)
+            elif oz.durum == "eksik":
+                eksik.append(etiket)
+            else:
+                guncel.append(etiket)
+
+            son = None
+            if oz.son_aktivite:
+                son = timezone.localtime(oz.son_aktivite).strftime("%d.%m.%Y %H:%M")
+
+            satirlar.append(
+                {
+                    "ogrenci": talebe.ad_soyad,
+                    "veli": veli.ad_soyad,
+                    "durum": oz.durum,
+                    "durum_etiket": oz.durum_etiketi,
+                    "son_aktivite": son,
+                    "duyuru": f"{oz.duyuru.gorulen}/{oz.duyuru.toplam}",
+                    "ktt": f"{oz.ktt.gorulen}/{oz.ktt.toplam}",
+                    "deneme": f"{oz.deneme.gorulen}/{oz.deneme.toplam}",
+                }
+            )
+
+        sinif_bloklari.append(
+            {
+                "sinif": str(sinif),
+                "sinif_id": sinif.pk,
+                "toplam": len(satirlar),
+                "giris_yok_sayisi": len(giris_yok),
+                "eksik_sayisi": len(eksik),
+                "guncel_sayisi": len(guncel),
+                "veli_yok_sayisi": len(veli_yok),
+                "giris_yok": giris_yok,
+                "eksik": eksik,
+                "guncel": guncel,
+                "veli_yok": veli_yok,
+                "ogrenciler": satirlar,
+            }
+        )
+
+    return {
+        "siniflar": sinif_bloklari,
+        "toplam_sinif": len(sinif_bloklari),
+        "tarih": localdate().isoformat(),
+    }

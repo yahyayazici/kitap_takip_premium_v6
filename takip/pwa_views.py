@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
+from django.shortcuts import redirect
+from django.urls import reverse
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_GET
 
 from config.branding import (
@@ -13,7 +16,7 @@ from config.branding import (
 )
 
 PWA_THEME_COLOR = "#071b3a"
-PWA_VERSION = "v7"
+PWA_VERSION = "v9"
 PWA_ID = f"/?pwa={PWA_VERSION}"
 
 _ICON_FILES = {
@@ -44,7 +47,7 @@ def web_manifest(request):
             "name": PANEL_NAME,
             "short_name": PANEL_MOBILE_SHORT,
             "description": PANEL_TAGLINE,
-            "start_url": "/giris/",
+            "start_url": "/giris/?source=pwa",
             "scope": "/",
             "display": "standalone",
             "orientation": "any",
@@ -94,3 +97,33 @@ def service_worker(request):
     response = HttpResponse(body, content_type="application/javascript; charset=utf-8")
     response["Service-Worker-Allowed"] = "/"
     return _no_cache(response)
+
+
+def _panel_giris_hedefi(user) -> str:
+    from takip.ogretmen_service import ogretmen_paneli_kullanicisi_mi
+    from takip.talebe_panel_service import kullanici_talebe_mi
+    from takip.veli_service import kullanici_veli_mi
+
+    if kullanici_veli_mi(user):
+        return reverse("veli_dashboard")
+    if kullanici_talebe_mi(user):
+        return reverse("talebe_dashboard")
+    if ogretmen_paneli_kullanicisi_mi(user):
+        return reverse("ogretmen_dashboard")
+    return reverse("dashboard")
+
+
+@ensure_csrf_cookie
+@require_GET
+def pwa_baslat(request):
+    """Ana ekran kısayolu — yalnızca GET; oturum varsa panele, yoksa girişe."""
+    if request.user.is_authenticated:
+        return redirect(_panel_giris_hedefi(request.user))
+    return redirect(f"{reverse('login')}?source=pwa")
+
+
+def csrf_failure(request, reason=""):
+    """PWA / mobil geri yüklemede POST tekrarı → girişe yönlendir."""
+    if request.method == "POST":
+        return redirect(f"{reverse('login')}?source=pwa&csrf=1")
+    return redirect(reverse("login"))

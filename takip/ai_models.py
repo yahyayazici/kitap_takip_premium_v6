@@ -15,6 +15,7 @@ class AiUretimKaydi(models.Model):
         REHBERLIK_OZET = "rehberlik_ozet", "Rehberlik Özeti"
         KURUM_ZEKASI = "kurum_zekasi", "Kurum Zekası"
         SORU_TAKIP = "soru_takip", "Soru Takip İçgörüsü"
+        VELI_TAKIP = "veli_takip", "Veli Takip Raporu"
 
     tur = models.CharField(max_length=32, choices=Tur.choices, verbose_name="Tür")
     anahtar = models.CharField(max_length=160, db_index=True, verbose_name="Anahtar")

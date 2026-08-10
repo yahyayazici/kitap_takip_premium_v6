@@ -963,3 +963,45 @@ class EtutHaftaPlaniAdmin(admin.ModelAdmin):
     )
     list_filter = ("durum",)
     inlines = [EtutPlanFaaliyetInline]
+
+
+from takip.konu_destek_models import (  # noqa: E402
+    KonuEgitimVideosu,
+    KonuKatalogu,
+    KonuSorusu,
+    KonuTestOturu,
+    KonuVideoIzleme,
+)
+
+
+class KonuEgitimVideosuInline(admin.TabularInline):
+    model = KonuEgitimVideosu
+    extra = 0
+    fields = ("sira", "baslik", "youtube_id", "arama_sorgusu", "tur", "sure_dk", "aktif")
+
+
+class KonuSorusuInline(admin.TabularInline):
+    model = KonuSorusu
+    extra = 0
+    fields = ("sira", "soru_metni", "dogru_secenek", "aktif")
+
+
+@admin.register(KonuKatalogu)
+class KonuKataloguAdmin(admin.ModelAdmin):
+    list_display = ("sinif_seviyesi", "brans", "konu_ad", "aktif")
+    list_filter = ("sinif_seviyesi", "brans", "aktif")
+    search_fields = ("konu_ad",)
+    inlines = [KonuEgitimVideosuInline, KonuSorusuInline]
+
+
+@admin.register(KonuVideoIzleme)
+class KonuVideoIzlemeAdmin(admin.ModelAdmin):
+    list_display = ("talebe", "konu", "video_baslik", "sure_sn", "tamamlandi", "baslama")
+    list_filter = ("tamamlandi", "baslama")
+    search_fields = ("talebe__ad_soyad", "video_baslik")
+
+
+@admin.register(KonuTestOturu)
+class KonuTestOturuAdmin(admin.ModelAdmin):
+    list_display = ("talebe", "konu", "dogru_sayisi", "toplam_soru", "basari_yuzde", "bitis")
+    list_filter = ("konu__brans",)

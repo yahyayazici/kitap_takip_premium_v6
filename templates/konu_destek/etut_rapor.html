@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Konu Destek Raporu · Etüt{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/konu-destek.css' %}?v=1">
+{% endblock %}
+{% block content %}
+<div class="dash-home kd-etut-rapor">
+
+<section class="dash-panel">
+    <div class="dash-panel-head">
+        <div>
+            <p class="dash-eyebrow">Dijital etüt</p>
+            <h2>Konu destek raporu</h2>
+        </div>
+    </div>
+    <p class="kd-intro-text">
+        Son 7 gün: talebelerin izlediği videolar ve çözdüğü mini testler.
+        {{ hafta_baslangic|date:"d.m.Y" }} — {{ bugun|date:"d.m.Y" }}
+    </p>
+</section>
+
+{% if izlemeyen_talebeler %}
+<section class="dash-panel kd-alert-panel">
+    <h3>Henüz video izlemeyen talebeler</h3>
+    <p>{% for t in izlemeyen_talebeler %}{{ t.ad_soyad }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+</section>
+{% endif %}
+
+<section class="dash-panel">
+    <div class="dash-panel-head"><div><p class="dash-eyebrow">İzleme</p><h2>Video kayıtları</h2></div></div>
+    {% if izlemeler %}
+    <div class="responsive-table">
+        <table class="veli-table">
+            <thead>
+                <tr><th>Talebe</th><th>Konu</th><th>Video</th><th>Süre</th><th>Tarih</th><th>Durum</th></tr>
+            </thead>
+            <tbody>
+                {% for iz in izlemeler %}
+                <tr>
+                    <td>{{ iz.talebe.ad_soyad }}</td>
+                    <td>{{ iz.konu.brans_etiket }} · {{ iz.konu.konu_ad }}</td>
+                    <td>{{ iz.video_baslik|truncatechars:40 }}</td>
+                    <td>{% widthratio iz.sure_sn 60 1 %} dk</td>
+                    <td>{{ iz.baslama|date:"d.m.Y H:i" }}</td>
+                    <td>{% if iz.tamamlandi %}Tamamlandı{% else %}Kısmi{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="kd-empty">Bu hafta video izleme kaydı yok.</p>
+    {% endif %}
+</section>
+
+<section class="dash-panel">
+    <div class="dash-panel-head"><div><p class="dash-eyebrow">Test</p><h2>Mini test sonuçları</h2></div></div>
+    {% if testler %}
+    <div class="responsive-table">
+        <table class="veli-table">
+            <thead>
+                <tr><th>Talebe</th><th>Konu</th><th>Sonuç</th><th>Başarı</th><th>Tarih</th></tr>
+            </thead>
+            <tbody>
+                {% for test in testler %}
+                <tr>
+                    <td>{{ test.talebe.ad_soyad }}</td>
+                    <td>{{ test.konu.brans_etiket }} · {{ test.konu.konu_ad }}</td>
+                    <td>{{ test.dogru_sayisi }}/{{ test.toplam_soru }}</td>
+                    <td>%{{ test.basari_yuzde|floatformat:0 }}</td>
+                    <td>{{ test.bitis|date:"d.m.Y H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="kd-empty">Bu hafta tamamlanan test yok.</p>
+    {% endif %}
+</section>
+
+<section class="dash-panel">
+    <div class="dash-panel-head"><div><p class="dash-eyebrow">Bekleyen</p><h2>Açık konu eksikleri</h2></div></div>
+    {% if eksikler %}
+    <div class="responsive-table">
+        <table class="veli-table">
+            <thead>
+                <tr><th>Talebe</th><th>Konu</th><th>Kaynak</th><th>Öncelik</th></tr>
+            </thead>
+            <tbody>
+                {% for eksik in eksikler %}
+                <tr>
+                    <td>{{ eksik.talebe.ad_soyad }}</td>
+                    <td>{{ eksik.konu.brans_etiket }} · {{ eksik.konu.konu_ad }}</td>
+                    <td>{{ eksik.get_kaynak_display }}</td>
+                    <td>{{ eksik.oncelik }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="kd-empty">Açık konu eksiği yok.</p>
+    {% endif %}
+</section>
+
+</div>
+{% endblock %}

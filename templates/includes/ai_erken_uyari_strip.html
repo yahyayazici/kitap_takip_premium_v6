@@ -1,0 +1,18 @@
+{% if mudahale_adaylari %}
+<section class="ai-erken-uyari" aria-label="Erken uyarı">
+    <div class="ai-erken-uyari-head">
+        <span class="ai-erken-uyari-badge">Erken uyarı</span>
+        <h2>{{ mudahale_adaylari|length }} talebe dikkat gerektiriyor</h2>
+        <p>Yapay zeka risk skoruna göre öncelikli müdahale adayları.</p>
+    </div>
+    <div class="mudahale-ai-list mudahale-ai-list-compact">
+        {% for aday in mudahale_adaylari %}
+        <a href="{% url 'talebe_detay' aday.talebe_id %}?sekme=gelisim" class="mudahale-ai-item">
+            <strong>{{ aday.ad_soyad }} · {{ aday.sinif }}</strong>
+            <span>Risk: {{ aday.skor }}/100</span>
+            {% if aday.nedenler %}<em>{{ aday.nedenler.0 }}</em>{% endif %}
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}

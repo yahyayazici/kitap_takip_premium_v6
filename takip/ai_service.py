@@ -45,6 +45,8 @@ _BOLUM_TON = {
     "takip_maddeleri": "aksiyon",
     "kurum_ozeti": "notr",
     "oncelikli_talebeler": "dikkat",
+    "sinif_sinif": "notr",
+    "aksiyon": "aksiyon",
 }
 
 
@@ -297,6 +299,165 @@ def veli_haftalik_ozet(
 
     return _analiz_getir(
         tur=AiUretimKaydi.Tur.VELI_HAFTALIK,
+        anahtar=anahtar,
+        uretici=uret,
+        user=user,
+        yenile=yenile,
+    )
+
+
+_NOT_VELI_SISTEM = f"""Sen {PANEL_NAME} öğretmen-veli iletişim asistanısın.
+Öğretmenin haftalık ders değerlendirmesinden veliye sıcak, kısa bir mesaj taslağı yaz.
+Disiplin detayı ve olumsuz etiketleme yapma. 3-5 cümle, yalnızca düz metin (JSON değil)."""
+
+
+def veli_not_mesaj_taslagi(
+    talebe: Talebe,
+    *,
+    katilim,
+    takip,
+    disiplin,
+    aciklama: str,
+    ders_ad: str,
+    hafta_no: int,
+    hoca_ad: str,
+) -> str:
+    """Öğretmen notundan veliye iletilecek kısa mesaj taslağı."""
+    veri = {
+        "ogrenci": talebe.ad_soyad,
+        "ders": ders_ad,
+        "hafta": hafta_no,
+        "ogretmen": hoca_ad,
+        "katilim": str(katilim),
+        "takip": str(takip),
+        "disiplin": str(disiplin),
+        "degerlendirme": aciklama,
+    }
+
+    from takip.ai_gateway import ai_metin_uret
+
+    llm = ai_metin_uret(
+        system=_NOT_VELI_SISTEM,
+        user_prompt=f"Değerlendirme verisi:\n{baglam_json(veri)}",
+        max_tokens=400,
+    )
+    if llm:
+        return llm.strip()[:800]
+
+    return (
+        f"Sayın veli, {talebe.ad_soyad} {hafta_no}. hafta {ders_ad} dersinde "
+        f"değerlendirildi. Öğretmen notu: {aciklama[:200]}"
+    )
+
+
+_VELI_TAKIP_ETIKET = {
+    "ozet": "Genel Durum",
+    "sinif_sinif": "Sınıf Sınıf Rapor",
+    "aksiyon": "Önerilen Adımlar",
+}
+
+_VELI_TAKIP_SISTEM = f"""Sen {PANEL_NAME} veli iletişim koordinatörüsün.
+Veli paneli görüntüleme verisini sınıf sınıf özetlersin.
+Her sınıf için giriş yapmayan, okumayan ve güncel velileri net listele.
+Öğrenci adı ve veli adını birlikte yaz. Veri uydurma.
+JSON:
+{{
+  "ozet": "Kurum geneli 2-4 cümle özet",
+  "sinif_sinif": "Her sınıf ayrı paragraf; başlık olarak sınıf adını yaz (örn. 5/A). Giriş yok / okunmamış / güncel listeleri madde madde",
+  "aksiyon": "Aranacak veya hatırlatılacak veliler, öncelik sırasıyla"
+}}"""
+
+
+def _fallback_veli_takip(veri: dict) -> AiAnalizSonuc:
+    siniflar = veri.get("siniflar") or []
+    toplam_giris_yok = sum(s.get("giris_yok_sayisi", 0) for s in siniflar)
+    toplam_eksik = sum(s.get("eksik_sayisi", 0) for s in siniflar)
+    toplam_guncel = sum(s.get("guncel_sayisi", 0) for s in siniflar)
+
+    ozet = (
+        f"{len(siniflar)} sınıfta veli takibi incelendi. "
+        f"{toplam_giris_yok} veli henüz panele girmemiş, "
+        f"{toplam_eksik} velide okunmamış içerik var, "
+        f"{toplam_guncel} veli güncel."
+    )
+
+    sinif_metinleri: list[str] = []
+    aksiyon_satirlar: list[str] = []
+
+    for blok in siniflar:
+        satirlar = [f"{blok['sinif']} ({blok['toplam']} öğrenci)"]
+        if blok.get("veli_yok"):
+            satirlar.append(
+                "Veli hesabı yok: " + ", ".join(blok["veli_yok"][:12])
+                + (f" (+{len(blok['veli_yok']) - 12})" if len(blok["veli_yok"]) > 12 else "")
+            )
+        if blok.get("giris_yok"):
+            satirlar.append(
+                "Henüz giriş yok: " + ", ".join(blok["giris_yok"][:15])
+                + (f" (+{len(blok['giris_yok']) - 15})" if len(blok["giris_yok"]) > 15 else "")
+            )
+            for etiket in blok["giris_yok"][:5]:
+                aksiyon_satirlar.append(f"• {blok['sinif']}: {etiket} — acil aranmalı")
+        if blok.get("eksik"):
+            satirlar.append(
+                "Okunmamış içerik: " + ", ".join(blok["eksik"][:15])
+                + (f" (+{len(blok['eksik']) - 15})" if len(blok["eksik"]) > 15 else "")
+            )
+        if blok.get("guncel"):
+            satirlar.append(f"Güncel: {blok['guncel_sayisi']} veli")
+        sinif_metinleri.append("\n".join(satirlar))
+
+    return AiAnalizSonuc(
+        baslik="Veli Takip Zekası · Sınıf Raporu",
+        tur="veli_takip",
+        bolumler=[
+            AiAnalizBolum("Genel Durum", ozet, "notr"),
+            AiAnalizBolum(
+                "Sınıf Sınıf Rapor",
+                "\n\n".join(sinif_metinleri) or "Aktif sınıf bulunamadı.",
+                "notr",
+            ),
+            AiAnalizBolum(
+                "Önerilen Adımlar",
+                "\n".join(aksiyon_satirlar[:20])
+                or "Öncelikli müdahale gerektiren veli yok.",
+                "aksiyon",
+            ),
+        ],
+        yapay_zeka=False,
+        meta={"sinif_sayisi": len(siniflar)},
+    )
+
+
+def veli_takip_zekasi_raporu(
+    user: User,
+    *,
+    yenile: bool = False,
+) -> AiAnalizSonuc:
+    hafta = localdate().isocalendar()[1]
+    anahtar = f"veli_takip:w{hafta}"
+
+    def uret():
+        from takip.veli_goruntuleme_service import sinif_bazli_veli_takip_verisi
+
+        veri = sinif_bazli_veli_takip_verisi()
+        llm = ai_json_uret(
+            system=_VELI_TAKIP_SISTEM,
+            user_prompt=f"Veli takip verisi:\n{baglam_json(veri)}",
+            max_tokens=2500,
+        )
+        if llm:
+            return AiAnalizSonuc(
+                baslik="Veli Takip Zekası · Sınıf Raporu",
+                tur="veli_takip",
+                bolumler=_llm_bolumleri(llm, _VELI_TAKIP_ETIKET),
+                yapay_zeka=True,
+                meta={"sinif_sayisi": veri.get("toplam_sinif", 0)},
+            )
+        return _fallback_veli_takip(veri)
+
+    return _analiz_getir(
+        tur=AiUretimKaydi.Tur.VELI_TAKIP,
         anahtar=anahtar,
         uretici=uret,
         user=user,

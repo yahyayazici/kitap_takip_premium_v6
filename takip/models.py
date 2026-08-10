@@ -2091,6 +2091,16 @@ from takip.panel_kisayol_models import PanelKisayol, PanelKisayolGorsel  # noqa:
 
 from takip.panel_metrik_models import PanelMetrik  # noqa: E402,F401
 
+from takip.konu_destek_models import (  # noqa: E402,F401
+    KonuEgitimVideosu,
+    KonuKatalogu,
+    KonuSorusu,
+    KonuTestCevabi,
+    KonuTestOturu,
+    KonuVideoIzleme,
+    TalebeKonuEksigi,
+)
+
 from takip.dershane_program_models import (  # noqa: E402,F401
     DershaneDersAtamasi,
     DershaneEtutGrubu,

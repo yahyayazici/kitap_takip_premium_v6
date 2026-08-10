@@ -25,7 +25,7 @@ from takip.veli_service import (
     veli_talebe_ozet_etiketi,
 )
 from takip.asistan_service import asistan_kullanilabilir
-from takip.ai_gateway import ai_platform_aktif_mi
+from takip.ai_gateway import ai_llm_aktif_mi, ai_platform_aktif_mi
 from takip.ai_permissions import kurum_ai_erisebilir
 
 
@@ -106,6 +106,7 @@ def panel_branding(request):
         "yonetim_nav_groups": yonetim_nav_groups(),
         "asistan_aktif": asistan_kullanilabilir(user) if user.is_authenticated else False,
         "ai_platform_aktif": ai_platform_aktif_mi() and user.is_authenticated,
+        "ai_llm_aktif": ai_llm_aktif_mi() and user.is_authenticated,
         "ai_kurum_erisim": kurum_ai_erisebilir(user) if user.is_authenticated else False,
         "bildirim_okunmamis": bildirim_okunmamis,
     }

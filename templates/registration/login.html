@@ -104,6 +104,8 @@
 
                 {% if form.errors %}
                 <div class="gate-alert" role="alert">Kullanıcı adı veya şifre hatalı.</div>
+                {% elif request.GET.csrf %}
+                <div class="gate-alert" role="alert">Oturum süresi doldu. Lütfen tekrar giriş yapın.</div>
                 {% endif %}
 
                 <form method="post" class="gate-form" novalidate>
@@ -138,6 +140,5 @@
     </div>
 </div>
 <script src="{% static 'js/login-portal.js' %}"></script>
-<script src="{% static 'js/pwa-install.js' %}?v=7"></script>
 </body>
 </html>

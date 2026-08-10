@@ -35,6 +35,13 @@ def idareci_panel(request):
 
     ctx = idareci_ozet()
     ctx["baslik"] = "İdareci özeti"
+    ctx["mudahale_adaylari"] = []
+    from takip.ai_permissions import kurum_ai_erisebilir
+
+    if kurum_ai_erisebilir(request.user):
+        from takip.ai_service import mudahale_oneri_listesi
+
+        ctx["mudahale_adaylari"] = mudahale_oneri_listesi(request.user)[:6]
     return render(request, "yonetim/idareci_panel.html", ctx)
 
 

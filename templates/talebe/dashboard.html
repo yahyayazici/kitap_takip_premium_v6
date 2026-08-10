@@ -5,6 +5,21 @@
 
 {% include "includes/panel_hero.html" with title=talebe.ad_soyad meta="Talebe · Haftalık özet" show_date=True %}
 
+{% if ai_platform_aktif %}
+{% include "includes/ai_zekasi_widget.html" with ai_tur="gelisim_zekasi" ai_talebe_id=talebe.id ai_kicker="Gelişim özeti" ai_baslik="Kişisel analiz ve öneriler" %}
+{% endif %}
+
+<section class="dash-panel">
+    <div class="dash-panel-head">
+        <div>
+            <p class="dash-eyebrow">Dijital etüt</p>
+            <h2>Konu destek</h2>
+        </div>
+        <a href="{% url 'talebe_konu_destek' %}" class="primary-btn">Eksik konulara git</a>
+    </div>
+    <p class="talebe-konum-note">KTT ve deneme sonuçlarına göre eksik konuların için video izle, mini test çöz.</p>
+</section>
+
 <section class="dash-panel">
     <div class="dash-panel-head">
         <div>
@@ -84,10 +99,6 @@
         {% endfor %}
     </div>
 </section>
-{% endif %}
-
-{% if ai_platform_aktif %}
-{% include "includes/ai_zekasi_widget.html" with ai_tur="gelisim_zekasi" ai_talebe_id=talebe.id ai_kicker="Gelişim özeti" ai_baslik="Kişisel analiz" ai_collapsed=True %}
 {% endif %}
 
 </div>

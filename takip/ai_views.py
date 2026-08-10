@@ -14,6 +14,7 @@ from takip.ai_permissions import (
     kurum_ai_erisebilir,
     rehberlik_ai_erisebilir,
     talebe_ai_erisebilir,
+    veli_takip_ai_erisebilir,
 )
 from takip.ai_service import (
     ai_durumu,
@@ -24,6 +25,7 @@ from takip.ai_service import (
     rehberlik_gorusme_ozeti,
     soru_takip_insight,
     veli_haftalik_ozet,
+    veli_takip_zekasi_raporu,
 )
 from takip.deneme_service import deneme_sonuclari, yetkili_denemeler
 from takip.models import DenemeSinavi, Talebe
@@ -115,6 +117,12 @@ def ai_analiz_api(request):
             }
         )
 
+    if tur == "veli_takip":
+        if not veli_takip_ai_erisebilir(request.user):
+            return _json_hata("Veli takip AI erişimi yok.", 403)
+        sonuc = veli_takip_zekasi_raporu(request.user, yenile=yenile)
+        return JsonResponse({"ok": True, "analiz": sonuc.as_dict(), "durum": ai_durumu()})
+
     return _json_hata("Geçersiz tur.", 400)
 
 
@@ -147,6 +155,10 @@ def ai_analiz_html(request):
         if not kurum_ai_erisebilir(request.user):
             return HttpResponse("", status=403)
         analiz = kurum_zekasi_ozet(request.user, yenile=yenile)
+    elif tur == "veli_takip":
+        if not veli_takip_ai_erisebilir(request.user):
+            return HttpResponse("", status=403)
+        analiz = veli_takip_zekasi_raporu(request.user, yenile=yenile)
     elif tur == "rehberlik_ozet":
         gorusme = get_object_or_404(OgrenciGorusmesi, pk=request.GET.get("gorusme_id"))
         if not talebe_ai_erisebilir(request.user, gorusme.talebe):

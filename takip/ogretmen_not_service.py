@@ -143,14 +143,14 @@ def ogretmen_not_kaydet(
     post_data,
     *,
     tarih: date | None = None,
-) -> list[str]:
+) -> tuple[list[str], dict | None]:
     tarih = tarih or localdate()
     hatalar: list[str] = []
-    _, hafta_baslangic, _ = _hafta_araligi(tarih)
+    hafta_no, hafta_baslangic, _ = _hafta_araligi(tarih)
 
     sinif = SinifSube.objects.filter(pk=sinif_id).first()
     if not sinif:
-        return ["Sınıf bulunamadı."]
+        return ["Sınıf bulunamadı."], None
 
     try:
         ders_id = int(post_data.get("ders_id") or 0)
@@ -158,11 +158,11 @@ def ogretmen_not_kaydet(
         ders_id = 0
     ders = Ders.objects.filter(pk=ders_id, aktif=True).first()
     if not ders:
-        return ["Geçerli bir ders seçin."]
+        return ["Geçerli bir ders seçin."], None
 
     ogrenciler = ogretmen_sinif_ogrencileri(hoca, sinif)
     if not ogrenciler:
-        return ["Bu sınıfta kayıtlı öğrenci yok."]
+        return ["Bu sınıfta kayıtlı öğrenci yok."], None
 
     isaretlenen_yok = {
         int(x)
@@ -211,7 +211,7 @@ def ogretmen_not_kaydet(
         )
 
     if hatalar:
-        return hatalar
+        return hatalar, None
 
     OgretmenHaftalikKonu.objects.update_or_create(
         sinif_sube=sinif,
@@ -252,7 +252,12 @@ def ogretmen_not_kaydet(
             },
         )
 
-    return hatalar
+    return [], {
+        "kayitlar": hazirlanan,
+        "ders": ders,
+        "hafta_baslangic": hafta_baslangic,
+        "hafta_no": hafta_no,
+    }
 
 
 def talebe_ogretmen_notlari(talebe: Talebe, limit: int = 20) -> QuerySet[OgretmenSinavNotu]:

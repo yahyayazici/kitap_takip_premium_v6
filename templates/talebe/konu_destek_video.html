@@ -1,0 +1,52 @@
+{% extends "talebe/base.html" %}
+{% load static %}
+{% block title %}{{ video.baslik }} · Video{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/konu-destek.css' %}?v=1">
+{% endblock %}
+{% block content %}
+<div class="dash-home talebe-dash kd-video-page">
+
+<p class="kd-back"><a href="{% url 'talebe_konu_destek_detay' konu.id %}">← {{ konu.konu_ad }}</a></p>
+
+<section class="dash-panel kd-player-panel">
+    <div class="dash-panel-head">
+        <div>
+            <p class="dash-eyebrow">{{ konu.brans_etiket }}</p>
+            <h2>{{ video.baslik }}</h2>
+        </div>
+    </div>
+
+    <div class="kd-player-wrap">
+        <iframe
+            id="kd-yt-player"
+            src="{{ video.embed_url }}"
+            title="{{ video.baslik }}"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+            loading="lazy"
+        ></iframe>
+    </div>
+
+    <p class="kd-player-note">Video panel içinde oynatılır — YouTube ana sayfasına yönlendirilmezsin.</p>
+
+    <div class="kd-player-actions">
+        <button type="button" class="primary-btn" id="kd-video-done">İzlemeyi tamamladım</button>
+        <a href="{% url 'talebe_konu_test' konu.id %}" class="ghost-btn">Mini teste geç</a>
+    </div>
+</section>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+window.KD_VIDEO = {
+    heartbeatUrl: "{% url 'talebe_konu_video_heartbeat' %}",
+    izlemeId: {{ izleme_id }},
+    csrfToken: "{{ csrf_token }}",
+    detayUrl: "{% url 'talebe_konu_destek_detay' konu.id %}"
+};
+</script>
+<script src="{% static 'js/konu-destek.js' %}?v=1"></script>
+{% endblock %}

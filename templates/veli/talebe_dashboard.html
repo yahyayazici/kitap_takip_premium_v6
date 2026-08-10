@@ -10,6 +10,10 @@
 
     {% include "includes/duyuru_carousel.html" %}
 
+    {% if ai_platform_aktif %}
+    {% include "includes/ai_zekasi_widget.html" with ai_tur="veli_haftalik" ai_talebe_id=talebe.id ai_kicker="Haftalık özet" ai_baslik=talebe.ad_soyad|add:" · Veli brifingi" %}
+    {% endif %}
+
     <section class="veli-wow-metrics" aria-label="Önizleme">
         <a href="{% url 'veli_talebe_sinavlar' talebe.id %}?tab=deneme" class="veli-wow-metric veli-wow-metric-blue">
             <div class="veli-wow-metric-icon" aria-hidden="true">
@@ -167,9 +171,6 @@
         {% endif %}
     </section>
 
-    {% if ai_platform_aktif %}
-    {% include "includes/ai_zekasi_widget.html" with ai_tur="veli_haftalik" ai_talebe_id=talebe.id ai_kicker="Haftalık özet" ai_baslik=talebe.ad_soyad|add:" · Veli brifingi" ai_collapsed=True %}
-    {% endif %}
 </div>
 {% endblock %}
 

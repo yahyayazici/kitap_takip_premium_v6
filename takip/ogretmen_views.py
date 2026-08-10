@@ -62,12 +62,33 @@ def ogretmen_not_girisi(request, sinif_id: int | None = None):
         return redirect("logout")
 
     if request.method == "POST" and sinif_id:
-        hatalar = ogretmen_not_kaydet(hoca, sinif_id, request.POST)
+        hatalar, meta = ogretmen_not_kaydet(hoca, sinif_id, request.POST)
         if hatalar:
             for h in hatalar:
                 messages.error(request, h)
         else:
             messages.success(request, "Sınıf notları ve yoklama kaydedildi.")
+            if meta:
+                try:
+                    from takip.ai_bildirim_service import ogretmen_not_sonrasi_veli_bildirimleri
+
+                    taslaklar = ogretmen_not_sonrasi_veli_bildirimleri(
+                        hoca,
+                        meta["ders"],
+                        meta["hafta_baslangic"],
+                        meta["hafta_no"],
+                        meta["kayitlar"],
+                        olusturan=request.user,
+                    )
+                    if taslaklar:
+                        request.session["ogretmen_veli_mesajlari"] = taslaklar
+                        messages.info(
+                            request,
+                            f"{len(taslaklar)} öğrenci için veli mesaj taslağı oluşturuldu "
+                            "ve veli paneline bildirim gönderildi.",
+                        )
+                except Exception:
+                    pass
         url = reverse("ogretmen_not_girisi_sinif", kwargs={"sinif_id": sinif_id})
         ders_id = request.POST.get("ders_id")
         if ders_id:
@@ -81,6 +102,7 @@ def ogretmen_not_girisi(request, sinif_id: int | None = None):
         ders_id = None
 
     ctx = ogretmen_not_girisi_verisi(hoca, sinif_id=sinif_id, ders_id=ders_id)
+    ctx["veli_mesaj_taslaklari"] = request.session.pop("ogretmen_veli_mesajlari", None)
     return render(request, "ogretmen/not_girisi.html", ctx)
 
 

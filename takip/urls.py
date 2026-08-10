@@ -23,6 +23,7 @@ from . import ktt_views
 from . import soru_takip_views
 from . import ogretmen_views
 from . import talebe_panel_views
+from . import konu_destek_views
 from . import veli_views
 from . import veli_randevu_views
 from . import asistan_views
@@ -670,6 +671,32 @@ urlpatterns = [
     path("talebe/profil/", talebe_panel_views.talebe_profil, name="talebe_profil"),
     path("talebe/gorevler/", talebe_panel_views.talebe_gorevler, name="talebe_gorevler"),
     path("talebe/okuma-soru/", talebe_panel_views.talebe_okuma_soru, name="talebe_okuma_soru"),
+    path("talebe/konu-destek/", konu_destek_views.talebe_konu_destek, name="talebe_konu_destek"),
+    path(
+        "talebe/konu-destek/<int:konu_id>/",
+        konu_destek_views.talebe_konu_destek_detay,
+        name="talebe_konu_destek_detay",
+    ),
+    path(
+        "talebe/konu-destek/<int:konu_id>/video/<int:sira>/",
+        konu_destek_views.talebe_konu_video,
+        name="talebe_konu_video",
+    ),
+    path(
+        "talebe/konu-destek/video-heartbeat/",
+        konu_destek_views.talebe_konu_video_heartbeat,
+        name="talebe_konu_video_heartbeat",
+    ),
+    path(
+        "talebe/konu-destek/<int:konu_id>/test/",
+        konu_destek_views.talebe_konu_test,
+        name="talebe_konu_test",
+    ),
+    path(
+        "konu-destek/rapor/",
+        konu_destek_views.etut_konu_destek_rapor,
+        name="etut_konu_destek_rapor",
+    ),
 
     path("ogretmen-panel/", ogretmen_views.ogretmen_dashboard, name="ogretmen_dashboard"),
     path("ogretmen-panel/not/", ogretmen_views.ogretmen_not_girisi, name="ogretmen_not_girisi"),

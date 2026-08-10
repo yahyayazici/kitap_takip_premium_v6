@@ -42,3 +42,9 @@ def rehberlik_ai_erisebilir(user: User) -> bool:
     if not ai_erisim_var(user):
         return False
     return can(user, "rehberlik", "view") or can(user, "veli_iletisim", "view") or user.is_superuser
+
+
+def veli_takip_ai_erisebilir(user: User) -> bool:
+    if not ai_erisim_var(user):
+        return False
+    return can(user, "veli_iletisim", "view") or user.is_superuser

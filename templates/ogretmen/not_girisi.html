@@ -4,6 +4,46 @@
 {% block content %}
 <div class="dash-home ogretmen-dash">
 
+{% if veli_mesaj_taslaklari %}
+<section class="og-veli-mesaj-panel dash-panel">
+    <div class="dash-panel-head">
+        <div>
+            <p class="dash-eyebrow">AI · Veli İletişimi</p>
+            <h2>Veli Mesaj Taslakları</h2>
+        </div>
+        <span class="og-count-badge">{{ veli_mesaj_taslaklari|length }} öğrenci</span>
+    </div>
+    <p class="og-veli-mesaj-hint">Bu mesajlar veli paneline bildirim olarak gönderildi. İsterseniz kopyalayıp WhatsApp vb. ile de iletebilirsiniz.</p>
+    <div class="og-veli-mesaj-list">
+        {% for t in veli_mesaj_taslaklari %}
+        <article class="og-veli-mesaj-kart">
+            <header>
+                <strong>{{ t.ad_soyad }}</strong>
+                <button type="button" class="og-veli-kopyala-btn">Kopyala</button>
+            </header>
+            <p class="og-veli-mesaj-metin">{{ t.mesaj }}</p>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+<script>
+document.querySelectorAll('.og-veli-mesaj-kart').forEach(function(kart) {
+    var btn = kart.querySelector('.og-veli-kopyala-btn');
+    var metinEl = kart.querySelector('.og-veli-mesaj-metin');
+    if (!btn || !metinEl) return;
+    btn.addEventListener('click', function() {
+        var metin = metinEl.textContent || '';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(metin).then(function() {
+                btn.textContent = 'Kopyalandı';
+                setTimeout(function() { btn.textContent = 'Kopyala'; }, 2000);
+            });
+        }
+    });
+});
+</script>
+{% endif %}
+
 <div class="og-week-active-banner">
     <div>
         <p class="dash-eyebrow">Aktif hafta</p>

@@ -89,5 +89,14 @@
         </table>
         </div>
     </section>
+
+    {% if ai_platform_aktif %}
+    <section class="vgp-ai-wrap dash-ai-bottom">
+        {% if not ai_llm_aktif %}
+        <p class="ai-setup-notice">Tam AI raporu için sunucuda <code>OPENAI_API_KEY</code> tanımlayın. Şimdilik kural tabanlı sınıf listesi gösterilir.</p>
+        {% endif %}
+        {% include "includes/ai_zekasi_widget.html" with ai_tur="veli_takip" ai_kicker="Veli Takip Zekası" ai_baslik="Sınıf sınıf giriş ve okuma raporu" %}
+    </section>
+    {% endif %}
 </div>
 {% endblock %}

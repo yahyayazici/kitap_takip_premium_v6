@@ -1,0 +1,39 @@
+{% extends "talebe/base.html" %}
+{% load static %}
+{% block title %}{{ konu.konu_ad }} · Mini Test{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/konu-destek.css' %}?v=1">
+{% endblock %}
+{% block content %}
+<div class="dash-home talebe-dash kd-test-page">
+
+<p class="kd-back"><a href="{% url 'talebe_konu_destek_detay' konu.id %}">← {{ konu.konu_ad }}</a></p>
+
+{% include "includes/panel_hero.html" with title="Mini test" meta=konu.konu_ad show_date=False %}
+
+<form method="post" class="kd-test-form">
+    {% csrf_token %}
+    {% for soru in sorular %}
+    <section class="dash-panel kd-soru-card">
+        <p class="kd-soru-no">Soru {{ forloop.counter }}</p>
+        <p class="kd-soru-metin">{{ soru.soru_metni }}</p>
+        <div class="kd-secenekler">
+            {% for harf, metin in soru.secenekler %}
+            <label class="kd-secenek">
+                <input type="radio" name="soru_{{ soru.pk }}" value="{{ harf }}"
+                    {% for key, val in mevcut_cevaplar.items %}{% if key == soru.pk and val == harf %}checked{% endif %}{% endfor %}>
+                <span><strong>{{ harf }})</strong> {{ metin }}</span>
+            </label>
+            {% endfor %}
+        </div>
+    </section>
+    {% endfor %}
+
+    <div class="kd-test-actions">
+        <button type="submit" class="primary-btn">Cevapları kaydet</button>
+        <button type="submit" name="islem" value="bitir" class="ghost-btn">Testi bitir</button>
+    </div>
+</form>
+
+</div>
+{% endblock %}

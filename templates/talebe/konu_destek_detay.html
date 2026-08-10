@@ -1,0 +1,57 @@
+{% extends "talebe/base.html" %}
+{% load static %}
+{% block title %}{{ konu.konu_ad }} · Konu Destek{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/konu-destek.css' %}?v=1">
+{% endblock %}
+{% block content %}
+<div class="dash-home talebe-dash kd-detail">
+
+{% include "includes/panel_hero.html" with title=konu.konu_ad meta=konu.brans_etiket show_date=False %}
+
+<p class="kd-back"><a href="{% url 'talebe_konu_destek' %}">← Tüm konular</a></p>
+
+<section class="dash-panel">
+    <div class="dash-panel-head">
+        <div>
+            <p class="dash-eyebrow">Video seçenekleri</p>
+            <h2>3 öneri — birini seç</h2>
+        </div>
+    </div>
+    <div class="kd-video-list">
+        {% for satir in videolar %}
+        <article class="kd-video-item {% if satir.izlendi %}izlendi{% endif %}">
+            <div class="kd-video-info">
+                <span class="kd-video-tur">{{ satir.video.get_tur_display }}</span>
+                <strong>{{ satir.video.baslik }}</strong>
+                <small>~{{ satir.video.sure_dk }} dk</small>
+                {% if satir.izlendi %}
+                <span class="kd-badge ok">İzlendi{% if satir.sure_sn %} · {{ satir.sure_sn|floatformat:0 }} sn{% endif %}</span>
+                {% endif %}
+            </div>
+            <a href="{% url 'talebe_konu_video' konu.id satir.video.sira %}" class="primary-btn">İzle</a>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="dash-panel">
+    <div class="dash-panel-head">
+        <div>
+            <p class="dash-eyebrow">Pekiştirme</p>
+            <h2>Mini test</h2>
+        </div>
+    </div>
+    {% if soru_sayisi %}
+    <p class="kd-test-desc">Videoyu izledikten sonra {{ soru_sayisi }} soruluk mini testi çöz.</p>
+    {% if son_test %}
+    <p class="kd-last-test">Son test: <strong>{{ son_test.dogru_sayisi }}/{{ son_test.toplam_soru }}</strong> (%{{ son_test.basari_yuzde|floatformat:0 }})</p>
+    {% endif %}
+    <a href="{% url 'talebe_konu_test' konu.id %}" class="primary-btn">Teste başla</a>
+    {% else %}
+    <p class="kd-empty">Bu konu için henüz soru eklenmemiş.</p>
+    {% endif %}
+</section>
+
+</div>
+{% endblock %}

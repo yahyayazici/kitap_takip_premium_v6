@@ -659,4 +659,11 @@ def deneme_sonuclari_aktar(
         hatalar.append(
             f"{atlanan} satır eşleşmediği / atlandığı için aktarılmadı."
         )
+    if kayit_sayisi > 0:
+        try:
+            from takip.ai_bildirim_service import deneme_sonrasi_bildirimleri
+
+            deneme_sonrasi_bildirimleri(deneme, user, kayit_sayisi)
+        except Exception:
+            pass
     return kayit_sayisi, hatalar
