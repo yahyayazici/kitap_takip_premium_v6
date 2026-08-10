@@ -2,9 +2,9 @@ services:
   - type: web
     name: cinili-saray-proje
     runtime: python
-    plan: free
+    plan: starter
     buildCommand: "./build.sh"
-    startCommand: "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --timeout 120"
+    startCommand: "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 60 --preload"
     healthCheckPath: /health/
     envVars:
       - key: PYTHON_VERSION
@@ -28,7 +28,7 @@ services:
       - key: PANEL_PUBLIC_URL
         value: "https://cinilisarayproje.com"
       - key: RUN_SEED_WAVE0
-        value: "true"
+        value: "false"
       - key: CUSTOM_DOMAIN
         value: "cinilisarayproje.com,www.cinilisarayproje.com"
       - key: CANONICAL_HOST
@@ -40,4 +40,4 @@ services:
 
 databases:
   - name: kitap-takip-db
-    plan: free
+    plan: basic-256mb
