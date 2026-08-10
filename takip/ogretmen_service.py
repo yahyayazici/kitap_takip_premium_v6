@@ -24,22 +24,27 @@ class OgretmenSinifKarti:
 
 
 def ogretmen_hocasi_for_user(user: User) -> EtutHocasi | None:
+    """Branş öğretmeni EtutHocasi — etüt/sınıf mesulü personel değil."""
     if not user.is_authenticated:
         return None
 
-    hoca = etut_hocasi_for_user(user)
-    if hoca and hoca.aktif:
-        return hoca
-
+    # Personel hesabı (etüt mesulü vb.) öğretmen paneline düşmesin
     try:
-        profil = user.personel_profili
+        personel = user.personel_profili
     except Exception:
+        personel = None
+    if personel is not None and personel.aktif:
         return None
 
-    if profil.aktif and profil.etut_hocasi_id and profil.etut_hocasi.aktif:
-        return profil.etut_hocasi
+    hoca = etut_hocasi_for_user(user)
+    if not hoca or not hoca.aktif:
+        return None
 
-    return None
+    kayit = getattr(hoca, "personel_kaydi", None)
+    if kayit is not None and kayit.aktif:
+        return None
+
+    return hoca
 
 
 def kullanici_ogretmen_mi(user: User) -> bool:
@@ -47,16 +52,10 @@ def kullanici_ogretmen_mi(user: User) -> bool:
 
 
 def ogretmen_paneli_kullanicisi_mi(user: User) -> bool:
-    """Yalnızca öğretmen paneline giden hesaplar (personel/idareci değil)."""
-    if not kullanici_ogretmen_mi(user):
-        return False
+    """Yalnızca branş öğretmeni paneline giden hesaplar (personel/idareci değil)."""
     if user.is_superuser:
         return False
-    try:
-        profil = user.personel_profili
-    except Exception:
-        return True
-    return not profil.aktif
+    return kullanici_ogretmen_mi(user)
 
 
 def ogretmen_brans_etiketi(hoca: EtutHocasi | None) -> str:

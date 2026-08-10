@@ -1839,8 +1839,10 @@ def ogretmen_degerlendirme_rapor(request):
     takip = ogretmen_haftalik_takip_ozeti(hafta_baslangic)
     _, _, hafta_bitis = _hafta_araligi(hafta_baslangic)
 
+    from takip.ogretmen_odeme_service import aktif_ogretmenler
+
     siniflar = SinifSube.objects.filter(aktif=True).order_by("sinif", "sube")
-    hocalar = EtutHocasi.objects.filter(aktif=True).order_by("ad_soyad")
+    hocalar = list(aktif_ogretmenler())
     talebe_qs = Talebe.objects.filter(aktif=True).order_by("ad_soyad")
     if sinif_id:
         talebe_qs = talebe_qs.filter(sinif_sube_id=sinif_id)

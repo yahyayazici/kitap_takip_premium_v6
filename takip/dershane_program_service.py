@@ -132,7 +132,9 @@ def _varsayilan_gruplar_olustur(program: DershaneProgrami) -> None:
     if program.etut_gruplari.exists():
         return
 
-    hocalar = list(EtutHocasi.objects.filter(aktif=True).order_by("ad_soyad"))
+    from takip.ogretmen_odeme_service import aktif_ogretmenler
+
+    hocalar = list(aktif_ogretmenler())
     etiketler = [
         ("5", "5. Sınıf Etüt-A"),
         ("5", "5. Sınıf Etüt-B"),

@@ -327,12 +327,11 @@ def admin_degerlendirme_qs(
 
 
 def ogretmen_haftalik_takip_ozeti(hafta_baslangic: date) -> dict:
-    """Aktif öğretmenlerin seçilen haftada not girip girmediği özeti."""
+    """Aktif branş öğretmenlerinin seçilen haftada not girip girmediği özeti."""
+    from takip.ogretmen_odeme_service import aktif_ogretmenler
+
     hocalar = list(
-        EtutHocasi.objects.filter(aktif=True)
-        .select_related("odeme_profili", "odeme_profili__brans")
-        .prefetch_related("sorumlu_sinif_subeler")
-        .order_by("ad_soyad")
+        aktif_ogretmenler().prefetch_related("sorumlu_sinif_subeler")
     )
     giren_ids = set(
         OgretmenSinavNotu.objects.filter(hafta_baslangic=hafta_baslangic)

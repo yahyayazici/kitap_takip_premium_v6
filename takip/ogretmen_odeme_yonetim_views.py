@@ -10,7 +10,7 @@ from django.views.decorators.http import require_POST
 from takip.hizli_kayit_service import ogretmen_pasif_et
 from takip.models import EtutHocasi
 from takip.ogretmen_odeme_models import OgretmenOdemeProfili
-from takip.ogretmen_odeme_service import ogretmen_profili
+from takip.ogretmen_odeme_service import aktif_ogretmenler, ogretmen_profili
 from takip.permissions.service import can
 from takip.wave0_models import Brans
 from takip.yonetim_views import yonetici_gerekli
@@ -34,9 +34,12 @@ def ogretmen_odeme_profil_listesi(request):
     if not can(request.user, "ogretmen_odeme", "view_financial"):
         return redirect("yonetim:dashboard")
 
-    hocalar = EtutHocasi.objects.filter(aktif=True).order_by("ad_soyad")
+    hocalar = list(aktif_ogretmenler())
     for hoca in hocalar:
-        hoca.odeme_profili_kayit = ogretmen_profili(hoca)
+        try:
+            hoca.odeme_profili_kayit = hoca.odeme_profili
+        except OgretmenOdemeProfili.DoesNotExist:
+            hoca.odeme_profili_kayit = None
 
     return render(
         request,
@@ -50,7 +53,9 @@ def ogretmen_odeme_profil_duzenle(request, pk: int):
     if not can(request.user, "ogretmen_odeme", "view_financial"):
         return redirect("yonetim:dashboard")
 
-    hoca = get_object_or_404(EtutHocasi, pk=pk, aktif=True)
+    hoca = get_object_or_404(
+        EtutHocasi, pk=pk, aktif=True, personel_kaydi__isnull=True
+    )
     profil = ogretmen_profili(hoca)
     form = OgretmenOdemeProfilForm(request.POST or None, instance=profil)
 
@@ -76,7 +81,9 @@ def ogretmen_odeme_profil_sil(request, pk: int):
     if not can(request.user, "ogretmen_odeme", "view_financial"):
         return redirect("yonetim:dashboard")
 
-    hoca = get_object_or_404(EtutHocasi, pk=pk, aktif=True)
+    hoca = get_object_or_404(
+        EtutHocasi, pk=pk, aktif=True, personel_kaydi__isnull=True
+    )
     ogretmen_pasif_et(hoca)
     messages.success(request, f"{hoca.ad_soyad} pasif edildi ve listeden kaldırıldı.")
     return redirect("yonetim:ogretmen_odeme_profil_listesi")

@@ -684,9 +684,9 @@ class OgretmenOdemeDonemForm(forms.Form):
         from takip.models import EtutHocasi
 
         super().__init__(*args, **kwargs)
-        self.fields["etut_hocasi"].queryset = EtutHocasi.objects.filter(
-            aktif=True
-        ).order_by("ad_soyad")
+        from takip.ogretmen_odeme_service import aktif_ogretmenler
+
+        self.fields["etut_hocasi"].queryset = aktif_ogretmenler()
 
     def clean(self):
         cleaned = super().clean()

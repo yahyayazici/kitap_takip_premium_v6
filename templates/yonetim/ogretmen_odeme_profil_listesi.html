@@ -28,8 +28,8 @@
                 <tr>
                     <td><strong>{{ hoca.ad_soyad }}</strong></td>
                     <td>{{ hoca.odeme_profili_kayit.brans.ad|default:"—" }}</td>
-                    <td class="num-col">{{ hoca.odeme_profili_kayit.saatlik_ucret }} ₺</td>
-                    <td>{% if hoca.odeme_profili_kayit.aktif %}Aktif{% else %}Pasif{% endif %}</td>
+                    <td class="num-col">{% if hoca.odeme_profili_kayit %}{{ hoca.odeme_profili_kayit.saatlik_ucret }} ₺{% else %}—{% endif %}</td>
+                    <td>{% if hoca.odeme_profili_kayit and hoca.odeme_profili_kayit.aktif %}Aktif{% elif hoca.odeme_profili_kayit %}Pasif{% else %}Tanımsız{% endif %}</td>
                     <td class="yonetim-table-actions">
                         <div class="yonetim-action-group">
                             <a href="{% url 'yonetim:ogretmen_odeme_profil_duzenle' hoca.pk %}" class="yonetim-action-btn">Düzenle</a>

@@ -71,7 +71,12 @@ def ogretmen_profili(etut_hocasi: EtutHocasi) -> OgretmenOdemeProfili:
 
 
 def aktif_ogretmenler() -> QuerySet[EtutHocasi]:
-    return EtutHocasi.objects.filter(aktif=True).order_by("ad_soyad")
+    """Branş öğretmenleri — etüt/sınıf mesulü personel kayıtları hariç."""
+    return (
+        EtutHocasi.objects.filter(aktif=True, personel_kaydi__isnull=True)
+        .select_related("odeme_profili", "odeme_profili__brans")
+        .order_by("ad_soyad")
+    )
 
 
 def donem_qs() -> QuerySet[OgretmenOdemeDonemi]:
