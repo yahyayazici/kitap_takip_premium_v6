@@ -242,7 +242,13 @@ class TalebeForm(forms.ModelForm):
     anne_telefon = forms.CharField(
         required=False,
         label="Anne telefon",
-        widget=forms.TextInput(attrs={"class": "cs-input", "placeholder": "05xx xxx xx xx"}),
+        widget=forms.TextInput(
+            attrs={
+                "class": "cs-input",
+                "placeholder": "05XX XXX XX XX",
+                "inputmode": "tel",
+            }
+        ),
     )
     baba_ad_soyad = forms.CharField(
         required=False,
@@ -252,7 +258,13 @@ class TalebeForm(forms.ModelForm):
     baba_telefon = forms.CharField(
         required=False,
         label="Baba telefon",
-        widget=forms.TextInput(attrs={"class": "cs-input", "placeholder": "05xx xxx xx xx"}),
+        widget=forms.TextInput(
+            attrs={
+                "class": "cs-input",
+                "placeholder": "05XX XXX XX XX",
+                "inputmode": "tel",
+            }
+        ),
     )
 
     bolumler = (
@@ -262,7 +274,6 @@ class TalebeForm(forms.ModelForm):
                 "biyometrik_foto",
                 "kimlik_adi",
                 "kimlik_soyadi",
-                "ad_soyad",
                 "tc_kimlik",
                 "cinsiyet",
                 "dogum_tarihi",
@@ -275,7 +286,7 @@ class TalebeForm(forms.ModelForm):
                 "anne_adi",
                 "dogum_yeri",
                 "memleket",
-                "diller",
+                "memleket_ilce",
                 "telefon",
                 "eposta",
             ),
@@ -283,19 +294,23 @@ class TalebeForm(forms.ModelForm):
         (
             "Eğitim bilgileri",
             (
-                "dahili_seviye",
-                "dahili_ders_mesulu",
-                "dahili_ders_grubu",
                 "okul_seviyesi",
-                "etut_hocasi",
                 "sinif_sube",
-                "dini_ders_hocasi",
+                "etut_hocasi",
                 "dini_ders_seviyesi",
+                "dini_ders_hocasi",
             ),
         ),
         (
             "Aile ve veli",
-            ("aile_durumu", "anne_ad_soyad", "anne_telefon", "baba_ad_soyad", "baba_telefon"),
+            (
+                "aile_durumu",
+                "anne_ad_soyad",
+                "anne_telefon",
+                "baba_ad_soyad",
+                "baba_telefon",
+                "ev_adresi",
+            ),
         ),
         (
             "Kayıt durumu",
@@ -317,18 +332,16 @@ class TalebeForm(forms.ModelForm):
             "anne_adi",
             "dogum_yeri",
             "memleket",
-            "diller",
+            "memleket_ilce",
             "telefon",
             "eposta",
-            "dahili_seviye",
-            "dahili_ders_mesulu",
-            "dahili_ders_grubu",
             "okul_seviyesi",
             "etut_hocasi",
             "sinif_sube",
             "dini_ders_hocasi",
             "dini_ders_seviyesi",
             "aile_durumu",
+            "ev_adresi",
             "talebe_no",
             "durum",
             "aktif",
@@ -339,37 +352,43 @@ class TalebeForm(forms.ModelForm):
             ),
             "kimlik_adi": forms.TextInput(attrs={"class": "cs-input"}),
             "kimlik_soyadi": forms.TextInput(attrs={"class": "cs-input"}),
-            "ad_soyad": forms.TextInput(
-                attrs={
-                    "class": "cs-input",
-                    "placeholder": "Günlük kullanılan ad soyad",
-                }
-            ),
+            "ad_soyad": forms.HiddenInput(),
             "tc_kimlik": forms.TextInput(
                 attrs={"class": "cs-input", "placeholder": "11 haneli TC kimlik no"}
             ),
             "cinsiyet": forms.Select(attrs={"class": "cs-input"}),
             "dogum_tarihi": forms.DateInput(
-                attrs={"class": "cs-input", "type": "date"}
+                format="%Y-%m-%d",
+                attrs={"class": "cs-input", "type": "date"},
             ),
             "baba_adi": forms.TextInput(attrs={"class": "cs-input"}),
             "anne_adi": forms.TextInput(attrs={"class": "cs-input"}),
             "dogum_yeri": forms.TextInput(attrs={"class": "cs-input"}),
-            "memleket": forms.TextInput(attrs={"class": "cs-input"}),
-            "diller": forms.TextInput(
-                attrs={"class": "cs-input", "placeholder": "Örn. Türkçe, Arapça"}
+            "memleket": forms.Select(attrs={"class": "cs-input", "id": "id_memleket"}),
+            "memleket_ilce": forms.Select(
+                attrs={"class": "cs-input", "id": "id_memleket_ilce"}
             ),
-            "telefon": forms.TextInput(attrs={"class": "cs-input"}),
+            "telefon": forms.TextInput(
+                attrs={
+                    "class": "cs-input",
+                    "placeholder": "05XX XXX XX XX",
+                    "inputmode": "tel",
+                }
+            ),
             "eposta": forms.EmailInput(attrs={"class": "cs-input"}),
-            "dahili_seviye": forms.TextInput(attrs={"class": "cs-input"}),
-            "dahili_ders_mesulu": forms.TextInput(attrs={"class": "cs-input"}),
-            "dahili_ders_grubu": forms.TextInput(attrs={"class": "cs-input"}),
             "okul_seviyesi": forms.TextInput(attrs={"class": "cs-input"}),
             "sinif_sube": forms.RadioSelect(attrs={"class": "choice-chip-radio"}),
             "etut_hocasi": forms.Select(attrs={"class": "cs-input"}),
             "dini_ders_hocasi": forms.Select(attrs={"class": "cs-input"}),
             "dini_ders_seviyesi": forms.Select(attrs={"class": "cs-input"}),
             "aile_durumu": forms.Select(attrs={"class": "cs-input"}),
+            "ev_adresi": forms.Textarea(
+                attrs={
+                    "class": "cs-input",
+                    "rows": 3,
+                    "placeholder": "Mahalle, cadde, bina no, ilçe / il",
+                }
+            ),
             "talebe_no": forms.TextInput(
                 attrs={
                     "class": "cs-input",
@@ -380,14 +399,20 @@ class TalebeForm(forms.ModelForm):
             "aktif": forms.CheckboxInput(attrs={"class": "cs-checkbox"}),
         }
         labels = {
-            "ad_soyad": "Kullanılan adı soyadı",
             "sinif_sube": "Okul sınıf / şube",
             "etut_hocasi": "Etüt mesulü",
+            "memleket": "Memleket ili",
+            "memleket_ilce": "Memleket ilçesi",
+            "ev_adresi": "Veli ev adresi",
         }
 
     def __init__(self, *args, **kwargs):
+        from takip.telefon_util import telefon_formatla
+        from takip.turkiye_il_ilce import il_secenekleri, ilce_secenekleri
+
         super().__init__(*args, **kwargs)
 
+        self.fields["dogum_tarihi"].input_formats = ["%Y-%m-%d", "%d.%m.%Y", "%d/%m/%Y"]
         self.fields["sinif_sube"].queryset = (
             SinifSube.objects.filter(aktif=True).order_by("sinif", "sube")
         )
@@ -399,8 +424,10 @@ class TalebeForm(forms.ModelForm):
             .order_by("ad_soyad")
         )
         self.fields["etut_hocasi"].queryset = hoca_qs
+        self.fields["etut_hocasi"].empty_label = "Etüt mesulü seçin"
         self.fields["dini_ders_hocasi"].queryset = hoca_qs
         self.fields["dini_ders_hocasi"].required = False
+        self.fields["dini_ders_hocasi"].empty_label = "Dini ders hocası seçin"
         self.fields["dini_ders_hocasi"].help_text = (
             "Önce dini ders seviyesini seçin. Boş bırakılırsa etüt mesulü atanır."
         )
@@ -408,7 +435,7 @@ class TalebeForm(forms.ModelForm):
             aktif=True
         ).order_by("sira", "ad")
         self.fields["dini_ders_seviyesi"].required = False
-        self.fields["dini_ders_seviyesi"].empty_label = "Seviye seçin"
+        self.fields["dini_ders_seviyesi"].empty_label = "Dini ders seviyesi seçin"
         self.fields["talebe_no"].required = False
         self.fields["talebe_no"].help_text = (
             "Boş bırakırsanız sistem otomatik numara atar (ör. 1, 2, 3)."
@@ -419,6 +446,22 @@ class TalebeForm(forms.ModelForm):
         )
         self.fields["cinsiyet"].required = False
         self.fields["aile_durumu"].required = False
+        self.fields["ad_soyad"].required = False
+
+        self.fields["memleket"].choices = il_secenekleri()
+        self.fields["memleket"].required = False
+        secili_il = ""
+        if self.data.get("memleket"):
+            secili_il = self.data.get("memleket")
+        elif self.instance.pk:
+            secili_il = self.instance.memleket or ""
+        elif self.initial.get("memleket"):
+            secili_il = self.initial.get("memleket")
+        self.fields["memleket_ilce"].choices = ilce_secenekleri(secili_il)
+        self.fields["memleket_ilce"].required = False
+
+        if self.instance.pk and self.instance.telefon:
+            self.initial["telefon"] = telefon_formatla(self.instance.telefon)
 
         if self.instance.pk:
             from takip.wave0_models import VeliKisi
@@ -426,12 +469,14 @@ class TalebeForm(forms.ModelForm):
             for veli in self.instance.veli_kisileri.all():
                 if veli.yakinlik == VeliKisi.Yakinlik.ANNE:
                     self.fields["anne_ad_soyad"].initial = veli.ad_soyad
-                    self.fields["anne_telefon"].initial = veli.telefon
+                    self.fields["anne_telefon"].initial = telefon_formatla(veli.telefon)
                 elif veli.yakinlik == VeliKisi.Yakinlik.BABA:
                     self.fields["baba_ad_soyad"].initial = veli.ad_soyad
-                    self.fields["baba_telefon"].initial = veli.telefon
+                    self.fields["baba_telefon"].initial = telefon_formatla(veli.telefon)
 
     def clean(self):
+        from takip.turkiye_il_ilce import memleket_gecerli
+
         cleaned = super().clean()
         etut = cleaned.get("etut_hocasi")
         dini = cleaned.get("dini_ders_hocasi")
@@ -457,15 +502,38 @@ class TalebeForm(forms.ModelForm):
         if etut and not dini and not seviye:
             cleaned["dini_ders_hocasi"] = etut
 
-        ad = (cleaned.get("ad_soyad") or "").strip()
-        if not ad:
-            kimlik_ad = (cleaned.get("kimlik_adi") or "").strip()
-            kimlik_soyad = (cleaned.get("kimlik_soyadi") or "").strip()
-            birlesik = f"{kimlik_ad} {kimlik_soyad}".strip()
-            if birlesik:
-                cleaned["ad_soyad"] = birlesik
+        kimlik_ad = (cleaned.get("kimlik_adi") or "").strip()
+        kimlik_soyad = (cleaned.get("kimlik_soyadi") or "").strip()
+        birlesik = f"{kimlik_ad} {kimlik_soyad}".strip()
+        if birlesik:
+            cleaned["ad_soyad"] = birlesik
+        elif not (cleaned.get("ad_soyad") or "").strip():
+            self.add_error("kimlik_adi", "Kimlik adı ve soyadı gerekli.")
+
+        il = (cleaned.get("memleket") or "").strip()
+        ilce = (cleaned.get("memleket_ilce") or "").strip()
+        if ilce and not memleket_gecerli(il, ilce):
+            self.add_error("memleket_ilce", "Seçilen ilçe bu ile ait değil.")
 
         return cleaned
+
+    def _telefon_temizle(self, alan: str) -> str:
+        from takip.telefon_util import telefon_temizle_veya_hata
+
+        deger = self.cleaned_data.get(alan) or ""
+        try:
+            return telefon_temizle_veya_hata(deger)
+        except ValueError as exc:
+            raise forms.ValidationError(str(exc)) from exc
+
+    def clean_telefon(self):
+        return self._telefon_temizle("telefon")
+
+    def clean_anne_telefon(self):
+        return self._telefon_temizle("anne_telefon")
+
+    def clean_baba_telefon(self):
+        return self._telefon_temizle("baba_telefon")
 
     def clean_biyometrik_foto(self):
         foto = self.cleaned_data.get("biyometrik_foto")

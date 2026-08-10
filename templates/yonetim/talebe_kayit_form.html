@@ -58,4 +58,41 @@
     </form>
 </section>
 
+{{ il_ilce_json|json_script:"talebe-il-ilce-data" }}
+<script>
+(function () {
+    const dataEl = document.getElementById("talebe-il-ilce-data");
+    if (!dataEl) return;
+    let harita = {};
+    try { harita = JSON.parse(dataEl.textContent); } catch (e) { return; }
+
+    const il = document.getElementById("id_memleket");
+    const ilce = document.getElementById("id_memleket_ilce");
+    if (!il || !ilce) return;
+
+    const seciliIlce = ilce.value;
+
+    function doldur() {
+        const secilen = il.value || "";
+        const liste = harita[secilen] || [];
+        ilce.innerHTML = "";
+        const bos = document.createElement("option");
+        bos.value = "";
+        bos.textContent = secilen ? "İlçe seçin" : "Önce il seçin";
+        ilce.appendChild(bos);
+        liste.forEach(function (ad) {
+            const opt = document.createElement("option");
+            opt.value = ad;
+            opt.textContent = ad;
+            if (ad === seciliIlce) opt.selected = true;
+            ilce.appendChild(opt);
+        });
+    }
+
+    il.addEventListener("change", function () {
+        doldur();
+    });
+})();
+</script>
+
 {% endblock %}

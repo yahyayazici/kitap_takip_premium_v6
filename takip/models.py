@@ -285,7 +285,12 @@ class Talebe(models.Model):
     memleket = models.CharField(
         max_length=120,
         blank=True,
-        verbose_name="Memleketi",
+        verbose_name="Memleket ili",
+    )
+    memleket_ilce = models.CharField(
+        max_length=120,
+        blank=True,
+        verbose_name="Memleket ilçesi",
     )
     diller = models.CharField(
         max_length=200,
@@ -311,6 +316,10 @@ class Talebe(models.Model):
         max_length=80,
         blank=True,
         verbose_name="Okul seviyesi",
+    )
+    ev_adresi = models.TextField(
+        blank=True,
+        verbose_name="Veli ev adresi",
     )
 
     class AileDurumu(models.TextChoices):

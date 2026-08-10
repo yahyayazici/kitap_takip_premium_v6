@@ -1,33 +1,31 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import date, datetime
 from io import BytesIO
 
-from django.contrib.auth.models import User
 from django.db import transaction
 
 from .models import DiniDersSeviyesi, EtutHocasi, SinifSube, Talebe
 from .tc_util import tc_normalize as _tc_normalize
+from .telefon_util import telefon_formatla
+from .turkiye_il_ilce import memleket_gecerli, tum_ilceler, turkiye_illeri
 from .veli_hesap_util import veli_panel_ensure as _veli_panel_ensure
-from .wave0_models import VeliHesap, VeliKisi, VeliTalebeBaglantisi
+from .wave0_models import VeliKisi
 
 EXCEL_BASLIKLAR = [
     "Talebe No",
     "Kimlik Adı",
     "Kimlik Soyadı",
-    "Kullanılan Ad Soyad",
     "TC Kimlik",
     "Cinsiyet",
     "Doğum Tarihi",
     "Baba Adı",
     "Anne Adı",
     "Doğum Yeri",
-    "Memleket",
-    "Diller",
+    "Memleket İl",
+    "Memleket İlçe",
     "Telefon",
-    "Dahili Seviye",
-    "Dahili Ders Mesulü",
-    "Dahili Ders Grubu",
     "Okul Seviyesi",
     "Okul Sınıf",
     "Okul Şube",
@@ -39,6 +37,7 @@ EXCEL_BASLIKLAR = [
     "Anne Telefon",
     "Baba Ad Soyad",
     "Baba Telefon",
+    "Ev Adresi",
     "Aktif",
 ]
 
@@ -46,19 +45,15 @@ ORNEK_SATIR = [
     "1",
     "Ahmet",
     "Yılmaz",
-    "Ahmet Yılmaz",
     "12345678901",
     "Erkek",
-    "2010-05-15",
-    "Mehmet Yılmaz",
-    "Ayşe Yılmaz",
+    date(2010, 5, 15),
+    "Mehmet",
+    "Ayşe",
     "İstanbul",
     "Trabzon",
-    "Türkçe",
-    "05xx xxx xx xx",
-    "Ortaokul Seviye 1",
-    "",
-    "",
+    "Merkez",
+    "0532 123 45 67",
     "Ortaokul 5",
     "5",
     "A",
@@ -67,9 +62,10 @@ ORNEK_SATIR = [
     "Yahya Yazıcı",
     "Anne – baba beraber",
     "Ayşe Yılmaz",
-    "05xx xxx xx xx",
+    "0532 111 22 33",
     "Mehmet Yılmaz",
-    "05xx xxx xx xx",
+    "0532 444 55 66",
+    "Örnek Mah. Örnek Cad. No:1 İstanbul",
     "Evet",
 ]
 
@@ -87,6 +83,10 @@ class TalebeExcelSonuc:
 def _hucre_degeri(deger) -> str:
     if deger is None:
         return ""
+    if isinstance(deger, datetime):
+        return deger.date().isoformat()
+    if isinstance(deger, date):
+        return deger.isoformat()
     if isinstance(deger, float) and deger.is_integer():
         return str(int(deger))
     return str(deger).strip()
@@ -137,7 +137,14 @@ def _baslik_eslestir(satir: list[str]) -> dict[str, int]:
             eslesme["baba_ad"] = index
         elif anahtar in {"baba telefon", "baba_telefon"}:
             eslesme["baba_telefon"] = index
-        elif anahtar in {"etüt mesulü", "etut mesulu", "etüt hocası", "etut hocasi", "etut_hocasi", "hoca"}:
+        elif anahtar in {
+            "etüt mesulü",
+            "etut mesulu",
+            "etüt hocası",
+            "etut hocasi",
+            "etut_hocasi",
+            "hoca",
+        }:
             eslesme["etut_hocasi"] = index
         elif anahtar in {
             "dini ders seviyesi",
@@ -167,20 +174,16 @@ def _baslik_eslestir(satir: list[str]) -> dict[str, int]:
             eslesme["anne_adi"] = index
         elif anahtar in {"doğum yeri", "dogum yeri", "dogum_yeri"}:
             eslesme["dogum_yeri"] = index
-        elif anahtar in {"memleket", "memleketi"}:
+        elif anahtar in {"memleket il", "memleket ili", "memleket"}:
             eslesme["memleket"] = index
-        elif anahtar in {"diller", "bildiği diller", "bildigi diller"}:
-            eslesme["diller"] = index
-        elif anahtar in {"dahili seviye", "dahili_seviye"}:
-            eslesme["dahili_seviye"] = index
-        elif anahtar in {"dahili ders mesulü", "dahili ders mesulu", "dahili_ders_mesulu"}:
-            eslesme["dahili_ders_mesulu"] = index
-        elif anahtar in {"dahili ders grubu", "dahili_ders_grubu"}:
-            eslesme["dahili_ders_grubu"] = index
+        elif anahtar in {"memleket ilçe", "memleket ilce", "memleket_ilce"}:
+            eslesme["memleket_ilce"] = index
         elif anahtar in {"okul seviyesi", "okul_seviyesi"}:
             eslesme["okul_seviyesi"] = index
         elif anahtar in {"aile durumu", "aile_durumu"}:
             eslesme["aile_durumu"] = index
+        elif anahtar in {"ev adresi", "veli ev adresi", "adres"}:
+            eslesme["ev_adresi"] = index
     return eslesme
 
 
@@ -217,18 +220,33 @@ def _aile_durumu_eslestir(deger: str) -> str:
     return eski.get(normalized, "")
 
 
-def _dogum_tarihi_eslestir(deger: str):
-    from datetime import datetime
-
-    deger = (deger or "").strip()
-    if not deger:
+def _dogum_tarihi_eslestir(deger) -> date | None:
+    if isinstance(deger, datetime):
+        return deger.date()
+    if isinstance(deger, date):
+        return deger
+    metin = str(deger or "").strip()
+    if not metin:
         return None
     for fmt in ("%Y-%m-%d", "%d.%m.%Y", "%d/%m/%Y"):
         try:
-            return datetime.strptime(deger, fmt).date()
+            return datetime.strptime(metin, fmt).date()
         except ValueError:
             continue
     return None
+
+
+def _ad_soyad_olustur(satir: list, basliklar: dict[str, int]) -> str:
+    ad_soyad = _satir_degeri(satir, basliklar.get("ad_soyad"))
+    if ad_soyad:
+        return ad_soyad
+    kimlik_adi = _satir_degeri(satir, basliklar.get("kimlik_adi"))
+    kimlik_soyadi = _satir_degeri(satir, basliklar.get("kimlik_soyadi"))
+    return f"{kimlik_adi} {kimlik_soyadi}".strip()
+
+
+def _telefon_al(satir: list, basliklar: dict[str, int], anahtar: str) -> str:
+    return telefon_formatla(_satir_degeri(satir, basliklar.get(anahtar)))
 
 
 def _talebe_profil_satirdan(talebe: Talebe, satir: list, basliklar: dict[str, int]) -> bool:
@@ -242,9 +260,7 @@ def _talebe_profil_satirdan(talebe: Talebe, satir: list, basliklar: dict[str, in
 
     kimlik_adi = _satir_degeri(satir, basliklar.get("kimlik_adi"))
     kimlik_soyadi = _satir_degeri(satir, basliklar.get("kimlik_soyadi"))
-    ad_soyad = _satir_degeri(satir, basliklar.get("ad_soyad"))
-    if not ad_soyad and (kimlik_adi or kimlik_soyadi):
-        ad_soyad = f"{kimlik_adi} {kimlik_soyadi}".strip()
+    ad_soyad = _ad_soyad_olustur(satir, basliklar)
 
     _guncelle("kimlik_adi", kimlik_adi)
     _guncelle("kimlik_soyadi", kimlik_soyadi)
@@ -255,23 +271,27 @@ def _talebe_profil_satirdan(talebe: Talebe, satir: list, basliklar: dict[str, in
     if cinsiyet:
         _guncelle("cinsiyet", cinsiyet)
 
-    dogum = _dogum_tarihi_eslestir(_satir_degeri(satir, basliklar.get("dogum_tarihi")))
+    dogum_raw = None
+    idx = basliklar.get("dogum_tarihi")
+    if idx is not None and idx < len(satir):
+        dogum_raw = satir[idx]
+    dogum = _dogum_tarihi_eslestir(dogum_raw)
     if dogum and talebe.dogum_tarihi != dogum:
         talebe.dogum_tarihi = dogum
         degisti = True
 
-    for alan in (
-        "baba_adi",
-        "anne_adi",
-        "dogum_yeri",
-        "memleket",
-        "diller",
-        "dahili_seviye",
-        "dahili_ders_mesulu",
-        "dahili_ders_grubu",
-        "okul_seviyesi",
-    ):
+    for alan in ("baba_adi", "anne_adi", "dogum_yeri", "okul_seviyesi", "ev_adresi"):
         _guncelle(alan, _satir_degeri(satir, basliklar.get(alan)))
+
+    memleket = _satir_degeri(satir, basliklar.get("memleket"))
+    memleket_ilce = _satir_degeri(satir, basliklar.get("memleket_ilce"))
+    if memleket:
+        if memleket_ilce and not memleket_gecerli(memleket, memleket_ilce):
+            pass
+        else:
+            _guncelle("memleket", memleket)
+            if memleket_ilce:
+                _guncelle("memleket_ilce", memleket_ilce)
 
     aile = _aile_durumu_eslestir(_satir_degeri(satir, basliklar.get("aile_durumu")))
     if aile:
@@ -290,8 +310,8 @@ def _excel_satirlari(dosya) -> list[list]:
     for satir in sayfa.iter_rows(values_only=True):
         if not satir:
             continue
-        degerler = [_hucre_degeri(hucre) for hucre in satir]
-        if any(degerler):
+        degerler = list(satir)
+        if any(_hucre_degeri(h) for h in degerler):
             satirlar.append(degerler)
 
     workbook.close()
@@ -324,11 +344,21 @@ def _xlsx_kaydet(
                 hucre.fill = baslik_fill
 
     genislikler = [
-        10, 14, 14, 24, 14, 10, 14, 14, 14, 14, 14, 16, 16, 18, 18, 16, 14,
-        8, 8, 20, 20, 20, 22, 22, 16, 22, 16, 8,
+        10, 14, 14, 14, 10, 14, 14, 14, 14, 14, 14, 16, 14, 10, 10, 20, 20, 20, 22,
+        18, 16, 18, 16, 28, 8,
     ]
     for col, genislik in enumerate(genislikler, start=1):
         sayfa.column_dimensions[get_column_letter(col)].width = genislik
+
+    baslik_map = {
+        str(baslik).strip().lower(): idx + 1
+        for idx, baslik in enumerate(satirlar[0])
+    } if satirlar else {}
+    kol_dogum = baslik_map.get("doğum tarihi") or baslik_map.get("dogum tarihi")
+    if kol_dogum:
+        for row_idx in range(2, max(len(satirlar) + 200, 500) + 1):
+            hucre = sayfa.cell(row=row_idx, column=kol_dogum)
+            hucre.number_format = "DD.MM.YYYY"
 
     if dogrulama and satirlar:
         liste = workbook.create_sheet("_Listeler")
@@ -348,10 +378,6 @@ def _xlsx_kaydet(
                 if ss.sube.strip()
             }
         )
-        sinif_sube_birlesik = [
-            f"{ss.sinif}-{ss.sube}"
-            for ss in SinifSube.objects.filter(aktif=True).order_by("sinif", "sube")
-        ]
         seviyeler = list(
             DiniDersSeviyesi.objects.filter(aktif=True)
             .order_by("sira", "ad")
@@ -362,12 +388,13 @@ def _xlsx_kaydet(
             .order_by("ad_soyad")
             .values_list("ad_soyad", flat=True)
         )
+        iller = turkiye_illeri()
+        ilceler = tum_ilceler()
         cinsiyetler = ["Erkek", "Kadın"]
         aile_secenekleri = [c.label for c in Talebe.AileDurumu]
         aktif_secenekleri = ["Evet", "Hayır"]
 
         listeler = [
-            sinif_sube_birlesik,
             siniflar,
             subeler,
             seviyeler,
@@ -375,11 +402,10 @@ def _xlsx_kaydet(
             cinsiyetler,
             aile_secenekleri,
             aktif_secenekleri,
+            iller,
+            ilceler,
         ]
-        kolon_harfleri = ["A", "B", "C", "D", "E", "F", "G", "H"]
-
         for kol_idx, degerler in enumerate(listeler):
-            harf = kolon_harfleri[kol_idx]
             for satir_idx, deger in enumerate(degerler, start=1):
                 liste.cell(row=satir_idx, column=kol_idx + 1, value=deger)
 
@@ -403,7 +429,6 @@ def _xlsx_kaydet(
             dv.add(hucre_araligi)
 
         son_satir = max(len(satirlar) + 200, 500)
-        baslik_map = {baslik.lower(): idx + 1 for idx, baslik in enumerate(satirlar[0])}
 
         def _kolon(baslik: str) -> str | None:
             idx = baslik_map.get(baslik.lower())
@@ -411,55 +436,25 @@ def _xlsx_kaydet(
                 return None
             return get_column_letter(idx)
 
-        kol_sinif = _kolon("Okul Sınıf")
-        kol_sube = _kolon("Okul Şube")
-        kol_etut = _kolon("Etüt Mesulü")
-        kol_dini_seviye = _kolon("Dini Ders Seviyesi")
-        kol_dini_hoca = _kolon("Dini Ders Hocası")
-        kol_cinsiyet = _kolon("Cinsiyet")
-        kol_aile = _kolon("Aile Durumu")
-        kol_aktif = _kolon("Aktif")
-
-        if kol_sinif:
-            _dogrulama_ekle(
-                _liste_formulu("B", len(siniflar)),
-                f"{kol_sinif}2:{kol_sinif}{son_satir}",
-            )
-        if kol_sube:
-            _dogrulama_ekle(
-                _liste_formulu("C", len(subeler)),
-                f"{kol_sube}2:{kol_sube}{son_satir}",
-            )
-        if kol_etut:
-            _dogrulama_ekle(
-                _liste_formulu("E", len(hocalar)),
-                f"{kol_etut}2:{kol_etut}{son_satir}",
-            )
-        if kol_dini_seviye:
-            _dogrulama_ekle(
-                _liste_formulu("D", len(seviyeler)),
-                f"{kol_dini_seviye}2:{kol_dini_seviye}{son_satir}",
-            )
-        if kol_dini_hoca:
-            _dogrulama_ekle(
-                _liste_formulu("E", len(hocalar)),
-                f"{kol_dini_hoca}2:{kol_dini_hoca}{son_satir}",
-            )
-        if kol_cinsiyet:
-            _dogrulama_ekle(
-                _liste_formulu("F", len(cinsiyetler)),
-                f"{kol_cinsiyet}2:{kol_cinsiyet}{son_satir}",
-            )
-        if kol_aile:
-            _dogrulama_ekle(
-                _liste_formulu("G", len(aile_secenekleri)),
-                f"{kol_aile}2:{kol_aile}{son_satir}",
-            )
-        if kol_aktif:
-            _dogrulama_ekle(
-                _liste_formulu("H", len(aktif_secenekleri)),
-                f"{kol_aktif}2:{kol_aktif}{son_satir}",
-            )
+        eslesmeler = [
+            ("Okul Sınıf", "A", len(siniflar)),
+            ("Okul Şube", "B", len(subeler)),
+            ("Dini Ders Seviyesi", "C", len(seviyeler)),
+            ("Etüt Mesulü", "D", len(hocalar)),
+            ("Dini Ders Hocası", "D", len(hocalar)),
+            ("Cinsiyet", "E", len(cinsiyetler)),
+            ("Aile Durumu", "F", len(aile_secenekleri)),
+            ("Aktif", "G", len(aktif_secenekleri)),
+            ("Memleket İl", "H", len(iller)),
+            ("Memleket İlçe", "I", len(ilceler)),
+        ]
+        for baslik, harf, uzunluk in eslesmeler:
+            kol = _kolon(baslik)
+            if kol:
+                _dogrulama_ekle(
+                    _liste_formulu(harf, uzunluk),
+                    f"{kol}2:{kol}{son_satir}",
+                )
 
     buffer = BytesIO()
     workbook.save(buffer)
@@ -495,21 +490,14 @@ def mevcut_talebeler_xlsx_olustur(*, talebe_qs=None) -> bytes:
 
         sinif = talebe.sinif_sube.sinif if talebe.sinif_sube_id else talebe.sinif
         sube = talebe.sinif_sube.sube if talebe.sinif_sube_id else talebe.sube
-        aile_etiket = ""
-        if talebe.aile_durumu:
-            aile_etiket = talebe.get_aile_durumu_display()
-        cinsiyet_etiket = ""
-        if talebe.cinsiyet:
-            cinsiyet_etiket = talebe.get_cinsiyet_display()
-        dogum = ""
-        if talebe.dogum_tarihi:
-            dogum = talebe.dogum_tarihi.isoformat()
+        aile_etiket = talebe.get_aile_durumu_display() if talebe.aile_durumu else ""
+        cinsiyet_etiket = talebe.get_cinsiyet_display() if talebe.cinsiyet else ""
+        dogum = talebe.dogum_tarihi if talebe.dogum_tarihi else ""
         satirlar.append(
             [
                 talebe.talebe_no or "",
                 talebe.kimlik_adi or "",
                 talebe.kimlik_soyadi or "",
-                talebe.ad_soyad,
                 talebe.tc_kimlik or "",
                 cinsiyet_etiket,
                 dogum,
@@ -517,11 +505,8 @@ def mevcut_talebeler_xlsx_olustur(*, talebe_qs=None) -> bytes:
                 talebe.anne_adi or "",
                 talebe.dogum_yeri or "",
                 talebe.memleket or "",
-                talebe.diller or "",
-                talebe.telefon or "",
-                talebe.dahili_seviye or "",
-                talebe.dahili_ders_mesulu or "",
-                talebe.dahili_ders_grubu or "",
+                talebe.memleket_ilce or "",
+                telefon_formatla(talebe.telefon) if talebe.telefon else "",
                 talebe.okul_seviyesi or "",
                 sinif,
                 sube,
@@ -530,9 +515,10 @@ def mevcut_talebeler_xlsx_olustur(*, talebe_qs=None) -> bytes:
                 talebe.dini_ders_hocasi.ad_soyad if talebe.dini_ders_hocasi_id else "",
                 aile_etiket,
                 anne.ad_soyad if anne else "",
-                anne.telefon if anne else "",
+                telefon_formatla(anne.telefon) if anne and anne.telefon else "",
                 baba.ad_soyad if baba else "",
-                baba.telefon if baba else "",
+                telefon_formatla(baba.telefon) if baba and baba.telefon else "",
+                talebe.ev_adresi or "",
                 "Evet" if talebe.aktif else "Hayır",
             ]
         )
@@ -549,6 +535,7 @@ def _veli_kisi_guncelle(
     if not ad_soyad:
         return
 
+    telefon = telefon_formatla(telefon) if telefon else ""
     veli = VeliKisi.objects.filter(talebe=talebe, yakinlik=yakinlik).first()
     if veli:
         veli.ad_soyad = ad_soyad
@@ -572,9 +559,15 @@ def _talebe_bul(
     ad_soyad: str,
     sinif: str,
     sube: str,
+    tc: str = "",
 ) -> Talebe | None:
     if talebe_no:
         talebe = Talebe.objects.filter(talebe_no=talebe_no).first()
+        if talebe:
+            return talebe
+
+    if tc and len(tc) == 11:
+        talebe = Talebe.objects.filter(tc_kimlik=tc).first()
         if talebe:
             return talebe
 
@@ -605,10 +598,15 @@ def talebe_excel_ice_aktar(dosya) -> TalebeExcelSonuc:
         sonuc.hatalar.append("Excel dosyası boş görünüyor.")
         return sonuc
 
-    basliklar = _baslik_eslestir(satirlar[0])
-    if "ad_soyad" not in basliklar:
+    basliklar = _baslik_eslestir(
+        [_hucre_degeri(h) for h in satirlar[0]]
+    )
+    if (
+        "ad_soyad" not in basliklar
+        and not ("kimlik_adi" in basliklar and "kimlik_soyadi" in basliklar)
+    ):
         sonuc.hatalar.append(
-            "Başlık satırında en az «Ad Soyad» sütunu olmalı."
+            "Başlık satırında «Kimlik Adı» ve «Kimlik Soyadı» (veya Ad Soyad) olmalı."
         )
         return sonuc
 
@@ -636,20 +634,28 @@ def talebe_excel_ice_aktar(dosya) -> TalebeExcelSonuc:
         return mevcut
 
     for satir_no, satir in enumerate(satirlar[1:], start=2):
-        ad_soyad = _satir_degeri(satir, basliklar.get("ad_soyad"))
+        ad_soyad = _ad_soyad_olustur(satir, basliklar)
         talebe_no = _satir_degeri(satir, basliklar.get("talebe_no"))
         sinif = _satir_degeri(satir, basliklar.get("sinif"))
         sube = _satir_degeri(satir, basliklar.get("sube"))
         talebe_tc = _tc_normalize(_satir_degeri(satir, basliklar.get("talebe_tc")))
-        talebe_telefon = _satir_degeri(satir, basliklar.get("talebe_telefon"))
+        talebe_telefon = _telefon_al(satir, basliklar, "talebe_telefon")
         anne_ad = _satir_degeri(satir, basliklar.get("anne_ad"))
-        anne_tel = _satir_degeri(satir, basliklar.get("anne_telefon"))
+        anne_tel = _telefon_al(satir, basliklar, "anne_telefon")
         baba_ad = _satir_degeri(satir, basliklar.get("baba_ad"))
-        baba_tel = _satir_degeri(satir, basliklar.get("baba_telefon"))
+        baba_tel = _telefon_al(satir, basliklar, "baba_telefon")
         hoca_adi = _satir_degeri(satir, basliklar.get("etut_hocasi"))
         dini_seviye_adi = _satir_degeri(satir, basliklar.get("dini_ders_seviyesi"))
         dini_hoca_adi = _satir_degeri(satir, basliklar.get("dini_ders_hocasi"))
         aktif_raw = _satir_degeri(satir, basliklar.get("aktif"))
+        memleket = _satir_degeri(satir, basliklar.get("memleket"))
+        memleket_ilce = _satir_degeri(satir, basliklar.get("memleket_ilce"))
+
+        if memleket and memleket_ilce and not memleket_gecerli(memleket, memleket_ilce):
+            sonuc.bilgi.append(
+                f"Satır {satir_no}: Memleket il/ilçe uyuşmuyor "
+                f"({memleket}/{memleket_ilce})."
+            )
 
         sinif_sube = None
         if sinif and sube:
@@ -675,10 +681,11 @@ def talebe_excel_ice_aktar(dosya) -> TalebeExcelSonuc:
             ad_soyad=ad_soyad,
             sinif=sinif,
             sube=sube,
+            tc=talebe_tc,
         )
 
         if mevcut:
-            degisti = False
+            degisti = _talebe_profil_satirdan(mevcut, satir, basliklar)
             islem_yapildi = False
 
             if talebe_tc and len(talebe_tc) == 11 and mevcut.tc_kimlik != talebe_tc:
@@ -724,6 +731,16 @@ def talebe_excel_ice_aktar(dosya) -> TalebeExcelSonuc:
                     mevcut.dini_ders_hocasi = dini_hoca
                     degisti = True
 
+            if hoca_adi:
+                etut_hocasi = hoca_haritasi.get(hoca_adi.lower())
+                if not etut_hocasi:
+                    sonuc.bilgi.append(
+                        f"Satır {satir_no}: '{hoca_adi}' etüt hocası bulunamadı."
+                    )
+                elif mevcut.etut_hocasi_id != etut_hocasi.pk:
+                    mevcut.etut_hocasi = etut_hocasi
+                    degisti = True
+
             if degisti:
                 mevcut.save()
                 islem_yapildi = True
@@ -753,14 +770,14 @@ def talebe_excel_ice_aktar(dosya) -> TalebeExcelSonuc:
 
         if not ad_soyad:
             sonuc.bilgi.append(
-                f"Satır {satir_no}: Talebe bulunamadı, ad soyad boş — atlandı."
+                f"Satır {satir_no}: Talebe bulunamadı, kimlik ad/soyad boş — atlandı."
             )
             sonuc.atlanan += 1
             continue
 
         if not sinif or not sube or not hoca_adi:
             sonuc.bilgi.append(
-                f"Satır {satir_no}: Yeni kayıt için sınıf, şube ve etüt hocası gerekli — atlandı."
+                f"Satır {satir_no}: Yeni kayıt için sınıf, şube ve etüt mesulü gerekli — atlandı."
             )
             sonuc.atlanan += 1
             continue
@@ -798,7 +815,7 @@ def talebe_excel_ice_aktar(dosya) -> TalebeExcelSonuc:
 
         if dini_seviye and not dini_hoca_adi:
             sonuc.bilgi.append(
-                f"Satır {satir_no}: Dini ders seviyesi girildi; dini ders hocası adını da yazın — atlandı."
+                f"Satır {satir_no}: Dini ders seviyesi girildi; dini ders hocası seçin — atlandı."
             )
             sonuc.atlanan += 1
             continue
@@ -846,9 +863,13 @@ def talebe_excel_ice_aktar(dosya) -> TalebeExcelSonuc:
             talebe_no = _sonraki_no()
 
         atanan_dini_hoca = dini_hoca or etut_hocasi
+        kimlik_adi = _satir_degeri(satir, basliklar.get("kimlik_adi"))
+        kimlik_soyadi = _satir_degeri(satir, basliklar.get("kimlik_soyadi"))
 
         talebe = Talebe(
             ad_soyad=ad_soyad,
+            kimlik_adi=kimlik_adi,
+            kimlik_soyadi=kimlik_soyadi,
             talebe_no=talebe_no,
             sinif_sube=sinif_sube,
             etut_hocasi=etut_hocasi,
@@ -858,6 +879,8 @@ def talebe_excel_ice_aktar(dosya) -> TalebeExcelSonuc:
             telefon=talebe_telefon,
             tc_kimlik=talebe_tc if len(talebe_tc) == 11 else "",
         )
+        talebe.save()
+        _talebe_profil_satirdan(talebe, satir, basliklar)
         talebe.save()
         sonuc.eklenen += 1
 

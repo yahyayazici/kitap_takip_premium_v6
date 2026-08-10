@@ -448,6 +448,19 @@ def talebe_liste_excel(request):
 
 
 @yonetici_gerekli
+def _talebe_form_context(form, *, sayfa_basligi, sayfa_aciklama):
+    from takip.turkiye_il_ilce import il_ilce_haritasi
+
+    return {
+        "form": form,
+        "sayfa_basligi": sayfa_basligi,
+        "sayfa_aciklama": sayfa_aciklama,
+        "geri_url": "yonetim:talebe_listesi",
+        "il_ilce_json": il_ilce_haritasi(),
+    }
+
+
+@yonetici_gerekli
 def talebe_ekle(request):
     form = TalebeForm(request.POST or None, request.FILES or None)
 
@@ -464,14 +477,11 @@ def talebe_ekle(request):
     return render(
         request,
         "yonetim/talebe_kayit_form.html",
-        {
-            "form": form,
-            "sayfa_basligi": "Talebe Ekle",
-            "sayfa_aciklama": (
-                "Kimlik, eğitim ve veli bilgilerini eksiksiz doldurun."
-            ),
-            "geri_url": "yonetim:talebe_listesi",
-        },
+        _talebe_form_context(
+            form,
+            sayfa_basligi="Talebe Ekle",
+            sayfa_aciklama="Kimlik, eğitim ve veli bilgilerini eksiksiz doldurun.",
+        ),
     )
 
 
@@ -496,14 +506,11 @@ def talebe_duzenle(request, pk):
     return render(
         request,
         "yonetim/talebe_kayit_form.html",
-        {
-            "form": form,
-            "sayfa_basligi": "Talebe Düzenle",
-            "sayfa_aciklama": (
-                "Talebenin kayıt bilgilerini güncelleyin."
-            ),
-            "geri_url": "yonetim:talebe_listesi",
-        },
+        _talebe_form_context(
+            form,
+            sayfa_basligi="Talebe Düzenle",
+            sayfa_aciklama="Talebenin kayıt bilgilerini güncelleyin.",
+        ),
     )
 
 
