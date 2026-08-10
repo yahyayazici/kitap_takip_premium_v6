@@ -419,6 +419,27 @@ class Talebe(models.Model):
             aday += 1
         return str(aday)
 
+    @classmethod
+    def aktif_numaralari_yeniden_sirala(cls) -> int:
+        """Aktif talebelere sınıf/ad sırasına göre 1'den başlayan numara ver."""
+        from django.db import transaction
+
+        talebeler = list(
+            cls.objects.filter(aktif=True).order_by("sinif", "sube", "ad_soyad", "id")
+        )
+        if not talebeler:
+            return 0
+
+        with transaction.atomic():
+            for talebe in talebeler:
+                cls.objects.filter(pk=talebe.pk).update(
+                    talebe_no=f"__tmp-{talebe.pk}"
+                )
+            for sira, talebe in enumerate(talebeler, start=1):
+                cls.objects.filter(pk=talebe.pk).update(talebe_no=str(sira))
+
+        return len(talebeler)
+
     def clean(self):
         super().clean()
 

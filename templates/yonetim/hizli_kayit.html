@@ -83,6 +83,11 @@
             {% if sonraki_talebe_no %}
             <p class="yk-section-note">Sıradaki talebe numarası: <strong>{{ sonraki_talebe_no }}</strong> (1'den başlayarak boş numarayı otomatik alır)</p>
             {% endif %}
+            <form method="post" action="{% url 'yonetim:talebe_numaralarini_sirala' %}" class="yk-numara-sirala-form" onsubmit="return confirm('Tüm aktif talebelerin numarası sınıf ve ada göre 1\\'den başlayarak yeniden sıralanacak. Devam edilsin mi?');">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}#yk-son-kayitlar">
+                <button type="submit" class="ghost-btn yk-numara-sirala-btn">Numaraları 1'den Sırala</button>
+            </form>
             <div class="yk-grid" id="yk-talebe-grid">
                 {% for field in form %}
                 <div class="yk-field{% if field.name == 'ad_soyad' or field.name == 'tc_kimlik' %} yk-field-wide{% endif %}">
@@ -330,6 +335,6 @@
 
 {% if tur == "talebe" and talebe_form_meta %}
 {{ talebe_form_meta|json_script:"yk-talebe-meta" }}
-<script src="{% static 'js/yonetim-hizli-kayit.js' %}?v=2"></script>
 {% endif %}
+<script src="{% static 'js/yonetim-hizli-kayit.js' %}?v=3"></script>
 {% endblock %}

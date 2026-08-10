@@ -199,12 +199,65 @@ def _kayit_pk_dogrula(pk_raw) -> int | None:
 
 
 def _kayit_sil_yonlendir(request, next_url: str, fallback: str):
+    hedef = fallback
     if next_url and url_has_allowed_host_and_scheme(
         next_url,
         allowed_hosts={request.get_host()},
     ):
-        return redirect(next_url)
-    return redirect(fallback)
+        hedef = next_url
+    if "#" not in hedef:
+        hedef = f"{hedef}#yk-son-kayitlar"
+    return redirect(hedef)
+
+
+def _kayit_pasif_et(request, tur: str, pk: int, *, sessiz: bool = False) -> bool:
+    """Kaydı pasif eder. Zaten pasifse False döner."""
+    if tur == "talebe":
+        talebe = get_object_or_404(Talebe, pk=pk)
+        if not talebe.aktif:
+            if not sessiz:
+                messages.info(request, f"{talebe.ad_soyad} zaten pasif.")
+            return False
+        talebe_pasif_et(talebe)
+        if not sessiz:
+            messages.success(
+                request,
+                f"{talebe.ad_soyad} pasif edildi (listeden kaldırıldı).",
+            )
+        return True
+    if tur == "personel":
+        personel = get_object_or_404(PersonelProfili, pk=pk)
+        if not personel.aktif:
+            if not sessiz:
+                messages.info(request, f"{personel.ad_soyad} zaten pasif.")
+            return False
+        personel_pasif_et(personel)
+        if not sessiz:
+            messages.success(
+                request,
+                f"{personel.ad_soyad} pasif edildi (giriş kapatıldı).",
+            )
+        return True
+    if tur == "ogretmen":
+        hoca = get_object_or_404(
+            EtutHocasi,
+            pk=pk,
+            personel_kaydi__isnull=True,
+        )
+        if not hoca.aktif:
+            if not sessiz:
+                messages.info(request, f"{hoca.ad_soyad} zaten pasif.")
+            return False
+        ogretmen_pasif_et(hoca)
+        if not sessiz:
+            messages.success(
+                request,
+                f"{hoca.ad_soyad} pasif edildi (giriş kapatıldı).",
+            )
+        return True
+    if not sessiz:
+        messages.error(request, "Geçersiz kayıt türü.")
+    return False
 
 
 @yonetici_gerekli
@@ -220,44 +273,71 @@ def kayit_sil(request):
         return _kayit_sil_yonlendir(request, next_url, fallback)
 
     try:
-        if tur == "talebe":
-            talebe = get_object_or_404(Talebe, pk=pk)
-            ad = talebe.ad_soyad
-            if not talebe.aktif:
-                messages.info(request, f"{ad} zaten pasif.")
-            else:
-                talebe_pasif_et(talebe)
-                messages.success(request, f"{ad} pasif edildi (listeden kaldırıldı).")
-        elif tur == "personel":
-            personel = get_object_or_404(PersonelProfili, pk=pk)
-            ad = personel.ad_soyad
-            if not personel.aktif:
-                messages.info(request, f"{ad} zaten pasif.")
-            else:
-                personel_pasif_et(personel)
-                messages.success(request, f"{ad} pasif edildi (giriş kapatıldı).")
-        elif tur == "ogretmen":
-            hoca = get_object_or_404(
-                EtutHocasi,
-                pk=pk,
-                personel_kaydi__isnull=True,
-            )
-            ad = hoca.ad_soyad
-            if not hoca.aktif:
-                messages.info(request, f"{ad} zaten pasif.")
-            else:
-                ogretmen_pasif_et(hoca)
-                messages.success(request, f"{ad} pasif edildi (giriş kapatıldı).")
-        else:
-            messages.error(request, "Geçersiz kayıt türü.")
-            tur = "talebe"
-            fallback = f"{reverse('yonetim:hizli_kayit')}?tur={tur}"
+        _kayit_pasif_et(request, tur, pk)
     except Exception:
         messages.error(
             request,
             "Kayıt silinirken bir hata oluştu. Sayfayı yenileyip tekrar deneyin.",
         )
 
+    return _kayit_sil_yonlendir(request, next_url, fallback)
+
+
+@yonetici_gerekli
+@require_POST
+def kayit_toplu_sil(request):
+    tur = (request.POST.get("tur") or "talebe").strip()
+    next_url = (request.POST.get("next") or "").strip()
+    fallback = f"{reverse('yonetim:hizli_kayit')}?tur={tur}"
+    pk_list = [
+        pk
+        for raw in request.POST.getlist("pk")
+        if (pk := _kayit_pk_dogrula(raw)) is not None
+    ]
+
+    if not pk_list:
+        messages.warning(request, "Silinecek kayıt seçilmedi.")
+        return _kayit_sil_yonlendir(request, next_url, fallback)
+
+    silinen = 0
+    try:
+        for pk in pk_list:
+            if _kayit_pasif_et(request, tur, pk, sessiz=True):
+                silinen += 1
+    except Exception:
+        messages.error(
+            request,
+            "Toplu silme sırasında hata oluştu. Sayfayı yenileyip tekrar deneyin.",
+        )
+        return _kayit_sil_yonlendir(request, next_url, fallback)
+
+    if silinen:
+        messages.success(request, f"{silinen} kayıt pasif edildi.")
+    return _kayit_sil_yonlendir(request, next_url, fallback)
+
+
+@yonetici_gerekli
+@require_POST
+def talebe_numaralarini_sirala(request):
+    next_url = (request.POST.get("next") or "").strip()
+    fallback = f"{reverse('yonetim:hizli_kayit')}?tur=talebe"
+
+    try:
+        adet = Talebe.aktif_numaralari_yeniden_sirala()
+    except Exception:
+        messages.error(
+            request,
+            "Numaralar düzenlenirken hata oluştu. Lütfen tekrar deneyin.",
+        )
+        return _kayit_sil_yonlendir(request, next_url, fallback)
+
+    if adet:
+        messages.success(
+            request,
+            f"{adet} aktif talebenin numarası 1'den başlayarak yeniden sıralandı.",
+        )
+    else:
+        messages.info(request, "Numaralandırılacak aktif talebe yok.")
     return _kayit_sil_yonlendir(request, next_url, fallback)
 
 

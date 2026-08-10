@@ -1,11 +1,27 @@
 {% if son_kayitlar %}
-<div class="yk-section yk-section-recent">
+<div id="yk-son-kayitlar" class="yk-section yk-section-recent">
     <h3 class="yk-section-title">Son Kayıtlar</h3>
     <p class="yk-section-note">Yanlış eklenen kaydı pasif edebilirsiniz — giriş kapanır, listeden kalkar.</p>
+
+    <form id="yk-toplu-sil-form" method="post" action="{% url 'yonetim:kayit_toplu_sil' %}" class="yk-toplu-sil-form">
+        {% csrf_token %}
+        <input type="hidden" name="tur" value="{{ tur }}">
+        <input type="hidden" name="next" value="{{ request.get_full_path }}#yk-son-kayitlar">
+        <div class="yk-toplu-sil-bar" id="yk-toplu-sil-bar" hidden>
+            <span class="yk-toplu-sil-count"><span id="yk-secili-say">0</span> kayıt seçildi</span>
+            <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger yk-toplu-sil-btn" id="yk-toplu-sil-btn">
+                Seçilenleri Sil
+            </button>
+        </div>
+    </form>
+
     <div class="yk-recent-table-wrap">
         <table class="yk-recent-table">
             <thead>
                 <tr>
+                    <th class="yk-check-col">
+                        <input type="checkbox" id="yk-select-all" class="yk-check" aria-label="Tümünü seç">
+                    </th>
                     {% if tur == "talebe" %}
                     <th>No</th>
                     <th>Ad Soyad</th>
@@ -26,6 +42,9 @@
             <tbody>
                 {% for kayit in son_kayitlar %}
                 <tr>
+                    <td class="yk-check-col">
+                        <input type="checkbox" name="pk" value="{{ kayit.pk }}" form="yk-toplu-sil-form" class="yk-row-check yk-check" aria-label="{{ kayit.ad_soyad }} seç">
+                    </td>
                     {% if tur == "talebe" %}
                     <td>{{ kayit.talebe_no|default:"—" }}</td>
                     <td><strong>{{ kayit.ad_soyad }}</strong></td>
@@ -57,7 +76,7 @@
                                 {% csrf_token %}
                                 <input type="hidden" name="tur" value="{{ tur }}">
                                 <input type="hidden" name="pk" value="{{ kayit.pk }}">
-                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}#yk-son-kayitlar">
                                 <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger yk-sil-btn">Sil</button>
                             </form>
                         </div>

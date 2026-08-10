@@ -74,6 +74,16 @@ urlpatterns = [
         name="kayit_sil",
     ),
     path(
+        "ekle/toplu-sil/",
+        yonetim_hizli_kayit_views.kayit_toplu_sil,
+        name="kayit_toplu_sil",
+    ),
+    path(
+        "ekle/talebe-numara-sirala/",
+        yonetim_hizli_kayit_views.talebe_numaralarini_sirala,
+        name="talebe_numaralarini_sirala",
+    ),
+    path(
         "ekle/giris-pdf/",
         yonetim_hizli_kayit_views.hizli_kayit_giris_pdf,
         name="hizli_kayit_giris_pdf",

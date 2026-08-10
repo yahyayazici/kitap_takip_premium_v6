@@ -1,4 +1,65 @@
 (function () {
+    var sonKayitlar = document.getElementById("yk-son-kayitlar");
+    if (sonKayitlar) {
+        if (window.location.hash === "#yk-son-kayitlar") {
+            requestAnimationFrame(function () {
+                sonKayitlar.scrollIntoView({ behavior: "smooth", block: "start" });
+            });
+        }
+
+        var selectAll = document.getElementById("yk-select-all");
+        var rowChecks = sonKayitlar.querySelectorAll(".yk-row-check");
+        var bulkBar = document.getElementById("yk-toplu-sil-bar");
+        var seciliSayEl = document.getElementById("yk-secili-say");
+        var bulkForm = document.getElementById("yk-toplu-sil-form");
+
+        function guncelleSecim() {
+            var secili = sonKayitlar.querySelectorAll(".yk-row-check:checked").length;
+            if (seciliSayEl) {
+                seciliSayEl.textContent = String(secili);
+            }
+            if (bulkBar) {
+                bulkBar.hidden = secili === 0;
+            }
+            if (selectAll && rowChecks.length) {
+                selectAll.indeterminate = secili > 0 && secili < rowChecks.length;
+                selectAll.checked = secili === rowChecks.length;
+            }
+        }
+
+        rowChecks.forEach(function (cb) {
+            cb.addEventListener("change", guncelleSecim);
+        });
+
+        if (selectAll) {
+            selectAll.addEventListener("change", function () {
+                rowChecks.forEach(function (cb) {
+                    cb.checked = selectAll.checked;
+                });
+                guncelleSecim();
+            });
+        }
+
+        if (bulkForm) {
+            bulkForm.addEventListener("submit", function (event) {
+                var secili = sonKayitlar.querySelectorAll(".yk-row-check:checked").length;
+                if (!secili) {
+                    event.preventDefault();
+                    return;
+                }
+                if (
+                    !window.confirm(
+                        secili + " kayıt pasif edilsin mi? Girişler kapanır, listeden kalkar."
+                    )
+                ) {
+                    event.preventDefault();
+                }
+            });
+        }
+
+        guncelleSecim();
+    }
+
     var metaEl = document.getElementById("yk-talebe-meta");
     if (!metaEl) return;
 
