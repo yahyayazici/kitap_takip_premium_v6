@@ -116,15 +116,32 @@ class KonuEgitimVideosu(models.Model):
             raise ValidationError("YouTube ID veya arama sorgusu girilmelidir.")
 
     @property
-    def embed_url(self) -> str:
-        if self.youtube_id:
-            return f"https://www.youtube-nocookie.com/embed/{self.youtube_id}?rel=0&modestbranding=1"
-        sorgu = self.arama_sorgusu or self.konu.arama_metni
+    def panel_embed(self) -> bool:
+        return bool((self.youtube_id or "").strip())
+
+    @property
+    def youtube_arama_url(self) -> str:
         from urllib.parse import quote_plus
 
+        sorgu = self.arama_sorgusu or self.konu.arama_metni
         return (
-            "https://www.youtube-nocookie.com/embed"
-            f"?listType=search&list={quote_plus(sorgu)}&rel=0&modestbranding=1"
+            "https://www.youtube.com/results"
+            f"?search_query={quote_plus(sorgu)}&sp=EgIQAQ%253D%253D"
+        )
+
+    @property
+    def embed_url(self) -> str:
+        if not self.panel_embed:
+            return ""
+        from urllib.parse import quote
+
+        from django.conf import settings
+
+        origin = getattr(settings, "SITE_URL", "http://127.0.0.1:8000")
+        return (
+            f"https://www.youtube-nocookie.com/embed/{self.youtube_id}"
+            f"?rel=0&modestbranding=1&playsinline=1"
+            f"&origin={quote(origin, safe='')}"
         )
 
 

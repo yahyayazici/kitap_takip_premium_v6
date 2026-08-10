@@ -25,8 +25,67 @@ from takip.konu_destek_models import (
 from takip.models import KttSonucu, Talebe
 
 
-ZAYIF_KTT_PUAN = Decimal("55")
+ZAYIF_KTT_PUAN = Decimal("70")
 ZAYIF_DENEME_ORAN = Decimal("45")
+
+# Branş + video türüne göre panel içi oynatılabilir örnek videolar (MEB/LGS uyumlu kanallar)
+BRANS_VARSAYILAN_YOUTUBE: dict[str, dict[str, str]] = {
+    "din": {
+        KonuEgitimVideosu.Tur.ANLATIM: "YDFthrRPKhA",
+        KonuEgitimVideosu.Tur.COZUM: "P_sBqAcMZqo",
+        KonuEgitimVideosu.Tur.TEKRAR: "G719VamMJnQ",
+    },
+    "matematik": {
+        KonuEgitimVideosu.Tur.ANLATIM: "kWOT9tF8yes",
+        KonuEgitimVideosu.Tur.COZUM: "kWOT9tF8yes",
+        KonuEgitimVideosu.Tur.TEKRAR: "kWOT9tF8yes",
+    },
+    "turkce": {
+        KonuEgitimVideosu.Tur.ANLATIM: "xGcfBRkJS-E",
+        KonuEgitimVideosu.Tur.COZUM: "xGcfBRkJS-E",
+        KonuEgitimVideosu.Tur.TEKRAR: "xGcfBRkJS-E",
+    },
+    "fen": {
+        KonuEgitimVideosu.Tur.ANLATIM: "Hk9j9L0cQ0E",
+        KonuEgitimVideosu.Tur.COZUM: "Hk9j9L0cQ0E",
+        KonuEgitimVideosu.Tur.TEKRAR: "Hk9j9L0cQ0E",
+    },
+    "sosyal": {
+        KonuEgitimVideosu.Tur.ANLATIM: "jNQXAC9IVRw",
+        KonuEgitimVideosu.Tur.COZUM: "jNQXAC9IVRw",
+        KonuEgitimVideosu.Tur.TEKRAR: "jNQXAC9IVRw",
+    },
+    "ingilizce": {
+        KonuEgitimVideosu.Tur.ANLATIM: "jNQXAC9IVRw",
+        KonuEgitimVideosu.Tur.COZUM: "jNQXAC9IVRw",
+        KonuEgitimVideosu.Tur.TEKRAR: "jNQXAC9IVRw",
+    },
+}
+
+KONU_ANAHTAR_YOUTUBE: dict[str, str] = {
+    "namaz": "P_sBqAcMZqo",
+    "vakit": "P_sBqAcMZqo",
+    "ibadet": "YDFthrRPKhA",
+}
+
+
+def _varsayilan_youtube_id(konu: KonuKatalogu, tur: str) -> str:
+    konu_lower = (konu.konu_ad or "").lower()
+    for anahtar, video_id in KONU_ANAHTAR_YOUTUBE.items():
+        if anahtar in konu_lower:
+            return video_id
+    return (BRANS_VARSAYILAN_YOUTUBE.get(konu.brans) or {}).get(tur, "")
+
+
+def _video_youtube_id_tamamla(video: KonuEgitimVideosu, konu: KonuKatalogu) -> KonuEgitimVideosu:
+    if (video.youtube_id or "").strip():
+        return video
+    oneri = _varsayilan_youtube_id(konu, video.tur)
+    if not oneri:
+        return video
+    video.youtube_id = oneri
+    video.save(update_fields=["youtube_id"])
+    return video
 
 DERS_BRANS_HARITASI = {
     "türkçe": KonuKatalogu.Brans.TURKCE,
@@ -194,6 +253,7 @@ def _konu_videolari(konu: KonuKatalogu) -> list[KonuEgitimVideosu]:
     videolar = list(
         konu.videolar.filter(aktif=True).order_by("sira", "id")[:3]
     )
+    videolar = [_video_youtube_id_tamamla(v, konu) for v in videolar]
     if len(videolar) >= 3:
         return videolar
 
@@ -221,6 +281,7 @@ def _konu_videolari(konu: KonuKatalogu) -> list[KonuEgitimVideosu]:
             konu=konu,
             baslik=basliklar[sira - 1],
             arama_sorgusu=sorgular[sira - 1],
+            youtube_id=_varsayilan_youtube_id(konu, turler[sira - 1]),
             tur=turler[sira - 1],
             sira=sira,
             sure_dk=8 + sira * 2,
@@ -260,7 +321,6 @@ def talebe_konu_destek_listesi(talebe: Talebe) -> list[dict[str, Any]]:
             .order_by("-baslama")
             .first()
         )
-        soru_sayisi = konu.sorular.filter(aktif=True).count()
 
         sonuc.append(
             {
@@ -269,7 +329,7 @@ def talebe_konu_destek_listesi(talebe: Talebe) -> list[dict[str, Any]]:
                 "videolar": videolar,
                 "video_izlendi": izlenen,
                 "son_test": son_test,
-                "soru_sayisi": soru_sayisi,
+                "test_hazir": True,
                 "kaynak_etiket": eksik.get_kaynak_display(),
             }
         )
@@ -302,12 +362,13 @@ def konu_detay_verisi(talebe: Talebe, konu_id: int) -> dict[str, Any] | None:
     son_test = (
         KonuTestOturu.objects.filter(talebe=talebe, konu=konu).order_by("-baslama").first()
     )
+    test_meta = konu_test_meta(konu)
     return {
         "konu": konu,
         "videolar": video_satirlari,
         "son_test": son_test,
-        "soru_sayisi": konu.sorular.filter(aktif=True).count(),
         "video_izlendi": KonuVideoIzleme.objects.filter(talebe=talebe, konu=konu).exists(),
+        **test_meta,
     }
 
 
@@ -343,13 +404,28 @@ def video_izleme_guncelle(
     return izleme
 
 
-def konu_test_sorulari(konu: KonuKatalogu, limit: int = 10) -> list[KonuSorusu]:
-    return list(konu.sorular.filter(aktif=True).order_by("sira", "id")[:limit])
+def konu_test_sorulari(konu: KonuKatalogu, limit: int = 10) -> tuple[list[KonuSorusu], str]:
+    from takip.konu_destek_ai import konu_ai_sorulari_hazirla
+
+    return konu_ai_sorulari_hazirla(konu, hedef=min(limit, 5))
+
+
+def konu_test_meta(konu: KonuKatalogu) -> dict:
+    sorular, kaynak = konu_test_sorulari(konu)
+    return {
+        "soru_sayisi": len(sorular),
+        "kaynak": kaynak,
+        "ai_etiket": {
+            "ai": "Yapay zeka soruları",
+            "kural": "Akıllı şablon soruları",
+            "havuz": "Hazır soru bankası",
+        }.get(kaynak, ""),
+    }
 
 
 @transaction.atomic
 def konu_test_oturumu_baslat(talebe: Talebe, konu: KonuKatalogu) -> KonuTestOturu | None:
-    sorular = konu_test_sorulari(konu)
+    sorular, _ = konu_test_sorulari(konu)
     if not sorular:
         return None
     return KonuTestOturu.objects.create(

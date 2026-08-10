@@ -151,9 +151,9 @@ def talebe_konu_test(request, konu_id: int):
         return redirect("logout")
 
     konu = get_object_or_404(KonuKatalogu, pk=konu_id, aktif=True)
-    sorular = konu_test_sorulari(konu)
+    sorular, test_kaynak = konu_test_sorulari(konu)
     if not sorular:
-        messages.warning(request, "Bu konu için henüz soru eklenmemiş.")
+        messages.warning(request, "Bu konu için test soruları hazırlanamadı.")
         return redirect("talebe_konu_destek_detay", konu_id=konu_id)
 
     oturum_id = request.session.get(f"konu_test_{konu_id}")
@@ -202,6 +202,12 @@ def talebe_konu_test(request, konu_id: int):
             c.soru_id: c.secilen for c in oturum.cevaplar.select_related("soru")
         }
 
+    ai_etiket = {
+        "ai": "Yapay zeka soruları",
+        "kural": "Akıllı şablon soruları",
+        "havuz": "Hazır soru bankası",
+    }.get(test_kaynak, "")
+
     return render(
         request,
         "talebe/konu_destek_test.html",
@@ -212,6 +218,8 @@ def talebe_konu_test(request, konu_id: int):
             "sorular": sorular,
             "oturum": oturum,
             "mevcut_cevaplar": mevcut_cevaplar,
+            "test_kaynak": test_kaynak,
+            "ai_etiket": ai_etiket,
         },
     )
 

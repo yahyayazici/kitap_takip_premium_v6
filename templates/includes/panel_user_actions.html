@@ -1,0 +1,16 @@
+{% comment %}
+Ortak kullanıcı alanı: isim, alt satır (rol/talebe/veli), tek masaüstü + tek mobil çıkış.
+{% endcomment %}
+<span class="panel-user-chip" aria-hidden="true">{{ panel_user_name|default:request.user.username|slice:":1"|upper }}</span>
+<span class="panel-user-copy">
+    <strong>{{ panel_user_name|default:request.user.username }}</strong>
+    <small>{{ panel_user_subtitle|default:panel_rol_etiketi }}</small>
+</span>
+<form method="post" action="{% url 'logout' %}" class="panel-logout-desktop-form">
+    {% csrf_token %}
+    <button type="submit" class="ghost-btn yonetim-ghost-light panel-logout-btn">Çıkış</button>
+</form>
+<form method="post" action="{% url 'logout' %}" class="v3-logout-mobile-form">
+    {% csrf_token %}
+    <button class="v3-logout-mobile" type="submit" aria-label="Çıkış yap" title="Çıkış">Çıkış</button>
+</form>

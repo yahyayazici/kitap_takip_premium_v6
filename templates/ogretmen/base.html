@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="{% static 'css/topnav-v3.css' %}">
     <link rel="stylesheet" href="{% static 'css/premium-system-v5.css' %}">
     <link rel="stylesheet" href="{% static 'css/premium-system-v6.css' %}">
-    <link rel="stylesheet" href="{% static 'css/nav-groups.css' %}?v=mob-logout2">
+    <link rel="stylesheet" href="{% static 'css/nav-groups.css' %}?v=mob-logout3">
     <link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}?v=sc-mob5">
     <link rel="stylesheet" href="{% static 'css/panel-unified.css' %}?v=nizam8">
     <link rel="stylesheet" href="{% static 'css/panel-mobile-shared.css' %}?v=pm2">
@@ -54,19 +54,7 @@
         </nav>
         <div class="cs-v6-actions panel-user-actions">
             {% include "includes/bildirim_zili.html" %}
-            <span class="panel-user-chip" aria-hidden="true">{{ panel_user_name|default:hoca.ad_soyad|slice:":1"|upper }}</span>
-            <span class="panel-user-copy">
-                <strong>{{ panel_user_name|default:hoca.ad_soyad }}</strong>
-                <small>{{ panel_user_subtitle|default:"Öğretmen" }}</small>
-            </span>
-            <form method="post" action="{% url 'logout' %}">
-                {% csrf_token %}
-                <button type="submit" class="ghost-btn yonetim-ghost-light panel-logout-btn">Çıkış</button>
-            </form>
-            <form method="post" action="{% url 'logout' %}" class="v3-logout-mobile-form">
-                {% csrf_token %}
-                <button class="v3-logout-mobile" type="submit" aria-label="Çıkış yap" title="Çıkış">Çıkış</button>
-            </form>
+            {% include "includes/panel_user_actions.html" %}
         </div>
     </div>
 </header>

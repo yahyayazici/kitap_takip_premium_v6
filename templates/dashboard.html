@@ -52,6 +52,19 @@
     </div>
 </div>
 
+{% if etut_hocasi or request.user.is_superuser %}
+<section class="dash-panel dash-panel-lined">
+    <div class="dash-panel-head">
+        <div>
+            <p class="dash-eyebrow dash-accent-eyebrow-blue">Dijital etüt</p>
+            <h2>Konu destek raporu</h2>
+        </div>
+        <a href="{% url 'etut_konu_destek_rapor' %}" class="primary-btn">Raporu aç</a>
+    </div>
+    <p class="dash-empty-note">Talebelerin izlediği videolar ve mini test sonuçları. Talebe panelinde <strong>Konu Destek</strong> sekmesinden erişilir.</p>
+</section>
+{% endif %}
+
 {% if egitim_modulu %}
 {% include "includes/dash_metrik_strip.html" %}
 

@@ -11,6 +11,10 @@
 
 {% include "includes/panel_hero.html" with title="Mini test" meta=konu.konu_ad show_date=False %}
 
+{% if ai_etiket %}
+<p class="kd-test-source"><span class="kd-ai-badge">{{ ai_etiket }}</span> · {{ sorular|length }} soru</p>
+{% endif %}
+
 <form method="post" class="kd-test-form">
     {% csrf_token %}
     {% for soru in sorular %}

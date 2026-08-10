@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}{{ video.baslik }} · Video{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/konu-destek.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'css/konu-destek.css' %}?v=2">
 {% endblock %}
 {% block content %}
 <div class="dash-home talebe-dash kd-video-page">
@@ -17,18 +17,36 @@
         </div>
     </div>
 
-    <div class="kd-player-wrap">
+    <div class="kd-player-wrap{% if not video.panel_embed %} kd-player-wrap--fallback{% endif %}">
+        {% if video.panel_embed %}
         <iframe
             id="kd-yt-player"
             src="{{ video.embed_url }}"
             title="{{ video.baslik }}"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            referrerpolicy="strict-origin-when-cross-origin"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowfullscreen
             loading="lazy"
         ></iframe>
+        {% else %}
+        <div class="kd-player-fallback">
+            <span class="kd-fallback-icon" aria-hidden="true">▶</span>
+            <p class="kd-fallback-title">Video YouTube'da açılacak</p>
+            <p class="kd-fallback-desc">İzledikten sonra bu sayfaya dönüp mini teste geçebilirsin.</p>
+            <a href="{{ video.youtube_arama_url }}" target="_blank" rel="noopener noreferrer" class="kd-fallback-btn">
+                YouTube'da izle
+            </a>
+        </div>
+        {% endif %}
     </div>
 
-    <p class="kd-player-note">Video panel içinde oynatılır — YouTube ana sayfasına yönlendirilmezsin.</p>
+    <p class="kd-player-note">
+        {% if video.panel_embed %}
+        Video panel içinde oynatılır — YouTube ana sayfasına yönlendirilmezsin.
+        {% else %}
+        Video YouTube'da açılır; dönünce «İzlemeyi tamamladım» ile kayıt oluşturabilirsin.
+        {% endif %}
+    </p>
 
     <div class="kd-player-actions">
         <button type="button" class="primary-btn" id="kd-video-done">İzlemeyi tamamladım</button>

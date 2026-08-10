@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="{% static 'css/premium-typography-v4.css' %}">
     <link rel="stylesheet" href="{% static 'css/premium-system-v5.css' %}">
     <link rel="stylesheet" href="{% static 'css/premium-system-v6.css' %}">
-    <link rel="stylesheet" href="{% static 'css/nav-groups.css' %}?v=mob-logout2">
+    <link rel="stylesheet" href="{% static 'css/nav-groups.css' %}?v=mob-logout3">
     <link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}?v=sc-mob5">
     <link rel="stylesheet" href="{% static 'css/panel-unified.css' %}?v=nizam8">
     <link rel="stylesheet" href="{% static 'css/panel-mobile-shared.css' %}?v=pm1">
@@ -65,12 +65,12 @@
 
         <div class="v3-user-area">
             {% include "includes/bildirim_zili.html" %}
-            <span class="v3-user-avatar">{{ request.user.username|slice:":1"|upper }}</span>
+            <span class="v3-user-avatar">{{ panel_user_name|default:request.user.username|slice:":1"|upper }}</span>
             <span class="v3-user-copy">
-                <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
-                <small>{{ panel_rol_etiketi }}</small>
+                <strong>{{ panel_user_name|default:request.user.username }}</strong>
+                <small>{{ panel_user_subtitle|default:panel_rol_etiketi }}</small>
             </span>
-            <form method="post" action="{% url 'logout' %}">
+            <form method="post" action="{% url 'logout' %}" class="panel-logout-desktop-form">
                 {% csrf_token %}
                 <button class="v3-logout" type="submit">Çıkış</button>
             </form>

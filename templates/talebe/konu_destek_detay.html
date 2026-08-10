@@ -43,13 +43,16 @@
         </div>
     </div>
     {% if soru_sayisi %}
-    <p class="kd-test-desc">Videoyu izledikten sonra {{ soru_sayisi }} soruluk mini testi çöz.</p>
+    <p class="kd-test-desc">
+        Videoyu izledikten sonra {{ soru_sayisi }} soruluk mini testi çöz.
+        {% if ai_etiket %}<span class="kd-ai-badge">{{ ai_etiket }}</span>{% endif %}
+    </p>
     {% if son_test %}
     <p class="kd-last-test">Son test: <strong>{{ son_test.dogru_sayisi }}/{{ son_test.toplam_soru }}</strong> (%{{ son_test.basari_yuzde|floatformat:0 }})</p>
     {% endif %}
     <a href="{% url 'talebe_konu_test' konu.id %}" class="primary-btn">Teste başla</a>
     {% else %}
-    <p class="kd-empty">Bu konu için henüz soru eklenmemiş.</p>
+    <p class="kd-empty">Test soruları hazırlanıyor — biraz sonra tekrar dene.</p>
     {% endif %}
 </section>
 

@@ -11,7 +11,6 @@ from config.branding import (
 from takip.panel_permissions import panel_nav_groups, panel_nav_items, rol_etiketi
 from takip.yonetim_nav import yonetim_nav_groups
 from takip.ogretmen_service import (
-    ogretmen_brans_etiketi,
     ogretmen_hocasi_for_user,
     ogretmen_paneli_kullanicisi_mi,
 )
@@ -54,10 +53,16 @@ def panel_branding(request):
     elif is_talebe:
         module_label = "Talebe Paneli"
         rol_etiketi_text = "Talebe"
-        user_display_name = user.get_full_name() or user.username
-        user_subtitle = (
-            talebe_hesap.talebe.ad_soyad if talebe_hesap and talebe_hesap.talebe_id else "Talebe"
+        talebe_kayit = talebe_hesap.talebe if talebe_hesap and talebe_hesap.talebe_id else None
+        user_display_name = (
+            talebe_kayit.ad_soyad if talebe_kayit else (user.get_full_name() or user.username)
         )
+        if talebe_kayit and talebe_kayit.sinif_sube_id:
+            user_subtitle = f"Talebe · {talebe_kayit.sinif_sube}"
+        elif talebe_kayit and talebe_kayit.sinif:
+            user_subtitle = f"Talebe · {talebe_kayit.sinif}"
+        else:
+            user_subtitle = "Talebe"
     elif is_ogretmen:
         module_label = "Öğretmen Paneli"
         rol_etiketi_text = "Öğretmen"
@@ -66,11 +71,24 @@ def panel_branding(request):
             if ogretmen_hoca
             else (user.get_full_name() or user.username)
         )
-        user_subtitle = ogretmen_brans_etiketi(ogretmen_hoca)
+        user_subtitle = "Öğretmen"
     else:
         module_label = PANEL_MODULE_LABEL
-        rol_etiketi_text = rol_etiketi(user) if user.is_authenticated else ""
-        user_display_name = user.get_full_name() or user.username if user.is_authenticated else ""
+        profil = None
+        if user.is_authenticated:
+            try:
+                profil = user.personel_profili
+            except Exception:
+                profil = None
+        user_display_name = (
+            profil.ad_soyad.strip()
+            if profil and profil.ad_soyad.strip()
+            else (user.get_full_name() or user.username if user.is_authenticated else "")
+        )
+        if profil:
+            rol_etiketi_text = profil.get_ana_rol_display()
+        else:
+            rol_etiketi_text = rol_etiketi(user) if user.is_authenticated else ""
         user_subtitle = rol_etiketi_text
 
     bildirim_okunmamis = 0

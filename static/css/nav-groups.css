@@ -371,7 +371,8 @@ body.v3-nav-menu-open {
     }
 
     .v3-menu-toggle,
-    .yonetim-menu-toggle {
+    .yonetim-menu-toggle,
+    .talebe-menu-toggle {
         grid-column: 2;
         grid-row: 1;
         display: inline-flex !important;
@@ -388,7 +389,8 @@ body.v3-nav-menu-open {
     }
 
     .v3-menu-toggle span,
-    .yonetim-menu-toggle span {
+    .yonetim-menu-toggle span,
+    .talebe-menu-toggle span {
         display: block;
         width: 100%;
         height: 2px;
@@ -424,11 +426,24 @@ body.v3-nav-menu-open {
         display: none;
     }
 
-    .v3-user-area form,
-    .cs-v6-actions form:not(.v3-logout-mobile-form),
-    .yonetim-v6-actions form:not(.v3-logout-mobile-form),
-    .yonetim-site-link {
+    .panel-user-copy {
         display: none;
+    }
+
+    .v3-user-area .panel-logout-desktop-form,
+    .cs-v6-actions .panel-logout-desktop-form,
+    .yonetim-v6-actions .panel-logout-desktop-form,
+    .v3-user-area form:not(.v3-logout-mobile-form):not(.panel-logout-desktop-form),
+    .cs-v6-actions form:not(.v3-logout-mobile-form):not(.panel-logout-desktop-form),
+    .yonetim-v6-actions form:not(.v3-logout-mobile-form):not(.panel-logout-desktop-form),
+    .yonetim-site-link {
+        display: none !important;
+    }
+
+    .v3-user-area .v3-logout-mobile-form,
+    .cs-v6-actions .v3-logout-mobile-form,
+    .yonetim-v6-actions .v3-logout-mobile-form {
+        display: inline-flex !important;
     }
 
     .v3-user-area .v3-logout-mobile,
@@ -437,6 +452,11 @@ body.v3-nav-menu-open {
         display: inline-flex !important;
         min-width: 58px;
         height: 38px;
+    }
+
+    /* Hamburger menüdeki çıkış — üst bardaki mobil çıkış yeterli */
+    .v3-nav-mobile-footer {
+        display: none !important;
     }
 
     .v3-user-area .yonetim-user-chip,
@@ -602,6 +622,20 @@ body.v3-nav-menu-open {
 
 .v3-nav-mobile-footer {
     display: none;
+}
+
+.v3-logout-mobile-form {
+    display: none;
+}
+
+@media (min-width: 1181px) {
+    .v3-logout-mobile-form {
+        display: none !important;
+    }
+
+    .panel-logout-desktop-form {
+        display: inline-flex;
+    }
 }
 
 .v3-logout-mobile {

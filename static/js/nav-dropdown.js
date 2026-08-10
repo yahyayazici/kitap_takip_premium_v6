@@ -55,8 +55,8 @@
     }
 
     function closeMobileNav() {
-        const nav = document.getElementById('v3-nav') || document.getElementById('yonetim-nav');
-        const toggle = document.getElementById('v3-menu-toggle') || document.getElementById('yonetim-menu-toggle');
+        const nav = document.getElementById('v3-nav') || document.getElementById('yonetim-nav') || document.getElementById('talebe-nav');
+        const toggle = document.getElementById('v3-menu-toggle') || document.getElementById('yonetim-menu-toggle') || document.getElementById('talebe-menu-toggle');
         if (nav) {
             nav.classList.remove('open');
         }
@@ -78,8 +78,8 @@
         updateBackdrop();
     }
 
-    const toggle = document.getElementById('v3-menu-toggle') || document.getElementById('yonetim-menu-toggle');
-    const nav = document.getElementById('v3-nav') || document.getElementById('yonetim-nav');
+    const toggle = document.getElementById('v3-menu-toggle') || document.getElementById('yonetim-menu-toggle') || document.getElementById('talebe-menu-toggle');
+    const nav = document.getElementById('v3-nav') || document.getElementById('yonetim-nav') || document.getElementById('talebe-nav');
 
     if (toggle && nav) {
         toggle.addEventListener('click', function () {
