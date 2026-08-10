@@ -117,7 +117,13 @@ def program_sure_ozeti(
     if donem == "gun":
         carpan = 1
 
-    tur_map = dict(ProgramSatir.FaaliyetTuru.choices)
+    from .models import ProgramFaaliyetTuru
+
+    tur_map = {
+        t.kod: t.ad for t in ProgramFaaliyetTuru.objects.all()
+    }
+    if not tur_map:
+        tur_map = dict(ProgramSatir.FaaliyetTuru.choices)
     satirlar: list[dict[str, Any]] = []
     toplam_dk = 0
     for kod, gun_dk in sorted(gunluk.items(), key=lambda x: -x[1]):
@@ -227,16 +233,14 @@ def program_excel_icerik(program: ProgramPlan) -> tuple[str, bytes]:
             [
                 f"{satir.baslangic_saati:%H:%M} – {satir.bitis_saati:%H:%M}",
                 satir.sure_goster,
-                satir.get_faaliyet_turu_display(),
+                satir.tur_etiket,
                 satir.faaliyet_adi or "",
-                satir.gorunen_program_adi,
-                satir.get_faaliyet_durumu_display(),
             ]
         )
 
     icerik = basit_rapor_xlsx(
         baslik=f"Günlük Program — {program.ad}",
-        kolon_basliklari=["Saat", "Süre", "Tür", "Faaliyet", "Program", "Durum"],
+        kolon_basliklari=["Saat", "Süre", "Tür", "Faaliyet"],
         satirlar=satirlar,
         sayfa_adi="Program",
         ortala_kolonlari=[0, 1, 2],

@@ -240,6 +240,15 @@ YONETIM_NAV_GROUPS: tuple[YonetimNavGroup, ...] = (
                 ),
             ),
             YonetimNavItem(
+                label="Program Türleri",
+                url_name="yonetim:program_tur_listesi",
+                active_names=(
+                    "program_tur_listesi",
+                    "program_tur_ekle",
+                    "program_tur_duzenle",
+                ),
+            ),
+            YonetimNavItem(
                 label="İmam / Müezzin",
                 url_name="yonetim:imam_listesi",
                 active_names=("imam_listesi", "imam_ekle", "imam_duzenle", "imam_gorev_panel", "imam_onizleme", "imam_pdf"),

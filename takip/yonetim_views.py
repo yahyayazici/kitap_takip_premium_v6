@@ -84,6 +84,7 @@ from .yonetim_forms import (
     ImamMuezzinAtamaFormSet,
     ImamMuezzinListesiForm,
     PersonelProfiliForm,
+    ProgramFaaliyetTuruForm,
     ProgramPlanForm,
     ProgramSatirFormSet,
     SinifSubeForm,
@@ -1162,9 +1163,25 @@ def program_duzenle(request, pk):
         with transaction.atomic():
             form.save()
             formset.save()
+            kalan = list(
+                program.satirlar.order_by("baslangic_saati", "id")
+            )
+            for index, satir in enumerate(kalan, start=1):
+                if satir.sira != index:
+                    satir.sira = index
+                    satir.save(update_fields=["sira"])
 
         messages.success(request, f"“{program.ad}” güncellendi.")
         return redirect("yonetim:program_duzenle", pk=program.pk)
+
+    import json
+
+    from takip.models import ProgramFaaliyetTuru
+
+    tur_renk = {
+        t.kod: t.renk
+        for t in ProgramFaaliyetTuru.objects.filter(aktif=True)
+    }
 
     return render(
         request,
@@ -1174,6 +1191,60 @@ def program_duzenle(request, pk):
             "formset": formset,
             "program": program,
             "sure_donemler": program_tum_donem_ozetleri(program),
+            "tur_renk_json": json.dumps(tur_renk, ensure_ascii=False),
+        },
+    )
+
+
+@yonetici_gerekli
+def program_tur_listesi(request):
+    from takip.models import ProgramFaaliyetTuru
+
+    turler = ProgramFaaliyetTuru.objects.order_by("sira", "ad")
+    return render(
+        request,
+        "yonetim/program_tur_listesi.html",
+        {"turler": turler},
+    )
+
+
+@yonetici_gerekli
+def program_tur_ekle(request):
+    form = ProgramFaaliyetTuruForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Faaliyet türü eklendi.")
+        return redirect("yonetim:program_tur_listesi")
+    return render(
+        request,
+        "yonetim/form.html",
+        {
+            "form": form,
+            "sayfa_basligi": "Faaliyet Türü Ekle",
+            "sayfa_aciklama": "Günlük program satırlarında kullanılacak türü tanımlayın.",
+            "geri_url": "yonetim:program_tur_listesi",
+        },
+    )
+
+
+@yonetici_gerekli
+def program_tur_duzenle(request, pk):
+    from takip.models import ProgramFaaliyetTuru
+
+    tur = get_object_or_404(ProgramFaaliyetTuru, pk=pk)
+    form = ProgramFaaliyetTuruForm(request.POST or None, instance=tur)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Faaliyet türü güncellendi.")
+        return redirect("yonetim:program_tur_listesi")
+    return render(
+        request,
+        "yonetim/form.html",
+        {
+            "form": form,
+            "sayfa_basligi": f"Tür · {tur.ad}",
+            "sayfa_aciklama": "Tür adını, rengini ve sırasını güncelleyin.",
+            "geri_url": "yonetim:program_tur_listesi",
         },
     )
 

@@ -6,101 +6,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     {% include "includes/pwa_head.html" %}
     <title>Giriş · {{ panel_org }}</title>
-    <link rel="stylesheet" href="{% static 'css/cs-design-tokens.css' %}?v=1">
-    <link rel="stylesheet" href="{% static 'css/login-portal.css' %}">
-    <link rel="stylesheet" href="{% static 'css/cs-design-phase4.css' %}?v=1">
-    <link rel="stylesheet" href="{% static 'css/cs-design-phase5.css' %}?v=1">
-    <link rel="stylesheet" href="{% static 'css/cs-design-phase6.css' %}?v=1">
-    <link rel="stylesheet" href="{% static 'css/cs-design-phase7.css' %}?v=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="{% static 'css/login-portal.css' %}?v=prestige20">
 </head>
 <body>
 <div class="gate" id="gate">
-
-    <div class="gate-ambient" aria-hidden="true">
-        <div class="gate-mesh"></div>
-        <div class="gate-pattern">{% include "includes/login_tile_pattern.svg" %}</div>
-        <div class="gate-orbit gate-orbit--a"></div>
-        <div class="gate-orbit gate-orbit--b"></div>
-        <div class="gate-spotlight"></div>
+    <div class="gate-world" aria-hidden="true">
+        <div class="gate-sky"></div>
+        <div class="gate-haze"></div>
+        <div class="gate-beam"></div>
+        <div class="gate-grain"></div>
         <div class="gate-vignette"></div>
     </div>
 
-    {% include "includes/login_float_icons.svg" %}
-
     <div class="gate-layout">
-        <aside class="gate-showcase" aria-hidden="true">
-            <div class="gate-showcase-glow"></div>
-            <div class="gate-showcase-arch">
-                <svg viewBox="0 0 800 900" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="archStroke" x1="0" y1="0" x2="1" y2="1">
-                            <stop offset="0%" stop-color="#f0d78c" stop-opacity="0.45"/>
-                            <stop offset="50%" stop-color="#60a5fa" stop-opacity="0.28"/>
-                            <stop offset="100%" stop-color="#f0d78c" stop-opacity="0.35"/>
-                        </linearGradient>
-                    </defs>
-                    <path d="M120 820 V380 Q120 120 400 80 Q680 120 680 380 V820" stroke="url(#archStroke)" stroke-width="1.2" opacity="0.65"/>
-                    <path d="M160 820 V400 Q160 180 400 145 Q640 180 640 400 V820" stroke="url(#archStroke)" stroke-width="0.8" opacity="0.3"/>
-                </svg>
+        <aside class="gate-art" aria-hidden="true">
+            <div class="gate-sketch-stage">
+                <img
+                    src="{% static 'images/login-kurs-sketch.png' %}?v=prestige20"
+                    alt=""
+                    class="gate-sketch-img"
+                    width="1536"
+                    height="1024"
+                    decoding="async"
+                >
             </div>
-
-            <div class="gate-float gate-float--1 gate-float--tone-blue">
-                <span class="gate-float-icon"><svg><use href="#icon-okuma"/></svg></span>
-                <small>Okuma</small>
-            </div>
-            <div class="gate-float gate-float--2 gate-float--tone-indigo">
-                <span class="gate-float-icon"><svg><use href="#icon-ktt"/></svg></span>
-                <small>KTT</small>
-            </div>
-            <div class="gate-float gate-float--3 gate-float--tone-violet">
-                <span class="gate-float-icon"><svg><use href="#icon-sinav"/></svg></span>
-                <small>Sınav</small>
-            </div>
-            <div class="gate-float gate-float--4 gate-float--tone-gold">
-                <span class="gate-float-icon"><svg><use href="#icon-rehberlik"/></svg></span>
-                <small>Rehberlik</small>
-            </div>
-            <div class="gate-float gate-float--5 gate-float--tone-cyan">
-                <span class="gate-float-icon"><svg><use href="#icon-program"/></svg></span>
-                <small>Program</small>
-            </div>
-            <div class="gate-float gate-float--6 gate-float--tone-emerald">
-                <span class="gate-float-icon"><svg><use href="#icon-dini"/></svg></span>
-                <small>Dini Ders</small>
-            </div>
-            <div class="gate-float gate-float--7 gate-float--tone-sky">
-                <span class="gate-float-icon"><svg><use href="#icon-deneme"/></svg></span>
-                <small>Deneme</small>
-            </div>
-            <div class="gate-float gate-float--8 gate-float--tone-amber">
-                <span class="gate-float-icon"><svg><use href="#icon-etut"/></svg></span>
-                <small>Etüt</small>
-            </div>
-            <div class="gate-float gate-float--9 gate-float--tone-rose">
-                <span class="gate-float-icon"><svg><use href="#icon-veli"/></svg></span>
-                <small>Veli</small>
-            </div>
-            <div class="gate-float gate-float--10 gate-float--tone-teal">
-                <span class="gate-float-icon"><svg><use href="#icon-duyuru"/></svg></span>
-                <small>Duyuru</small>
-            </div>
+            <p class="gate-art-caption">Çinili Saray · Eğitim yolculuğu</p>
         </aside>
 
         <main class="gate-stage">
             <header class="gate-brand">
-                <div class="gate-logo-ring">
-                    <img src="{% static 'images/cinili-saray-logo-white.png' %}" alt="{{ panel_org }}">
+                <div class="gate-logo-wrap">
+                    <div class="gate-logo-aura"></div>
+                    <div class="gate-logo">
+                        <img src="{% static 'images/cinili-saray-logo-white.png' %}" alt="{{ panel_org }}">
+                    </div>
                 </div>
                 <h1 class="gate-brand-title">{{ panel_org }}</h1>
                 <p class="gate-brand-sub">Yönetim Platformu</p>
             </header>
 
             <section class="gate-panel">
-                <div class="gate-panel-shine" aria-hidden="true"></div>
-
-                <p class="gate-panel-eyebrow">Personel erişimi</p>
+                <div class="gate-panel-edge" aria-hidden="true"></div>
                 <h2>Oturum açın</h2>
-                <p class="gate-panel-lead">Kurum hesabınızla panele girin; rolünüze göre yönlendirilirsiniz.</p>
+                <p class="gate-panel-lead">Hesabınızla giriş yapın; rolünüze göre yönlendirilirsiniz.</p>
 
                 {% if form.errors %}
                 <div class="gate-alert" role="alert">Kullanıcı adı veya şifre hatalı.</div>
@@ -129,16 +79,16 @@
                     </div>
 
                     <button type="submit" class="gate-submit">
-                        <span class="gate-submit-text">Panele giriş</span>
-                        <span class="gate-submit-glow" aria-hidden="true"></span>
+                        <span class="gate-submit-shine" aria-hidden="true"></span>
+                        <span class="gate-submit-text">Giriş yap</span>
                     </button>
                 </form>
 
-                <p class="gate-foot">Hesap veya şifre → kurum idaresi</p>
+                <p class="gate-foot">Hesap veya şifre için kurum idaresine başvurun</p>
             </section>
         </main>
     </div>
 </div>
-<script src="{% static 'js/login-portal.js' %}"></script>
+<script src="{% static 'js/login-portal.js' %}?v=prestige20"></script>
 </body>
 </html>

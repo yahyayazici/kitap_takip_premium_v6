@@ -14,6 +14,7 @@ from .models import (
     ImamMuezzinAtama,
     ImamMuezzinListesi,
     PersonelProfili,
+    ProgramFaaliyetTuru,
     ProgramPlan,
     ProgramSatir,
     SinifSube,
@@ -782,30 +783,74 @@ class ProgramSatirForm(forms.ModelForm):
     class Meta:
         model = ProgramSatir
         fields = [
-            "sira",
             "baslangic_saati",
             "bitis_saati",
             "faaliyet_turu",
             "faaliyet_adi",
-            "program_adi",
-            "faaliyet_durumu",
         ]
         widgets = {
-            "sira": forms.NumberInput(attrs={"class": "cs-input", "min": 0}),
             "baslangic_saati": forms.TimeInput(
-                attrs={"class": "cs-input", "type": "time"}
+                attrs={"class": "cs-input pg-flow-time", "type": "time"}
             ),
             "bitis_saati": forms.TimeInput(
-                attrs={"class": "cs-input", "type": "time"}
+                attrs={"class": "cs-input pg-flow-time", "type": "time"}
             ),
-            "faaliyet_turu": forms.Select(attrs={"class": "cs-input"}),
+            "faaliyet_turu": forms.Select(
+                attrs={"class": "cs-input pg-flow-tur", "data-pg-tur": "1"}
+            ),
             "faaliyet_adi": forms.TextInput(
-                attrs={"class": "cs-input", "placeholder": "Faaliyet adı"}
+                attrs={
+                    "class": "cs-input pg-flow-title",
+                    "placeholder": "Faaliyet adı",
+                }
             ),
-            "program_adi": forms.TextInput(
-                attrs={"class": "cs-input", "placeholder": "Opsiyonel"}
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from takip.models import ProgramFaaliyetTuru
+
+        turler = ProgramFaaliyetTuru.objects.filter(aktif=True).order_by("sira", "ad")
+        choices = [(t.kod, t.ad) for t in turler]
+        if not choices:
+            choices = list(ProgramSatir.FaaliyetTuru.choices)
+        self.fields["faaliyet_turu"] = forms.ChoiceField(
+            label="Tür",
+            choices=choices,
+            widget=forms.Select(
+                attrs={"class": "cs-input pg-flow-tur", "data-pg-tur": "1"}
             ),
-            "faaliyet_durumu": forms.Select(attrs={"class": "cs-input"}),
+        )
+        if self.instance and self.instance.pk and self.instance.faaliyet_turu:
+            mevcut = self.instance.faaliyet_turu
+            if mevcut not in dict(choices):
+                self.fields["faaliyet_turu"].choices = [
+                    (mevcut, mevcut),
+                    *choices,
+                ]
+
+
+class ProgramFaaliyetTuruForm(forms.ModelForm):
+    class Meta:
+        model = ProgramFaaliyetTuru
+        fields = ["kod", "ad", "renk", "sira", "aktif"]
+        widgets = {
+            "kod": forms.TextInput(
+                attrs={"class": "cs-input", "placeholder": "orn. mola"}
+            ),
+            "ad": forms.TextInput(attrs={"class": "cs-input"}),
+            "renk": forms.Select(
+                choices=[
+                    ("green", "Yeşil"),
+                    ("blue", "Mavi"),
+                    ("amber", "Turuncu"),
+                    ("sky", "Açık mavi"),
+                    ("slate", "Gri"),
+                ],
+                attrs={"class": "cs-input"},
+            ),
+            "sira": forms.NumberInput(attrs={"class": "cs-input", "min": 0}),
+            "aktif": forms.CheckboxInput(attrs={"class": "cs-check"}),
         }
 
 
@@ -813,7 +858,7 @@ ProgramSatirFormSet = inlineformset_factory(
     ProgramPlan,
     ProgramSatir,
     form=ProgramSatirForm,
-    extra=2,
+    extra=3,
     can_delete=True,
 )
 

@@ -110,26 +110,22 @@
     <table>
         <thead>
             <tr>
-                <th style="width:16%">Saat</th>
-                <th style="width:12%">Süre</th>
-                <th style="width:12%">Tür</th>
-                <th style="width:28%">Faaliyet</th>
-                <th style="width:20%">Program</th>
-                <th style="width:12%">Durum</th>
+                <th style="width:22%">Saat</th>
+                <th style="width:14%">Süre</th>
+                <th style="width:16%">Tür</th>
+                <th style="width:48%">Faaliyet</th>
             </tr>
         </thead>
         <tbody>
             {% for satir in satirlar %}
-            <tr{% if satir.faaliyet_durumu == 'pasif' %} class="passive"{% endif %}>
+            <tr>
                 <td><strong>{{ satir.baslangic_saati|time:"H:i" }} – {{ satir.bitis_saati|time:"H:i" }}</strong></td>
                 <td>{{ satir.sure_goster }}</td>
-                <td>{{ satir.get_faaliyet_turu_display }}</td>
+                <td>{{ satir.tur_etiket }}</td>
                 <td>{{ satir.faaliyet_adi }}</td>
-                <td>{{ satir.gorunen_program_adi }}</td>
-                <td>{{ satir.get_faaliyet_durumu_display }}</td>
             </tr>
             {% empty %}
-            <tr><td colspan="6">Program satırı tanımlanmamış.</td></tr>
+            <tr><td colspan="4">Program satırı tanımlanmamış.</td></tr>
             {% endfor %}
         </tbody>
     </table>

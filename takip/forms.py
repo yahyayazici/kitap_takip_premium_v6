@@ -680,13 +680,20 @@ class OgretmenOdemeDonemForm(forms.Form):
         widget=forms.Textarea(attrs={"class": "input", "rows": 2}),
     )
 
-    def __init__(self, *args, **kwargs):
-        from takip.models import EtutHocasi
-
+    def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
-        from takip.ogretmen_odeme_service import aktif_ogretmenler
+        from takip.ogretmen_odeme_service import yetkili_odeme_ogretmenleri
 
-        self.fields["etut_hocasi"].queryset = aktif_ogretmenler()
+        self.user = user
+        if user is not None:
+            self.fields["etut_hocasi"].queryset = yetkili_odeme_ogretmenleri(
+                user,
+                olusturma_icin=True,
+            )
+        else:
+            from takip.ogretmen_odeme_service import aktif_ogretmenler
+
+            self.fields["etut_hocasi"].queryset = aktif_ogretmenler()
 
     def clean(self):
         cleaned = super().clean()
@@ -694,6 +701,15 @@ class OgretmenOdemeDonemForm(forms.Form):
         bitis = cleaned.get("bitis")
         if baslangic and bitis and bitis < baslangic:
             self.add_error("bitis", "Bitiş tarihi başlangıçtan önce olamaz.")
+        hoca = cleaned.get("etut_hocasi")
+        if self.user is not None and hoca is not None:
+            from takip.ogretmen_odeme_service import yetkili_odeme_ogretmenleri
+
+            if not yetkili_odeme_ogretmenleri(
+                self.user,
+                olusturma_icin=True,
+            ).filter(pk=hoca.pk).exists():
+                self.add_error("etut_hocasi", "Bu öğretmen için kayıt oluşturamazsınız.")
         return cleaned
 
 

@@ -3,7 +3,7 @@
 
 {% block title %}Programlar{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/program-sure.css' %}?v=pg-mob2">
+<link rel="stylesheet" href="{% static 'css/program-sure.css' %}?v=flow3">
 {% endblock %}
 
 {% block content %}
@@ -59,36 +59,7 @@
     </div>
     {% if secili_program.aciklama %}<p class="program-desc">{{ secili_program.aciklama }}</p>{% endif %}
 
-    {% include "includes/program_schedule_mobile.html" with satirlar=satirlar %}
-
-    <div class="pg-desktop-table responsive-table">
-        <table class="report-data-table program-table">
-            <thead>
-                <tr>
-                    <th>Saat</th>
-                    <th>Süre</th>
-                    <th>Tür</th>
-                    <th>Faaliyet</th>
-                    <th>Program</th>
-                    <th>Durum</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for satir in satirlar %}
-                <tr class="{% if satir.faaliyet_durumu == 'pasif' %}program-row-passive{% endif %}">
-                    <td><strong>{{ satir.baslangic_saati|time:"H:i" }} – {{ satir.bitis_saati|time:"H:i" }}</strong></td>
-                    <td>{{ satir.sure_goster }}</td>
-                    <td>{{ satir.get_faaliyet_turu_display }}</td>
-                    <td>{{ satir.faaliyet_adi }}</td>
-                    <td>{{ satir.gorunen_program_adi }}</td>
-                    <td>{{ satir.get_faaliyet_durumu_display }}</td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="6" class="report-empty">Bu programa henüz satır eklenmemiş.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+    {% include "includes/program_schedule_table.html" with satirlar=satirlar %}
 </section>
 </div>
 {% else %}

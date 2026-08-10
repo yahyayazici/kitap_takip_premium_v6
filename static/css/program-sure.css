@@ -561,3 +561,293 @@
         grid-template-columns: 1fr 1fr;
     }
 }
+
+/* —— Renk tokenları (örnek timeline) —— */
+.pg-flow-renk-green .pg-flow-dot,
+.pg-flow-renk-green .pg-view-dot,
+.pg-flow-renk-green .pg-mob-dot,
+.pg-tur-swatch.pg-flow-renk-green { background: #22c55e; border-color: #bbf7d0; }
+
+.pg-flow-renk-blue .pg-flow-dot,
+.pg-flow-renk-blue .pg-view-dot,
+.pg-flow-renk-blue .pg-mob-dot,
+.pg-tur-swatch.pg-flow-renk-blue { background: #1d4ed8; border-color: #bfdbfe; }
+
+.pg-flow-renk-amber .pg-flow-dot,
+.pg-flow-renk-amber .pg-view-dot,
+.pg-flow-renk-amber .pg-mob-dot,
+.pg-tur-swatch.pg-flow-renk-amber { background: #f59e0b; border-color: #fde68a; }
+
+.pg-flow-renk-sky .pg-flow-dot,
+.pg-flow-renk-sky .pg-view-dot,
+.pg-flow-renk-sky .pg-mob-dot,
+.pg-tur-swatch.pg-flow-renk-sky { background: #38bdf8; border-color: #bae6fd; }
+
+.pg-flow-renk-slate .pg-flow-dot,
+.pg-flow-renk-slate .pg-view-dot,
+.pg-flow-renk-slate .pg-mob-dot,
+.pg-tur-swatch.pg-flow-renk-slate { background: #64748b; border-color: #e2e8f0; }
+
+.pg-tur-swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid #e2e8f0;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+/* —— Okuma: iki sütunlu timeline —— */
+.pg-desktop-flow {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 48px;
+    padding: 8px 20px 28px;
+}
+
+.pg-view-item {
+    display: flex;
+    gap: 14px;
+    align-items: stretch;
+    min-height: 88px;
+}
+
+.pg-view-rail {
+    position: relative;
+    width: 18px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.pg-view-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 3px solid #e2e8f0;
+    background: #64748b;
+    margin-top: 6px;
+    z-index: 1;
+    flex-shrink: 0;
+}
+
+.pg-view-line {
+    flex: 1;
+    width: 2px;
+    background: #e2e8f0;
+    margin-top: 4px;
+    min-height: 40px;
+}
+
+.pg-view-body {
+    padding: 0 0 18px;
+    min-width: 0;
+}
+
+.pg-view-time {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+}
+
+.pg-view-title {
+    margin: 4px 0 8px;
+    font-size: 20px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+}
+
+.pg-view-meta {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.pg-view-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #334155;
+    background: #fff;
+}
+
+.pg-view-sure {
+    font-size: 13px;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.program-page .pg-mob-meta {
+    margin: 8px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.program-page .pg-mob-time {
+    display: block;
+    margin: 0;
+}
+
+.program-page .pg-mob-title {
+    margin: 4px 0 0;
+}
+
+.program-page .pg-mob-tur {
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+@media (max-width: 768px) {
+    .pg-desktop-flow {
+        display: none !important;
+    }
+}
+
+/* —— Düzenleme akışı —— */
+.pg-flow-card {
+    margin: 18px 0 0;
+    padding: 18px 18px 8px;
+    background: #fff;
+    border: 1px solid #d8e0ec;
+    border-radius: 18px;
+    box-shadow: 0 10px 28px rgba(15, 39, 68, 0.05);
+}
+
+.pg-flow-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 36px;
+    padding: 8px 4px 16px;
+}
+
+.pg-flow-item {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+    min-height: 110px;
+}
+
+.pg-flow-rail {
+    width: 18px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.pg-flow-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 3px solid #e2e8f0;
+    background: #64748b;
+    margin-top: 10px;
+    z-index: 1;
+}
+
+.pg-flow-line {
+    flex: 1;
+    width: 2px;
+    background: #e2e8f0;
+    margin-top: 4px;
+}
+
+.pg-flow-body {
+    flex: 1;
+    min-width: 0;
+    padding-bottom: 12px;
+}
+
+.pg-flow-times {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.pg-flow-times .pg-flow-time,
+.pg-flow-times input[type="time"] {
+    width: auto;
+    min-width: 0;
+    max-width: 118px;
+    font-weight: 700;
+}
+
+.pg-flow-times-sep {
+    color: #94a3b8;
+    font-weight: 700;
+}
+
+.pg-flow-name input,
+.pg-flow-title {
+    width: 100%;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.pg-flow-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.pg-flow-meta select {
+    max-width: 180px;
+}
+
+.pg-flow-delete {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+}
+
+/* Kaydet — asistan FAB altında kalmasın */
+.program-form-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 1600;
+    display: flex;
+    justify-content: flex-start;
+    gap: 12px;
+    margin: 18px 0 0;
+    padding: 14px 0 calc(18px + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0), #f8fafc 28%);
+}
+
+.program-edit-form {
+    padding-bottom: 96px;
+}
+
+.program-form-actions .primary-btn {
+    min-width: 160px;
+    box-shadow: 0 10px 24px rgba(15, 39, 68, 0.16);
+}
+
+@media (max-width: 900px) {
+    .pg-flow-grid,
+    .pg-desktop-flow {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+}

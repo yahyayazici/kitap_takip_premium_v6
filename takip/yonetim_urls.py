@@ -409,6 +409,21 @@ urlpatterns = [
         yonetim_views.program_excel,
         name="program_excel",
     ),
+    path(
+        "programlar/turler/",
+        yonetim_views.program_tur_listesi,
+        name="program_tur_listesi",
+    ),
+    path(
+        "programlar/turler/ekle/",
+        yonetim_views.program_tur_ekle,
+        name="program_tur_ekle",
+    ),
+    path(
+        "programlar/turler/<int:pk>/duzenle/",
+        yonetim_views.program_tur_duzenle,
+        name="program_tur_duzenle",
+    ),
 
     path(
         "imam-muezzin/",

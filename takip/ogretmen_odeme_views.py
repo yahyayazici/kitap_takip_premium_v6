@@ -7,19 +7,15 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
-from django.urls import reverse
 
 from config.branding import panel_branding_context
 from takip.forms import OgretmenOdemeDonemForm
-from takip.models import SinifSube
-from takip.ogretmen_odeme_models import OgretmenOdemeDonemi
 from takip.ogretmen_odeme_service import (
-    aktif_ogretmenler,
     donem_detay_verisi,
     donem_kaydet,
     donem_matris_verisi,
     donem_olustur,
-    donem_qs,
+    odeme_tam_kapsam_var,
     ogretmen_odeme_finans_gorebilir,
     ogretmen_odeme_girebilir,
     ogretmen_odeme_silebilir,
@@ -27,6 +23,9 @@ from takip.ogretmen_odeme_service import (
     rapor_filtreleri,
     rapor_istatistik,
     rapor_ozet_satirlari,
+    yetkili_odeme_donemleri,
+    yetkili_odeme_ogretmenleri,
+    yetkili_odeme_siniflari,
 )
 from takip.pdf_utils import html_to_pdf, make_pdf_response, pdf_engine_status, pdf_error_response
 from takip.permissions.decorators import require_permission
@@ -39,10 +38,17 @@ def _ortak_sayfa_verisi(user):
         "finans_goster": ogretmen_odeme_finans_gorebilir(user),
         "girebilir": ogretmen_odeme_girebilir(user),
         "silebilir": ogretmen_odeme_silebilir(user),
-        "siniflar": SinifSube.objects.filter(aktif=True).order_by("sinif", "sube"),
+        "siniflar": yetkili_odeme_siniflari(user),
         "branslar": Brans.objects.filter(aktif=True).order_by("sira", "ad"),
-        "ogretmenler": aktif_ogretmenler(),
+        "ogretmenler": yetkili_odeme_ogretmenleri(user),
+        "tam_kapsam": odeme_tam_kapsam_var(user),
     }
+
+
+def _izinli_sinif_ids(user) -> set[int] | None:
+    if odeme_tam_kapsam_var(user):
+        return None
+    return set(yetkili_odeme_siniflari(user).values_list("id", flat=True))
 
 
 @login_required
@@ -51,7 +57,7 @@ def ogretmen_odeme_listesi(request):
     olustur_form = None
     if ogretmen_odeme_girebilir(request.user):
         if request.method == "POST" and request.POST.get("islem") == "olustur":
-            olustur_form = OgretmenOdemeDonemForm(request.POST)
+            olustur_form = OgretmenOdemeDonemForm(request.POST, user=request.user)
             if olustur_form.is_valid():
                 donem = donem_olustur(
                     etut_hocasi=olustur_form.cleaned_data["etut_hocasi"],
@@ -63,9 +69,9 @@ def ogretmen_odeme_listesi(request):
                 messages.success(request, "Ödeme dönemi oluşturuldu.")
                 return redirect("ogretmen_odeme_detay", pk=donem.pk)
         else:
-            olustur_form = OgretmenOdemeDonemForm()
+            olustur_form = OgretmenOdemeDonemForm(user=request.user)
 
-    donemler = donem_qs()[:100]
+    donemler = yetkili_odeme_donemleri(request.user).order_by("-baslangic", "-id")[:100]
     ctx = {
         "donemler": donemler,
         "olustur_form": olustur_form,
@@ -77,13 +83,22 @@ def ogretmen_odeme_listesi(request):
 @login_required
 @require_permission("ogretmen_odeme", "view")
 def ogretmen_odeme_detay(request, pk: int):
-    donem = get_object_or_404(donem_qs(), pk=pk)
+    donem = get_object_or_404(yetkili_odeme_donemleri(request.user), pk=pk)
+    izinli = _izinli_sinif_ids(request.user)
     if request.method == "POST" and ogretmen_odeme_girebilir(request.user):
-        donem_kaydet(donem, request.POST, request.user)
+        donem_kaydet(
+            donem,
+            request.POST,
+            request.user,
+            izinli_sinif_ids=izinli,
+        )
         messages.success(request, "Ders saatleri kaydedildi.")
         return redirect("ogretmen_odeme_detay", pk=donem.pk)
 
-    detay = donem_matris_verisi(donem)
+    detay = donem_matris_verisi(
+        donem,
+        siniflar=yetkili_odeme_siniflari(request.user),
+    )
     ctx = {
         **detay,
         **_ortak_sayfa_verisi(request.user),
@@ -94,9 +109,33 @@ def ogretmen_odeme_detay(request, pk: int):
 @login_required
 @require_permission("ogretmen_odeme", "export_pdf")
 def ogretmen_odeme_pdf(request, pk: int):
-    donem = get_object_or_404(donem_qs(), pk=pk)
+    donem = get_object_or_404(yetkili_odeme_donemleri(request.user), pk=pk)
     finans = ogretmen_odeme_finans_gorebilir(request.user)
     detay = donem_detay_verisi(donem)
+    if not odeme_tam_kapsam_var(request.user):
+        izinli = _izinli_sinif_ids(request.user) or set()
+        for gun in detay["gunler"]:
+            gun["dersler"] = [
+                d for d in gun["dersler"] if d.get("sinif_sube") in izinli
+            ]
+            if not gun["dersler"]:
+                gun["dersler"] = [
+                    {
+                        "sinif_sube": "",
+                        "sinif_label": "",
+                        "brans": "",
+                        "brans_label": "—",
+                        "saat": "",
+                        "saat_sayi": 0,
+                    }
+                ]
+            gun["has_kayit"] = any(d["saat_sayi"] for d in gun["dersler"])
+            from decimal import Decimal
+
+            gun["toplam_saat"] = sum(
+                (d["saat_sayi"] or Decimal("0") for d in gun["dersler"]),
+                Decimal("0"),
+            )
     pdf_satir_sayisi = sum(
         max(1, sum(1 for ders in gun["dersler"] if ders.get("saat_sayi")))
         for gun in detay["gunler"]
@@ -122,7 +161,7 @@ def ogretmen_odeme_pdf(request, pk: int):
 def ogretmen_odeme_rapor(request):
     finans = ogretmen_odeme_finans_gorebilir(request.user)
     filtre = rapor_filtreleri(request.GET)
-    satirlar = rapor_ozet_satirlari(filtre, finans=finans)
+    satirlar = rapor_ozet_satirlari(filtre, finans=finans, user=request.user)
     istatistik = rapor_istatistik(satirlar, finans=finans)
 
     if request.GET.get("format") == "excel" and can(request.user, "ogretmen_odeme", "export_excel"):
@@ -162,7 +201,7 @@ def ogretmen_odeme_rapor(request):
 @login_required
 @require_permission("ogretmen_odeme", "delete")
 def ogretmen_odeme_sil(request, pk: int):
-    donem = get_object_or_404(OgretmenOdemeDonemi, pk=pk)
+    donem = get_object_or_404(yetkili_odeme_donemleri(request.user), pk=pk)
     if request.method == "POST":
         donem.delete()
         messages.success(request, "Ödeme dönemi silindi.")

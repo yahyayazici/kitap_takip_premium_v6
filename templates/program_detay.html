@@ -3,7 +3,7 @@
 
 {% block title %}{{ program.ad }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/program-sure.css' %}?v=pg-mob2">
+<link rel="stylesheet" href="{% static 'css/program-sure.css' %}?v=flow3">
 {% endblock %}
 
 {% block content %}
@@ -25,7 +25,9 @@
 
 <div class="program-body-stack">
 {% include "includes/program_sure_ozeti.html" with baslangic_kapali=True %}
-{% include "includes/program_schedule_table.html" with satirlar=satirlar %}
+<section class="report-table-card program-schedule-card">
+    {% include "includes/program_schedule_table.html" with satirlar=satirlar %}
+</section>
 </div>
 
 </div>
