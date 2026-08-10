@@ -15,6 +15,7 @@ from . import mezun_yonetim_views
 from . import aidat_yonetim_views
 from . import veli_randevu_yonetim_views
 from . import sinav_basvuru_yonetim_views
+from . import sinav_basvuru_mesaj_yonetim_views
 from . import yonetim_hizli_kayit_views
 from . import idareci_views
 from . import personel_toplanti_views
@@ -529,6 +530,16 @@ urlpatterns = [
         name="sinav_basvuru_listesi",
     ),
     path(
+        "sinav-basvurulari/excel/",
+        sinav_basvuru_yonetim_views.sinav_basvuru_excel,
+        name="sinav_basvuru_excel",
+    ),
+    path(
+        "sinav-basvurulari/toplu-mesaj/",
+        sinav_basvuru_yonetim_views.sinav_basvuru_toplu_mesaj,
+        name="sinav_basvuru_toplu_mesaj",
+    ),
+    path(
         "sinav-basvurulari/<int:pk>/",
         sinav_basvuru_yonetim_views.sinav_basvuru_detay,
         name="sinav_basvuru_detay",
@@ -537,6 +548,21 @@ urlpatterns = [
         "sinav-basvurulari/<int:pk>/sil/",
         sinav_basvuru_yonetim_views.sinav_basvuru_sil,
         name="sinav_basvuru_sil",
+    ),
+    path(
+        "sinav-basvuru-mesaj-anlari/",
+        sinav_basvuru_mesaj_yonetim_views.mesaj_an_listesi,
+        name="sinav_basvuru_mesaj_an_listesi",
+    ),
+    path(
+        "sinav-basvuru-mesaj-anlari/<int:pk>/",
+        sinav_basvuru_mesaj_yonetim_views.mesaj_an_duzenle,
+        name="sinav_basvuru_mesaj_an_duzenle",
+    ),
+    path(
+        "sinav-basvuru-mesaj-anlari/<int:pk>/toggle/",
+        sinav_basvuru_mesaj_yonetim_views.mesaj_an_toggle,
+        name="sinav_basvuru_mesaj_an_toggle",
     ),
 
     path(

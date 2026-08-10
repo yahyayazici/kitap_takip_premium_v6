@@ -36,7 +36,7 @@
     </div>
 </section>
 
-<section class="report-table-card yonetim-table-card">
+<section class="report-table-card yonetim-table-card" style="margin-bottom:1.25rem;">
     <div class="card-heading">
         <div>
             <p class="card-kicker">YÖNETİM</p>
@@ -45,6 +45,7 @@
     </div>
     <form method="post" style="display:grid;gap:1rem;max-width:36rem;">
         {% csrf_token %}
+        <input type="hidden" name="action" value="kaydet">
         <div>
             <label for="durum">Durum</label>
             <select class="cs-input" id="durum" name="durum">
@@ -52,6 +53,7 @@
                 <option value="{{ value }}" {% if basvuru.durum == value %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
             </select>
+            <p class="muted" style="margin:0.4rem 0 0;font-size:0.9rem;">Kabul/Red seçilip kaydedilince ilgili mesaj anı aktifse WhatsApp gider.</p>
         </div>
         <div>
             <label for="notlar">Yönetim notu</label>
@@ -67,6 +69,71 @@
         {% csrf_token %}
         <button type="submit" class="secondary-btn" style="color:#b91c1c;">Başvuruyu sil</button>
     </form>
+</section>
+
+<section class="report-table-card yonetim-table-card" style="margin-bottom:1.25rem;">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">WHATSAPP</p>
+            <h2>Mesaj gönder</h2>
+        </div>
+        {% if whatsapp_aktif %}
+        <span class="status-pill status-okunuyor">API aktif</span>
+        {% else %}
+        <span class="status-pill status-iade">API pasif</span>
+        {% endif %}
+    </div>
+    <form method="post" style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:end;max-width:36rem;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="mesaj_gonder">
+        <div style="flex:1;min-width:12rem;">
+            <label for="an_kodu">Mesaj anı</label>
+            <select class="cs-input" id="an_kodu" name="an_kodu" required>
+                {% for s in manuel_sablonlar %}
+                <option value="{{ s.an_kodu }}">{{ s.baslik }}{% if not s.aktif %} (pasif){% endif %}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="primary-btn" onclick="return confirm('Bu başvuruya mesaj gönderilsin mi?');">Gönder</button>
+    </form>
+</section>
+
+<section class="report-table-card yonetim-table-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">LOG</p>
+            <h2>Gönderim geçmişi</h2>
+        </div>
+        <span class="report-record-count">{{ mesaj_loglari|length }} kayıt</span>
+    </div>
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <thead>
+                <tr>
+                    <th>Zaman</th>
+                    <th>An</th>
+                    <th>Alıcı</th>
+                    <th>Telefon</th>
+                    <th>Durum</th>
+                    <th>Yanıt</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in mesaj_loglari %}
+                <tr>
+                    <td>{{ log.olusturulma|date:"d.m.Y H:i" }}</td>
+                    <td>{{ log.an_kodu }}</td>
+                    <td>{{ log.alici_etiket|default:"—" }}</td>
+                    <td>{{ log.telefon }}</td>
+                    <td>{{ log.get_durum_display }}</td>
+                    <td class="muted" style="max-width:16rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ log.provider_yanit }}">{{ log.provider_yanit|default:"—"|truncatechars:80 }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="report-empty">Henüz mesaj logu yok.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </section>
 
 {% endblock %}

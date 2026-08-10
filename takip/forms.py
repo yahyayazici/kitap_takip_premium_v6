@@ -1227,3 +1227,22 @@ class SinavBasvuruForm(StyledModelForm):
             raise forms.ValidationError("İstanbul ilçelerinden birini seçin.")
         return ilce
 
+
+class SinavBasvuruMesajSablonForm(StyledModelForm):
+    class Meta:
+        from takip.models import SinavBasvuruMesajSablon
+
+        model = SinavBasvuruMesajSablon
+        fields = [
+            "baslik",
+            "metin",
+            "aktif",
+            "alici",
+            "wa_template_name",
+            "wa_template_lang",
+            "sira",
+        ]
+        widgets = {
+            "metin": forms.Textarea(attrs={"rows": 6}),
+        }
+
