@@ -1,5 +1,5 @@
 from decimal import Decimal, ROUND_HALF_UP
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -1240,13 +1240,12 @@ class ProgramSatir(models.Model):
 
     @classmethod
     def sure_dakika_hesapla(cls, baslangic, bitis) -> int:
+        """Geceyi aşan aralıkları destekler (örn. 22:00–06:00 uyku)."""
         bas = datetime.combine(date.min, baslangic)
         bit = datetime.combine(date.min, bitis)
 
         if bit <= bas:
-            raise ValidationError(
-                "Bitiş saati başlangıç saatinden sonra olmalıdır."
-            )
+            bit += timedelta(days=1)
 
         return int((bit - bas).total_seconds() // 60)
 

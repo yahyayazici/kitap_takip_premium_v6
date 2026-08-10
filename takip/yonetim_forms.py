@@ -757,13 +757,24 @@ class ProgramPlanForm(forms.ModelForm):
                 attrs={"class": "cs-input", "rows": 2}
             ),
             "baslangic_tarihi": forms.DateInput(
-                attrs={"class": "cs-input", "type": "date"}
+                format="%Y-%m-%d",
+                attrs={"class": "cs-input", "type": "date"},
             ),
             "bitis_tarihi": forms.DateInput(
-                attrs={"class": "cs-input", "type": "date"}
+                format="%Y-%m-%d",
+                attrs={"class": "cs-input", "type": "date"},
             ),
             "aktif": forms.CheckboxInput(attrs={"class": "cs-checkbox"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name in ("baslangic_tarihi", "bitis_tarihi"):
+            self.fields[name].input_formats = [
+                "%Y-%m-%d",
+                "%d/%m/%Y",
+                "%d.%m.%Y",
+            ]
 
     def clean(self):
         cleaned = super().clean()
@@ -790,10 +801,12 @@ class ProgramSatirForm(forms.ModelForm):
         ]
         widgets = {
             "baslangic_saati": forms.TimeInput(
-                attrs={"class": "cs-input pg-flow-time", "type": "time"}
+                format="%H:%M",
+                attrs={"class": "cs-input pg-flow-time", "type": "time"},
             ),
             "bitis_saati": forms.TimeInput(
-                attrs={"class": "cs-input pg-flow-time", "type": "time"}
+                format="%H:%M",
+                attrs={"class": "cs-input pg-flow-time", "type": "time"},
             ),
             "faaliyet_turu": forms.Select(
                 attrs={"class": "cs-input pg-flow-tur", "data-pg-tur": "1"}
@@ -809,6 +822,9 @@ class ProgramSatirForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         from takip.models import ProgramFaaliyetTuru
+
+        for name in ("baslangic_saati", "bitis_saati"):
+            self.fields[name].input_formats = ["%H:%M", "%H:%M:%S"]
 
         turler = ProgramFaaliyetTuru.objects.filter(aktif=True).order_by("sira", "ad")
         choices = [(t.kod, t.ad) for t in turler]
@@ -828,6 +844,17 @@ class ProgramSatirForm(forms.ModelForm):
                     (mevcut, mevcut),
                     *choices,
                 ]
+
+    def has_changed(self):
+        # Tür seçili kalsa bile boş ekstra satırı kayda alma
+        if not super().has_changed():
+            return False
+        bas = self.data.get(self.add_prefix("baslangic_saati")) if self.data else None
+        bit = self.data.get(self.add_prefix("bitis_saati")) if self.data else None
+        ad = self.data.get(self.add_prefix("faaliyet_adi")) if self.data else None
+        if self.is_bound and not (bas or bit or (ad or "").strip()):
+            return False
+        return True
 
 
 class ProgramFaaliyetTuruForm(forms.ModelForm):

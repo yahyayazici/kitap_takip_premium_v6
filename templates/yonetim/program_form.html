@@ -27,6 +27,12 @@
 <form method="post" class="program-edit-form" id="program-edit-form">
     {% csrf_token %}
 
+    {% if form.errors or formset.errors or formset.non_form_errors %}
+    <div class="yonetim-form-errors" style="margin-bottom:1rem;">
+        Kayıt tamamlanamadı — satırlar PDF’e yansımaz. Üstteki tarih alanlarını ve satır hatalarını kontrol edip tekrar Kaydet’e basın.
+    </div>
+    {% endif %}
+
     <section class="dashboard-card yonetim-form-card">
         <div class="card-heading"><div><p class="card-kicker">PLAN BİLGİSİ</p><h2>Genel Ayarlar</h2></div></div>
         {% if form.non_field_errors %}<div class="yonetim-form-errors">{{ form.non_field_errors }}</div>{% endif %}
@@ -67,15 +73,24 @@
                 <tbody id="pg-satir-body">
                     {% for satir_form in formset %}
                     <tr class="pg-satir-row">
-                        {% for hidden in satir_form.hidden_fields %}{{ hidden }}{% endfor %}
-                        <td>{{ satir_form.baslangic_saati }}</td>
+                        <td>
+                            {% for hidden in satir_form.hidden_fields %}{{ hidden }}{% endfor %}
+                            {{ satir_form.baslangic_saati }}
+                        </td>
                         <td>{{ satir_form.bitis_saati }}</td>
                         <td>{{ satir_form.faaliyet_turu }}</td>
                         <td>{{ satir_form.faaliyet_adi }}</td>
                         <td>{% if satir_form.DELETE %}{{ satir_form.DELETE }}{% endif %}</td>
                     </tr>
                     {% if satir_form.errors %}
-                    <tr class="pg-satir-errors"><td colspan="5" class="yonetim-field-error">{{ satir_form.errors }}</td></tr>
+                    <tr class="pg-satir-errors">
+                        <td colspan="5" class="yonetim-field-error">
+                            {% for err in satir_form.non_field_errors %}<div>{{ err }}</div>{% endfor %}
+                            {% for field in satir_form %}
+                                {% for err in field.errors %}<div>{{ field.label }}: {{ err }}</div>{% endfor %}
+                            {% endfor %}
+                        </td>
+                    </tr>
                     {% endif %}
                     {% endfor %}
                 </tbody>
@@ -85,8 +100,10 @@
 
     <template id="pg-satir-empty">
         <tr class="pg-satir-row">
-            {% for hidden in formset.empty_form.hidden_fields %}{{ hidden }}{% endfor %}
-            <td>{{ formset.empty_form.baslangic_saati }}</td>
+            <td>
+                {% for hidden in formset.empty_form.hidden_fields %}{{ hidden }}{% endfor %}
+                {{ formset.empty_form.baslangic_saati }}
+            </td>
             <td>{{ formset.empty_form.bitis_saati }}</td>
             <td>{{ formset.empty_form.faaliyet_turu }}</td>
             <td>{{ formset.empty_form.faaliyet_adi }}</td>
