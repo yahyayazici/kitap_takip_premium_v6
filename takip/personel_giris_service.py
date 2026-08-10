@@ -314,6 +314,35 @@ def personel_giris_pdf_olustur(
     return html_to_pdf(html, base_url=request.build_absolute_uri("/"))
 
 
+def giris_bilgisi_pdf_olustur(
+    *,
+    request: HttpRequest,
+    ad_soyad: str,
+    kullanici_adi: str,
+    sifre: str,
+    rol_etiket: str,
+    belge_baslik: str,
+) -> bytes | None:
+    """Oturum/dict verisinden giriş PDF'i — DB kaydı gerekmez."""
+    panel_giris_url = request.build_absolute_uri(reverse("login"))
+    html = render_to_string(
+        "personel_giris_pdf.html",
+        {
+            "panel_org": PANEL_ORG,
+            "panel_short": PANEL_SHORT,
+            "ad_soyad": ad_soyad,
+            "rol_etiket": rol_etiket,
+            "kullanici_adi": kullanici_adi,
+            "sifre": sifre,
+            "panel_giris_url": panel_giris_url,
+            "belge_baslik": belge_baslik,
+            "tarih": timezone.localdate(),
+        },
+        request=request,
+    )
+    return html_to_pdf(html, base_url=request.build_absolute_uri("/"))
+
+
 @transaction.atomic
 def personel_giris_kayitlari_yenile(
     personeller,
@@ -344,6 +373,27 @@ def personel_giris_kaydi_yenile(
 ) -> PersonelGirisKaydi | None:
     kayitlar = personel_giris_kayitlari_yenile([personel])
     return kayitlar[0] if kayitlar else None
+
+
+@transaction.atomic
+def ogretmen_giris_kaydi_yenile(hoca: EtutHocasi) -> OgretmenGirisKaydi | None:
+    """Aktif branş öğretmeni için yeni şifre üretir; giriş PDF verisi döner."""
+    if not hoca.aktif or not hoca.user_id:
+        return None
+    # Etüt/sınıf mesulü personel kaydı olanlar öğretmen PDF listesinde olmamalı
+    if getattr(hoca, "personel_kaydi", None) is not None:
+        return None
+    user = hoca.user
+    if not user or not user.is_active:
+        return None
+    sifre = sifre_uret()
+    user.set_password(sifre)
+    user.save(update_fields=["password"])
+    return OgretmenGirisKaydi(
+        hoca=hoca,
+        kullanici_adi=user.username,
+        sifre=sifre,
+    )
 
 
 def personel_giris_zip_olustur(

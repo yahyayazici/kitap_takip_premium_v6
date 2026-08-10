@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from django import forms
 from django.contrib import messages
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -12,6 +13,11 @@ from takip.models import EtutHocasi
 from takip.ogretmen_odeme_models import OgretmenOdemeProfili
 from takip.ogretmen_odeme_service import aktif_ogretmenler, ogretmen_profili
 from takip.permissions.service import can
+from takip.personel_giris_service import (
+    ogretmen_giris_kaydi_yenile,
+    personel_giris_pdf_olustur,
+)
+from takip.pdf_utils import pdf_error_response
 from takip.wave0_models import Brans
 from takip.yonetim_views import yonetici_gerekli
 
@@ -87,3 +93,28 @@ def ogretmen_odeme_profil_sil(request, pk: int):
     ogretmen_pasif_et(hoca)
     messages.success(request, f"{hoca.ad_soyad} pasif edildi ve listeden kaldırıldı.")
     return redirect("yonetim:ogretmen_odeme_profil_listesi")
+
+
+@yonetici_gerekli
+@require_POST
+def ogretmen_giris_pdf_tek(request, pk: int):
+    """Öğretmen için yeni şifre üretip giriş bilgileri PDF indir."""
+    hoca = get_object_or_404(
+        EtutHocasi.objects.select_related("user"),
+        pk=pk,
+        aktif=True,
+        personel_kaydi__isnull=True,
+    )
+    kayit = ogretmen_giris_kaydi_yenile(hoca)
+    if not kayit:
+        messages.error(request, "Bu öğretmen için giriş bilgisi oluşturulamadı.")
+        return redirect("yonetim:ogretmen_odeme_profil_listesi")
+
+    pdf = personel_giris_pdf_olustur(kayit, request=request)
+    if not pdf:
+        return pdf_error_response("Giriş PDF'i oluşturulamadı.")
+
+    dosya = hoca.ad_soyad.lower().replace(" ", "-")
+    response = HttpResponse(pdf, content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="giris-{dosya}.pdf"'
+    return response

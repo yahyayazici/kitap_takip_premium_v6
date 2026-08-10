@@ -78,15 +78,18 @@ def _giris_bilgisi_kaydet(
     *,
     tur: str,
 ) -> None:
+    personel = getattr(kayit, "personel", None)
+    hoca = getattr(kayit, "hoca", None)
     request.session[SESSION_GIRIS_ANAHTAR] = {
         "tur": tur,
         "ad_soyad": kayit.ad_soyad,
         "kullanici_adi": kayit.kullanici_adi,
         "sifre": kayit.sifre,
         "rol_etiket": kayit.rol_etiket,
-        "personel_id": getattr(kayit, "personel", None) and kayit.personel.pk,
-        "hoca_id": getattr(kayit, "hoca", None) and kayit.hoca.pk,
+        "personel_id": int(personel.pk) if personel is not None else None,
+        "hoca_id": int(hoca.pk) if hoca is not None else None,
     }
+    request.session.modified = True
 
 
 def _render_context(
@@ -162,25 +165,33 @@ def kayit_sil(request):
     next_url = (request.POST.get("next") or "").strip()
 
     if tur == "talebe":
-        talebe = get_object_or_404(Talebe, pk=pk, aktif=True)
+        talebe = get_object_or_404(Talebe, pk=pk)
         ad = talebe.ad_soyad
-        talebe_pasif_et(talebe)
-        messages.success(request, f"{ad} pasif edildi (listeden kaldırıldı).")
+        if not talebe.aktif:
+            messages.info(request, f"{ad} zaten pasif.")
+        else:
+            talebe_pasif_et(talebe)
+            messages.success(request, f"{ad} pasif edildi (listeden kaldırıldı).")
     elif tur == "personel":
-        personel = get_object_or_404(PersonelProfili, pk=pk, aktif=True)
+        personel = get_object_or_404(PersonelProfili, pk=pk)
         ad = personel.ad_soyad
-        personel_pasif_et(personel)
-        messages.success(request, f"{ad} pasif edildi (giriş kapatıldı).")
+        if not personel.aktif:
+            messages.info(request, f"{ad} zaten pasif.")
+        else:
+            personel_pasif_et(personel)
+            messages.success(request, f"{ad} pasif edildi (giriş kapatıldı).")
     elif tur == "ogretmen":
         hoca = get_object_or_404(
             EtutHocasi,
             pk=pk,
-            aktif=True,
             personel_kaydi__isnull=True,
         )
         ad = hoca.ad_soyad
-        ogretmen_pasif_et(hoca)
-        messages.success(request, f"{ad} pasif edildi (giriş kapatıldı).")
+        if not hoca.aktif:
+            messages.info(request, f"{ad} zaten pasif.")
+        else:
+            ogretmen_pasif_et(hoca)
+            messages.success(request, f"{ad} pasif edildi (giriş kapatıldı).")
     else:
         messages.error(request, "Geçersiz kayıt türü.")
         tur = "talebe"
@@ -195,31 +206,63 @@ def kayit_sil(request):
 
 @yonetici_gerekli
 def hizli_kayit_giris_pdf(request):
+    from takip.personel_giris_service import giris_bilgisi_pdf_olustur
+    from takip.pdf_utils import pdf_error_response
+
     data = request.session.get(SESSION_GIRIS_ANAHTAR)
-    if not data:
+    if not data or not data.get("kullanici_adi") or not data.get("sifre"):
         messages.error(request, "Giriş bilgisi bulunamadı veya süresi doldu.")
         return redirect("yonetim:hizli_kayit")
 
-    tur = data.get("tur")
-    if tur == "personel" and data.get("personel_id"):
-        personel = get_object_or_404(PersonelProfili, pk=data["personel_id"])
-        kayit = PersonelGirisKaydi(
-            personel=personel,
-            kullanici_adi=data["kullanici_adi"],
-            sifre=data["sifre"],
-        )
-    elif tur == "ogretmen" and data.get("hoca_id"):
-        hoca = get_object_or_404(EtutHocasi, pk=data["hoca_id"])
-        kayit = OgretmenGirisKaydi(
-            hoca=hoca,
-            kullanici_adi=data["kullanici_adi"],
-            sifre=data["sifre"],
-        )
-    else:
-        messages.error(request, "PDF oluşturulamadı.")
-        return redirect(f"{reverse('yonetim:hizli_kayit')}?tur={tur or 'personel'}")
+    tur = data.get("tur") or "personel"
+    ad_soyad = (data.get("ad_soyad") or "").strip() or "—"
+    kullanici_adi = data["kullanici_adi"]
+    sifre = data["sifre"]
+    rol_etiket = (data.get("rol_etiket") or "").strip() or (
+        "Ana Ders Öğretmeni" if tur == "ogretmen" else "Personel"
+    )
+    belge_baslik = (
+        "Öğretmen Giriş Bilgileri"
+        if tur == "ogretmen"
+        else "Personel Giriş Bilgileri"
+    )
 
-    return _giris_pdf_yanit(request, kayit)
+    # Önce DB kaydıyla dene; yoksa oturumdaki bilgilerle PDF üret (404 olmasın)
+    kayit = None
+    if tur == "personel" and data.get("personel_id"):
+        personel = PersonelProfili.objects.filter(pk=data["personel_id"]).first()
+        if personel:
+            kayit = PersonelGirisKaydi(
+                personel=personel,
+                kullanici_adi=kullanici_adi,
+                sifre=sifre,
+            )
+    elif tur == "ogretmen" and data.get("hoca_id"):
+        hoca = EtutHocasi.objects.filter(pk=data["hoca_id"]).first()
+        if hoca:
+            kayit = OgretmenGirisKaydi(
+                hoca=hoca,
+                kullanici_adi=kullanici_adi,
+                sifre=sifre,
+            )
+
+    if kayit is not None:
+        return _giris_pdf_yanit(request, kayit)
+
+    pdf = giris_bilgisi_pdf_olustur(
+        request=request,
+        ad_soyad=ad_soyad,
+        kullanici_adi=kullanici_adi,
+        sifre=sifre,
+        rol_etiket=rol_etiket,
+        belge_baslik=belge_baslik,
+    )
+    if not pdf:
+        return pdf_error_response("Giriş PDF'i oluşturulamadı.")
+    dosya = ad_soyad.lower().replace(" ", "-")
+    response = HttpResponse(pdf, content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="giris-{dosya}.pdf"'
+    return response
 
 
 @yonetici_gerekli
@@ -369,6 +412,9 @@ def hizli_kayit(request):
 
         if tur == "ogretmen":
             kayit = form.save()
+            if not kayit:
+                messages.error(request, "Öğretmen kaydı oluşturulamadı.")
+                return redirect(f"{reverse('yonetim:hizli_kayit')}?tur=ogretmen")
             _giris_bilgisi_kaydet(request, kayit, tur="ogretmen")
             messages.success(request, f"{kayit.ad_soyad} eklendi.")
             return redirect(f"{reverse('yonetim:hizli_kayit')}?tur=ogretmen")

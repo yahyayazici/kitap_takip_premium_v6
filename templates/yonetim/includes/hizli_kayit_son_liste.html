@@ -41,12 +41,25 @@
                     <td>{{ kayit.odeme_profili.saatlik_ucret }} ₺</td>
                     {% endif %}
                     <td class="yk-recent-action-col">
-                        <form method="post" action="{% url 'yonetim:kayit_sil' %}" class="yonetim-inline-action" onsubmit="return confirm('{{ kayit.ad_soyad|escapejs }} pasif edilsin mi?');">
-                            {% csrf_token %}
-                            <input type="hidden" name="tur" value="{{ tur }}">
-                            <input type="hidden" name="pk" value="{{ kayit.pk }}">
-                            <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger yk-sil-btn">Sil</button>
-                        </form>
+                        <div class="yonetim-action-group">
+                            {% if tur == "ogretmen" %}
+                            <form method="post" action="{% url 'yonetim:ogretmen_giris_pdf_tek' kayit.pk %}" class="yonetim-inline-action" onsubmit="return confirm('{{ kayit.ad_soyad|escapejs }} için yeni şifre oluşturulup PDF indirilecek. Devam edilsin mi?');">
+                                {% csrf_token %}
+                                <button type="submit" class="yonetim-action-btn">Giriş PDF</button>
+                            </form>
+                            {% elif tur == "personel" %}
+                            <form method="post" action="{% url 'yonetim:personel_giris_pdf_tek' kayit.pk %}" class="yonetim-inline-action" onsubmit="return confirm('{{ kayit.ad_soyad|escapejs }} için yeni şifre oluşturulup PDF indirilecek. Devam edilsin mi?');">
+                                {% csrf_token %}
+                                <button type="submit" class="yonetim-action-btn">Giriş PDF</button>
+                            </form>
+                            {% endif %}
+                            <form method="post" action="{% url 'yonetim:kayit_sil' %}" class="yonetim-inline-action" onsubmit="return confirm('{{ kayit.ad_soyad|escapejs }} pasif edilsin mi?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="tur" value="{{ tur }}">
+                                <input type="hidden" name="pk" value="{{ kayit.pk }}">
+                                <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger yk-sil-btn">Sil</button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta
 from typing import Any
 
 from django.contrib.auth.models import User
@@ -13,6 +13,9 @@ from takip.duyuru_service import ogretmen_duyurulari
 from takip.veli_randevu_service import ogretmen_randevu_listesi
 from takip.models import EtutHocasi, SinifSube, Talebe
 from takip.user_helpers import etut_hocasi_for_user
+
+# Haftalık not girişi: Pazar akşamı (İstanbul) kapanır
+HAFTA_KAPANIS_SAAT = 20
 
 
 @dataclass(frozen=True)
@@ -98,6 +101,29 @@ def _hafta_araligi(ref: date | None = None) -> tuple[int, date, date]:
     pazartesi = ref - timedelta(days=ref.weekday())
     pazar = pazartesi + timedelta(days=6)
     return hafta_no, pazartesi, pazar
+
+
+def aktif_hafta_baslangic(ref: date | None = None) -> date:
+    """Aktif akademik haftanın pazartesi tarihi."""
+    _, pazartesi, _ = _hafta_araligi(ref)
+    return pazartesi
+
+
+def hafta_kapanis_zamani(hafta_baslangic: date | None = None) -> datetime:
+    """Seçilen (veya aktif) haftanın Pazar 20:00 kapanış anı (aware)."""
+    baslangic = hafta_baslangic or aktif_hafta_baslangic()
+    pazar = baslangic + timedelta(days=6)
+    tz = timezone.get_current_timezone()
+    return timezone.make_aware(
+        datetime.combine(pazar, time(HAFTA_KAPANIS_SAAT, 0)),
+        tz,
+    )
+
+
+def hafta_yazilabilir_mi(now: datetime | None = None) -> bool:
+    """Öğretmenler yalnızca aktif haftada ve Pazar 20:00 öncesi yazabilir."""
+    now = timezone.localtime(now or timezone.now())
+    return now < hafta_kapanis_zamani(aktif_hafta_baslangic(now.date()))
 
 
 def _demo_siniflar(hoca: EtutHocasi) -> list[OgretmenSinifKarti]:

@@ -29,7 +29,13 @@
 
     <div class="yonetim-toolbar">
         <form method="get" class="yonetim-search">
+            {% if sinif_id %}<input type="hidden" name="sinif" value="{{ sinif_id }}">{% endif %}
             <input type="search" name="q" value="{{ arama }}" placeholder="Talebe, numara, sınıf veya hoca ara..." class="yonetim-input">
+            <select name="durum" class="yonetim-input" onchange="this.form.submit()">
+                <option value="aktif" {% if durum == "aktif" %}selected{% endif %}>Aktif</option>
+                <option value="pasif" {% if durum == "pasif" %}selected{% endif %}>Pasif</option>
+                <option value="hepsi" {% if durum == "hepsi" %}selected{% endif %}>Hepsi</option>
+            </select>
             <button class="primary-btn yonetim-search-btn" type="submit">Ara</button>
         </form>
     </div>
@@ -93,6 +99,7 @@
                     <td class="yonetim-action-col">
                         <div class="yonetim-action-group">
                             <a href="{% url 'yonetim:talebe_duzenle' talebe.pk %}" class="yonetim-action-btn">Düzenle</a>
+                            {% if talebe.aktif %}
                             <form method="post" action="{% url 'yonetim:kayit_sil' %}" class="yonetim-inline-action" onsubmit="return confirm('{{ talebe.ad_soyad|escapejs }} pasif edilsin mi?');">
                                 {% csrf_token %}
                                 <input type="hidden" name="tur" value="talebe">
@@ -100,6 +107,7 @@
                                 <input type="hidden" name="next" value="{{ request.get_full_path }}">
                                 <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger">Sil</button>
                             </form>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>

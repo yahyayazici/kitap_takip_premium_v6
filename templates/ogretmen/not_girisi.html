@@ -44,10 +44,17 @@ document.querySelectorAll('.og-veli-mesaj-kart').forEach(function(kart) {
 </script>
 {% endif %}
 
-<div class="og-week-active-banner">
+<div class="og-week-active-banner{% if not hafta_yazilabilir %} og-week-locked{% endif %}">
     <div>
-        <p class="dash-eyebrow">Aktif hafta</p>
+        <p class="dash-eyebrow">{% if hafta_yazilabilir %}Aktif hafta{% else %}Hafta kapandı{% endif %}</p>
         <strong>{{ hafta_no }}. Hafta not girişi</strong>
+        <p class="og-week-lock-note" style="margin:4px 0 0;font-size:13px;opacity:.85;">
+            {% if hafta_yazilabilir %}
+            Kapanış: Pazar {{ hafta_kapanis_saat|stringformat:"02d" }}:00
+            {% else %}
+            Not girişi Pazar {{ hafta_kapanis_saat|stringformat:"02d" }}:00’de kapanmıştır. Yeni hafta Pazartesi açılır.
+            {% endif %}
+        </p>
     </div>
     <span>{{ hafta_baslangic|date:"d.m.Y" }} – {{ hafta_bitis|date:"d.m.Y" }}</span>
 </div>
@@ -70,9 +77,35 @@ document.querySelectorAll('.og-veli-mesaj-kart').forEach(function(kart) {
 </section>
 
 {% if secili_sinif %}
+{% if not dersler %}
+<div class="ogretmen-empty-select">
+    <span class="og-empty-info-icon" aria-hidden="true">ℹ</span>
+    <span>Branşınıza bağlı aktif ders yok. Yönetimden branş/ders tanımlayın.</span>
+</div>
+{% else %}
+{% if dersler|length > 1 %}
+<section class="ogretmen-select-card dash-panel">
+    <div class="dash-panel-head">
+        <div>
+            <p class="dash-eyebrow">Branş dersleri</p>
+            <h2>Ders seçin</h2>
+        </div>
+    </div>
+    <div class="ogretmen-class-tabs">
+        {% for ders in dersler %}
+        <a href="{% url 'ogretmen_not_girisi_sinif' secili_sinif.id %}?ders={{ ders.id }}"
+           class="ogretmen-class-tab {% if secili_ders and secili_ders.id == ders.id %}active{% endif %}">
+            {{ ders.ad }}
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
 <form method="post" class="ogretmen-not-form">
     {% csrf_token %}
     <input type="hidden" name="ders_id" value="{{ secili_ders.id }}">
+    <fieldset {% if not hafta_yazilabilir %}disabled{% endif %} style="border:0;margin:0;padding:0;min-inline-size:0;">
 
     <section class="og-yoklama-card">
         <header class="og-section-head og-section-head-warn">
@@ -165,11 +198,17 @@ document.querySelectorAll('.og-veli-mesaj-kart').forEach(function(kart) {
     </section>
 
     <div class="ogretmen-form-actions">
-        <button type="submit" class="ogretmen-save-btn og-save-all">
+        <button type="submit" class="ogretmen-save-btn og-save-all" {% if not hafta_yazilabilir %}disabled{% endif %}>
+            {% if hafta_yazilabilir %}
             Tüm Sınıf Notlarını ve Yoklamayı Kaydet
+            {% else %}
+            Hafta kapandı — kayıt yapılamaz
+            {% endif %}
         </button>
     </div>
+    </fieldset>
 </form>
+{% endif %}
 {% else %}
 <div class="ogretmen-empty-select">
     <span class="og-empty-info-icon" aria-hidden="true">ℹ</span>

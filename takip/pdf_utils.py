@@ -109,6 +109,38 @@ def _resolve_static_uri(uri: str) -> Path | None:
     return None
 
 
+def _rewrite_static_urls_to_file(html_string: str) -> str:
+    """/static/... yollarını file:// URI yapar — HTTP self-fetch deadlock önler."""
+
+    def _to_file_uri(match: re.Match[str]) -> str:
+        uri = match.group(0)
+        path = _resolve_static_uri(uri)
+        if path is None:
+            return uri
+        return path.resolve().as_uri()
+
+    return re.sub(
+        r"(?<![A-Za-z0-9:])(?:https?://[^\"'\s]+)?/static/[^\s\"')]+",
+        _to_file_uri,
+        html_string,
+    )
+
+
+def _local_pdf_base_url() -> str:
+    return Path(settings.BASE_DIR).resolve().as_uri() + "/"
+
+
+def _weasyprint_url_fetcher(url: str, timeout=10, ssl_context=None, **kwargs):
+    """Yalnızca file:// kaynaklarına izin ver — ağ isteği PDF'i kilitlemesin."""
+    if not url.startswith("file:"):
+        raise ValueError(f"PDF ağ erişimi engellendi: {url}")
+    from weasyprint import default_url_fetcher
+
+    return default_url_fetcher(
+        url, timeout=timeout, ssl_context=ssl_context, **kwargs
+    )
+
+
 def _sanitize_html_for_xhtml2pdf(html_string: str) -> str:
     """xhtml2pdf'in desteklemediği WeasyPrint @page margin box kurallarını temizler."""
     sanitized = html_string
@@ -139,21 +171,7 @@ def _sanitize_html_for_xhtml2pdf(html_string: str) -> str:
     sanitized = sanitized.replace("width: calc(100% + 8px);", "width: 100%;")
     sanitized = sanitized.replace("width:calc(100% + 8px);", "width:100%;")
 
-    # /static/... → file:// URI (Windows C:/ yolu "c:" şeması sanılmasın)
-    def _to_file_uri(match: re.Match[str]) -> str:
-        uri = match.group(0)
-        path = _resolve_static_uri(uri)
-        if path is None:
-            return uri
-        return path.resolve().as_uri()
-
-    sanitized = re.sub(
-        r"(?<![A-Za-z0-9:])(?:https?://[^\"'\s]+)?/static/[^\s\"')]+",
-        _to_file_uri,
-        sanitized,
-    )
-
-    return sanitized
+    return _rewrite_static_urls_to_file(sanitized)
 
 
 def _xhtml2pdf_link_callback(uri: str, rel: str) -> str:
@@ -365,18 +383,29 @@ def html_to_pdf(html_string: str, base_url: str = "/") -> bytes | None:
     """
     HTML metninden PDF üretir.
     Önce WeasyPrint, başarısız olursa xhtml2pdf dener.
+
+    base_url HTTP olsa bile yerel dosya tabanı kullanılır; aksi halde Render'da
+    worker kendini bekleyerek (static fetch) kilitlenebilir.
     """
+    del base_url  # bilinçli: ağ self-fetch engeli
+    global _weasyprint_html
     html_cls = get_weasyprint_html()
+    local_html = _rewrite_static_urls_to_file(html_string)
+    local_base = _local_pdf_base_url()
 
     if html_cls is not None:
         try:
-            return html_cls(
-                string=html_string,
-                base_url=base_url,
-            ).write_pdf()
+            try:
+                document = html_cls(
+                    string=local_html,
+                    base_url=local_base,
+                    url_fetcher=_weasyprint_url_fetcher,
+                )
+            except TypeError:
+                document = html_cls(string=local_html, base_url=local_base)
+            return document.write_pdf()
         except Exception as exc:
             logger.warning("WeasyPrint PDF üretimi başarısız, xhtml2pdf deneniyor: %s", exc)
-            global _weasyprint_html
             _weasyprint_html = None
 
     try:

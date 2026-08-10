@@ -140,7 +140,7 @@
                         <td>{{ n.disiplin|default:"—" }}</td>
                         <td><strong>{{ n.puan|default:"—" }}</strong></td>
                         <td>{{ n.etut_hocasi.ad_soyad }}</td>
-                        <td><a href="{% url 'yonetim:ogretmen_degerlendirme_karne_pdf' n.talebe_id %}" target="_blank">PDF</a></td>
+                        <td><a href="{% url 'yonetim:ogretmen_degerlendirme_karne_pdf' n.talebe_id %}?hafta={{ n.hafta_baslangic|date:'Y-m-d' }}" target="_blank">PDF</a></td>
                     </tr>
                     {% empty %}
                     <tr><td colspan="10" class="report-empty">Bu filtrede not kaydı yok.</td></tr>

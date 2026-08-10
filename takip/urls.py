@@ -2,6 +2,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 
 from . import etut_plan_views
+from . import etut_karne_views
 from . import dini_ders_takip_views
 from . import namaz_yoklama_views
 from . import pazar_izin_donus_views
@@ -341,6 +342,16 @@ urlpatterns = [
         name="akademik_mudahale_sil",
     ),
 
+    path(
+        "etut-panel/haftalik-karneler/",
+        etut_karne_views.etut_haftalik_karneler,
+        name="etut_haftalik_karneler",
+    ),
+    path(
+        "etut-panel/haftalik-karneler/talebe/<int:talebe_id>/pdf/",
+        etut_karne_views.etut_talebe_haftalik_karne_pdf,
+        name="etut_talebe_haftalik_karne_pdf",
+    ),
     path("etut-plani/", etut_plan_views.etut_plan_panel, name="etut_plan_panel"),
     path(
         "etut-plani/yonetim/",

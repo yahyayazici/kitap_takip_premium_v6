@@ -33,6 +33,10 @@
                     <td class="yonetim-table-actions">
                         <div class="yonetim-action-group">
                             <a href="{% url 'yonetim:ogretmen_odeme_profil_duzenle' hoca.pk %}" class="yonetim-action-btn">Düzenle</a>
+                            <form method="post" action="{% url 'yonetim:ogretmen_giris_pdf_tek' hoca.pk %}" class="yonetim-inline-action" onsubmit="return confirm('{{ hoca.ad_soyad|escapejs }} için yeni şifre oluşturulup PDF indirilecek. Devam edilsin mi?');">
+                                {% csrf_token %}
+                                <button type="submit" class="yonetim-action-btn">Giriş PDF</button>
+                            </form>
                             <form method="post" action="{% url 'yonetim:ogretmen_odeme_profil_sil' hoca.pk %}" class="yonetim-inline-action" onsubmit="return confirm('{{ hoca.ad_soyad|escapejs }} pasif edilsin mi? Öğretmen panele giriş yapamaz.');">
                                 {% csrf_token %}
                                 <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger">Sil</button>

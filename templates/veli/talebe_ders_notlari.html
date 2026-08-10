@@ -10,53 +10,55 @@
         <h2>{{ secili_hafta|date:"d.m.Y" }} – {{ secili_hafta_bitis|date:"d.m.Y" }}</h2>
         <p>Haftalık ortalama {% if ortalama is not None %}{{ ortalama }}{% else %}—{% endif %}. Geçmiş haftalara sağdaki menüden geçebilirsiniz.</p>
     </div>
-    <details class="veli-week-picker">
-        <summary class="veli-wow-cta" style="list-style:none;cursor:pointer;">Haftalar</summary>
-        <div class="veli-week-picker-menu">
-            <a href="{% url 'veli_talebe_ders_notlari' talebe.id %}" class="{% if not arsiv_modu %}active{% endif %}">Aktif hafta</a>
-            {% for h in arsiv_haftalar %}
-            <a href="{% url 'veli_talebe_ders_notlari' talebe.id %}?hafta={{ h|date:'Y-m-d' }}"
-               class="{% if h == secili_hafta %}active{% endif %}">{{ h|date:"d.m.Y" }}</a>
-            {% empty %}
-            <span class="og-empty-note">Arşiv yok</span>
-            {% endfor %}
-        </div>
-    </details>
+    <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;">
+        <a href="{% url 'veli_talebe_degerlendirme_karne_pdf' talebe.id %}?hafta={{ secili_hafta|date:'Y-m-d' }}"
+           class="veli-wow-cta" target="_blank">Haftalık karne PDF</a>
+        <details class="veli-week-picker">
+            <summary class="veli-wow-cta" style="list-style:none;cursor:pointer;">Haftalar</summary>
+            <div class="veli-week-picker-menu">
+                <a href="{% url 'veli_talebe_ders_notlari' talebe.id %}" class="{% if not arsiv_modu %}active{% endif %}">Aktif hafta</a>
+                {% for h in arsiv_haftalar %}
+                <a href="{% url 'veli_talebe_ders_notlari' talebe.id %}?hafta={{ h|date:'Y-m-d' }}"
+                   class="{% if h == secili_hafta %}active{% endif %}">{{ h|date:"d.m.Y" }}</a>
+                {% empty %}
+                <span class="og-empty-note">Arşiv yok</span>
+                {% endfor %}
+            </div>
+        </details>
+    </div>
 </section>
 
 <section class="veli-wow-card">
     <header class="veli-wow-card-head">
         <div>
-            <p class="veli-wow-kicker">Notlar</p>
-            <h2>Ders bazlı değerlendirme</h2>
+            <p class="veli-wow-kicker">Haftalık eğitim değerlendirme</p>
+            <h2>Öğretmen · Konu · Not · Değerlendirme</h2>
         </div>
+        <a href="{% url 'veli_talebe_degerlendirme_karne_pdf' talebe.id %}?tum=1" class="dash-text-btn" target="_blank">Tüm haftalar PDF</a>
     </header>
     <div class="og-table-wrap" style="padding: 8px 16px 18px;">
         <table class="og-grade-table">
             <thead>
                 <tr>
-                    <th>Ders</th>
                     <th>Öğretmen</th>
-                    <th>Katılım</th>
-                    <th>Takip</th>
-                    <th>Disiplin</th>
-                    <th>Puan</th>
+                    <th>Konu</th>
                     <th>Not</th>
+                    <th>Değerlendirme</th>
                 </tr>
             </thead>
             <tbody>
                 {% for n in notlar %}
                 <tr>
-                    <td>{{ n.ders.ad }}</td>
-                    <td>{{ n.etut_hocasi.ad_soyad }}</td>
-                    <td>{{ n.katilim|default:"—" }}</td>
-                    <td>{{ n.takip|default:"—" }}</td>
-                    <td>{{ n.disiplin|default:"—" }}</td>
+                    <td>
+                        <strong>{{ n.etut_hocasi.ad_soyad }}</strong><br>
+                        <span class="og-empty-note">{{ n.ders.ad }} öğretmeni</span>
+                    </td>
+                    <td>{{ n.haftalik_konu }}</td>
                     <td><strong>{{ n.puan|default:"—" }}</strong></td>
-                    <td>{{ n.aciklama|truncatechars:80 }}</td>
+                    <td>{{ n.aciklama|default:"—" }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="7" class="og-empty-note">Bu haftaya ait not kaydı yok.</td></tr>
+                <tr><td colspan="4" class="og-empty-note">Bu haftaya ait not kaydı yok.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

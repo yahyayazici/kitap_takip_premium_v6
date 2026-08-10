@@ -382,6 +382,8 @@ def talebe_soru_detay(talebe: Talebe, gun: int = 14) -> dict:
 
 
 def talebe_haftalik_notlar(talebe: Talebe, hafta_baslangic: date | None = None) -> dict:
+    from takip.ogretmen_not_models import OgretmenHaftalikKonu
+
     aktif = _hafta_pazartesi()
     secili = hafta_baslangic or aktif
     notlar = list(
@@ -393,6 +395,16 @@ def talebe_haftalik_notlar(talebe: Talebe, hafta_baslangic: date | None = None) 
         .select_related("ders", "etut_hocasi")
         .order_by("ders__ad")
     )
+    konu_map: dict[tuple[int, int], str] = {}
+    if talebe.sinif_sube_id:
+        for k in OgretmenHaftalikKonu.objects.filter(
+            sinif_sube_id=talebe.sinif_sube_id,
+            hafta_baslangic=secili,
+        ):
+            konu_map[(k.etut_hocasi_id, k.ders_id)] = (k.konu or "").strip()
+    for n in notlar:
+        n.haftalik_konu = konu_map.get((n.etut_hocasi_id, n.ders_id), "") or "—"
+
     arsiv_haftalar = list(
         OgretmenSinavNotu.objects.filter(talebe=talebe, veliye_goster=True)
         .values_list("hafta_baslangic", flat=True)

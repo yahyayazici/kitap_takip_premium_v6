@@ -208,6 +208,11 @@ urlpatterns = [
         ogretmen_odeme_yonetim_views.ogretmen_odeme_profil_sil,
         name="ogretmen_odeme_profil_sil",
     ),
+    path(
+        "ogretmen-odeme-profilleri/<int:pk>/giris-pdf/",
+        ogretmen_odeme_yonetim_views.ogretmen_giris_pdf_tek,
+        name="ogretmen_giris_pdf_tek",
+    ),
 
     path(
         "mezuniyet/",

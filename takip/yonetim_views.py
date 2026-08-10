@@ -490,6 +490,14 @@ def talebe_listesi(request):
 
     arama = request.GET.get("q", "").strip()
     sinif_id = request.GET.get("sinif", "").strip()
+    durum = (request.GET.get("durum") or "aktif").strip().lower()
+    if durum not in {"aktif", "pasif", "hepsi"}:
+        durum = "aktif"
+
+    if durum == "aktif":
+        talebeler = talebeler.filter(aktif=True)
+    elif durum == "pasif":
+        talebeler = talebeler.filter(aktif=False)
 
     if sinif_id.isdigit():
         talebeler = talebeler.filter(sinif_sube_id=int(sinif_id))
@@ -514,6 +522,7 @@ def talebe_listesi(request):
             "talebeler": talebeler,
             "arama": arama,
             "sinif_id": sinif_id,
+            "durum": durum,
             "rapor_siniflar": erisilebilir_siniflar(rapor_kaynak),
             "rapor_pdf_url": reverse("yonetim:talebe_liste_raporu_pdf"),
             "rapor_excel_url": reverse("yonetim:talebe_liste_excel"),
@@ -1902,26 +1911,43 @@ def ogretmen_degerlendirme_rapor(request):
 
 @yonetici_gerekli
 def ogretmen_degerlendirme_karne_pdf(request, talebe_id: int):
+    from datetime import date
+
     from django.utils.timezone import localdate
 
     from config.branding import panel_branding_context
-    from takip.ogretmen_not_service import talebe_karne_verisi
+    from takip.ogretmen_not_service import (
+        talebe_haftalik_karne_verisi,
+        talebe_karne_verisi,
+    )
+    from takip.ogretmen_service import aktif_hafta_baslangic
     from takip.pdf_utils import html_to_pdf, make_pdf_response, pdf_engine_status, pdf_error_response
     from django.template.loader import render_to_string
 
     talebe = get_object_or_404(Talebe, pk=talebe_id)
-    ctx = talebe_karne_verisi(talebe, sadece_veliye_acik=False)
+    if request.GET.get("tum") == "1":
+        ctx = talebe_karne_verisi(talebe, sadece_veliye_acik=False)
+        sablon = "ogretmen_degerlendirme_karne_pdf.html"
+        dosya_ek = "degerlendirme-karnesi"
+    else:
+        raw = (request.GET.get("hafta") or "").strip()
+        try:
+            hafta = date.fromisoformat(raw) if raw else aktif_hafta_baslangic()
+        except ValueError:
+            hafta = aktif_hafta_baslangic()
+        ctx = talebe_haftalik_karne_verisi(
+            talebe, hafta, sadece_veliye_acik=False
+        )
+        sablon = "ogretmen_haftalik_egitim_karne_pdf.html"
+        dosya_ek = "haftalik-egitim-karnesi"
+
     ctx.update(panel_branding_context())
     ctx["bugun"] = localdate()
-    html_metni = render_to_string(
-        "ogretmen_degerlendirme_karne_pdf.html",
-        ctx,
-        request=request,
-    )
+    html_metni = render_to_string(sablon, ctx, request=request)
     pdf_verisi = html_to_pdf(html_metni, base_url=request.build_absolute_uri("/"))
     if not pdf_verisi:
         return pdf_error_response(
             f"Karne PDF oluşturulamadı. (Motor: {pdf_engine_status()})"
         )
     ad = talebe.ad_soyad.replace(" ", "-")
-    return make_pdf_response(pdf_verisi, f"{ad}-degerlendirme-karnesi.pdf")
+    return make_pdf_response(pdf_verisi, f"{ad}-{dosya_ek}.pdf")
