@@ -292,6 +292,22 @@ class HizliTalebeForm(forms.ModelForm):
         seviye = cleaned.get("dini_ders_seviyesi")
         dini_hoca = cleaned.get("dini_ders_hocasi")
 
+        if sinif_sube and not etut:
+            etut = (
+                sinif_sube.etut_hocalari.filter(aktif=True)
+                .order_by("ad_soyad")
+                .first()
+            )
+            if etut:
+                cleaned["etut_hocasi"] = etut
+
+        if sinif_sube and not etut:
+            self.add_error(
+                "sinif_sube",
+                f"«{sinif_sube}» için zimmetli etüt hocası tanımlı değil. "
+                "Önce personel/etüt mesulüne sınıf zimmeti verin.",
+            )
+
         if sinif_sube and etut:
             if not etut.sorumlu_sinif_subeler.filter(pk=sinif_sube.pk).exists():
                 self.add_error(

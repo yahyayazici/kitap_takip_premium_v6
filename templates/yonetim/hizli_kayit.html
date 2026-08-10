@@ -64,11 +64,13 @@
         {% if tur == "talebe" %}
         <div class="yk-section">
             <h3 class="yk-section-title">Talebe Bilgileri</h3>
+            {% if sonraki_talebe_no %}
+            <p class="yk-section-note">Sıradaki talebe numarası: <strong>{{ sonraki_talebe_no }}</strong> (1'den başlayarak boş numarayı otomatik alır)</p>
+            {% endif %}
             <div class="yk-grid" id="yk-talebe-grid">
-                {% with talebe_alanlar="ad_soyad tc_kimlik biyometrik_foto sinif_sube etut_hocasi telefon dogum_tarihi dini_ders_seviyesi dini_ders_hocasi" %}
                 {% for field in form %}
-                    {% if field.name in talebe_alanlar.split %}
-                    <div class="yk-field{% if field.name == 'ad_soyad' or field.name == 'tc_kimlik' or field.name == 'biyometrik_foto' %} yk-field-wide{% endif %}">
+                    {% if field.name == "ad_soyad" or field.name == "tc_kimlik" or field.name == "biyometrik_foto" or field.name == "sinif_sube" or field.name == "etut_hocasi" or field.name == "telefon" or field.name == "dogum_tarihi" or field.name == "dini_ders_seviyesi" or field.name == "dini_ders_hocasi" %}
+                    <div class="yk-field{% if field.name == 'ad_soyad' or field.name == 'tc_kimlik' or field.name == 'biyometrik_foto' %} yk-field-wide{% endif %}{% if field.name == 'etut_hocasi' %} yk-field-auto{% endif %}">
                         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                         {{ field }}
                         {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
@@ -76,7 +78,6 @@
                     </div>
                     {% endif %}
                 {% endfor %}
-                {% endwith %}
             </div>
         </div>
 
@@ -336,6 +337,6 @@
 
 {% if tur == "talebe" and talebe_form_meta %}
 {{ talebe_form_meta|json_script:"yk-talebe-meta" }}
-<script src="{% static 'js/yonetim-hizli-kayit.js' %}"></script>
+<script src="{% static 'js/yonetim-hizli-kayit.js' %}?v=2"></script>
 {% endif %}
 {% endblock %}

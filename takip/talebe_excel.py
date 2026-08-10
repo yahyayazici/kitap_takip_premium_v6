@@ -659,7 +659,7 @@ def talebe_excel_ice_aktar(dosya) -> TalebeExcelSonuc:
             zimmet_hocalar = list(
                 sinif_sube.etut_hocalari.filter(aktif=True).order_by("ad_soyad")
             )
-            if len(zimmet_hocalar) == 1:
+            if zimmet_hocalar:
                 hoca_adi = zimmet_hocalar[0].ad_soyad
 
         dini_seviye = (

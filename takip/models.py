@@ -345,11 +345,70 @@ class Talebe(models.Model):
         ordering = ["sinif", "sube", "ad_soyad"]
 
     def save(self, *args, **kwargs):
+        from django.db import IntegrityError
+
+        update_fields = kwargs.get("update_fields")
+        if update_fields is not None:
+            uf = set(update_fields)
+            if self.durum == self.Durum.AKTIF:
+                self.aktif = True
+            else:
+                self.aktif = False
+            if uf <= {"aktif", "durum"}:
+                kwargs["update_fields"] = list(uf | {"aktif"})
+                super().save(*args, **kwargs)
+                return
+
         if self.durum == self.Durum.AKTIF:
             self.aktif = True
         else:
             self.aktif = False
-        super().save(*args, **kwargs)
+
+        if self.sinif_sube_id:
+            self.sinif = self.sinif_sube.sinif
+            self.sube = self.sinif_sube.sube
+
+        if self.etut_hocasi_id and not self.dini_ders_hocasi_id:
+            self.dini_ders_hocasi = self.etut_hocasi
+
+        validate = kwargs.pop("validate", True)
+        max_attempts = 3 if not self.pk else 1
+
+        for attempt in range(max_attempts):
+            if not self.talebe_no:
+                self.talebe_no = self._yeni_talebe_no()
+            if validate:
+                self.full_clean()
+            try:
+                super().save(*args, **kwargs)
+                return
+            except IntegrityError:
+                if self.pk or attempt >= max_attempts - 1:
+                    raise
+                self.talebe_no = None
+
+        raise ValidationError(
+            "Talebe kaydı oluşturulamadı. Lütfen birkaç saniye sonra tekrar deneyin."
+        )
+
+    @classmethod
+    def _yeni_talebe_no(cls) -> str:
+        """Aktif talebeler arasında 1'den başlayan ilk boş numarayı ver."""
+        kullanilan: set[int] = set()
+        for numara in (
+            cls.objects.filter(aktif=True)
+            .exclude(talebe_no__isnull=True)
+            .exclude(talebe_no="")
+            .values_list("talebe_no", flat=True)
+            .iterator(chunk_size=500)
+        ):
+            if str(numara).isdigit():
+                kullanilan.add(int(numara))
+
+        aday = 1
+        while aday in kullanilan:
+            aday += 1
+        return str(aday)
 
     def clean(self):
         super().clean()
@@ -389,40 +448,6 @@ class Talebe(models.Model):
     @property
     def zimmet_hocalari_ayni(self) -> bool:
         return self.etut_hocasi_id == self.dini_ders_hocasi_id
-
-    def save(self, *args, **kwargs):
-        if self.sinif_sube_id:
-            self.sinif = self.sinif_sube.sinif
-            self.sube = self.sinif_sube.sube
-
-        if self.etut_hocasi_id and not self.dini_ders_hocasi_id:
-            self.dini_ders_hocasi = self.etut_hocasi
-
-        if not self.talebe_no:
-            self.talebe_no = self._yeni_talebe_no()
-
-        self.full_clean()
-        super().save(*args, **kwargs)
-
-    @classmethod
-    def _yeni_talebe_no(cls) -> str:
-        mevcut_numaralar = (
-            cls.objects.exclude(talebe_no__isnull=True)
-            .exclude(talebe_no="")
-            .values_list("talebe_no", flat=True)
-        )
-
-        en_buyuk = 0
-        for numara in mevcut_numaralar:
-            if numara.isdigit():
-                en_buyuk = max(en_buyuk, int(numara))
-
-        aday = str(en_buyuk + 1)
-        while cls.objects.filter(talebe_no=aday).exists():
-            en_buyuk += 1
-            aday = str(en_buyuk + 1)
-
-        return aday
 
     def __str__(self):
         grup = (

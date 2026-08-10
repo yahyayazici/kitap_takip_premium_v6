@@ -48,21 +48,18 @@
             return !opt.value || hocaIds.indexOf(parseInt(opt.value, 10)) !== -1;
         });
 
-        if (filtered.length <= 1 && hocaIds.length === 1) {
-            filtered = allEtutOptions.filter(function (opt) {
-                return !opt.value || parseInt(opt.value, 10) === hocaIds[0];
-            });
+        if (!filtered.length) {
+            filtered = allEtutOptions.slice();
         }
 
-        rebuildSelect(etutSelect, filtered.length > 1 ? filtered : allEtutOptions.filter(function (opt) {
-            return !opt.value || hocaIds.indexOf(parseInt(opt.value, 10)) !== -1;
-        }));
+        rebuildSelect(etutSelect, filtered);
 
-        if (hocaIds.length === 1) {
+        if (hocaIds.length >= 1) {
             etutSelect.value = String(hocaIds[0]);
-        } else if (hocaIds.length > 1 && !hocaIds.some(function (id) {
-            return String(id) === etutSelect.value;
-        })) {
+            if (!seviyeSelect.value) {
+                diniHocaSelect.value = String(hocaIds[0]);
+            }
+        } else {
             etutSelect.value = "";
         }
     }
@@ -70,7 +67,11 @@
     function filterDiniHocaForSeviye() {
         var seviyeId = seviyeSelect.value;
         if (!seviyeId) {
-            rebuildSelect(diniHocaSelect, allDiniOptions);
+            if (etutSelect.value) {
+                diniHocaSelect.value = etutSelect.value;
+            } else {
+                rebuildSelect(diniHocaSelect, allDiniOptions);
+            }
             return;
         }
 
@@ -81,7 +82,7 @@
 
         rebuildSelect(diniHocaSelect, filtered.length > 0 ? filtered : allDiniOptions);
 
-        if (hocaIds.length === 1) {
+        if (hocaIds.length >= 1) {
             diniHocaSelect.value = String(hocaIds[0]);
         } else if (!hocaIds.some(function (id) {
             return String(id) === diniHocaSelect.value;

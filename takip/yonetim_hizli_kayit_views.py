@@ -48,28 +48,56 @@ SESSION_GIRIS_ANAHTAR = "yk_son_giris"
 def _talebe_form_meta() -> dict:
     from django.db.models import Prefetch
 
-    aktif_hocalar = EtutHocasi.objects.filter(aktif=True).only("pk", "ad_soyad")
-    sinif_etut: dict[str, list[int]] = {}
-    for ss in SinifSube.objects.filter(aktif=True).prefetch_related(
-        Prefetch(
-            "etut_hocalari",
-            queryset=aktif_hocalar.order_by("ad_soyad"),
-        )
-    ).only("pk"):
-        sinif_etut[str(ss.pk)] = [h.pk for h in ss.etut_hocalari.all()]
+    try:
+        aktif_hocalar = EtutHocasi.objects.filter(aktif=True).only("pk", "ad_soyad")
+        sinif_etut: dict[str, list[int]] = {}
+        sinif_etiketleri: dict[str, str] = {}
+        for ss in SinifSube.objects.filter(aktif=True).prefetch_related(
+            Prefetch(
+                "etut_hocalari",
+                queryset=aktif_hocalar.order_by("ad_soyad"),
+            )
+        ).only("pk", "sinif", "sube"):
+            sinif_etut[str(ss.pk)] = [h.pk for h in ss.etut_hocalari.all()]
+            sinif_etiketleri[str(ss.pk)] = str(ss)
 
-    seviye_hocalar: dict[str, list[int]] = {}
-    for seviye in DiniDersSeviyesi.objects.filter(aktif=True).prefetch_related(
-        Prefetch("hocalar", queryset=aktif_hocalar.order_by("ad_soyad"))
-    ).only("pk"):
-        seviye_hocalar[str(seviye.pk)] = [h.pk for h in seviye.hocalar.all()]
+        seviye_hocalar: dict[str, list[int]] = {}
+        for seviye in DiniDersSeviyesi.objects.filter(aktif=True).prefetch_related(
+            Prefetch("hocalar", queryset=aktif_hocalar.order_by("ad_soyad"))
+        ).only("pk"):
+            seviye_hocalar[str(seviye.pk)] = [h.pk for h in seviye.hocalar.all()]
 
-    hocalar = {str(h.pk): h.ad_soyad for h in aktif_hocalar.order_by("ad_soyad")}
-    return {
-        "sinif_etut": sinif_etut,
-        "seviye_hocalar": seviye_hocalar,
-        "hocalar": hocalar,
-    }
+        hocalar = {str(h.pk): h.ad_soyad for h in aktif_hocalar.order_by("ad_soyad")}
+        return {
+            "sinif_etut": sinif_etut,
+            "sinif_etiketleri": sinif_etiketleri,
+            "seviye_hocalar": seviye_hocalar,
+            "hocalar": hocalar,
+        }
+    except Exception:
+        return {
+            "sinif_etut": {},
+            "sinif_etiketleri": {},
+            "seviye_hocalar": {},
+            "hocalar": {},
+        }
+
+
+def _form_kayit_hatasi_uygula(form, exc) -> None:
+    from django.core.exceptions import ValidationError
+
+    if isinstance(exc, ValidationError):
+        if hasattr(exc, "error_dict"):
+            for alan, hatalar in exc.error_dict.items():
+                for hata in hatalar:
+                    form.add_error(None if alan == "__all__" else alan, hata)
+        elif hasattr(exc, "error_list"):
+            for hata in exc.error_list:
+                form.add_error(None, hata)
+        else:
+            form.add_error(None, exc)
+        return
+    form.add_error(None, str(exc))
 
 
 def _giris_bilgisi_kaydet(
@@ -112,6 +140,7 @@ def _render_context(
     }
     if tur == "talebe":
         ctx["talebe_form_meta"] = _talebe_form_meta()
+        ctx["sonraki_talebe_no"] = Talebe._yeni_talebe_no()
     return ctx
 
 
@@ -154,43 +183,67 @@ def _giris_pdf_yanit(request, kayit: PersonelGirisKaydi | OgretmenGirisKaydi) ->
     return response
 
 
-@yonetici_gerekli
-@require_POST
-def kayit_sil(request):
-    tur = (request.POST.get("tur") or "talebe").strip()
-    pk = request.POST.get("pk")
-    next_url = (request.POST.get("next") or "").strip()
+def _kayit_pk_dogrula(pk_raw) -> int | None:
+    try:
+        pk = int(pk_raw)
+    except (TypeError, ValueError):
+        return None
+    return pk if pk > 0 else None
 
-    if tur == "talebe":
-        talebe = get_object_or_404(Talebe, pk=pk, aktif=True)
-        ad = talebe.ad_soyad
-        talebe_pasif_et(talebe)
-        messages.success(request, f"{ad} pasif edildi (listeden kaldırıldı).")
-    elif tur == "personel":
-        personel = get_object_or_404(PersonelProfili, pk=pk, aktif=True)
-        ad = personel.ad_soyad
-        personel_pasif_et(personel)
-        messages.success(request, f"{ad} pasif edildi (giriş kapatıldı).")
-    elif tur == "ogretmen":
-        hoca = get_object_or_404(
-            EtutHocasi,
-            pk=pk,
-            aktif=True,
-            personel_kaydi__isnull=True,
-        )
-        ad = hoca.ad_soyad
-        ogretmen_pasif_et(hoca)
-        messages.success(request, f"{ad} pasif edildi (giriş kapatıldı).")
-    else:
-        messages.error(request, "Geçersiz kayıt türü.")
-        tur = "talebe"
 
+def _kayit_sil_yonlendir(request, next_url: str, fallback: str):
     if next_url and url_has_allowed_host_and_scheme(
         next_url,
         allowed_hosts={request.get_host()},
     ):
         return redirect(next_url)
-    return redirect(f"{reverse('yonetim:hizli_kayit')}?tur={tur}")
+    return redirect(fallback)
+
+
+@yonetici_gerekli
+@require_POST
+def kayit_sil(request):
+    tur = (request.POST.get("tur") or "talebe").strip()
+    pk = _kayit_pk_dogrula(request.POST.get("pk"))
+    next_url = (request.POST.get("next") or "").strip()
+    fallback = f"{reverse('yonetim:hizli_kayit')}?tur={tur}"
+
+    if pk is None:
+        messages.error(request, "Silinecek kayıt bulunamadı.")
+        return _kayit_sil_yonlendir(request, next_url, fallback)
+
+    try:
+        if tur == "talebe":
+            talebe = get_object_or_404(Talebe, pk=pk, aktif=True)
+            ad = talebe.ad_soyad
+            talebe_pasif_et(talebe)
+            messages.success(request, f"{ad} pasif edildi (listeden kaldırıldı).")
+        elif tur == "personel":
+            personel = get_object_or_404(PersonelProfili, pk=pk, aktif=True)
+            ad = personel.ad_soyad
+            personel_pasif_et(personel)
+            messages.success(request, f"{ad} pasif edildi (giriş kapatıldı).")
+        elif tur == "ogretmen":
+            hoca = get_object_or_404(
+                EtutHocasi,
+                pk=pk,
+                aktif=True,
+                personel_kaydi__isnull=True,
+            )
+            ad = hoca.ad_soyad
+            ogretmen_pasif_et(hoca)
+            messages.success(request, f"{ad} pasif edildi (giriş kapatıldı).")
+        else:
+            messages.error(request, "Geçersiz kayıt türü.")
+            tur = "talebe"
+            fallback = f"{reverse('yonetim:hizli_kayit')}?tur={tur}"
+    except Exception:
+        messages.error(
+            request,
+            "Kayıt silinirken bir hata oluştu. Sayfayı yenileyip tekrar deneyin.",
+        )
+
+    return _kayit_sil_yonlendir(request, next_url, fallback)
 
 
 @yonetici_gerekli
@@ -356,32 +409,50 @@ def hizli_kayit(request):
     form = _form_for_tur(tur, request.POST or None, request.FILES or None)
 
     if request.method == "POST" and form.is_valid():
-        if tur == "personel":
-            personel = form.save()
-            kayit = PersonelGirisKaydi(
-                personel=personel,
-                kullanici_adi=form.cleaned_data["kullanici_adi"],
-                sifre=form.cleaned_data["sifre"],
-            )
-            _giris_bilgisi_kaydet(request, kayit, tur="personel")
-            messages.success(request, f"{personel.ad_soyad} eklendi.")
-            return redirect(f"{reverse('yonetim:hizli_kayit')}?tur=personel")
+        try:
+            if tur == "personel":
+                personel = form.save()
+                kayit = PersonelGirisKaydi(
+                    personel=personel,
+                    kullanici_adi=form.cleaned_data["kullanici_adi"],
+                    sifre=form.cleaned_data["sifre"],
+                )
+                _giris_bilgisi_kaydet(request, kayit, tur="personel")
+                messages.success(request, f"{personel.ad_soyad} eklendi.")
+                return redirect(f"{reverse('yonetim:hizli_kayit')}?tur=personel")
 
-        if tur == "ogretmen":
-            kayit = form.save()
-            _giris_bilgisi_kaydet(request, kayit, tur="ogretmen")
-            messages.success(request, f"{kayit.ad_soyad} eklendi.")
-            return redirect(f"{reverse('yonetim:hizli_kayit')}?tur=ogretmen")
+            if tur == "ogretmen":
+                kayit = form.save()
+                _giris_bilgisi_kaydet(request, kayit, tur="ogretmen")
+                messages.success(request, f"{kayit.ad_soyad} eklendi.")
+                return redirect(f"{reverse('yonetim:hizli_kayit')}?tur=ogretmen")
 
-        talebe, veli = form.save_with_veli()
-        mesaj = f"{talebe.ad_soyad} eklendi (No: {talebe.talebe_no})."
-        if veli and talebe.tc_kimlik:
-            mesaj += (
-                f" Veli giriş: {talebe.tc_kimlik} · "
-                f"şifre: {talebe.tc_kimlik[-4:]}"
-            )
-        messages.success(request, mesaj)
-        return redirect(f"{reverse('yonetim:hizli_kayit')}?tur=talebe")
+            talebe, veli = form.save_with_veli()
+            mesaj = f"{talebe.ad_soyad} eklendi (No: {talebe.talebe_no})."
+            if veli and talebe.tc_kimlik:
+                mesaj += (
+                    f" Veli giriş: {talebe.tc_kimlik} · "
+                    f"şifre: {talebe.tc_kimlik[-4:]}"
+                )
+            messages.success(request, mesaj)
+            return redirect(f"{reverse('yonetim:hizli_kayit')}?tur=talebe")
+        except Exception as exc:
+            from django.db import IntegrityError
+
+            if isinstance(exc, IntegrityError):
+                messages.error(
+                    request,
+                    "Kayıt sırasında veri çakışması oluştu. "
+                    "TC veya talebe numarasını kontrol edip tekrar deneyin.",
+                )
+            else:
+                _form_kayit_hatasi_uygula(form, exc)
+                if not form.errors:
+                    messages.error(
+                        request,
+                        "Kayıt sırasında beklenmeyen bir hata oluştu. "
+                        "Bilgileri kontrol edip tekrar deneyin.",
+                    )
 
     return render(
         request,

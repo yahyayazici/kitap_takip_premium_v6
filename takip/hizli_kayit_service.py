@@ -37,9 +37,24 @@ def son_kayitlar(tur: str):
 
 
 def talebe_pasif_et(talebe: Talebe) -> None:
-    talebe.aktif = False
-    talebe.durum = Talebe.Durum.AYRILDI
-    talebe.save(update_fields=["aktif", "durum"])
+    """Pasif et — model save()/full_clean atlanır (eski kayıtlarda 500 önlenir)."""
+    Talebe.objects.filter(pk=talebe.pk).update(
+        aktif=False,
+        durum=Talebe.Durum.AYRILDI,
+    )
+
+    from takip.talebe_panel_models import TalebeHesap
+
+    hesap = (
+        TalebeHesap.objects.filter(talebe_id=talebe.pk)
+        .select_related("user")
+        .first()
+    )
+    if hesap:
+        if hesap.aktif:
+            TalebeHesap.objects.filter(pk=hesap.pk).update(aktif=False)
+        if hesap.user_id:
+            User.objects.filter(pk=hesap.user_id).update(is_active=False)
 
 
 def personel_pasif_et(personel: PersonelProfili) -> None:
