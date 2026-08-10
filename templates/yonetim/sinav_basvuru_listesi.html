@@ -104,6 +104,13 @@
                         <td>{{ b.olusturulma|date:"d.m.Y H:i" }}</td>
                         <td class="yonetim-action-col">
                             <a href="{% url 'yonetim:sinav_basvuru_detay' b.pk %}" class="yonetim-link">Detay</a>
+                            <button type="submit"
+                                    form="sil-form-{{ b.pk }}"
+                                    class="yonetim-link"
+                                    style="background:none;border:0;padding:0;cursor:pointer;color:#b91c1c;"
+                                    onclick="return confirm('{{ b.ad_soyad|escapejs }} başvurusunu silmek istediğinize emin misiniz?');">
+                                Sil
+                            </button>
                         </td>
                     </tr>
                     {% empty %}
@@ -113,6 +120,12 @@
             </table>
         </div>
     </form>
+
+    {% for b in basvurular %}
+    <form id="sil-form-{{ b.pk }}" method="post" action="{% url 'yonetim:sinav_basvuru_sil' b.pk %}" style="display:none;">
+        {% csrf_token %}
+    </form>
+    {% endfor %}
 </section>
 
 <script>
