@@ -14,6 +14,7 @@ from . import ogretmen_odeme_yonetim_views
 from . import mezun_yonetim_views
 from . import aidat_yonetim_views
 from . import veli_randevu_yonetim_views
+from . import sinav_basvuru_yonetim_views
 from . import yonetim_hizli_kayit_views
 from . import idareci_views
 from . import personel_toplanti_views
@@ -520,6 +521,22 @@ urlpatterns = [
         "mudahale-turleri/<int:pk>/sil/",
         akademik_mudahale_yonetim_views.mudahale_turu_sil,
         name="mudahale_turu_sil",
+    ),
+
+    path(
+        "sinav-basvurulari/",
+        sinav_basvuru_yonetim_views.sinav_basvuru_listesi,
+        name="sinav_basvuru_listesi",
+    ),
+    path(
+        "sinav-basvurulari/<int:pk>/",
+        sinav_basvuru_yonetim_views.sinav_basvuru_detay,
+        name="sinav_basvuru_detay",
+    ),
+    path(
+        "sinav-basvurulari/<int:pk>/sil/",
+        sinav_basvuru_yonetim_views.sinav_basvuru_sil,
+        name="sinav_basvuru_sil",
     ),
 
     path(

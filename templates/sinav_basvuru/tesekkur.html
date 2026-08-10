@@ -1,0 +1,32 @@
+{% load static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Başvuru alındı · {{ panel_org }}</title>
+    <link rel="stylesheet" href="{% static 'css/sinav-basvuru.css' %}">
+</head>
+<body>
+<main class="sb-page sb-thanks">
+    <div class="sb-shell">
+        <header class="sb-brand">
+            <div class="sb-logo">
+                <img src="{% static 'images/cinili-saray-logo-transparent.png' %}" alt="Çinili Saray Öğrenci Yurdu">
+            </div>
+            <p>{{ sinav_basvuru_baslik }}</p>
+        </header>
+
+        <section class="sb-panel">
+            <p class="sb-eyebrow">Başvuru tamam</p>
+            <h2>Teşekkürler</h2>
+            <p class="sb-lead">
+                Başvurunuz alındı. Kurum yetkilileri kayıtları inceleyecektir.
+                    Gerekirse verdiğiniz telefon numaralarından sizinle iletişime geçilir.
+            </p>
+            <a class="sb-link" href="{% url 'sinav_basvuru_form' %}">Yeni başvuru</a>
+        </section>
+    </div>
+</main>
+</body>
+</html>

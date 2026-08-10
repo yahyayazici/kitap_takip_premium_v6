@@ -30,6 +30,7 @@ from . import asistan_views
 from . import ai_views
 from . import dershane_program_views
 from . import yemekci_views
+from . import sinav_basvuru_views
 from . import views
 from .auth_views import PanelLoginView
 
@@ -40,6 +41,17 @@ urlpatterns = [
         "giris/",
         PanelLoginView.as_view(),
         name="login",
+    ),
+
+    path(
+        "sinav-basvuru/",
+        sinav_basvuru_views.sinav_basvuru_form,
+        name="sinav_basvuru_form",
+    ),
+    path(
+        "sinav-basvuru/tesekkur/",
+        sinav_basvuru_views.sinav_basvuru_tesekkur,
+        name="sinav_basvuru_tesekkur",
     ),
 
     path("cikis/", auth_views.LogoutView.as_view(), name="logout"),

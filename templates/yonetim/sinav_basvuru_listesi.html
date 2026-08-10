@@ -1,0 +1,88 @@
+{% extends "yonetim/base.html" %}
+{% block title %}Sınav Başvuruları{% endblock %}
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">EĞİTİM</p>
+        <h1>Sınav Başvuruları</h1>
+        <p class="muted">Online formdan gelen başvuruları inceleyin ve durumlarını güncelleyin.</p>
+    </div>
+    <a href="{% url 'sinav_basvuru_form' %}" class="secondary-btn" target="_blank" rel="noopener">Formu aç</a>
+</header>
+
+<section class="report-table-card yonetim-table-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">BAŞVURULAR</p>
+            <h2>Kayıt listesi</h2>
+        </div>
+        <span class="report-record-count">{{ basvurular|length }} kayıt</span>
+    </div>
+
+    <form method="get" class="yonetim-filter-bar" style="display:flex;flex-wrap:wrap;gap:0.75rem;margin:0 0 1rem;align-items:end;">
+        <div>
+            <label for="q">Ara</label>
+            <input class="cs-input" type="search" id="q" name="q" value="{{ arama }}" placeholder="Ad, baba/anne telefon…">
+        </div>
+        <div>
+            <label for="durum">Durum</label>
+            <select class="cs-input" id="durum" name="durum">
+                <option value="">Tümü</option>
+                {% for value, label in durum_secenekleri %}
+                <option value="{{ value }}" {% if durum_filtre == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="primary-btn">Filtrele</button>
+    </form>
+
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <thead>
+                <tr>
+                    <th>Ad soyad</th>
+                    <th>Baba tel</th>
+                    <th>Anne tel</th>
+                    <th>İl / İlçe</th>
+                    <th>Doğum tarihi</th>
+                    <th>Sınav</th>
+                    <th>Durum</th>
+                    <th>Tarih</th>
+                    <th class="yonetim-action-col">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in basvurular %}
+                <tr>
+                    <td><strong>{{ b.ad_soyad }}</strong></td>
+                    <td>{{ b.baba_telefon }}</td>
+                    <td>{{ b.anne_telefon }}</td>
+                    <td>{{ b.il }} / {{ b.ilce }}</td>
+                    <td>{{ b.dogum_tarihi|date:"d.m.Y" }}</td>
+                    <td>{{ b.sinav_adi }}</td>
+                    <td>
+                        {% if b.durum == "yeni" %}
+                        <span class="status-pill status-okunuyor">Yeni</span>
+                        {% elif b.durum == "inceleniyor" %}
+                        <span class="status-pill">İnceleniyor</span>
+                        {% elif b.durum == "kabul" %}
+                        <span class="status-pill status-okunuyor">Kabul</span>
+                        {% else %}
+                        <span class="status-pill status-iade">Red</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ b.olusturulma|date:"d.m.Y H:i" }}</td>
+                    <td class="yonetim-action-col">
+                        <a href="{% url 'yonetim:sinav_basvuru_detay' b.pk %}" class="yonetim-link">Detay</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="9" class="report-empty">Henüz başvuru yok.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

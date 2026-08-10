@@ -1,0 +1,72 @@
+{% extends "yonetim/base.html" %}
+{% block title %}{{ basvuru.ad_soyad }} · Başvuru{% endblock %}
+{% block content %}
+
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker"><a href="{% url 'yonetim:sinav_basvuru_listesi' %}">Sınav Başvuruları</a></p>
+        <h1>{{ basvuru.ad_soyad }}</h1>
+        <p class="muted">{{ basvuru.sinav_adi }} · {{ basvuru.olusturulma|date:"d.m.Y H:i" }}</p>
+    </div>
+    <span class="status-pill">{% if basvuru.durum == "yeni" %}Yeni{% elif basvuru.durum == "inceleniyor" %}İnceleniyor{% elif basvuru.durum == "kabul" %}Kabul{% else %}Red{% endif %}</span>
+</header>
+
+<section class="report-table-card yonetim-table-card" style="margin-bottom:1.25rem;">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">BAŞVURU</p>
+            <h2>Öğrenci bilgileri</h2>
+        </div>
+    </div>
+    <div class="responsive-table">
+        <table class="report-data-table yonetim-data-table">
+            <tbody>
+                <tr><th style="width:12rem;">Ad soyad</th><td>{{ basvuru.ad_soyad }}</td></tr>
+                <tr><th>Baba adı</th><td>{{ basvuru.baba_adi }}</td></tr>
+                <tr><th>Baba telefon</th><td><a href="tel:{{ basvuru.baba_telefon }}">{{ basvuru.baba_telefon }}</a></td></tr>
+                <tr><th>Anne adı</th><td>{{ basvuru.anne_adi }}</td></tr>
+                <tr><th>Anne telefon</th><td><a href="tel:{{ basvuru.anne_telefon }}">{{ basvuru.anne_telefon }}</a></td></tr>
+                <tr><th>İl</th><td>{{ basvuru.il }}</td></tr>
+                <tr><th>İlçe</th><td>{{ basvuru.ilce }}</td></tr>
+                <tr><th>Doğum tarihi</th><td>{{ basvuru.dogum_tarihi|date:"d.m.Y" }}</td></tr>
+                <tr><th>Sınav</th><td>{{ basvuru.sinav_adi }}</td></tr>
+                <tr><th>Başvuru zamanı</th><td>{{ basvuru.olusturulma|date:"d.m.Y H:i" }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="report-table-card yonetim-table-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">YÖNETİM</p>
+            <h2>Durum ve not</h2>
+        </div>
+    </div>
+    <form method="post" style="display:grid;gap:1rem;max-width:36rem;">
+        {% csrf_token %}
+        <div>
+            <label for="durum">Durum</label>
+            <select class="cs-input" id="durum" name="durum">
+                {% for value, label in durum_secenekleri %}
+                <option value="{{ value }}" {% if basvuru.durum == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="notlar">Yönetim notu</label>
+            <textarea class="cs-input" id="notlar" name="notlar" rows="4" placeholder="İç not…">{{ basvuru.notlar }}</textarea>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:0.75rem;">
+            <button type="submit" class="primary-btn">Kaydet</button>
+            <a href="{% url 'yonetim:sinav_basvuru_listesi' %}" class="secondary-btn">Listeye dön</a>
+        </div>
+    </form>
+
+    <form method="post" action="{% url 'yonetim:sinav_basvuru_sil' basvuru.pk %}" style="margin-top:1.5rem;" onsubmit="return confirm('Bu başvuruyu silmek istediğinize emin misiniz?');">
+        {% csrf_token %}
+        <button type="submit" class="secondary-btn" style="color:#b91c1c;">Başvuruyu sil</button>
+    </form>
+</section>
+
+{% endblock %}

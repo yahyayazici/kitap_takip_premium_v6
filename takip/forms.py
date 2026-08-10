@@ -1136,3 +1136,94 @@ class YctOlayForm(StyledModelForm):
         self.fields["bitis"].required = False
         self.fields["aciklama"].required = False
 
+
+class SinavBasvuruForm(StyledModelForm):
+    bilgilendirme_onay = forms.BooleanField(
+        required=True,
+        label="Bilgilendirme ve değerlendirme metinlerini okudum, anladım.",
+        error_messages={
+            "required": "Devam etmek için bilgilendirme metnini onaylayın.",
+        },
+    )
+
+    class Meta:
+        from takip.models import SinavBasvuru
+
+        model = SinavBasvuru
+        fields = [
+            "ad_soyad",
+            "baba_adi",
+            "baba_telefon",
+            "anne_adi",
+            "anne_telefon",
+            "il",
+            "ilce",
+            "dogum_tarihi",
+        ]
+        widgets = {
+            "ad_soyad": forms.TextInput(
+                attrs={"placeholder": "Öğrencinin adı ve soyadı", "autocomplete": "name"}
+            ),
+            "baba_adi": forms.TextInput(attrs={"placeholder": "Baba adı"}),
+            "baba_telefon": forms.TextInput(
+                attrs={
+                    "placeholder": "05xx xxx xx xx",
+                    "autocomplete": "tel",
+                    "inputmode": "tel",
+                }
+            ),
+            "anne_adi": forms.TextInput(attrs={"placeholder": "Anne adı"}),
+            "anne_telefon": forms.TextInput(
+                attrs={
+                    "placeholder": "05xx xxx xx xx",
+                    "autocomplete": "tel",
+                    "inputmode": "tel",
+                }
+            ),
+            "il": forms.Select(attrs={"class": "sb-select"}),
+            "ilce": forms.Select(attrs={"class": "sb-select"}),
+            "dogum_tarihi": forms.DateInput(attrs={"type": "date"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        from takip.sinav_basvuru_choices import (
+            ISTANBUL,
+            ISTANBUL_ILCE_CHOICES,
+        )
+
+        super().__init__(*args, **kwargs)
+        self.fields["il"].choices = [(ISTANBUL, ISTANBUL)]
+        self.fields["il"].initial = ISTANBUL
+        self.fields["ilce"].choices = ISTANBUL_ILCE_CHOICES
+        if not self.is_bound and not self.initial.get("il"):
+            self.initial["il"] = ISTANBUL
+
+    def _clean_telefon_alan(self, alan: str) -> str:
+        telefon = (self.cleaned_data.get(alan) or "").strip()
+        digits = "".join(ch for ch in telefon if ch.isdigit())
+        if len(digits) < 10:
+            raise forms.ValidationError("Geçerli bir telefon numarası girin.")
+        return telefon
+
+    def clean_baba_telefon(self):
+        return self._clean_telefon_alan("baba_telefon")
+
+    def clean_anne_telefon(self):
+        return self._clean_telefon_alan("anne_telefon")
+
+    def clean_ad_soyad(self):
+        return (self.cleaned_data.get("ad_soyad") or "").strip()
+
+    def clean_il(self):
+        from takip.sinav_basvuru_choices import ISTANBUL
+
+        return ISTANBUL
+
+    def clean_ilce(self):
+        from takip.sinav_basvuru_choices import ISTANBUL_ILCELERI
+
+        ilce = (self.cleaned_data.get("ilce") or "").strip()
+        if ilce not in ISTANBUL_ILCELERI:
+            raise forms.ValidationError("İstanbul ilçelerinden birini seçin.")
+        return ilce
+

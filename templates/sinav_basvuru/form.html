@@ -1,0 +1,170 @@
+{% load static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ sinav_basvuru_baslik }} · {{ panel_org }}</title>
+    <link rel="stylesheet" href="{% static 'css/sinav-basvuru.css' %}">
+</head>
+<body>
+<main class="sb-page">
+    <div class="sb-shell">
+        <header class="sb-brand">
+            <div class="sb-logo">
+                <img src="{% static 'images/cinili-saray-logo-transparent.png' %}" alt="Çinili Saray Öğrenci Yurdu">
+            </div>
+            <p>{{ sinav_basvuru_baslik }}</p>
+        </header>
+
+        <section class="sb-panel">
+            <div class="sb-panel-head">
+                <p class="sb-eyebrow">Online başvuru</p>
+                <h2>{{ sinav_basvuru_baslik }}</h2>
+                <p>Başvuruya geçmeden önce bilgilendirmeyi okuyunuz.</p>
+            </div>
+
+            <article class="sb-notice sb-notice--info" id="sb-bilgilendirme">
+                <header class="sb-notice-head">
+                    <span class="sb-notice-badge">Önemli</span>
+                    <h3>Bilgilendirme</h3>
+                </header>
+                <div class="sb-notice-body">
+                    <p>
+                        <strong>4A Proje Sınıfımız;</strong> akademik başarısı yüksek talebelerimizin
+                        daha yoğun ve sistemli bir eğitim programıyla desteklenmesi amacıyla oluşturulmuştur.
+                    </p>
+                    <p>
+                        <strong>Programa kabul,</strong> yapılacak <strong>Alım Sınavı</strong> sonucuna
+                        ve belirlenen kontenjana göre gerçekleştirilecektir.
+                    </p>
+                    <p class="sb-notice-highlight">
+                        Başvuru, kesin kayıt hakkı oluşturmaz.
+                        <strong>Kesin kayıt hakkı sınav sonucuna göre belirlenecektir.</strong>
+                    </p>
+                </div>
+            </article>
+
+            {% if form.errors %}
+            <div class="sb-alert" role="alert">Lütfen işaretli alanları kontrol edin.</div>
+            {% endif %}
+
+            <form method="post" class="sb-form" id="sb-basvuru-form" novalidate>
+                {% csrf_token %}
+
+                <p class="sb-form-kicker sb-field--full">Başvuru bilgileri</p>
+
+                <div class="sb-field sb-field--full">
+                    <label for="{{ form.ad_soyad.id_for_label }}">Ad soyad</label>
+                    <input type="text" name="{{ form.ad_soyad.html_name }}" id="{{ form.ad_soyad.id_for_label }}" value="{{ form.ad_soyad.value|default:'' }}" autocomplete="name" autofocus required placeholder="Öğrencinin adı ve soyadı">
+                    {% if form.ad_soyad.errors %}<p class="sb-field-error">{{ form.ad_soyad.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="sb-field">
+                    <label for="{{ form.baba_adi.id_for_label }}">Baba adı</label>
+                    <input type="text" name="{{ form.baba_adi.html_name }}" id="{{ form.baba_adi.id_for_label }}" value="{{ form.baba_adi.value|default:'' }}" required placeholder="Baba adı">
+                    {% if form.baba_adi.errors %}<p class="sb-field-error">{{ form.baba_adi.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="sb-field">
+                    <label for="{{ form.baba_telefon.id_for_label }}">Baba telefon</label>
+                    <input type="tel" name="{{ form.baba_telefon.html_name }}" id="{{ form.baba_telefon.id_for_label }}" value="{{ form.baba_telefon.value|default:'' }}" autocomplete="tel" inputmode="tel" required placeholder="05xx xxx xx xx">
+                    {% if form.baba_telefon.errors %}<p class="sb-field-error">{{ form.baba_telefon.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="sb-field">
+                    <label for="{{ form.anne_adi.id_for_label }}">Anne adı</label>
+                    <input type="text" name="{{ form.anne_adi.html_name }}" id="{{ form.anne_adi.id_for_label }}" value="{{ form.anne_adi.value|default:'' }}" required placeholder="Anne adı">
+                    {% if form.anne_adi.errors %}<p class="sb-field-error">{{ form.anne_adi.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="sb-field">
+                    <label for="{{ form.anne_telefon.id_for_label }}">Anne telefon</label>
+                    <input type="tel" name="{{ form.anne_telefon.html_name }}" id="{{ form.anne_telefon.id_for_label }}" value="{{ form.anne_telefon.value|default:'' }}" autocomplete="tel" inputmode="tel" required placeholder="05xx xxx xx xx">
+                    {% if form.anne_telefon.errors %}<p class="sb-field-error">{{ form.anne_telefon.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="sb-field">
+                    <label for="{{ form.il.id_for_label }}">İl</label>
+                    <select name="{{ form.il.html_name }}" id="{{ form.il.id_for_label }}" class="sb-select" required>
+                        {% for value, label in form.il.field.choices %}
+                        <option value="{{ value }}" {% if form.il.value == value or not form.il.value and value == "İstanbul" %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if form.il.errors %}<p class="sb-field-error">{{ form.il.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="sb-field">
+                    <label for="{{ form.ilce.id_for_label }}">İlçe</label>
+                    <select name="{{ form.ilce.html_name }}" id="{{ form.ilce.id_for_label }}" class="sb-select" required>
+                        {% for value, label in form.ilce.field.choices %}
+                        <option value="{{ value }}" {% if form.ilce.value == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if form.ilce.errors %}<p class="sb-field-error">{{ form.ilce.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="sb-field sb-field--full">
+                    <label for="sb-gun">Doğum tarihi</label>
+                    <input type="hidden"
+                           name="{{ form.dogum_tarihi.html_name }}"
+                           id="{{ form.dogum_tarihi.id_for_label }}"
+                           data-initial="{% if form.dogum_tarihi.value %}{% if form.dogum_tarihi.value.year %}{{ form.dogum_tarihi.value|date:'Y-m-d' }}{% else %}{{ form.dogum_tarihi.value }}{% endif %}{% endif %}">
+                    <div class="sb-date">
+                        <select id="sb-gun" class="sb-select" aria-label="Gün" required></select>
+                        <select id="sb-ay" class="sb-select" aria-label="Ay" required></select>
+                        <select id="sb-yil" class="sb-select" aria-label="Yıl" required></select>
+                    </div>
+                    <p class="sb-field-error" id="sb-dogum-error" {% if not form.dogum_tarihi.errors %}hidden{% endif %}>
+                        {% if form.dogum_tarihi.errors %}{{ form.dogum_tarihi.errors.0 }}{% endif %}
+                    </p>
+                </div>
+
+                <article class="sb-notice sb-notice--eval sb-field--full" id="sb-degerlendirme">
+                    <header class="sb-notice-head">
+                        <span class="sb-notice-badge">Değerlendirme</span>
+                        <h3>Değerlendirme</h3>
+                    </header>
+                    <div class="sb-notice-body">
+                        <p>
+                            Sınav sonuçları, talebelerimizin başarı durumları ve belirlenen kontenjan
+                            doğrultusunda değerlendirilecektir.
+                        </p>
+                        <ul class="sb-notice-list">
+                            <li>4A Proje Sınıfı’na yerleştirmeler başarı sıralamasına göre yapılacaktır.</li>
+                            <li>Sınav neticeleri en geç 3 gün içerisinde açıklanacaktır.</li>
+                            <li>Sonuç ve kayıt süreci, velilere iletişim bilgileri üzerinden bildirilecektir.</li>
+                            <li>Başvuru ve sınava katılım, kesin kayıt hakkı oluşturmaz.</li>
+                        </ul>
+                    </div>
+                </article>
+
+                <div class="sb-consent sb-field--full">
+                    <label class="sb-check">
+                        <input type="checkbox"
+                               name="{{ form.bilgilendirme_onay.html_name }}"
+                               id="{{ form.bilgilendirme_onay.id_for_label }}"
+                               {% if form.bilgilendirme_onay.value %}checked{% endif %}
+                               required>
+                        <span>
+                            Yukarıdaki <strong>Bilgilendirme</strong> ve <strong>Değerlendirme</strong>
+                            metinlerini okudum; başvurunun kesin kayıt hakkı oluşturmadığını kabul ediyorum.
+                        </span>
+                    </label>
+                    {% if form.bilgilendirme_onay.errors %}
+                    <p class="sb-field-error">{{ form.bilgilendirme_onay.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="sb-actions">
+                    <button type="submit" class="sb-submit" id="sb-submit">Başvuruyu gönder</button>
+                </div>
+            </form>
+
+            <p class="sb-foot">{{ panel_org }}</p>
+        </section>
+    </div>
+</main>
+<script src="{% static 'js/sinav-basvuru.js' %}"></script>
+</body>
+</html>

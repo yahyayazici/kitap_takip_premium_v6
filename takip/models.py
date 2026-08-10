@@ -2118,3 +2118,5 @@ from takip.yemekci_sinif_models import (  # noqa: E402,F401
     YemekciHavuzKaydi,
     YemekciSinifHavuzu,
 )
+
+from takip.sinav_basvuru_models import SinavBasvuru  # noqa: E402,F401

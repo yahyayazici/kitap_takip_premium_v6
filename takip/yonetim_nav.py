@@ -310,6 +310,15 @@ YONETIM_NAV_GROUPS: tuple[YonetimNavGroup, ...] = (
                 ),
             ),
             YonetimNavItem(
+                label="Sınav Başvuruları",
+                url_name="yonetim:sinav_basvuru_listesi",
+                active_names=(
+                    "sinav_basvuru_listesi",
+                    "sinav_basvuru_detay",
+                    "sinav_basvuru_sil",
+                ),
+            ),
+            YonetimNavItem(
                 label="Dini Ders",
                 url_name="yonetim:dini_ders_alan_listesi",
                 active_names=(
