@@ -17,36 +17,53 @@
     }
 
     function restoreScroll() {
-        const hash = (location.hash || "").replace(/^#/, "");
-        if (hash) {
-            const el = document.getElementById(hash);
-            if (el) {
-                el.scrollIntoView({ block: "start", behavior: "instant" });
-                try {
-                    sessionStorage.removeItem(SCROLL_KEY);
-                } catch (e) {}
-                return;
-            }
-        }
+        /* Önce kaydedilen piksel — #kat- hash'i katın tepesine atıyordu */
         try {
             const y = parseInt(sessionStorage.getItem(SCROLL_KEY) || "", 10);
             if (!isNaN(y) && y > 0) {
                 window.scrollTo(0, y);
-                sessionStorage.removeItem(SCROLL_KEY);
+                return true;
             }
         } catch (e) {}
+
+        const hash = (location.hash || "").replace(/^#/, "");
+        if (hash) {
+            const el = document.getElementById(hash);
+            if (el) {
+                el.scrollIntoView({ block: "center", behavior: "instant" });
+                return true;
+            }
+        }
+        return false;
     }
 
     panel.querySelectorAll("form[method='post']").forEach((form) => {
         form.addEventListener("submit", saveScroll);
     });
 
+    function applyRestore() {
+        requestAnimationFrame(() => {
+            const usedScroll = restoreScroll();
+            requestAnimationFrame(() => {
+                restoreScroll();
+                try {
+                    sessionStorage.removeItem(SCROLL_KEY);
+                } catch (e) {}
+                if (usedScroll && location.hash) {
+                    history.replaceState(
+                        null,
+                        "",
+                        location.pathname + location.search
+                    );
+                }
+            });
+        });
+    }
+
     if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", () =>
-            requestAnimationFrame(restoreScroll)
-        );
+        document.addEventListener("DOMContentLoaded", applyRestore);
     } else {
-        requestAnimationFrame(restoreScroll);
+        applyRestore();
     }
 
     function openModal(name) {
@@ -70,6 +87,7 @@
 
     document.querySelectorAll("[data-tz-mahal-ekle]").forEach((btn) => {
         btn.addEventListener("click", () => {
+            saveScroll();
             document.getElementById("tz-mahal-kat-id").value = btn.dataset.tzMahalEkle;
             openModal("mahal-ekle");
         });
