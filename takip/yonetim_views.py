@@ -572,7 +572,6 @@ def talebe_liste_excel(request):
     )
 
 
-@yonetici_gerekli
 def _talebe_form_context(form, *, sayfa_basligi, sayfa_aciklama):
     from takip.turkiye_il_ilce import il_ilce_haritasi
 
