@@ -3,7 +3,7 @@
 
 {% block title %}Temizlik Yönetimi · {{ liste.ad }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/temizlik-premium.css' %}?v=tz-gorevli2">
+<link rel="stylesheet" href="{% static 'css/temizlik-premium.css' %}?v=tz-compact1">
 {% endblock %}
 
 {% block content %}
@@ -131,17 +131,6 @@
                         <button type="button" class="tz-add-chip" data-tz-gorevli-ekle="{{ row.alan.pk }}">+ Görevli</button>
                     </div>
                     <div class="tz-mahal-controls">
-                        <form method="post" class="tz-kontrol-form">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="kontrol_guncelle">
-                            <input type="hidden" name="alan_id" value="{{ row.alan.pk }}">
-                            <input type="hidden" name="kat_id" value="{{ kart.kat.pk }}">
-                            <select name="durum" onchange="this.form.submit()">
-                                {% for val, label in kontrol_secenekleri %}
-                                <option value="{{ val }}" {% if row.kontrol and row.kontrol.durum == val %}selected{% elif not row.kontrol and val == 'bekliyor' %}selected{% endif %}>{{ label }}</option>
-                                {% endfor %}
-                            </select>
-                        </form>
                         <form method="post" onsubmit="return confirm('Mahal silinsin mi?');">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="mahal_sil">

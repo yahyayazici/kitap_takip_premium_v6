@@ -754,21 +754,22 @@
 }
 
 .tz-mahal-list {
-    padding: 12px 20px 20px;
+    padding: 8px 16px 14px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 6px;
 }
 
 .tz-mahal-card {
     display: grid;
-    grid-template-columns: minmax(180px, 240px) minmax(0, 1fr) minmax(200px, 260px);
-    gap: 20px;
+    grid-template-columns: minmax(140px, 200px) minmax(0, 1fr) auto;
+    gap: 10px 14px;
     align-items: center;
-    padding: 16px 20px;
+    padding: 8px 12px;
+    min-height: 0;
     background: #fafbfc;
     border: 1px solid #eef2f6;
-    border-radius: 16px;
+    border-radius: 10px;
     transition: border-color 0.15s, box-shadow 0.15s;
 }
 
@@ -786,47 +787,65 @@
 .tz-mahal-main {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    min-width: 0;
 }
 
 .tz-mahal-icon {
-    width: 36px;
-    height: 36px;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     background: #eff6ff;
-    border-radius: 10px;
-    font-size: 1rem;
+    border-radius: 8px;
+    font-size: 0.8125rem;
 }
 
 .tz-mahal-main strong {
     display: block;
-    font-size: 0.9375rem;
+    font-size: 0.8125rem;
+    font-weight: 650;
     color: #0f172a;
+    line-height: 1.25;
 }
 
 .tz-mahal-main small {
     display: block;
-    font-size: 0.75rem;
+    font-size: 0.6875rem;
     color: #94a3b8;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
 }
 
 .tz-chip-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 4px;
     align-items: center;
+    min-width: 0;
+}
+
+.tz-mahal-card .tz-talebe-chip {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    border-radius: 999px;
+    min-height: 28px;
 }
 
 .tz-add-chip {
     border: 1px dashed #cbd5e1;
     background: transparent;
     border-radius: 999px;
-    padding: 4px 12px;
-    font-size: 0.8125rem;
+    padding: 3px 10px;
+    font-size: 0.75rem;
     color: #2563eb;
     cursor: pointer;
+    min-height: 28px;
 }
 
 .tz-add-chip:hover {
@@ -836,17 +855,20 @@
 
 .tz-mahal-controls {
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 6px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
 }
 
-.tz-kontrol-form select {
+.tz-mahal-controls .tz-link-btn {
     font-size: 0.75rem;
     padding: 4px 8px;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
-    background: #fff;
+    min-height: 28px;
+}
+
+.tz-kontrol-form {
+    display: none;
 }
 
 .tz-link-btn {
@@ -1118,24 +1140,15 @@
     margin-bottom: 4px;
 }
 
-@media (max-width: 1280px) {
+@media (max-width: 1100px) {
     .tz-stats-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
     .tz-mahal-card {
-        grid-template-columns: minmax(160px, 220px) minmax(0, 1fr);
+        grid-template-columns: minmax(120px, 180px) minmax(0, 1fr) auto;
+        gap: 8px 10px;
     }
-
-    .tz-mahal-controls {
-        grid-column: 1 / -1;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-    }
-}
-
-@media (max-width: 1100px) {
 
     .tz-merkez-layout {
         grid-template-columns: 1fr;
