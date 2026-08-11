@@ -263,7 +263,6 @@ def gorev_paneli(liste: ImamMuezzinListesi, *, yil: int | None = None, ay: int |
     mevcut_talebeler = {t.pk for t in talebe_havuzunu_al(liste)}
     secilebilir = Talebe.objects.filter(pk__in=mevcut_talebeler, aktif=True).order_by("ad_soyad")
 
-    havuzlari_hazirla(liste)
     imam_havuzu = havuz_listesi(liste, ImamMuezzinHavuzKaydi.Rol.IMAM)
     muezzin_havuzu = havuz_listesi(liste, ImamMuezzinHavuzKaydi.Rol.MUEZZIN)
     imam_ids = {k["talebe_id"] for k in imam_havuzu}
