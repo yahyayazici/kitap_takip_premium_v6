@@ -23,7 +23,8 @@
     padding: 0 0 2.5rem;
     display: grid;
     gap: 0.85rem;
-    overflow-x: clip;
+    /* overflow:clip sticky isim/konu başlıklarını bozar — kaydırma .dd-matrix-wrap içinde */
+    overflow: visible;
 }
 
 .dd-page-head {
@@ -206,7 +207,8 @@
 
 .dd-matrix-card {
     padding: 0;
-    overflow: hidden;
+    /* overflow:hidden → Safari/tablet’te sticky Talebe + konu satırı donmaz */
+    overflow: visible;
 }
 
 .dd-matrix-head {
@@ -425,19 +427,25 @@ body.dd-topic-modal-open {
     overflow: auto;
     max-height: min(72vh, 820px);
     overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 0 0 var(--dd-radius) var(--dd-radius);
+    /* Sticky için tek kaydırma yüzeyi */
+    position: relative;
+    z-index: 0;
 }
 
 .dd-matrix {
-    width: 100%;
+    width: max-content;
+    min-width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    min-width: 640px;
 }
 
 .dd-matrix thead th {
+    position: -webkit-sticky;
     position: sticky;
     top: 0;
-    z-index: 2;
+    z-index: 3;
     padding: 0;
     font-size: 0.68rem;
     font-weight: 600;
@@ -451,7 +459,8 @@ body.dd-topic-modal-open {
 
 .dd-matrix thead th.dd-sticky-col {
     left: 0;
-    z-index: 4;
+    top: 0;
+    z-index: 5;
     text-align: left;
     padding: 0.75rem 1rem;
     min-width: 180px;
@@ -460,7 +469,8 @@ body.dd-topic-modal-open {
     text-transform: uppercase;
     font-size: 0.68rem;
     letter-spacing: 0.06em;
-    box-shadow: 4px 0 8px rgba(0, 0, 0, 0.12);
+    background: linear-gradient(180deg, #0f2f5c 0%, #071b3a 100%);
+    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.18);
 }
 
 .dd-matrix thead th.dd-topic-col {
@@ -524,16 +534,21 @@ body.dd-topic-modal-open {
 }
 
 .dd-matrix tbody td.dd-sticky-col {
+    position: -webkit-sticky;
     position: sticky;
     left: 0;
-    z-index: 1;
+    z-index: 2;
     text-align: left;
     padding: 0.5rem 0.75rem 0.5rem 1rem;
-    background: var(--dd-bg);
+    background: #ffffff;
     border-right: 1px solid var(--dd-line);
-    box-shadow: 4px 0 8px rgba(15, 23, 42, 0.04);
+    box-shadow: 4px 0 10px rgba(15, 23, 42, 0.08);
     min-width: 180px;
     max-width: 220px;
+}
+
+.dd-matrix tbody tr:nth-child(even) td.dd-sticky-col {
+    background: #f8fafc;
 }
 
 .dd-student-cell {
