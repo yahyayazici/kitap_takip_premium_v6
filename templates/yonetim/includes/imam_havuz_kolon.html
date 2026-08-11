@@ -1,0 +1,103 @@
+<section class="im-pool" data-im-pool="{{ rol }}">
+    <div class="im-pool-head">
+        <h3>{{ baslik }} <span class="im-count">{{ havuz|length }} Kişi</span></h3>
+        <div class="im-pool-head-actions">
+            <button type="submit" form="im-bulk-remove-{{ rol }}" class="im-btn im-btn-ghost im-btn-sm" data-im-bulk-remove>
+                Seçilenleri Çıkar
+            </button>
+            <button type="submit" form="{{ clear_form }}" class="im-btn im-btn-ghost im-btn-sm" onclick="return confirm('{{ clear_msg|escapejs }}');">
+                Tümünü Çıkar
+            </button>
+        </div>
+    </div>
+
+    <div class="im-pool-add-bar">
+        <form method="post" class="im-pool-add">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="havuz_ekle">
+            <input type="hidden" name="rol" value="{{ rol }}">
+            <input type="hidden" name="yil" value="{{ yil }}">
+            <input type="hidden" name="ay" value="{{ ay }}">
+            <select name="talebe_id" required>
+                <option value="">— Öğrenci Seçin —</option>
+                {% for t in eklenebilir %}
+                <option value="{{ t.pk }}">{{ t.ad_soyad }}{% if t.sinif_sube %} · {{ t.sinif_sube }}{% endif %}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="im-btn im-btn-primary im-btn-sm">Ekle</button>
+        </form>
+        <button type="button" class="im-btn im-btn-ghost im-btn-sm" data-im-open="toplu-{{ rol }}">Toplu Ekle</button>
+    </div>
+
+    <form method="post" id="im-bulk-remove-{{ rol }}" class="im-pool-list-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="havuz_toplu_sil">
+        <input type="hidden" name="yil" value="{{ yil }}">
+        <input type="hidden" name="ay" value="{{ ay }}">
+        <div class="im-pool-list">
+            {% for k in havuz %}
+            <label class="im-pool-row">
+                <input type="checkbox" name="kayit_ids" value="{{ k.id }}" class="im-pool-check">
+                <span class="im-pool-drag" aria-hidden="true">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><circle cx="3" cy="2" r="1.1"/><circle cx="9" cy="2" r="1.1"/><circle cx="3" cy="6" r="1.1"/><circle cx="9" cy="6" r="1.1"/><circle cx="3" cy="10" r="1.1"/><circle cx="9" cy="10" r="1.1"/></svg>
+                </span>
+                <span class="im-pool-num">{{ forloop.counter }}</span>
+                <span class="im-pool-name">
+                    <strong>{{ k.ad_soyad }}</strong>
+                    {% if k.sinif %}<span>{{ k.sinif }}</span>{% endif %}
+                </span>
+                <button type="submit" form="im-remove-{{ rol }}-{{ k.id }}" class="im-btn im-btn-icon im-btn-danger" title="Listeden çıkar" aria-label="Listeden çıkar">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M9 7V5h6v2m-8 0 1 12h8l1-12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+            </label>
+            {% empty %}
+            <div class="im-pool-empty">Liste boş — Listeyi Oluştur veya öğrenci ekleyin.</div>
+            {% endfor %}
+        </div>
+    </form>
+
+    {% for k in havuz %}
+    <form method="post" id="im-remove-{{ rol }}-{{ k.id }}" hidden>
+        {% csrf_token %}
+        <input type="hidden" name="action" value="havuz_sil">
+        <input type="hidden" name="kayit_id" value="{{ k.id }}">
+        <input type="hidden" name="yil" value="{{ yil }}">
+        <input type="hidden" name="ay" value="{{ ay }}">
+    </form>
+    {% endfor %}
+</section>
+
+<div class="im-modal" data-im-modal="toplu-{{ rol }}" hidden>
+    <div class="im-modal-card im-modal-wide" role="dialog" aria-labelledby="im-toplu-{{ rol }}-title">
+        <div class="im-modal-head">
+            <h3 id="im-toplu-{{ rol }}-title">Toplu Ekle · {% if rol == "imam" %}İmam{% else %}Müezzin{% endif %}</h3>
+            <button type="button" class="im-btn im-btn-ghost im-btn-icon" data-im-close aria-label="Kapat">×</button>
+        </div>
+        <form method="post" class="im-modal-body im-bulk-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="havuz_toplu_ekle">
+            <input type="hidden" name="rol" value="{{ rol }}">
+            <input type="hidden" name="yil" value="{{ yil }}">
+            <input type="hidden" name="ay" value="{{ ay }}">
+            <div class="im-bulk-tools">
+                <input type="search" class="im-bulk-search" placeholder="İsim ara…" data-im-bulk-search autocomplete="off">
+                <button type="button" class="im-btn im-btn-ghost im-btn-sm" data-im-bulk-all>Tümünü Seç</button>
+                <button type="button" class="im-btn im-btn-ghost im-btn-sm" data-im-bulk-none>Temizle</button>
+            </div>
+            <div class="im-bulk-list">
+                {% for t in eklenebilir %}
+                <label class="im-bulk-row" data-im-bulk-row data-name="{{ t.ad_soyad|lower }}">
+                    <input type="checkbox" name="talebe_ids" value="{{ t.pk }}">
+                    <span>{{ t.ad_soyad }}{% if t.sinif_sube %} <small>{{ t.sinif_sube }}</small>{% endif %}</span>
+                </label>
+                {% empty %}
+                <div class="im-pool-empty">Eklenebilecek öğrenci kalmadı.</div>
+                {% endfor %}
+            </div>
+            <div class="im-modal-foot">
+                <button type="button" class="im-btn im-btn-ghost" data-im-close>Vazgeç</button>
+                <button type="submit" class="im-btn im-btn-primary">Seçilenleri Ekle</button>
+            </div>
+        </form>
+    </div>
+</div>

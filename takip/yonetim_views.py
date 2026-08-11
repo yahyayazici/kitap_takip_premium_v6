@@ -39,6 +39,8 @@ from .imam_muezzin_yonetim_service import (
     havuz_ekle,
     havuz_sil,
     havuz_temizle,
+    havuz_toplu_ekle,
+    havuz_toplu_sil,
     havuz_yeniden_dagit,
     liste_olustur,
     ornek_havuz_yukle,
@@ -1340,7 +1342,20 @@ def imam_gorev_panel(request, pk):
             ay = int(post_ay)
 
         if action == "olustur" and yil and ay:
+            from datetime import date as date_cls
+
             baslangic, bitis = ay_araligi(yil, ay)
+            raw_b = (request.POST.get("baslangic") or "").strip()
+            raw_e = (request.POST.get("bitis") or "").strip()
+            try:
+                if raw_b:
+                    baslangic = date_cls.fromisoformat(raw_b)
+                if raw_e:
+                    bitis = date_cls.fromisoformat(raw_e)
+                if bitis < baslangic:
+                    baslangic, bitis = bitis, baslangic
+            except ValueError:
+                pass
             liste.baslangic_tarihi = baslangic
             liste.bitis_tarihi = bitis
             liste.ad = f"İmam Müezzin — {baslangic.strftime('%m.%Y')}"
@@ -1389,6 +1404,21 @@ def imam_gorev_panel(request, pk):
                 messages.success(request, msg)
             else:
                 messages.error(request, "Talebe eklenemedi.")
+        elif action == "havuz_toplu_ekle":
+            rol = request.POST.get("rol", "")
+            raw_ids = request.POST.getlist("talebe_ids")
+            if not raw_ids:
+                tek = request.POST.get("talebe_ids_csv", "")
+                raw_ids = [x.strip() for x in tek.split(",") if x.strip()]
+            sayi = havuz_toplu_ekle(liste, rol, raw_ids) if rol in {"imam", "muezzin"} else 0
+            if sayi:
+                adet = havuz_yeniden_dagit(liste)
+                msg = f"{sayi} talebe listeye eklendi."
+                if adet:
+                    msg += f" {adet} günlük atama güncellendi."
+                messages.success(request, msg)
+            else:
+                messages.warning(request, "Eklenecek yeni talebe seçilmedi.")
         elif action == "havuz_sil":
             kayit_id = request.POST.get("kayit_id", "")
             if kayit_id.isdigit():
@@ -1398,6 +1428,17 @@ def imam_gorev_panel(request, pk):
                 if adet:
                     msg += f" {adet} günlük atama güncellendi."
                 messages.success(request, msg)
+        elif action == "havuz_toplu_sil":
+            raw_ids = request.POST.getlist("kayit_ids")
+            sayi = havuz_toplu_sil(liste, raw_ids)
+            if sayi:
+                adet = havuz_yeniden_dagit(liste)
+                msg = f"{sayi} talebe listeden çıkarıldı."
+                if adet:
+                    msg += f" {adet} günlük atama güncellendi."
+                messages.success(request, msg)
+            else:
+                messages.warning(request, "Çıkarılacak kayıt seçilmedi.")
 
         url = reverse("yonetim:imam_gorev_panel", kwargs={"pk": liste.pk})
         if yil and ay:

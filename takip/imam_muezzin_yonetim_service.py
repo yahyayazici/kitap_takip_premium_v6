@@ -139,8 +139,60 @@ def havuz_ekle(liste: ImamMuezzinListesi, rol: str, talebe_id: int) -> bool:
     return True
 
 
+def _parse_id_list(values) -> list[int]:
+    ids: list[int] = []
+    for x in values or []:
+        try:
+            ids.append(int(x))
+        except (TypeError, ValueError):
+            continue
+    return sorted(set(ids))
+
+
+def havuz_toplu_ekle(liste: ImamMuezzinListesi, rol: str, talebe_ids: list[int]) -> int:
+    """Aynı role birden fazla talebe ekler; zaten olanları atlar."""
+    if rol not in {ImamMuezzinHavuzKaydi.Rol.IMAM, ImamMuezzinHavuzKaydi.Rol.MUEZZIN}:
+        return 0
+    ids = _parse_id_list(talebe_ids)
+    if not ids:
+        return 0
+    aktif_ids = set(
+        Talebe.objects.filter(pk__in=ids, aktif=True).values_list("pk", flat=True)
+    )
+    mevcut = set(
+        liste.havuz_kayitlari.filter(rol=rol, talebe_id__in=aktif_ids).values_list(
+            "talebe_id", flat=True
+        )
+    )
+    son_sira = (
+        liste.havuz_kayitlari.filter(rol=rol).order_by("-sira").values_list("sira", flat=True).first()
+        or 0
+    )
+    eklenecek = [tid for tid in ids if tid in aktif_ids and tid not in mevcut]
+    kayitlar = [
+        ImamMuezzinHavuzKaydi(
+            liste=liste,
+            rol=rol,
+            talebe_id=tid,
+            sira=son_sira + i,
+        )
+        for i, tid in enumerate(eklenecek, start=1)
+    ]
+    if kayitlar:
+        ImamMuezzinHavuzKaydi.objects.bulk_create(kayitlar)
+    return len(kayitlar)
+
+
 def havuz_sil(kayit_id: int, liste: ImamMuezzinListesi) -> None:
     liste.havuz_kayitlari.filter(pk=kayit_id).delete()
+
+
+def havuz_toplu_sil(liste: ImamMuezzinListesi, kayit_ids: list[int]) -> int:
+    ids = _parse_id_list(kayit_ids)
+    if not ids:
+        return 0
+    silinen, _ = liste.havuz_kayitlari.filter(pk__in=ids).delete()
+    return silinen
 
 
 def havuz_yeniden_dagit(liste: ImamMuezzinListesi) -> int:
