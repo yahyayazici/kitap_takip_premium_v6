@@ -21,8 +21,9 @@
             font-weight: 600;
         }
 
+        /* İçeriğe oturan kart boyutu — A4 boşluğu yok */
         @page {
-            size: A4 portrait;
+            size: 108mm 158mm;
             margin: 0;
         }
 
@@ -31,229 +32,323 @@
         html, body {
             margin: 0;
             padding: 0;
-            width: 100%;
-            height: 100%;
-            font-family: "Poppins", Arial, sans-serif;
-            color: #1e293b;
-            background: #eef2f7;
+            width: 108mm;
+            height: 158mm;
+            font-family: "Poppins", Helvetica, Arial, sans-serif;
+            color: #0f172a;
+            background: #ffffff;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
 
-        /* Tam sayfa dikey ortalama (xhtml2pdf / WeasyPrint uyumlu tablo) */
-        .page-shell {
-            width: 100%;
-            height: 297mm;
-            border-collapse: collapse;
-            background: #eef2f7;
-        }
-
-        .page-shell td {
-            padding: 0;
-            vertical-align: middle;
-            text-align: center;
-        }
-
         .card {
-            width: 148mm;
-            margin: 0 auto;
-            border-collapse: separate;
-            border-spacing: 0;
+            width: 100%;
+            height: 158mm;
+            border-collapse: collapse;
             background: #ffffff;
-            border: 1px solid #d7e0ec;
-            border-radius: 20px;
-            overflow: hidden;
+        }
+
+        .card td { padding: 0; vertical-align: top; }
+
+        /* —— Üst marka bandı —— */
+        .head {
+            background-color: #123a72;
+            background: linear-gradient(145deg, #0b2447 0%, #15427f 48%, #1f5a9e 100%);
+            color: #ffffff;
+            padding: 14px 16px 13px;
+        }
+
+        .head-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .head-logo-cell {
+            width: 42px;
+            vertical-align: middle;
+            padding: 0;
+        }
+
+        .head-logo {
+            display: block;
+            width: 36px;
+            height: 36px;
+            object-fit: contain;
+        }
+
+        .head-copy {
+            vertical-align: middle;
+            padding: 0 0 0 10px;
             text-align: left;
         }
 
-        .card-top {
-            background-color: #1d4ed8;
-            background: linear-gradient(145deg, #102a63 0%, #1d4ed8 55%, #3b82f6 100%);
-            color: #ffffff;
-            padding: 22px 26px 18px;
-            text-align: center;
-        }
-
         .brand {
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 1.4px;
-            text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.78);
-            margin: 0 0 8px;
-        }
-
-        .doc-title {
             margin: 0;
-            font-size: 18px;
+            font-size: 13px;
             font-weight: 600;
-            line-height: 1.25;
+            letter-spacing: -0.01em;
+            line-height: 1.15;
             color: #ffffff;
         }
 
-        .card-mid {
-            padding: 26px 28px 22px;
+        .brand-sub {
+            margin: 3px 0 0;
+            font-size: 8px;
+            font-weight: 500;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.72);
+        }
+
+        .accent-bar {
+            height: 3px;
+            background-color: #c9a227;
+            background: linear-gradient(90deg, #b8860b 0%, #e8c547 50%, #b8860b 100%);
+            font-size: 0;
+            line-height: 0;
+        }
+
+        /* —— Kimlik —— */
+        .identity {
+            padding: 16px 18px 8px;
             text-align: center;
+            background: #ffffff;
+        }
+
+        .kicker {
+            margin: 0 0 6px;
+            font-size: 8px;
+            font-weight: 600;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: #64748b;
         }
 
         .person-name {
-            margin: 0 0 6px;
-            font-size: 26px;
+            margin: 0;
+            font-size: 20px;
             font-weight: 600;
-            color: #0f172a;
             line-height: 1.2;
+            letter-spacing: -0.02em;
+            color: #0b2447;
+        }
+
+        .role-wrap {
+            margin-top: 8px;
+            text-align: center;
         }
 
         .person-role {
-            margin: 0 0 22px;
             display: inline-block;
-            padding: 5px 12px;
+            padding: 4px 11px;
             border-radius: 999px;
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
-            color: #1d4ed8;
-            font-size: 12px;
+            background: #eef4fb;
+            border: 1px solid #c5d7ee;
+            color: #15427f;
+            font-size: 10px;
             font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        /* —— Bilgi satırları —— */
+        .body {
+            padding: 10px 14px 4px;
         }
 
         .cred-table {
             width: 100%;
             border-collapse: separate;
-            border-spacing: 0 10px;
-            text-align: left;
+            border-spacing: 0 7px;
         }
 
-        .cred-box {
+        .cred-row {
             width: 100%;
             border-collapse: collapse;
-            border: 1px solid #bfdbfe;
-            border-radius: 14px;
-            background: #f8fbff;
+            background: #f7fafc;
+            border: 1px solid #e2eaf3;
+            border-radius: 10px;
         }
 
-        .cred-box td {
-            padding: 14px 16px;
+        .cred-row.password {
+            background: #f3f8ff;
+            border-color: #b8d0ef;
         }
 
-        .cred-box.accent {
-            background: #eff6ff;
-            border-color: #93c5fd;
+        .cred-accent {
+            width: 4px;
+            background-color: #15427f;
+            font-size: 0;
+            line-height: 0;
+        }
+
+        .cred-row.password .cred-accent {
+            background-color: #c9a227;
+        }
+
+        .cred-cell {
+            padding: 9px 12px 9px 10px;
+            text-align: left;
+            vertical-align: middle;
         }
 
         .cred-label {
             display: block;
-            margin-bottom: 5px;
-            font-size: 10px;
+            margin: 0 0 3px;
+            font-size: 8px;
             font-weight: 600;
-            letter-spacing: 0.9px;
+            letter-spacing: 0.12em;
             text-transform: uppercase;
             color: #64748b;
-            text-align: center;
         }
 
         .cred-value {
-            font-size: 18px;
+            font-size: 15px;
             font-weight: 600;
-            color: #0f172a;
-            text-align: center;
+            color: #0b2447;
+            letter-spacing: 0.03em;
             word-break: break-all;
             font-family: "Courier New", Courier, monospace;
-            letter-spacing: 0.4px;
+            line-height: 1.25;
         }
 
         .cred-url {
-            font-size: 12px;
+            font-size: 10px;
             font-weight: 500;
-            color: #475569;
-            text-align: center;
+            color: #1e4976;
             word-break: break-all;
-            line-height: 1.45;
-            font-family: "Poppins", Arial, sans-serif;
+            line-height: 1.35;
+            font-family: "Poppins", Helvetica, Arial, sans-serif;
+            letter-spacing: 0;
+        }
+
+        /* —— Not —— */
+        .note-wrap {
+            padding: 6px 14px 0;
         }
 
         .note {
-            margin: 18px 0 0;
-            font-size: 11px;
-            line-height: 1.55;
+            margin: 0;
+            padding: 8px 10px;
+            border-radius: 8px;
+            background: #f8fafc;
+            border: 1px solid #eef2f7;
+            font-size: 8.5px;
+            line-height: 1.45;
             color: #64748b;
             text-align: center;
         }
 
-        .card-foot {
+        /* —— Alt —— */
+        .foot {
             width: 100%;
             border-collapse: collapse;
-            border-top: 1px solid #eef2f7;
-            background: #fafbfc;
+            margin-top: 10px;
+            border-top: 1px solid #e8eef5;
         }
 
-        .card-foot td {
-            padding: 12px 22px 14px;
-            font-size: 9px;
+        .foot td {
+            padding: 9px 16px 11px;
+            font-size: 8px;
             color: #94a3b8;
+            vertical-align: middle;
         }
 
-        .card-foot .left { text-align: left; }
-        .card-foot .right { text-align: right; }
+        .foot .left { text-align: left; }
+        .foot .right { text-align: right; }
+        .foot strong {
+            color: #64748b;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
-<table class="page-shell" cellpadding="0" cellspacing="0">
+<table class="card" cellpadding="0" cellspacing="0">
     <tr>
-        <td>
-            <table class="card" cellpadding="0" cellspacing="0">
+        <td class="head">
+            <table class="head-table" cellpadding="0" cellspacing="0">
                 <tr>
-                    <td class="card-top">
+                    <td class="head-logo-cell">
+                        <img class="head-logo" src="{% static 'images/cinili-saray-logo-white.png' %}" alt="">
+                    </td>
+                    <td class="head-copy">
                         <p class="brand">{{ panel_org }}</p>
-                        <h1 class="doc-title">{{ belge_baslik|default:"Giriş Bilgileri" }}</h1>
+                        <p class="brand-sub">{{ belge_baslik|default:"Giriş Bilgileri" }}</p>
                     </td>
                 </tr>
+            </table>
+        </td>
+    </tr>
+    <tr>
+        <td class="accent-bar">&nbsp;</td>
+    </tr>
+    <tr>
+        <td class="identity">
+            <p class="kicker">Kurum paneli erişimi</p>
+            <h1 class="person-name">{{ ad_soyad }}</h1>
+            <div class="role-wrap">
+                <span class="person-role">{{ rol_etiket }}</span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td class="body">
+            <table class="cred-table" cellpadding="0" cellspacing="0">
                 <tr>
-                    <td class="card-mid">
-                        <h2 class="person-name">{{ ad_soyad }}</h2>
-                        <div class="person-role">{{ rol_etiket }}</div>
-
-                        <table class="cred-table" cellpadding="0" cellspacing="0">
+                    <td>
+                        <table class="cred-row" cellpadding="0" cellspacing="0">
                             <tr>
-                                <td>
-                                    <table class="cred-box accent" cellpadding="0" cellspacing="0"><tr><td>
-                                        <span class="cred-label">Kullanıcı adı</span>
-                                        <div class="cred-value">{{ kullanici_adi }}</div>
-                                    </td></tr></table>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <table class="cred-box accent" cellpadding="0" cellspacing="0"><tr><td>
-                                        <span class="cred-label">Şifre</span>
-                                        <div class="cred-value">{{ sifre }}</div>
-                                    </td></tr></table>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <table class="cred-box" cellpadding="0" cellspacing="0"><tr><td>
-                                        <span class="cred-label">Panel giriş adresi</span>
-                                        <div class="cred-url">{{ panel_giris_url }}</div>
-                                    </td></tr></table>
+                                <td class="cred-accent">&nbsp;</td>
+                                <td class="cred-cell">
+                                    <span class="cred-label">Kullanıcı adı</span>
+                                    <div class="cred-value">{{ kullanici_adi }}</div>
                                 </td>
                             </tr>
                         </table>
-
-                        <p class="note">
-                            Bu belge yalnızca size özeldir. Giriş bilgilerinizi kimseyle paylaşmayın.
-                            İlk girişten sonra şifrenizi değiştirmeniz önerilir.
-                        </p>
                     </td>
                 </tr>
                 <tr>
                     <td>
-                        <table class="card-foot" cellpadding="0" cellspacing="0">
+                        <table class="cred-row password" cellpadding="0" cellspacing="0">
                             <tr>
-                                <td class="left">{{ panel_short }}</td>
-                                <td class="right">{{ tarih|date:"d.m.Y" }}</td>
+                                <td class="cred-accent">&nbsp;</td>
+                                <td class="cred-cell">
+                                    <span class="cred-label">Şifre</span>
+                                    <div class="cred-value">{{ sifre }}</div>
+                                </td>
                             </tr>
                         </table>
                     </td>
+                </tr>
+                <tr>
+                    <td>
+                        <table class="cred-row" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td class="cred-accent">&nbsp;</td>
+                                <td class="cred-cell">
+                                    <span class="cred-label">Panel giriş adresi</span>
+                                    <div class="cred-url">{{ panel_giris_url }}</div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    <tr>
+        <td class="note-wrap">
+            <p class="note">
+                Bu belge yalnızca size özeldir. Bilgilerinizi kimseyle paylaşmayın.
+                İlk girişten sonra şifrenizi değiştirmeniz önerilir.
+            </p>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <table class="foot" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="left"><strong>{{ panel_short }}</strong> · Gizli belge</td>
+                    <td class="right">{{ tarih|date:"d.m.Y" }}</td>
                 </tr>
             </table>
         </td>
