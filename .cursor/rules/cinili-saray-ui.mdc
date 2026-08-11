@@ -1,0 +1,115 @@
+---
+description: Çinili Saray Global UI/UX + Responsive Design System — tasarım anayasası. Frontend değişikliğinde zorunlu.
+globs: templates/**/*.html,static/css/**/*.css,static/js/**/*.js,docs/UI_DESIGN_SYSTEM.md
+alwaysApply: true
+---
+
+# Çinili Saray — UI Anayasası (Cursor kuralı)
+
+Kaynak belge: `docs/UI_DESIGN_SYSTEM.md`  
+Token kaynağı: `static/css/cs-design-tokens.css`  
+Son katman: `static/css/cs-ui-system.css` (tüm base’lerde phase8’den sonra yüklenir)
+
+## Asla dokunma (backend / iş mantığı)
+
+- Django modelleri, migrations, database
+- views, urls, form field **isimleri**, POST/GET sözleşmeleri
+- Yetkiler, kayıtlı veriler
+- JS iş mantığı (kaydet, filtrele, API çağrıları, hesaplama)
+- Butonların mevcut action/href/form davranışı
+
+Bu kural **yalnızca** UI + UX + responsive + layout + tipografi + spacing + bileşen standardizasyonu içindir.
+
+## Tek token kaynağı
+
+Yeni renk / boşluk / radius / font değeri **uydurma**. Kullan:
+
+- `--cs-primary`, `--cs-primary-dark`, `--cs-accent`
+- `--cs-background`, `--cs-surface`, `--cs-border`
+- `--cs-text-primary`, `--cs-text-secondary`, `--cs-text-muted`
+- `--cs-space-1` … `--cs-space-10`, `--cs-page-gutter`, `--cs-section-gap`
+- `--cs-radius-sm|md|lg|xl|pill`
+- `--cs-font`, `--cs-btn-h`, `--cs-input-h`, `--cs-touch-min`
+- Breakpoint: `--cs-bp-sm` 640 · `--cs-bp-md` 900 · `--cs-bp-lg` 1100 · `--cs-bp-nav` 1400
+
+Modül CSS’te yerel `--ep-*`, `--dd-*` vb. tanımlıyorsan değerleri `--cs-*` alias’ı yap; yeni hex serisi açma.
+
+## Sayfa iskeleti
+
+1. Üst nav / header (mevcut base)
+2. `.page-content` / `.cs-v6-main` — tek gutter: `var(--cs-page-gutter)`
+3. Sayfa başlığı: `.page-head` / `.patterned-page-head` / `.yonetim-page-head`
+4. İçerik: kart / tablo / form — `gap: var(--cs-section-gap)`
+5. Sayfa yatay kaymasın (`overflow-x: clip` body/shell)
+
+## Buton alias’ları (HTML sınıfını değiştirmek zorunda değilsin)
+
+Görsel olarak aynı aile:
+
+- Primary: `.primary-btn`, `.btn-primary`, `.cs-btn-primary`
+- Ghost: `.ghost-btn`, `.btn-ghost`, `.yonetim-head-ghost`, `.small-button`
+- Danger: `.btn-danger`, `.yonetim-action-btn-danger`
+
+Yeni buton yazarken tercihen `.primary-btn` / `.ghost-btn`. Min yükseklik `var(--cs-btn-h)` (44px), touch ≥ 44px.
+
+## Tablo / sticky / kaydırma
+
+- Geniş tablo: kaydırma **yalnızca** `.cs-table-wrap` / `.responsive-table` / modül `*-wrap` içinde
+- Sayfa kökünde `overflow-x: visible` ile tüm sayfayı yatay kaydırma — yasak (boşluğa kayma)
+- Sticky sütun/satır gerekiyorsa: scrollport = tablo wrap; gerekirse JS freeze (dini ders / dershane kalıbı)
+- `overflow-x: clip` sticky ancestor’da bozulursa: clip’i **sayfa kökünde tut**, wrap’ta `overflow: auto` + freeze
+
+## Breakpoint politikası
+
+Yeni `@media` yalnız şu değerlerle:
+
+- `max-width: 640px` (sm — telefon)
+- `max-width: 900px` (md — büyük telefon / küçük tablet)
+- `max-width: 1100px` (lg — tablet)
+- `max-width: 1400px` (nav collapse)
+
+Eski 700/720/760/768/800/860/960/980/1024/1180 medya sorgularını **dokunduğun dosyada** yukarıdakilere yaklaştır; tüm dosyayı tek seferde yeniden yazmak zorunlu değil ama yeni kod ekleme.
+
+## Formlar
+
+- Input/select/textarea min-height: `var(--cs-input-h)`
+- Mobilde select font-size ≥ 16px (iOS zoom)
+- Label + kontrol dikey stack; grid max 2 kolon ≤900px, 1 kolon ≤640px
+- Field name / id / name attribute değiştirme
+
+## Modal / dropdown / toast
+
+- Mevcut `data-ep-modal`, `data-dp-modal`, `data-tz-modal`, bildirim zili, `v3-toast` API’sini bozma
+- Görsel: radius `var(--cs-radius-lg)`, gölge `var(--cs-shadow-md)`, z-index tutarlı (nav < toast < modal)
+- Yeni modal: mümkünse mevcut kalıba uy; ayrı kütüphane ekleme
+
+## Yasak görsel klişeler (yeni UI)
+
+- Mor/indigo gradient tema varsayılanı
+- Cream + terracotta “AI landing” look
+- Broadsheet / sıfır radius gazete düzeni
+- Emoji ile süsleme, aşırı glow, `rounded-full` pill yığını
+- Hero’da kart / floating badge / stat strip (landing değilse)
+
+## Dosya düzeni
+
+| Katman | Dosya | Not |
+|--------|-------|-----|
+| Tokens | `cs-design-tokens.css` | Tek `:root` marka kaynağı |
+| Legacy shell | app/v5/v6/panel-unified/… | Dondurulmuş; genişletme |
+| Constitution phases | `cs-design-phase*.css` | Uyumluluk |
+| Modül | `*-premium.css` via `extra_css` | Yerel layout; token alias |
+| **Kanun son katman** | `cs-ui-system.css` | Alias + gutter + overflow + form/btn |
+
+Yeni global kural → `cs-ui-system.css` veya tokens. Yeni sayfa stili → modül CSS + token.
+
+## Her UI PR kontrol listesi
+
+- [ ] Backend / view / form name değişmedi
+- [ ] Yeni hex yerine `--cs-*` kullanıldı
+- [ ] Sayfa yatay kaymıyor; tablo wrap kayıyor
+- [ ] Mobil ≤640 ve tablet ≤900 kontrol edildi
+- [ ] Buton/touch ≥ 44px
+- [ ] `cs-ui-system.css` cache `?v=` gerekirse artırıldı
+
+Detay ve envanter: `docs/UI_DESIGN_SYSTEM.md`
