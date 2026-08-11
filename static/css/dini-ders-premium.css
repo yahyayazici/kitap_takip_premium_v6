@@ -570,17 +570,21 @@ body.dd-topic-modal-open {
     background: #f8fafc !important;
 }
 
-/* JS freeze polyfill açıkken CSS sticky kapalı (çift kayma olmasın) */
+/* JS freeze polyfill açıkken CSS sticky kapalı (çift kayma/titreme olmasın) */
 .dd-matrix-wrap.is-freeze-js .dd-matrix thead th,
 .dd-matrix-wrap.is-freeze-js .dd-matrix tbody td.dd-sticky-col {
     position: relative !important;
     top: auto !important;
     left: auto !important;
     will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 }
 
 .dd-matrix-wrap.is-freeze-js .dd-matrix thead th.dd-sticky-col {
     z-index: 6;
+    /* Alt piksel kaymasında alt içerik sızmasın */
+    background-clip: padding-box;
 }
 
 .dd-matrix-wrap.is-freeze-js .dd-matrix thead th.dd-topic-col {
@@ -589,6 +593,11 @@ body.dd-topic-modal-open {
 
 .dd-matrix-wrap.is-freeze-js .dd-matrix tbody td.dd-sticky-col {
     z-index: 3;
+    background-clip: padding-box;
+    /* Kompozit katmanda sabit opak zemin — scroll titremesini azaltır */
+    box-shadow:
+        4px 0 10px rgba(15, 23, 42, 0.08),
+        1px 0 0 var(--dd-line);
 }
 
 .dd-student-cell {
@@ -729,19 +738,25 @@ body.dd-topic-modal-open {
 
 .dd-aside-card {
     padding: 1.1rem 1.15rem;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .dd-stat-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.55rem;
+    min-width: 0;
 }
 
 .dd-stat {
+    min-width: 0;
     padding: 0.75rem 0.85rem;
     border-radius: 14px;
     border: 1px solid var(--dd-line);
     background: var(--dd-surface);
+    overflow: hidden;
 }
 
 .dd-stat--blue {
@@ -779,6 +794,9 @@ body.dd-topic-modal-open {
     letter-spacing: 0.05em;
     text-transform: uppercase;
     color: var(--dd-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .dd-stat strong {
@@ -788,6 +806,7 @@ body.dd-topic-modal-open {
     font-weight: 700;
     color: var(--dd-navy);
     font-variant-numeric: tabular-nums;
+    min-width: 0;
 }
 
 .dd-progress {
@@ -1267,6 +1286,9 @@ body.dd-topic-modal-open {
         position: static;
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.85rem;
+        min-width: 0;
+        width: 100%;
     }
 
     .dd-report-stats {
@@ -1350,5 +1372,36 @@ body.dd-topic-modal-open {
     .dd-matrix thead th.dd-topic-col span {
         max-height: 56px;
         font-size: 0.6rem;
+    }
+}
+
+/* Telefon / küçük tablet: aside yan yana kalmasın — seviye özeti kutuları taşmasın */
+@media (max-width: 900px) {
+    .dd-aside {
+        grid-template-columns: 1fr;
+    }
+
+    .dd-stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dd-stat {
+        padding: 0.65rem 0.7rem;
+    }
+
+    .dd-stat strong {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .dd-aside-card {
+        padding: 0.95rem 1rem;
+    }
+
+    .dd-matrix thead th.dd-sticky-col,
+    .dd-matrix tbody td.dd-sticky-col {
+        min-width: 108px;
+        max-width: 120px;
     }
 }

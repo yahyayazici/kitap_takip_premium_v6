@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Dini Ders Takip · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}?v=dd-tablo5">
+<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}?v=dd-tablo6">
 {% endblock %}
 {% block content %}
 <div class="dd-page">
@@ -351,14 +351,15 @@ document.addEventListener("DOMContentLoaded", function () {
             var ticking = false;
             var lastX = -1;
             var lastY = -1;
+            var rafId = 0;
 
             function apply() {
-                var x = wrap.scrollLeft || 0;
-                var y = wrap.scrollTop || 0;
-                if (x === lastX && y === lastY) {
-                    ticking = false;
-                    return;
-                }
+                /* iOS fractional scrollLeft → yuvarla; alt piksel titremesini kes */
+                var x = Math.round(wrap.scrollLeft || 0);
+                var y = Math.round(wrap.scrollTop || 0);
+                ticking = false;
+                rafId = 0;
+                if (x === lastX && y === lastY) return;
                 lastX = x;
                 lastY = y;
                 var i;
@@ -373,20 +374,21 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (corner) {
                     corner.style.transform = "translate3d(" + x + "px," + y + "px,0)";
                 }
-                ticking = false;
             }
 
             function onScroll() {
                 if (ticking) return;
                 ticking = true;
-                window.requestAnimationFrame(apply);
+                rafId = window.requestAnimationFrame(apply);
             }
 
+            /* scroll yeter; touchmove çift tetikleyip titreme yapabiliyor */
             wrap.addEventListener("scroll", onScroll, { passive: true });
-            wrap.addEventListener("touchmove", onScroll, { passive: true });
             window.addEventListener("resize", function () {
                 lastX = -1;
                 lastY = -1;
+                if (rafId) window.cancelAnimationFrame(rafId);
+                ticking = false;
                 onScroll();
             }, { passive: true });
             apply();
