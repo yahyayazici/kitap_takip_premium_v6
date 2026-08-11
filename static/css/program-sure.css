@@ -222,21 +222,29 @@
 }
 
 .program-page .page-head {
-    align-items: flex-start !important;
+    align-items: center !important;
     text-align: left;
+    flex-wrap: nowrap;
+    padding: 20px 24px !important;
+    gap: 12px 16px !important;
 }
 
-.program-page .page-head > div {
-    width: 100%;
+.program-page .page-head > div:first-child {
+    width: auto;
+    flex: 1 1 auto;
+    min-width: 0;
     text-align: left;
 }
 
 .program-page .profile-head-actions {
-    align-self: flex-start;
-    width: 100%;
-    justify-content: flex-start;
+    align-self: center;
+    width: auto;
+    max-width: 100%;
+    margin-left: auto;
+    justify-content: flex-end;
     flex-wrap: wrap;
-    gap: 10px;
+    flex: 0 1 auto;
+    gap: 8px;
 }
 
 .program-selector-card {
@@ -448,7 +456,20 @@
     font-size: 14px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+    .program-page .page-head {
+        flex-wrap: wrap;
+        align-items: flex-start !important;
+    }
+
+    .program-page .profile-head-actions {
+        width: 100%;
+        margin-left: 0;
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 640px) {
     .program-page .page-head {
         flex-direction: column;
         align-items: flex-start !important;
@@ -457,6 +478,7 @@
     .program-page .profile-head-actions {
         flex-direction: column;
         align-items: stretch;
+        width: 100%;
     }
 
     .program-page .profile-head-actions .ghost-btn,
