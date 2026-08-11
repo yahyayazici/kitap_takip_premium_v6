@@ -286,6 +286,67 @@ body.talebe-body .ghost-btn {
     border: 1px solid var(--cs-border);
 }
 
+/* —— Öğretmen ana sayfa: etüt paneli gibi yarı duyuru + metrikler —— */
+.ogretmen-body .ogretmen-top-split {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    gap: var(--cs-section-gap, 16px);
+    align-items: stretch;
+    margin-top: 14px;
+}
+
+.ogretmen-body .ogretmen-top-duyuru .duyuru-carousel-shell {
+    width: 100% !important;
+    max-width: none !important;
+    margin-top: 0 !important;
+}
+
+.ogretmen-body .ogretmen-top-duyuru .duyuru-media-pane {
+    aspect-ratio: auto !important;
+    width: 100% !important;
+    height: clamp(160px, 16vw, 220px) !important;
+    min-height: 160px !important;
+    max-height: 220px !important;
+}
+
+.ogretmen-body .ogretmen-top-duyuru .duyuru-media-inner img,
+.ogretmen-body .ogretmen-top-duyuru .duyuru-media-inner video,
+.ogretmen-body .ogretmen-top-duyuru .duyuru-media-inner iframe {
+    object-fit: cover !important;
+    object-position: center center !important;
+}
+
+.ogretmen-body .ogretmen-top-metrics .og-wow-metrics,
+.ogretmen-body .ogretmen-top-metrics .og-wow-metrics-stack,
+.ogretmen-body .ogretmen-top-metrics .dash-metrik-strip,
+.ogretmen-body .ogretmen-top-metrics .dash-metrics {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+    height: 100%;
+}
+
+@media (max-width: 900px) {
+    .ogretmen-body .ogretmen-top-split {
+        grid-template-columns: 1fr !important;
+    }
+
+    .ogretmen-body .ogretmen-top-duyuru .duyuru-media-pane {
+        aspect-ratio: 16 / 9 !important;
+        height: auto !important;
+        max-height: none !important;
+        min-height: 140px !important;
+    }
+}
+
+/* Personel yarı duyuru — kompakt yükseklik (YÇT ile hizalı) */
+.personel-top-split .duyuru-media-pane {
+    aspect-ratio: auto !important;
+    height: clamp(160px, 16vw, 220px) !important;
+    min-height: 160px !important;
+    max-height: 220px !important;
+}
+
 /* —— Reduced motion —— */
 @media (prefers-reduced-motion: reduce) {
     html {

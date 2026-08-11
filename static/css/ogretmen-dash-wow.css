@@ -12,8 +12,8 @@
 
 /* —— Duyuru | metrikler (öğretmen ana sayfa yarı yarıya) —— */
 .ogretmen-top-split {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
     gap: var(--cs-section-gap, 16px);
     align-items: stretch;
     margin-top: 14px;
@@ -37,11 +37,11 @@
 }
 
 .ogretmen-top-duyuru .duyuru-media-pane {
-    aspect-ratio: 16 / 9 !important;
+    aspect-ratio: auto !important;
     width: 100% !important;
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
+    height: clamp(160px, 16vw, 220px) !important;
+    min-height: 160px !important;
+    max-height: 220px !important;
 }
 
 .ogretmen-top-duyuru .duyuru-media-inner img,
@@ -52,9 +52,11 @@
 }
 
 .ogretmen-top-metrics .og-wow-metrics-stack,
-.ogretmen-top-metrics .dash-metrik-strip {
-    display: grid;
-    grid-template-columns: 1fr;
+.ogretmen-top-metrics .dash-metrik-strip,
+.ogretmen-top-metrics .og-wow-metrics,
+.ogretmen-top-metrics .dash-metrics {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
     gap: 12px;
     height: 100%;
 }
