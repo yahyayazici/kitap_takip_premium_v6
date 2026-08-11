@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Dini Ders Takip · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}?v=dd-sticky2">
+<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}?v=dd-sticky4">
 {% endblock %}
 {% block content %}
 <div class="dd-page">
@@ -332,6 +332,49 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+    /* Tablet/Safari: CSS sticky kırılıyor — kaydırınca isim/konu transform ile dondurulur */
+    (function initMatrixFreeze() {
+        var wraps = document.querySelectorAll(".dd-matrix-wrap");
+        if (!wraps.length) return;
+
+        wraps.forEach(function (wrap) {
+            var nameCells = wrap.querySelectorAll("tbody td.dd-sticky-col");
+            var topicHeads = wrap.querySelectorAll("thead th.dd-topic-col");
+            var corner = wrap.querySelector("thead th.dd-sticky-col");
+            if (!nameCells.length && !topicHeads.length) return;
+
+            wrap.classList.add("is-freeze-js");
+            var ticking = false;
+
+            function apply() {
+                var x = wrap.scrollLeft;
+                var y = wrap.scrollTop;
+                var i;
+                for (i = 0; i < nameCells.length; i++) {
+                    nameCells[i].style.transform = x ? "translateX(" + x + "px)" : "";
+                }
+                for (i = 0; i < topicHeads.length; i++) {
+                    topicHeads[i].style.transform = y ? "translateY(" + y + "px)" : "";
+                }
+                if (corner) {
+                    corner.style.transform = (x || y)
+                        ? "translate(" + x + "px," + y + "px)"
+                        : "";
+                }
+                ticking = false;
+            }
+
+            function onScroll() {
+                if (ticking) return;
+                ticking = true;
+                window.requestAnimationFrame(apply);
+            }
+
+            wrap.addEventListener("scroll", onScroll, { passive: true });
+            apply();
+        });
+    })();
+
     function syncDdInputs() {
         var mobile = window.matchMedia("(max-width: 640px)").matches;
         document.querySelectorAll(".dd-matrix-wrap input[type=checkbox]").forEach(function (el) {
