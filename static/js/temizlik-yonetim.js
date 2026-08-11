@@ -5,6 +5,49 @@
     const listeId = panel.dataset.listeId;
     const csrf = document.querySelector("[name=csrfmiddlewaretoken]")?.value || "";
     const baseUrl = window.location.pathname;
+    const SCROLL_KEY = `tz-panel-scroll:${listeId || ""}`;
+
+    function saveScroll() {
+        try {
+            sessionStorage.setItem(
+                SCROLL_KEY,
+                String(window.scrollY || window.pageYOffset || 0)
+            );
+        } catch (e) {}
+    }
+
+    function restoreScroll() {
+        const hash = (location.hash || "").replace(/^#/, "");
+        if (hash) {
+            const el = document.getElementById(hash);
+            if (el) {
+                el.scrollIntoView({ block: "start", behavior: "instant" });
+                try {
+                    sessionStorage.removeItem(SCROLL_KEY);
+                } catch (e) {}
+                return;
+            }
+        }
+        try {
+            const y = parseInt(sessionStorage.getItem(SCROLL_KEY) || "", 10);
+            if (!isNaN(y) && y > 0) {
+                window.scrollTo(0, y);
+                sessionStorage.removeItem(SCROLL_KEY);
+            }
+        } catch (e) {}
+    }
+
+    panel.querySelectorAll("form[method='post']").forEach((form) => {
+        form.addEventListener("submit", saveScroll);
+    });
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () =>
+            requestAnimationFrame(restoreScroll)
+        );
+    } else {
+        requestAnimationFrame(restoreScroll);
+    }
 
     function openModal(name) {
         document.querySelectorAll("[data-tz-modal]").forEach((m) => {

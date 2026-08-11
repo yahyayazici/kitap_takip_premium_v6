@@ -1669,7 +1669,20 @@ def temizlik_gorev_panel(request, pk):
 
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             return JsonResponse({"ok": True})
-        return redirect("yonetim:temizlik_gorev_panel", pk=liste.pk)
+
+        url = reverse("yonetim:temizlik_gorev_panel", kwargs={"pk": liste.pk})
+        kat_anchor = request.POST.get("kat_id", "")
+        if str(kat_anchor).isdigit() and action in {
+            "kat_sil",
+            "sorumlu_sil",
+            "sorumlu_ekle",
+            "mahal_ekle",
+            "mahal_sil",
+            "gorevli_sil",
+            "kontrol_guncelle",
+        }:
+            url = f"{url}#kat-{kat_anchor}"
+        return redirect(url)
 
     context = yonetim_merkezi(liste)
     return render(
