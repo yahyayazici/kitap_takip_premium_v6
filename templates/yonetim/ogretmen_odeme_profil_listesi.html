@@ -27,7 +27,7 @@
             </thead>
             <tbody>
                 {% for hoca in hocalar %}
-                <tr>
+                <tr id="hoca-{{ hoca.pk }}">
                     <td><strong>{{ hoca.ad_soyad }}</strong></td>
                     <td>{{ hoca.odeme_profili_kayit.brans.ad|default:"—" }}</td>
                     <td>{% if hoca.sinif_etiketleri %}{{ hoca.sinif_etiketleri|join:", " }}{% else %}<span class="muted">Atanmadı</span>{% endif %}</td>
@@ -35,7 +35,7 @@
                     <td>{% if hoca.odeme_profili_kayit and hoca.odeme_profili_kayit.aktif %}Aktif{% elif hoca.odeme_profili_kayit %}Pasif{% else %}Tanımsız{% endif %}</td>
                     <td class="yonetim-table-actions">
                         <div class="yonetim-action-group">
-                            <a href="{% url 'yonetim:ogretmen_odeme_profil_duzenle' hoca.pk %}" class="yonetim-action-btn">Düzenle</a>
+                            <a href="{% url 'yonetim:ogretmen_odeme_profil_duzenle' hoca.pk %}" class="yonetim-action-btn" data-ym-scroll-save>Düzenle</a>
                             <form method="post" action="{% url 'yonetim:ogretmen_giris_pdf_tek' hoca.pk %}" class="yonetim-inline-action" onsubmit="return confirm('{{ hoca.ad_soyad|escapejs }} için yeni şifre oluşturulup PDF indirilecek. Devam edilsin mi?');">
                                 {% csrf_token %}
                                 <button type="submit" class="yonetim-action-btn">Giriş PDF</button>
@@ -56,4 +56,63 @@
         </table>
     </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    var KEY = "ym-ogretmen-liste-scroll";
+
+    function saveScroll() {
+        try {
+            sessionStorage.setItem(KEY, String(window.scrollY || window.pageYOffset || 0));
+        } catch (e) {}
+    }
+
+    document.querySelectorAll("[data-ym-scroll-save]").forEach(function (el) {
+        el.addEventListener("click", saveScroll);
+    });
+
+    function restore() {
+        var hash = (location.hash || "").replace(/^#/, "");
+        if (hash) {
+            var row = document.getElementById(hash);
+            if (row) {
+                row.scrollIntoView({ block: "center", behavior: "instant" });
+                try { sessionStorage.removeItem(KEY); } catch (e) {}
+                return;
+            }
+        }
+        try {
+            var y = parseInt(sessionStorage.getItem(KEY) || "", 10);
+            if (!isNaN(y) && y > 0) {
+                window.scrollTo(0, y);
+                sessionStorage.removeItem(KEY);
+            }
+        } catch (e) {}
+    }
+
+    /* Tablo wrap dikey kayamazken tekerleği sayfaya ilet */
+    document.querySelectorAll(".yonetim-page .responsive-table").forEach(function (wrap) {
+        wrap.addEventListener(
+            "wheel",
+            function (e) {
+                if (Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
+                if (wrap.scrollHeight > wrap.clientHeight + 1) return;
+                window.scrollBy(0, e.deltaY);
+                e.preventDefault();
+            },
+            { passive: false }
+        );
+    });
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", function () {
+            requestAnimationFrame(restore);
+        });
+    } else {
+        requestAnimationFrame(restore);
+    }
+})();
+</script>
 {% endblock %}

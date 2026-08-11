@@ -5,6 +5,7 @@ from __future__ import annotations
 from django import forms
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from takip.hizli_kayit_service import ogretmen_pasif_et
@@ -116,7 +117,9 @@ def ogretmen_odeme_profil_duzenle(request, pk: int):
             request,
             f"{hoca.ad_soyad} branş, ücret ve sınıf zimmeti güncellendi.",
         )
-        return redirect("yonetim:ogretmen_odeme_profil_listesi")
+        return redirect(
+            reverse("yonetim:ogretmen_odeme_profil_listesi") + f"#hoca-{hoca.pk}"
+        )
 
     return render(
         request,

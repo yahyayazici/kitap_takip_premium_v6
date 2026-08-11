@@ -28,11 +28,16 @@
 .yonetim-page .yonetim-form-card,
 .yonetim-page .yonetim-highlight-card {
     position: relative;
-    overflow: hidden;
+    /* overflow:hidden tekerleği yutuyordu — tablo üzerinde sayfa inmiyordu */
+    overflow: visible;
     border: 1px solid var(--ym-line) !important;
     border-radius: 18px !important;
     background: linear-gradient(180deg, #ffffff 0%, var(--ym-surface-soft) 100%) !important;
     box-shadow: 0 10px 32px rgba(15, 23, 42, 0.06) !important;
+}
+
+.yonetim-page .yonetim-data-table tbody tr[id^="hoca-"] {
+    scroll-margin-top: 96px;
 }
 
 .yonetim-page .dashboard-card::before,
@@ -469,5 +474,8 @@
 
 .yonetim-page .responsive-table {
     overflow-x: auto;
+    overflow-y: visible;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    overscroll-behavior-y: auto;
 }
