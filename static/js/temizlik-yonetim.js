@@ -97,8 +97,69 @@
     const searchInput = document.getElementById("tz-talebe-ara");
     const results = document.getElementById("tz-talebe-sonuc");
 
+    function bindBoardChip(chip) {
+        if (!chip || chip.dataset.tzChipBound === "1") return;
+        chip.dataset.tzChipBound = "1";
+        if (chip.getAttribute("draggable") === "true") {
+            chip.addEventListener("dragstart", (e) => {
+                dragged = {
+                    gorevliId: chip.dataset.gorevliId,
+                    talebeId: chip.dataset.talebeId,
+                };
+                chip.classList.add("is-dragging");
+                e.dataTransfer.effectAllowed = "move";
+            });
+            chip.addEventListener("dragend", () => {
+                chip.classList.remove("is-dragging");
+                dragged = null;
+            });
+        }
+        const silBtn = chip.querySelector("[data-tz-gorevli-sil]");
+        if (silBtn) {
+            silBtn.addEventListener("click", async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const gorevliId = chip.dataset.gorevliId;
+                if (!gorevliId) return;
+                const data = await ajaxGorevliSil(gorevliId);
+                if (!data || !data.ok) return;
+                chip.remove();
+            });
+        }
+    }
+
+    function boardChipEkle(alanId, adSoyad, gorevliId, talebeId) {
+        const card = document.querySelector(
+            `.tz-mahal-card[data-mahal-id="${alanId}"]`
+        );
+        if (!card) return;
+        const row = card.querySelector("[data-chip-row]");
+        if (!row) return;
+        const addBtn = row.querySelector("[data-tz-gorevli-ekle]");
+        const span = document.createElement("span");
+        span.className = "tz-talebe-chip";
+        span.draggable = true;
+        span.dataset.gorevliId = String(gorevliId || "");
+        span.dataset.talebeId = String(talebeId || "");
+        const ad = (adSoyad || "").trim();
+        const kisa = ad.length > 18 ? ad.slice(0, 17) + "…" : ad;
+        span.appendChild(document.createTextNode(kisa + " "));
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "tz-chip-sil";
+        btn.dataset.tzGorevliSil = "1";
+        btn.title = "Kaldır";
+        btn.textContent = "×";
+        span.appendChild(btn);
+        if (addBtn) row.insertBefore(span, addBtn);
+        else row.appendChild(span);
+        card.classList.remove("is-empty");
+        bindBoardChip(span);
+    }
+
     document.querySelectorAll("[data-tz-gorevli-ekle]").forEach((btn) => {
         btn.addEventListener("click", () => {
+            saveScroll();
             alanInput.value = btn.dataset.tzGorevliEkle;
             searchInput.value = "";
             results.innerHTML = "";
@@ -117,23 +178,25 @@
                     results.innerHTML = "";
                     return;
                 }
-                const res = await fetch(`${baseUrl}?ajax=talebe_ara&q=${encodeURIComponent(q)}`);
+                const res = await fetch(
+                    `${baseUrl}?ajax=talebe_ara&q=${encodeURIComponent(q)}`
+                );
                 const data = await res.json();
                 results.innerHTML = "";
                 data.talebeler.forEach((t) => {
                     const li = document.createElement("li");
                     li.innerHTML = `<button type="button" data-talebe-id="${t.id}"><strong>${t.ad_soyad}</strong>${t.sinif ? `<span>${t.sinif}</span>` : ""}</button>`;
-                    li.querySelector("button").addEventListener("click", () => {
-                        const form = document.createElement("form");
-                        form.method = "post";
-                        form.innerHTML = `
-                            <input type="hidden" name="csrfmiddlewaretoken" value="${csrf}">
-                            <input type="hidden" name="action" value="gorevli_ekle">
-                            <input type="hidden" name="alan_id" value="${alanInput.value}">
-                            <input type="hidden" name="talebe_id" value="${t.id}">
-                        `;
-                        document.body.appendChild(form);
-                        form.submit();
+                    li.querySelector("button").addEventListener("click", async () => {
+                        const alanId = alanInput.value;
+                        const resp = await ajaxGorevliEkle(alanId, t.id);
+                        if (!resp || !resp.ok) return;
+                        boardChipEkle(
+                            alanId,
+                            resp.ad_soyad || t.ad_soyad,
+                            resp.gorevli_id,
+                            resp.talebe_id || t.id
+                        );
+                        closeModals();
                     });
                     results.appendChild(li);
                 });
@@ -143,20 +206,10 @@
 
     let dragged = null;
 
-    document.querySelectorAll(".tz-talebe-chip[draggable='true']").forEach((chip) => {
-        chip.addEventListener("dragstart", (e) => {
-            dragged = {
-                gorevliId: chip.dataset.gorevliId,
-                talebeId: chip.dataset.talebeId,
-            };
-            chip.classList.add("is-dragging");
-            e.dataTransfer.effectAllowed = "move";
-        });
-        chip.addEventListener("dragend", () => {
-            chip.classList.remove("is-dragging");
-            dragged = null;
-        });
-    });
+    /* Ana tahta chip'leri (toplu modal hariç) */
+    document
+        .querySelectorAll(".tz-mahal-card .tz-talebe-chip[draggable='true']")
+        .forEach(bindBoardChip);
 
     document.querySelectorAll(".tz-bulk-chip[draggable='true']").forEach((chip) => {
         chip.addEventListener("dragstart", (e) => {

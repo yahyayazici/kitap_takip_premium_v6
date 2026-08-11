@@ -3,7 +3,7 @@
 
 {% block title %}Temizlik Yönetimi · {{ liste.ad }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/temizlik-premium.css' %}?v=tz-undo1">
+<link rel="stylesheet" href="{% static 'css/temizlik-premium.css' %}?v=tz-gorevli2">
 {% endblock %}
 
 {% block content %}
@@ -124,14 +124,8 @@
                         <span class="tz-talebe-chip" draggable="true"
                               data-gorevli-id="{{ g.id }}"
                               data-talebe-id="{{ g.talebe_id }}">
-                            👤 {{ g.ad_soyad|truncatechars:18 }}
-                            <form method="post" class="tz-chip-form">
-                                {% csrf_token %}
-                                <input type="hidden" name="action" value="gorevli_sil">
-                                <input type="hidden" name="gorevli_id" value="{{ g.id }}">
-                                <input type="hidden" name="kat_id" value="{{ kart.kat.pk }}">
-                                <button type="submit" title="Kaldır">×</button>
-                            </form>
+                            {{ g.ad_soyad|truncatechars:18 }}
+                            <button type="button" class="tz-chip-sil" data-tz-gorevli-sil title="Kaldır">×</button>
                         </span>
                         {% endfor %}
                         <button type="button" class="tz-add-chip" data-tz-gorevli-ekle="{{ row.alan.pk }}">+ Görevli</button>
@@ -274,5 +268,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/temizlik-yonetim.js' %}?v=tz-undo1"></script>
+<script src="{% static 'js/temizlik-yonetim.js' %}?v=tz-gorevli2"></script>
 {% endblock %}
