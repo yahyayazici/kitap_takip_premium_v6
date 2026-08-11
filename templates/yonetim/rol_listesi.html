@@ -8,6 +8,19 @@
         <h1>Roller</h1>
         <p class="muted">Modül ve işlem yetkilerini düzenleyin. Personel formundaki Rol seçimi bu matrisi kullanır.</p>
     </div>
+    <div class="yonetim-page-head-actions">
+        {% if rbac_duzenleyebilir %}
+        <a href="{% url 'yonetim:rol_ekle' %}" class="primary-btn">Rol Ekle</a>
+        <form method="post" style="display:inline;margin:0">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="varsayilan_yukle">
+            <button type="submit" class="ghost-btn yonetim-head-ghost"
+                onclick="return confirm('Sistemdeki varsayılan roller ve yetki matrisi yüklensin / güncellensin mi?');">
+                Varsayılan Rolleri Yükle
+            </button>
+        </form>
+        {% endif %}
+    </div>
 </header>
 
 <section class="report-table-card yonetim-table-card">
@@ -31,7 +44,10 @@
             <tbody>
                 {% for rol in roller %}
                 <tr>
-                    <td><strong>{{ rol.ad }}</strong></td>
+                    <td>
+                        <strong>{{ rol.ad }}</strong>
+                        {% if rol.aciklama %}<div class="muted" style="font-size:.8rem;margin-top:.2rem">{{ rol.aciklama|truncatechars:80 }}</div>{% endif %}
+                    </td>
                     <td><code>{{ rol.slug }}</code></td>
                     <td>{% if rol.sistem_rolu %}Evet{% else %}—{% endif %}</td>
                     <td class="yonetim-action-col">
@@ -39,7 +55,15 @@
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="4" class="report-empty">Henüz rol tanımı yok. <code>seed_wave0</code> komutunu çalıştırın.</td></tr>
+                <tr>
+                    <td colspan="4" class="report-empty">
+                        Henüz rol tanımı yok.
+                        {% if rbac_duzenleyebilir %}
+                        Üstten <strong>Varsayılan Rolleri Yükle</strong> ile kurum rollerini getirin
+                        veya <strong>Rol Ekle</strong> ile yeni rol tanımlayın.
+                        {% endif %}
+                    </td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>

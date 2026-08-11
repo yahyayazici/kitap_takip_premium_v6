@@ -770,6 +770,11 @@ urlpatterns = [
         name="rol_listesi",
     ),
     path(
+        "yetkiler/roller/ekle/",
+        yonetim_rbac_views.rol_ekle,
+        name="rol_ekle",
+    ),
+    path(
         "yetkiler/roller/<int:pk>/",
         yonetim_rbac_views.rol_duzenle,
         name="rol_duzenle",

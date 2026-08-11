@@ -110,7 +110,7 @@ YONETIM_NAV_GROUPS: tuple[YonetimNavGroup, ...] = (
             YonetimNavItem(
                 label="Roller",
                 url_name="yonetim:rol_listesi",
-                active_names=("rol_listesi", "rol_duzenle"),
+                active_names=("rol_listesi", "rol_ekle", "rol_duzenle"),
             ),
             YonetimNavItem(
                 label="Talebe Hesapları",
