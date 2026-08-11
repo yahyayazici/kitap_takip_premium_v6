@@ -16,7 +16,7 @@ from config.branding import (
 )
 
 PWA_THEME_COLOR = "#071b3a"
-PWA_VERSION = "v9"
+PWA_VERSION = "v10"
 PWA_ID = f"/?pwa={PWA_VERSION}"
 
 _ICON_FILES = {
@@ -47,7 +47,7 @@ def web_manifest(request):
             "name": PANEL_NAME,
             "short_name": PANEL_MOBILE_SHORT,
             "description": PANEL_TAGLINE,
-            "start_url": "/giris/?source=pwa",
+            "start_url": "/pwa/baslat/",
             "scope": "/",
             "display": "standalone",
             "orientation": "any",

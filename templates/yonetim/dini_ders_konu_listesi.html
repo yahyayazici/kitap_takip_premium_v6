@@ -8,6 +8,29 @@
 <div class="yonetim-page dd-yonetim-page">
     {% include "includes/dini_ders_yonetim_shell.html" %}
 
+    {% if duzenleyebilir %}
+    <section class="dd-card">
+        <div class="dd-panel-head">
+            <h2>Excel ile Konu Listesi Yükle</h2>
+            <a href="{% url 'yonetim:dini_ders_konu_excel_sablon' %}" class="dd-btn dd-btn-sm">Boş Şablon İndir (4 Seviye)</a>
+        </div>
+        <p class="dd-help-link" style="margin:0 0 1rem">
+            Şablonda <strong>Tum Seviyeler</strong> sayfası (Seviye · Alan · Konu · Sıra · Aktif)
+            ve ayrıca <strong>Seviye 1–4</strong> ayrı sayfaları vardır. Doldurup yükleyin; aynı konu güncellenir.
+        </p>
+        <form method="post" enctype="multipart/form-data" class="dd-filter-grid">
+            {% csrf_token %}
+            <div class="dd-field">
+                <label for="konu-excel">Excel dosyası</label>
+                <input id="konu-excel" type="file" name="excel_dosyasi" accept=".xlsx,.xls" required>
+            </div>
+            <div class="dd-field" style="align-self:end">
+                <button type="submit" class="dd-btn dd-btn-primary dd-btn-sm">Excel’i Yükle</button>
+            </div>
+        </form>
+    </section>
+    {% endif %}
+
     <section class="dd-card">
         <div class="dd-panel-head">
             <h2>Seviye ve Alan Konuları</h2>

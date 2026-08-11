@@ -5,11 +5,11 @@
         window.matchMedia("(display-mode: standalone)").matches ||
         window.navigator.standalone === true;
 
-    /* iOS PWA: önbellekten POST sayfası geri gelince CSRF 403 olmasın */
+    /* iOS PWA: bfcache'ten dönünce oturum varsa panele, yoksa girişe */
     if (isStandalone) {
         window.addEventListener("pageshow", function (event) {
             if (event.persisted) {
-                window.location.replace("/giris/?source=pwa");
+                window.location.replace("/pwa/baslat/");
             }
         });
     }

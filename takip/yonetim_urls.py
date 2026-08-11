@@ -642,6 +642,11 @@ urlpatterns = [
         name="dini_ders_alan_listesi",
     ),
     path(
+        "dini-ders/alanlar/excel-sablon/",
+        dini_ders_takip_yonetim_views.dini_ders_alan_excel_sablon,
+        name="dini_ders_alan_excel_sablon",
+    ),
+    path(
         "dini-ders/alanlar/ekle/",
         dini_ders_takip_yonetim_views.dini_ders_alan_ekle,
         name="dini_ders_alan_ekle",
@@ -655,6 +660,11 @@ urlpatterns = [
         "dini-ders/konular/",
         dini_ders_takip_yonetim_views.dini_ders_konu_listesi,
         name="dini_ders_konu_listesi",
+    ),
+    path(
+        "dini-ders/konular/excel-sablon/",
+        dini_ders_takip_yonetim_views.dini_ders_konu_excel_sablon,
+        name="dini_ders_konu_excel_sablon",
     ),
     path(
         "dini-ders/konular/ekle/",

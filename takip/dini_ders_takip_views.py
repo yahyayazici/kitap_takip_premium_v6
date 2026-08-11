@@ -22,7 +22,9 @@ from takip.dini_ders_takip_service import (
 )
 from takip.models import DiniDersSeviyesi, DiniDersTakipAlani
 from takip.permissions.decorators import require_permission
+from takip.permissions.scope import tum_talebe_kapsami_var
 from takip.permissions.service import can
+from takip.user_helpers import etut_hocasi_for_user
 
 
 @login_required
@@ -31,8 +33,27 @@ def dini_ders_panel(request):
     seviyeler = DiniDersSeviyesi.objects.filter(aktif=True).order_by("sira", "ad")
     alanlar = DiniDersTakipAlani.objects.filter(aktif=True).order_by("sira", "ad")
 
+    hoca = etut_hocasi_for_user(request.user)
+    seviye_kilitli = False
+    # Etüt hocası: yalnızca kendisine atanmış dini seviyeler
+    if hoca and not request.user.is_superuser and not tum_talebe_kapsami_var(request.user):
+        atanan = list(
+            hoca.sorumlu_dini_ders_seviyeleri.filter(aktif=True).order_by("sira", "ad")
+        )
+        if atanan:
+            seviyeler = DiniDersSeviyesi.objects.filter(
+                pk__in=[s.pk for s in atanan]
+            ).order_by("sira", "ad")
+            if len(atanan) == 1:
+                seviye_kilitli = True
+
     seviye_id = request.GET.get("seviye") or request.POST.get("seviye_id")
     alan_id = request.GET.get("alan") or request.POST.get("alan_id")
+
+    if seviye_kilitli:
+        seviye_id = str(seviyeler.first().pk)
+    elif seviye_id and not seviyeler.filter(pk=seviye_id).exists():
+        seviye_id = None
 
     # Örnek görünüm: seçim yoksa ilk dolu seviye + alan
     if not seviye_id and not request.POST:
@@ -42,13 +63,26 @@ def dini_ders_panel(request):
                 break
         if not seviye_id and seviyeler.exists():
             seviye_id = str(seviyeler.first().pk)
+    # Seçili seviyede konu listesi (alan) olanları göster
+    seviye_secili = seviyeler.filter(pk=seviye_id).first() if seviye_id else None
+    if seviye_secili:
+        alan_ids = list(
+            DiniDersTakipAlani.objects.filter(
+                aktif=True,
+                konular__seviye=seviye_secili,
+                konular__aktif=True,
+            )
+            .distinct()
+            .values_list("id", flat=True)
+        )
+        if alan_ids:
+            alanlar = alanlar.filter(pk__in=alan_ids)
+
     if not alan_id and not request.POST and alanlar.exists():
         # Seçili seviyede konu olan ilk alan
-        if seviye_id:
+        if seviye_secili:
             for a in alanlar:
-                if konular_for(
-                    seviyeler.filter(pk=seviye_id).first(), a
-                ).exists():
+                if konular_for(seviye_secili, a).exists():
                     alan_id = str(a.pk)
                     break
         if not alan_id:
@@ -123,6 +157,7 @@ def dini_ders_panel(request):
             "son_kayitlar": son_kayitlar,
             "duzenleyebilir": duzenleyebilir(request.user),
             "ornek_cizelge_link": ornek_cizelge_link,
+            "seviye_kilitli": seviye_kilitli,
         },
     )
 

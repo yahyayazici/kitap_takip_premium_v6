@@ -47,32 +47,53 @@
 
 <script>
 (function () {
+    var backdrop = document.querySelector('.talebe-rapor-backdrop');
+    if (!backdrop) {
+        backdrop = document.createElement('div');
+        backdrop.className = 'talebe-rapor-backdrop';
+        backdrop.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(backdrop);
+    }
+
+    function closeAll() {
+        document.querySelectorAll('.talebe-rapor-panel').forEach(function (panel) {
+            panel.setAttribute('hidden', '');
+        });
+        document.querySelectorAll('.talebe-rapor-ac').forEach(function (btn) {
+            btn.setAttribute('aria-expanded', 'false');
+        });
+        document.body.classList.remove('talebe-rapor-open');
+    }
+
     document.querySelectorAll('.talebe-rapor-wrap').forEach(function (wrap) {
-        const ac = wrap.querySelector('.talebe-rapor-ac');
-        const panel = wrap.querySelector('.talebe-rapor-panel');
+        var ac = wrap.querySelector('.talebe-rapor-ac');
+        var panel = wrap.querySelector('.talebe-rapor-panel');
         if (!ac || !panel) return;
+
+        if (window.initMultiSelectFilters) {
+            window.initMultiSelectFilters(wrap);
+        }
 
         ac.addEventListener('click', function (event) {
             event.stopPropagation();
-            const open = panel.hasAttribute('hidden');
-            if (open) {
+            var willOpen = panel.hasAttribute('hidden');
+            closeAll();
+            if (willOpen) {
                 panel.removeAttribute('hidden');
                 ac.setAttribute('aria-expanded', 'true');
-                if (window.initMultiSelectFilters) {
-                    window.initMultiSelectFilters(wrap);
-                }
-            } else {
-                panel.setAttribute('hidden', '');
-                ac.setAttribute('aria-expanded', 'false');
+                document.body.classList.add('talebe-rapor-open');
             }
         });
+    });
 
-        document.addEventListener('click', function (event) {
-            if (!wrap.contains(event.target)) {
-                panel.setAttribute('hidden', '');
-                ac.setAttribute('aria-expanded', 'false');
-            }
-        });
+    backdrop.addEventListener('click', closeAll);
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') closeAll();
+    });
+    document.addEventListener('click', function (event) {
+        if (event.target.closest('.talebe-rapor-wrap')) return;
+        if (event.target.closest('.talebe-rapor-panel')) return;
+        closeAll();
     });
 })();
 </script>

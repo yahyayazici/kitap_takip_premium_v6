@@ -54,13 +54,13 @@
     <div class="responsive-table">
         <table class="report-data-table yonetim-data-table">
             <colgroup>
-                <col style="width:8%">
-                <col style="width:22%">
-                <col style="width:12%">
-                <col style="width:18%">
-                <col style="width:18%">
+                <col style="width:7%">
+                <col style="width:26%">
                 <col style="width:10%">
-                <col style="width:12%">
+                <col style="width:16%">
+                <col style="width:16%">
+                <col style="width:9%">
+                <col style="width:16%">
             </colgroup>
             <thead>
                 <tr>
@@ -115,7 +115,7 @@
                     </td>
                     <td class="yonetim-action-col">
                         <div class="yonetim-action-group">
-                            <a href="{% url 'yonetim:talebe_duzenle' talebe.pk %}" class="yonetim-action-btn">Öğrenciyi düzenle</a>
+                            <a href="{% url 'yonetim:talebe_duzenle' talebe.pk %}" class="yonetim-action-btn" title="Öğrenciyi düzenle">Düzenle</a>
                             {% if talebe.aktif %}
                             <form method="post" action="{% url 'yonetim:kayit_sil' %}" class="yonetim-inline-action" onsubmit="return confirm('{{ talebe.ad_soyad|escapejs }} pasif edilsin mi?');">
                                 {% csrf_token %}

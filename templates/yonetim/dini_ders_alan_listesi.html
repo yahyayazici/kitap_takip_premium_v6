@@ -8,6 +8,26 @@
 <div class="yonetim-page dd-yonetim-page">
     {% include "includes/dini_ders_yonetim_shell.html" %}
 
+    {% if duzenleyebilir %}
+    <section class="dd-card">
+        <div class="dd-panel-head">
+            <h2>Excel ile Toplu Yükle</h2>
+            <a href="{% url 'yonetim:dini_ders_alan_excel_sablon' %}" class="dd-btn dd-btn-sm">Boş Şablon İndir</a>
+        </div>
+        <p class="dd-help-link" style="margin:0 0 1rem">Sütunlar: <strong>Alan Adı</strong>, <strong>Sıra</strong>, <strong>Aktif</strong> (Aktif/Pasif).</p>
+        <form method="post" enctype="multipart/form-data" class="dd-filter-grid">
+            {% csrf_token %}
+            <div class="dd-field">
+                <label for="alan-excel">Excel dosyası</label>
+                <input id="alan-excel" type="file" name="excel_dosyasi" accept=".xlsx,.xls" required>
+            </div>
+            <div class="dd-field" style="align-self:end">
+                <button type="submit" class="dd-btn dd-btn-primary dd-btn-sm">Excel’i Yükle</button>
+            </div>
+        </form>
+    </section>
+    {% endif %}
+
     <section class="dd-card">
         <div class="dd-panel-head">
             <h2>Takip Alanları (Sure Ezberi, İlmihal vb.)</h2>

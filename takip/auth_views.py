@@ -12,6 +12,7 @@ from takip.veli_service import kullanici_veli_mi
 
 class PanelLoginView(auth_views.LoginView):
     template_name = "registration/login.html"
+    redirect_authenticated_user = True
 
     @method_decorator(ensure_csrf_cookie)
     def dispatch(self, request, *args, **kwargs):

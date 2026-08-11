@@ -148,6 +148,10 @@ LOGOUT_REDIRECT_URL = "login"
 CSRF_FAILURE_VIEW = "takip.pwa_views.csrf_failure"
 CSRF_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_SAMESITE = "Lax"
+# Mobil / ana ekran: oturum cookie'si kalıcı kalsın; kullanımda süre yenilensin.
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 60  # 60 gün
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

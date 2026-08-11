@@ -5,7 +5,7 @@
     document.body.appendChild(backdrop);
 
     const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
-    const collapseQuery = window.matchMedia('(max-width: 1180px)');
+    const collapseQuery = window.matchMedia('(max-width: 1400px)');
 
     function isCollapsedNav() {
         return collapseQuery.matches;

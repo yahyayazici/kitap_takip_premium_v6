@@ -11,7 +11,13 @@
     <div class="dd-head-main">
         <p class="kicker">DİNİ DERS TAKİP</p>
         <h1>Dini Ders Takip Matrisi</h1>
-        <p class="dd-head-desc">Seviye ve takip alanı seçin · Talebe × konu ilerleme işaretleme</p>
+        <p class="dd-head-desc">
+            {% if seviye_kilitli %}
+            Atanan seviyenizin konu listesini seçin · Talebe × konu ilerleme işaretleme
+            {% else %}
+            Seviye ve takip alanı seçin · Talebe × konu ilerleme işaretleme
+            {% endif %}
+        </p>
         <div class="result-header-actions dd-head-actions">
             {% if seviye and alan %}
             <a href="{% url 'yonetim:dini_ders_konu_listesi' %}" class="result-secondary-button">Konu Listesini Düzenle</a>
@@ -36,6 +42,13 @@
 
 <section class="dd-filter-bar">
     <form method="get" class="dd-filter-grid">
+        {% if seviye_kilitli and seviye %}
+        <div class="dd-field">
+            <label>Dini Ders Seviyesi</label>
+            <input type="hidden" name="seviye" value="{{ seviye.id }}">
+            <p class="dd-pill dd-pill-blue" style="margin:0;align-self:center">{{ seviye.ad }}</p>
+        </div>
+        {% else %}
         <div class="dd-field">
             <label for="dd-seviye">Dini Ders Seviyesi</label>
             <select id="dd-seviye" name="seviye" required onchange="this.form.submit()">
@@ -45,8 +58,9 @@
                 {% endfor %}
             </select>
         </div>
+        {% endif %}
         <div class="dd-field">
-            <label for="dd-alan">Takip Alanı</label>
+            <label for="dd-alan">Konu Listesi (Takip Alanı)</label>
             <select id="dd-alan" name="alan" required onchange="this.form.submit()">
                 <option value="">Seçin…</option>
                 {% for a in alanlar %}

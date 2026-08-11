@@ -531,8 +531,29 @@ body.veli-body {
     display: inline-flex;
     align-items: center;
     justify-content: flex-end;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 8px;
+}
+
+.yonetim-person-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.yonetim-person-cell .yonetim-avatar {
+    flex-shrink: 0;
+}
+
+.yonetim-table-card .yonetim-data-table tbody td .yonetim-person-cell strong,
+.yonetim-person-cell strong {
+    display: block !important;
+    min-width: 0;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
 }
 
 .yonetim-table-actions {
@@ -551,9 +572,9 @@ body.veli-body {
 .yonetim-data-table td.yonetim-table-actions {
     width: 1%;
     white-space: nowrap;
-    min-width: 200px;
+    min-width: 168px;
     padding-left: 12px !important;
-    padding-right: 20px !important;
+    padding-right: 16px !important;
 }
 
 .yonetim-data-table td.yonetim-action-col,
@@ -566,29 +587,30 @@ body.veli-body {
 .yonetim-data-table td.yonetim-table-actions .yonetim-action-group {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
+    gap: 6px;
+    flex-wrap: nowrap;
 }
 
 .yonetim-action-btn {
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
-    min-height: var(--panel-btn-min-h, 46px) !important;
-    height: auto !important;
-    padding: 0 18px !important;
+    min-height: 36px !important;
+    height: 36px !important;
+    padding: 0 12px !important;
     border: 1px solid #d8e3f0 !important;
     border-radius: 10px !important;
     background: #fff !important;
     box-shadow: 0 2px 8px rgba(23, 59, 128, 0.06) !important;
     color: #173b80 !important;
-    font-size: 14px !important;
+    font-size: 13px !important;
     font-weight: 600 !important;
     line-height: 1.2 !important;
     text-decoration: none !important;
     cursor: pointer;
     font-family: inherit;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .yonetim-action-btn:hover {
@@ -628,9 +650,9 @@ body.veli-body {
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
-    min-height: var(--panel-btn-min-h, 46px) !important;
-    height: auto !important;
-    padding: 0 18px !important;
+    min-height: 36px !important;
+    height: 36px !important;
+    padding: 0 12px !important;
     border: 1px solid #d8e3f0 !important;
     border-radius: 10px !important;
     background: #fff !important;
@@ -1016,6 +1038,8 @@ body.yonetim-body .yonetim-page {
 /* Talebe listesi — Rapor Al açılır paneli */
 .talebe-rapor-wrap {
     position: relative;
+    flex: 0 0 auto;
+    z-index: 20;
 }
 
 .talebe-rapor-ac {
@@ -1025,12 +1049,36 @@ body.yonetim-body .yonetim-page {
     font-weight: 600 !important;
 }
 
+.talebe-rapor-ac[aria-expanded="true"] {
+    background: #fff !important;
+    color: #173b80 !important;
+    border-color: #fff !important;
+}
+
+.talebe-rapor-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1290;
+    background: rgba(8, 24, 58, 0.35);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
+
+body.talebe-rapor-open .talebe-rapor-backdrop {
+    display: block;
+}
+
 .talebe-rapor-panel {
     position: absolute;
     right: 0;
     top: calc(100% + 10px);
-    z-index: 1200;
+    z-index: 1300;
     width: min(380px, calc(100vw - 32px));
+    max-height: min(70vh, 560px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     padding: 14px;
     border: 1px solid var(--dash-line);
     border-radius: 16px;
@@ -1038,6 +1086,7 @@ body.yonetim-body .yonetim-page {
     box-shadow: 0 22px 48px rgba(22, 52, 94, 0.18);
     display: grid;
     gap: 12px;
+    align-content: start;
 }
 
 .talebe-rapor-panel[hidden] {
@@ -1076,9 +1125,12 @@ body.yonetim-body .yonetim-page {
     color: #40506a;
 }
 
-.talebe-rapor-select {
+/* JS yüklenene kadar native multiple listbox şişmesin */
+.talebe-rapor-select.ms-filter:not(.ms-filter-native) {
+    display: block;
     width: 100%;
     min-height: 46px;
+    max-height: 46px;
     padding: 0 14px;
     border: 1px solid var(--dash-line);
     border-radius: 12px;
@@ -1086,6 +1138,10 @@ body.yonetim-body .yonetim-page {
     font: inherit;
     font-size: 14px;
     color: var(--dash-text);
+}
+
+.talebe-rapor-select.ms-filter-native {
+    display: none !important;
 }
 
 .talebe-rapor-btn {
@@ -1098,10 +1154,17 @@ body.yonetim-body .yonetim-page {
     font-size: 14px !important;
 }
 
-@media (max-width: 700px) {
+/* Tablet / dar ekran — ortalanmış sabit panel (kayma olmasın) */
+@media (max-width: 1400px) {
     .talebe-rapor-panel {
+        position: fixed;
+        left: 50%;
         right: auto;
-        left: 0;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: min(400px, calc(100vw - 40px));
+        max-height: min(78vh, 580px);
+        z-index: 1300;
     }
 }
 
@@ -1546,8 +1609,8 @@ table tbody td {
     }
 }
 
-/* Dar pencere / mobil — panel-unified !important kurallarını nav ile hizala */
-@media (max-width: 1180px) {
+/* Tablet / dar pencere — panel-unified !important kurallarını nav ile hizala */
+@media (max-width: 1400px) {
     :root {
         --v3-header-height: 64px;
     }
