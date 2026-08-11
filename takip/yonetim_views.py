@@ -130,8 +130,23 @@ def dashboard(request):
     siniflar = (
         SinifSube.objects
         .annotate(
-            talebe_sayisi=Count("talebeler", distinct=True),
-            hoca_sayisi=Count("etut_hocalari", distinct=True),
+            talebe_sayisi=Count(
+                "talebeler",
+                filter=Q(
+                    talebeler__aktif=True,
+                    talebeler__durum=Talebe.Durum.AKTIF,
+                ),
+                distinct=True,
+            ),
+            hoca_sayisi=Count(
+                "talebeler__etut_hocasi",
+                filter=Q(
+                    talebeler__aktif=True,
+                    talebeler__durum=Talebe.Durum.AKTIF,
+                    talebeler__etut_hocasi__isnull=False,
+                ),
+                distinct=True,
+            ),
         )
         .order_by("sinif", "sube")
     )
