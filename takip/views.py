@@ -557,6 +557,15 @@ def dashboard(request):
 
 @login_required
 def talebe_listesi(request):
+    from takip.etut_zimmet_service import (
+        etut_mesul_mu,
+        etut_mesul_sinif_zimmet_senkronize,
+    )
+
+    hoca = _etut_hocasi(request.user)
+    if hoca and etut_mesul_mu(hoca):
+        etut_mesul_sinif_zimmet_senkronize(hoca)
+
     talebe_qs = _yetkili_talebeler(request.user)
     sinif_id = request.GET.get("sinif", "").strip()
     if sinif_id.isdigit():

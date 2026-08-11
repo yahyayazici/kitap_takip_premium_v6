@@ -52,9 +52,34 @@ def ayarlari_al() -> YemekciAyar:
     )
 
 
+def _talebe_sinif_seviyesi(talebe: Talebe) -> str | None:
+    """Talebenin yemekçi havuz seviyesi (5–8) veya None."""
+    if getattr(talebe, "sinif_sube_id", None) and talebe.sinif_sube_id:
+        raw = str(talebe.sinif_sube.sinif or "").strip()
+    else:
+        raw = str(getattr(talebe, "sinif", "") or "").strip()
+    raw = raw.replace("Sınıf", "").replace("sinif", "").strip(" .")
+    if raw in SINIF_SEVIYELERI:
+        return raw
+    return None
+
+
+def _sinif_aktif_talebeler(sinif: str):
+    qs = (
+        Talebe.objects.filter(aktif=True, sinif_sube__sinif=sinif)
+        .select_related("sinif_sube")
+        .order_by("sinif_sube__sube", "ad_soyad", "pk")
+    )
+    if qs.exists():
+        return qs
+    return Talebe.objects.filter(aktif=True, sinif=sinif).order_by(
+        "sube", "ad_soyad", "pk"
+    )
+
+
 @transaction.atomic
 def havuzlari_kur(seed_talebeler: bool = True) -> list[YemekciSinifHavuzu]:
-    """5–8 havuzlarını bir kez oluşturur; isteğe bağlı aktif talebeleri doldurur."""
+    """5–8 havuzlarını bir kez oluşturur; isteğe bağlı sınıf listesiyle senkronize eder."""
     havuzlar: list[YemekciSinifHavuzu] = []
     for sinif in SINIF_SEVIYELERI:
         havuz, _ = YemekciSinifHavuzu.objects.get_or_create(
@@ -69,25 +94,91 @@ def havuzlari_kur(seed_talebeler: bool = True) -> list[YemekciSinifHavuzu]:
     ayarlari_al()
 
     if seed_talebeler:
-        for havuz in havuzlar:
-            if havuz.kayitlar.exists():
-                continue
-            talebeler = (
-                Talebe.objects.filter(aktif=True, sinif_sube__sinif=havuz.sinif)
-                .select_related("sinif_sube")
-                .order_by("sinif_sube__sube", "ad_soyad", "pk")
-            )
-            if not talebeler.exists():
-                talebeler = Talebe.objects.filter(
-                    aktif=True, sinif=havuz.sinif
-                ).order_by("sube", "ad_soyad", "pk")
-            for sira, talebe in enumerate(talebeler):
-                YemekciHavuzKaydi.objects.get_or_create(
-                    havuz=havuz,
-                    talebe=talebe,
-                    defaults={"sira": sira, "aktif": True},
-                )
+        havuz_senkronize()
     return havuzlar
+
+
+@transaction.atomic
+def havuz_senkronize(sinif: str | None = None) -> int:
+    """Eksik aktif talebeleri ekler; sınıftan çıkan / pasifleri listeden düşürür.
+
+    Elle çıkarılanlar (aktif=False kaydı) otomatik geri eklenmez; manuel Ekle ile döner.
+    """
+    # Havuz satırlarını seed döngüsüne girmeden oluştur
+    for s in SINIF_SEVIYELERI:
+        YemekciSinifHavuzu.objects.get_or_create(
+            sinif=s,
+            defaults={"renk": SINIF_RENKLERI[s], "aktif": True},
+        )
+    ayarlari_al()
+
+    siniflar = [sinif] if sinif in SINIF_SEVIYELERI else list(SINIF_SEVIYELERI)
+    eklenen = 0
+    for s in siniflar:
+        havuz = YemekciSinifHavuzu.objects.filter(sinif=s).first()
+        if not havuz:
+            continue
+
+        for kayit in havuz.kayitlar.filter(aktif=True).select_related(
+            "talebe", "talebe__sinif_sube"
+        ):
+            seviye = (
+                _talebe_sinif_seviyesi(kayit.talebe) if kayit.talebe.aktif else None
+            )
+            if seviye != s:
+                kayit.aktif = False
+                kayit.save(update_fields=["aktif"])
+
+        mevcut_ids = set(havuz.kayitlar.values_list("talebe_id", flat=True))
+        max_sira = (
+            YemekciHavuzKaydi.objects.filter(havuz=havuz).aggregate(m=Max("sira")).get(
+                "m"
+            )
+            or -1
+        )
+        for talebe in _sinif_aktif_talebeler(s):
+            if talebe.pk in mevcut_ids:
+                continue
+            max_sira += 1
+            YemekciHavuzKaydi.objects.create(
+                havuz=havuz, talebe=talebe, sira=max_sira, aktif=True
+            )
+            eklenen += 1
+            mevcut_ids.add(talebe.pk)
+
+        for idx, k in enumerate(
+            havuz.kayitlar.filter(aktif=True).order_by("sira", "id")
+        ):
+            if k.sira != idx:
+                k.sira = idx
+                k.save(update_fields=["sira"])
+    return eklenen
+
+
+def talebe_havuza_senkronize(talebe: Talebe) -> None:
+    """Tek talebe kaydı sonrası: doğru sınıfa ekle (yeni ise), diğer havuzlardan çıkar."""
+    if not talebe or not talebe.pk:
+        return
+    havuzlari_kur(seed_talebeler=False)
+    seviye = _talebe_sinif_seviyesi(talebe) if talebe.aktif else None
+
+    for kayit in YemekciHavuzKaydi.objects.filter(
+        talebe=talebe, aktif=True
+    ).select_related("havuz"):
+        if seviye is None or kayit.havuz.sinif != seviye:
+            kayit.aktif = False
+            kayit.save(update_fields=["aktif"])
+
+    if seviye is None:
+        return
+
+    havuz = YemekciSinifHavuzu.objects.filter(sinif=seviye).first()
+    if not havuz:
+        return
+    # Elle çıkarılmış veya zaten listede → dokunma
+    if YemekciHavuzKaydi.objects.filter(havuz=havuz, talebe=talebe).exists():
+        return
+    kayit_ekle(seviye, talebe.pk)
 
 
 def sinif_havuzlari() -> list[YemekciSinifHavuzu]:
@@ -263,11 +354,14 @@ def kayit_ekle(sinif: str, talebe_id: int) -> YemekciHavuzKaydi:
 
 @transaction.atomic
 def kayit_sil(kayit_id: int) -> None:
+    """Listeden çıkar — soft delete (senkron tekrar eklemesin)."""
     kayit = YemekciHavuzKaydi.objects.filter(pk=kayit_id).first()
     if not kayit:
         return
     havuz = kayit.havuz
-    kayit.delete()
+    if kayit.aktif:
+        kayit.aktif = False
+        kayit.save(update_fields=["aktif"])
     for sira, k in enumerate(havuz.kayitlar.filter(aktif=True).order_by("sira", "id")):
         if k.sira != sira:
             k.sira = sira

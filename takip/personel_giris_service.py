@@ -163,6 +163,9 @@ def personel_olustur(
                 seviye.hocalar.add(hoca)
         personel.etut_hocasi = hoca
         personel.save(update_fields=["etut_hocasi"])
+        from takip.etut_zimmet_service import etut_mesul_sinif_zimmet_senkronize
+
+        etut_mesul_sinif_zimmet_senkronize(hoca)
 
     return PersonelGirisKaydi(
         personel=personel,

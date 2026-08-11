@@ -273,6 +273,13 @@ class PersonelProfiliForm(forms.ModelForm):
         if commit:
             personel.save()
             clear_permission_cache()
+            if (
+                ana_rol in {ROL_ETUT_MESUL, ROL_SINIF_MESUL}
+                and personel.etut_hocasi_id
+            ):
+                from takip.etut_zimmet_service import etut_mesul_sinif_zimmet_senkronize
+
+                etut_mesul_sinif_zimmet_senkronize(personel.etut_hocasi)
 
         return personel
 
@@ -628,6 +635,9 @@ class TalebeForm(forms.ModelForm):
             pasif_talebe_tc_temizle(talebe.tc_kimlik, haric_pk=talebe.pk)
         if commit:
             talebe.save()
+            from takip.yemekci_service import talebe_havuza_senkronize
+
+            talebe_havuza_senkronize(talebe)
         return talebe
 
     def veli_kaydet(self, talebe: Talebe) -> None:
@@ -882,6 +892,9 @@ class TalebeProfilTamamlaForm(forms.ModelForm):
         if commit:
             talebe.save()
             self.veli_kaydet(talebe)
+            from takip.yemekci_service import talebe_havuza_senkronize
+
+            talebe_havuza_senkronize(talebe)
         return talebe
 
     def veli_kaydet(self, talebe: Talebe) -> None:

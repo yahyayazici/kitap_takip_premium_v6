@@ -307,6 +307,9 @@ class HizliTalebeForm(forms.ModelForm):
         if not talebe.dini_ders_hocasi_id and talebe.etut_hocasi_id:
             talebe.dini_ders_hocasi = talebe.etut_hocasi
         talebe.save()
+        from takip.yemekci_service import talebe_havuza_senkronize
+
+        talebe_havuza_senkronize(talebe)
         return talebe, None
 
 

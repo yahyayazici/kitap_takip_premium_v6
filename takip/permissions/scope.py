@@ -70,11 +70,13 @@ def yetkili_talebeler(user: User, *, aktif_only: bool = True) -> QuerySet[Talebe
                 if kapsam.tip == RolKapsam.KapsamTipi.DINI_SEVIYE:
                     seviye_ids.update(kapsam.deger.get("dini_ders_seviyesi_ids", []))
 
+        from takip.etut_zimmet_service import hoca_talebe_q
+
         kosullar = Q()
         if etut_grubu:
             hoca = etut_hocasi_for_user(user)
             if hoca:
-                kosullar |= Q(etut_hocasi=hoca) | Q(dini_ders_hocasi=hoca)
+                kosullar |= hoca_talebe_q(hoca)
         if sinif_ids:
             kosullar |= Q(sinif_sube_id__in=sinif_ids)
         if seviye_ids:
@@ -85,9 +87,9 @@ def yetkili_talebeler(user: User, *, aktif_only: bool = True) -> QuerySet[Talebe
 
     hoca = etut_hocasi_for_user(user)
     if hoca:
-        return talebeler.filter(
-            Q(etut_hocasi=hoca) | Q(dini_ders_hocasi=hoca)
-        )
+        from takip.etut_zimmet_service import hoca_talebe_q
+
+        return talebeler.filter(hoca_talebe_q(hoca))
 
     return Talebe.objects.none()
 
