@@ -35,8 +35,8 @@
     flex: 1;
     aspect-ratio: auto !important;
     height: auto !important;
-    min-height: 220px !important;
-    max-height: none !important;
+    min-height: 160px !important;
+    max-height: 240px !important;
 }
 
 .personel-top-split .duyuru-caption {
@@ -120,12 +120,12 @@
 
 .personel-yct-grid td {
     height: auto;
-    min-height: 64px;
+    min-height: 42px;
     text-align: left;
     vertical-align: top;
-    border-radius: 10px;
+    border-radius: 8px;
     position: relative;
-    padding: 5px 4px 6px;
+    padding: 3px 3px 4px;
     background: #f8fafc;
     border: 1px solid transparent;
     box-sizing: border-box;
@@ -165,7 +165,7 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
-    min-height: 28px;
+    min-height: 18px;
 }
 
 .personel-yct-chip {
@@ -273,90 +273,141 @@
     display: none;
 }
 
+/* Tablet — yan yana kartlar ekranı doldurmasın */
+@media (max-width: 1400px) {
+    .personel-top-split {
+        gap: 12px;
+        margin-top: 10px;
+    }
+
+    .personel-top-split .duyuru-media-pane {
+        min-height: 140px !important;
+        max-height: 200px !important;
+    }
+
+    .personel-yct-card {
+        padding: 12px 12px 10px;
+        gap: 8px;
+        border-radius: 16px;
+    }
+
+    .personel-yct-head h2 {
+        font-size: 16px;
+    }
+
+    .personel-yct-grid {
+        border-spacing: 3px;
+    }
+
+    .personel-yct-grid td {
+        min-height: 36px;
+        padding: 2px 2px 3px;
+        border-radius: 7px;
+    }
+
+    .personel-yct-grid td .day {
+        min-width: 18px;
+        height: 16px;
+        font-size: 10px;
+        margin-bottom: 2px;
+    }
+
+    .personel-yct-cell-events {
+        min-height: 14px;
+    }
+
+    .personel-yct-chip {
+        font-size: 8.5px;
+        padding: 1px 4px;
+    }
+}
+
 @media (max-width: 900px) {
     .personel-top-split {
         grid-template-columns: 1fr;
     }
 
     .personel-top-split .duyuru-media-pane {
-        min-height: 180px !important;
+        min-height: 140px !important;
+        max-height: 180px !important;
         aspect-ratio: 16 / 9 !important;
     }
 }
 
-/* Mobil — tüm ay ekranda, kare kare, hafif “uzak ama büyük” derinlik */
+/* Mobil — kompakt takvim (uzaktan fazla büyük durmasın) */
 @media (max-width: 640px) {
     .personel-yct-card {
-        padding: 14px 10px 12px;
-        gap: 10px;
+        padding: 12px 10px 10px;
+        gap: 8px;
     }
 
     .personel-yct-cal-wrap {
-        perspective: 900px;
-        perspective-origin: 50% 20%;
-        margin: 2px 0 0;
-        padding: 2px 0 6px;
+        margin: 0;
+        padding: 0 0 4px;
     }
 
     .personel-yct-grid {
-        border-spacing: 5px;
-        transform: scale(0.97);
+        border-spacing: 3px;
+        transform: scale(0.94);
         transform-origin: top center;
-        filter: drop-shadow(0 10px 22px rgba(37, 99, 235, 0.07));
     }
 
     .personel-yct-grid th {
-        font-size: 9px;
-        padding-bottom: 2px;
+        font-size: 8.5px;
+        padding-bottom: 1px;
     }
 
     .personel-yct-grid td {
-        aspect-ratio: 1;
+        aspect-ratio: 1.15;
         height: auto;
         min-height: 0;
-        padding: 5px 3px 4px;
-        border-radius: 11px;
-        box-shadow: 0 2px 6px rgba(15, 39, 68, 0.05);
+        padding: 3px 2px 2px;
+        border-radius: 8px;
+        box-shadow: none;
     }
 
     .personel-yct-grid td.has-event {
-        box-shadow: 0 3px 10px rgba(37, 99, 235, 0.12);
+        box-shadow: 0 1px 4px rgba(37, 99, 235, 0.1);
     }
 
     .personel-yct-grid td .day {
-        min-width: 22px;
-        height: 22px;
-        font-size: 12px;
-        border-radius: 7px;
-        margin-bottom: 4px;
+        min-width: 18px;
+        height: 16px;
+        font-size: 10px;
+        border-radius: 5px;
+        margin-bottom: 2px;
     }
 
     .personel-yct-cell-events {
-        min-height: 22px;
-        gap: 3px;
+        min-height: 14px;
+        gap: 2px;
     }
 
     .personel-yct-chip {
-        font-size: 9px;
-        font-weight: 700;
-        padding: 2px 4px;
-        border-radius: 6px;
-        letter-spacing: -0.01em;
+        font-size: 8px;
+        font-weight: 650;
+        padding: 1px 3px;
+        border-radius: 4px;
     }
 
     .personel-yct-more {
-        font-size: 9px;
+        font-size: 8px;
+    }
+
+    .personel-top-split .duyuru-media-pane {
+        min-height: 120px !important;
+        max-height: 160px !important;
     }
 }
 
 @media (max-width: 900px) and (min-width: 641px) {
     .personel-yct-grid td {
-        min-height: 52px;
-        padding: 4px 3px;
+        min-height: 40px;
+        padding: 3px 2px;
     }
 
     .personel-yct-chip {
-        font-size: 8.5px;
+        font-size: 8px;
         padding: 1px 3px;
     }
 }
