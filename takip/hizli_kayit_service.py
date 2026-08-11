@@ -91,3 +91,51 @@ def etut_hocasi_pasif_et(hoca: EtutHocasi, *, personel_pasif: bool = True) -> No
 
 def ogretmen_pasif_et(hoca: EtutHocasi) -> None:
     etut_hocasi_pasif_et(hoca)
+
+
+def talebe_kalici_sil(talebe: Talebe) -> None:
+    if talebe.aktif:
+        raise ValueError("Aktif talebe kalıcı silinemez; önce pasif edin.")
+    from django.db.models.deletion import ProtectedError
+
+    from takip.talebe_panel_models import TalebeHesap
+
+    hesap = TalebeHesap.objects.filter(talebe_id=talebe.pk).select_related("user").first()
+    if hesap and hesap.user_id:
+        User.objects.filter(pk=hesap.user_id).delete()
+    elif hesap:
+        TalebeHesap.objects.filter(pk=hesap.pk).delete()
+
+    try:
+        talebe.delete()
+    except ProtectedError as exc:
+        raise ValueError(
+            "Bu talebenin bağlı disiplin veya yemek kaydı var; "
+            "kalıcı silinemez."
+        ) from exc
+
+
+def personel_kalici_sil(personel: PersonelProfili) -> None:
+    if personel.aktif:
+        raise ValueError("Aktif personel kalıcı silinemez; önce pasif edin.")
+    user_id = personel.user_id
+    personel.delete()
+    if user_id:
+        User.objects.filter(pk=user_id).delete()
+
+
+def ogretmen_kalici_sil(hoca: EtutHocasi) -> None:
+    if hoca.aktif:
+        raise ValueError("Aktif öğretmen kalıcı silinemez; önce pasif edin.")
+    if getattr(hoca, "personel_kaydi", None):
+        raise ValueError("Personel kaydına bağlı öğretmen buradan kalıcı silinemez.")
+    user_id = hoca.user_id
+    try:
+        profil = hoca.odeme_profili
+    except OgretmenOdemeProfili.DoesNotExist:
+        profil = None
+    if profil:
+        profil.delete()
+    hoca.delete()
+    if user_id:
+        User.objects.filter(pk=user_id).delete()

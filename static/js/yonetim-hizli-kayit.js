@@ -49,7 +49,7 @@
                 }
                 if (
                     !window.confirm(
-                        secili + " kayıt pasif edilsin mi? Girişler kapanır, listeden kalkar."
+                        secili + " kayıt silinsin mi? Aktif olanlar pasif edilir, pasif olanlar kalıcı silinir."
                     )
                 ) {
                     event.preventDefault();

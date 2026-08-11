@@ -11,9 +11,12 @@ from django.views.decorators.http import require_POST
 
 from takip.pdf_utils import pdf_error_response
 from takip.hizli_kayit_service import (
+    ogretmen_kalici_sil,
     ogretmen_pasif_et,
+    personel_kalici_sil,
     personel_pasif_et,
     son_kayitlar,
+    talebe_kalici_sil,
     talebe_pasif_et,
 )
 from takip.models import DiniDersSeviyesi, EtutHocasi, PersonelProfili, SinifSube, Talebe
@@ -271,6 +274,110 @@ def _kayit_pasif_et(request, tur: str, pk: int, *, sessiz: bool = False) -> bool
     return False
 
 
+def _kayit_kalici_sil(request, tur: str, pk: int, *, sessiz: bool = False) -> bool:
+    """Pasif kaydı veritabanından kaldırır."""
+    if tur == "talebe":
+        talebe = get_object_or_404(Talebe, pk=pk)
+        if talebe.aktif:
+            if not sessiz:
+                messages.warning(
+                    request,
+                    f"{talebe.ad_soyad} aktif — önce pasif edin, sonra kalıcı silin.",
+                )
+            return False
+        try:
+            talebe_kalici_sil(talebe)
+        except ValueError as exc:
+            if not sessiz:
+                messages.error(request, str(exc))
+            return False
+        if not sessiz:
+            messages.success(request, f"{talebe.ad_soyad} kalıcı olarak silindi.")
+        return True
+    if tur == "personel":
+        personel = get_object_or_404(PersonelProfili, pk=pk)
+        if personel.aktif:
+            if not sessiz:
+                messages.warning(
+                    request,
+                    f"{personel.ad_soyad} aktif — önce pasif edin, sonra kalıcı silin.",
+                )
+            return False
+        try:
+            personel_kalici_sil(personel)
+        except ValueError as exc:
+            if not sessiz:
+                messages.error(request, str(exc))
+            return False
+        if not sessiz:
+            messages.success(request, f"{personel.ad_soyad} kalıcı olarak silindi.")
+        return True
+    if tur == "ogretmen":
+        hoca = get_object_or_404(
+            EtutHocasi,
+            pk=pk,
+            personel_kaydi__isnull=True,
+        )
+        if hoca.aktif:
+            if not sessiz:
+                messages.warning(
+                    request,
+                    f"{hoca.ad_soyad} aktif — önce pasif edin, sonra kalıcı silin.",
+                )
+            return False
+        try:
+            ogretmen_kalici_sil(hoca)
+        except ValueError as exc:
+            if not sessiz:
+                messages.error(request, str(exc))
+            return False
+        if not sessiz:
+            messages.success(request, f"{hoca.ad_soyad} kalıcı olarak silindi.")
+        return True
+    if not sessiz:
+        messages.error(request, "Geçersiz kayıt türü.")
+    return False
+
+
+def _kayit_islem(
+    request,
+    tur: str,
+    pk: int,
+    *,
+    sessiz: bool = False,
+    kalici: bool = False,
+) -> bool:
+    if kalici:
+        return _kayit_kalici_sil(request, tur, pk, sessiz=sessiz)
+    return _kayit_pasif_et(request, tur, pk, sessiz=sessiz)
+
+
+def _kayit_otomatik_islem(request, tur: str, pk: int, *, sessiz: bool = False) -> bool:
+    """Aktif kaydı pasif eder, pasif kaydı kalıcı siler."""
+    if tur == "talebe":
+        talebe = get_object_or_404(Talebe, pk=pk)
+        if talebe.aktif:
+            return _kayit_pasif_et(request, tur, pk, sessiz=sessiz)
+        return _kayit_kalici_sil(request, tur, pk, sessiz=sessiz)
+    if tur == "personel":
+        personel = get_object_or_404(PersonelProfili, pk=pk)
+        if personel.aktif:
+            return _kayit_pasif_et(request, tur, pk, sessiz=sessiz)
+        return _kayit_kalici_sil(request, tur, pk, sessiz=sessiz)
+    if tur == "ogretmen":
+        hoca = get_object_or_404(
+            EtutHocasi,
+            pk=pk,
+            personel_kaydi__isnull=True,
+        )
+        if hoca.aktif:
+            return _kayit_pasif_et(request, tur, pk, sessiz=sessiz)
+        return _kayit_kalici_sil(request, tur, pk, sessiz=sessiz)
+    if not sessiz:
+        messages.error(request, "Geçersiz kayıt türü.")
+    return False
+
+
 @yonetici_gerekli
 @require_POST
 def kayit_sil(request):
@@ -278,13 +385,14 @@ def kayit_sil(request):
     pk = _kayit_pk_dogrula(request.POST.get("pk"))
     next_url = (request.POST.get("next") or "").strip()
     fallback = _kayit_sil_fallback(tur)
+    kalici = request.POST.get("kalici") == "1"
 
     if pk is None:
         messages.error(request, "Silinecek kayıt bulunamadı.")
         return _kayit_sil_yonlendir(request, next_url, fallback)
 
     try:
-        _kayit_pasif_et(request, tur, pk)
+        _kayit_islem(request, tur, pk, kalici=kalici)
     except Exception:
         messages.error(
             request,
@@ -313,7 +421,7 @@ def kayit_toplu_sil(request):
     silinen = 0
     try:
         for pk in pk_list:
-            if _kayit_pasif_et(request, tur, pk, sessiz=True):
+            if _kayit_otomatik_islem(request, tur, pk, sessiz=True):
                 silinen += 1
     except Exception:
         messages.error(
@@ -323,7 +431,7 @@ def kayit_toplu_sil(request):
         return _kayit_sil_yonlendir(request, next_url, fallback)
 
     if silinen:
-        messages.success(request, f"{silinen} kayıt pasif edildi.")
+        messages.success(request, f"{silinen} kayıt işlendi (pasif veya kalıcı silindi).")
     return _kayit_sil_yonlendir(request, next_url, fallback)
 
 

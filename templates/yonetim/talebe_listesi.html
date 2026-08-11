@@ -47,7 +47,7 @@
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
         <div class="yonetim-toplu-bar" id="yonetim-toplu-bar" hidden>
             <span class="yonetim-toplu-count"><span id="yonetim-secili-say">0</span> kayıt seçildi</span>
-            <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger">Seçilenleri Pasif Et</button>
+            <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger">Seçilenleri Sil</button>
         </div>
     </form>
 
@@ -80,9 +80,7 @@
                 {% for talebe in talebeler %}
                 <tr>
                     <td class="yonetim-check-col">
-                        {% if talebe.aktif %}
                         <input type="checkbox" name="pk" value="{{ talebe.pk }}" form="yonetim-toplu-sil-form" class="yonetim-row-check yonetim-check" aria-label="{{ talebe.ad_soyad }} seç">
-                        {% endif %}
                     </td>
                     <td class="num-col yonetim-center-col">{% if talebe.talebe_no %}{{ talebe.talebe_no }}{% else %}<span class="muted-inline">—</span>{% endif %}</td>
                     <td>
@@ -126,6 +124,15 @@
                                 <input type="hidden" name="next" value="{{ request.get_full_path }}">
                                 <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger">Sil</button>
                             </form>
+                            {% else %}
+                            <form method="post" action="{% url 'yonetim:kayit_sil' %}" class="yonetim-inline-action" onsubmit="return confirm('{{ talebe.ad_soyad|escapejs }} kalıcı olarak silinsin mi? Bu işlem geri alınamaz.');">
+                                {% csrf_token %}
+                                <input type="hidden" name="tur" value="talebe">
+                                <input type="hidden" name="pk" value="{{ talebe.pk }}">
+                                <input type="hidden" name="kalici" value="1">
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger">Kalıcı Sil</button>
+                            </form>
                             {% endif %}
                         </div>
                     </td>
@@ -140,5 +147,5 @@
     </div>
 </section>
 
-<script src="{% static 'js/yonetim-liste-toplu.js' %}?v=1"></script>
+<script src="{% static 'js/yonetim-liste-toplu.js' %}?v=2"></script>
 {% endblock %}

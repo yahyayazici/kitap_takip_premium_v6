@@ -42,11 +42,11 @@
                 event.preventDefault();
                 return;
             }
-            if (
-                !window.confirm(
-                    secili + " kayıt pasif edilsin mi? Girişler kapanır."
-                )
-            ) {
+                if (
+                    !window.confirm(
+                        secili + " kayıt silinsin mi? Aktif olanlar pasif edilir, pasif olanlar kalıcı silinir."
+                    )
+                ) {
                 event.preventDefault();
             }
         });
