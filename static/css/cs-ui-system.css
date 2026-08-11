@@ -138,9 +138,7 @@ body.talebe-body {
 .pid-table-wrap {
     max-width: 100%;
     min-width: 0;
-    /* Yatay kaydırmayı sayfaya zincirleme; dikey tekerlek sayfayı kaydırsın */
     overscroll-behavior-x: contain;
-    overscroll-behavior-y: auto;
 }
 
 .responsive-table,
@@ -151,7 +149,29 @@ body.talebe-body {
 .report-data-table-wrap,
 .ep-week-grid-wrap,
 .ep-grid-wrap {
+    /* auto+auto dikey scrollport tekerleği milim milim yutuyordu; clip dikey scrollport açmaz */
     overflow-x: auto;
+    overflow-y: clip;
+}
+
+/* JS: yatay taşma yoksa overflow visible — sayfa scroll akıcı */
+.responsive-table:not(.cs-h-scroll),
+.cs-table-wrap:not(.cs-h-scroll),
+.yonetim-table-wrap:not(.cs-h-scroll),
+.st-table-wrap:not(.cs-h-scroll),
+.ktt-table-wrap:not(.cs-h-scroll),
+.report-data-table-wrap:not(.cs-h-scroll) {
+    overflow: visible;
+}
+
+.responsive-table.cs-h-scroll,
+.cs-table-wrap.cs-h-scroll,
+.yonetim-table-wrap.cs-h-scroll,
+.st-table-wrap.cs-h-scroll,
+.ktt-table-wrap.cs-h-scroll,
+.report-data-table-wrap.cs-h-scroll {
+    overflow-x: auto;
+    overflow-y: clip;
 }
 
 /* —— Global nav touch (≥44px hit area; icon size unchanged) —— */

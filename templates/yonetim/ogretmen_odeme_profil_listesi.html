@@ -92,20 +92,6 @@
         } catch (e) {}
     }
 
-    /* Tablo wrap dikey kayamazken tekerleği sayfaya ilet */
-    document.querySelectorAll(".yonetim-page .responsive-table").forEach(function (wrap) {
-        wrap.addEventListener(
-            "wheel",
-            function (e) {
-                if (Math.abs(e.deltaY) < Math.abs(e.deltaX)) return;
-                if (wrap.scrollHeight > wrap.clientHeight + 1) return;
-                window.scrollBy(0, e.deltaY);
-                e.preventDefault();
-            },
-            { passive: false }
-        );
-    });
-
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", function () {
             requestAnimationFrame(restore);

@@ -79,6 +79,23 @@
                 wrap.classList.add("cs-mobile-cards");
             }
         });
+
+        syncHorizontalScrollports();
+    }
+
+    /**
+     * Yatay taşma yoksa overflow kapat — dikey tekerlek native sayfa scroll'una kalsın.
+     */
+    function syncHorizontalScrollports() {
+        document.querySelectorAll(
+            ".responsive-table, .cs-table-wrap, .yonetim-table-wrap, " +
+            ".st-table-wrap, .ktt-table-wrap, .report-data-table-wrap"
+        ).forEach(function (wrap) {
+            wrap.classList.remove("cs-h-scroll");
+            void wrap.offsetWidth;
+            var needs = wrap.scrollWidth > wrap.clientWidth + 2;
+            wrap.classList.toggle("cs-h-scroll", needs);
+        });
     }
 
     if (document.readyState === "loading") {
@@ -87,9 +104,15 @@
         enhanceAll();
     }
 
+    var resizeTimer;
     window.addEventListener("resize", function () {
-        if (window.innerWidth <= MOBILE_MAX) {
-            enhanceAll();
-        }
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function () {
+            if (window.innerWidth <= MOBILE_MAX) {
+                enhanceAll();
+            } else {
+                syncHorizontalScrollports();
+            }
+        }, 100);
     });
 })();
