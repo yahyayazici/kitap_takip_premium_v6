@@ -5,371 +5,135 @@
     <meta charset="utf-8">
     <title>{{ ad_soyad }} · Giriş Bilgileri</title>
     <style>
-        @font-face {
-            font-family: "Poppins";
-            src: url("{% static 'fonts/Poppins-Regular.ttf' %}") format("truetype");
-            font-weight: 400;
-        }
-        @font-face {
-            font-family: "Poppins";
-            src: url("{% static 'fonts/Poppins-Medium.ttf' %}") format("truetype");
-            font-weight: 500;
-        }
-        @font-face {
-            font-family: "Poppins";
-            src: url("{% static 'fonts/Poppins-SemiBold.ttf' %}") format("truetype");
-            font-weight: 600;
-        }
+        {% include "includes/pdf_kart_belge_css.html" %}
 
+        /* 2. görsel: klasik kart — kompakt sayfa */
         @page {
-            size: 120mm 178mm;
-            margin: 0;
+            size: 148mm 200mm;
+            margin: 10mm 12mm;
         }
-
-        * { box-sizing: border-box; }
 
         html, body {
-            margin: 0;
-            padding: 0;
-            width: 120mm;
-            font-family: "Poppins", Helvetica, Arial, sans-serif;
-            color: #0f172a;
-            background: #c5d6ec;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+            width: auto;
+            height: auto;
+            background: #eef2f7;
         }
 
-        .shell {
-            width: 100%;
-            border-collapse: collapse;
-            background: #c5d6ec;
-        }
-
-        .shell > tbody > tr > td {
-            padding: 6mm 7mm 7mm;
-            vertical-align: top;
-        }
-
-        /* Logo — kartın dışında, üstte ortada */
-        .logo-wrap {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 0 0 8px;
-        }
-
-        .logo-wrap td {
-            text-align: center;
-            padding: 0 0 2px;
-            vertical-align: middle;
-        }
-
-        .logo {
-            display: block;
-            margin: 0 auto;
-            width: 44px;
-            height: 44px;
-            object-fit: contain;
-        }
-
-        .card {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            background: #ffffff;
-            border: 1.5px solid #8fb0d8;
-            /* Yuvarlak köşeler — her üst hücrede de tekrarlanır (PDF motorları için) */
+        .kart-wrap {
             border-radius: 20px;
-            overflow: hidden;
         }
 
-        .card > tbody > tr:first-child > td.head {
-            border-top-left-radius: 18px;
-            border-top-right-radius: 18px;
-        }
-
-        .card > tbody > tr:last-child > td,
-        .card > tbody > tr:last-child > td .foot td {
-            border-bottom-left-radius: 18px;
-            border-bottom-right-radius: 18px;
-        }
-
-        /* —— Başlık —— */
-        .head {
-            background-color: #123a72;
-            background: linear-gradient(135deg, #0b2447 0%, #15427f 42%, #1d6fd4 100%);
-            color: #ffffff;
-            padding: 22px 20px 20px;
+        .kart-head {
             text-align: center;
-            border-top-left-radius: 18px;
-            border-top-right-radius: 18px;
+            padding: 24px 26px 18px;
+            border-top-left-radius: 19px;
+            border-top-right-radius: 19px;
         }
 
-        .brand {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 600;
+        .kart-brand {
+            font-size: 19px;
             letter-spacing: -0.3pt;
-            line-height: 1.25;
-            color: #ffffff;
         }
 
-        .doc-title {
-            margin: 10px 0 0;
-            font-size: 10px;
-            font-weight: 600;
-            letter-spacing: 1.5pt;
-            text-transform: uppercase;
-            color: #bfdbfe;
-        }
-
-        .head-glow {
-            height: 5px;
-            background-color: #f59e0b;
-            background: linear-gradient(90deg, #1d4ed8 0%, #38bdf8 28%, #fbbf24 55%, #f97316 78%, #2563eb 100%);
-            font-size: 0;
-            line-height: 0;
-        }
-
-        /* —— Kimlik —— */
-        .identity {
-            padding: 22px 22px 8px;
-            text-align: center;
-            background: #ffffff;
-        }
-
-        .person-name {
-            margin: 0;
-            font-size: 23px;
-            font-weight: 600;
-            letter-spacing: -0.4pt;
-            line-height: 1.2;
-            color: #0b2447;
-        }
-
-        .person-role {
-            margin: 8px 0 0;
-            font-size: 12px;
-            font-weight: 500;
-            color: #475569;
-        }
-
-        /* —— Bilgi kutuları —— */
-        .body {
-            padding: 14px 16px 2px;
-        }
-
-        .cred-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0 11px;
-        }
-
-        .box {
-            width: 100%;
-            border-collapse: collapse;
-            border-radius: 14px;
-            overflow: hidden;
-        }
-
-        .box td {
-            padding: 14px 14px;
-            text-align: center;
-            vertical-align: middle;
-        }
-
-        .box-user {
-            background-color: #dbeafe;
-            background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
-            border: 2px solid #3b82f6;
-        }
-
-        .box-pass {
-            background-color: #fef3c7;
-            background: linear-gradient(180deg, #fffbeb 0%, #fde68a 100%);
-            border: 2px solid #f59e0b;
-        }
-
-        .box-url {
-            background-color: #ccfbf1;
-            background: linear-gradient(180deg, #f0fdfa 0%, #99f6e4 100%);
-            border: 2px solid #14b8a6;
-        }
-
-        .label {
-            display: block;
-            margin: 0 0 6px;
-            font-size: 9px;
-            font-weight: 600;
-            letter-spacing: 1.4pt;
-            text-transform: uppercase;
-        }
-
-        .box-user .label { color: #1d4ed8; }
-        .box-pass .label { color: #b45309; }
-        .box-url .label { color: #0f766e; }
-
-        .value {
-            font-size: 17px;
-            font-weight: 600;
-            color: #0b2447;
-            letter-spacing: 0.2pt;
-            word-break: break-all;
-            line-height: 1.3;
-        }
-
-        .value-pass {
-            font-size: 18px;
-            font-weight: 600;
-            color: #92400e;
+        .kart-sub {
+            margin-top: 7px;
             letter-spacing: 1.2pt;
-            font-family: "Courier New", Courier, monospace;
-            word-break: break-all;
-            line-height: 1.3;
         }
 
-        .url-pill {
-            display: block;
-            margin: 4px auto 0;
-            padding: 10px 12px;
-            border-radius: 11px;
-            background: #ffffff;
-            border: 1.5px solid #2dd4bf;
-            font-size: 11px;
-            font-weight: 600;
-            color: #0f766e;
-            word-break: break-all;
-            line-height: 1.4;
-            text-align: center;
+        .kart-body {
+            padding: 24px 26px 22px;
+            text-align: left;
         }
 
-        /* —— Not —— */
-        .note-wrap {
-            padding: 10px 18px 0;
+        .kart-name {
+            font-size: 26px;
+            letter-spacing: -0.4pt;
         }
 
-        .rule {
-            border: none;
-            border-top: 1px solid #cbd5e1;
-            margin: 2px 0 11px;
-            height: 0;
+        .kart-role {
+            margin: 0 0 18px;
         }
 
-        .note {
-            margin: 0;
-            font-size: 9.5px;
-            line-height: 1.55;
-            color: #64748b;
-            text-align: center;
+        .info-table {
+            text-align: left;
         }
 
-        /* —— Alt —— */
-        .foot {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 12px;
-            border-top: 1px solid #cbd5e1;
-            background: #f8fafc;
+        .info-box td {
+            text-align: left;
+            padding: 14px 16px;
         }
 
-        .foot td {
-            padding: 11px 18px 13px;
-            font-size: 9px;
-            color: #64748b;
-            vertical-align: middle;
+        .info-label {
+            letter-spacing: 0.8pt;
         }
 
-        .foot .left { text-align: left; font-weight: 500; }
-        .foot .right { text-align: right; }
+        .info-value.mono {
+            letter-spacing: 0.5pt;
+        }
+
+        .kart-note {
+            text-align: left;
+            margin-top: 16px;
+            padding-top: 14px;
+        }
+
+        .kart-foot td {
+            padding: 12px 22px 14px;
+        }
     </style>
 </head>
 <body>
-<table class="shell" cellpadding="0" cellspacing="0">
+<table class="kart-wrap" cellpadding="0" cellspacing="0">
     <tr>
-        <td>
-            <table class="logo-wrap" cellpadding="0" cellspacing="0">
+        <td class="kart-head">
+            <div class="kart-brand">{{ panel_org }}</div>
+            <div class="kart-sub">{{ belge_baslik|default:"Giriş Bilgileri" }}</div>
+        </td>
+    </tr>
+    <tr>
+        <td class="kart-body">
+            <h1 class="kart-name">{{ ad_soyad }}</h1>
+            <p class="kart-role">{{ rol_etiket }}</p>
+
+            <table class="info-table" cellpadding="0" cellspacing="0">
                 <tr>
-                    <td>
-                        <img class="logo" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="">
+                    <td class="info-cell">
+                        <table class="info-box" cellpadding="0" cellspacing="0"><tr><td>
+                            <span class="info-label">Kullanıcı adı</span>
+                            <div class="info-value mono">{{ kullanici_adi }}</div>
+                        </td></tr></table>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="info-cell">
+                        <table class="info-box" cellpadding="0" cellspacing="0"><tr><td>
+                            <span class="info-label">Şifre</span>
+                            <div class="info-value mono">{{ sifre }}</div>
+                        </td></tr></table>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="info-cell">
+                        <table class="info-box soft" cellpadding="0" cellspacing="0"><tr><td>
+                            <span class="info-label">Panel giriş adresi</span>
+                            <div class="url-inner">{{ panel_giris_url }}</div>
+                        </td></tr></table>
                     </td>
                 </tr>
             </table>
 
-            <table class="card" cellpadding="0" cellspacing="0">
+            <p class="kart-note">
+                Bu belge yalnızca size özeldir. Giriş bilgilerinizi kimseyle paylaşmayın.
+                İlk girişten sonra şifrenizi değiştirmeniz önerilir.
+            </p>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <table class="kart-foot" cellpadding="0" cellspacing="0">
                 <tr>
-                    <td class="head">
-                        <p class="brand">{{ panel_org }}</p>
-                        <p class="doc-title">{{ belge_baslik|default:"Giriş Bilgileri" }}</p>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="head-glow">&nbsp;</td>
-                </tr>
-                <tr>
-                    <td class="identity">
-                        <h1 class="person-name">{{ ad_soyad }}</h1>
-                        <p class="person-role">{{ rol_etiket }}</p>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="body">
-                        <table class="cred-table" cellpadding="0" cellspacing="0">
-                            <tr>
-                                <td>
-                                    <table class="box box-user" cellpadding="0" cellspacing="0">
-                                        <tr>
-                                            <td>
-                                                <span class="label">Kullanıcı adı</span>
-                                                <div class="value">{{ kullanici_adi }}</div>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <table class="box box-pass" cellpadding="0" cellspacing="0">
-                                        <tr>
-                                            <td>
-                                                <span class="label">Şifre</span>
-                                                <div class="value-pass">{{ sifre }}</div>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <table class="box box-url" cellpadding="0" cellspacing="0">
-                                        <tr>
-                                            <td>
-                                                <span class="label">Panel giriş adresi</span>
-                                                <div class="url-pill">{{ panel_giris_url }}</div>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="note-wrap">
-                        <hr class="rule">
-                        <p class="note">
-                            Bu belge yalnızca size özeldir. Giriş bilgilerinizi kimseyle paylaşmayın.<br>
-                            İlk girişten sonra şifrenizi değiştirmeniz önerilir.
-                        </p>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <table class="foot" cellpadding="0" cellspacing="0">
-                            <tr>
-                                <td class="left">{{ panel_short }}</td>
-                                <td class="right">{{ tarih|date:"d.m.Y" }}</td>
-                            </tr>
-                        </table>
-                    </td>
+                    <td class="left">{{ panel_short }}</td>
+                    <td class="right">{{ tarih|date:"d.m.Y" }}</td>
                 </tr>
             </table>
         </td>
