@@ -253,4 +253,34 @@
             }
         });
     }
+
+    /* Saat blokları: sil/ekle sonrası açık kalsın */
+    const blocks = document.getElementById("dp-saat-bloklari");
+    const blocksKey = `dp-bloklar-open:${panel.dataset.program || ""}:${panel.dataset.gun || ""}`;
+    if (blocks) {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("bloklar") === "1") {
+            blocks.open = true;
+            try { sessionStorage.setItem(blocksKey, "1"); } catch (e) {}
+        } else {
+            try {
+                if (sessionStorage.getItem(blocksKey) === "1") blocks.open = true;
+            } catch (e) {}
+        }
+        blocks.addEventListener("toggle", () => {
+            try {
+                sessionStorage.setItem(blocksKey, blocks.open ? "1" : "0");
+            } catch (e) {}
+        });
+    }
+
+    document.querySelectorAll(".dp-saat-sil-form").forEach((form) => {
+        form.addEventListener("submit", (event) => {
+            if (!window.confirm("Bu saat bloğu silinsin mi?")) {
+                event.preventDefault();
+                return;
+            }
+            try { sessionStorage.setItem(blocksKey, "1"); } catch (e) {}
+        });
+    });
 })();

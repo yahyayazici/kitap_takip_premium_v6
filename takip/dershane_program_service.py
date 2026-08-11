@@ -1556,11 +1556,20 @@ def excel_yanit(
             sonuc.append(
                 ExcelKolon(
                     baslik=ad,
-                    genislik=12 if i == 0 else 14,
+                    genislik=11 if i == 0 else 16,
                     tip="ortala" if i == 0 else "metin",
                 )
             )
         return sonuc
+
+    def _rapor_kwargs(**extra):
+        return {
+            "basliklari_buyuk_harf": False,
+            "satir_yukseklik": 36,
+            "metin_kaydir": True,
+            "vurgu_renk": "15427F",
+            **extra,
+        }
 
     # Tek gün → Saat × grup matrisi
     if gun is not None:
@@ -1574,8 +1583,7 @@ def excel_yanit(
                 kolonlar=_kolonlar(basliklar),
                 satirlar=satirlar,
                 sayfa_adi=GUN_KISA[gun],
-                satir_yukseklik=32,
-                metin_kaydir=True,
+                **_rapor_kwargs(),
             )
         )
         dosya = f"dershane_program_{program.pk}_gun{gun}.xlsx"
@@ -1605,8 +1613,7 @@ def excel_yanit(
                 kolonlar=_kolonlar(basliklar),
                 satirlar=satirlar,
                 sayfa_adi=(tek_grup.etiket or "Grup")[:31],
-                satir_yukseklik=32,
-                metin_kaydir=True,
+                **_rapor_kwargs(),
             )
         )
         return f"dershane_program_{program.pk}_haftalik.xlsx", icerik
@@ -1628,8 +1635,7 @@ def excel_yanit(
                 ),
                 kolonlar=_kolonlar(basliklar),
                 satirlar=satirlar,
-                satir_yukseklik=32,
-                metin_kaydir=True,
+                **_rapor_kwargs(),
             )
         )
 
@@ -1642,6 +1648,7 @@ def excel_yanit(
                 kolonlar=[ExcelKolon("Saat", 12)],
                 satirlar=[["Program satırı yok"]],
                 sayfa_adi="Program",
+                **_rapor_kwargs(),
             )
         )
     else:

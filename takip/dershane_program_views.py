@@ -62,8 +62,12 @@ def _filtre_al(request) -> dict[str, str]:
     }
 
 
-def _redirect_panel(program, gun: int) -> redirect:
+def _redirect_panel(
+    program, gun: int, *, bloklar_acik: bool = False
+) -> redirect:
     url = f"{reverse('dershane_program_panel')}?program={program.pk}&gun={gun}"
+    if bloklar_acik:
+        url += "&bloklar=1"
     return redirect(url)
 
 
@@ -167,7 +171,11 @@ def dershane_program_panel(request):
             messages.success(request, "Gün programı kopyalandı.")
             gun = int(request.POST["hedef_gun"])
 
-        return _redirect_panel(program, gun)
+        return _redirect_panel(
+            program,
+            gun,
+            bloklar_acik=action in {"saat_ekle", "saat_sil", "saat_sirala"},
+        )
 
     context = panel_baglami(
         request.user,

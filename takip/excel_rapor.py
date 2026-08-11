@@ -47,6 +47,8 @@ class ExcelRapor:
     metin_kaydir: bool = False
     kilitli: bool = True
     basliklari_buyuk_harf: bool = True
+    # Opsiyonel vurgu rengi (örn. dershane: "15427F"); boşsa altın çizgi
+    vurgu_renk: str = ""
 
 
 @dataclass
@@ -62,6 +64,7 @@ class ExcelSayfa:
     metin_kaydir: bool = True
     kilitli: bool = True
     basliklari_buyuk_harf: bool = True
+    vurgu_renk: str = ""
 
 
 def _logo_yolu() -> Path | None:
@@ -242,8 +245,10 @@ def _sayfa_yaz(ws, rapor: ExcelRapor | ExcelSayfa) -> None:
     header_row = 6
     ince = Side(style="thin", color=_RENK_CIZGI)
     ust_cizgi = Side(style="thin", color="C5CCD6")
-    altin = Side(style="medium", color=_RENK_ALTIN)
+    vurgu = (getattr(rapor, "vurgu_renk", None) or "").strip().upper() or _RENK_ALTIN
+    altin = Side(style="medium", color=vurgu)
     bos_kenar = Side(style=None)
+    navy_tema = vurgu == "15427F"
 
     baslik_buyuk = getattr(rapor, "basliklari_buyuk_harf", True)
     for idx, kolon in enumerate(rapor.kolonlar, start=1):
@@ -255,7 +260,14 @@ def _sayfa_yaz(ws, rapor: ExcelRapor | ExcelSayfa) -> None:
             column=idx,
             value=baslik_metin,
         )
-        h.font = Font(name="Calibri", bold=True, size=10, color=_RENK_METIN)
+        h.font = Font(
+            name="Calibri",
+            bold=True,
+            size=10,
+            color="FFFFFF" if navy_tema else _RENK_METIN,
+        )
+        if navy_tema:
+            h.fill = PatternFill("solid", fgColor="15427F")
         h.alignment = Alignment(
             horizontal="center" if kolon.tip != "metin" else "left",
             vertical="center",
@@ -264,8 +276,8 @@ def _sayfa_yaz(ws, rapor: ExcelRapor | ExcelSayfa) -> None:
         h.border = Border(
             left=bos_kenar,
             right=bos_kenar,
-            top=ust_cizgi,
-            bottom=altin,
+            top=ust_cizgi if not navy_tema else Side(style=None),
+            bottom=altin if not navy_tema else Side(style="thin", color="0F2F5C"),
         )
 
     ws.row_dimensions[header_row].height = 22

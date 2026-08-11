@@ -5,37 +5,136 @@
     <meta charset="utf-8">
     <title>{{ mod_baslik|default:program.ad }} · Dershane Programı</title>
     <style>
-        @page { size: A4 landscape; margin: 10mm 12mm; }
-        body { font-family: "Calibri", "Segoe UI", sans-serif; font-size: 10px; color: #546173; margin: 0; }
-        h1 { margin: 0 0 2px; font-size: 16px; color: #1A3A6B; }
-        h2 { margin: 14px 0 6px; font-size: 12px; color: #10213d; page-break-after: avoid; }
-        .meta { margin: 0 0 10px; color: #6B7280; font-size: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 6px; }
-        th, td { border-bottom: 1px solid #D9DEE7; border-top: none; border-left: none; border-right: none; padding: 7px 8px; text-align: left; vertical-align: top; }
-        th { border-bottom: 2px solid #B8956C; color: #1A1A1A; font-size: 9px; text-transform: uppercase; letter-spacing: 0.03em; }
-        td.saat, th.saat { width: 90px; color: #6B7280; white-space: nowrap; }
-        .ders { font-weight: 700; color: #1A1A1A; display: block; }
-        .ogretmen { color: #6B7280; font-size: 9px; }
-        .merged { background: #F8FAFC; font-weight: 600; letter-spacing: 0.03em; text-align: center; color: #1A3A6B; }
-        .merged-yemek { background: #FFF7ED; }
-        .merged-namaz { background: #ECFDF5; }
-        .timeline td { padding: 8px 10px; }
-        .empty { color: #9CA3AF; font-style: italic; }
-        .panel { margin-bottom: 16px; page-break-inside: avoid; }
-        .gun-panel { margin-bottom: 18px; page-break-before: always; }
+        @page { size: A4 landscape; margin: 9mm 11mm; }
+        * { box-sizing: border-box; }
+        body {
+            font-family: "Segoe UI", "Calibri", "Helvetica Neue", sans-serif;
+            font-size: 9.5px;
+            color: #1e293b;
+            margin: 0;
+            line-height: 1.35;
+        }
+        .doc-head {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+            border-bottom: 2.5px solid #15427f;
+        }
+        .doc-brand {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #15427f;
+            margin: 0 0 4px;
+        }
+        h1 {
+            margin: 0;
+            font-size: 17px;
+            font-weight: 700;
+            color: #071b3a;
+            letter-spacing: -0.01em;
+        }
+        .meta {
+            margin: 0;
+            color: #64748b;
+            font-size: 9.5px;
+            text-align: right;
+            max-width: 46%;
+        }
+        h2 {
+            margin: 16px 0 8px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #15427f;
+            page-break-after: avoid;
+            letter-spacing: 0.02em;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 4px;
+            table-layout: fixed;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 6px 7px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background: #15427f;
+            color: #ffffff;
+            font-size: 8.5px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            border-color: #0f2f5c;
+        }
+        td.saat, th.saat {
+            width: 78px;
+            white-space: nowrap;
+            color: #475569;
+            font-variant-numeric: tabular-nums;
+            background: #f8fafc;
+            font-weight: 600;
+        }
+        th.saat { background: #0f2f5c; color: #fff; }
+        tbody tr:nth-child(even) td:not(.merged):not(.saat) {
+            background: #fbfdff;
+        }
+        .ders {
+            font-weight: 700;
+            color: #0f172a;
+            display: block;
+            font-size: 9.5px;
+        }
+        .ogretmen {
+            color: #64748b;
+            font-size: 8.5px;
+            display: block;
+            margin-top: 2px;
+        }
+        .merged {
+            background: #eef4fb;
+            font-weight: 600;
+            text-align: center;
+            color: #15427f;
+            letter-spacing: 0.02em;
+        }
+        .merged-yemek { background: #fff7ed; color: #9a3412; }
+        .merged-namaz { background: #ecfdf5; color: #065f46; }
+        .timeline td { padding: 7px 9px; }
+        .empty { color: #94a3b8; font-style: italic; }
+        .panel { margin-bottom: 14px; page-break-inside: avoid; }
+        .gun-panel { margin-bottom: 16px; page-break-before: always; }
         .gun-panel:first-of-type { page-break-before: avoid; }
+        .doc-foot {
+            margin-top: 14px;
+            padding-top: 6px;
+            border-top: 1px solid #e2e8f0;
+            color: #94a3b8;
+            font-size: 8px;
+        }
     </style>
 </head>
 <body>
-    <h1>{{ mod_baslik|default:program.ad }}</h1>
-    <p class="meta">
-        {{ program.ad }}
-        {% if tum_gunler %} · Tüm günler · Tüm sınıflar{% elif gun_adi %} · {{ gun_adi }}{% endif %}
-        {% if program.tarih_araligi_goster %} · {{ program.tarih_araligi_goster }}{% endif %}
-        {% if filtre.sinif %} · {{ filtre.sinif }}. Sınıf{% endif %}
-        {% if filtre.etut_grubu and gorunum.gruplar %} · {{ gorunum.gruplar.0.etiket }}{% endif %}
-        {% if filtre.ogretmen %} · {{ filtre.ogretmen }}{% endif %}
-    </p>
+    <header class="doc-head">
+        <div>
+            <p class="doc-brand">Çinili Saray Proje</p>
+            <h1>{{ mod_baslik|default:program.ad }}</h1>
+        </div>
+        <p class="meta">
+            {{ program.ad }}
+            {% if tum_gunler %} · Tüm günler · Tüm sınıflar{% elif gun_adi %} · {{ gun_adi }}{% endif %}
+            {% if program.tarih_araligi_goster %} · {{ program.tarih_araligi_goster }}{% endif %}
+            {% if filtre.sinif %} · {{ filtre.sinif }}. Sınıf{% endif %}
+            {% if filtre.etut_grubu and gorunum.gruplar %} · {{ gorunum.gruplar.0.etiket }}{% endif %}
+            {% if filtre.ogretmen %} · {{ filtre.ogretmen }}{% endif %}
+        </p>
+    </header>
 
     {% if tum_gunler and gun_panelleri %}
         {% for panel in gun_panelleri %}
@@ -225,7 +324,6 @@
         {% endif %}
 
     {% else %}
-        {# Genel matris — filtre uygulanmış gruplar #}
         <table>
             <thead>
                 <tr>
@@ -259,5 +357,7 @@
             </tbody>
         </table>
     {% endif %}
+
+    <p class="doc-foot">Çinili Saray Proje · Dershane Programı</p>
 </body>
 </html>

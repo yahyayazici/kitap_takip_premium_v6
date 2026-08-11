@@ -70,7 +70,7 @@
         </div>
     </div>
 
-    <details class="dp-blocks" {% if not saat_bloklari %}open{% endif %}>
+    <details class="dp-blocks" id="dp-saat-bloklari" {% if not saat_bloklari or request.GET.bloklar %}open{% endif %}>
         <summary class="dp-blocks-head">
             <span>Saat blokları · {{ saat_bloklari|length }}</span>
             <em class="dp-blocks-toggle">Aç / kapat</em>
@@ -83,12 +83,12 @@
                 {% if duzenleyebilir %}
                 <span class="dp-chip-actions">
                     <button type="button" class="dp-icon-btn" data-dp-edit-block='{"id":{{ blok.id }},"baslangic":"{{ blok.baslangic }}","bitis":"{{ blok.bitis }}","tur":"{{ blok.tur }}","aciklama":"{{ blok.aciklama|escapejs }}"}' title="Düzenle">✎</button>
-                    <form method="post" style="display:inline;">
+                    <form method="post" style="display:inline;" class="dp-saat-sil-form">
                         {% csrf_token %}
                         <input type="hidden" name="program" value="{{ program.pk }}">
                         <input type="hidden" name="gun" value="{{ gun }}">
                         <input type="hidden" name="blok_id" value="{{ blok.id }}">
-                        <button type="submit" name="action" value="saat_sil" class="dp-icon-btn" title="Sil" onclick="return confirm('Saat bloğu silinsin mi?');">×</button>
+                        <button type="submit" name="action" value="saat_sil" class="dp-icon-btn" title="Sil">×</button>
                     </form>
                 </span>
                 {% endif %}
@@ -420,5 +420,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/dershane-program-panel.js' %}?v=dp6"></script>
+<script src="{% static 'js/dershane-program-panel.js' %}?v=dp7"></script>
 {% endblock %}
