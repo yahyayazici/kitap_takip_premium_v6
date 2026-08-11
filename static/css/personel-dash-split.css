@@ -4,13 +4,13 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 16px;
-    align-items: stretch;
+    align-items: start;
     margin-top: 14px;
 }
 
 .personel-top-split > * {
     min-width: 0;
-    height: 100%;
+    height: auto;
 }
 
 .personel-top-split .duyuru-carousel-shell {
@@ -18,23 +18,22 @@
     margin-left: 0 !important;
     margin-right: 0 !important;
     width: 100% !important;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
+    height: auto !important;
+    display: block;
 }
 
 .personel-top-split .duyuru-banner {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
+    display: block;
     border-radius: 20px !important;
-    min-height: 100%;
+    height: auto !important;
+    min-height: 0 !important;
+    flex: none !important;
 }
 
 .personel-top-split .duyuru-media-pane {
-    flex: 0 0 auto;
+    flex: 0 0 auto !important;
     aspect-ratio: auto !important;
-    height: clamp(160px, 16vw, 220px) !important;
+    height: var(--cs-duyuru-half-h, clamp(160px, 16vw, 220px)) !important;
     min-height: 160px !important;
     max-height: 220px !important;
     overflow: hidden;
@@ -85,7 +84,7 @@
     box-shadow:
         0 12px 32px rgba(37, 99, 235, 0.07),
         0 2px 8px rgba(15, 39, 68, 0.04);
-    min-height: 100%;
+    min-height: 0;
     box-sizing: border-box;
     position: relative;
 }

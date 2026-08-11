@@ -15,12 +15,13 @@
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
     gap: var(--cs-section-gap, 16px);
-    align-items: stretch;
+    align-items: start !important;
     margin-top: 14px;
 }
 
 .ogretmen-top-split > * {
     min-width: 0;
+    height: auto !important;
 }
 
 .ogretmen-top-duyuru .duyuru-carousel-shell {
@@ -29,17 +30,19 @@
     margin-right: 0 !important;
     width: 100% !important;
     max-width: none !important;
+    height: auto !important;
 }
 
 .ogretmen-top-duyuru .duyuru-banner {
     border-radius: var(--cs-radius-xl, 20px) !important;
-    height: 100%;
+    height: auto !important;
+    min-height: 0 !important;
 }
 
 .ogretmen-top-duyuru .duyuru-media-pane {
     aspect-ratio: auto !important;
     width: 100% !important;
-    height: clamp(160px, 16vw, 220px) !important;
+    height: var(--cs-duyuru-half-h, clamp(160px, 16vw, 220px)) !important;
     min-height: 160px !important;
     max-height: 220px !important;
 }
@@ -58,7 +61,7 @@
     display: grid !important;
     grid-template-columns: 1fr !important;
     gap: 12px;
-    height: 100%;
+    height: auto;
 }
 
 @media (max-width: 900px) {

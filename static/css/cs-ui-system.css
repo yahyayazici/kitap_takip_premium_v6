@@ -286,29 +286,68 @@ body.talebe-body .ghost-btn {
     border: 1px solid var(--cs-border);
 }
 
-/* —— Öğretmen ana sayfa: etüt paneli gibi yarı duyuru + metrikler —— */
+/* —— Duyuru yarı panel: etüt hocası ölçüsü (admin + öğretmen + personel aynı) —— */
+:root {
+    --cs-duyuru-half-h: clamp(160px, 16vw, 220px);
+}
+
+.personel-top-split,
 .ogretmen-body .ogretmen-top-split {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
     gap: var(--cs-section-gap, 16px);
-    align-items: stretch;
+    align-items: start !important;
     margin-top: 14px;
 }
 
+.personel-top-split > *,
+.ogretmen-body .ogretmen-top-split > * {
+    min-width: 0;
+    height: auto !important;
+}
+
+.personel-top-split .duyuru-carousel-shell,
 .ogretmen-body .ogretmen-top-duyuru .duyuru-carousel-shell {
     width: 100% !important;
     max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
     margin-top: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    display: block !important;
 }
 
+.personel-top-split .duyuru-banner,
+.ogretmen-body .ogretmen-top-duyuru .duyuru-banner {
+    height: auto !important;
+    min-height: 0 !important;
+    flex: none !important;
+    display: block !important;
+}
+
+.personel-top-split .duyuru-media-pane,
 .ogretmen-body .ogretmen-top-duyuru .duyuru-media-pane {
     aspect-ratio: auto !important;
     width: 100% !important;
-    height: clamp(160px, 16vw, 220px) !important;
+    height: var(--cs-duyuru-half-h) !important;
     min-height: 160px !important;
     max-height: 220px !important;
+    flex: 0 0 auto !important;
+    overflow: hidden !important;
 }
 
+.personel-top-split .duyuru-media-inner,
+.ogretmen-body .ogretmen-top-duyuru .duyuru-media-inner,
+.personel-top-split .duyuru-scene,
+.ogretmen-body .ogretmen-top-duyuru .duyuru-scene {
+    height: 100% !important;
+    max-height: 100% !important;
+}
+
+.personel-top-split .duyuru-media-inner img,
+.personel-top-split .duyuru-media-inner video,
+.personel-top-split .duyuru-media-inner iframe,
 .ogretmen-body .ogretmen-top-duyuru .duyuru-media-inner img,
 .ogretmen-body .ogretmen-top-duyuru .duyuru-media-inner video,
 .ogretmen-body .ogretmen-top-duyuru .duyuru-media-inner iframe {
@@ -323,28 +362,22 @@ body.talebe-body .ghost-btn {
     display: grid !important;
     grid-template-columns: 1fr !important;
     gap: 12px;
-    height: 100%;
+    height: auto;
 }
 
 @media (max-width: 900px) {
+    .personel-top-split,
     .ogretmen-body .ogretmen-top-split {
         grid-template-columns: 1fr !important;
     }
 
+    .personel-top-split .duyuru-media-pane,
     .ogretmen-body .ogretmen-top-duyuru .duyuru-media-pane {
-        aspect-ratio: 16 / 9 !important;
-        height: auto !important;
-        max-height: none !important;
+        height: var(--cs-duyuru-half-h) !important;
+        max-height: 220px !important;
         min-height: 140px !important;
+        aspect-ratio: auto !important;
     }
-}
-
-/* Personel yarı duyuru — kompakt yükseklik (YÇT ile hizalı) */
-.personel-top-split .duyuru-media-pane {
-    aspect-ratio: auto !important;
-    height: clamp(160px, 16vw, 220px) !important;
-    min-height: 160px !important;
-    max-height: 220px !important;
 }
 
 /* —— Reduced motion —— */
