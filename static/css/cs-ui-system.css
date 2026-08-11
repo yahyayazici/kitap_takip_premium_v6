@@ -1,24 +1,13 @@
 /* ============================================================
-   ÇİNİLİ SARAY — Global UI System (son katman)
+   ÇİNİLİ SARAY — Global UI System (son katman, ince)
    docs/UI_DESIGN_SYSTEM.md · .cursor/rules/cinili-saray-ui.mdc
-   İş mantığına dokunmaz · yalnızca görsel birlik
+
+   Kural: Kaynakta düzelt; burada yalnızca son hizalama.
+   !important yalnız legacy katman (v5/v6) savaşırsa.
    ============================================================ */
 
-/* —— Token’ları tekrar hizala (panel-unified / v6 / yonetim ezmesin) —— */
+/* —— Legacy / yönetim token köprüsü (panel-unified artık CS’e bağlı) —— */
 :root {
-    --v6-page-gutter: var(--cs-page-gutter) !important;
-    --dash-accent: var(--cs-accent) !important;
-    --dash-bg: var(--cs-background-warm) !important;
-    --dash-surface: var(--cs-surface) !important;
-    --dash-text: var(--cs-text-primary) !important;
-    --dash-secondary: var(--cs-text-secondary) !important;
-    --dash-radius: var(--cs-radius-lg) !important;
-    --v5-blue: var(--cs-accent) !important;
-    --v5-border: var(--cs-border) !important;
-    --v5-ink: var(--cs-text-primary) !important;
-    --v5-radius: var(--cs-radius-lg) !important;
-
-    /* Yönetim legacy tokens → CS */
     --navy-950: var(--cs-primary-dark);
     --navy-900: var(--cs-primary-dark);
     --navy-800: var(--cs-primary);
@@ -31,9 +20,11 @@
     --border: var(--cs-border);
     --success: var(--cs-success);
     --danger: var(--cs-danger);
+    --panel-head-btn-h: var(--cs-btn-h);
+    --panel-head-btn-radius: var(--cs-radius-md);
 }
 
-/* —— Shell: sayfa yatay kaymasın —— */
+/* —— Shell: yatay sayfa kayması yok —— */
 html,
 body.v3-body,
 body.yonetim-body,
@@ -42,26 +33,32 @@ body.veli-body,
 body.talebe-body {
     overflow-x: clip;
     max-width: 100%;
+    font-family: var(--cs-font);
+    color: var(--cs-text-primary);
 }
 
 .v3-main,
 .cs-v6-main,
-.v3-main .page-content,
-.cs-v6-main .page-content,
-.yonetim-main {
-    min-width: 0 !important;
-    max-width: 100% !important;
+.yonetim-main,
+.ogretmen-main {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     overflow-x: clip;
     box-sizing: border-box;
 }
 
 .v3-main .page-content,
 .cs-v6-main {
-    padding-left: var(--cs-page-gutter) !important;
-    padding-right: var(--cs-page-gutter) !important;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding-left: var(--cs-page-gutter);
+    padding-right: var(--cs-page-gutter);
 }
 
-/* —— Sayfa kökleri: tek kolon akış + gap —— */
+/* —— Sayfa kökleri —— */
 .dashboard-page,
 .report-page,
 .library-page,
@@ -71,6 +68,7 @@ body.talebe-body {
 .exam-create-page,
 .result-panel-page,
 .result-entry-page,
+.assignment-page,
 .ktt-page,
 .at-page,
 .st-page,
@@ -96,212 +94,7 @@ body.talebe-body {
     box-sizing: border-box;
 }
 
-.dashboard-page:not(.dash-home),
-.report-page,
-.yonetim-page,
-.library-page,
-.profile-page,
-.ktt-page,
-.at-page,
-.st-page,
-.ny-page,
-.dd-page,
-.ep-page,
-.dp-page,
-.fn-page,
-.rh-page {
-    display: flex;
-    flex-direction: column;
-    gap: var(--cs-density-gap);
-}
-
-/* —— Modül token köprüleri —— */
-.dd-page,
-.dd-yonetim-page {
-    --dd-bg: var(--cs-surface);
-    --dd-surface: var(--cs-surface-muted);
-    --dd-line: var(--cs-border-subtle);
-    --dd-navy: var(--cs-primary-dark);
-    --dd-text: var(--cs-text-primary);
-    --dd-muted: var(--cs-text-muted);
-    --dd-accent: var(--cs-accent);
-    --dd-radius: var(--cs-radius-lg);
-    --dd-shadow: var(--cs-shadow-sm);
-}
-
-.ep-page {
-    --ep-navy: var(--cs-primary-dark);
-    --ep-text: var(--cs-text-primary);
-    --ep-muted: var(--cs-text-muted);
-    --ep-line: var(--cs-border);
-    --ep-accent: var(--cs-accent);
-    --ep-radius: var(--cs-radius-lg);
-}
-
-.dp-page {
-    --dp-navy: var(--cs-primary-dark);
-    --dp-text: var(--cs-text-primary);
-    --dp-muted: var(--cs-text-muted);
-    --dp-line: var(--cs-border);
-    --dp-accent: var(--cs-accent);
-    --dp-radius: var(--cs-radius-lg);
-    --dp-shadow: var(--cs-shadow-sm);
-}
-
-.ny-page {
-    --ny-navy: var(--cs-primary-dark);
-    --ny-text: var(--cs-text-primary);
-    --ny-muted: var(--cs-text-muted);
-    --ny-line: var(--cs-border);
-}
-
-.rh-page {
-    --rh-navy: var(--cs-primary-dark);
-    --rh-text: var(--cs-text-primary);
-    --rh-muted: var(--cs-text-muted);
-    --rh-line: var(--cs-border);
-}
-
-.fn-page {
-    --fn-navy: var(--cs-primary-dark);
-    --fn-text: var(--cs-text-primary);
-    --fn-muted: var(--cs-text-muted);
-    --fn-line: var(--cs-border);
-}
-
-.mz-page {
-    --mz-navy: var(--cs-primary-dark);
-    --mz-text: var(--cs-text-primary);
-    --mz-muted: var(--cs-text-muted);
-}
-
-.tz-page,
-.im-page,
-.yc-page,
-.st-page,
-.dk-page,
-.vz-page,
-.pid-page {
-    --mod-navy: var(--cs-primary-dark);
-    --mod-text: var(--cs-text-primary);
-    --mod-muted: var(--cs-text-muted);
-    --mod-line: var(--cs-border);
-    --mod-accent: var(--cs-accent);
-    --mod-radius: var(--cs-radius-lg);
-}
-
-/* —— Buton birliği —— */
-.primary-btn,
-.btn-primary,
-.cs-btn-primary,
-button.primary-btn,
-a.primary-btn,
-button.btn-primary,
-a.btn-primary {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: var(--cs-space-2) !important;
-    min-height: var(--cs-btn-h) !important;
-    min-width: var(--cs-touch-min);
-    padding: 0.55rem 1rem !important;
-    border-radius: var(--cs-radius-md) !important;
-    border: 1px solid transparent !important;
-    font-family: var(--cs-font) !important;
-    font-size: 0.875rem !important;
-    font-weight: 650 !important;
-    line-height: 1.2 !important;
-    text-decoration: none !important;
-    cursor: pointer;
-    box-sizing: border-box !important;
-    color: #fff !important;
-    background: linear-gradient(135deg, var(--cs-accent), var(--cs-primary-mid)) !important;
-    box-shadow: 0 8px 18px rgba(47, 111, 243, 0.18) !important;
-}
-
-.ghost-btn,
-.btn-ghost,
-.yonetim-head-ghost,
-.small-button,
-.cs-btn-ghost,
-.cs-btn-light,
-a.ghost-btn,
-button.ghost-btn,
-a.btn-ghost,
-button.btn-ghost {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: var(--cs-space-2) !important;
-    min-height: var(--cs-btn-h) !important;
-    min-width: var(--cs-touch-min);
-    padding: 0.55rem 1rem !important;
-    border-radius: var(--cs-radius-md) !important;
-    border: 1px solid var(--cs-border) !important;
-    font-family: var(--cs-font) !important;
-    font-size: 0.875rem !important;
-    font-weight: 600 !important;
-    line-height: 1.2 !important;
-    text-decoration: none !important;
-    cursor: pointer;
-    box-sizing: border-box !important;
-    color: var(--cs-text-primary) !important;
-    background: var(--cs-surface) !important;
-    box-shadow: var(--cs-shadow-xs) !important;
-}
-
-.btn-danger,
-.yonetim-action-btn-danger,
-button.btn-danger {
-    min-height: var(--cs-btn-h) !important;
-    border-radius: var(--cs-radius-md) !important;
-    font-family: var(--cs-font) !important;
-    font-weight: 650 !important;
-}
-
-/* —— Form kontrolleri —— */
-input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="image"]),
-select,
-textarea,
-.cs-input,
-.yonetim-input {
-    min-height: var(--cs-input-h) !important;
-    border-radius: var(--cs-radius-md) !important;
-    border: 1px solid var(--cs-border) !important;
-    background: var(--cs-surface) !important;
-    color: var(--cs-text-primary) !important;
-    font-family: var(--cs-font) !important;
-    box-sizing: border-box !important;
-}
-
-textarea,
-.cs-input[rows],
-textarea.cs-input {
-    min-height: 96px !important;
-}
-
-@media (max-width: 900px) {
-    select,
-    select.cs-input {
-        font-size: 16px !important;
-    }
-}
-
-/* —— Kart yüzeyleri —— */
-.dash-panel,
-.profile-card,
-.yonetim-form-card,
-.yonetim-table-card,
-.dashboard-card,
-.library-panel,
-.report-card {
-    border-radius: var(--cs-radius-lg) !important;
-    border-color: var(--cs-border) !important;
-    background: var(--cs-surface) !important;
-    box-shadow: var(--cs-shadow-sm) !important;
-}
-
-/* —— Tablo wrap: tek kaydırma yüzeyi —— */
+/* —— Tablo / matris wrap: tek kaydırma yüzeyi —— */
 .responsive-table,
 .cs-table-wrap,
 .yonetim-table-wrap,
@@ -309,14 +102,13 @@ textarea.cs-input {
 .ktt-table-wrap,
 .report-data-table-wrap,
 .dd-matrix-wrap,
-.dp-matrix-wrap,
+.dp-matrix-scroll,
 .ep-table-wrap,
-.ny-board,
-.fn-table-wrap {
+.fn-table-wrap,
+.pid-table-wrap {
     max-width: 100%;
     min-width: 0;
     overscroll-behavior: contain;
-    -webkit-overflow-scrolling: auto;
 }
 
 .responsive-table,
@@ -328,91 +120,83 @@ textarea.cs-input {
     overflow-x: auto;
 }
 
-/* —— Tipografi hizası —— */
-body.v3-body,
-body.yonetim-body,
-body.ogretmen-body,
-body.veli-body,
-body.talebe-body {
-    font-family: var(--cs-font) !important;
-    color: var(--cs-text-primary);
-}
-
-.kicker,
-.card-kicker,
-.dash-eyebrow,
-.yonetim-kicker {
-    letter-spacing: var(--cs-letter-kicker) !important;
-    text-transform: uppercase;
-    font-weight: 750 !important;
-    color: var(--cs-text-muted) !important;
-}
-
-/* —— Modal yüzey birliği (API aynı) —— */
-[data-ep-modal] .ep-modal-panel,
-[data-dp-modal] .dp-modal-panel,
-[data-tz-modal] .tz-modal-panel,
-.ktt-modal-panel,
-.dd-topic-modal-panel {
-    border-radius: var(--cs-radius-xl) !important;
-    box-shadow: var(--cs-shadow-lg) !important;
-    border: 1px solid var(--cs-border) !important;
-    background: var(--cs-surface) !important;
-}
-
-/* —— Responsive: ortak grid sıkılaştırma —— */
-@media (max-width: 1100px) {
-    .personel-plan-split,
-    .personel-top-split,
-    .personel-ozel-kartlar {
-        gap: var(--cs-space-3);
-    }
-}
-
+/* —— Form: iOS zoom önleme (constitution font-size ile uyumlu) —— */
 @media (max-width: 900px) {
-    .personel-ozel-kartlar {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    select,
+    select.cs-input,
+    .yonetim-field select {
+        font-size: 16px;
+    }
+
+    .yonetim-form-grid {
+        grid-template-columns: 1fr;
     }
 
     .personel-plan-split,
     .personel-top-split {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: 1fr;
     }
 
-    .yonetim-form-grid {
-        grid-template-columns: 1fr !important;
+    .personel-ozel-kartlar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
 @media (max-width: 640px) {
     .personel-ozel-kartlar {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: 1fr;
     }
+}
 
-    .primary-btn,
-    .ghost-btn,
-    .btn-primary,
-    .btn-ghost {
-        width: auto;
-        max-width: 100%;
-    }
+/* —— Modal yüzey (API aynı) —— */
+[data-ep-modal] .ep-modal-panel,
+[data-dp-modal] .dp-modal-panel,
+[data-tz-modal] .tz-modal-panel,
+.ktt-modal-panel,
+.dd-topic-modal-panel {
+    border-radius: var(--cs-radius-xl);
+    box-shadow: var(--cs-shadow-lg);
+    border: 1px solid var(--cs-border);
+    background: var(--cs-surface);
+}
 
-    .profile-action-bar .primary-btn,
-    .profile-action-bar .ghost-btn,
-    .dash-panel-head .primary-btn,
-    .dash-panel-head .ghost-btn {
-        min-height: var(--cs-touch-min) !important;
-    }
+/* —— v5 appearance savaşını yumuşat (hedefli) —— */
+body.v3-body .primary-btn,
+body.v3-body .btn-primary,
+body.yonetim-body .primary-btn,
+body.yonetim-body .btn-primary,
+body.ogretmen-body .primary-btn,
+body.veli-body .primary-btn,
+body.talebe-body .primary-btn {
+    color: var(--cs-text-inverse);
+    background: linear-gradient(135deg, var(--cs-accent), var(--cs-primary-mid));
+    border-color: transparent;
+}
+
+body.v3-body .ghost-btn,
+body.v3-body .btn-ghost,
+body.yonetim-body .ghost-btn,
+body.yonetim-body .btn-ghost,
+body.yonetim-body .yonetim-head-ghost,
+body.ogretmen-body .ghost-btn,
+body.veli-body .ghost-btn,
+body.talebe-body .ghost-btn {
+    color: var(--cs-text-primary);
+    background: var(--cs-surface);
+    border: 1px solid var(--cs-border);
 }
 
 /* —— Reduced motion —— */
 @media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
     *,
     *::before,
     *::after {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
     }
 }

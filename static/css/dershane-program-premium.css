@@ -17,14 +17,10 @@
     padding: 0 0 2.5rem;
     color: var(--dp-text);
     box-sizing: border-box;
-    /* panel-unified overflow-x:clip sticky sütunu kırar */
-    overflow-x: visible !important;
-}
-
-/* Matris sayfada tam genişlik kullansın */
-.v3-main .page-content:has(.dp-page) {
-    padding-left: clamp(8px, 0.8vw, 14px) !important;
-    padding-right: clamp(8px, 0.8vw, 14px) !important;
+    /* Sayfa yatay kaymasın — matris .dp-matrix-wrap / tablo wrap içinde kayar */
+    overflow-x: clip;
+    max-width: 100%;
+    min-width: 0;
 }
 
 .dp-page * { box-sizing: border-box; }

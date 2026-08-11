@@ -161,17 +161,29 @@ h2, .card-heading h2 {
 }
 
 .primary-btn,
+.btn-primary,
+.cs-btn-primary,
 .ghost-btn,
+.btn-ghost,
 .small-button,
-.yonetim-head-ghost {
+.yonetim-head-ghost,
+.cs-btn-ghost,
+.cs-btn-light {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: var(--cs-space-2);
     min-height: var(--cs-btn-h);
+    min-width: var(--cs-touch-min);
     padding: 0 clamp(14px, 2vw, 20px);
-    border-radius: var(--cs-radius-sm) !important;
-    font-size: var(--cs-font-secondary) !important;
-    font-weight: 500 !important;
+    border-radius: var(--cs-radius-md);
+    font-family: var(--cs-font);
+    font-size: var(--cs-font-secondary);
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+    box-sizing: border-box;
+    cursor: pointer;
     transition:
         background var(--cs-transition),
         border-color var(--cs-transition),
@@ -179,8 +191,31 @@ h2, .card-heading h2 {
         transform var(--cs-transition-fast);
 }
 
+.primary-btn,
+.btn-primary,
+.cs-btn-primary {
+    color: var(--cs-text-inverse);
+    border: 1px solid transparent;
+    background: linear-gradient(135deg, var(--cs-accent), var(--cs-primary-mid));
+    box-shadow: 0 8px 18px rgba(47, 111, 243, 0.16);
+}
+
+.ghost-btn,
+.btn-ghost,
+.small-button,
+.yonetim-head-ghost,
+.cs-btn-ghost,
+.cs-btn-light {
+    color: var(--cs-text-primary);
+    border: 1px solid var(--cs-border);
+    background: var(--cs-surface);
+    box-shadow: var(--cs-shadow-xs);
+}
+
 .primary-btn:hover,
-.ghost-btn:hover {
+.btn-primary:hover,
+.ghost-btn:hover,
+.btn-ghost:hover {
     transform: translateY(-1px);
 }
 
