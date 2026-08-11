@@ -280,7 +280,7 @@ def dershane_program_pdf(request):
         context,
         request=request,
     )
-    pdf = html_to_pdf(html, base_url="/")
+    pdf = html_to_pdf(html, base_url=request.build_absolute_uri("/"))
     if not pdf:
         return pdf_error_response(
             f"PDF oluşturulamadı. (Motor: {pdf_engine_status()})"
