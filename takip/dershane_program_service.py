@@ -132,9 +132,7 @@ def _varsayilan_gruplar_olustur(program: DershaneProgrami) -> None:
     if program.etut_gruplari.exists():
         return
 
-    from takip.ogretmen_odeme_service import aktif_ogretmenler
-
-    hocalar = list(aktif_ogretmenler())
+    # Branş öğretmeni etüt grubu mesulü değildir; mesul sonra elle atanır.
     etiketler = [
         ("5", "5. Sınıf Etüt-A"),
         ("5", "5. Sınıf Etüt-B"),
@@ -146,12 +144,11 @@ def _varsayilan_gruplar_olustur(program: DershaneProgrami) -> None:
         ("8", "8. Sınıf Etüt-B"),
     ]
     for sira, (sinif, etiket) in enumerate(etiketler):
-        hoca = hocalar[sira % len(hocalar)] if hocalar else None
         DershaneEtutGrubu.objects.create(
             program=program,
             etiket=etiket,
             sinif_seviye=sinif,
-            etut_hocasi=hoca,
+            etut_hocasi=None,
             sira=sira,
         )
 
@@ -172,7 +169,7 @@ def varsayilan_program_olustur(user: User) -> DershaneProgrami:
     _gun_kayitlari_olustur(program)
     _varsayilan_gruplar_olustur(program)
     if created:
-        ornek_cumartesi_verisi(program)
+        # Örnek/demo otomatik doldurma yok — boş program oluştur.
         surum_olustur(program, user, etiket="V1 — İlk sürüm")
     return program
 
@@ -541,7 +538,10 @@ def panel_baglami(
         )
 
     dersler = Ders.objects.filter(aktif=True).order_by("sira", "ad")
-    ogretmenler = PersonelProfili.objects.filter(aktif=True).order_by("ad_soyad")
+    from takip.ogretmen_odeme_service import aktif_ogretmenler
+
+    # Branş öğretmenleri (etüt/sınıf mesulü personel değil)
+    ogretmenler = list(aktif_ogretmenler())
     siniflar = sorted(
         {
             grup.sinif_seviye
@@ -1030,21 +1030,27 @@ def atama_kaydet(
         ders_obj = Ders.objects.filter(pk=ders_id).first()
         ders_adi = ders_obj.ad if ders_obj else ders_adi
 
+    # Dropdown branş öğretmeni (EtutHocasi) id gönderir; PersonelProfili yedek uyumluluk.
     ogretmen_obj = None
     if ogretmen_id:
-        ogretmen_obj = PersonelProfili.objects.filter(pk=ogretmen_id).first()
-        ogretmen_adi = ogretmen_obj.ad_soyad if ogretmen_obj else ogretmen_adi
+        hoca = EtutHocasi.objects.filter(pk=ogretmen_id, aktif=True).first()
+        if hoca:
+            ogretmen_adi = hoca.ad_soyad
+            ogretmen_obj = PersonelProfili.objects.filter(
+                etut_hocasi=hoca, aktif=True
+            ).first()
+        else:
+            ogretmen_obj = PersonelProfili.objects.filter(pk=ogretmen_id).first()
+            if ogretmen_obj:
+                ogretmen_adi = ogretmen_obj.ad_soyad
 
     if ogretmen_adi:
         cakisan = (
             program.ders_atamalari.filter(saat_bloku__gun=blok.gun)
             .exclude(etut_grubu_id=grup.pk)
             .filter(saat_bloku__baslangic_saati=blok.baslangic_saati)
+            .filter(ogretmen_adi__iexact=ogretmen_adi)
         )
-        if ogretmen_id:
-            cakisan = cakisan.filter(ogretmen_id=ogretmen_id)
-        else:
-            cakisan = cakisan.filter(ogretmen_adi__iexact=ogretmen_adi)
         if cakisan.exists():
             return None, "Öğretmen aynı saatte başka grupta atanmış."
 
@@ -1059,8 +1065,8 @@ def atama_kaydet(
             "ogretmen_adi": ogretmen_adi,
         },
     )
-    if ders_obj and ogretmen_obj:
-        _ogretmen_tercih_kaydet(program, grup, ders_obj, ogretmen_obj)
+    if ders_obj and ogretmen_adi:
+        _ogretmen_tercih_kaydet(program, grup, ders_obj, ogretmen_obj, ogretmen_adi)
     gun_durum_guncelle(program, blok.gun)
     return atama, None
 
@@ -1070,8 +1076,16 @@ def _ogretmen_tercih_kaydet(
     grup: DershaneEtutGrubu,
     ders_obj: Ders | None,
     ogretmen_obj: PersonelProfili | None,
+    ogretmen_adi: str = "",
 ) -> None:
-    if not ders_obj or not ogretmen_obj:
+    """Grup+ders için öğretmen tercihi — PersonelProfili varsa kaydet."""
+    if not ders_obj:
+        return
+    if not ogretmen_obj and ogretmen_adi:
+        # Branş öğretmeninin bağlı personel kaydı yoksa sadece ad ile eşleme bırakılır
+        # (atama.ogretmen_adi üzerinden çözülür).
+        return
+    if not ogretmen_obj:
         return
     DershaneGrupDersOgretmen.objects.update_or_create(
         program=program,
@@ -1096,29 +1110,42 @@ def ogretmen_coz(
     program: DershaneProgrami,
     grup: DershaneEtutGrubu,
     ders_obj: Ders,
-) -> tuple[PersonelProfili | None, str]:
-    """Grup + ders için uygun öğretmeni bul (her şubenin kendi matematikçisi vb.)."""
+) -> tuple[int | None, str]:
+    """Grup + ders için branş öğretmeni bul.
+
+    Dönüş: (EtutHocasi.id | None, ad_soyad). Yanlış eşleşme için isim tahmini yok.
+    """
     tercih = (
         DershaneGrupDersOgretmen.objects.filter(
             program=program,
             etut_grubu=grup,
             ders=ders_obj,
         )
-        .select_related("ogretmen")
+        .select_related("ogretmen", "ogretmen__etut_hocasi")
         .first()
     )
     if tercih and tercih.ogretmen_id:
-        return tercih.ogretmen, tercih.ogretmen.ad_soyad
+        if tercih.ogretmen.etut_hocasi_id:
+            return tercih.ogretmen.etut_hocasi_id, tercih.ogretmen.ad_soyad
+        return None, tercih.ogretmen.ad_soyad
 
     onceki = (
         program.ders_atamalari.filter(etut_grubu=grup, ders=ders_obj)
-        .exclude(ogretmen__isnull=True)
-        .select_related("ogretmen")
+        .exclude(ogretmen_adi="")
+        .select_related("ogretmen", "ogretmen__etut_hocasi")
         .first()
     )
-    if onceki and onceki.ogretmen_id:
-        return onceki.ogretmen, onceki.gorunen_ogretmen
+    if onceki:
+        ad = onceki.gorunen_ogretmen
+        if ad and ad != "—":
+            if onceki.ogretmen_id and onceki.ogretmen.etut_hocasi_id:
+                return onceki.ogretmen.etut_hocasi_id, ad
+            hoca = EtutHocasi.objects.filter(
+                ad_soyad__iexact=ad, aktif=True, personel_kaydi__isnull=True
+            ).first()
+            return (hoca.pk if hoca else None), ad
 
+    # Ödeme / ders kayıtlarından branş öğretmeni (EtutHocasi)
     if ders_obj.brans_id and grup.sinif_seviye:
         sube = _sube_etiketten(grup)
         sinif_qs = SinifSube.objects.filter(sinif=grup.sinif_seviye, aktif=True)
@@ -1134,22 +1161,13 @@ def ogretmen_coz(
                 .first()
             )
             if odeme and odeme.gun.donem.etut_hocasi_id:
-                profil = PersonelProfili.objects.filter(
-                    etut_hocasi=odeme.gun.donem.etut_hocasi,
-                    aktif=True,
-                ).first()
-                if profil:
-                    return profil, profil.ad_soyad
+                from takip.ogretmen_odeme_service import aktif_ogretmenler
 
-    if ders_obj.brans_id:
-        ad_parca = ders_obj.brans.ad.split()[0].lower()
-        aday = (
-            PersonelProfili.objects.filter(aktif=True, ad_soyad__icontains=ad_parca[:4])
-            .order_by("ad_soyad")
-            .first()
-        )
-        if aday:
-            return aday, aday.ad_soyad
+                hoca = aktif_ogretmenler().filter(
+                    pk=odeme.gun.donem.etut_hocasi_id
+                ).first()
+                if hoca:
+                    return hoca.pk, hoca.ad_soyad
 
     return None, ""
 
@@ -1182,18 +1200,16 @@ def atama_surukle(
 
     sonuclar: list[dict[str, Any]] = []
     for grup in hedef:
-        ogretmen_obj, ogretmen_adi = ogretmen_coz(program, grup, ders_obj)
+        ogretmen_id, ogretmen_adi = ogretmen_coz(program, grup, ders_obj)
         atama, hata = atama_kaydet(
             program,
             saat_bloku_id=saat_bloku_id,
             etut_grubu_id=grup.pk,
             ders_id=ders_obj.pk,
             ders_adi=ders_obj.ad,
-            ogretmen_id=ogretmen_obj.pk if ogretmen_obj else None,
+            ogretmen_id=ogretmen_id,
             ogretmen_adi=ogretmen_adi,
         )
-        if atama and ogretmen_obj:
-            _ogretmen_tercih_kaydet(program, grup, ders_obj, ogretmen_obj)
         sonuclar.append(
             {
                 "ok": hata is None,
@@ -1579,80 +1595,29 @@ def excel_yanit(
 
 
 def ornek_cumartesi_verisi(program: DershaneProgrami) -> None:
-    cumartesi = 5
-    ornek_bloklar = [
-        (time(8, 30), time(9, 10), DershaneSaatBloku.Tur.DERS, "1. Ders Saati"),
-        (time(9, 20), time(10, 0), DershaneSaatBloku.Tur.DERS, "2. Ders Saati"),
-        (time(10, 10), time(10, 50), DershaneSaatBloku.Tur.DERS, "3. Ders Saati"),
-        (time(11, 0), time(11, 20), DershaneSaatBloku.Tur.NAMAZ, "Öğle Namazı"),
-        (time(11, 20), time(12, 0), DershaneSaatBloku.Tur.DERS, "4. Ders Saati"),
-        (time(12, 10), time(12, 50), DershaneSaatBloku.Tur.DERS, "5. Ders Saati"),
-        (time(12, 50), time(13, 50), DershaneSaatBloku.Tur.YEMEK, "Öğle Yemeği"),
-        (time(14, 0), time(14, 40), DershaneSaatBloku.Tur.DERS, "6. Ders Saati"),
-        (time(14, 50), time(15, 30), DershaneSaatBloku.Tur.DERS, "7. Ders Saati"),
-        (time(15, 40), time(15, 50), DershaneSaatBloku.Tur.NAMAZ, "İkindi Namazı"),
-    ]
-    bloklar: list[DershaneSaatBloku] = []
-    for sira, (bas, bit, tur, aciklama) in enumerate(ornek_bloklar, start=1):
-        bloklar.append(
-            DershaneSaatBloku.objects.create(
-                program=program,
-                gun=cumartesi,
-                baslangic_saati=bas,
-                bitis_saati=bit,
-                tur=tur,
-                aciklama=aciklama,
-                sira=sira,
+    """Eski demo yardımcısı — otomatik çağrılmaz; yalnızca bilinçli kullanım için bırakıldı."""
+    return
+
+
+def demo_ders_atamalarini_temizle(program: DershaneProgrami | None = None) -> int:
+    """Otomatik/demo ders atamalarını siler; saat blokları ve gruplar kalır."""
+    qs = DershaneDersAtamasi.objects.all()
+    if program is not None:
+        qs = qs.filter(program=program)
+    silinen, _ = qs.delete()
+    programlar = (
+        [program]
+        if program is not None
+        else list(DershaneProgrami.objects.filter(aktif=True))
+    )
+    for prog in programlar:
+        if prog is None:
+            continue
+        for gun in range(7):
+            DershaneProgramGun.objects.update_or_create(
+                program=prog,
+                gun=gun,
+                defaults={"durum": DershaneProgramGun.Durum.BOS},
             )
-        )
-
-    dersler = list(Ders.objects.filter(aktif=True).order_by("sira", "ad")[:6])
-    ogretmenler = list(
-        PersonelProfili.objects.filter(aktif=True).order_by("ad_soyad")[:6]
-    )
-    ders_adlari = (
-        [d.ad for d in dersler]
-        if dersler
-        else [
-            "Matematik",
-            "Fen Bilimleri",
-            "Türkçe",
-            "Sosyal Bilgiler",
-            "İngilizce",
-            "Din Kültürü",
-        ]
-    )
-    ogretmen_adlari = (
-        [o.ad_soyad for o in ogretmenler]
-        if ogretmenler
-        else [f"Öğretmen {index + 1}" for index in range(len(gruplar))]
-    )
-    gruplar = list(program.etut_gruplari.order_by("sira", "id"))
-    ders_bloklari = [b for b in bloklar if b.ders_atamasi_gerektirir]
-
-    for grup_index, grup in enumerate(gruplar):
-        varsayilan_ogretmen = ogretmen_adlari[grup_index % len(ogretmen_adlari)]
-        ogretmen_obj = next(
-            (o for o in ogretmenler if o.ad_soyad == varsayilan_ogretmen),
-            None,
-        )
-        for blok_index, blok in enumerate(ders_bloklari):
-            ders_adi = ders_adlari[(grup_index + blok_index) % len(ders_adlari)]
-            ders_obj = next((d for d in dersler if d.ad == ders_adi), None)
-            DershaneDersAtamasi.objects.create(
-                program=program,
-                saat_bloku=blok,
-                etut_grubu=grup,
-                ders=ders_obj,
-                ders_adi=ders_adi,
-                ogretmen=ogretmen_obj,
-                ogretmen_adi=varsayilan_ogretmen,
-            )
-
-    for index in range(5):
-        DershaneProgramGun.objects.update_or_create(
-            program=program,
-            gun=index,
-            defaults={"durum": DershaneProgramGun.Durum.TAMAMLANDI},
-        )
-    gun_durum_guncelle(program, cumartesi)
+            gun_durum_guncelle(prog, gun)
+    return silinen

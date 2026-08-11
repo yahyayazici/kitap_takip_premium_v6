@@ -7,6 +7,7 @@ from datetime import date, datetime, time, timedelta
 from typing import Any
 
 from django.contrib.auth.models import User
+from django.db.models import Q
 from django.utils import timezone
 
 from takip.duyuru_service import ogretmen_duyurulari
@@ -209,44 +210,79 @@ def ogretmen_dashboard_verisi(hoca: EtutHocasi) -> dict[str, Any]:
         "hafta_bitis": bitis,
         "bugun": timezone.localdate(),
         "duyurular": duyurular,
-        "program_gunler": _program_gunleri(),
+        "program_gunler": _program_gunleri(hoca),
         "randevular": ogretmen_randevu_listesi(hoca.user),
     }
 
 
-def _program_gunleri() -> list[dict[str, Any]]:
-    """Yalnızca dersi olan günleri döndürür."""
-    gunler = [
-        {
-            "gun": "Salı",
-            "slug": "sali",
-            "kisa": "Sal",
-            "dersler": [
-                {"saat": "14:40 - 15:20", "sinif": "5-A", "ders": "Sosyal Bilgiler"},
-                {"saat": "15:30 - 16:10", "sinif": "6-B", "ders": "Sosyal Bilgiler"},
-                {"saat": "16:20 - 17:00", "sinif": "7-A", "ders": "Sosyal Bilgiler"},
-                {"saat": "17:10 - 17:50", "sinif": "7-B", "ders": "Sosyal Bilgiler"},
-            ],
-        },
-        {
-            "gun": "Çarşamba",
-            "slug": "carsamba",
-            "kisa": "Çar",
-            "dersler": [
-                {"saat": "14:40 - 15:20", "sinif": "5-B", "ders": "Sosyal Bilgiler"},
-                {"saat": "15:30 - 16:10", "sinif": "5-A", "ders": "Sosyal Bilgiler"},
-                {"saat": "16:20 - 17:00", "sinif": "8-A", "ders": "Sosyal Bilgiler"},
-            ],
-        },
-    ]
-    return [g for g in gunler if g.get("dersler")]
+def _program_gunleri(hoca: EtutHocasi | None = None) -> list[dict[str, Any]]:
+    """Giriş yapan öğretmenin dershane programındaki gerçek dersleri."""
+    if hoca is None:
+        return []
+
+    from takip.dershane_program_models import DershaneDersAtamasi, DershaneProgrami
+    from takip.dershane_program_service import GUN_ADLARI, GUN_KISA
+
+    program = (
+        DershaneProgrami.objects.filter(aktif=True)
+        .order_by("-baslangic_tarihi", "-id")
+        .first()
+    )
+    if not program:
+        return []
+
+    ad = (hoca.ad_soyad or "").strip()
+    if not ad:
+        return []
+
+    atamalar = (
+        DershaneDersAtamasi.objects.filter(program=program)
+        .filter(
+            Q(ogretmen_adi__iexact=ad)
+            | Q(ogretmen__ad_soyad__iexact=ad)
+            | Q(ogretmen__etut_hocasi=hoca)
+        )
+        .select_related("saat_bloku", "etut_grubu", "ders", "ogretmen")
+        .order_by("saat_bloku__gun", "saat_bloku__sira", "saat_bloku__baslangic_saati")
+    )
+
+    by_gun: dict[int, list[dict[str, str]]] = {}
+    for atama in atamalar:
+        blok = atama.saat_bloku
+        if not blok:
+            continue
+        ders = atama.gorunen_ders
+        if not ders or ders == "—":
+            continue
+        grup = atama.etut_grubu.etiket if atama.etut_grubu_id else ""
+        by_gun.setdefault(blok.gun, []).append(
+            {
+                "saat": blok.saat_goster,
+                "sinif": grup or (atama.etut_grubu.sinif_seviye if atama.etut_grubu_id else ""),
+                "ders": ders,
+            }
+        )
+
+    gunler = []
+    for index, dersler in sorted(by_gun.items()):
+        if index < 0 or index >= len(GUN_ADLARI):
+            continue
+        gunler.append(
+            {
+                "gun": GUN_ADLARI[index],
+                "slug": GUN_KISA[index].lower(),
+                "kisa": GUN_KISA[index],
+                "dersler": dersler,
+            }
+        )
+    return gunler
 
 
 def ogretmen_program_verisi(hoca: EtutHocasi) -> dict[str, Any]:
     hafta_no, baslangic, bitis = _hafta_araligi()
     return {
         "hoca": hoca,
-        "gunler": _program_gunleri(),
+        "gunler": _program_gunleri(hoca),
         "hafta_no": hafta_no,
         "hafta_baslangic": baslangic,
         "hafta_bitis": bitis,
