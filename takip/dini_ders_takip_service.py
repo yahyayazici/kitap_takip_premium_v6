@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from django.contrib.auth.models import User
-from django.db.models import Q, QuerySet
+from django.db.models import QuerySet
 
 from takip.models import (
     DiniDersKonu,
@@ -159,10 +159,9 @@ def yetkili_dini_talebeler(user: User) -> QuerySet[Talebe]:
     if not hoca:
         return Talebe.objects.none()
 
-    return qs.filter(
-        Q(dini_ders_hocasi=hoca)
-        | Q(dini_ders_seviyesi__hocalar=hoca)
-    ).distinct()
+    # Etüt hocası: yalnızca kendisine dini ders olarak atanmış talebeler
+    # (seviye sorumluluğu tüm sınıfı açmaz — aynı seviyede birden fazla hoca olabilir)
+    return qs.filter(dini_ders_hocasi=hoca)
 
 
 def duzenleyebilir(user: User) -> bool:
