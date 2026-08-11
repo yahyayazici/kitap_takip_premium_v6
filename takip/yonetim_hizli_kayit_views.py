@@ -93,8 +93,11 @@ def _form_kayit_hatasi_uygula(form, exc) -> None:
     if isinstance(exc, ValidationError):
         if hasattr(exc, "error_dict"):
             for alan, hatalar in exc.error_dict.items():
+                alan_adi = None if alan == "__all__" else alan
+                if alan_adi and alan_adi not in form.fields:
+                    alan_adi = None
                 for hata in hatalar:
-                    form.add_error(None if alan == "__all__" else alan, hata)
+                    form.add_error(alan_adi, hata)
         elif hasattr(exc, "error_list"):
             for hata in exc.error_list:
                 form.add_error(None, hata)

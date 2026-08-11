@@ -402,11 +402,10 @@ class Talebe(models.Model):
 
     @classmethod
     def _yeni_talebe_no(cls) -> str:
-        """Aktif talebeler arasında 1'den başlayan ilk boş numarayı ver."""
+        """Veritabanında kullanılmayan ilk sıra numarasını ver (1'den başlar)."""
         kullanilan: set[int] = set()
         for numara in (
-            cls.objects.filter(aktif=True)
-            .exclude(talebe_no__isnull=True)
+            cls.objects.exclude(talebe_no__isnull=True)
             .exclude(talebe_no="")
             .values_list("talebe_no", flat=True)
             .iterator(chunk_size=500)

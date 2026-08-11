@@ -41,6 +41,7 @@ def talebe_pasif_et(talebe: Talebe) -> None:
     Talebe.objects.filter(pk=talebe.pk).update(
         aktif=False,
         durum=Talebe.Durum.AYRILDI,
+        talebe_no=None,
     )
 
     from takip.talebe_panel_models import TalebeHesap
