@@ -558,17 +558,18 @@
     }
 
     .duyuru-media-pane {
-        aspect-ratio: auto !important;
+        aspect-ratio: 16 / 9 !important;
         width: 100% !important;
-        height: clamp(200px, 18vw, 280px) !important;
-        min-height: 200px !important;
-        max-height: 280px !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
     }
 
-    /* Ana sayfa yan takvim — görsel tam sığsın (meet), yükseklik kartı doldursun */
+    /* Ana sayfa yan takvim — görsel 16:9 */
     .personel-top-split .duyuru-media-pane {
+        aspect-ratio: 16 / 9 !important;
         height: auto !important;
-        min-height: 200px !important;
+        min-height: 0 !important;
         max-height: none !important;
     }
 
@@ -583,15 +584,10 @@
 }
 
 @media (min-width: 1400px) {
-    .duyuru-media-pane {
-        height: clamp(220px, 16vw, 300px) !important;
-        min-height: 220px !important;
-        max-height: 300px !important;
-    }
-
     .personel-top-split .duyuru-media-pane {
+        aspect-ratio: 16 / 9 !important;
         height: auto !important;
-        min-height: 220px !important;
+        min-height: 0 !important;
         max-height: none !important;
     }
 }
