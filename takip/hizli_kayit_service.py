@@ -118,10 +118,28 @@ def talebe_kalici_sil(talebe: Talebe) -> None:
 def personel_kalici_sil(personel: PersonelProfili) -> None:
     if personel.aktif:
         raise ValueError("Aktif personel kalıcı silinemez; önce pasif edin.")
+    from django.db.models.deletion import ProtectedError
+
     user_id = personel.user_id
+    etut_id = personel.etut_hocasi_id
     personel.delete()
-    if user_id:
+
+    if not user_id:
+        return
+
+    etut_var = etut_id and EtutHocasi.objects.filter(pk=etut_id).exists()
+    talebe_bagli = etut_var and Talebe.objects.filter(etut_hocasi_id=etut_id).exists()
+    if talebe_bagli:
+        User.objects.filter(pk=user_id).update(is_active=False)
+        return
+
+    try:
         User.objects.filter(pk=user_id).delete()
+    except ProtectedError as exc:
+        raise ValueError(
+            "Personel profili silindi ancak kullanıcı hesabı başka kayıtlara "
+            "bağlı olduğu için kaldırılamadı."
+        ) from exc
 
 
 def ogretmen_kalici_sil(hoca: EtutHocasi) -> None:

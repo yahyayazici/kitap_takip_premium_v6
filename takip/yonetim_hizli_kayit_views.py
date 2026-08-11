@@ -393,11 +393,21 @@ def kayit_sil(request):
 
     try:
         _kayit_islem(request, tur, pk, kalici=kalici)
-    except Exception:
-        messages.error(
-            request,
-            "Kayıt silinirken bir hata oluştu. Sayfayı yenileyip tekrar deneyin.",
-        )
+    except Exception as exc:
+        from django.db.models.deletion import ProtectedError
+
+        if isinstance(exc, ProtectedError):
+            messages.error(
+                request,
+                "Kayıt başka verilere bağlı olduğu için silinemedi.",
+            )
+        elif isinstance(exc, ValueError):
+            messages.error(request, str(exc))
+        else:
+            messages.error(
+                request,
+                "Kayıt silinirken bir hata oluştu. Sayfayı yenileyip tekrar deneyin.",
+            )
 
     return _kayit_sil_yonlendir(request, next_url, fallback)
 
@@ -419,10 +429,14 @@ def kayit_toplu_sil(request):
         return _kayit_sil_yonlendir(request, next_url, fallback)
 
     silinen = 0
+    hatalar = 0
     try:
         for pk in pk_list:
-            if _kayit_otomatik_islem(request, tur, pk, sessiz=True):
-                silinen += 1
+            try:
+                if _kayit_otomatik_islem(request, tur, pk, sessiz=True):
+                    silinen += 1
+            except Exception:
+                hatalar += 1
     except Exception:
         messages.error(
             request,
@@ -432,6 +446,11 @@ def kayit_toplu_sil(request):
 
     if silinen:
         messages.success(request, f"{silinen} kayıt işlendi (pasif veya kalıcı silindi).")
+    if hatalar:
+        messages.warning(
+            request,
+            f"{hatalar} kayıt işlenemedi (bağlı veri veya yetki engeli olabilir).",
+        )
     return _kayit_sil_yonlendir(request, next_url, fallback)
 
 
