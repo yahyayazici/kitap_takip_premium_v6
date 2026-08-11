@@ -231,7 +231,8 @@ class HizliTalebeForm(forms.ModelForm):
         self.fields["dini_ders_hocasi"].empty_label = "Dini ders hocası seçin"
         self.fields["dini_ders_hocasi"].required = True
         self.fields["dini_ders_hocasi"].help_text = (
-            "Aynı kişi ise etüt hocasını tekrar seçin."
+            "Etüt hocasından farklı olabilir; seçilen hocanın dini ders seviye "
+            "grubuna otomatik yazılır."
         )
         self.fields["tc_kimlik"].required = True
         self.fields["tc_kimlik"].help_text = (

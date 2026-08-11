@@ -458,18 +458,24 @@ class Talebe(models.Model):
                     }
                 )
 
-        if self.sinif_sube_id and self.dini_ders_hocasi_id:
-            yetkili = self.dini_ders_hocasi.sorumlu_sinif_subeler.filter(
-                pk=self.sinif_sube_id,
-                aktif=True,
-            ).exists()
+        if self.dini_ders_hocasi_id and not self.dini_ders_seviyesi_id:
+            seviye = (
+                self.dini_ders_hocasi.sorumlu_dini_ders_seviyeleri.filter(aktif=True)
+                .order_by("sira", "ad")
+                .first()
+            )
+            if seviye:
+                self.dini_ders_seviyesi = seviye
 
-            if not yetkili:
+        if self.dini_ders_seviyesi_id and self.dini_ders_hocasi_id:
+            if not self.dini_ders_seviyesi.hocalar.filter(
+                pk=self.dini_ders_hocasi_id
+            ).exists():
                 raise ValidationError(
                     {
                         "dini_ders_hocasi": (
-                            "Seçilen dini ders hocası bu sınıf ve şubeden "
-                            "sorumlu değildir."
+                            f"Seçilen hoca «{self.dini_ders_seviyesi.ad}» seviyesinden "
+                            "sorumlu değil."
                         )
                     }
                 )
