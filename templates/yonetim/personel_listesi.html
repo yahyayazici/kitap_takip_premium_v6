@@ -1,4 +1,5 @@
 {% extends "yonetim/base.html" %}
+{% load static %}
 
 {% block title %}Personel{% endblock %}
 
@@ -21,7 +22,7 @@
     </div>
 </header>
 
-<section class="report-table-card yonetim-table-card">
+<section class="report-table-card yonetim-table-card" id="yonetim-toplu-liste">
     <div class="card-heading">
         <div>
             <p class="card-kicker">PERSONEL LİSTESİ</p>
@@ -30,19 +31,33 @@
         <span class="report-record-count">{{ personeller|length }} personel</span>
     </div>
 
+    <form id="yonetim-toplu-sil-form" method="post" action="{% url 'yonetim:kayit_toplu_sil' %}" class="yonetim-toplu-sil-form">
+        {% csrf_token %}
+        <input type="hidden" name="tur" value="personel">
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <div class="yonetim-toplu-bar" id="yonetim-toplu-bar" hidden>
+            <span class="yonetim-toplu-count"><span id="yonetim-secili-say">0</span> kayıt seçildi</span>
+            <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger">Seçilenleri Pasif Et</button>
+        </div>
+    </form>
+
     <div class="responsive-table">
         <table class="report-data-table yonetim-data-table">
             <colgroup>
-                <col style="width:20%">
+                <col style="width:4%">
+                <col style="width:18%">
                 <col style="width:12%">
                 <col style="width:14%">
-                <col style="width:22%">
+                <col style="width:20%">
                 <col style="width:8%">
                 <col style="width:10%">
-                <col style="width:10%">
+                <col style="width:14%">
             </colgroup>
             <thead>
                 <tr>
+                    <th class="yonetim-check-col">
+                        <input type="checkbox" id="yonetim-select-all" class="yonetim-check" aria-label="Tümünü seç">
+                    </th>
                     <th>Ad Soyad</th>
                     <th>Kullanıcı Adı</th>
                     <th>Rol</th>
@@ -55,13 +70,18 @@
             <tbody>
                 {% for personel in personeller %}
                 <tr>
+                    <td class="yonetim-check-col">
+                        {% if personel.aktif %}
+                        <input type="checkbox" name="pk" value="{{ personel.pk }}" form="yonetim-toplu-sil-form" class="yonetim-row-check yonetim-check" aria-label="{{ personel.ad_soyad }} seç">
+                        {% endif %}
+                    </td>
                     <td>
                         <div class="yonetim-person-cell">
                             <span class="yonetim-avatar yonetim-avatar-dark">{{ personel.ad_soyad|slice:":1"|upper }}</span>
                             <strong>{{ personel.ad_soyad }}</strong>
                         </div>
                     </td>
-                    <td><span class="yonetim-username">{{ personel.user.username }}</span></td>
+                    <td><span class="yonetim-username">{% if personel.user %}{{ personel.user.username }}{% else %}—{% endif %}</span></td>
                     <td><span class="yonetim-chip yonetim-chip-role">{{ personel.rol_etiketi }}</span></td>
                     <td>
                         <div class="yonetim-chip-group">
@@ -93,19 +113,21 @@
                                 <button type="submit" class="yonetim-action-btn">PDF</button>
                             </form>
                             {% endif %}
+                            {% if personel.aktif %}
                             <form method="post" action="{% url 'yonetim:kayit_sil' %}" class="yonetim-inline-action" onsubmit="return confirm('{{ personel.ad_soyad|escapejs }} pasif edilsin mi? Giriş kapanır.');">
                                 {% csrf_token %}
                                 <input type="hidden" name="tur" value="personel">
                                 <input type="hidden" name="pk" value="{{ personel.pk }}">
-                                <input type="hidden" name="next" value="{{ request.path }}">
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
                                 <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger">Sil</button>
                             </form>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" class="report-empty">Henüz personel kaydı yok.</td>
+                    <td colspan="8" class="report-empty">Henüz personel kaydı yok.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -113,4 +135,5 @@
     </div>
 </section>
 
+<script src="{% static 'js/yonetim-liste-toplu.js' %}?v=1"></script>
 {% endblock %}

@@ -1,4 +1,5 @@
 {% extends "yonetim/base.html" %}
+{% load static %}
 
 {% block title %}Talebeler{% endblock %}
 
@@ -18,7 +19,7 @@
     </div>
 </header>
 
-<section class="report-table-card yonetim-table-card">
+<section class="report-table-card yonetim-table-card" id="yonetim-toplu-liste">
     <div class="card-heading">
         <div>
             <p class="card-kicker">TALEBE LİSTESİ</p>
@@ -40,6 +41,16 @@
         </form>
     </div>
 
+    <form id="yonetim-toplu-sil-form" method="post" action="{% url 'yonetim:kayit_toplu_sil' %}" class="yonetim-toplu-sil-form">
+        {% csrf_token %}
+        <input type="hidden" name="tur" value="talebe">
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <div class="yonetim-toplu-bar" id="yonetim-toplu-bar" hidden>
+            <span class="yonetim-toplu-count"><span id="yonetim-secili-say">0</span> kayıt seçildi</span>
+            <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger">Seçilenleri Pasif Et</button>
+        </div>
+    </form>
+
     <div class="responsive-table">
         <table class="report-data-table yonetim-data-table">
             <colgroup>
@@ -53,6 +64,9 @@
             </colgroup>
             <thead>
                 <tr>
+                    <th class="yonetim-check-col">
+                        <input type="checkbox" id="yonetim-select-all" class="yonetim-check" aria-label="Tümünü seç">
+                    </th>
                     <th class="yonetim-center-col">Talebe No</th>
                     <th>Ad Soyad</th>
                     <th>Sınıf</th>
@@ -65,6 +79,11 @@
             <tbody>
                 {% for talebe in talebeler %}
                 <tr>
+                    <td class="yonetim-check-col">
+                        {% if talebe.aktif %}
+                        <input type="checkbox" name="pk" value="{{ talebe.pk }}" form="yonetim-toplu-sil-form" class="yonetim-row-check yonetim-check" aria-label="{{ talebe.ad_soyad }} seç">
+                        {% endif %}
+                    </td>
                     <td class="num-col yonetim-center-col">{% if talebe.talebe_no %}{{ talebe.talebe_no }}{% else %}<span class="muted-inline">—</span>{% endif %}</td>
                     <td>
                         <div class="yonetim-person-cell">
@@ -113,7 +132,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" class="report-empty">Talebe kaydı bulunamadı.</td>
+                    <td colspan="8" class="report-empty">Talebe kaydı bulunamadı.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -121,4 +140,5 @@
     </div>
 </section>
 
+<script src="{% static 'js/yonetim-liste-toplu.js' %}?v=1"></script>
 {% endblock %}

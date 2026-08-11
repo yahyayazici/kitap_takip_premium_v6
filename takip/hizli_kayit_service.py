@@ -59,35 +59,34 @@ def talebe_pasif_et(talebe: Talebe) -> None:
 
 
 def personel_pasif_et(personel: PersonelProfili) -> None:
-    personel.aktif = False
-    personel.save(update_fields=["aktif"])
+    PersonelProfili.objects.filter(pk=personel.pk).update(aktif=False)
 
     if personel.user_id:
         User.objects.filter(pk=personel.user_id).update(is_active=False)
 
     if personel.etut_hocasi_id:
-        etut_hocasi_pasif_et(personel.etut_hocasi)
+        etut_hocasi_pasif_et(personel.etut_hocasi, personel_pasif=False)
 
 
-def etut_hocasi_pasif_et(hoca: EtutHocasi) -> None:
-    hoca.aktif = False
-    hoca.save(update_fields=["aktif"])
+def etut_hocasi_pasif_et(hoca: EtutHocasi, *, personel_pasif: bool = True) -> None:
+    EtutHocasi.objects.filter(pk=hoca.pk).update(aktif=False)
 
     if hoca.user_id:
         User.objects.filter(pk=hoca.user_id).update(is_active=False)
 
-    personel = getattr(hoca, "personel_kaydi", None)
-    if personel and personel.aktif:
-        personel.aktif = False
-        personel.save(update_fields=["aktif"])
+    if personel_pasif:
+        personel = getattr(hoca, "personel_kaydi", None)
+        if personel and personel.aktif:
+            PersonelProfili.objects.filter(pk=personel.pk).update(aktif=False)
+            if personel.user_id:
+                User.objects.filter(pk=personel.user_id).update(is_active=False)
 
     try:
         profil = hoca.odeme_profili
     except OgretmenOdemeProfili.DoesNotExist:
         profil = None
     if profil and profil.aktif:
-        profil.aktif = False
-        profil.save(update_fields=["aktif"])
+        OgretmenOdemeProfili.objects.filter(pk=profil.pk).update(aktif=False)
 
 
 def ogretmen_pasif_et(hoca: EtutHocasi) -> None:

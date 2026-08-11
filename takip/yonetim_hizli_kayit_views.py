@@ -201,6 +201,14 @@ def _kayit_pk_dogrula(pk_raw) -> int | None:
     return pk if pk > 0 else None
 
 
+def _kayit_sil_fallback(tur: str) -> str:
+    if tur == "personel":
+        return reverse("yonetim:personel_listesi")
+    if tur == "talebe":
+        return reverse("yonetim:talebe_listesi")
+    return f"{reverse('yonetim:hizli_kayit')}?tur={tur}"
+
+
 def _kayit_sil_yonlendir(request, next_url: str, fallback: str):
     hedef = fallback
     if next_url and url_has_allowed_host_and_scheme(
@@ -208,7 +216,7 @@ def _kayit_sil_yonlendir(request, next_url: str, fallback: str):
         allowed_hosts={request.get_host()},
     ):
         hedef = next_url
-    if "#" not in hedef:
+    if "hizli" in hedef and "ekle" in hedef and "#" not in hedef:
         hedef = f"{hedef}#yk-son-kayitlar"
     return redirect(hedef)
 
@@ -269,7 +277,7 @@ def kayit_sil(request):
     tur = (request.POST.get("tur") or "talebe").strip()
     pk = _kayit_pk_dogrula(request.POST.get("pk"))
     next_url = (request.POST.get("next") or "").strip()
-    fallback = f"{reverse('yonetim:hizli_kayit')}?tur={tur}"
+    fallback = _kayit_sil_fallback(tur)
 
     if pk is None:
         messages.error(request, "Silinecek kayıt bulunamadı.")
@@ -291,7 +299,7 @@ def kayit_sil(request):
 def kayit_toplu_sil(request):
     tur = (request.POST.get("tur") or "talebe").strip()
     next_url = (request.POST.get("next") or "").strip()
-    fallback = f"{reverse('yonetim:hizli_kayit')}?tur={tur}"
+    fallback = _kayit_sil_fallback(tur)
     pk_list = [
         pk
         for raw in request.POST.getlist("pk")
