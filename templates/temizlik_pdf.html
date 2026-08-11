@@ -5,16 +5,6 @@
     <meta charset="utf-8">
     <title>{{ liste.ad }} · Temizlik</title>
     <style>
-        @font-face {
-            font-family: "Poppins";
-            src: url("{% static 'fonts/Poppins-Regular.ttf' %}") format("truetype");
-            font-weight: 400;
-        }
-        @font-face {
-            font-family: "Poppins";
-            src: url("{% static 'fonts/Poppins-Medium.ttf' %}") format("truetype");
-            font-weight: 500;
-        }
         @page {
             size: {{ pdf_format|upper }} {{ pdf_orientation }};
             margin: 10mm 12mm;
@@ -22,146 +12,204 @@
         * { box-sizing: border-box; }
         body {
             margin: 0;
-            font-family: "Poppins", sans-serif;
-            font-size: 8px;
-            color: #546173;
+            font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+            font-size: 9px;
+            line-height: 1.35;
+            color: #1e293b;
+            letter-spacing: -0.01em;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
 
-        .header-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-        .header-logo-cell { width: 1%; padding: 0; vertical-align: middle; white-space: nowrap; }
-        .header-text-cell { padding: 0 0 0 8px; vertical-align: middle; text-align: left; white-space: nowrap; }
-        .header-right { text-align: right; vertical-align: bottom; padding: 0 0 0 12px; white-space: nowrap; }
-        .brand-logo-wrap { width: 36px; height: 36px; line-height: 0; }
-        .brand-logo { display: block; width: 36px; height: 36px; object-fit: contain; }
-        .brand-name { font-size: 13px; font-weight: 600; color: #183f78; line-height: 1.15; }
-        .brand-sub { margin-top: 3px; font-size: 7px; font-weight: 500; letter-spacing: 0.45px; color: #98a4b5; text-transform: uppercase; }
-        .doc-title { font-size: 7px; font-weight: 600; letter-spacing: 0.45px; color: #8b98aa; text-transform: uppercase; text-align: right; }
-        .doc-meta { margin-top: 3px; font-size: 7.5px; color: #718097; text-align: right; }
-        .head-rule {
-            border: none;
-            border-top: 2px solid #173b80;
-            margin: 0 0 10px;
+        .doc-head {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+            border-bottom: 2.5px solid #15427f;
+        }
+        .doc-brand {
+            margin: 0 0 4px;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #15427f;
+        }
+        h1 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+            color: #071b3a;
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+        }
+        .meta {
+            margin: 0;
+            max-width: 48%;
+            color: #64748b;
+            font-size: 9px;
+            font-weight: 400;
+            text-align: right;
+            letter-spacing: 0;
+            line-height: 1.4;
         }
 
         .stats {
             display: flex;
-            gap: 16px;
-            margin-bottom: 10px;
-            font-size: 8px;
+            flex-wrap: wrap;
+            gap: 6px 18px;
+            margin: 0 0 14px;
+            font-size: 8.5px;
+            color: #64748b;
+            letter-spacing: 0;
         }
-        .stats span { color: #173b80; font-weight: 500; }
+        .stats strong {
+            color: #0f172a;
+            font-weight: 600;
+        }
 
         .kat-block {
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             page-break-inside: avoid;
         }
-        .kat-head {
-            background: #173b80;
-            color: #fff;
-            padding: 5px 9px;
-            font-size: 9px;
-            font-weight: 500;
-            border-radius: 4px 4px 0 0;
+        .kat-title {
+            margin: 0 0 4px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #15427f;
+            letter-spacing: -0.01em;
         }
         .kat-staff {
-            background: #f3f7fc;
-            padding: 3px 9px;
-            font-size: 7px;
-            border: 1px solid #e3eaf3;
-            border-top: none;
+            margin: 0 0 6px;
+            font-size: 8px;
+            color: #64748b;
+            letter-spacing: 0;
         }
-        table { width: 100%; border-collapse: collapse; }
+        .kat-staff strong {
+            color: #475569;
+            font-weight: 600;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
         th, td {
-            border: 1px solid #e3eaf3;
-            padding: 3px 6px;
+            border: 1px solid #e2e8f0;
+            padding: 4px 7px;
             text-align: left;
             vertical-align: top;
         }
         th {
-            background: #f3f7fc;
-            color: #173b80;
-            font-weight: 500;
-            font-size: 7px;
-            letter-spacing: .08em;
-            text-transform: uppercase;
+            background: #15427f;
+            color: #fff;
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            border-color: #0f2f5c;
         }
-        td strong { color: #10213d; font-weight: 500; }
-        .alan-aciklama { color: #94a3b8; font-size: 7px; }
-        .foot {
-            margin-top: 10px;
-            font-size: 7px;
-            color: #718097;
+        td {
+            font-size: 8.5px;
+            color: #334155;
+            letter-spacing: 0;
+        }
+        tbody tr:nth-child(even) td {
+            background: #fbfdff;
+        }
+        .mahal {
+            display: block;
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 9px;
+            letter-spacing: -0.01em;
+        }
+        .mahal-sub {
+            display: block;
+            margin-top: 1px;
+            font-size: 7.5px;
+            font-weight: 400;
+            color: #94a3b8;
+        }
+        .gorevli {
+            font-weight: 500;
+            color: #334155;
+        }
+        .empty {
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        .doc-foot {
+            margin-top: 14px;
+            padding-top: 6px;
+            border-top: 1px solid #e2e8f0;
             display: flex;
             justify-content: space-between;
+            color: #94a3b8;
+            font-size: 8px;
+            letter-spacing: 0;
         }
     </style>
 </head>
 <body>
-    <table class="header-table" cellpadding="0" cellspacing="0">
-        <tr>
-            <td class="header-logo-cell">
-                <div class="brand-logo-wrap">
-                    <img class="brand-logo" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="{{ panel_short }}">
-                </div>
-            </td>
-            <td class="header-text-cell">
-                <div class="brand-name">{{ panel_org|default:"Çinili Saray Proje" }}</div>
-                <div class="brand-sub">Temizlik Listesi</div>
-            </td>
-            <td class="header-right">
-                <div class="doc-title">{{ liste.ad }}</div>
-                <div class="doc-meta">
-                    Temizlik Görev Organizasyonu · {{ bugun|date:"d.m.Y" }}
-                    · {{ pdf_format|upper }} · {% if pdf_orientation == "landscape" %}Yatay{% else %}Dikey{% endif %}
-                </div>
-            </td>
-        </tr>
-    </table>
-    <hr class="head-rule">
+    <header class="doc-head">
+        <div>
+            <p class="doc-brand">{{ panel_org|default:"Çinili Saray Proje" }}</p>
+            <h1>Temizlik Listesi</h1>
+        </div>
+        <p class="meta">
+            {{ liste.ad }} · {{ bugun|date:"d.m.Y" }}
+            · {{ pdf_format|upper }} · {% if pdf_orientation == "landscape" %}Yatay{% else %}Dikey{% endif %}
+        </p>
+    </header>
 
     <div class="stats">
-        <div>Kat <span>{{ stats.toplam_kat }}</span></div>
-        <div>Mahal <span>{{ stats.toplam_mahal }}</span></div>
-        <div>Görevli <span>{{ stats.gorevli_talebe }}</span></div>
-        <div>Boş mahal <span>{{ stats.bos_mahal }}</span></div>
+        <div>Kat <strong>{{ stats.toplam_kat }}</strong></div>
+        <div>Mahal <strong>{{ stats.toplam_mahal }}</strong></div>
+        <div>Görevli <strong>{{ stats.gorevli_talebe }}</strong></div>
+        <div>Boş mahal <strong>{{ stats.bos_mahal }}</strong></div>
     </div>
 
     {% for kart in kat_kartlari %}
     <section class="kat-block">
-        <div class="kat-head">{{ kart.kat.ad }}</div>
-        <div class="kat-staff">
+        <h2 class="kat-title">{{ kart.kat.ad }}</h2>
+        <p class="kat-staff">
             Sorumlu:
-            {% for s in kart.sorumlular %}{{ s.ad }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}
-        </div>
+            <strong>{% for s in kart.sorumlular %}{{ s.ad }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</strong>
+        </p>
         <table>
             <thead>
                 <tr>
-                    <th style="width:36%">Mahal</th>
-                    <th style="width:64%">Görevli Talebeler</th>
+                    <th style="width:34%">Mahal</th>
+                    <th style="width:66%">Görevli Talebeler</th>
                 </tr>
             </thead>
             <tbody>
                 {% for row in kart.mahaller %}
                 <tr>
                     <td>
-                        <strong>{{ row.alan.ad }}</strong>
-                        {% if row.alan.aciklama %}<br><span class="alan-aciklama">{{ row.alan.aciklama }}</span>{% endif %}
+                        <span class="mahal">{{ row.alan.ad }}</span>
+                        {% if row.alan.aciklama %}<span class="mahal-sub">{{ row.alan.aciklama }}</span>{% endif %}
                     </td>
-                    <td>{% for g in row.gorevliler %}{{ g.ad_soyad }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</td>
+                    <td class="gorevli">
+                        {% for g in row.gorevliler %}{{ g.ad_soyad }}{% if not forloop.last %}, {% endif %}{% empty %}<span class="empty">—</span>{% endfor %}
+                    </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="2">Mahal tanımlı değil.</td></tr>
+                <tr><td colspan="2" class="empty">Mahal tanımlı değil.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </section>
     {% empty %}
-    <p>Kat tanımlanmamış.</p>
+    <p class="empty">Kat tanımlanmamış.</p>
     {% endfor %}
 
-    <div class="foot">
+    <div class="doc-foot">
         <span>{{ stats.toplam_mahal }} mahal · {{ stats.gorevli_talebe }} görevli talebe</span>
         <span>{{ panel_name }}</span>
     </div>
