@@ -62,10 +62,12 @@ from .permissions.service import can
 from .duyuru_service import kullaniciya_gorunur_duyurular
 from .dashboard_service import (
     bugunku_sinav_sayisi,
+    dashboard_dershane_onizleme,
     dashboard_etut_plani_onizleme,
     dashboard_gunluk_gorevler,
     dashboard_kisayollari,
     dashboard_metrikleri,
+    dashboard_namaz_gelmedi,
     dashboard_son_aktiviteler,
     dashboard_son_gorusmeler,
     dashboard_son_iletisim,
@@ -482,7 +484,10 @@ def dashboard(request):
             bugun=bugun,
         ),
         "etut_plani_onizleme": dashboard_etut_plani_onizleme(request.user),
+        "dershane_onizleme": dashboard_dershane_onizleme(request.user),
         "gunluk_gorevler": dashboard_gunluk_gorevler(request.user, bugun=bugun),
+        "namaz_gelmedi": dashboard_namaz_gelmedi(request.user, bugun=bugun),
+        "sinif_sayisi": siniflar.count(),
         "yct": yct,
     }
 

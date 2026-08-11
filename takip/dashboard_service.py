@@ -914,6 +914,59 @@ def dashboard_etut_plani_onizleme(user: User):
     return dashboard_etut_plani(user)
 
 
+def dashboard_dershane_onizleme(user: User) -> list[dict]:
+    """Haftalık dershane programı özeti — hocanın etüt grubu."""
+    from takip.etut_plan_service import dershane_hafta_onizleme
+    from takip.panel_permissions import dershane_program_modulu_erisimi_var
+    from takip.user_helpers import etut_hocasi_for_user
+
+    if not dershane_program_modulu_erisimi_var(user):
+        return []
+    hoca = etut_hocasi_for_user(user)
+    if not hoca:
+        return []
+    return dershane_hafta_onizleme(user, hoca)
+
+
+def dashboard_namaz_gelmedi(user: User, *, bugun: date | None = None) -> dict | None:
+    """Etüt hocasının talebelerinden bugün namaza gelmeyenler (vakit vakit)."""
+    from takip.namaz_yoklama_service import etut_gelmedi_bildirimleri, gelmedi_ozetleri
+    from takip.panel_permissions import namaz_yoklama_modulu_erisimi_var
+    from takip.user_helpers import etut_hocasi_for_user
+
+    if not namaz_yoklama_modulu_erisimi_var(user):
+        return None
+    if not etut_hocasi_for_user(user) and not tum_talebe_kapsami_var(user):
+        return None
+
+    bugun = bugun or timezone.localdate()
+    # Tam yetkili idareci için de etüt filtresi: kendi etüdü yoksa tüm gelmeyen özeti
+    hoca = etut_hocasi_for_user(user)
+    sadece_etudum = bool(hoca)
+    ozetler = gelmedi_ozetleri(user, bugun, sadece_etudum=sadece_etudum)
+    if hoca:
+        bildirimler = etut_gelmedi_bildirimleri(user, bugun)
+    else:
+        bildirimler = []
+        for ozet in ozetler:
+            if not ozet["gelmeyenler"]:
+                continue
+            bildirimler.append(
+                {
+                    "vakit": ozet["vakit"],
+                    "baslik": ozet["vakit_label"],
+                    "etiket": f"{ozet['vakit_label']} Namazına Gelmedi",
+                    "talebeler": [k.talebe for k in ozet["gelmeyenler"]],
+                }
+            )
+    return {
+        "bildirimler": bildirimler,
+        "ozetler": ozetler,
+        "toplam": sum(int(o.get("sayi") or 0) for o in ozetler),
+        "url": reverse("namaz_yoklama_panel") + ("?etudum=1" if hoca else ""),
+    }
+
+
 @dataclass(frozen=True)
 class DashboardGunlukGorev:
     baslik: str

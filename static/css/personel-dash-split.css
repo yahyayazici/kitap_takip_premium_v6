@@ -411,3 +411,270 @@
         padding: 1px 3px;
     }
 }
+
+/* —— Özel kartlar (sınıf / imam / yemek / namaz) —— */
+.personel-ozel-kartlar {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 14px;
+}
+
+.personel-ozel-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+    padding: 16px 16px 14px;
+    border-radius: 18px;
+    background: #fff;
+    border: 1px solid rgba(15, 40, 80, 0.08);
+    box-shadow: 0 10px 28px rgba(15, 40, 80, 0.06);
+}
+
+.personel-ozel-kicker {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #64748b;
+}
+
+.personel-ozel-card h2 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f2748;
+    line-height: 1.25;
+}
+
+.personel-ozel-value {
+    margin: 4px 0 0;
+    font-size: 2.2rem;
+    font-weight: 800;
+    line-height: 1;
+    color: #1d4ed8;
+    letter-spacing: -0.02em;
+}
+
+.personel-ozel-value--alert {
+    color: #b91c1c;
+}
+
+.personel-ozel-meta,
+.personel-ozel-body,
+.personel-ozel-empty,
+.personel-ozel-ok {
+    margin: 0;
+    font-size: 0.88rem;
+    color: #475569;
+    line-height: 1.4;
+}
+
+.personel-ozel-body {
+    font-weight: 650;
+    color: #1e293b;
+}
+
+.personel-ozel-ok {
+    color: #047857;
+    font-weight: 650;
+}
+
+.personel-ozel-list {
+    list-style: none;
+    margin: 4px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+}
+
+.personel-ozel-list li {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.84rem;
+    border-bottom: 1px solid #eef2f7;
+    padding-bottom: 5px;
+}
+
+.personel-ozel-list li span {
+    color: #64748b;
+}
+
+.personel-ozel-list li strong {
+    color: #0f2748;
+    font-weight: 700;
+    text-align: right;
+}
+
+.personel-ozel-link {
+    margin-top: auto;
+    padding-top: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #1d4ed8;
+    text-decoration: none;
+}
+
+.personel-ozel-link:hover {
+    text-decoration: underline;
+}
+
+/* Namaza gelmeyen — dikkat çekici */
+.personel-ozel-card--namaz {
+    border-color: #bbf7d0;
+    background: linear-gradient(165deg, #f0fdf4 0%, #fff 55%);
+}
+
+.personel-ozel-card--namaz.is-alert {
+    border-color: #fecaca;
+    background: linear-gradient(165deg, #fef2f2 0%, #fff7ed 42%, #fff 100%);
+    box-shadow:
+        0 0 0 1px rgba(220, 38, 38, 0.12),
+        0 14px 36px rgba(185, 28, 28, 0.12);
+    animation: personel-namaz-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes personel-namaz-pulse {
+    0%, 100% { box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.12), 0 14px 36px rgba(185, 28, 28, 0.1); }
+    50% { box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.22), 0 16px 40px rgba(185, 28, 28, 0.16); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .personel-ozel-card--namaz.is-alert {
+        animation: none;
+    }
+}
+
+.personel-namaz-vakits {
+    display: grid;
+    gap: 8px;
+    margin-top: 4px;
+    max-height: 180px;
+    overflow: auto;
+}
+
+.personel-namaz-vakit {
+    display: grid;
+    gap: 2px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(254, 226, 226, 0.55);
+    border: 1px solid #fecaca;
+}
+
+.personel-namaz-vakit em {
+    font-style: normal;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #b91c1c;
+}
+
+.personel-namaz-vakit span {
+    font-size: 0.84rem;
+    font-weight: 650;
+    color: #7f1d1d;
+    line-height: 1.35;
+}
+
+/* Plan tabloları yan yana */
+.personel-plan-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 14px;
+    margin-top: 14px;
+    align-items: stretch;
+}
+
+.personel-plan-card {
+    margin-top: 0 !important;
+    min-width: 0;
+}
+
+.personel-plan-table-wrap {
+    overflow: auto;
+    max-height: 320px;
+    padding: 0 12px 14px;
+}
+
+.personel-plan-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+}
+
+.personel-plan-table th,
+.personel-plan-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #e8eef6;
+    text-align: left;
+    vertical-align: top;
+}
+
+.personel-plan-table th {
+    position: sticky;
+    top: 0;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 0.72rem;
+    font-weight: 750;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    z-index: 1;
+}
+
+.personel-plan-table td:first-child {
+    font-weight: 700;
+    color: #0f2748;
+    white-space: nowrap;
+}
+
+.personel-plan-table tr.tamam td {
+    color: #047857;
+}
+
+.personel-plan-table tr.gecikti td {
+    color: #b45309;
+}
+
+.personel-plan-table .is-muted {
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.personel-ders-tag {
+    display: inline-block;
+    margin: 0 6px 6px 0;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #1e40af;
+    font-size: 0.78rem;
+    font-weight: 650;
+}
+
+@media (max-width: 1180px) {
+    .personel-ozel-kartlar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .personel-plan-split {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .personel-ozel-kartlar {
+        grid-template-columns: 1fr;
+    }
+
+    .personel-ozel-value {
+        font-size: 1.85rem;
+    }
+}
