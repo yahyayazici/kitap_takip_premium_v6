@@ -32,7 +32,18 @@ body.v3-body { margin: 0; background: var(--v3-bg); color: var(--v3-text); font-
 .v3-user-copy strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; font-weight: 800; }
 .v3-user-copy small { margin-top: 4px; color: #aebed8; font-size: 10px; font-weight: 650; }
 .v3-logout { border: 1px solid rgba(255,255,255,.18); border-radius: 9px; padding: 8px 10px; background: rgba(255,255,255,.06); color: #fff; font-size: 11px; font-weight: 750; cursor: pointer; }
-.v3-menu-toggle { display: none; width: 42px; height: 42px; border: 1px solid rgba(255,255,255,.16); border-radius: 11px; background: rgba(255,255,255,.08); padding: 10px; }
+.v3-menu-toggle {
+    display: none;
+    box-sizing: border-box;
+    width: var(--cs-touch-min, 44px);
+    height: var(--cs-touch-min, 44px);
+    min-width: var(--cs-touch-min, 44px);
+    min-height: var(--cs-touch-min, 44px);
+    border: 1px solid rgba(255,255,255,.16);
+    border-radius: 11px;
+    background: rgba(255,255,255,.08);
+    padding: 11px 10px;
+}
 .v3-menu-toggle span { display: block; height: 2px; margin: 4px 0; background: #fff; border-radius: 3px; }
 .v3-main { width: 100%; min-height: calc(100vh - var(--v3-header-height, 88px)); }
 .v3-main .page-content { width: 100%; max-width: none; margin: 0; padding: 18px var(--v6-page-gutter, clamp(10px, 1.2vw, 20px)) 44px; box-sizing: border-box; }
@@ -107,8 +118,11 @@ td { font-weight: 600; }
 .v3-toast-close {
     border: 0;
     background: rgba(15, 39, 68, 0.05);
-    width: 26px;
-    height: 26px;
+    box-sizing: border-box;
+    width: var(--cs-touch-min, 44px);
+    height: var(--cs-touch-min, 44px);
+    min-width: var(--cs-touch-min, 44px);
+    min-height: var(--cs-touch-min, 44px);
     border-radius: 8px;
     font-size: 16px;
     line-height: 1;

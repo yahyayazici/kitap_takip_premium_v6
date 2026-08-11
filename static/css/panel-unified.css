@@ -530,8 +530,10 @@ body.veli-body {
     display: inline-flex;
     align-items: center;
     justify-content: flex-end;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     gap: 8px;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .yonetim-person-cell {
@@ -570,10 +572,35 @@ body.veli-body {
 .yonetim-data-table td.yonetim-action-col,
 .yonetim-data-table td.yonetim-table-actions {
     width: 1%;
-    white-space: nowrap;
-    min-width: 168px;
+    white-space: normal;
+    min-width: 0;
     padding-left: 12px !important;
     padding-right: 16px !important;
+}
+
+@media (max-width: 900px) {
+    .yonetim-table-actions {
+        white-space: normal;
+        width: auto;
+    }
+
+    .yonetim-data-table td.yonetim-action-col .yonetim-action-group,
+    .yonetim-data-table td.yonetim-table-actions .yonetim-action-group,
+    .yonetim-page .report-data-table .yonetim-action-group {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        max-width: 100%;
+    }
+
+    .yonetim-action-btn,
+    .yonetim-inline-action {
+        max-width: 100%;
+    }
+
+    .yonetim-action-btn {
+        min-height: var(--cs-btn-h, 44px) !important;
+        height: auto !important;
+    }
 }
 
 .yonetim-data-table td.yonetim-action-col,
@@ -594,8 +621,10 @@ body.veli-body {
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
-    min-height: 36px !important;
-    height: 36px !important;
+    box-sizing: border-box;
+    min-width: var(--cs-touch-min, 44px);
+    min-height: var(--cs-touch-min, 44px) !important;
+    height: auto !important;
     padding: 0 12px !important;
     border: 1px solid #d8e3f0 !important;
     border-radius: 10px !important;

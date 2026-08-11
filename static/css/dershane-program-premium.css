@@ -69,7 +69,8 @@
     align-items: center;
     justify-content: center;
     gap: 0.35rem;
-    min-height: 36px;
+    box-sizing: border-box;
+    min-height: var(--cs-touch-min, 44px);
     padding: 0 0.85rem;
     border-radius: 10px;
     border: 1px solid var(--dp-line);
@@ -86,7 +87,11 @@
 .dp-btn-primary { background: var(--dp-accent); border-color: var(--dp-accent); color: #fff; }
 .dp-btn-primary:hover { filter: brightness(1.05); background: var(--dp-accent); }
 .dp-btn-ghost { background: #fff; }
-.dp-btn-sm { min-height: 32px; padding: 0 0.65rem; font-size: 0.75rem; }
+.dp-btn-sm {
+    min-height: var(--cs-touch-min, 44px);
+    padding: 0 0.65rem;
+    font-size: 0.75rem;
+}
 
 .dp-kicker {
     margin: 0 0 0.25rem;
@@ -807,16 +812,21 @@
 .dp-badge-teal { background: #ccfbf1; color: #0f766e; }
 
 .dp-icon-btn {
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    box-sizing: border-box;
+    width: var(--cs-touch-min, 44px);
+    height: var(--cs-touch-min, 44px);
+    min-width: var(--cs-touch-min, 44px);
+    min-height: var(--cs-touch-min, 44px);
     border: none;
     border-radius: 8px;
     background: transparent;
     color: var(--dp-muted);
     cursor: pointer;
+    font-size: 0.85rem;
 }
 
 .dp-icon-btn:hover { background: #f1f5f9; color: var(--dp-navy); }

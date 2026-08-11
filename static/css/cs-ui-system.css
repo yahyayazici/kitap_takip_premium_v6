@@ -104,6 +104,8 @@ body.talebe-body {
 .dd-matrix-wrap,
 .dp-matrix-scroll,
 .ep-table-wrap,
+.ep-week-grid-wrap,
+.ep-grid-wrap,
 .fn-table-wrap,
 .pid-table-wrap {
     max-width: 100%;
@@ -116,8 +118,56 @@ body.talebe-body {
 .yonetim-table-wrap,
 .st-table-wrap,
 .ktt-table-wrap,
-.report-data-table-wrap {
+.report-data-table-wrap,
+.ep-week-grid-wrap,
+.ep-grid-wrap {
     overflow-x: auto;
+}
+
+/* —— Global nav touch (≥44px hit area; icon size unchanged) —— */
+#v3-menu-toggle,
+.v3-menu-toggle,
+.yonetim-menu-toggle,
+.talebe-menu-toggle,
+.bn-bell-btn,
+.v3-user-area .bn-bell-btn,
+.cs-v6-actions .bn-bell-btn,
+.yonetim-v6-actions .bn-bell-btn,
+.v3-toast-close,
+.duyuru-carousel-nav-overlay .duyuru-nav-btn,
+.ai-zekasi-yenile {
+    box-sizing: border-box;
+    min-width: var(--cs-touch-min);
+    min-height: var(--cs-touch-min);
+}
+
+/* Kritik aksiyon / ikon kontrolleri — kaynakta düzeltilir; burada son hizalama (yeni !important yok) */
+.primary-btn,
+.ghost-btn,
+.btn-primary,
+.btn-ghost,
+.yonetim-head-ghost,
+.yonetim-action-btn,
+.dp-btn,
+.dp-btn-sm,
+.dp-icon-btn,
+.fn-btn,
+.ep-btn,
+.ny-view-btn,
+.pg-sure-tab,
+.ms-filter-trigger,
+.yk-tab {
+    box-sizing: border-box;
+    min-height: var(--cs-touch-min);
+}
+
+/* Namaz page-head: clip yok — içerik yüksekliği doğal (phase8 ile aynı specificity) */
+.ny-page .ny-head.ny-hero.patterned-page-head,
+.ny-page > header.page-head.ny-head {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    align-items: flex-start !important;
 }
 
 /* —— Form: iOS zoom önleme (constitution font-size ile uyumlu) —— */

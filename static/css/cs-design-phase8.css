@@ -709,9 +709,10 @@
 }
 
 .program-page .pg-sure-tab {
-    min-height: 40px;
+    min-height: var(--cs-touch-min, 44px);
     border-radius: var(--cs-radius-sm, 10px) !important;
     font-size: var(--cs-font-secondary, 13px) !important;
+    box-sizing: border-box;
 }
 
 .program-page .pg-sure-tab.is-active {
@@ -726,8 +727,9 @@
 
 .program-page .profile-head-actions .ghost-btn,
 .program-page .profile-head-actions .primary-btn {
-    min-height: var(--cs-btn-h-sm, 40px);
+    min-height: var(--cs-touch-min, 44px);
     border-radius: var(--cs-radius-sm, 12px) !important;
+    box-sizing: border-box;
 }
 
 .program-page .pg-sure-ai {
@@ -820,12 +822,13 @@
 }
 
 .dp-page .dp-btn {
-    min-height: var(--cs-btn-h-sm, 36px);
+    min-height: var(--cs-touch-min, 44px);
     border-radius: var(--cs-radius-sm, 10px) !important;
+    box-sizing: border-box;
 }
 
 .dp-page .dp-btn-sm {
-    min-height: 36px;
+    min-height: var(--cs-touch-min, 44px);
 }
 
 .dp-page .dp-filter-bar select,
@@ -2349,7 +2352,10 @@
     padding: 28px 32px !important;
     margin: 0 0 14px !important;
     color: #f0f4fc !important;
-    overflow: hidden !important;
+    /* İçerik (açıklama + chip satırı) kesilmesin — yükseklik doğal büyüsün */
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
     isolation: isolate !important;
 }
 

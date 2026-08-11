@@ -365,7 +365,8 @@ h1, h2, h3,
 button:not(.v3-menu-toggle):not(.v3-toast-close):not(.v3-nav-trigger):not(.yonetim-link-btn),
 input[type="submit"] {
     appearance: none !important;
-    min-height: 40px !important;
+    /* Touch quality: legacy 40px → constitution touch min */
+    min-height: var(--cs-touch-min, 44px) !important;
     padding: 9px 15px !important;
     border: 1px solid #d4dfed !important;
     border-radius: 11px !important;

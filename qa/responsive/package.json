@@ -1,0 +1,20 @@
+{
+  "name": "cinili-saray-responsive-qa",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Playwright Responsive QA for Çinili Saray (isolated from Django deps)",
+  "scripts": {
+    "qa": "playwright test",
+    "qa:mobile": "playwright test --project=phone-390 --project=phone-430",
+    "qa:tablet": "playwright test --project=tablet-768 --project=tablet-900",
+    "qa:desktop": "playwright test --project=laptop-1366 --project=desktop-1440 --project=desktop-1920",
+    "qa:smoke": "QA_SMOKE=1 playwright test --project=phone-390 --project=tablet-768 --project=desktop-1440",
+    "qa:report": "playwright show-report reports/html",
+    "auth": "playwright test --project=setup",
+    "qa:bootstrap-hint": "echo 'Run from repo root: DEBUG=True .venv/bin/python manage.py qa_bootstrap_local'"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.51.0",
+    "dotenv": "^16.4.7"
+  }
+}

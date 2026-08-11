@@ -909,19 +909,41 @@ html.ep-modal-open body {
     padding: 12px 12px 0;
 }
 
+.ep-week-card,
+.ep-week-stage {
+    min-width: 0;
+    max-width: 100%;
+}
+
 .ep-week-grid-wrap {
-    overflow: auto;
+    overflow-x: auto;
+    overflow-y: auto;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
     max-height: min(72vh, 640px);
     padding: 8px;
     border: 1px solid var(--ep-line);
     border-radius: var(--ep-radius-sm);
     background: linear-gradient(180deg, #fcfcfd 0%, #f8fafc 100%);
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
 }
 
 @media (max-width: 1100px) {
     .ep-week-grid-wrap {
         max-height: min(65vh, 520px);
+    }
+}
+
+@media (max-width: 900px) {
+    .ep-page,
+    .ep-week-card,
+    .ep-week-stage,
+    .ep-week-grid-wrap,
+    .ep-grid-wrap {
+        min-width: 0;
+        max-width: 100%;
     }
 }
 

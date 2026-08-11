@@ -309,18 +309,37 @@
 }
 
 .duyuru-carousel-dots button {
-    width: 7px;
-    height: 7px;
+    /* Hit area 44×44; görsel nokta ::after ile küçük kalır */
+    position: relative;
+    box-sizing: border-box;
+    width: var(--cs-touch-min, 44px);
+    height: var(--cs-touch-min, 44px);
+    min-width: var(--cs-touch-min, 44px);
+    min-height: var(--cs-touch-min, 44px);
+    margin: 0 calc((8px - var(--cs-touch-min, 44px)) / 2);
     padding: 0;
     border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    cursor: pointer;
+}
+
+.duyuru-carousel-dots button::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 7px;
+    height: 7px;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.55);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-    cursor: pointer;
+    transform: translate(-50%, -50%);
     transition: width 160ms ease, background 160ms ease;
 }
 
-.duyuru-carousel-dots button.is-active {
+.duyuru-carousel-dots button.is-active::after {
     width: 18px;
     background: #fff;
 }
@@ -339,8 +358,11 @@
 
 .duyuru-carousel-nav-overlay .duyuru-nav-btn {
     pointer-events: auto;
-    width: 34px;
-    height: 34px;
+    box-sizing: border-box;
+    width: var(--cs-touch-min, 44px);
+    height: var(--cs-touch-min, 44px);
+    min-width: var(--cs-touch-min, 44px);
+    min-height: var(--cs-touch-min, 44px);
     border: 0;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.92);
@@ -351,6 +373,9 @@
     box-shadow: 0 4px 14px rgba(15, 23, 42, 0.18);
     opacity: 0;
     transition: opacity 160ms ease, transform 160ms ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .duyuru-media-pane:hover .duyuru-carousel-nav-overlay .duyuru-nav-btn,
