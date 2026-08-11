@@ -43,6 +43,7 @@ def panel_branding(request):
     talebe_hesap = talebe_hesabi_for_user(user) if is_talebe else None
     veli_hesap = veli_hesabi_for_user(user) if is_veli else None
     ogretmen_hoca = ogretmen_hocasi_for_user(user) if is_ogretmen else None
+    ogretmen_rehberlik_var = False
 
     if is_veli:
         module_label = "Veli Paneli"
@@ -66,13 +67,22 @@ def panel_branding(request):
             user_subtitle = "Talebe"
     elif is_ogretmen:
         module_label = "Öğretmen Paneli"
-        rol_etiketi_text = "Öğretmen"
+        from takip.ogretmen_service import ogretmen_ekstra_rol_slugleri
+        from takip.permissions.service import can as yetki_can
+
+        ekstra = ogretmen_ekstra_rol_slugleri(user)
+        if "rehber_ogretmeni" in ekstra:
+            rol_etiketi_text = "Rehber Öğretmeni"
+            user_subtitle = "Öğretmen · Rehber"
+        else:
+            rol_etiketi_text = "Öğretmen"
+            user_subtitle = "Öğretmen"
         user_display_name = (
             ogretmen_hoca.ad_soyad
             if ogretmen_hoca
             else (user.get_full_name() or user.username)
         )
-        user_subtitle = "Öğretmen"
+        ogretmen_rehberlik_var = yetki_can(user, "rehberlik", "view")
     else:
         module_label = PANEL_MODULE_LABEL
         profil = None
@@ -123,6 +133,7 @@ def panel_branding(request):
         "talebe": talebe_hesap.talebe if talebe_hesap else None,
         "ogretmen_kullanicisi": is_ogretmen,
         "ogretmen_hoca": ogretmen_hoca,
+        "ogretmen_rehberlik_var": ogretmen_rehberlik_var,
         "yonetim_nav_groups": yonetim_nav_groups(),
         "asistan_aktif": asistan_kullanilabilir(user) if user.is_authenticated else False,
         "ai_platform_aktif": ai_platform_aktif_mi() and user.is_authenticated,

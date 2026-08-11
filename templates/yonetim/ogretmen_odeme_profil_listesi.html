@@ -22,6 +22,7 @@
                     <th>Sınıflar</th>
                     <th>Saatlik Ücret</th>
                     <th>Durum</th>
+                    <th>Ekstra rol</th>
                     <th class="yonetim-action-col">İşlem</th>
                 </tr>
             </thead>
@@ -33,9 +34,11 @@
                     <td>{% if hoca.sinif_etiketleri %}{{ hoca.sinif_etiketleri|join:", " }}{% else %}<span class="muted">Atanmadı</span>{% endif %}</td>
                     <td class="num-col">{% if hoca.odeme_profili_kayit %}{{ hoca.odeme_profili_kayit.saatlik_ucret }} ₺{% else %}—{% endif %}</td>
                     <td>{% if hoca.odeme_profili_kayit and hoca.odeme_profili_kayit.aktif %}Aktif{% elif hoca.odeme_profili_kayit %}Pasif{% else %}Tanımsız{% endif %}</td>
+                    <td>{% if hoca.ekstra_rol_etiketleri %}{{ hoca.ekstra_rol_etiketleri|join:", " }}{% else %}<span class="muted">—</span>{% endif %}</td>
                     <td class="yonetim-table-actions">
                         <div class="yonetim-action-group">
                             <a href="{% url 'yonetim:ogretmen_odeme_profil_duzenle' hoca.pk %}" class="yonetim-action-btn" data-ym-scroll-save>Düzenle</a>
+                            <a href="{% url 'yonetim:ogretmen_rol_ver' hoca.pk %}" class="yonetim-action-btn" data-ym-scroll-save>Rol ver</a>
                             <form method="post" action="{% url 'yonetim:ogretmen_giris_pdf_tek' hoca.pk %}" class="yonetim-inline-action" onsubmit="return confirm('{{ hoca.ad_soyad|escapejs }} için yeni şifre oluşturulup PDF indirilecek. Devam edilsin mi?');">
                                 {% csrf_token %}
                                 <button type="submit" class="yonetim-action-btn">Giriş PDF</button>
@@ -49,7 +52,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" class="muted">Henüz branş öğretmeni yok. Hızlı Ekle → Öğretmen ile ekleyin.</td>
+                    <td colspan="7" class="muted">Henüz branş öğretmeni yok. Hızlı Ekle → Öğretmen ile ekleyin.</td>
                 </tr>
                 {% endfor %}
             </tbody>

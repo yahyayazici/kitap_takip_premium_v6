@@ -12,13 +12,17 @@ from takip.hizli_kayit_service import ogretmen_pasif_et
 from takip.models import EtutHocasi, SinifSube
 from takip.ogretmen_odeme_models import OgretmenOdemeProfili
 from takip.ogretmen_odeme_service import aktif_ogretmenler, ogretmen_profili
-from takip.permissions.service import can
+from takip.ogretmen_service import (
+    OGRETMEN_EKSTRA_ROL_SLUGLERI,
+    ogretmen_ekstra_rol_slugleri,
+)
+from takip.permissions.service import can, clear_permission_cache
 from takip.personel_giris_service import (
     ogretmen_giris_kaydi_yenile,
     personel_giris_pdf_olustur,
 )
 from takip.pdf_utils import make_pdf_response, pdf_error_response
-from takip.wave0_models import Brans
+from takip.wave0_models import Brans, KullaniciRol, Rol
 from takip.yonetim_views import yonetici_gerekli
 
 
@@ -85,6 +89,15 @@ def ogretmen_odeme_profil_listesi(request):
         hoca.sinif_etiketleri = [
             f"{s.sinif}-{s.sube}" for s in hoca.sorumlu_sinif_subeler.all()
         ]
+        if hoca.user_id:
+            slugler = ogretmen_ekstra_rol_slugleri(hoca.user)
+            hoca.ekstra_rol_etiketleri = list(
+                Rol.objects.filter(slug__in=slugler, aktif=True)
+                .order_by("sira", "ad")
+                .values_list("ad", flat=True)
+            )
+        else:
+            hoca.ekstra_rol_etiketleri = []
 
     return render(
         request,
@@ -128,6 +141,83 @@ def ogretmen_odeme_profil_duzenle(request, pk: int):
             "form": form,
             "hoca": hoca,
             "branslar": Brans.objects.filter(aktif=True).order_by("sira", "ad"),
+        },
+    )
+
+
+@yonetici_gerekli
+def ogretmen_rol_ver(request, pk: int):
+    """Branş öğretmene ekstra RBAC rol ata (PersonelProfili açılmaz)."""
+    if not can(request.user, "ogretmen_odeme", "view_financial"):
+        return redirect("yonetim:dashboard")
+
+    hoca = get_object_or_404(
+        EtutHocasi.objects.select_related("user"),
+        pk=pk,
+        aktif=True,
+        personel_kaydi__isnull=True,
+    )
+    if not hoca.user_id:
+        messages.error(request, "Bu öğretmenin kullanıcı hesabı yok; önce giriş PDF oluşturun.")
+        return redirect("yonetim:ogretmen_odeme_profil_listesi")
+
+    atanabilir = list(
+        Rol.objects.filter(slug__in=OGRETMEN_EKSTRA_ROL_SLUGLERI, aktif=True).order_by(
+            "sira", "ad"
+        )
+    )
+    secili = set(ogretmen_ekstra_rol_slugleri(hoca.user))
+
+    if request.method == "POST":
+        istenen = set(request.POST.getlist("roller")) & set(OGRETMEN_EKSTRA_ROL_SLUGLERI)
+        mevcut = {
+            kr.rol.slug: kr
+            for kr in KullaniciRol.objects.filter(
+                user=hoca.user, rol__slug__in=OGRETMEN_EKSTRA_ROL_SLUGLERI
+            ).select_related("rol")
+        }
+
+        for slug in istenen - set(mevcut):
+            rol = next((r for r in atanabilir if r.slug == slug), None)
+            if rol is None:
+                rol = Rol.objects.filter(slug=slug, aktif=True).first()
+            if rol is None:
+                continue
+            KullaniciRol.objects.get_or_create(
+                user=hoca.user,
+                rol=rol,
+                defaults={"birincil": False},
+            )
+
+        for slug, kayit in mevcut.items():
+            if slug not in istenen:
+                kayit.delete()
+
+        clear_permission_cache()
+        if istenen:
+            adlar = ", ".join(
+                r.ad for r in atanabilir if r.slug in istenen
+            ) or ", ".join(sorted(istenen))
+            messages.success(
+                request,
+                f"{hoca.ad_soyad} için ekstra roller kaydedildi: {adlar}.",
+            )
+        else:
+            messages.success(
+                request,
+                f"{hoca.ad_soyad} için ekstra rol kaldırıldı. Girişte doğrudan Not Girişi açılır.",
+            )
+        return redirect(
+            reverse("yonetim:ogretmen_odeme_profil_listesi") + f"#hoca-{hoca.pk}"
+        )
+
+    return render(
+        request,
+        "yonetim/ogretmen_rol_ver.html",
+        {
+            "hoca": hoca,
+            "atanabilir_roller": atanabilir,
+            "secili_slugler": secili,
         },
     )
 

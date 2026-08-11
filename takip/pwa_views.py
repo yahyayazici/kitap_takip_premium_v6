@@ -109,7 +109,9 @@ def _panel_giris_hedefi(user) -> str:
     if kullanici_talebe_mi(user):
         return reverse("talebe_dashboard")
     if ogretmen_paneli_kullanicisi_mi(user):
-        return reverse("ogretmen_dashboard")
+        from takip.ogretmen_service import ogretmen_giris_url_adi
+
+        return reverse(ogretmen_giris_url_adi(user))
     return reverse("dashboard")
 
 

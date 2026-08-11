@@ -214,6 +214,11 @@ urlpatterns = [
         name="ogretmen_odeme_profil_duzenle",
     ),
     path(
+        "ogretmen-odeme-profilleri/<int:pk>/rol-ver/",
+        ogretmen_odeme_yonetim_views.ogretmen_rol_ver,
+        name="ogretmen_rol_ver",
+    ),
+    path(
         "ogretmen-odeme-profilleri/<int:pk>/sil/",
         ogretmen_odeme_yonetim_views.ogretmen_odeme_profil_sil,
         name="ogretmen_odeme_profil_sil",

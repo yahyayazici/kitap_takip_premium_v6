@@ -5,7 +5,10 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 
-from takip.ogretmen_service import ogretmen_paneli_kullanicisi_mi
+from takip.ogretmen_service import (
+    ogretmen_giris_url_adi,
+    ogretmen_paneli_kullanicisi_mi,
+)
 from takip.talebe_panel_service import kullanici_talebe_mi
 from takip.veli_service import kullanici_veli_mi
 
@@ -25,5 +28,5 @@ class PanelLoginView(auth_views.LoginView):
         if kullanici_talebe_mi(user):
             return reverse("talebe_dashboard")
         if ogretmen_paneli_kullanicisi_mi(user):
-            return reverse("ogretmen_dashboard")
+            return reverse(ogretmen_giris_url_adi(user))
         return reverse("dashboard")

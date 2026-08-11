@@ -301,7 +301,9 @@ def home(request):
         if kullanici_talebe_mi(request.user):
             return redirect("talebe_dashboard")
         if ogretmen_paneli_kullanicisi_mi(request.user):
-            return redirect("ogretmen_dashboard")
+            from takip.ogretmen_service import ogretmen_giris_url_adi
+
+            return redirect(ogretmen_giris_url_adi(request.user))
         return redirect("dashboard")
 
     return redirect("login")
@@ -319,7 +321,9 @@ def dashboard(request):
     if kullanici_talebe_mi(request.user):
         return redirect("talebe_dashboard")
     if ogretmen_paneli_kullanicisi_mi(request.user):
-        return redirect("ogretmen_dashboard")
+        from takip.ogretmen_service import ogretmen_giris_url_adi
+
+        return redirect(ogretmen_giris_url_adi(request.user))
 
     bugun = localdate()
 

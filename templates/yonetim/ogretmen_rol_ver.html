@@ -1,0 +1,46 @@
+{% extends "yonetim/base.html" %}
+
+{% block title %}Rol ver · {{ hoca.ad_soyad }}{% endblock %}
+
+{% block content %}
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">ÖĞRETMEN</p>
+        <h1>Rol ver · {{ hoca.ad_soyad }}</h1>
+        <p class="muted">Ekstra rol vermezseniz girişte doğrudan Not Girişi açılır. Rehber öğretmeni gibi roller buradan tanımlanır; personel hesabı açılmaz.</p>
+    </div>
+</header>
+
+<section class="yonetim-form-card">
+    <form method="post">
+        {% csrf_token %}
+        {% if atanabilir_roller %}
+        <div class="yonetim-field yonetim-field-checkbox-grid">
+            <label>Ekstra roller</label>
+            <div class="yonetim-field-control choice-chip-wrap">
+                <ul class="choice-chip-grid">
+                    {% for rol in atanabilir_roller %}
+                    <li>
+                        <label class="choice-chip">
+                            <input type="checkbox" name="roller" value="{{ rol.slug }}"{% if rol.slug in secili_slugler %} checked{% endif %}>
+                            <span>{{ rol.ad }}</span>
+                        </label>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <small>Seçilmeyen roller kaldırılır. Klasik branş öğretmeni için boş bırakın.</small>
+        </div>
+        {% else %}
+        <p class="muted">Atanabilir rol tanımı bulunamadı. Yönetim → Roller ekranından varsayılan rolleri yükleyin.</p>
+        {% endif %}
+        <div class="yonetim-form-actions">
+            <a href="{% url 'yonetim:ogretmen_odeme_profil_duzenle' hoca.pk %}" class="ghost-btn yonetim-head-ghost">Düzenlemeye dön</a>
+            <a href="{% url 'yonetim:ogretmen_odeme_profil_listesi' %}#hoca-{{ hoca.pk }}" class="ghost-btn yonetim-head-ghost">Listeye dön</a>
+            {% if atanabilir_roller %}
+            <button type="submit" class="primary-btn">Rolleri kaydet</button>
+            {% endif %}
+        </div>
+    </form>
+</section>
+{% endblock %}

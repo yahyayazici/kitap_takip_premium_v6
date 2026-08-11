@@ -62,6 +62,37 @@ def ogretmen_paneli_kullanicisi_mi(user: User) -> bool:
     return kullanici_ogretmen_mi(user)
 
 
+# Branş öğretmene PersonelProfili açmadan verilebilen ekstra RBAC roller
+OGRETMEN_EKSTRA_ROL_SLUGLERI: frozenset[str] = frozenset({"rehber_ogretmeni"})
+
+
+def ogretmen_ekstra_rol_slugleri(user: User) -> frozenset[str]:
+    """Öğretmene atanmış ekstra roller (PersonelProfili yok; yalnızca KullaniciRol)."""
+    if not user or not user.is_authenticated:
+        return frozenset()
+
+    from takip.wave0_models import KullaniciRol
+
+    return frozenset(
+        KullaniciRol.objects.filter(
+            user=user,
+            rol__aktif=True,
+            rol__slug__in=OGRETMEN_EKSTRA_ROL_SLUGLERI,
+        ).values_list("rol__slug", flat=True)
+    )
+
+
+def ogretmen_ekstra_rolu_var_mi(user: User) -> bool:
+    return bool(ogretmen_ekstra_rol_slugleri(user))
+
+
+def ogretmen_giris_url_adi(user: User) -> str:
+    """Klasik öğretmen → not girişi; ekstra rol varsa ana sayfa."""
+    if ogretmen_ekstra_rolu_var_mi(user):
+        return "ogretmen_dashboard"
+    return "ogretmen_not_girisi"
+
+
 def ogretmen_brans_etiketi(hoca: EtutHocasi | None) -> str:
     """Header alt satırı: örn. 'Sosyal Bilgiler Öğretmeni'."""
     if not hoca:
