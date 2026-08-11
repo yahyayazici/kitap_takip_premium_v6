@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/duyuru-carousel.css' %}?v=yct-compact1">
-<link rel="stylesheet" href="{% static 'css/personel-dash-split.css' %}?v=ozel-kart3">
+<link rel="stylesheet" href="{% static 'css/personel-dash-split.css' %}?v=ozel-kart4">
 <link rel="stylesheet" href="{% static 'css/vazife-premium.css' %}">
 {% if etut_plani_onizleme or dershane_onizleme %}
 <link rel="stylesheet" href="{% static 'css/etut-plan-premium.css' %}">
@@ -229,19 +229,6 @@
         {% endif %}
     </nav>
 </section>
-
-{% if etut_hocasi or request.user.is_superuser %}
-<section class="dash-panel dash-panel-lined">
-    <div class="dash-panel-head">
-        <div>
-            <p class="dash-eyebrow dash-accent-eyebrow-blue">Dijital etüt</p>
-            <h2>Konu destek raporu</h2>
-        </div>
-        <a href="{% url 'etut_konu_destek_rapor' %}" class="primary-btn">Raporu aç</a>
-    </div>
-    <p class="dash-empty-note">Talebelerin izlediği videolar ve mini test sonuçları.</p>
-</section>
-{% endif %}
 
 {% include "includes/dash_metrik_strip.html" %}
 

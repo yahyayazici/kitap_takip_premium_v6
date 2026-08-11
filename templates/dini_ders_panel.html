@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Dini Ders Takip · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}?v=dd-sticky4">
+<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}?v=dd-mob3">
 {% endblock %}
 {% block content %}
 <div class="dd-page">
@@ -376,7 +376,7 @@ document.addEventListener("DOMContentLoaded", function () {
     })();
 
     function syncDdInputs() {
-        var mobile = window.matchMedia("(max-width: 640px)").matches;
+        var mobile = window.matchMedia("(max-width: 900px)").matches;
         document.querySelectorAll(".dd-matrix-wrap input[type=checkbox]").forEach(function (el) {
             el.disabled = mobile;
         });
