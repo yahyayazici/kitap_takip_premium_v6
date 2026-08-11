@@ -16,24 +16,29 @@
 }
 
 .dd-page {
-    max-width: none;
     width: 100%;
     min-width: 0;
+    max-width: 100% !important;
     margin: 0;
     padding: 0 0 2.5rem;
     display: grid;
     gap: 0.85rem;
-    /* panel-unified overflow-x:clip sticky/freeze kırar */
-    overflow: visible !important;
-    overflow-x: visible !important;
+    /* Sayfa yatay kaymasın — sadece .dd-matrix-wrap kayar */
+    overflow-x: clip !important;
 }
 
-/* Üst sarmalayıcılar da clip olmasın — Safari sticky/freeze için zorunlu */
+/* Sayfa boşluğa kaymasın; freeze JS ile isim/konu dondurulur */
 html:has(.dd-page),
-body.v3-body:has(.dd-page),
+body.v3-body:has(.dd-page) {
+    overflow-x: clip !important;
+    max-width: 100%;
+}
+
 .v3-main:has(.dd-page),
 .v3-main .page-content:has(.dd-page) {
-    overflow-x: visible !important;
+    overflow-x: clip !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
 }
 
 .dd-page-head {
@@ -216,8 +221,10 @@ body.v3-body:has(.dd-page),
 
 .dd-matrix-card {
     padding: 0;
-    /* overflow:hidden → Safari/tablet’te sticky Talebe + konu satırı donmaz */
-    overflow: visible;
+    /* Kart dışına taşmayı kes — kaydırma yalnızca wrap içinde */
+    overflow: hidden;
+    max-width: 100%;
+    min-width: 0;
 }
 
 .dd-matrix-head {
@@ -436,11 +443,15 @@ body.dd-topic-modal-open {
     overflow: auto;
     max-height: min(70dvh, 820px);
     overscroll-behavior: contain;
+    overscroll-behavior-x: contain;
     border-radius: 0;
     position: relative;
     z-index: 0;
     width: 100%;
-    /* -webkit-overflow-scrolling:touch Safari’de sticky/freeze bozar */
+    max-width: 100%;
+    min-width: 0;
+    -webkit-overflow-scrolling: auto;
+    touch-action: pan-x pan-y;
 }
 
 .dd-matrix {
@@ -1255,109 +1266,71 @@ body.dd-topic-modal-open {
     }
 }
 
-/* Masaüstü: kart liste gizli — media query bundan sonra gelmeli */
+/* Kart liste artık kullanılmıyor — her ekranda tablo */
 .dd-mob-list {
-    display: none;
+    display: none !important;
 }
 
-@media (max-width: 900px) {
-    .dd-aside {
-        grid-template-columns: 1fr;
+@media (max-width: 1024px) {
+    .dd-layout {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .dd-matrix-card,
+    .dd-matrix-wrap {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    .dd-matrix-wrap {
+        max-height: min(68dvh, 720px);
+    }
+
+    .dd-matrix thead th.dd-sticky-col,
+    .dd-matrix tbody td.dd-sticky-col {
+        min-width: 118px;
+        max-width: 132px;
+        padding-left: 0.5rem;
+        padding-right: 0.4rem;
+    }
+
+    .dd-matrix thead th.dd-topic-col,
+    .dd-matrix tbody td.dd-cell {
+        width: 40px;
+        min-width: 40px;
+        max-width: 40px;
+    }
+
+    .dd-matrix thead th.dd-topic-col {
+        height: 96px;
+        padding: 0.35rem 0.2rem 0.45rem;
+    }
+
+    .dd-matrix thead th.dd-topic-col span {
+        max-height: 78px;
+        font-size: 0.64rem;
     }
 
     .dd-student-name {
-        font-size: 0.75rem;
+        font-size: 0.72rem;
     }
 
-    .dd-report-stats {
-        grid-template-columns: 1fr;
+    .dd-student-no {
+        width: 1.25rem;
+        height: 1.25rem;
+        font-size: 0.62rem;
+    }
+
+    .dd-student-cell {
+        gap: 0.35rem;
     }
 
     .dd-legend {
         gap: 0.45rem 0.75rem;
         padding: 0.55rem 0.85rem;
-    }
-
-    /* Mobil/tablet: matris yerine talebe kart + konu listesi */
-    .dd-matrix-wrap {
-        display: none !important;
-    }
-
-    .dd-mob-list {
-        display: grid !important;
-        gap: 12px;
-        padding: 12px;
-        background: #f8fafc;
-        border-top: 1px solid var(--dd-line);
-    }
-
-    .dd-mob-card {
-        border: 1px solid #dbe3ef;
-        border-radius: 14px;
-        background: #fff;
-        overflow: hidden;
-        box-shadow: 0 2px 10px rgba(15, 40, 80, 0.05);
-    }
-
-    .dd-mob-head {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 12px 14px;
-        border-bottom: 1px solid #eef2f7;
-        text-align: left;
-        background: #f8fafc;
-    }
-
-    .dd-mob-head strong {
-        display: block;
-        font-size: 0.95rem;
-        font-weight: 700;
-        color: #0f2744 !important;
-        line-height: 1.35;
-    }
-
-    .dd-mob-topics {
-        display: grid;
-        gap: 0;
-    }
-
-    .dd-mob-topic {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        align-items: center;
-        gap: 10px;
-        padding: 12px 14px;
-        border-top: 1px solid #eef2f7;
-        cursor: pointer;
-        text-align: left;
-        position: relative;
-    }
-
-    .dd-mob-topic:first-child {
-        border-top: 0;
-    }
-
-    .dd-mob-topic input {
-        position: absolute;
-        opacity: 0;
-        width: 1px;
-        height: 1px;
-        pointer-events: none;
-    }
-
-    .dd-mob-topic-name {
-        display: block;
-        min-width: 0;
-        font-size: 0.88rem;
-        font-weight: 600;
-        color: #0f2744 !important;
-        line-height: 1.4;
-        word-break: break-word;
-    }
-
-    .dd-mob-topic-readonly {
-        cursor: default;
     }
 
     .dd-form-foot {
@@ -1367,5 +1340,20 @@ body.dd-topic-modal-open {
         background: rgba(255, 255, 255, 0.96);
         border-top: 1px solid var(--dd-line);
         padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    }
+}
+
+@media (max-width: 1024px) and (orientation: landscape) {
+    .dd-matrix-wrap {
+        max-height: min(58dvh, 420px);
+    }
+
+    .dd-matrix thead th.dd-topic-col {
+        height: 72px;
+    }
+
+    .dd-matrix thead th.dd-topic-col span {
+        max-height: 56px;
+        font-size: 0.6rem;
     }
 }

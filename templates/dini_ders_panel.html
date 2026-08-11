@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Dini Ders Takip · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}?v=dd-mob3">
+<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}?v=dd-tablo5">
 {% endblock %}
 {% block content %}
 <div class="dd-page">
@@ -332,34 +332,46 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    /* Tablet/Safari: CSS sticky kırılıyor — kaydırınca isim/konu transform ile dondurulur */
+    /* İsim sütunu + konu satırı: kaydırınca transform ile dondur (Safari/tablet/mobil) */
     (function initMatrixFreeze() {
         var wraps = document.querySelectorAll(".dd-matrix-wrap");
         if (!wraps.length) return;
 
         wraps.forEach(function (wrap) {
-            var nameCells = wrap.querySelectorAll("tbody td.dd-sticky-col");
-            var topicHeads = wrap.querySelectorAll("thead th.dd-topic-col");
+            var nameCells = Array.prototype.slice.call(
+                wrap.querySelectorAll("tbody td.dd-sticky-col")
+            );
+            var topicHeads = Array.prototype.slice.call(
+                wrap.querySelectorAll("thead th.dd-topic-col")
+            );
             var corner = wrap.querySelector("thead th.dd-sticky-col");
             if (!nameCells.length && !topicHeads.length) return;
 
             wrap.classList.add("is-freeze-js");
             var ticking = false;
+            var lastX = -1;
+            var lastY = -1;
 
             function apply() {
-                var x = wrap.scrollLeft;
-                var y = wrap.scrollTop;
+                var x = wrap.scrollLeft || 0;
+                var y = wrap.scrollTop || 0;
+                if (x === lastX && y === lastY) {
+                    ticking = false;
+                    return;
+                }
+                lastX = x;
+                lastY = y;
                 var i;
+                var tx = "translate3d(" + x + "px,0,0)";
+                var ty = "translate3d(0," + y + "px,0)";
                 for (i = 0; i < nameCells.length; i++) {
-                    nameCells[i].style.transform = x ? "translateX(" + x + "px)" : "";
+                    nameCells[i].style.transform = tx;
                 }
                 for (i = 0; i < topicHeads.length; i++) {
-                    topicHeads[i].style.transform = y ? "translateY(" + y + "px)" : "";
+                    topicHeads[i].style.transform = ty;
                 }
                 if (corner) {
-                    corner.style.transform = (x || y)
-                        ? "translate(" + x + "px," + y + "px)"
-                        : "";
+                    corner.style.transform = "translate3d(" + x + "px," + y + "px,0)";
                 }
                 ticking = false;
             }
@@ -371,21 +383,20 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             wrap.addEventListener("scroll", onScroll, { passive: true });
+            wrap.addEventListener("touchmove", onScroll, { passive: true });
+            window.addEventListener("resize", function () {
+                lastX = -1;
+                lastY = -1;
+                onScroll();
+            }, { passive: true });
             apply();
         });
     })();
 
-    function syncDdInputs() {
-        var mobile = window.matchMedia("(max-width: 900px)").matches;
-        document.querySelectorAll(".dd-matrix-wrap input[type=checkbox]").forEach(function (el) {
-            el.disabled = mobile;
-        });
-        document.querySelectorAll(".dd-mob-list input[type=checkbox]").forEach(function (el) {
-            el.disabled = !mobile;
-        });
-    }
-    syncDdInputs();
-    window.addEventListener("resize", syncDdInputs);
+    /* Mobilde de tablo aktif — kart listedeki inputlar kapalı */
+    document.querySelectorAll(".dd-mob-list input[type=checkbox]").forEach(function (el) {
+        el.disabled = true;
+    });
 
     var popover = document.getElementById("dd-topic-popover");
     var popoverText = popover ? popover.querySelector(".dd-topic-popover-text") : null;
