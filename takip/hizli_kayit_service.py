@@ -115,6 +115,15 @@ def talebe_kalici_sil(talebe: Talebe) -> None:
         ) from exc
 
 
+def _personel_kalici_sil_on_hazirlik(personel: PersonelProfili) -> None:
+    """PROTECT ve etüt CASCADE engellerini kaldırır."""
+    personel.veli_randevulari.all().delete()
+    personel.disiplin_kurul_katilimlari.all().delete()
+    if personel.etut_hocasi_id:
+        PersonelProfili.objects.filter(pk=personel.pk).update(etut_hocasi_id=None)
+        personel.etut_hocasi_id = None
+
+
 def personel_kalici_sil(personel: PersonelProfili) -> None:
     if personel.aktif:
         raise ValueError("Aktif personel kalıcı silinemez; önce pasif edin.")
@@ -122,7 +131,14 @@ def personel_kalici_sil(personel: PersonelProfili) -> None:
 
     user_id = personel.user_id
     etut_id = personel.etut_hocasi_id
-    personel.delete()
+    _personel_kalici_sil_on_hazirlik(personel)
+
+    try:
+        personel.delete()
+    except ProtectedError as exc:
+        raise ValueError(
+            "Personel profili başka kayıtlara bağlı olduğu için silinemedi."
+        ) from exc
 
     if not user_id:
         return
