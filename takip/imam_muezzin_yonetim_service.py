@@ -70,62 +70,72 @@ def havuz_listesi(liste: ImamMuezzinListesi, rol: str) -> list[dict]:
 
 
 def ornek_havuz_yukle(liste: ImamMuezzinListesi) -> tuple[int, int]:
-    """Tüm öğrenci havuzunu imam/müezzin listelerine böler."""
+    """Öğrencileri imam/müezzin listelerine çakışmasız böler (tek kişi tek rol)."""
     havuz_temizle(liste)
     tum = talebe_havuzunu_al(liste)
     if not tum:
         return 0, 0
 
-    orta = max(1, len(tum) // 2)
-    imam_say = 0
-    muezzin_say = 0
-    for i, talebe in enumerate(tum[:orta]):
-        ImamMuezzinHavuzKaydi.objects.create(
-            liste=liste,
-            talebe=talebe,
-            rol=ImamMuezzinHavuzKaydi.Rol.IMAM,
-            sira=i + 1,
-        )
-        imam_say += 1
-    for i, talebe in enumerate(tum[orta:] or tum):
-        ImamMuezzinHavuzKaydi.objects.create(
-            liste=liste,
-            talebe=talebe,
-            rol=ImamMuezzinHavuzKaydi.Rol.MUEZZIN,
-            sira=i + 1,
-        )
-        muezzin_say += 1
-    return imam_say, muezzin_say
+    imam_kayitlar = []
+    muezzin_kayitlar = []
+    for i, talebe in enumerate(tum):
+        if i % 2 == 0:
+            imam_kayitlar.append(
+                ImamMuezzinHavuzKaydi(
+                    liste=liste,
+                    talebe=talebe,
+                    rol=ImamMuezzinHavuzKaydi.Rol.IMAM,
+                    sira=len(imam_kayitlar) + 1,
+                )
+            )
+        else:
+            muezzin_kayitlar.append(
+                ImamMuezzinHavuzKaydi(
+                    liste=liste,
+                    talebe=talebe,
+                    rol=ImamMuezzinHavuzKaydi.Rol.MUEZZIN,
+                    sira=len(muezzin_kayitlar) + 1,
+                )
+            )
+    ImamMuezzinHavuzKaydi.objects.bulk_create(imam_kayitlar + muezzin_kayitlar)
+    return len(imam_kayitlar), len(muezzin_kayitlar)
 
 
 def havuzlari_hazirla(liste: ImamMuezzinListesi) -> None:
     if liste.havuz_kayitlari.exists():
         return
+    ornek_havuz_yukle(liste)
 
-    tum = talebe_havuzunu_al(liste)
-    if not tum:
-        return
 
-    orta = max(1, len(tum) // 2)
-    for i, talebe in enumerate(tum[:orta]):
-        ImamMuezzinHavuzKaydi.objects.create(
-            liste=liste,
-            talebe=talebe,
-            rol=ImamMuezzinHavuzKaydi.Rol.IMAM,
-            sira=i + 1,
+def havuz_cakismalari_coz(liste: ImamMuezzinListesi) -> int:
+    """Aynı talebe iki listede varsa müezzin kaydını siler (imam öncelikli)."""
+    imam_ids = set(
+        liste.havuz_kayitlari.filter(rol=ImamMuezzinHavuzKaydi.Rol.IMAM).values_list(
+            "talebe_id", flat=True
         )
-    for i, talebe in enumerate(tum[orta:] or tum):
-        ImamMuezzinHavuzKaydi.objects.create(
-            liste=liste,
-            talebe=talebe,
-            rol=ImamMuezzinHavuzKaydi.Rol.MUEZZIN,
-            sira=i + 1,
-        )
+    )
+    if not imam_ids:
+        return 0
+    silinen, _ = liste.havuz_kayitlari.filter(
+        rol=ImamMuezzinHavuzKaydi.Rol.MUEZZIN,
+        talebe_id__in=imam_ids,
+    ).delete()
+    return silinen
+
+
+def _diger_rol(rol: str) -> str:
+    if rol == ImamMuezzinHavuzKaydi.Rol.IMAM:
+        return ImamMuezzinHavuzKaydi.Rol.MUEZZIN
+    return ImamMuezzinHavuzKaydi.Rol.IMAM
 
 
 def havuz_ekle(liste: ImamMuezzinListesi, rol: str, talebe_id: int) -> bool:
+    if rol not in {ImamMuezzinHavuzKaydi.Rol.IMAM, ImamMuezzinHavuzKaydi.Rol.MUEZZIN}:
+        return False
     if not Talebe.objects.filter(pk=talebe_id, aktif=True).exists():
         return False
+    # Tek kişi tek rol
+    liste.havuz_kayitlari.filter(rol=_diger_rol(rol), talebe_id=talebe_id).delete()
     son_sira = (
         liste.havuz_kayitlari.filter(rol=rol).order_by("-sira").values_list("sira", flat=True).first()
         or 0
@@ -150,7 +160,7 @@ def _parse_id_list(values) -> list[int]:
 
 
 def havuz_toplu_ekle(liste: ImamMuezzinListesi, rol: str, talebe_ids: list[int]) -> int:
-    """Aynı role birden fazla talebe ekler; zaten olanları atlar."""
+    """Aynı role birden fazla talebe ekler; diğer rolden çıkarır, zaten olanları atlar."""
     if rol not in {ImamMuezzinHavuzKaydi.Rol.IMAM, ImamMuezzinHavuzKaydi.Rol.MUEZZIN}:
         return 0
     ids = _parse_id_list(talebe_ids)
@@ -159,6 +169,10 @@ def havuz_toplu_ekle(liste: ImamMuezzinListesi, rol: str, talebe_ids: list[int])
     aktif_ids = set(
         Talebe.objects.filter(pk__in=ids, aktif=True).values_list("pk", flat=True)
     )
+    if not aktif_ids:
+        return 0
+    # Diğer listeden çıkar (çakışma olmasın)
+    liste.havuz_kayitlari.filter(rol=_diger_rol(rol), talebe_id__in=aktif_ids).delete()
     mevcut = set(
         liste.havuz_kayitlari.filter(rol=rol, talebe_id__in=aktif_ids).values_list(
             "talebe_id", flat=True
@@ -260,6 +274,9 @@ def gorev_paneli(liste: ImamMuezzinListesi, *, yil: int | None = None, ay: int |
     ay = ay or liste.baslangic_tarihi.month
     baslangic, bitis = ay_araligi(yil, ay)
 
+    # Eski hatalı doldurmalardan kalan çift kayıtları temizle
+    havuz_cakismalari_coz(liste)
+
     mevcut_talebeler = {t.pk for t in talebe_havuzunu_al(liste)}
     secilebilir = Talebe.objects.filter(pk__in=mevcut_talebeler, aktif=True).order_by("ad_soyad")
 
@@ -267,6 +284,8 @@ def gorev_paneli(liste: ImamMuezzinListesi, *, yil: int | None = None, ay: int |
     muezzin_havuzu = havuz_listesi(liste, ImamMuezzinHavuzKaydi.Rol.MUEZZIN)
     imam_ids = {k["talebe_id"] for k in imam_havuzu}
     muezzin_ids = {k["talebe_id"] for k in muezzin_havuzu}
+    # Eklenebilir: bu listede olmayanlar (diğer listedekiler taşınabilir)
+    dolu_ids = imam_ids | muezzin_ids
 
     return {
         "liste": liste,
@@ -280,6 +299,7 @@ def gorev_paneli(liste: ImamMuezzinListesi, *, yil: int | None = None, ay: int |
         "talebeler": secilebilir,
         "imam_eklenebilir": secilebilir.exclude(pk__in=imam_ids),
         "muezzin_eklenebilir": secilebilir.exclude(pk__in=muezzin_ids),
+        "havuz_dolu": len(dolu_ids),
         "atamalar": atama_satirlari(liste),
         "gun_sayisi": len(calisma_gunleri(liste)),
     }

@@ -66,10 +66,7 @@ def _rol_havuzu(liste: ImamMuezzinListesi, rol: str) -> list[Talebe]:
         .select_related("talebe")
         .order_by("sira", "talebe__ad_soyad")
     )
-    havuz = [k.talebe for k in kayitlar if k.talebe.aktif]
-    if havuz:
-        return havuz
-    return talebe_havuzunu_al(liste)
+    return [k.talebe for k in kayitlar if k.talebe_id and k.talebe.aktif]
 
 
 def otomatik_dagit(liste: ImamMuezzinListesi) -> int:
@@ -77,11 +74,7 @@ def otomatik_dagit(liste: ImamMuezzinListesi) -> int:
     muezzin_havuz = _rol_havuzu(liste, ImamMuezzinHavuzKaydi.Rol.MUEZZIN)
 
     if not imam_havuz or not muezzin_havuz:
-        havuz = talebe_havuzunu_al(liste)
-        if not havuz:
-            return 0
-        imam_havuz = havuz
-        muezzin_havuz = havuz[1:] + havuz[:1] if len(havuz) > 1 else havuz
+        return 0
 
     gunler = calisma_gunleri(liste)
     liste.atamalar.all().delete()

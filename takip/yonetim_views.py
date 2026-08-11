@@ -1395,7 +1395,8 @@ def imam_gorev_panel(request, pk):
             adet = otomatik_dagit(liste)
             messages.success(
                 request,
-                f"Örnek liste yüklendi ({imam_s} imam, {muezzin_s} müezzin). {adet} güne atama yapıldı.",
+                f"Listeler hazırlandı: {imam_s} imam, {muezzin_s} müezzin (çakışmasız). "
+                f"{adet} güne sırayla atama yapıldı.",
             )
         elif action == "gecen_ayi":
             if gecen_ayi_kopyala(liste):
