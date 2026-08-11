@@ -110,10 +110,40 @@ def aktif_egitim_yili() -> EgitimYili | None:
     return EgitimYili.objects.filter(aktif=True).order_by("-baslangic").first()
 
 
-def finans_seed_verisi() -> None:
+def ensure_egitim_yili() -> EgitimYili:
+    """Aktif eğitim yılı yoksa en son yılı aktive eder veya varsayılan yılı oluşturur."""
     yil = aktif_egitim_yili()
-    if not yil:
-        return
+    if yil:
+        return yil
+
+    yil = EgitimYili.objects.order_by("-baslangic").first()
+    if yil:
+        EgitimYili.objects.exclude(pk=yil.pk).filter(aktif=True).update(aktif=False)
+        if not yil.aktif:
+            yil.aktif = True
+            yil.save(update_fields=["aktif"])
+        return yil
+
+    bugun = timezone.localdate()
+    baslangic_yil = bugun.year if bugun.month >= 8 else bugun.year - 1
+    ad = f"{baslangic_yil}-{baslangic_yil + 1}"
+    yil, _ = EgitimYili.objects.get_or_create(
+        ad=ad,
+        defaults={
+            "baslangic": date(baslangic_yil, 9, 1),
+            "bitis": date(baslangic_yil + 1, 6, 30),
+            "aktif": True,
+        },
+    )
+    if not yil.aktif:
+        EgitimYili.objects.exclude(pk=yil.pk).filter(aktif=True).update(aktif=False)
+        yil.aktif = True
+        yil.save(update_fields=["aktif"])
+    return yil
+
+
+def finans_seed_verisi() -> None:
+    yil = ensure_egitim_yili()
     for sinif, tutar in DEFAULT_UCRETLER.items():
         FinansUcretPolitikasi.objects.get_or_create(
             egitim_yili=yil,

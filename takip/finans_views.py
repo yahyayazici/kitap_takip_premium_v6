@@ -32,6 +32,7 @@ from takip.finans_service import (
     dosya_indirim_uygula,
     dosya_listesi_filtrele,
     dosyasiz_yetkili_talebeler,
+    ensure_egitim_yili,
     finans_analiz,
     finans_dosya_olustur,
     finans_rapor_filtre_etiketi,
@@ -299,11 +300,36 @@ def finans_politikalar(request):
 
     finans_seed_verisi()
     yillar = EgitimYili.objects.order_by("-baslangic")
-    secili_yil_id = request.GET.get("yil") or (aktif_egitim_yili().pk if aktif_egitim_yili() else None)
-    secili_yil = get_object_or_404(EgitimYili, pk=secili_yil_id) if secili_yil_id else None
+    aktif = aktif_egitim_yili() or ensure_egitim_yili()
+    secili_yil_id = request.GET.get("yil") or str(aktif.pk)
+    secili_yil = get_object_or_404(EgitimYili, pk=secili_yil_id)
 
     if request.method == "POST":
         action = request.POST.get("action")
+        if action == "yil_olustur":
+            ad = (request.POST.get("ad") or "").strip()
+            try:
+                bas = date.fromisoformat(request.POST.get("baslangic") or "")
+                bit = date.fromisoformat(request.POST.get("bitis") or "")
+            except ValueError:
+                messages.error(request, "Geçerli başlangıç / bitiş tarihi girin.")
+                return redirect("finans_politikalar")
+            if not ad:
+                ad = f"{bas.year}-{bit.year}"
+            if bit < bas:
+                messages.error(request, "Bitiş tarihi başlangıçtan önce olamaz.")
+                return redirect("finans_politikalar")
+            yil, created = EgitimYili.objects.get_or_create(
+                ad=ad,
+                defaults={"baslangic": bas, "bitis": bit, "aktif": True},
+            )
+            if created:
+                EgitimYili.objects.exclude(pk=yil.pk).update(aktif=False)
+                finans_seed_verisi()
+                messages.success(request, f"{yil.ad} eğitim yılı oluşturuldu.")
+            else:
+                messages.info(request, f"{yil.ad} zaten tanımlı.")
+            return redirect(f"{request.path}?yil={yil.pk}")
         if action == "kopyala" and secili_yil:
             hedef_id = request.POST.get("hedef_yil")
             hedef = get_object_or_404(EgitimYili, pk=hedef_id)
