@@ -28,7 +28,7 @@ def _personel_rbac_senkronize() -> int:
     for personel in PersonelProfili.objects.select_related("user", "rol").filter(
         aktif=True, user__isnull=False
     ):
-        hedef = rollers.get(personel.ana_rol)
+        hedef = roller.get(personel.ana_rol)
         if hedef is None:
             continue
         guncelle = False
