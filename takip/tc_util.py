@@ -27,3 +27,29 @@ def tc_dogrula(deger: str, *, zorunlu: bool = True) -> str:
 def veli_sifre_tc_son4(tc: str) -> str:
     tc = tc_dogrula(tc)
     return tc[-4:]
+
+
+def talebe_tc_cakisma_var_mi(
+    tc: str,
+    *,
+    haric_pk: int | None = None,
+    sadece_aktif: bool = True,
+) -> bool:
+    from takip.models import Talebe
+
+    qs = Talebe.objects.filter(tc_kimlik=tc)
+    if sadece_aktif:
+        qs = qs.filter(aktif=True)
+    if haric_pk:
+        qs = qs.exclude(pk=haric_pk)
+    return qs.exists()
+
+
+def pasif_talebe_tc_temizle(tc: str, *, haric_pk: int | None = None) -> int:
+    """Yeni kayıt için pasif talebedeki eski TC'yi boşalt."""
+    from takip.models import Talebe
+
+    qs = Talebe.objects.filter(tc_kimlik=tc, aktif=False)
+    if haric_pk:
+        qs = qs.exclude(pk=haric_pk)
+    return qs.update(tc_kimlik="")

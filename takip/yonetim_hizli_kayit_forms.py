@@ -19,7 +19,7 @@ from takip.models import (
 from takip.ogretmen_odeme_models import OgretmenOdemeProfili
 from takip.panel_permissions import ROL_ETUT_MESUL, ROL_SINIF_MESUL
 from takip.talebe_foto_util import dogrula_biyometrik_foto
-from takip.tc_util import tc_dogrula
+from takip.tc_util import pasif_talebe_tc_temizle, tc_dogrula, talebe_tc_cakisma_var_mi
 from takip.veli_hesap_util import veli_panel_ensure
 from takip.wave0_models import Brans, VeliHesap
 from takip.personel_giris_service import (
@@ -285,15 +285,17 @@ class HizliTalebeForm(forms.ModelForm):
 
     def clean_tc_kimlik(self):
         tc = tc_dogrula(self.cleaned_data.get("tc_kimlik"))
-        qs = Talebe.objects.filter(tc_kimlik=tc)
-        if self.instance.pk:
-            qs = qs.exclude(pk=self.instance.pk)
-        if qs.exists():
-            raise forms.ValidationError("Bu TC kimlik no başka bir talebede kayıtlı.")
+        if talebe_tc_cakisma_var_mi(tc, haric_pk=self.instance.pk):
+            raise forms.ValidationError(
+                "Bu TC kimlik no aktif bir talebede kayıtlı."
+            )
         return tc
 
     @transaction.atomic
     def save_with_veli(self) -> tuple[Talebe, VeliHesap | None]:
+        tc = self.cleaned_data.get("tc_kimlik")
+        if tc:
+            pasif_talebe_tc_temizle(tc)
         talebe = super().save(commit=False)
         sinif = self.cleaned_data.get("sinif_sube")
         if sinif:

@@ -29,7 +29,7 @@ from .models import (
 from .imam_muezzin_service import parse_haric_tarih_metni
 from .panel_permissions import PERSONEL_ROLLER, ROL_ETUT_MESUL, ROL_SINIF_MESUL
 from .talebe_foto_util import dogrula_biyometrik_foto
-from .tc_util import tc_dogrula
+from .tc_util import pasif_talebe_tc_temizle, tc_dogrula, talebe_tc_cakisma_var_mi
 
 
 class SinifSubeForm(forms.ModelForm):
@@ -580,12 +580,19 @@ class TalebeForm(forms.ModelForm):
 
     def clean_tc_kimlik(self):
         tc = tc_dogrula(self.cleaned_data.get("tc_kimlik"))
-        qs = Talebe.objects.filter(tc_kimlik=tc)
-        if self.instance.pk:
-            qs = qs.exclude(pk=self.instance.pk)
-        if qs.exists():
-            raise forms.ValidationError("Bu TC kimlik no başka bir talebede kayıtlı.")
+        if talebe_tc_cakisma_var_mi(tc, haric_pk=self.instance.pk):
+            raise forms.ValidationError(
+                "Bu TC kimlik no aktif bir talebede kayıtlı."
+            )
         return tc
+
+    def save(self, commit=True):
+        talebe = super().save(commit=False)
+        if talebe.tc_kimlik:
+            pasif_talebe_tc_temizle(talebe.tc_kimlik, haric_pk=talebe.pk)
+        if commit:
+            talebe.save()
+        return talebe
 
     def veli_kaydet(self, talebe: Talebe) -> None:
         from takip.talebe_excel import _veli_kisi_guncelle
@@ -799,11 +806,10 @@ class TalebeProfilTamamlaForm(forms.ModelForm):
         tc = tc_dogrula(self.cleaned_data.get("tc_kimlik"), zorunlu=False)
         if not tc:
             return ""
-        qs = Talebe.objects.filter(tc_kimlik=tc)
-        if self.instance.pk:
-            qs = qs.exclude(pk=self.instance.pk)
-        if qs.exists():
-            raise forms.ValidationError("Bu TC kimlik no başka bir talebede kayıtlı.")
+        if talebe_tc_cakisma_var_mi(tc, haric_pk=self.instance.pk):
+            raise forms.ValidationError(
+                "Bu TC kimlik no aktif bir talebede kayıtlı."
+            )
         return tc
 
     def save(self, commit=True):
@@ -811,6 +817,8 @@ class TalebeProfilTamamlaForm(forms.ModelForm):
         ad_soyad = self.cleaned_data.get("ad_soyad")
         if ad_soyad:
             talebe.ad_soyad = ad_soyad
+        if talebe.tc_kimlik:
+            pasif_talebe_tc_temizle(talebe.tc_kimlik, haric_pk=talebe.pk)
         if commit:
             talebe.save()
             self.veli_kaydet(talebe)
