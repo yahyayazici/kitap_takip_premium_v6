@@ -510,17 +510,18 @@
 
     .duyuru-media-pane {
         aspect-ratio: auto !important;
-        height: var(--cs-duyuru-half-h, clamp(160px, 16vw, 220px)) !important;
-        max-height: 220px !important;
-        min-height: 140px !important;
+        height: clamp(180px, 42vw, 240px) !important;
+        max-height: 260px !important;
+        min-height: 160px !important;
     }
 
     .personel-top-split .duyuru-media-pane,
     .ogretmen-top-duyuru .duyuru-media-pane {
         aspect-ratio: auto !important;
-        height: var(--cs-duyuru-half-h, clamp(160px, 16vw, 220px)) !important;
-        max-height: 220px !important;
-        min-height: 140px !important;
+        height: clamp(180px, 42vw, 240px) !important;
+        max-height: 260px !important;
+        min-height: 160px !important;
+        flex: 0 0 auto !important;
     }
 
     .duyuru-carousel-nav-overlay .duyuru-nav-btn {
@@ -565,22 +566,26 @@
             0 2px 8px rgba(15, 39, 68, 0.04);
     }
 
+    /* Yarı paneller: yükseklik YÇT ile stretch (cs-ui-system); diğerleri panel ölçüsü */
     .duyuru-media-pane {
         aspect-ratio: auto !important;
         width: 100% !important;
-        height: var(--cs-duyuru-half-h, clamp(160px, 16vw, 220px)) !important;
-        min-height: 160px !important;
-        max-height: 220px !important;
+        height: calc(var(--cs-duyuru-panel-h, clamp(360px, 42vw, 440px)) - 72px) !important;
+        min-height: 280px !important;
+        max-height: none !important;
     }
 
-    .personel-top-split .duyuru-media-pane {
+    .personel-top-split .duyuru-media-pane,
+    .ogretmen-top-duyuru .duyuru-media-pane {
         aspect-ratio: auto !important;
-        height: var(--cs-duyuru-half-h, clamp(160px, 16vw, 220px)) !important;
-        min-height: 160px !important;
-        max-height: 220px !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        flex: 1 1 auto !important;
     }
 
-    .personel-top-split .duyuru-scene-svg {
+    .personel-top-split .duyuru-scene-svg,
+    .ogretmen-top-duyuru .duyuru-scene-svg {
         max-width: 100% !important;
         max-height: 100% !important;
         min-width: 0 !important;
@@ -592,15 +597,17 @@
 
 @media (min-width: 1400px) {
     .duyuru-media-pane {
-        height: var(--cs-duyuru-half-h, clamp(160px, 16vw, 220px)) !important;
-        min-height: 160px !important;
-        max-height: 220px !important;
+        height: calc(var(--cs-duyuru-panel-h, clamp(360px, 42vw, 440px)) - 72px) !important;
+        min-height: 300px !important;
+        max-height: none !important;
     }
 
-    .personel-top-split .duyuru-media-pane {
+    .personel-top-split .duyuru-media-pane,
+    .ogretmen-top-duyuru .duyuru-media-pane {
         aspect-ratio: auto !important;
-        height: var(--cs-duyuru-half-h, clamp(160px, 16vw, 220px)) !important;
-        min-height: 160px !important;
-        max-height: 220px !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        flex: 1 1 auto !important;
     }
 }

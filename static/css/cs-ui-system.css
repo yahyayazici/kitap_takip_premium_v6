@@ -286,9 +286,10 @@ body.talebe-body .ghost-btn {
     border: 1px solid var(--cs-border);
 }
 
-/* —— Duyuru yarı panel: etüt hocası ölçüsü (admin + öğretmen + personel aynı) —— */
+/* —— Duyuru yarı panel = YÇT boyu (admin / etüt / öğretmen aynı ölçü) —— */
 :root {
-    --cs-duyuru-half-h: clamp(160px, 16vw, 220px);
+    /* Tam kart yüksekliği — YÇT aylık takvim ile hizalı */
+    --cs-duyuru-panel-h: clamp(360px, 42vw, 440px);
 }
 
 .personel-top-split,
@@ -296,45 +297,58 @@ body.talebe-body .ghost-btn {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
     gap: var(--cs-section-gap, 16px);
-    align-items: start !important;
+    align-items: stretch !important;
     margin-top: 14px;
 }
 
 .personel-top-split > *,
 .ogretmen-body .ogretmen-top-split > * {
     min-width: 0;
-    height: auto !important;
+    height: 100% !important;
+    min-height: var(--cs-duyuru-panel-h) !important;
+}
+
+.personel-top-split .personel-yct-card {
+    height: 100% !important;
+    min-height: var(--cs-duyuru-panel-h) !important;
 }
 
 .personel-top-split .duyuru-carousel-shell,
 .ogretmen-body .ogretmen-top-duyuru .duyuru-carousel-shell {
     width: 100% !important;
     max-width: none !important;
-    height: auto !important;
-    min-height: 0 !important;
+    height: 100% !important;
+    min-height: var(--cs-duyuru-panel-h) !important;
     margin-top: 0 !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
-    display: block !important;
+    display: flex !important;
+    flex-direction: column !important;
 }
 
 .personel-top-split .duyuru-banner,
 .ogretmen-body .ogretmen-top-duyuru .duyuru-banner {
-    height: auto !important;
+    height: 100% !important;
     min-height: 0 !important;
-    flex: none !important;
-    display: block !important;
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
 }
 
 .personel-top-split .duyuru-media-pane,
 .ogretmen-body .ogretmen-top-duyuru .duyuru-media-pane {
     aspect-ratio: auto !important;
     width: 100% !important;
-    height: var(--cs-duyuru-half-h) !important;
-    min-height: 160px !important;
-    max-height: 220px !important;
-    flex: 0 0 auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    flex: 1 1 auto !important;
     overflow: hidden !important;
+}
+
+.personel-top-split .duyuru-caption,
+.ogretmen-body .ogretmen-top-duyuru .duyuru-caption {
+    flex: 0 0 auto !important;
 }
 
 .personel-top-split .duyuru-media-inner,
@@ -362,20 +376,43 @@ body.talebe-body .ghost-btn {
     display: grid !important;
     grid-template-columns: 1fr !important;
     gap: 12px;
-    height: auto;
+    height: 100%;
+    min-height: var(--cs-duyuru-panel-h);
 }
 
 @media (max-width: 900px) {
     .personel-top-split,
     .ogretmen-body .ogretmen-top-split {
         grid-template-columns: 1fr !important;
+        align-items: stretch !important;
+    }
+
+    .personel-top-split > *,
+    .ogretmen-body .ogretmen-top-split > * {
+        min-height: 0 !important;
+        height: auto !important;
+    }
+
+    .personel-top-split .duyuru-carousel-shell,
+    .ogretmen-body .ogretmen-top-duyuru .duyuru-carousel-shell,
+    .personel-top-split .personel-yct-card {
+        min-height: 0 !important;
+        height: auto !important;
+    }
+
+    .personel-top-split .duyuru-banner,
+    .ogretmen-body .ogretmen-top-duyuru .duyuru-banner {
+        height: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
     }
 
     .personel-top-split .duyuru-media-pane,
     .ogretmen-body .ogretmen-top-duyuru .duyuru-media-pane {
-        height: var(--cs-duyuru-half-h) !important;
-        max-height: 220px !important;
-        min-height: 140px !important;
+        flex: 0 0 auto !important;
+        height: clamp(180px, 42vw, 240px) !important;
+        min-height: 160px !important;
+        max-height: 260px !important;
         aspect-ratio: auto !important;
     }
 }
