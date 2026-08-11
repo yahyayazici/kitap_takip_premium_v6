@@ -122,6 +122,35 @@
         form.submit();
     }
 
+    async function ajaxGorevliEkle(alanId, talebeId) {
+        const body = new FormData();
+        body.append("csrfmiddlewaretoken", csrf);
+        body.append("action", "gorevli_ekle");
+        body.append("alan_id", alanId);
+        body.append("talebe_id", talebeId);
+        const res = await fetch(baseUrl, {
+            method: "POST",
+            headers: { "X-Requested-With": "XMLHttpRequest" },
+            body,
+        });
+        if (!res.ok) return null;
+        return res.json();
+    }
+
+    function bulkChipEkle(zone, adSoyad) {
+        let row = zone.querySelector(".tz-chip-row");
+        if (!row) {
+            row = document.createElement("div");
+            row.className = "tz-chip-row";
+            zone.appendChild(row);
+        }
+        const span = document.createElement("span");
+        span.className = "tz-talebe-chip";
+        const ad = (adSoyad || "").trim();
+        span.textContent = ad.length > 14 ? ad.slice(0, 13) + "…" : ad;
+        row.appendChild(span);
+    }
+
     document.querySelectorAll("[data-drop='1']").forEach((zone) => {
         zone.addEventListener("dragover", (e) => {
             if (!dragged) return;
@@ -129,12 +158,29 @@
             zone.classList.add("drag-over");
         });
         zone.addEventListener("dragleave", () => zone.classList.remove("drag-over"));
-        zone.addEventListener("drop", (e) => {
+        zone.addEventListener("drop", async (e) => {
             e.preventDefault();
             zone.classList.remove("drag-over");
             if (!dragged) return;
             const hedefId = zone.dataset.mahalId;
             if (!hedefId) return;
+
+            /* Toplu dağıtım: AJAX — modal kapanmasın, sıra sıra atansın */
+            if (dragged.talebeId && !dragged.gorevliId && zone.classList.contains("tz-bulk-drop")) {
+                const talebeId = dragged.talebeId;
+                const source = document.querySelector(
+                    `.tz-bulk-chip[data-talebe-id="${talebeId}"]`
+                );
+                const data = await ajaxGorevliEkle(hedefId, talebeId);
+                if (!data || !data.ok) return;
+                const ad =
+                    data.ad_soyad ||
+                    (source ? source.textContent.replace(/^👤\s*/, "") : "");
+                bulkChipEkle(zone, ad);
+                if (source) source.classList.add("is-assigned");
+                return;
+            }
+
             if (dragged.gorevliId) {
                 postMove(dragged.gorevliId, hedefId);
             } else if (dragged.talebeId) {

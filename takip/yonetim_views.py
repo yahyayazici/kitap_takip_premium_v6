@@ -1597,8 +1597,22 @@ def temizlik_gorev_panel(request, pk):
             talebe_id = request.POST.get("talebe_id", "")
             if talebe_id.isdigit() and gorevli_ekle(liste, alan, int(talebe_id)):
                 messages.success(request, "Görevli talebe eklendi.")
+                if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                    from takip.models import Talebe
+
+                    t = Talebe.objects.filter(pk=int(talebe_id)).only("ad_soyad").first()
+                    return JsonResponse(
+                        {
+                            "ok": True,
+                            "talebe_id": int(talebe_id),
+                            "ad_soyad": t.ad_soyad if t else "",
+                            "alan_id": alan.pk,
+                        }
+                    )
             else:
                 messages.error(request, "Görevli eklenemedi.")
+                if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                    return JsonResponse({"ok": False, "hata": "Görevli eklenemedi."})
         elif action == "gorevli_sil":
             gorevli_id = request.POST.get("gorevli_id", "")
             if gorevli_id.isdigit():
