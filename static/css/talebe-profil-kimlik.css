@@ -1,0 +1,106 @@
+/* Kimlik / veli tamamlama formu — tablet nizamı */
+
+.profil-tamamla-form {
+    max-width: 920px;
+}
+
+.profil-bolum {
+    margin-bottom: 1.35rem;
+}
+
+.profil-bolum-baslik {
+    margin: 0 0 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 650;
+    color: #1e3a5f;
+    letter-spacing: 0.01em;
+}
+
+.profil-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 18px;
+    align-items: start;
+}
+
+.profil-field {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.profil-field-wide {
+    grid-column: 1 / -1;
+}
+
+.profil-field > label {
+    display: block;
+    margin: 0;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #334155 !important;
+    line-height: 1.3;
+}
+
+.profil-field-control {
+    width: 100%;
+    min-width: 0;
+}
+
+.profil-field-control input,
+.profil-field-control select,
+.profil-field-control textarea,
+.profil-tamamla-form .cs-input {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    min-height: 44px !important;
+    padding: 10px 12px !important;
+    font-size: 16px !important; /* iOS zoom / select daralma önlemi */
+    line-height: 1.35 !important;
+    -webkit-appearance: menulist !important;
+    appearance: menulist !important;
+}
+
+.profil-field-control select,
+.profil-tamamla-form select.cs-input {
+    /* Safari’de içerik genişliğine göre daralmayı engelle */
+    width: 100% !important;
+    min-width: 100% !important;
+    cursor: pointer;
+}
+
+.profil-field-control textarea,
+.profil-tamamla-form textarea.cs-input {
+    min-height: 96px !important;
+    resize: vertical;
+}
+
+.profil-field-control input[type="file"] {
+    padding: 8px !important;
+    font-size: 14px !important;
+}
+
+.profil-field-error {
+    margin: 0;
+    color: #b91c1c;
+    font-size: 12px;
+}
+
+.profil-form-actions {
+    margin-top: 0.5rem;
+    padding-top: 0.25rem;
+}
+
+.profil-form-actions .primary-btn {
+    min-width: 160px;
+}
+
+@media (max-width: 720px) {
+    .profil-form-grid {
+        grid-template-columns: 1fr;
+    }
+}

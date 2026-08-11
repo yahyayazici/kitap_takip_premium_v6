@@ -740,15 +740,39 @@ class TalebeProfilTamamlaForm(forms.ModelForm):
         ):
             self.fields[ad].required = False
 
-        self.fields["memleket"].choices = il_secenekleri()
-        self.fields["memleket"].required = False
+        self.fields["memleket"] = forms.ChoiceField(
+            label="Memleket ili",
+            required=False,
+            choices=il_secenekleri(),
+            widget=forms.Select(
+                attrs={
+                    "class": "cs-input",
+                    "id": "id_memleket",
+                    "autocomplete": "address-level1",
+                }
+            ),
+        )
         secili_il = ""
         if self.data.get("memleket"):
             secili_il = self.data.get("memleket")
         elif self.instance.pk:
             secili_il = self.instance.memleket or ""
-        self.fields["memleket_ilce"].choices = ilce_secenekleri(secili_il)
-        self.fields["memleket_ilce"].required = False
+        self.fields["memleket_ilce"] = forms.ChoiceField(
+            label="Memleket ilçesi",
+            required=False,
+            choices=ilce_secenekleri(secili_il),
+            widget=forms.Select(
+                attrs={
+                    "class": "cs-input",
+                    "id": "id_memleket_ilce",
+                    "autocomplete": "address-level2",
+                }
+            ),
+        )
+        if secili_il:
+            self.fields["memleket"].initial = secili_il
+        if self.instance.pk and self.instance.memleket_ilce:
+            self.fields["memleket_ilce"].initial = self.instance.memleket_ilce
 
         if self.instance.pk and self.instance.telefon:
             self.initial["telefon"] = telefon_formatla(self.instance.telefon)

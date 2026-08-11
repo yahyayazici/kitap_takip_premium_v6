@@ -7,6 +7,9 @@
 {% if gelisim_erisim and aktif_sekme == 'gelisim' %}
 <link rel="stylesheet" href="{% static 'css/gelisim-dosyasi.css' %}">
 {% endif %}
+{% if kimlik_erisim and aktif_sekme == 'kimlik' %}
+<link rel="stylesheet" href="{% static 'css/talebe-profil-kimlik.css' %}?v=kimlik2">
+{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -459,19 +462,23 @@
             {% endif %}
 
             {% for baslik, alanlar in profil_form_bolumleri %}
-            <h3 style="font-size:14px;margin:0 0 10px;">{{ baslik }}</h3>
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:18px;">
-                {% for field in alanlar %}
-                <div{% if field.name == "biyometrik_foto" or field.name == "ev_adresi" %} style="grid-column:1/-1"{% endif %}>
-                    <label for="{{ field.id_for_label }}" style="display:block;font-size:12px;margin-bottom:4px;">{{ field.label }}</label>
-                    {{ field }}
-                    {% if field.errors %}<p style="color:#b91c1c;font-size:12px;margin:4px 0 0;">{{ field.errors.0 }}</p>{% endif %}
+            <div class="profil-bolum">
+                <h3 class="profil-bolum-baslik">{{ baslik }}</h3>
+                <div class="profil-form-grid">
+                    {% for field in alanlar %}
+                    <div class="profil-field{% if field.name == 'biyometrik_foto' or field.name == 'ev_adresi' or field.name == 'ad_soyad' %} profil-field-wide{% endif %}">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        <div class="profil-field-control">{{ field }}</div>
+                        {% if field.errors %}<p class="profil-field-error">{{ field.errors.0 }}</p>{% endif %}
+                    </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
             </div>
             {% endfor %}
 
-            <button type="submit" class="primary-btn">Profili Kaydet</button>
+            <div class="profil-form-actions">
+                <button type="submit" class="primary-btn">Profili Kaydet</button>
+            </div>
         </form>
     </section>
     {{ il_ilce_json|json_script:"talebe-il-ilce-data" }}
@@ -486,6 +493,24 @@
             var il = form.querySelector('[name="memleket"]');
             var ilce = form.querySelector('[name="memleket_ilce"]');
             if (!il || !ilce) return;
+
+            // İlleri her zaman JSON haritasından doldur (tablet select boş/dar kalmasın)
+            var mevcutIl = (il.value || "").trim();
+            il.innerHTML = "";
+            var bosIl = document.createElement("option");
+            bosIl.value = "";
+            bosIl.textContent = "İl seçin";
+            il.appendChild(bosIl);
+            Object.keys(harita).sort(function (a, b) {
+                return a.localeCompare(b, "tr");
+            }).forEach(function (ad) {
+                var opt = document.createElement("option");
+                opt.value = ad;
+                opt.textContent = ad;
+                if (mevcutIl && ad === mevcutIl) opt.selected = true;
+                il.appendChild(opt);
+            });
+
             var ilkIlce = ilce.value || "";
             function doldur(koruSecim) {
                 var secilen = (il.value || "").trim();
@@ -569,7 +594,9 @@
         {% if mezun_etkin %}
         <a href="{% url 'mezun_ekle' %}?talebe={{ talebe.pk }}" class="ghost-btn">Mezun Et</a>
         {% endif %}
+        {% if aktif_sekme != 'kimlik' %}
         <a href="{% url 'talebe_profil_karne_pdf' talebe.id %}" class="primary-btn" target="_blank" rel="noopener">Kitap Karnesi PDF</a>
+        {% endif %}
         <a href="{% url 'talebe_listesi' %}" class="ghost-btn">Talebe Listesine Dön</a>
     </footer>
 
