@@ -1106,6 +1106,56 @@ def _sube_etiketten(grup: DershaneEtutGrubu) -> str:
     return ""
 
 
+def _ogretmen_sinif_zimmetinden(
+    grup: DershaneEtutGrubu, ders_obj: Ders
+) -> tuple[int | None, str]:
+    """Sınıfa zimmetli + ders branşı eşleşen branş öğretmenini bul."""
+    from takip.ogretmen_odeme_service import aktif_ogretmenler
+
+    if not grup.sinif_seviye:
+        return None, ""
+
+    sube = _sube_etiketten(grup)
+    sinif_qs = SinifSube.objects.filter(sinif=str(grup.sinif_seviye), aktif=True)
+    if sube:
+        sinif_qs = sinif_qs.filter(sube=sube)
+    if not sinif_qs.exists():
+        return None, ""
+
+    adaylar = (
+        aktif_ogretmenler()
+        .filter(
+            sorumlu_sinif_subeler__in=sinif_qs,
+            odeme_profili__aktif=True,
+        )
+        .select_related("odeme_profili__brans")
+        .distinct()
+        .order_by("ad_soyad")
+    )
+
+    if ders_obj.brans_id:
+        hoca = adaylar.filter(odeme_profili__brans_id=ders_obj.brans_id).first()
+        if hoca:
+            return hoca.pk, hoca.ad_soyad
+
+    ders_ad = (ders_obj.ad or "").strip()
+    if ders_ad:
+        hoca = adaylar.filter(odeme_profili__brans__ad__iexact=ders_ad).first()
+        if hoca:
+            return hoca.pk, hoca.ad_soyad
+        ders_l = ders_ad.casefold()
+        for hoca in adaylar:
+            brans = getattr(getattr(hoca, "odeme_profili", None), "brans", None)
+            ba = (getattr(brans, "ad", None) or "").strip()
+            if not ba:
+                continue
+            bl = ba.casefold()
+            if bl in ders_l or ders_l in bl:
+                return hoca.pk, hoca.ad_soyad
+
+    return None, ""
+
+
 def ogretmen_coz(
     program: DershaneProgrami,
     grup: DershaneEtutGrubu,
@@ -1114,6 +1164,7 @@ def ogretmen_coz(
     """Grup + ders için branş öğretmeni bul.
 
     Dönüş: (EtutHocasi.id | None, ad_soyad). Yanlış eşleşme için isim tahmini yok.
+    Öncelik: kayıtlı tercih → önceki atama → sınıf zimmeti+branş → ödeme ders kaydı.
     """
     tercih = (
         DershaneGrupDersOgretmen.objects.filter(
@@ -1144,6 +1195,11 @@ def ogretmen_coz(
                 ad_soyad__iexact=ad, aktif=True, personel_kaydi__isnull=True
             ).first()
             return (hoca.pk if hoca else None), ad
+
+    # Kurum → Öğretmenler: sınıf zimmeti + branş
+    hoca_id, hoca_ad = _ogretmen_sinif_zimmetinden(grup, ders_obj)
+    if hoca_ad:
+        return hoca_id, hoca_ad
 
     # Ödeme / ders kayıtlarından branş öğretmeni (EtutHocasi)
     if ders_obj.brans_id and grup.sinif_seviye:
