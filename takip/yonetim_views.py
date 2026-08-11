@@ -1595,17 +1595,20 @@ def temizlik_gorev_panel(request, pk):
         elif action == "gorevli_ekle":
             alan = get_object_or_404(TemizlikAlani, pk=request.POST.get("alan_id"))
             talebe_id = request.POST.get("talebe_id", "")
-            if talebe_id.isdigit() and gorevli_ekle(liste, alan, int(talebe_id)):
+            gorevli = (
+                gorevli_ekle(liste, alan, int(talebe_id))
+                if talebe_id.isdigit()
+                else None
+            )
+            if gorevli:
                 messages.success(request, "Görevli talebe eklendi.")
                 if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-                    from takip.models import Talebe
-
-                    t = Talebe.objects.filter(pk=int(talebe_id)).only("ad_soyad").first()
                     return JsonResponse(
                         {
                             "ok": True,
-                            "talebe_id": int(talebe_id),
-                            "ad_soyad": t.ad_soyad if t else "",
+                            "gorevli_id": gorevli.pk,
+                            "talebe_id": gorevli.talebe_id,
+                            "ad_soyad": gorevli.talebe.ad_soyad,
                             "alan_id": alan.pk,
                         }
                     )
@@ -1616,8 +1619,17 @@ def temizlik_gorev_panel(request, pk):
         elif action == "gorevli_sil":
             gorevli_id = request.POST.get("gorevli_id", "")
             if gorevli_id.isdigit():
-                gorevli_sil(int(gorevli_id), liste)
-                messages.success(request, "Görevli kaldırıldı.")
+                talebe_id = gorevli_sil(int(gorevli_id), liste)
+                if talebe_id is not None:
+                    messages.success(request, "Görevli kaldırıldı.")
+                if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                    return JsonResponse(
+                        {
+                            "ok": talebe_id is not None,
+                            "gorevli_id": int(gorevli_id),
+                            "talebe_id": talebe_id,
+                        }
+                    )
         elif action == "gorevli_tasi":
             gorevli_id = request.POST.get("gorevli_id", "")
             hedef_alan_id = request.POST.get("hedef_alan_id", "")

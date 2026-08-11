@@ -198,7 +198,58 @@
         return res.json();
     }
 
-    function bulkChipEkle(zone, adSoyad) {
+    async function ajaxGorevliSil(gorevliId) {
+        const body = new FormData();
+        body.append("csrfmiddlewaretoken", csrf);
+        body.append("action", "gorevli_sil");
+        body.append("gorevli_id", gorevliId);
+        const res = await fetch(baseUrl, {
+            method: "POST",
+            headers: { "X-Requested-With": "XMLHttpRequest" },
+            body,
+        });
+        if (!res.ok) return null;
+        return res.json();
+    }
+
+    function bindBulkAssignedChip(span) {
+        span.addEventListener("dragstart", (e) => {
+            dragged = {
+                gorevliId: span.dataset.gorevliId,
+                talebeId: span.dataset.talebeId,
+                bulkUndo: true,
+            };
+            span.classList.add("is-dragging");
+            e.dataTransfer.effectAllowed = "move";
+        });
+        span.addEventListener("dragend", () => {
+            span.classList.remove("is-dragging");
+            dragged = null;
+        });
+        const btn = span.querySelector("[data-tz-bulk-geri]");
+        if (btn) {
+            btn.addEventListener("click", async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                await bulkGeriAl(span);
+            });
+        }
+    }
+
+    async function bulkGeriAl(span) {
+        const gorevliId = span.dataset.gorevliId;
+        const talebeId = span.dataset.talebeId;
+        if (!gorevliId) return;
+        const data = await ajaxGorevliSil(gorevliId);
+        if (!data || !data.ok) return;
+        span.remove();
+        const source = document.querySelector(
+            `.tz-bulk-chip[data-talebe-id="${talebeId || data.talebe_id}"]`
+        );
+        if (source) source.classList.remove("is-assigned");
+    }
+
+    function bulkChipEkle(zone, adSoyad, gorevliId, talebeId) {
         let row = zone.querySelector(".tz-chip-row");
         if (!row) {
             row = document.createElement("div");
@@ -206,10 +257,53 @@
             zone.appendChild(row);
         }
         const span = document.createElement("span");
-        span.className = "tz-talebe-chip";
+        span.className = "tz-talebe-chip tz-bulk-assigned";
+        span.draggable = true;
+        span.dataset.gorevliId = String(gorevliId || "");
+        span.dataset.talebeId = String(talebeId || "");
         const ad = (adSoyad || "").trim();
-        span.textContent = ad.length > 14 ? ad.slice(0, 13) + "…" : ad;
+        const kisa = ad.length > 14 ? ad.slice(0, 13) + "…" : ad;
+        span.appendChild(document.createTextNode(kisa + " "));
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "tz-bulk-geri";
+        btn.dataset.tzBulkGeri = "1";
+        btn.title = "Geri al";
+        btn.textContent = "×";
+        span.appendChild(btn);
         row.appendChild(span);
+        bindBulkAssignedChip(span);
+    }
+
+    document.querySelectorAll(".tz-bulk-assigned").forEach(bindBulkAssignedChip);
+
+    /* Atanmış chip'e karşılık sol listedeki talebeyi soluk göster */
+    document.querySelectorAll(".tz-bulk-assigned[data-talebe-id]").forEach((chip) => {
+        const source = document.querySelector(
+            `.tz-bulk-chip[data-talebe-id="${chip.dataset.talebeId}"]`
+        );
+        if (source) source.classList.add("is-assigned");
+    });
+
+    const geriDrop = document.querySelector("[data-tz-bulk-geri-drop]");
+    if (geriDrop) {
+        geriDrop.addEventListener("dragover", (e) => {
+            if (!dragged?.bulkUndo || !dragged.gorevliId) return;
+            e.preventDefault();
+            geriDrop.classList.add("drag-over");
+        });
+        geriDrop.addEventListener("dragleave", () =>
+            geriDrop.classList.remove("drag-over")
+        );
+        geriDrop.addEventListener("drop", async (e) => {
+            e.preventDefault();
+            geriDrop.classList.remove("drag-over");
+            if (!dragged?.bulkUndo || !dragged.gorevliId) return;
+            const span = document.querySelector(
+                `.tz-bulk-assigned[data-gorevli-id="${dragged.gorevliId}"]`
+            );
+            if (span) await bulkGeriAl(span);
+        });
     }
 
     document.querySelectorAll("[data-drop='1']").forEach((zone) => {
@@ -227,7 +321,11 @@
             if (!hedefId) return;
 
             /* Toplu dağıtım: AJAX — modal kapanmasın, sıra sıra atansın */
-            if (dragged.talebeId && !dragged.gorevliId && zone.classList.contains("tz-bulk-drop")) {
+            if (
+                dragged.talebeId &&
+                !dragged.gorevliId &&
+                zone.classList.contains("tz-bulk-drop")
+            ) {
                 const talebeId = dragged.talebeId;
                 const source = document.querySelector(
                     `.tz-bulk-chip[data-talebe-id="${talebeId}"]`
@@ -236,9 +334,19 @@
                 if (!data || !data.ok) return;
                 const ad =
                     data.ad_soyad ||
-                    (source ? source.textContent.replace(/^👤\s*/, "") : "");
-                bulkChipEkle(zone, ad);
+                    (source ? source.textContent.trim() : "");
+                bulkChipEkle(zone, ad, data.gorevli_id, data.talebe_id || talebeId);
                 if (source) source.classList.add("is-assigned");
+                return;
+            }
+
+            /* Toplu modda mahaller arası taşıma */
+            if (
+                dragged.bulkUndo &&
+                dragged.gorevliId &&
+                zone.classList.contains("tz-bulk-drop")
+            ) {
+                postMove(dragged.gorevliId, hedefId);
                 return;
             }
 

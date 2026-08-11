@@ -242,15 +242,24 @@ def mahal_sorumlu_sil(alan: TemizlikAlani, personel_id: int) -> None:
     TemizlikMahalSorumlusu.objects.filter(alan=alan, personel_id=personel_id).delete()
 
 
-def gorevli_ekle(liste: TemizlikListesi, alan: TemizlikAlani, talebe_id: int) -> bool:
+def gorevli_ekle(liste: TemizlikListesi, alan: TemizlikAlani, talebe_id: int):
+    """Görevli ekler; başarıda TemizlikGorevlisi, aksi halde None."""
     if not Talebe.objects.filter(pk=talebe_id).exists():
-        return False
-    TemizlikGorevlisi.objects.get_or_create(liste=liste, alan=alan, talebe_id=talebe_id)
-    return True
+        return None
+    obj, _ = TemizlikGorevlisi.objects.get_or_create(
+        liste=liste, alan=alan, talebe_id=talebe_id
+    )
+    return obj
 
 
-def gorevli_sil(gorevli_id: int, liste: TemizlikListesi) -> None:
-    TemizlikGorevlisi.objects.filter(pk=gorevli_id, liste=liste).delete()
+def gorevli_sil(gorevli_id: int, liste: TemizlikListesi) -> int | None:
+    """Siler; silinen kaydın talebe_id'sini döner (yoksa None)."""
+    kayit = TemizlikGorevlisi.objects.filter(pk=gorevli_id, liste=liste).first()
+    if not kayit:
+        return None
+    talebe_id = kayit.talebe_id
+    kayit.delete()
+    return talebe_id
 
 
 def kat_sil(kat: TemizlikKati) -> None:

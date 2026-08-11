@@ -3,7 +3,7 @@
 
 {% block title %}Temizlik Yönetimi · {{ liste.ad }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/temizlik-premium.css' %}?v=tz-scroll3">
+<link rel="stylesheet" href="{% static 'css/temizlik-premium.css' %}?v=tz-undo1">
 {% endblock %}
 
 {% block content %}
@@ -237,12 +237,12 @@
 <div class="tz-modal tz-modal-wide" data-tz-modal="toplu-dagit" hidden>
     <div class="tz-modal-card">
         <header><h3>Toplu Görev Dağıtımı</h3><button type="button" data-tz-close>×</button></header>
-        <p class="tz-muted">Talebe kartını sürükleyip mahale bırakın.</p>
+        <p class="tz-muted">Mahale sürükleyin. Yanlışsa × ile veya sola geri sürükleyerek geri alın.</p>
         <div class="tz-bulk-layout">
-            <div class="tz-bulk-talebeler">
+            <div class="tz-bulk-talebeler" data-tz-bulk-geri-drop="1">
                 <h4>Talebeler</h4>
                 {% for t in talebeler %}
-                <span class="tz-talebe-chip tz-bulk-chip" draggable="true" data-talebe-id="{{ t.pk }}">👤 {{ t.ad_soyad }}</span>
+                <span class="tz-talebe-chip tz-bulk-chip" draggable="true" data-talebe-id="{{ t.pk }}">{{ t.ad_soyad }}</span>
                 {% endfor %}
             </div>
             <div class="tz-bulk-mahaller">
@@ -253,7 +253,13 @@
                     <strong>{{ kart.kat.ad }} · {{ row.alan.ad }}</strong>
                     <div class="tz-chip-row">
                         {% for g in row.gorevliler %}
-                        <span class="tz-talebe-chip">{{ g.ad_soyad|truncatechars:14 }}</span>
+                        <span class="tz-talebe-chip tz-bulk-assigned"
+                              draggable="true"
+                              data-gorevli-id="{{ g.id }}"
+                              data-talebe-id="{{ g.talebe_id }}">
+                            {{ g.ad_soyad|truncatechars:14 }}
+                            <button type="button" class="tz-bulk-geri" data-tz-bulk-geri title="Geri al">×</button>
+                        </span>
                         {% endfor %}
                     </div>
                 </div>
@@ -268,5 +274,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/temizlik-yonetim.js' %}?v=tz-scroll4"></script>
+<script src="{% static 'js/temizlik-yonetim.js' %}?v=tz-undo1"></script>
 {% endblock %}
