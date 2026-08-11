@@ -210,6 +210,7 @@ def ogretmen_olustur(
     ad_soyad: str,
     brans: Brans | None = None,
     saatlik_ucret=None,
+    siniflar=None,
 ) -> OgretmenGirisKaydi | None:
     from decimal import Decimal
 
@@ -235,6 +236,9 @@ def ogretmen_olustur(
         aktif=True,
     )
 
+    if siniflar is not None:
+        hoca.sorumlu_sinif_subeler.set(siniflar)
+
     return OgretmenGirisKaydi(
         hoca=hoca,
         kullanici_adi=kullanici_adi,
@@ -247,6 +251,7 @@ def toplu_ogretmen_olustur(
     *,
     brans: Brans | None = None,
     saatlik_ucret=None,
+    siniflar=None,
 ) -> tuple[list[OgretmenGirisKaydi], list[str]]:
     kayitlar: list[OgretmenGirisKaydi] = []
     hatalar: list[str] = []
@@ -260,6 +265,7 @@ def toplu_ogretmen_olustur(
                 ad_soyad=ad,
                 brans=brans,
                 saatlik_ucret=saatlik_ucret,
+                siniflar=siniflar,
             )
         except Exception as exc:
             hatalar.append(f"Satır {satir_no} ({ad}): {exc}")

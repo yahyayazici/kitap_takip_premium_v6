@@ -27,13 +27,8 @@
     overflow-x: clip !important;
 }
 
-/* Sayfa boşluğa kaymasın; freeze JS ile isim/konu dondurulur */
-html:has(.dd-page),
-body.v3-body:has(.dd-page) {
-    overflow-x: clip !important;
-    max-width: 100%;
-}
-
+/* Sayfa boşluğa kaymasın; freeze JS ile isim/konu dondurulur.
+   html/body clip YASAK — üst menü sticky/fixed bozulur. */
 .v3-main:has(.dd-page),
 .v3-main .page-content:has(.dd-page) {
     overflow-x: clip !important;

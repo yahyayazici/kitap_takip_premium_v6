@@ -1,13 +1,13 @@
 {% extends "yonetim/base.html" %}
 
-{% block title %}Ödeme Profili · {{ hoca.ad_soyad }}{% endblock %}
+{% block title %}Öğretmen · {{ hoca.ad_soyad }}{% endblock %}
 
 {% block content %}
 <header class="page-head patterned-page-head yonetim-page-head">
     <div>
-        <p class="kicker">FİNANS AYARI</p>
+        <p class="kicker">ÖĞRETMEN</p>
         <h1>{{ hoca.ad_soyad }}</h1>
-        <p class="muted">Saatlik ücret ve branş bilgisi.</p>
+        <p class="muted">Branş, saatlik ücret ve gireceği sınıflar.</p>
     </div>
 </header>
 
@@ -17,13 +17,21 @@
         <div class="yonetim-field">
             <label for="{{ form.brans.id_for_label }}">Branş</label>
             {{ form.brans }}
+            {% for error in form.brans.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
         </div>
         <div class="yonetim-field">
             <label for="{{ form.saatlik_ucret.id_for_label }}">Saatlik Ücret (₺)</label>
             {{ form.saatlik_ucret }}
+            {% for error in form.saatlik_ucret.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
         </div>
         <div class="yonetim-field">
             <label>{{ form.aktif }} Aktif</label>
+        </div>
+        <div class="yonetim-field yonetim-field-checkbox-grid">
+            <label>{{ form.sorumlu_sinif_subeler.label }}</label>
+            <div class="yonetim-field-control choice-chip-wrap">{{ form.sorumlu_sinif_subeler }}</div>
+            {% if form.sorumlu_sinif_subeler.help_text %}<small>{{ form.sorumlu_sinif_subeler.help_text }}</small>{% endif %}
+            {% for error in form.sorumlu_sinif_subeler.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
         </div>
         <div class="yonetim-form-actions">
             <a href="{% url 'yonetim:ogretmen_odeme_profil_listesi' %}" class="ghost-btn yonetim-head-ghost">Vazgeç</a>

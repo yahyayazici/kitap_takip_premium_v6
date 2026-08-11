@@ -24,14 +24,14 @@
     --panel-head-btn-radius: var(--cs-radius-md);
 }
 
-/* —— Shell: yatay sayfa kayması yok —— */
+/* —— Shell: yatay kayma main'de kesilir (body clip sticky header'ı bozar) —— */
 html,
 body.v3-body,
 body.yonetim-body,
 body.ogretmen-body,
 body.veli-body,
 body.talebe-body {
-    overflow-x: clip;
+    overflow-x: visible;
     max-width: 100%;
     font-family: var(--cs-font);
     color: var(--cs-text-primary);
@@ -46,6 +46,34 @@ body.talebe-body {
     min-width: 0;
     overflow-x: clip;
     box-sizing: border-box;
+}
+
+/*
+ * Mobil / dar ekran: üst menü (hamburger) her zaman erişilebilir.
+ * overflow-x:clip sticky'yi düşürdüğü için fixed + body padding.
+ */
+@media (max-width: 1400px) {
+    body.v3-body > .v3-header,
+    body.yonetim-body > .cs-v6-header,
+    body.ogretmen-body > .cs-v6-header,
+    body.veli-body > .cs-v6-header,
+    body.talebe-body > .cs-v6-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        max-width: 100%;
+        z-index: 1200;
+    }
+
+    body.v3-body,
+    body.yonetim-body,
+    body.ogretmen-body,
+    body.veli-body,
+    body.talebe-body {
+        padding-top: var(--v3-header-height, 64px);
+    }
 }
 
 .v3-main .page-content,

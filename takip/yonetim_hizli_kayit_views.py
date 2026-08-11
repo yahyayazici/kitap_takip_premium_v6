@@ -583,6 +583,7 @@ def hizli_kayit(request):
                 toplu_ogretmen_form.cleaned_data["isim_listesi"],
                 brans=toplu_ogretmen_form.cleaned_data.get("brans"),
                 saatlik_ucret=toplu_ogretmen_form.cleaned_data.get("saatlik_ucret"),
+                siniflar=toplu_ogretmen_form.cleaned_data.get("sorumlu_sinif_subeler"),
             )
             if hatalar:
                 from takip.messages_util import hatalari_ozetle

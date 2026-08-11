@@ -107,7 +107,7 @@
 
         {% elif tur == "ogretmen" %}
         <div class="yk-section">
-            <p class="yk-section-note">Beş ana dersten (Türkçe, Matematik, Fen, Sosyal, Din) ders veren öğretmen. Sınıf zimmeti ve dini ders yok — yalnızca branş ve ücret kaydı.</p>
+            <p class="yk-section-note">Ana ders öğretmeni: branş seçin ve hangi sınıflara gireceğini zimmetleyin. Öğretmen panelinde yalnızca bu sınıflar görünür.</p>
             <div class="yk-grid yk-grid-2">
                 <div class="yk-field yk-field-wide">
                     <label for="{{ form.ad_soyad.id_for_label }}">{{ form.ad_soyad.label }}</label>
@@ -131,6 +131,15 @@
                     {% for error in form.saatlik_ucret.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
                 </div>
             </div>
+        </div>
+        <div class="yk-section yk-section-siniflar">
+            <h3 class="yk-section-title">Gireceği Sınıflar</h3>
+            <p class="yk-section-note">Örn. iki matematik hocası varsa sınıfları aralarında paylaşın; her öğretmen yalnızca kendi zimmetli sınıflarını görür.</p>
+            <div class="yk-checkbox-grid">
+                {{ form.sorumlu_sinif_subeler }}
+            </div>
+            {% if form.sorumlu_sinif_subeler.help_text %}<small>{{ form.sorumlu_sinif_subeler.help_text }}</small>{% endif %}
+            {% for error in form.sorumlu_sinif_subeler.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
         </div>
 
         {% elif tur == "personel" %}
@@ -238,8 +247,8 @@
     <div class="yk-section yk-section-excel">
         <h3 class="yk-section-title">Toplu Öğretmen Ekle</h3>
         <p class="yk-section-note">
-            Her satıra bir ad soyad yazın. Tüm öğretmenler için aynı branş ve ücret uygulanır.
-            Ana ders öğretmeni — sınıf zimmeti ve dini ders atanmaz.
+            Her satıra bir ad soyad yazın. Tüm öğretmenlere aynı branş, ücret ve sınıf zimmeti uygulanır.
+            Farklı sınıf dağılımı için tek tek ekleyin veya Öğretmenler listesinden düzenleyin.
         </p>
         <form method="post" class="yk-excel-form yk-toplu-ogretmen-form">
             {% csrf_token %}
@@ -262,6 +271,14 @@
                     {{ toplu_ogretmen_form.saatlik_ucret }}
                     {% for error in toplu_ogretmen_form.saatlik_ucret.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
                 </div>
+            </div>
+            <div class="yk-section yk-section-siniflar">
+                <h3 class="yk-section-title">Gireceği Sınıflar</h3>
+                <div class="yk-checkbox-grid">
+                    {{ toplu_ogretmen_form.sorumlu_sinif_subeler }}
+                </div>
+                {% if toplu_ogretmen_form.sorumlu_sinif_subeler.help_text %}<small>{{ toplu_ogretmen_form.sorumlu_sinif_subeler.help_text }}</small>{% endif %}
+                {% for error in toplu_ogretmen_form.sorumlu_sinif_subeler.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}
             </div>
             <button type="submit" class="primary-btn yk-excel-submit">Toplu Ekle ve ZIP İndir</button>
         </form>

@@ -28,8 +28,10 @@ from .models import (
 )
 from .imam_muezzin_service import parse_haric_tarih_metni
 from .panel_permissions import PERSONEL_ROLLER, ROL_ETUT_MESUL, ROL_SINIF_MESUL
+from .permissions.service import clear_permission_cache
 from .talebe_foto_util import dogrula_biyometrik_foto
 from .tc_util import pasif_talebe_tc_temizle, tc_dogrula, talebe_tc_cakisma_var_mi
+from .wave0_models import KullaniciRol, Rol
 
 
 class SinifSubeForm(forms.ModelForm):
@@ -152,6 +154,12 @@ class PersonelProfiliForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.fields["ana_rol"].label = "Rol"
+        self.fields["ana_rol"].help_text = (
+            "Panel yetkileri bu role göre uygulanır. "
+            "Detaylı modül izinleri: Kurum → Roller."
+        )
+
         self.fields["sorumlu_sinif_subeler"].queryset = (
             SinifSube.objects.filter(aktif=True)
             .order_by("sinif", "sube")
@@ -260,11 +268,39 @@ class PersonelProfiliForm(forms.ModelForm):
             etut_hocasi.save()
 
         personel.user = user
+        self._rbac_rol_bagla(personel)
 
         if commit:
             personel.save()
+            clear_permission_cache()
 
         return personel
+
+    def _rbac_rol_bagla(self, personel: PersonelProfili) -> None:
+        """ana_rol → PersonelProfili.rol + birincil KullaniciRol (RBAC aktif)."""
+        ana = personel.ana_rol
+        if not ana:
+            return
+
+        rol = (
+            Rol.objects.filter(legacy_ana_rol=ana, aktif=True).first()
+            or Rol.objects.filter(slug=ana, aktif=True).first()
+        )
+        personel.rol = rol
+        if not personel.user_id or rol is None:
+            return
+
+        KullaniciRol.objects.filter(user=personel.user, birincil=True).exclude(
+            rol=rol
+        ).update(birincil=False)
+        kayit, _ = KullaniciRol.objects.get_or_create(
+            user=personel.user,
+            rol=rol,
+            defaults={"birincil": True},
+        )
+        if not kayit.birincil:
+            kayit.birincil = True
+            kayit.save(update_fields=["birincil"])
 
 
 # Geriye dönük uyumluluk

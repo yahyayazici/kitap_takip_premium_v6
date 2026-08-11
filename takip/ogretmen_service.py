@@ -128,6 +128,7 @@ def hafta_yazilabilir_mi(now: datetime | None = None) -> bool:
 
 
 def _demo_siniflar(hoca: EtutHocasi) -> list[OgretmenSinifKarti]:
+    """Öğretmene zimmetli gerçek sınıflar. Atama yoksa boş liste (demo kart yok)."""
     siniflar = list(hoca.sorumlu_sinif_subeler.filter(aktif=True).order_by("sinif", "sube"))
     kartlar: list[OgretmenSinifKarti] = []
 
@@ -143,13 +144,7 @@ def _demo_siniflar(hoca: EtutHocasi) -> list[OgretmenSinifKarti]:
             )
         )
 
-    if kartlar:
-        return kartlar
-
-    return [
-        OgretmenSinifKarti(id=801, etiket="8-A", ogrenci_sayisi=9, slug="8-a"),
-        OgretmenSinifKarti(id=802, etiket="8-B", ogrenci_sayisi=8, slug="8-b"),
-    ]
+    return kartlar
 
 
 def _demo_ogrenciler(sinif_etiket: str) -> list[dict[str, Any]]:

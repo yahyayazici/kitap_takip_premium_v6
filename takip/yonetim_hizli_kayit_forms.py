@@ -331,12 +331,22 @@ class HizliOgretmenForm(forms.Form):
         initial=Decimal("0"),
         widget=forms.NumberInput(attrs={"class": "cs-input", "step": "0.01", "min": "0"}),
     )
+    sorumlu_sinif_subeler = forms.ModelMultipleChoiceField(
+        label="Gireceği sınıflar",
+        queryset=SinifSube.objects.none(),
+        required=True,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "choice-chip-grid"}),
+        help_text="Öğretmen panelinde yalnızca seçilen sınıflar görünür (örn. 4 sınıf, 2 matematik hocası).",
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["brans"].queryset = Brans.objects.filter(aktif=True).order_by(
             "sira", "ad"
         )
+        self.fields["sorumlu_sinif_subeler"].queryset = SinifSube.objects.filter(
+            aktif=True
+        ).order_by("sinif", "sube")
 
     def clean(self):
         cleaned = super().clean()
@@ -344,6 +354,11 @@ class HizliOgretmenForm(forms.Form):
         if ad:
             cleaned["kullanici_adi"] = kullanici_adi_uret(ad)
             cleaned["sifre"] = sifre_uret()
+        if not cleaned.get("sorumlu_sinif_subeler"):
+            self.add_error(
+                "sorumlu_sinif_subeler",
+                "En az bir sınıf seçin.",
+            )
         return cleaned
 
     @transaction.atomic
@@ -352,6 +367,7 @@ class HizliOgretmenForm(forms.Form):
             ad_soyad=self.cleaned_data["ad_soyad"],
             brans=self.cleaned_data.get("brans"),
             saatlik_ucret=self.cleaned_data.get("saatlik_ucret") or Decimal("0"),
+            siniflar=self.cleaned_data.get("sorumlu_sinif_subeler"),
         )
 
 
@@ -382,12 +398,22 @@ class TopluOgretmenForm(forms.Form):
         initial=Decimal("0"),
         widget=forms.NumberInput(attrs={"class": "cs-input", "step": "0.01", "min": "0"}),
     )
+    sorumlu_sinif_subeler = forms.ModelMultipleChoiceField(
+        label="Gireceği sınıflar (hepsine aynı)",
+        queryset=SinifSube.objects.none(),
+        required=True,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "choice-chip-grid"}),
+        help_text="Listedeki tüm öğretmenlere aynı sınıflar atanır. Farklı dağılım için tek tek ekleyin veya düzenleyin.",
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["brans"].queryset = Brans.objects.filter(aktif=True).order_by(
             "sira", "ad"
         )
+        self.fields["sorumlu_sinif_subeler"].queryset = SinifSube.objects.filter(
+            aktif=True
+        ).order_by("sinif", "sube")
 
     def clean_isim_listesi(self):
         ham = self.cleaned_data.get("isim_listesi") or ""
@@ -395,3 +421,12 @@ class TopluOgretmenForm(forms.Form):
         if not isimler:
             raise forms.ValidationError("En az bir öğretmen adı girin.")
         return isimler
+
+    def clean(self):
+        cleaned = super().clean()
+        if not cleaned.get("sorumlu_sinif_subeler"):
+            self.add_error(
+                "sorumlu_sinif_subeler",
+                "En az bir sınıf seçin.",
+            )
+        return cleaned

@@ -3,10 +3,58 @@
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
 
-from takip.models import Rol, RolIslemYetki, RolModulErisim, YetkiIslem, YetkiModul
+from takip.models import (
+    KullaniciRol,
+    PersonelProfili,
+    Rol,
+    RolIslemYetki,
+    RolModulErisim,
+    YetkiIslem,
+    YetkiModul,
+)
 from takip.permissions.service import can, clear_permission_cache
 
 from .yonetim_views import yonetici_gerekli
+
+
+def _personel_rbac_senkronize() -> int:
+    """Personel ana_rol → RBAC Rol + birincil KullaniciRol (eksik bağları tamamlar)."""
+    sayac = 0
+    roller: dict[str, Rol] = {}
+    for r in Rol.objects.filter(aktif=True):
+        roller[r.slug] = r
+        if r.legacy_ana_rol:
+            roller[r.legacy_ana_rol] = r
+    for personel in PersonelProfili.objects.select_related("user", "rol").filter(
+        aktif=True, user__isnull=False
+    ):
+        hedef = rollers.get(personel.ana_rol)
+        if hedef is None:
+            continue
+        guncelle = False
+        if personel.rol_id != hedef.id:
+            personel.rol = hedef
+            personel.save(update_fields=["rol"])
+            guncelle = True
+        kayit, created = KullaniciRol.objects.get_or_create(
+            user=personel.user,
+            rol=hedef,
+            defaults={"birincil": True},
+        )
+        if created:
+            guncelle = True
+        if not kayit.birincil:
+            KullaniciRol.objects.filter(user=personel.user, birincil=True).exclude(
+                pk=kayit.pk
+            ).update(birincil=False)
+            kayit.birincil = True
+            kayit.save(update_fields=["birincil"])
+            guncelle = True
+        if guncelle:
+            sayac += 1
+    if sayac:
+        clear_permission_cache()
+    return sayac
 
 
 @yonetici_gerekli
@@ -14,6 +62,13 @@ def rol_listesi(request):
     if not can(request.user, "rbac", "view"):
         messages.error(request, "Rol yönetimi için yetkiniz yok.")
         return redirect("yonetim:dashboard")
+
+    senkron = _personel_rbac_senkronize()
+    if senkron:
+        messages.info(
+            request,
+            f"{senkron} personelin rol bağları güncellendi (ana rol → yetki matrisi).",
+        )
 
     roller = Rol.objects.filter(aktif=True).order_by("sira", "ad")
     return render(
