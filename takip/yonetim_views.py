@@ -1329,30 +1329,47 @@ def imam_listesi(request):
 
 @yonetici_gerekli
 def imam_ekle(request):
-    form = ImamMuezzinListesiForm(request.POST or None)
+    """Eski form yerine referans görev paneline aç (ay seç → listeyi oluştur)."""
+    from django.utils import timezone
 
-    if form.is_valid():
-        liste = form.save(commit=False)
-        liste.olusturan = request.user
-        liste.save()
-        form.save_m2m()
-        adet = otomatik_dagit(liste)
-        messages.success(
-            request,
-            f"“{liste.ad}” oluşturuldu. {adet} güne otomatik atama yapıldı.",
+    bugun = timezone.localdate()
+    yil_raw = (request.GET.get("yil") or "").strip()
+    ay_raw = (request.GET.get("ay") or "").strip()
+    yil = int(yil_raw) if yil_raw.isdigit() else bugun.year
+    ay = int(ay_raw) if ay_raw.isdigit() else bugun.month
+    if ay < 1 or ay > 12:
+        ay = bugun.month
+    if yil < 2020 or yil > 2100:
+        yil = bugun.year
+
+    baslangic, bitis = ay_araligi(yil, ay)
+    force_yeni = request.GET.get("yeni") == "1"
+
+    liste = None
+    if not force_yeni:
+        liste = (
+            ImamMuezzinListesi.objects.filter(
+                baslangic_tarihi__lte=bitis,
+                bitis_tarihi__gte=baslangic,
+            )
+            .order_by("-baslangic_tarihi", "-pk")
+            .first()
         )
-        return redirect("yonetim:imam_gorev_panel", pk=liste.pk)
 
-    return render(
-        request,
-        "yonetim/form.html",
-        {
-            "form": form,
-            "sayfa_basligi": "İmam / Müezzin Listesi Ekle",
-            "sayfa_aciklama": "Tarih aralığı ve talebe havuzunu belirleyin.",
-            "geri_url": "yonetim:imam_listesi",
-        },
-    )
+    if liste is None:
+        liste = ImamMuezzinListesi.objects.create(
+            ad=f"İmam Müezzin — {baslangic.strftime('%m.%Y')}",
+            baslangic_tarihi=baslangic,
+            bitis_tarihi=bitis,
+            olusturan=request.user,
+        )
+        messages.info(
+            request,
+            "Görev paneli hazır. Ay / aralığı seçip «Listeyi Oluştur» ile havuzları doldurun.",
+        )
+
+    url = reverse("yonetim:imam_gorev_panel", kwargs={"pk": liste.pk})
+    return redirect(f"{url}?yil={yil}&ay={ay}")
 
 
 @yonetici_gerekli

@@ -3,20 +3,22 @@
 
 {% block title %}İmam Müezzin · {{ ay_baslik }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/imam-premium.css' %}?v=im-ref2">
+<link rel="stylesheet" href="{% static 'css/imam-premium.css' %}?v=im-ref3">
 {% endblock %}
 
 {% block content %}
 <div class="im-page" data-im-panel>
 
+<div class="im-main">
 <header class="im-head">
     <div class="im-head-icon" aria-hidden="true">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M8 7V3m8 4V3M4 11h16M6 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
     </div>
-    <div>
+    <div class="im-head-copy">
         <h1>İmam — Müezzin Aylık Görev Listesi</h1>
         <p class="im-sub">İmam ve müezzin listelerini oluşturun; sistem ayın günlerine sırayla atama yapar. Bir öğrenci yalnızca bir listede olur.</p>
     </div>
+    <a href="{% url 'yonetim:imam_listesi' %}" class="im-btn im-btn-ghost im-head-back">Listeye Dön</a>
 </header>
 
 <form method="post" class="im-toolbar" id="im-toolbar-form">
@@ -86,17 +88,6 @@
     {% include "yonetim/includes/imam_havuz_kolon.html" with rol="muezzin" baslik="MÜEZZİNLİK YAPACAKLAR LİSTESİ" havuz=muezzin_havuzu eklenebilir=muezzin_eklenebilir clear_form="im-clear-muezzin" clear_msg="Müezzin listesindeki tüm öğrenciler çıkarılsın mı?" %}
 </div>
 
-<aside class="im-preview">
-    <div class="im-preview-head">
-        <div>
-            <p class="im-preview-kicker">Çıktı</p>
-            <h3>PDF Önizleme</h3>
-        </div>
-        <a href="{% url 'yonetim:imam_pdf' liste.pk %}" class="im-btn im-btn-primary im-btn-sm" target="_blank" rel="noopener">PDF Oluştur</a>
-    </div>
-    <iframe src="{% url 'yonetim:imam_onizleme' liste.pk %}?t={% now 'U' %}" title="PDF önizleme"></iframe>
-</aside>
-
 <form method="post" id="im-clear-imam" hidden>
     {% csrf_token %}
     <input type="hidden" name="action" value="temizle_imam">
@@ -126,6 +117,18 @@
         </div>
     </div>
 </div>
+</div>
+
+<aside class="im-preview">
+    <div class="im-preview-head">
+        <div>
+            <p class="im-preview-kicker">PDF Önizleme</p>
+            <h3>{{ ay_baslik }}</h3>
+        </div>
+        <a href="{% url 'yonetim:imam_pdf' liste.pk %}" class="im-btn im-btn-primary im-btn-sm" target="_blank" rel="noopener">PDF Oluştur</a>
+    </div>
+    <iframe src="{% url 'yonetim:imam_onizleme' liste.pk %}?t={% now 'U' %}" title="PDF önizleme"></iframe>
+</aside>
 
 </div>
 
