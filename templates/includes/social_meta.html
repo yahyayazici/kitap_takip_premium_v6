@@ -1,0 +1,16 @@
+{# WhatsApp / Telegram / sosyal ağ link önizlemesi (Open Graph) #}
+<meta name="description" content="{% firstof meta_description og_description %}">
+<link rel="canonical" href="{% firstof canonical_url og_canonical_url %}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{ panel_short }}">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:title" content="{% firstof og_title panel_name %}">
+<meta property="og:description" content="{% firstof og_description %}">
+<meta property="og:url" content="{% firstof og_canonical_url og_page_url %}">
+<meta property="og:image" content="{{ og_image_url }}">
+<meta property="og:image:secure_url" content="{{ og_image_url }}">
+<meta property="og:image:alt" content="{{ panel_short }} — {{ panel_module_label }}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{% firstof og_title panel_name %}">
+<meta name="twitter:description" content="{% firstof og_description %}">
+<meta name="twitter:image" content="{{ og_image_url }}">

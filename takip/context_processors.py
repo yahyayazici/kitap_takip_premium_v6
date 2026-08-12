@@ -1,3 +1,7 @@
+import os
+
+from django.conf import settings
+
 from config.branding import (
     PANEL_FOOTER,
     PANEL_MOBILE_SHORT,
@@ -27,6 +31,13 @@ from takip.veli_service import (
 from takip.asistan_service import asistan_kullanilabilir
 from takip.ai_gateway import ai_llm_aktif_mi, ai_platform_aktif_mi
 from takip.ai_permissions import kurum_ai_erisebilir
+
+
+def _public_site_base(request) -> str:
+    configured = getattr(settings, "PANEL_PUBLIC_URL", "").strip().rstrip("/")
+    if configured:
+        return configured
+    return request.build_absolute_uri("/").rstrip("/")
 
 
 def panel_branding(request):
@@ -111,6 +122,13 @@ def panel_branding(request):
         except Exception:
             bildirim_okunmamis = 0
 
+    public_base = _public_site_base(request)
+    og_image_url = os.environ.get("OG_IMAGE_URL", "").strip() or f"{public_base}/og.png"
+    og_description = os.environ.get("OG_DESCRIPTION", "").strip() or (
+        f"{PANEL_TAGLINE} · {PANEL_ORG} — {PANEL_MODULE_LABEL} girişi."
+    )
+    og_canonical_url = f"{public_base}/giris/"
+
     return {
         "panel_name": PANEL_NAME,
         "panel_short": PANEL_SHORT,
@@ -120,6 +138,12 @@ def panel_branding(request):
         "panel_tagline": PANEL_TAGLINE,
         "panel_footer": PANEL_FOOTER,
         "sinav_basvuru_baslik": SINAV_BASVURU_BASLIK,
+        "og_title": PANEL_NAME,
+        "og_description": og_description,
+        "og_image_url": og_image_url,
+        "og_page_url": request.build_absolute_uri(),
+        "og_canonical_url": og_canonical_url,
+        "panel_public_url": public_base,
         "panel_modules": PANEL_MODULES,
         "panel_nav": nav,
         "panel_nav_groups": nav_groups,

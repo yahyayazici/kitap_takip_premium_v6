@@ -90,6 +90,26 @@ def pwa_icon_512(request):
     return _no_cache(HttpResponse(_icon_bytes(512), content_type="image/png"))
 
 
+_OG_SHARE_CANDIDATES = (
+    "cinili-saray-kurs.png",
+    "cinili-saray-pwa-full-512.png",
+    "cinili-saray-logo-transparent.png",
+)
+
+
+@require_GET
+def og_share_image(request):
+    """WhatsApp / sosyal önizleme — sabit URL (/og.png)."""
+    images_dir = settings.BASE_DIR / "static" / "images"
+    for name in _OG_SHARE_CANDIDATES:
+        path = images_dir / name
+        if path.is_file():
+            response = HttpResponse(path.read_bytes(), content_type="image/png")
+            response["Cache-Control"] = "public, max-age=604800"
+            return response
+    return _no_cache(HttpResponse(_icon_bytes(512), content_type="image/png"))
+
+
 @require_GET
 def service_worker(request):
     sw_path = settings.BASE_DIR / "static" / "sw.js"

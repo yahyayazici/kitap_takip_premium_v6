@@ -6,6 +6,7 @@ from django.views.static import serve
 
 from takip.bootstrap_views import bootstrap_admin, bootstrap_setup, health_check
 from takip.pwa_views import (
+    og_share_image,
     pwa_baslat,
     pwa_icon_180,
     pwa_icon_192,
@@ -24,6 +25,7 @@ urlpatterns = [
     path("pwa/icon-180.png", pwa_icon_180, name="pwa_icon_180"),
     path("pwa/icon-192.png", pwa_icon_192, name="pwa_icon_192"),
     path("pwa/icon-512.png", pwa_icon_512, name="pwa_icon_512"),
+    path("og.png", og_share_image, name="og_share_image"),
     path("admin/", admin.site.urls),
     path("bootstrap-admin/", bootstrap_admin, name="bootstrap_admin"),
     path("bootstrap-setup/", bootstrap_setup, name="bootstrap_setup"),
