@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Dini Ders Takip · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}?v=dd-tablo11">
+<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}?v=dd-tablo12">
 {% endblock %}
 {% block content %}
 <div class="dd-page">
@@ -257,6 +257,24 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+    /* Konu satırı ↔ hücreler yatay kaydırma senkronu */
+    (function initHScrollSync() {
+        document.querySelectorAll("[data-dd-shell]").forEach(function (shell) {
+            var topics = shell.querySelector('[data-dd-hscroll="topics"]');
+            var cells = shell.querySelector('[data-dd-hscroll="cells"]');
+            if (!topics || !cells) return;
+            var lock = false;
+            function sync(from, to) {
+                if (lock) return;
+                lock = true;
+                to.scrollLeft = from.scrollLeft;
+                lock = false;
+            }
+            topics.addEventListener("scroll", function () { sync(topics, cells); }, { passive: true });
+            cells.addEventListener("scroll", function () { sync(cells, topics); }, { passive: true });
+        });
+    })();
+
     /* Kutucuk: boş → devam → tamam → boş */
     (function initCellCycle() {
         var order = ["bos", "devam", "tamam"];

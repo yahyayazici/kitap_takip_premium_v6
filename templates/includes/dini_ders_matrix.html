@@ -1,47 +1,40 @@
-{# Excel benzeri dondurma: isimler yatay kaydırmanın dışında, konular sticky top #}
+{# Gerçek Excel dondurma: üst konu satırı + sol isim paneli kaydırmanın dışında #}
 <div class="dd-matrix-shell" data-dd-shell>
-    <div class="dd-matrix-frozen">
-        <table class="dd-matrix dd-matrix--names">
-            <thead>
-                <tr>
-                    <th class="dd-name-head">Talebe</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for satir in talebe_satirlari %}
-                <tr>
-                    <td class="dd-name-cell">
-                        <div class="dd-student-cell">
-                            <span class="dd-student-no">{{ satir.sira }}</span>
-                            <span class="dd-student-name">{{ satir.talebe.ad_soyad }}</span>
-                        </div>
-                    </td>
-                </tr>
+    <div class="dd-matrix-headrow">
+        <div class="dd-matrix-corner">Talebe</div>
+        <div class="dd-matrix-topics" data-dd-hscroll="topics">
+            <div class="dd-matrix-topics-track">
+                {% for konu in konular %}
+                <div class="dd-topic-col"
+                     data-full-name="{{ konu.ad }}"
+                     tabindex="0"
+                     role="button"
+                     aria-label="{{ konu.ad }} — tam adı göster">
+                    <span>{{ konu.ad }}</span>
+                </div>
                 {% endfor %}
-            </tbody>
-        </table>
+            </div>
+        </div>
     </div>
 
-    <div class="dd-matrix-hscroll">
-        <table class="dd-matrix dd-matrix--grid">
-            <thead>
-                <tr>
-                    {% for konu in konular %}
-                    <th class="dd-topic-col"
-                        data-full-name="{{ konu.ad }}"
-                        tabindex="0"
-                        role="button"
-                        aria-label="{{ konu.ad }} — tam adı göster">
-                        <span>{{ konu.ad }}</span>
-                    </th>
-                    {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
+    <div class="dd-matrix-body">
+        <div class="dd-matrix-names">
+            {% for satir in talebe_satirlari %}
+            <div class="dd-name-cell">
+                <div class="dd-student-cell">
+                    <span class="dd-student-no">{{ satir.sira }}</span>
+                    <span class="dd-student-name">{{ satir.talebe.ad_soyad }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="dd-matrix-cells" data-dd-hscroll="cells">
+            <div class="dd-matrix-cells-track">
                 {% for satir in talebe_satirlari %}
-                <tr>
+                <div class="dd-matrix-row">
                     {% for hucre in satir.hucreler %}
-                    <td class="dd-cell">
+                    <div class="dd-cell">
                         {% if duzenle %}
                         <div class="dd-cell-cycle"
                              role="button"
@@ -65,11 +58,11 @@
                             <span class="dd-status dd-status-bos" title="İşlenmedi">○</span>
                             {% endif %}
                         {% endif %}
-                    </td>
+                    </div>
                     {% endfor %}
-                </tr>
+                </div>
                 {% endfor %}
-            </tbody>
-        </table>
+            </div>
+        </div>
     </div>
 </div>

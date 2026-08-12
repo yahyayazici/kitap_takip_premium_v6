@@ -216,10 +216,12 @@
 
 .dd-matrix-card {
     padding: 0;
-    /* Kart dışına taşmayı kes — kaydırma yalnızca wrap içinde */
+    /* Kart aside boyuna uzamasın → altta boşluk oluşmasın */
+    align-self: start;
     overflow: hidden;
     max-width: 100%;
     min-width: 0;
+    width: 100%;
 }
 
 .dd-matrix-head {
@@ -434,34 +436,151 @@ body.dd-topic-modal-open {
     word-break: break-word;
 }
 
-/* —— Excel dondurma: isimler solda ayrı panel, konular sağda yatay kayar —— */
+/* —— Excel dondurma ——
+   Üst: konu satırı (dikey kaymaz)
+   Sol: isimler (yatay kaymaz)
+   Sağ-alt: hücreler (X+Y kayar; X konu satırıyla senkron)
+*/
 .dd-matrix-shell {
+    --dd-name-w: 220px;
+    --dd-topic-h: 168px;
+    --dd-row-h: 44px;
+    --dd-col-w: 52px;
     display: flex;
-    align-items: flex-start;
-    max-height: min(70dvh, 820px);
-    overflow-x: hidden;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    position: relative;
+    flex-direction: column;
     width: 100%;
     max-width: 100%;
     min-width: 0;
+    max-height: min(70dvh, 820px);
+    overflow: hidden;
+    background: #fff;
+    overscroll-behavior: contain;
+}
+
+.dd-matrix-headrow {
+    display: flex;
+    flex: 0 0 auto;
+    height: var(--dd-topic-h);
+    min-height: var(--dd-topic-h);
+    z-index: 8;
+    background: #071b3a;
+    border-bottom: 2px solid #1e40af;
+}
+
+.dd-matrix-corner {
+    flex: 0 0 var(--dd-name-w);
+    width: var(--dd-name-w);
+    max-width: 40vw;
+    display: flex;
+    align-items: flex-end;
+    padding: 0.75rem 1rem;
+    box-sizing: border-box;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #fff;
+    background: #071b3a;
+    box-shadow: 6px 0 14px rgba(0, 0, 0, 0.18);
+    z-index: 9;
+}
+
+.dd-matrix-topics {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    background: #071b3a;
+}
+
+.dd-matrix-topics-track {
+    display: flex;
+    width: max-content;
+    height: 100%;
+}
+
+.dd-topic-col {
+    flex: 0 0 var(--dd-col-w);
+    width: var(--dd-col-w);
+    min-width: var(--dd-col-w);
+    max-width: var(--dd-col-w);
+    height: 100%;
+    box-sizing: border-box;
+    padding: 0.55rem 0.35rem 0.7rem;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    color: #fff;
+    background: #071b3a;
+}
+
+.dd-topic-col span {
+    display: inline-block;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    max-height: calc(var(--dd-topic-h) - 24px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: #ffffff !important;
+    line-height: 1.25;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+.dd-topic-col.is-truncated span {
+    mask-image: linear-gradient(to bottom, #000 70%, transparent);
+}
+
+.dd-matrix-body {
+    display: flex;
+    flex: 0 1 auto;
+    min-height: 0;
+    max-height: calc(min(70dvh, 820px) - var(--dd-topic-h));
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
     background: #fff;
 }
 
-.dd-matrix-frozen {
-    flex: 0 0 220px;
-    width: 220px;
+.dd-matrix-names {
+    flex: 0 0 var(--dd-name-w);
+    width: var(--dd-name-w);
     max-width: 40vw;
     position: sticky;
     left: 0;
-    z-index: 6;
+    z-index: 5;
     background: #fff;
     box-shadow: 6px 0 14px rgba(15, 23, 42, 0.1);
 }
 
-.dd-matrix-hscroll {
+.dd-name-cell {
+    height: var(--dd-row-h);
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem 0.5rem 1rem;
+    border-top: 1px solid rgba(15, 23, 42, 0.06);
+    background: #ffffff;
+    overflow: hidden;
+}
+
+.dd-matrix-names .dd-name-cell:nth-child(even) {
+    background: #f8fafc;
+}
+
+.dd-matrix-names .dd-name-cell:hover {
+    background: #f0f7ff;
+}
+
+.dd-matrix-cells {
     flex: 1 1 auto;
     min-width: 0;
     overflow-x: auto;
@@ -471,112 +590,36 @@ body.dd-topic-modal-open {
     touch-action: pan-x;
 }
 
-.dd-matrix {
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-.dd-matrix--names {
-    width: 100%;
-    table-layout: fixed;
-}
-
-.dd-matrix--grid {
+.dd-matrix-cells-track {
     width: max-content;
     min-width: 100%;
 }
 
-.dd-name-head,
-.dd-matrix--grid thead th.dd-topic-col {
-    position: -webkit-sticky;
-    position: sticky;
-    top: 0;
-    z-index: 4;
-    height: 168px;
+.dd-matrix-row {
+    display: flex;
+    height: var(--dd-row-h);
     box-sizing: border-box;
-    background: #071b3a !important;
-    background-image: none !important;
-    border-bottom: 2px solid #1e40af;
-    color: #e2e8f0;
-    vertical-align: bottom;
-}
-
-.dd-name-head {
-    z-index: 7;
-    text-align: left;
-    padding: 0.75rem 1rem;
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: #fff;
-}
-
-.dd-matrix--grid thead th.dd-topic-col {
-    width: 52px;
-    min-width: 52px;
-    max-width: 52px;
-    padding: 0.55rem 0.35rem 0.7rem;
-    text-transform: none;
-    letter-spacing: 0;
-    border-left: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.dd-matrix--grid thead th.dd-topic-col span {
-    display: inline-block;
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    transform: rotate(180deg);
-    max-height: 148px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-size: 0.74rem;
-    font-weight: 700;
-    color: #ffffff !important;
-    line-height: 1.25;
-    padding: 2px 0;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
-}
-
-.dd-name-cell,
-.dd-matrix--grid tbody td {
-    height: 44px;
-    box-sizing: border-box;
-    padding: 0;
     border-top: 1px solid rgba(15, 23, 42, 0.06);
-    vertical-align: middle;
-}
-
-.dd-name-cell {
-    text-align: left;
-    padding: 0.5rem 0.75rem 0.5rem 1rem;
-    background: #ffffff !important;
-    overflow: hidden;
-}
-
-.dd-matrix--names tbody tr:nth-child(even) .dd-name-cell {
-    background: #f8fafc !important;
-}
-
-.dd-matrix--names tbody tr:hover .dd-name-cell {
-    background: #f0f7ff !important;
-}
-
-.dd-matrix--grid tbody td.dd-cell {
-    width: 52px;
-    min-width: 52px;
-    max-width: 52px;
-    text-align: center;
     background: #fff;
 }
 
-.dd-matrix--grid tbody tr:nth-child(even) td.dd-cell {
+.dd-matrix-row:nth-child(even) {
     background: #f8fafc;
 }
 
-.dd-matrix--grid tbody tr:hover td.dd-cell {
+.dd-matrix-row:hover {
     background: #eff6ff;
+}
+
+.dd-matrix-cells .dd-cell {
+    flex: 0 0 var(--dd-col-w);
+    width: var(--dd-col-w);
+    min-width: var(--dd-col-w);
+    max-width: var(--dd-col-w);
+    height: 100%;
+    display: grid;
+    place-items: center;
+    box-sizing: border-box;
 }
 
 /* Eski tek-wrap sınıfı (rapor vb.) — geriye uyum */
@@ -585,6 +628,13 @@ body.dd-topic-modal-open {
     max-height: min(70dvh, 820px);
     max-width: 100%;
     min-width: 0;
+}
+
+.dd-matrix {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: max-content;
+    min-width: 100%;
 }
 
 .dd-student-cell {
@@ -1325,40 +1375,28 @@ body.dd-topic-modal-open {
         min-width: 0;
     }
 
-    .dd-matrix-shell,
+    .dd-matrix-shell {
+        --dd-name-w: 150px;
+        --dd-topic-h: 132px;
+        --dd-col-w: 40px;
+        max-height: min(68dvh, 720px);
+    }
+
     .dd-matrix-wrap {
         max-height: min(68dvh, 720px);
     }
 
-    .dd-matrix-frozen {
-        flex-basis: 150px;
-        width: 150px;
-    }
-
-    .dd-name-head,
+    .dd-matrix-corner,
     .dd-name-cell {
         padding-left: 0.5rem;
         padding-right: 0.4rem;
     }
 
-    .dd-matrix--grid thead th.dd-topic-col,
-    .dd-matrix--grid tbody td.dd-cell {
-        width: 40px;
-        min-width: 40px;
-        max-width: 40px;
-    }
-
-    .dd-name-head,
-    .dd-matrix--grid thead th.dd-topic-col {
-        height: 132px;
-    }
-
-    .dd-matrix--grid thead th.dd-topic-col {
+    .dd-topic-col {
         padding: 0.4rem 0.2rem 0.5rem;
     }
 
-    .dd-matrix--grid thead th.dd-topic-col span {
-        max-height: 112px;
+    .dd-topic-col span {
         font-size: 0.66rem;
     }
 
@@ -1392,18 +1430,16 @@ body.dd-topic-modal-open {
 }
 
 @media (max-width: 1100px) and (orientation: landscape) {
-    .dd-matrix-shell,
+    .dd-matrix-shell {
+        --dd-topic-h: 110px;
+        max-height: min(58dvh, 420px);
+    }
+
     .dd-matrix-wrap {
         max-height: min(58dvh, 420px);
     }
 
-    .dd-name-head,
-    .dd-matrix--grid thead th.dd-topic-col {
-        height: 110px;
-    }
-
-    .dd-matrix--grid thead th.dd-topic-col span {
-        max-height: 92px;
+    .dd-topic-col span {
         font-size: 0.62rem;
     }
 }
@@ -1432,8 +1468,7 @@ body.dd-topic-modal-open {
         padding: 0.95rem 1rem;
     }
 
-    .dd-matrix-frozen {
-        flex-basis: 132px;
-        width: 132px;
+    .dd-matrix-shell {
+        --dd-name-w: 132px;
     }
 }
