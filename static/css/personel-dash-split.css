@@ -468,28 +468,31 @@
 .personel-ozel-kartlar {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: var(--cs-space-3);
+    gap: 10px;
     margin-top: var(--cs-space-3);
+    width: 100%;
 }
 
 .personel-ozel-card {
     --pok-accent: var(--cs-accent);
     --pok-accent-bg: var(--cs-info-bg);
+    --pok-accent-line: color-mix(in srgb, var(--pok-accent) 22%, var(--cs-border));
     display: flex;
     flex-direction: column;
-    gap: var(--cs-space-3);
+    gap: var(--cs-space-2);
     min-width: 0;
-    min-height: 168px;
-    padding: var(--cs-space-4);
-    border-radius: var(--cs-radius-lg);
-    background: var(--cs-surface);
-    border: 1px solid var(--cs-border-subtle);
+    min-height: 0;
+    padding: 12px 12px 10px;
+    border-radius: var(--cs-radius-md);
+    background: linear-gradient(165deg, var(--pok-accent-bg) 0%, var(--cs-surface) 38%);
+    border: 1px solid var(--pok-accent-line);
+    border-left: 3px solid var(--pok-accent);
     box-shadow: var(--cs-shadow-xs);
     transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .personel-ozel-card:hover {
-    border-color: var(--cs-border);
+    border-color: color-mix(in srgb, var(--pok-accent) 34%, var(--cs-border));
     box-shadow: var(--cs-shadow-sm);
 }
 
@@ -522,7 +525,9 @@
     display: flex;
     align-items: center;
     gap: var(--cs-space-2);
-    min-height: 32px;
+    min-height: 28px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--pok-accent-line);
 }
 
 .personel-ozel-icon {
@@ -530,38 +535,40 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    width: 32px;
-    height: 32px;
-    border-radius: var(--cs-radius-sm);
-    background: var(--pok-accent-bg);
+    width: 28px;
+    height: 28px;
+    border-radius: var(--cs-radius-xs);
+    background: color-mix(in srgb, var(--pok-accent-bg) 72%, var(--cs-surface));
+    border: 1px solid var(--pok-accent-line);
     color: var(--pok-accent);
 }
 
 .personel-ozel-icon svg {
-    width: 17px;
-    height: 17px;
+    width: 15px;
+    height: 15px;
 }
 
 .personel-ozel-kicker {
     margin: 0;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 650;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--cs-text-muted);
+    color: var(--pok-accent);
 }
 
 .personel-ozel-main {
     display: flex;
     flex-direction: column;
-    gap: var(--cs-space-2);
+    gap: 6px;
     flex: 1 1 auto;
     min-height: 0;
+    padding-top: 2px;
 }
 
 .personel-ozel-card h2 {
     margin: 0;
-    font-size: 0.95rem;
+    font-size: 0.875rem;
     font-weight: 650;
     color: var(--cs-text-primary);
     line-height: 1.3;
@@ -577,7 +584,7 @@
 
 .personel-ozel-value {
     margin: 0;
-    font-size: 1.75rem;
+    font-size: 1.55rem;
     font-weight: 750;
     line-height: 1;
     color: var(--pok-accent);
@@ -594,7 +601,7 @@
 .personel-ozel-empty,
 .personel-ozel-ok {
     margin: 0;
-    font-size: 0.8125rem;
+    font-size: 0.78rem;
     color: var(--cs-text-secondary);
     line-height: 1.45;
 }
@@ -606,6 +613,8 @@
 .personel-ozel-body {
     font-weight: 600;
     color: var(--cs-text-primary);
+    word-break: break-word;
+    hyphens: auto;
 }
 
 .personel-ozel-empty {
@@ -635,9 +644,11 @@
     margin: 0;
     padding: 0;
     display: grid;
+    gap: 4px;
+}
+
+.personel-ozel-list--stack {
     gap: 5px;
-    max-height: 108px;
-    overflow: auto;
 }
 
 .personel-ozel-list li {
@@ -645,39 +656,68 @@
     justify-content: space-between;
     align-items: center;
     gap: var(--cs-space-2);
-    font-size: 0.78rem;
-    padding: 5px 8px;
+    font-size: 0.76rem;
+    padding: 5px 7px;
     border-radius: var(--cs-radius-xs);
-    background: var(--cs-surface-muted);
-    border: none;
+    background: color-mix(in srgb, var(--cs-surface) 88%, var(--pok-accent-bg));
+    border: 1px solid var(--pok-accent-line);
 }
 
-.personel-ozel-list li span {
+.personel-ozel-list--stack li {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2px;
+    align-items: start;
+    padding: 6px 8px;
+    border-left: 2px solid var(--pok-accent);
+}
+
+.personel-ozel-list-label {
+    color: var(--pok-accent);
+    font-weight: 650;
+    font-size: 0.68rem;
+    letter-spacing: 0.02em;
+}
+
+.personel-ozel-list-name {
+    color: var(--cs-text-primary);
+    font-weight: 650;
+    font-size: 0.74rem;
+    line-height: 1.35;
+    text-align: left;
+    word-break: break-word;
+    hyphens: auto;
+}
+
+.personel-ozel-list li span:not(.personel-ozel-list-label) {
     color: var(--cs-text-muted);
     font-weight: 550;
 }
 
-.personel-ozel-list li strong {
+.personel-ozel-list li strong:not(.personel-ozel-list-name) {
     color: var(--cs-text-primary);
     font-weight: 650;
     text-align: right;
-    font-size: 0.76rem;
+    font-size: 0.74rem;
 }
 
 .personel-ozel-link {
     align-self: flex-start;
     margin-top: auto;
-    padding: 8px 12px;
-    min-height: 36px;
+    padding: 6px 10px 0;
+    min-height: 32px;
     display: inline-flex;
     align-items: center;
-    font-size: 0.78rem;
+    font-size: 0.74rem;
     font-weight: 650;
     color: var(--pok-accent);
     text-decoration: none;
-    border-radius: var(--cs-radius-pill);
+    border-radius: 0;
+    border-top: 1px solid var(--pok-accent-line);
+    width: 100%;
+    box-sizing: border-box;
     background: transparent;
-    transition: background 0.15s ease, color 0.15s ease;
+    transition: color 0.15s ease;
 }
 
 .personel-ozel-link::after {
@@ -687,14 +727,14 @@
 }
 
 .personel-ozel-link:hover {
-    background: var(--pok-accent-bg);
+    color: var(--cs-primary-dark);
     text-decoration: none;
 }
 
 /* Namaza gelmeyen — sade uyarı */
 .personel-ozel-card--namaz.is-alert {
     border-color: color-mix(in srgb, var(--cs-danger) 28%, var(--cs-border-subtle));
-    background: linear-gradient(180deg, var(--cs-danger-bg) 0%, var(--cs-surface) 72%);
+    background: linear-gradient(165deg, var(--cs-danger-bg) 0%, var(--cs-surface) 55%);
 }
 
 .personel-namaz-vakits {
