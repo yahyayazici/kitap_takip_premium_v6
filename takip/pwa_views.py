@@ -14,6 +14,7 @@ from config.branding import (
     PANEL_NAME,
     PANEL_TAGLINE,
 )
+from takip.og_share_image import render_og_share_png
 
 PWA_THEME_COLOR = "#071b3a"
 PWA_VERSION = "v10"
@@ -91,15 +92,13 @@ def pwa_icon_512(request):
 
 
 _OG_SHARE_CANDIDATES = (
-    "cinili-saray-kurs.png",
-    "cinili-saray-pwa-full-512.png",
-    "cinili-saray-logo-transparent.png",
+    "cinili-saray-og-share.png",
 )
 
 
 @require_GET
 def og_share_image(request):
-    """WhatsApp / sosyal önizleme — sabit URL (/og.png)."""
+    """WhatsApp / sosyal önizleme — logo + kurs adı (/og.png)."""
     images_dir = settings.BASE_DIR / "static" / "images"
     for name in _OG_SHARE_CANDIDATES:
         path = images_dir / name
@@ -107,7 +106,9 @@ def og_share_image(request):
             response = HttpResponse(path.read_bytes(), content_type="image/png")
             response["Cache-Control"] = "public, max-age=604800"
             return response
-    return _no_cache(HttpResponse(_icon_bytes(512), content_type="image/png"))
+    response = HttpResponse(render_og_share_png(), content_type="image/png")
+    response["Cache-Control"] = "public, max-age=604800"
+    return response
 
 
 @require_GET

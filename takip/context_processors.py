@@ -125,7 +125,7 @@ def panel_branding(request):
     public_base = _public_site_base(request)
     og_image_url = os.environ.get("OG_IMAGE_URL", "").strip() or f"{public_base}/og.png"
     og_description = os.environ.get("OG_DESCRIPTION", "").strip() or (
-        f"{PANEL_TAGLINE} · {PANEL_ORG} — {PANEL_MODULE_LABEL} girişi."
+        f"{PANEL_TAGLINE} · Kurum eğitim paneli girişi."
     )
     og_canonical_url = f"{public_base}/giris/"
 
