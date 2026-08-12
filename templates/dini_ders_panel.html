@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Dini Ders Takip · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}?v=dd-tablo9">
+<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}?v=dd-tablo10">
 {% endblock %}
 {% block content %}
 <div class="dd-page">
@@ -343,7 +343,50 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    /* Kutucuk: boş → devam → tamam → boş (tek kutu; native sticky ile sabitleme) */
+    /* İsim + konu satırı dondurma (Excel freeze) — CSS değişkeni ile */
+    (function initMatrixFreeze() {
+        var wraps = document.querySelectorAll(".dd-matrix-wrap");
+        if (!wraps.length) return;
+
+        wraps.forEach(function (wrap) {
+            if (!wrap.querySelector("tbody td.dd-sticky-col") &&
+                !wrap.querySelector("thead th.dd-topic-col")) {
+                return;
+            }
+
+            wrap.classList.add("is-freeze-js");
+            var lastX = -1;
+            var lastY = -1;
+            var ticking = false;
+
+            function apply() {
+                ticking = false;
+                var x = Math.round(wrap.scrollLeft || 0);
+                var y = Math.round(wrap.scrollTop || 0);
+                if (x === lastX && y === lastY) return;
+                lastX = x;
+                lastY = y;
+                wrap.style.setProperty("--dd-freeze-x", x + "px");
+                wrap.style.setProperty("--dd-freeze-y", y + "px");
+            }
+
+            function onScroll() {
+                if (ticking) return;
+                ticking = true;
+                window.requestAnimationFrame(apply);
+            }
+
+            wrap.addEventListener("scroll", onScroll, { passive: true });
+            window.addEventListener("resize", function () {
+                lastX = -1;
+                lastY = -1;
+                onScroll();
+            }, { passive: true });
+            apply();
+        });
+    })();
+
+    /* Kutucuk: boş → devam → tamam → boş */
     (function initCellCycle() {
         var order = ["bos", "devam", "tamam"];
         var titles = {

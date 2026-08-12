@@ -27,7 +27,7 @@
     overflow-x: clip !important;
 }
 
-/* Sayfa boşluğa kaymasın; sabitleme .dd-matrix-wrap içinde sticky.
+/* Sayfa boşluğa kaymasın. Sticky clip yüzünden bozulur → wrap’ta JS freeze.
    html/body clip YASAK — üst menü sticky/fixed bozulur. */
 .v3-main:has(.dd-page),
 .v3-main .page-content:has(.dd-page) {
@@ -435,6 +435,8 @@ body.dd-topic-modal-open {
 }
 
 .dd-matrix-wrap {
+    --dd-freeze-x: 0px;
+    --dd-freeze-y: 0px;
     overflow: auto;
     max-height: min(70dvh, 820px);
     overscroll-behavior: contain;
@@ -447,9 +449,6 @@ body.dd-topic-modal-open {
     min-width: 0;
     -webkit-overflow-scrolling: touch;
     touch-action: pan-x pan-y;
-    /* Sticky için transform/filter yok — scrollport burası */
-    transform: none;
-    filter: none;
 }
 
 .dd-matrix {
@@ -570,6 +569,38 @@ body.dd-topic-modal-open {
 
 .dd-matrix tbody tr:hover td.dd-sticky-col {
     background: #f0f7ff !important;
+}
+
+/*
+ * JS freeze (Excel dondurma): clip/sticky bozulunca
+ * tek CSS değişkeni ile kaydır — hücre başına style yok, titreme az.
+ */
+.dd-matrix-wrap.is-freeze-js .dd-matrix thead th,
+.dd-matrix-wrap.is-freeze-js .dd-matrix tbody td.dd-sticky-col {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.dd-matrix-wrap.is-freeze-js .dd-matrix thead th.dd-topic-col {
+    z-index: 4;
+    transform: translate3d(0, var(--dd-freeze-y), 0);
+    will-change: transform;
+}
+
+.dd-matrix-wrap.is-freeze-js .dd-matrix tbody td.dd-sticky-col {
+    z-index: 5;
+    transform: translate3d(var(--dd-freeze-x), 0, 0);
+    will-change: transform;
+    background-clip: padding-box;
+}
+
+.dd-matrix-wrap.is-freeze-js .dd-matrix thead th.dd-sticky-col {
+    z-index: 7;
+    transform: translate3d(var(--dd-freeze-x), var(--dd-freeze-y), 0);
+    will-change: transform;
 }
 
 .dd-student-cell {
