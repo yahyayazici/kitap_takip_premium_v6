@@ -1,6 +1,14 @@
-<div class="duyuru-media-inner {{ duyuru.ton_sinifi }}">
+<div class="duyuru-media-inner {{ duyuru.ton_sinifi }}" data-duyuru-media-inner>
     {% if duyuru.gorsel %}
-    <img src="{{ duyuru.gorsel.url }}" alt="{{ duyuru.baslik }}" loading="lazy">
+    <img
+        src="{{ duyuru.gorsel.url }}"
+        alt="{{ duyuru.baslik }}"
+        loading="lazy"
+        data-duyuru-photo
+    >
+    <div class="duyuru-photo-fallback" data-duyuru-photo-fallback hidden>
+        {% include "includes/duyuru_slide_auto_gorsel.html" %}
+    </div>
     {% elif duyuru.video_var_mi and duyuru.video_gomme_url %}
         {% if duyuru.video_gomme_mi %}
         <iframe src="{{ duyuru.video_gomme_url }}" title="{{ duyuru.baslik }}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>

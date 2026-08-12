@@ -59,12 +59,21 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
+CLOUDINARY_URL = os.environ.get("CLOUDINARY_URL", "").strip()
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+]
+if CLOUDINARY_URL:
+    INSTALLED_APPS += [
+        "cloudinary_storage",
+        "cloudinary",
+    ]
+INSTALLED_APPS += [
     "django.contrib.staticfiles",
     "takip",
 ]
@@ -126,9 +135,16 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
+if os.environ.get("MEDIA_ROOT"):
+    MEDIA_ROOT = Path(os.environ["MEDIA_ROOT"])
+
+_default_file_storage = "django.core.files.storage.FileSystemStorage"
+if CLOUDINARY_URL:
+    _default_file_storage = "cloudinary_storage.storage.MediaCloudinaryStorage"
+
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": _default_file_storage,
     },
     "staticfiles": {
         # Geliştirmede kaynak static/ klasöründen doğrudan servis et;

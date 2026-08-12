@@ -61,4 +61,17 @@
     });
 
     restartAuto();
+
+    shell.querySelectorAll("[data-duyuru-photo]").forEach((img) => {
+        const showFallback = () => {
+            const inner = img.closest("[data-duyuru-media-inner]");
+            if (!inner || inner.classList.contains("is-photo-missing")) return;
+            inner.classList.add("is-photo-missing");
+            img.remove();
+            const fallback = inner.querySelector("[data-duyuru-photo-fallback]");
+            if (fallback) fallback.hidden = false;
+        };
+        img.addEventListener("error", showFallback);
+        if (img.complete && img.naturalWidth === 0) showFallback();
+    });
 })();
