@@ -27,7 +27,7 @@
     overflow-x: clip !important;
 }
 
-/* Sayfa boşluğa kaymasın; freeze JS ile isim/konu dondurulur.
+/* Sayfa boşluğa kaymasın; sabitleme .dd-matrix-wrap içinde sticky.
    html/body clip YASAK — üst menü sticky/fixed bozulur. */
 .v3-main:has(.dd-page),
 .v3-main .page-content:has(.dd-page) {
@@ -445,8 +445,11 @@ body.dd-topic-modal-open {
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    -webkit-overflow-scrolling: auto;
+    -webkit-overflow-scrolling: touch;
     touch-action: pan-x pan-y;
+    /* Sticky için transform/filter yok — scrollport burası */
+    transform: none;
+    filter: none;
 }
 
 .dd-matrix {
@@ -460,14 +463,13 @@ body.dd-topic-modal-open {
     position: -webkit-sticky;
     position: sticky;
     top: 0;
-    z-index: 3;
+    z-index: 4;
     padding: 0;
     font-size: 0.68rem;
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: #e2e8f0;
-    /* Safari sticky: opak düz arka plan şart */
     background: #071b3a !important;
     background-image: none !important;
     border-bottom: 2px solid #1e40af;
@@ -477,7 +479,7 @@ body.dd-topic-modal-open {
 .dd-matrix thead th.dd-sticky-col {
     left: 0;
     top: 0;
-    z-index: 5;
+    z-index: 6;
     text-align: left;
     padding: 0.75rem 1rem;
     min-width: 200px;
@@ -551,7 +553,7 @@ body.dd-topic-modal-open {
     position: -webkit-sticky;
     position: sticky;
     left: 0;
-    z-index: 2;
+    z-index: 3;
     text-align: left;
     padding: 0.5rem 0.75rem 0.5rem 1rem;
     background: #ffffff !important;
@@ -566,38 +568,8 @@ body.dd-topic-modal-open {
     background: #f8fafc !important;
 }
 
-/* JS freeze: sticky kapalı; katmanı sabitle (titreme azalt) */
-.dd-matrix-wrap.is-freeze-js .dd-matrix thead th,
-.dd-matrix-wrap.is-freeze-js .dd-matrix tbody td.dd-sticky-col {
-    position: relative !important;
-    top: auto !important;
-    left: auto !important;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    transform: translateZ(0);
-}
-
-.dd-matrix-wrap.is-freeze-js .dd-matrix thead th.dd-sticky-col {
-    z-index: 6;
-    background-clip: padding-box;
-}
-
-.dd-matrix-wrap.is-freeze-js .dd-matrix thead th.dd-topic-col {
-    z-index: 4;
-}
-
-.dd-matrix-wrap.is-freeze-js .dd-matrix tbody td.dd-sticky-col {
-    z-index: 3;
-    background-clip: padding-box;
-    isolation: isolate;
-    box-shadow:
-        4px 0 10px rgba(15, 23, 42, 0.08),
-        1px 0 0 var(--dd-line);
-}
-
-.dd-matrix-wrap.is-freeze-js.is-scrolling .dd-matrix tbody td.dd-sticky-col,
-.dd-matrix-wrap.is-freeze-js.is-scrolling .dd-matrix thead th.dd-sticky-col {
-    will-change: transform;
+.dd-matrix tbody tr:hover td.dd-sticky-col {
+    background: #f0f7ff !important;
 }
 
 .dd-student-cell {
@@ -664,71 +636,89 @@ body.dd-topic-modal-open {
     color: #94a3b8;
 }
 
+/* Tek kutu — global button stilleri uygulanmasın diye div[role=button] */
 .dd-cell-cycle {
     position: relative;
-    display: grid;
+    display: grid !important;
     place-items: center;
     width: 100%;
     height: 100%;
-    min-height: 44px;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    background: transparent;
+    min-height: 44px !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
     cursor: pointer;
-    appearance: none;
-    -webkit-appearance: none;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    font: inherit !important;
+    color: inherit !important;
+    outline: none;
+}
+
+.dd-cell-cycle:focus-visible .dd-cell-box {
+    outline: 2px solid #93c5fd;
+    outline-offset: 2px;
 }
 
 .dd-cell-cycle input[type="hidden"] {
-    display: none;
+    display: none !important;
 }
 
 .dd-cell-box {
     display: grid;
     place-items: center;
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
     border-radius: 8px;
     border: 2px solid #cbd5e1;
     background: #fff;
+    box-shadow: none;
     transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
 
+.dd-cell-box::before,
 .dd-cell-box::after {
-    content: "";
-    font-size: 0.85rem;
-    font-weight: 700;
-    line-height: 1;
-    color: transparent;
+    display: none;
+    content: none;
 }
 
 .dd-cell-cycle[data-state="bos"] .dd-cell-box {
-    border-color: #e2e8f0;
-    background: #f8fafc;
+    border-color: #d1d9e6;
+    background: #fff;
 }
 
 .dd-cell-cycle[data-state="devam"] .dd-cell-box {
-    border-color: #fcd34d;
+    border-color: #fbbf24;
     background: #fffbeb;
-    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.12);
 }
 
 .dd-cell-cycle[data-state="devam"] .dd-cell-box::after {
+    display: grid;
+    place-items: center;
     content: "⏳";
-    font-size: 0.78rem;
-    color: inherit;
+    font-size: 0.72rem;
+    line-height: 1;
 }
 
 .dd-cell-cycle[data-state="tamam"] .dd-cell-box {
     border-color: #34d399;
     background: #ecfdf5;
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.12);
 }
 
 .dd-cell-cycle[data-state="tamam"] .dd-cell-box::after {
+    display: grid;
+    place-items: center;
     content: "✓";
+    font-size: 0.85rem;
+    font-weight: 700;
     color: #059669;
+    line-height: 1;
 }
 
 .dd-cell-cycle:hover .dd-cell-box {
