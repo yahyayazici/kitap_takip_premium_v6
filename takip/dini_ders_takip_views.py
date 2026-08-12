@@ -14,6 +14,7 @@ from takip.dini_ders_takip_service import (
     cizelge_sidebar_ozeti,
     duzenleyebilir,
     kayitlari_kaydet,
+    temizle_sahte_devam_kayitlari,
     konular_for,
     rapor_ozeti,
     son_islenen_konular,
@@ -107,20 +108,33 @@ def dini_ders_panel(request):
                 .order_by("ad_soyad")
             )
 
+            talebe_ids = list(talebeler.values_list("id", flat=True))
+            konu_ids = [k.id for k in konular]
+
+            if duzenleyebilir(request.user):
+                # Eski kayıt mantığından kalan boş "devam" kabuklarını temizle
+                temizle_sahte_devam_kayitlari(talebe_ids, konu_ids)
+
             if request.method == "POST" and duzenleyebilir(request.user):
-                isaretli: set[tuple[int, int]] = set()
-                for key in request.POST:
-                    if key.startswith("k_"):
+                durumlar: dict[tuple[int, int], str] = {}
+                for key, value in request.POST.items():
+                    if key.startswith("d_"):
                         parts = key.split("_")
-                        if len(parts) == 3:
-                            isaretli.add((int(parts[1]), int(parts[2])))
-                talebe_ids = list(talebeler.values_list("id", flat=True))
-                konu_ids = [k.id for k in konular]
+                        if len(parts) == 3 and parts[1].isdigit() and parts[2].isdigit():
+                            val = (value or "bos").strip().lower()
+                            if val not in {"bos", "devam", "tamam"}:
+                                val = "bos"
+                            durumlar[(int(parts[1]), int(parts[2]))] = val
+                    elif key.startswith("k_"):
+                        # Eski checkbox uyumu
+                        parts = key.split("_")
+                        if len(parts) == 3 and parts[1].isdigit() and parts[2].isdigit():
+                            durumlar[(int(parts[1]), int(parts[2]))] = "tamam"
                 guncellenen = kayitlari_kaydet(
                     request.user,
                     talebe_ids,
                     konu_ids,
-                    isaretli,
+                    durumlar,
                 )
                 messages.success(
                     request,

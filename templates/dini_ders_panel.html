@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Dini Ders Takip · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}?v=dd-tablo7">
+<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}?v=dd-tablo8">
 {% endblock %}
 {% block content %}
 <div class="dd-page">
@@ -125,13 +125,18 @@
                             </td>
                             {% for hucre in satir.hucreler %}
                             <td class="dd-cell">
-                                <label class="dd-cell-check" title="Tamamlandı">
-                                    <input type="checkbox"
-                                           name="k_{{ hucre.talebe_id }}_{{ hucre.konu_id }}"
-                                           value="1"
-                                           {% if hucre.tamamlandi %}checked{% endif %}>
+                                <button type="button"
+                                        class="dd-cell-cycle"
+                                        data-dd-cycle
+                                        data-state="{{ hucre.durum }}"
+                                        title="{% if hucre.durum == 'tamam' %}Tamamlandı{% elif hucre.durum == 'devam' %}Devam{% else %}İşlenmedi{% endif %} — tıkla: boş → devam → tamam"
+                                        aria-label="{{ hucre.konu_ad }} durumu">
+                                    <input type="hidden"
+                                           name="d_{{ hucre.talebe_id }}_{{ hucre.konu_id }}"
+                                           value="{{ hucre.durum }}"
+                                           data-dd-state-input>
                                     <span class="dd-cell-box" aria-hidden="true"></span>
-                                </label>
+                                </button>
                             </td>
                             {% endfor %}
                         </tr>
@@ -149,14 +154,18 @@
                     </header>
                     <div class="dd-mob-topics">
                         {% for hucre in satir.hucreler %}
-                        <label class="dd-mob-topic" title="{{ hucre.konu_ad }}">
-                            <input type="checkbox"
-                                   name="k_{{ hucre.talebe_id }}_{{ hucre.konu_id }}"
-                                   value="1"
-                                   {% if hucre.tamamlandi %}checked{% endif %}>
+                        <button type="button"
+                                class="dd-mob-topic dd-cell-cycle"
+                                data-dd-cycle
+                                data-state="{{ hucre.durum }}"
+                                title="{{ hucre.konu_ad }}">
+                            <input type="hidden"
+                                   name="d_{{ hucre.talebe_id }}_{{ hucre.konu_id }}"
+                                   value="{{ hucre.durum }}"
+                                   data-dd-state-input>
                             <span class="dd-mob-topic-name">{{ hucre.konu_ad }}</span>
                             <span class="dd-cell-box" aria-hidden="true"></span>
-                        </label>
+                        </button>
                         {% endfor %}
                     </div>
                 </article>
@@ -165,7 +174,7 @@
 
             <div class="dd-form-foot">
                 <button type="submit" class="dd-btn dd-btn-primary">Kaydet</button>
-                <span class="dd-desc">Yeşil tik = tamamlandı · Boş = işlenmedi / devam</span>
+                <span class="dd-desc">Tıklama sırası: boş → ⏳ devam → ✓ tamam → boş</span>
             </div>
         </form>
         {% else %}
@@ -354,7 +363,6 @@ document.addEventListener("DOMContentLoaded", function () {
             var rafId = 0;
 
             function apply() {
-                /* iOS fractional scrollLeft → yuvarla; alt piksel titremesini kes */
                 var x = Math.round(wrap.scrollLeft || 0);
                 var y = Math.round(wrap.scrollTop || 0);
                 ticking = false;
@@ -382,8 +390,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 rafId = window.requestAnimationFrame(apply);
             }
 
-            /* scroll yeter; touchmove çift tetikleyip titreme yapabiliyor */
-            wrap.addEventListener("scroll", onScroll, { passive: true });
+            var scrollEndTimer = 0;
+            wrap.addEventListener("scroll", function () {
+                wrap.classList.add("is-scrolling");
+                window.clearTimeout(scrollEndTimer);
+                scrollEndTimer = window.setTimeout(function () {
+                    wrap.classList.remove("is-scrolling");
+                }, 120);
+                onScroll();
+            }, { passive: true });
             window.addEventListener("resize", function () {
                 lastX = -1;
                 lastY = -1;
@@ -395,9 +410,40 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     })();
 
-    /* Mobilde de tablo aktif — kart listedeki inputlar kapalı */
-    document.querySelectorAll(".dd-mob-list input[type=checkbox]").forEach(function (el) {
+    /* Kutucuk: boş → devam → tamam → boş */
+    (function initCellCycle() {
+        var order = ["bos", "devam", "tamam"];
+        var titles = {
+            bos: "İşlenmedi",
+            devam: "Devam",
+            tamam: "Tamamlandı"
+        };
+
+        function setState(btn, state) {
+            btn.setAttribute("data-state", state);
+            btn.title = titles[state] + " — tıkla: boş → devam → tamam";
+            var input = btn.querySelector("[data-dd-state-input]");
+            if (input) input.value = state;
+        }
+
+        document.querySelectorAll("[data-dd-cycle]").forEach(function (btn) {
+            var cur = btn.getAttribute("data-state") || "bos";
+            if (order.indexOf(cur) === -1) cur = "bos";
+            setState(btn, cur);
+            btn.addEventListener("click", function (e) {
+                e.preventDefault();
+                var state = btn.getAttribute("data-state") || "bos";
+                var idx = order.indexOf(state);
+                if (idx < 0) idx = 0;
+                setState(btn, order[(idx + 1) % order.length]);
+            });
+        });
+    })();
+
+    /* Mobil kart listesi formda çift gönderilmesin */
+    document.querySelectorAll(".dd-mob-list [data-dd-state-input]").forEach(function (el) {
         el.disabled = true;
+        el.removeAttribute("name");
     });
 
     var popover = document.getElementById("dd-topic-popover");

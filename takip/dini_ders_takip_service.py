@@ -274,28 +274,70 @@ def son_islenen_konular(
     )
 
 
+def temizle_sahte_devam_kayitlari(talebe_ids: list[int], konu_ids: list[int]) -> int:
+    """Eski checkbox kaydı tüm hücrelere boş kayıt yazıyordu; işaretsiz kabukları sil."""
+    if not talebe_ids or not konu_ids:
+        return 0
+    deleted, _ = DiniDersKonuKaydi.objects.filter(
+        talebe_id__in=talebe_ids,
+        konu_id__in=konu_ids,
+        tamamlandi=False,
+        isaretleyen__isnull=True,
+    ).delete()
+    return deleted
+
+
 def kayitlari_kaydet(
     user: User,
     talebe_ids: list[int],
     konu_ids: list[int],
-    isaretli: set[tuple[int, int]],
+    durumlar: dict[tuple[int, int], str] | set[tuple[int, int]],
 ) -> int:
+    """
+    Hücre durumu: bos → devam → tamam.
+    Geriye dönük: set verilirse eski checkbox (yalnız tamam) gibi işlenir.
+    """
+    if isinstance(durumlar, set):
+        durum_map = {
+            (tid, kid): ("tamam" if (tid, kid) in durumlar else "bos")
+            for tid in talebe_ids
+            for kid in konu_ids
+        }
+    else:
+        durum_map = durumlar
+
     guncellenen = 0
+    mevcut = matris_kayit_map(talebe_ids, konu_ids)
+
     for talebe_id in talebe_ids:
         for konu_id in konu_ids:
-            tamamlandi = (talebe_id, konu_id) in isaretli
-            kayit, _ = DiniDersKonuKaydi.objects.get_or_create(
-                talebe_id=talebe_id,
-                konu_id=konu_id,
-            )
-            if kayit.tamamlandi != tamamlandi:
+            durum = durum_map.get((talebe_id, konu_id), "bos")
+            if durum not in {"bos", "devam", "tamam"}:
+                durum = "bos"
+            kayit = mevcut.get((talebe_id, konu_id))
+
+            if durum == "bos":
+                if kayit:
+                    kayit.delete()
+                    guncellenen += 1
+                continue
+
+            tamamlandi = durum == "tamam"
+            if not kayit:
+                DiniDersKonuKaydi.objects.create(
+                    talebe_id=talebe_id,
+                    konu_id=konu_id,
+                    tamamlandi=tamamlandi,
+                    isaretleyen=user,
+                )
+                guncellenen += 1
+                continue
+
+            if kayit.tamamlandi != tamamlandi or kayit.isaretleyen_id != user.id:
                 kayit.tamamlandi = tamamlandi
                 kayit.isaretleyen = user
-                kayit.save()
+                kayit.save(update_fields=["tamamlandi", "isaretleyen", "guncellenme"])
                 guncellenen += 1
-            elif tamamlandi and kayit.isaretleyen_id != user.id:
-                kayit.isaretleyen = user
-                kayit.save(update_fields=["isaretleyen", "guncellenme"])
     return guncellenen
 
 

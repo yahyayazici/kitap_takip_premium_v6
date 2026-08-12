@@ -480,8 +480,8 @@ body.dd-topic-modal-open {
     z-index: 5;
     text-align: left;
     padding: 0.75rem 1rem;
-    min-width: 180px;
-    max-width: 220px;
+    min-width: 200px;
+    max-width: 260px;
     color: #fff;
     text-transform: uppercase;
     font-size: 0.68rem;
@@ -491,11 +491,11 @@ body.dd-topic-modal-open {
 }
 
 .dd-matrix thead th.dd-topic-col {
-    width: 48px;
-    min-width: 48px;
-    max-width: 48px;
-    height: 120px;
-    padding: 0.5rem 0.35rem 0.65rem;
+    width: 52px;
+    min-width: 52px;
+    max-width: 52px;
+    height: 168px;
+    padding: 0.55rem 0.35rem 0.7rem;
     vertical-align: bottom;
     text-transform: none;
     letter-spacing: 0;
@@ -508,14 +508,14 @@ body.dd-topic-modal-open {
     writing-mode: vertical-rl;
     text-orientation: mixed;
     transform: rotate(180deg);
-    max-height: 100px;
+    max-height: 148px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-size: 0.72rem;
+    font-size: 0.74rem;
     font-weight: 700;
     color: #ffffff !important;
-    line-height: 1.2;
+    line-height: 1.25;
     padding: 2px 0;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
@@ -529,9 +529,9 @@ body.dd-topic-modal-open {
 }
 
 .dd-matrix tbody td.dd-cell {
-    width: 48px;
-    min-width: 48px;
-    max-width: 48px;
+    width: 52px;
+    min-width: 52px;
+    max-width: 52px;
     padding: 0;
 }
 
@@ -557,28 +557,28 @@ body.dd-topic-modal-open {
     background: #ffffff !important;
     border-right: 1px solid var(--dd-line);
     box-shadow: 4px 0 10px rgba(15, 23, 42, 0.08);
-    min-width: 180px;
-    max-width: 220px;
+    min-width: 200px;
+    max-width: 260px;
+    overflow: hidden;
 }
 
 .dd-matrix tbody tr:nth-child(even) td.dd-sticky-col {
     background: #f8fafc !important;
 }
 
-/* JS freeze polyfill açıkken CSS sticky kapalı (çift kayma/titreme olmasın) */
+/* JS freeze: sticky kapalı; katmanı sabitle (titreme azalt) */
 .dd-matrix-wrap.is-freeze-js .dd-matrix thead th,
 .dd-matrix-wrap.is-freeze-js .dd-matrix tbody td.dd-sticky-col {
     position: relative !important;
     top: auto !important;
     left: auto !important;
-    will-change: transform;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
+    transform: translateZ(0);
 }
 
 .dd-matrix-wrap.is-freeze-js .dd-matrix thead th.dd-sticky-col {
     z-index: 6;
-    /* Alt piksel kaymasında alt içerik sızmasın */
     background-clip: padding-box;
 }
 
@@ -589,10 +589,15 @@ body.dd-topic-modal-open {
 .dd-matrix-wrap.is-freeze-js .dd-matrix tbody td.dd-sticky-col {
     z-index: 3;
     background-clip: padding-box;
-    /* Kompozit katmanda sabit opak zemin — scroll titremesini azaltır */
+    isolation: isolate;
     box-shadow:
         4px 0 10px rgba(15, 23, 42, 0.08),
         1px 0 0 var(--dd-line);
+}
+
+.dd-matrix-wrap.is-freeze-js.is-scrolling .dd-matrix tbody td.dd-sticky-col,
+.dd-matrix-wrap.is-freeze-js.is-scrolling .dd-matrix thead th.dd-sticky-col {
+    will-change: transform;
 }
 
 .dd-student-cell {
@@ -659,7 +664,7 @@ body.dd-topic-modal-open {
     color: #94a3b8;
 }
 
-.dd-cell-check {
+.dd-cell-cycle {
     position: relative;
     display: grid;
     place-items: center;
@@ -667,15 +672,16 @@ body.dd-topic-modal-open {
     height: 100%;
     min-height: 44px;
     margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
     cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
 }
 
-.dd-cell-check input {
-    position: absolute;
-    opacity: 0;
-    width: 0;
-    height: 0;
-    pointer-events: none;
+.dd-cell-cycle input[type="hidden"] {
+    display: none;
 }
 
 .dd-cell-box {
@@ -690,27 +696,43 @@ body.dd-topic-modal-open {
 }
 
 .dd-cell-box::after {
-    content: "✓";
+    content: "";
     font-size: 0.85rem;
     font-weight: 700;
-    color: transparent;
     line-height: 1;
-    transition: color 0.15s ease;
+    color: transparent;
 }
 
-.dd-cell-check input:checked + .dd-cell-box {
+.dd-cell-cycle[data-state="bos"] .dd-cell-box {
+    border-color: #e2e8f0;
+    background: #f8fafc;
+}
+
+.dd-cell-cycle[data-state="devam"] .dd-cell-box {
+    border-color: #fcd34d;
+    background: #fffbeb;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+}
+
+.dd-cell-cycle[data-state="devam"] .dd-cell-box::after {
+    content: "⏳";
+    font-size: 0.78rem;
+    color: inherit;
+}
+
+.dd-cell-cycle[data-state="tamam"] .dd-cell-box {
     border-color: #34d399;
     background: #ecfdf5;
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
 }
 
-.dd-cell-check input:checked + .dd-cell-box::after {
+.dd-cell-cycle[data-state="tamam"] .dd-cell-box::after {
+    content: "✓";
     color: #059669;
 }
 
-.dd-cell-check:hover .dd-cell-box {
+.dd-cell-cycle:hover .dd-cell-box {
     border-color: #93c5fd;
-    background: #f8fbff;
 }
 
 .dd-form-foot {
@@ -1317,13 +1339,13 @@ body.dd-topic-modal-open {
     }
 
     .dd-matrix thead th.dd-topic-col {
-        height: 96px;
-        padding: 0.35rem 0.2rem 0.45rem;
+        height: 132px;
+        padding: 0.4rem 0.2rem 0.5rem;
     }
 
     .dd-matrix thead th.dd-topic-col span {
-        max-height: 78px;
-        font-size: 0.64rem;
+        max-height: 112px;
+        font-size: 0.66rem;
     }
 
     .dd-student-name {
@@ -1361,12 +1383,12 @@ body.dd-topic-modal-open {
     }
 
     .dd-matrix thead th.dd-topic-col {
-        height: 72px;
+        height: 110px;
     }
 
     .dd-matrix thead th.dd-topic-col span {
-        max-height: 56px;
-        font-size: 0.6rem;
+        max-height: 92px;
+        font-size: 0.62rem;
     }
 }
 
