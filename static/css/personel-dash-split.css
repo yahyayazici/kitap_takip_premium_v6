@@ -468,50 +468,125 @@
 .personel-ozel-kartlar {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 14px;
-    margin-top: 14px;
+    gap: var(--cs-space-3);
+    margin-top: var(--cs-space-3);
 }
 
 .personel-ozel-card {
+    --pok-accent: var(--cs-accent);
+    --pok-accent-bg: var(--cs-info-bg);
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--cs-space-3);
     min-width: 0;
-    padding: 16px 16px 14px;
-    border-radius: 18px;
-    background: #fff;
-    border: 1px solid rgba(15, 40, 80, 0.08);
-    box-shadow: 0 10px 28px rgba(15, 40, 80, 0.06);
+    min-height: 168px;
+    padding: var(--cs-space-4);
+    border-radius: var(--cs-radius-lg);
+    background: var(--cs-surface);
+    border: 1px solid var(--cs-border-subtle);
+    box-shadow: var(--cs-shadow-xs);
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.personel-ozel-card:hover {
+    border-color: var(--cs-border);
+    box-shadow: var(--cs-shadow-sm);
+}
+
+.personel-ozel-card--sinif {
+    --pok-accent: var(--cs-accent);
+    --pok-accent-bg: var(--cs-info-bg);
+}
+
+.personel-ozel-card--imam {
+    --pok-accent: var(--cs-primary-mid);
+    --pok-accent-bg: var(--cs-soft-blue);
+}
+
+.personel-ozel-card--yemek {
+    --pok-accent: var(--cs-warning);
+    --pok-accent-bg: var(--cs-warning-bg);
+}
+
+.personel-ozel-card--namaz {
+    --pok-accent: var(--cs-success);
+    --pok-accent-bg: var(--cs-success-bg);
+}
+
+.personel-ozel-card--namaz.is-alert {
+    --pok-accent: var(--cs-danger);
+    --pok-accent-bg: var(--cs-danger-bg);
+}
+
+.personel-ozel-head {
+    display: flex;
+    align-items: center;
+    gap: var(--cs-space-2);
+    min-height: 32px;
+}
+
+.personel-ozel-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--cs-radius-sm);
+    background: var(--pok-accent-bg);
+    color: var(--pok-accent);
+}
+
+.personel-ozel-icon svg {
+    width: 17px;
+    height: 17px;
 }
 
 .personel-ozel-kicker {
     margin: 0;
     font-size: 11px;
-    font-weight: 750;
-    letter-spacing: 0.07em;
+    font-weight: 650;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #64748b;
+    color: var(--cs-text-muted);
+}
+
+.personel-ozel-main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cs-space-2);
+    flex: 1 1 auto;
+    min-height: 0;
 }
 
 .personel-ozel-card h2 {
     margin: 0;
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: #0f2748;
-    line-height: 1.25;
+    font-size: 0.95rem;
+    font-weight: 650;
+    color: var(--cs-text-primary);
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+}
+
+.personel-ozel-metric {
+    display: flex;
+    align-items: baseline;
+    gap: var(--cs-space-2);
+    flex-wrap: wrap;
 }
 
 .personel-ozel-value {
-    margin: 4px 0 0;
-    font-size: 2.2rem;
-    font-weight: 800;
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 750;
     line-height: 1;
-    color: #1d4ed8;
-    letter-spacing: -0.02em;
+    color: var(--pok-accent);
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
 }
 
 .personel-ozel-value--alert {
-    color: #b91c1c;
+    color: var(--cs-danger);
 }
 
 .personel-ozel-meta,
@@ -519,117 +594,139 @@
 .personel-ozel-empty,
 .personel-ozel-ok {
     margin: 0;
-    font-size: 0.88rem;
-    color: #475569;
-    line-height: 1.4;
+    font-size: 0.8125rem;
+    color: var(--cs-text-secondary);
+    line-height: 1.45;
+}
+
+.personel-ozel-meta {
+    font-weight: 550;
 }
 
 .personel-ozel-body {
-    font-weight: 650;
-    color: #1e293b;
+    font-weight: 600;
+    color: var(--cs-text-primary);
+}
+
+.personel-ozel-empty {
+    color: var(--cs-text-muted);
+    font-style: normal;
 }
 
 .personel-ozel-ok {
-    color: #047857;
-    font-weight: 650;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--cs-success);
+    font-weight: 600;
+}
+
+.personel-ozel-ok::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.85;
 }
 
 .personel-ozel-list {
     list-style: none;
-    margin: 4px 0 0;
+    margin: 0;
     padding: 0;
     display: grid;
-    gap: 6px;
+    gap: 5px;
+    max-height: 108px;
+    overflow: auto;
 }
 
 .personel-ozel-list li {
     display: flex;
     justify-content: space-between;
-    gap: 8px;
-    font-size: 0.84rem;
-    border-bottom: 1px solid #eef2f7;
-    padding-bottom: 5px;
+    align-items: center;
+    gap: var(--cs-space-2);
+    font-size: 0.78rem;
+    padding: 5px 8px;
+    border-radius: var(--cs-radius-xs);
+    background: var(--cs-surface-muted);
+    border: none;
 }
 
 .personel-ozel-list li span {
-    color: #64748b;
+    color: var(--cs-text-muted);
+    font-weight: 550;
 }
 
 .personel-ozel-list li strong {
-    color: #0f2748;
-    font-weight: 700;
+    color: var(--cs-text-primary);
+    font-weight: 650;
     text-align: right;
+    font-size: 0.76rem;
 }
 
 .personel-ozel-link {
+    align-self: flex-start;
     margin-top: auto;
-    padding-top: 8px;
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: #1d4ed8;
+    padding: 8px 12px;
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.78rem;
+    font-weight: 650;
+    color: var(--pok-accent);
     text-decoration: none;
+    border-radius: var(--cs-radius-pill);
+    background: transparent;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.personel-ozel-link::after {
+    content: "→";
+    margin-left: 4px;
+    opacity: 0.7;
 }
 
 .personel-ozel-link:hover {
-    text-decoration: underline;
+    background: var(--pok-accent-bg);
+    text-decoration: none;
 }
 
-/* Namaza gelmeyen — dikkat çekici */
-.personel-ozel-card--namaz {
-    border-color: #bbf7d0;
-    background: linear-gradient(165deg, #f0fdf4 0%, #fff 55%);
-}
-
+/* Namaza gelmeyen — sade uyarı */
 .personel-ozel-card--namaz.is-alert {
-    border-color: #fecaca;
-    background: linear-gradient(165deg, #fef2f2 0%, #fff7ed 42%, #fff 100%);
-    box-shadow:
-        0 0 0 1px rgba(220, 38, 38, 0.12),
-        0 14px 36px rgba(185, 28, 28, 0.12);
-    animation: personel-namaz-pulse 2.4s ease-in-out infinite;
-}
-
-@keyframes personel-namaz-pulse {
-    0%, 100% { box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.12), 0 14px 36px rgba(185, 28, 28, 0.1); }
-    50% { box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.22), 0 16px 40px rgba(185, 28, 28, 0.16); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .personel-ozel-card--namaz.is-alert {
-        animation: none;
-    }
+    border-color: color-mix(in srgb, var(--cs-danger) 28%, var(--cs-border-subtle));
+    background: linear-gradient(180deg, var(--cs-danger-bg) 0%, var(--cs-surface) 72%);
 }
 
 .personel-namaz-vakits {
     display: grid;
-    gap: 8px;
-    margin-top: 4px;
-    max-height: 180px;
+    gap: 6px;
+    margin-top: 2px;
+    max-height: 120px;
     overflow: auto;
 }
 
 .personel-namaz-vakit {
     display: grid;
     gap: 2px;
-    padding: 8px 10px;
-    border-radius: 10px;
-    background: rgba(254, 226, 226, 0.55);
-    border: 1px solid #fecaca;
+    padding: 7px 9px;
+    border-radius: var(--cs-radius-sm);
+    background: var(--cs-danger-bg);
+    border: 1px solid color-mix(in srgb, var(--cs-danger) 18%, transparent);
 }
 
 .personel-namaz-vakit em {
     font-style: normal;
-    font-size: 0.72rem;
-    font-weight: 800;
-    letter-spacing: 0.04em;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: #b91c1c;
+    color: var(--cs-danger);
 }
 
 .personel-namaz-vakit span {
-    font-size: 0.84rem;
-    font-weight: 650;
-    color: #7f1d1d;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--cs-text-primary);
     line-height: 1.35;
 }
 

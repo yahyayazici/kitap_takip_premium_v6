@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/duyuru-carousel.css' %}?v=half4">
-<link rel="stylesheet" href="{% static 'css/personel-dash-split.css' %}?v=half4">
+<link rel="stylesheet" href="{% static 'css/personel-dash-split.css' %}?v=half5">
 <link rel="stylesheet" href="{% static 'css/vazife-premium.css' %}">
 {% if etut_plani_onizleme or dershane_onizleme %}
 <link rel="stylesheet" href="{% static 'css/etut-plan-premium.css' %}">
@@ -46,64 +46,97 @@
 {# 1) Özel kartlar: sınıf · imam · yemekçi · namaza gelmeyenler #}
 <section class="personel-ozel-kartlar" aria-label="Günün özeti">
     <article class="personel-ozel-card personel-ozel-card--sinif">
-        <p class="personel-ozel-kicker">Etüt kapsamı</p>
-        <h2>Sınıf sayısı</h2>
-        <strong class="personel-ozel-value">{{ sinif_sayisi|default:0 }}</strong>
-        <p class="personel-ozel-meta">{{ talebe_sayisi|default:0 }} talebe</p>
-        <a href="{% url 'talebe_listesi' %}" class="personel-ozel-link">Talebeler →</a>
+        <header class="personel-ozel-head">
+            <span class="personel-ozel-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+            </span>
+            <p class="personel-ozel-kicker">Etüt kapsamı</p>
+        </header>
+        <div class="personel-ozel-main">
+            <h2>Sınıf sayısı</h2>
+            <div class="personel-ozel-metric">
+                <strong class="personel-ozel-value">{{ sinif_sayisi|default:0 }}</strong>
+                <span class="personel-ozel-meta">{{ talebe_sayisi|default:0 }} talebe</span>
+            </div>
+        </div>
+        <a href="{% url 'talebe_listesi' %}" class="personel-ozel-link">Talebeler</a>
     </article>
 
     <article class="personel-ozel-card personel-ozel-card--imam">
-        <p class="personel-ozel-kicker">Bugün</p>
-        <h2>İmam &amp; müezzin</h2>
-        {% if gunluk_gorevler.imam %}
-        <p class="personel-ozel-body">{{ gunluk_gorevler.imam.deger }}</p>
+        <header class="personel-ozel-head">
+            <span class="personel-ozel-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3"/><path d="M5 21v-1a5 5 0 0 1 10 0v1"/><path d="M17 11l2 2 4-4"/></svg>
+            </span>
+            <p class="personel-ozel-kicker">Bugün</p>
+        </header>
+        <div class="personel-ozel-main">
+            <h2>İmam &amp; müezzin</h2>
+            {% if gunluk_gorevler.imam %}
+            <p class="personel-ozel-body">{{ gunluk_gorevler.imam.deger }}</p>
+            {% else %}
+            <p class="personel-ozel-empty">Atama yok</p>
+            {% endif %}
+        </div>
         {% if gunluk_gorevler.imam.url %}
-        <a href="{{ gunluk_gorevler.imam.url }}" class="personel-ozel-link">Detay →</a>
-        {% endif %}
-        {% else %}
-        <p class="personel-ozel-empty">Bugün için atama yok</p>
+        <a href="{{ gunluk_gorevler.imam.url }}" class="personel-ozel-link">Detay</a>
         {% endif %}
     </article>
 
     <article class="personel-ozel-card personel-ozel-card--yemek">
-        <p class="personel-ozel-kicker">Bugün</p>
-        <h2>Yemekçiler</h2>
-        {% if gunluk_gorevler.yemek %}
-        <ul class="personel-ozel-list">
-            {% for satir in gunluk_gorevler.yemek %}
-            <li><span>{{ satir.baslik }}</span><strong>{{ satir.deger }}</strong></li>
-            {% endfor %}
-        </ul>
+        <header class="personel-ozel-head">
+            <span class="personel-ozel-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 11h16"/><path d="M6 11V7a2 2 0 0 1 2-2h1"/><path d="M18 11V7a2 2 0 0 0-2-2h-1"/><path d="M8 21h8"/><path d="M12 11v10"/></svg>
+            </span>
+            <p class="personel-ozel-kicker">Bugün</p>
+        </header>
+        <div class="personel-ozel-main">
+            <h2>Yemekçiler</h2>
+            {% if gunluk_gorevler.yemek %}
+            <ul class="personel-ozel-list">
+                {% for satir in gunluk_gorevler.yemek %}
+                <li><span>{{ satir.baslik }}</span><strong>{{ satir.deger }}</strong></li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="personel-ozel-empty">Atama yok</p>
+            {% endif %}
+        </div>
         {% if gunluk_gorevler.yemek.0.url %}
-        <a href="{{ gunluk_gorevler.yemek.0.url }}" class="personel-ozel-link">Liste →</a>
-        {% endif %}
-        {% else %}
-        <p class="personel-ozel-empty">Bugün için yemekçi yok</p>
+        <a href="{{ gunluk_gorevler.yemek.0.url }}" class="personel-ozel-link">Liste</a>
         {% endif %}
     </article>
 
     {% if namaz_gelmedi %}
     <article class="personel-ozel-card personel-ozel-card--namaz{% if namaz_gelmedi.toplam %} is-alert{% endif %}">
-        <p class="personel-ozel-kicker">Etüdünüz · namaz</p>
-        <h2>Namaza gelmeyenler</h2>
-        {% if namaz_gelmedi.toplam %}
-        <strong class="personel-ozel-value personel-ozel-value--alert">{{ namaz_gelmedi.toplam }}</strong>
-        <div class="personel-namaz-vakits">
-            {% for b in namaz_gelmedi.bildirimler %}
-            <div class="personel-namaz-vakit">
-                <em>{{ b.baslik }}</em>
-                <span>
-                    {% for t in b.talebeler %}{{ t.ad_soyad }}{% if not forloop.last %}, {% endif %}{% endfor %}
-                </span>
+        <header class="personel-ozel-head">
+            <span class="personel-ozel-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v3"/><path d="M6.3 6.3 8.4 8.4"/><path d="M3 12h3"/><path d="M6.3 17.7l2.1-2.1"/><path d="M12 18v3"/><path d="M17.7 17.7l-2.1-2.1"/><path d="M18 12h3"/><path d="M17.7 6.3l-2.1 2.1"/><circle cx="12" cy="12" r="4"/></svg>
+            </span>
+            <p class="personel-ozel-kicker">Etüdünüz · namaz</p>
+        </header>
+        <div class="personel-ozel-main">
+            <h2>Namaza gelmeyenler</h2>
+            {% if namaz_gelmedi.toplam %}
+            <div class="personel-ozel-metric personel-ozel-metric--alert">
+                <strong class="personel-ozel-value personel-ozel-value--alert">{{ namaz_gelmedi.toplam }}</strong>
+                <span class="personel-ozel-meta">talebe</span>
             </div>
-            {% endfor %}
+            <div class="personel-namaz-vakits">
+                {% for b in namaz_gelmedi.bildirimler %}
+                <div class="personel-namaz-vakit">
+                    <em>{{ b.baslik }}</em>
+                    <span>
+                        {% for t in b.talebeler %}{{ t.ad_soyad }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="personel-ozel-ok">Namaza gelmeyen yok</p>
+            {% endif %}
         </div>
-        {% else %}
-        <p class="personel-ozel-ok">Bugün etüdünüzden namaza gelmeyen yok</p>
-        {% endif %}
         {% if namaz_gelmedi.url %}
-        <a href="{{ namaz_gelmedi.url }}" class="personel-ozel-link">Namaz yoklama →</a>
+        <a href="{{ namaz_gelmedi.url }}" class="personel-ozel-link">Namaz yoklama</a>
         {% endif %}
     </article>
     {% endif %}
