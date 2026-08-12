@@ -1,0 +1,75 @@
+{# Excel benzeri dondurma: isimler yatay kaydırmanın dışında, konular sticky top #}
+<div class="dd-matrix-shell" data-dd-shell>
+    <div class="dd-matrix-frozen">
+        <table class="dd-matrix dd-matrix--names">
+            <thead>
+                <tr>
+                    <th class="dd-name-head">Talebe</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for satir in talebe_satirlari %}
+                <tr>
+                    <td class="dd-name-cell">
+                        <div class="dd-student-cell">
+                            <span class="dd-student-no">{{ satir.sira }}</span>
+                            <span class="dd-student-name">{{ satir.talebe.ad_soyad }}</span>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="dd-matrix-hscroll">
+        <table class="dd-matrix dd-matrix--grid">
+            <thead>
+                <tr>
+                    {% for konu in konular %}
+                    <th class="dd-topic-col"
+                        data-full-name="{{ konu.ad }}"
+                        tabindex="0"
+                        role="button"
+                        aria-label="{{ konu.ad }} — tam adı göster">
+                        <span>{{ konu.ad }}</span>
+                    </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for satir in talebe_satirlari %}
+                <tr>
+                    {% for hucre in satir.hucreler %}
+                    <td class="dd-cell">
+                        {% if duzenle %}
+                        <div class="dd-cell-cycle"
+                             role="button"
+                             tabindex="0"
+                             data-dd-cycle
+                             data-state="{{ hucre.durum }}"
+                             title="{% if hucre.durum == 'tamam' %}Tamamlandı{% elif hucre.durum == 'devam' %}Devam{% else %}İşlenmedi{% endif %} — tıkla: boş → devam → tamam"
+                             aria-label="{{ hucre.konu_ad }} durumu">
+                            <input type="hidden"
+                                   name="d_{{ hucre.talebe_id }}_{{ hucre.konu_id }}"
+                                   value="{{ hucre.durum }}"
+                                   data-dd-state-input>
+                            <span class="dd-cell-box" aria-hidden="true"></span>
+                        </div>
+                        {% else %}
+                            {% if hucre.durum == 'tamam' %}
+                            <span class="dd-status dd-status-tamam" title="Tamamlandı">✓</span>
+                            {% elif hucre.durum == 'devam' %}
+                            <span class="dd-status dd-status-devam" title="Devam ediyor">⏳</span>
+                            {% else %}
+                            <span class="dd-status dd-status-bos" title="İşlenmedi">○</span>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

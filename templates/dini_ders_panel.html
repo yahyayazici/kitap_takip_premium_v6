@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Dini Ders Takip · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}?v=dd-tablo10">
+<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}?v=dd-tablo11">
 {% endblock %}
 {% block content %}
 <div class="dd-page">
@@ -98,53 +98,7 @@
             {% csrf_token %}
             <input type="hidden" name="seviye_id" value="{{ seviye.id }}">
             <input type="hidden" name="alan_id" value="{{ alan.id }}">
-            <div class="dd-matrix-wrap">
-                <table class="dd-matrix">
-                    <thead>
-                        <tr>
-                            <th class="dd-sticky-col">Talebe</th>
-                            {% for konu in konular %}
-                            <th class="dd-topic-col"
-                                data-full-name="{{ konu.ad }}"
-                                tabindex="0"
-                                role="button"
-                                aria-label="{{ konu.ad }} — tam adı göster">
-                                <span>{{ konu.ad }}</span>
-                            </th>
-                            {% endfor %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for satir in talebe_satirlari %}
-                        <tr>
-                            <td class="dd-sticky-col">
-                                <div class="dd-student-cell">
-                                    <span class="dd-student-no">{{ satir.sira }}</span>
-                                    <span class="dd-student-name">{{ satir.talebe.ad_soyad }}</span>
-                                </div>
-                            </td>
-                            {% for hucre in satir.hucreler %}
-                            <td class="dd-cell">
-                                <div class="dd-cell-cycle"
-                                     role="button"
-                                     tabindex="0"
-                                     data-dd-cycle
-                                     data-state="{{ hucre.durum }}"
-                                     title="{% if hucre.durum == 'tamam' %}Tamamlandı{% elif hucre.durum == 'devam' %}Devam{% else %}İşlenmedi{% endif %} — tıkla: boş → devam → tamam"
-                                     aria-label="{{ hucre.konu_ad }} durumu">
-                                    <input type="hidden"
-                                           name="d_{{ hucre.talebe_id }}_{{ hucre.konu_id }}"
-                                           value="{{ hucre.durum }}"
-                                           data-dd-state-input>
-                                    <span class="dd-cell-box" aria-hidden="true"></span>
-                                </div>
-                            </td>
-                            {% endfor %}
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+            {% include "includes/dini_ders_matrix.html" with duzenle=True %}
 
             <div class="dd-mob-list">
                 {% for satir in talebe_satirlari %}
@@ -180,47 +134,7 @@
             </div>
         </form>
         {% else %}
-        <div class="dd-matrix-wrap">
-            <table class="dd-matrix">
-                <thead>
-                    <tr>
-                        <th class="dd-sticky-col">Talebe</th>
-                        {% for konu in konular %}
-                        <th class="dd-topic-col"
-                            data-full-name="{{ konu.ad }}"
-                            tabindex="0"
-                            role="button"
-                            aria-label="{{ konu.ad }} — tam adı göster">
-                            <span>{{ konu.ad }}</span>
-                        </th>
-                        {% endfor %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for satir in talebe_satirlari %}
-                    <tr>
-                        <td class="dd-sticky-col">
-                            <div class="dd-student-cell">
-                                <span class="dd-student-no">{{ satir.sira }}</span>
-                                <span class="dd-student-name">{{ satir.talebe.ad_soyad }}</span>
-                            </div>
-                        </td>
-                        {% for hucre in satir.hucreler %}
-                        <td class="dd-cell">
-                            {% if hucre.durum == 'tamam' %}
-                            <span class="dd-status dd-status-tamam" title="Tamamlandı">✓</span>
-                            {% elif hucre.durum == 'devam' %}
-                            <span class="dd-status dd-status-devam" title="Devam ediyor">⏳</span>
-                            {% else %}
-                            <span class="dd-status dd-status-bos" title="İşlenmedi">○</span>
-                            {% endif %}
-                        </td>
-                        {% endfor %}
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        {% include "includes/dini_ders_matrix.html" with duzenle=False %}
 
         <div class="dd-mob-list dd-mob-list-readonly">
             {% for satir in talebe_satirlari %}
@@ -343,49 +257,6 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    /* İsim + konu satırı dondurma (Excel freeze) — CSS değişkeni ile */
-    (function initMatrixFreeze() {
-        var wraps = document.querySelectorAll(".dd-matrix-wrap");
-        if (!wraps.length) return;
-
-        wraps.forEach(function (wrap) {
-            if (!wrap.querySelector("tbody td.dd-sticky-col") &&
-                !wrap.querySelector("thead th.dd-topic-col")) {
-                return;
-            }
-
-            wrap.classList.add("is-freeze-js");
-            var lastX = -1;
-            var lastY = -1;
-            var ticking = false;
-
-            function apply() {
-                ticking = false;
-                var x = Math.round(wrap.scrollLeft || 0);
-                var y = Math.round(wrap.scrollTop || 0);
-                if (x === lastX && y === lastY) return;
-                lastX = x;
-                lastY = y;
-                wrap.style.setProperty("--dd-freeze-x", x + "px");
-                wrap.style.setProperty("--dd-freeze-y", y + "px");
-            }
-
-            function onScroll() {
-                if (ticking) return;
-                ticking = true;
-                window.requestAnimationFrame(apply);
-            }
-
-            wrap.addEventListener("scroll", onScroll, { passive: true });
-            window.addEventListener("resize", function () {
-                lastX = -1;
-                lastY = -1;
-                onScroll();
-            }, { passive: true });
-            apply();
-        });
-    })();
-
     /* Kutucuk: boş → devam → tamam → boş */
     (function initCellCycle() {
         var order = ["bos", "devam", "tamam"];

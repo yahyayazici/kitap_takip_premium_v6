@@ -434,77 +434,95 @@ body.dd-topic-modal-open {
     word-break: break-word;
 }
 
-.dd-matrix-wrap {
-    --dd-freeze-x: 0px;
-    --dd-freeze-y: 0px;
-    overflow: auto;
+/* —— Excel dondurma: isimler solda ayrı panel, konular sağda yatay kayar —— */
+.dd-matrix-shell {
+    display: flex;
+    align-items: flex-start;
     max-height: min(70dvh, 820px);
+    overflow-x: hidden;
+    overflow-y: auto;
     overscroll-behavior: contain;
-    overscroll-behavior-x: contain;
-    border-radius: 0;
     position: relative;
-    z-index: 0;
     width: 100%;
     max-width: 100%;
     min-width: 0;
     -webkit-overflow-scrolling: touch;
-    touch-action: pan-x pan-y;
+    background: #fff;
+}
+
+.dd-matrix-frozen {
+    flex: 0 0 220px;
+    width: 220px;
+    max-width: 40vw;
+    position: sticky;
+    left: 0;
+    z-index: 6;
+    background: #fff;
+    box-shadow: 6px 0 14px rgba(15, 23, 42, 0.1);
+}
+
+.dd-matrix-hscroll {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
 }
 
 .dd-matrix {
-    width: max-content;
-    min-width: 100%;
     border-collapse: separate;
     border-spacing: 0;
 }
 
-.dd-matrix thead th {
+.dd-matrix--names {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.dd-matrix--grid {
+    width: max-content;
+    min-width: 100%;
+}
+
+.dd-name-head,
+.dd-matrix--grid thead th.dd-topic-col {
     position: -webkit-sticky;
     position: sticky;
     top: 0;
     z-index: 4;
-    padding: 0;
-    font-size: 0.68rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: #e2e8f0;
+    height: 168px;
+    box-sizing: border-box;
     background: #071b3a !important;
     background-image: none !important;
     border-bottom: 2px solid #1e40af;
+    color: #e2e8f0;
     vertical-align: bottom;
 }
 
-.dd-matrix thead th.dd-sticky-col {
-    left: 0;
-    top: 0;
-    z-index: 6;
+.dd-name-head {
+    z-index: 7;
     text-align: left;
     padding: 0.75rem 1rem;
-    min-width: 200px;
-    max-width: 260px;
-    color: #fff;
-    text-transform: uppercase;
     font-size: 0.68rem;
+    font-weight: 700;
     letter-spacing: 0.06em;
-    background: #071b3a !important;
-    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.18);
+    text-transform: uppercase;
+    color: #fff;
 }
 
-.dd-matrix thead th.dd-topic-col {
+.dd-matrix--grid thead th.dd-topic-col {
     width: 52px;
     min-width: 52px;
     max-width: 52px;
-    height: 168px;
     padding: 0.55rem 0.35rem 0.7rem;
-    vertical-align: bottom;
     text-transform: none;
     letter-spacing: 0;
     border-left: 1px solid rgba(255, 255, 255, 0.08);
-    background: #071b3a !important;
 }
 
-.dd-matrix thead th.dd-topic-col span {
+.dd-matrix--grid thead th.dd-topic-col span {
     display: inline-block;
     writing-mode: vertical-rl;
     text-orientation: mixed;
@@ -521,86 +539,52 @@ body.dd-topic-modal-open {
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
-.dd-matrix tbody td {
+.dd-name-cell,
+.dd-matrix--grid tbody td {
+    height: 44px;
+    box-sizing: border-box;
     padding: 0;
     border-top: 1px solid rgba(15, 23, 42, 0.06);
-    text-align: center;
     vertical-align: middle;
-    height: 44px;
 }
 
-.dd-matrix tbody td.dd-cell {
-    width: 52px;
-    min-width: 52px;
-    max-width: 52px;
-    padding: 0;
-}
-
-.dd-matrix tbody tr:nth-child(even) td:not(.dd-sticky-col) {
-    background: #f8fafc;
-}
-
-.dd-matrix tbody tr:hover td:not(.dd-sticky-col) {
-    background: #eff6ff;
-}
-
-.dd-matrix tbody tr:hover td.dd-sticky-col {
-    background: #f0f7ff;
-}
-
-.dd-matrix tbody td.dd-sticky-col {
-    position: -webkit-sticky;
-    position: sticky;
-    left: 0;
-    z-index: 3;
+.dd-name-cell {
     text-align: left;
     padding: 0.5rem 0.75rem 0.5rem 1rem;
     background: #ffffff !important;
-    border-right: 1px solid var(--dd-line);
-    box-shadow: 4px 0 10px rgba(15, 23, 42, 0.08);
-    min-width: 200px;
-    max-width: 260px;
     overflow: hidden;
 }
 
-.dd-matrix tbody tr:nth-child(even) td.dd-sticky-col {
+.dd-matrix--names tbody tr:nth-child(even) .dd-name-cell {
     background: #f8fafc !important;
 }
 
-.dd-matrix tbody tr:hover td.dd-sticky-col {
+.dd-matrix--names tbody tr:hover .dd-name-cell {
     background: #f0f7ff !important;
 }
 
-/*
- * JS freeze (Excel dondurma): clip/sticky bozulunca
- * tek CSS değişkeni ile kaydır — hücre başına style yok, titreme az.
- */
-.dd-matrix-wrap.is-freeze-js .dd-matrix thead th,
-.dd-matrix-wrap.is-freeze-js .dd-matrix tbody td.dd-sticky-col {
-    position: relative !important;
-    top: auto !important;
-    left: auto !important;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
+.dd-matrix--grid tbody td.dd-cell {
+    width: 52px;
+    min-width: 52px;
+    max-width: 52px;
+    text-align: center;
+    background: #fff;
 }
 
-.dd-matrix-wrap.is-freeze-js .dd-matrix thead th.dd-topic-col {
-    z-index: 4;
-    transform: translate3d(0, var(--dd-freeze-y), 0);
-    will-change: transform;
+.dd-matrix--grid tbody tr:nth-child(even) td.dd-cell {
+    background: #f8fafc;
 }
 
-.dd-matrix-wrap.is-freeze-js .dd-matrix tbody td.dd-sticky-col {
-    z-index: 5;
-    transform: translate3d(var(--dd-freeze-x), 0, 0);
-    will-change: transform;
-    background-clip: padding-box;
+.dd-matrix--grid tbody tr:hover td.dd-cell {
+    background: #eff6ff;
 }
 
-.dd-matrix-wrap.is-freeze-js .dd-matrix thead th.dd-sticky-col {
-    z-index: 7;
-    transform: translate3d(var(--dd-freeze-x), var(--dd-freeze-y), 0);
-    will-change: transform;
+/* Eski tek-wrap sınıfı (rapor vb.) — geriye uyum */
+.dd-matrix-wrap {
+    overflow: auto;
+    max-height: min(70dvh, 820px);
+    max-width: 100%;
+    min-width: 0;
 }
 
 .dd-student-cell {
@@ -1334,37 +1318,46 @@ body.dd-topic-modal-open {
     }
 
     .dd-matrix-card,
+    .dd-matrix-shell,
     .dd-matrix-wrap {
         width: 100%;
         max-width: 100%;
         min-width: 0;
     }
 
+    .dd-matrix-shell,
     .dd-matrix-wrap {
         max-height: min(68dvh, 720px);
     }
 
-    .dd-matrix thead th.dd-sticky-col,
-    .dd-matrix tbody td.dd-sticky-col {
-        min-width: 118px;
-        max-width: 132px;
+    .dd-matrix-frozen {
+        flex-basis: 150px;
+        width: 150px;
+    }
+
+    .dd-name-head,
+    .dd-name-cell {
         padding-left: 0.5rem;
         padding-right: 0.4rem;
     }
 
-    .dd-matrix thead th.dd-topic-col,
-    .dd-matrix tbody td.dd-cell {
+    .dd-matrix--grid thead th.dd-topic-col,
+    .dd-matrix--grid tbody td.dd-cell {
         width: 40px;
         min-width: 40px;
         max-width: 40px;
     }
 
-    .dd-matrix thead th.dd-topic-col {
+    .dd-name-head,
+    .dd-matrix--grid thead th.dd-topic-col {
         height: 132px;
+    }
+
+    .dd-matrix--grid thead th.dd-topic-col {
         padding: 0.4rem 0.2rem 0.5rem;
     }
 
-    .dd-matrix thead th.dd-topic-col span {
+    .dd-matrix--grid thead th.dd-topic-col span {
         max-height: 112px;
         font-size: 0.66rem;
     }
@@ -1399,15 +1392,17 @@ body.dd-topic-modal-open {
 }
 
 @media (max-width: 1100px) and (orientation: landscape) {
+    .dd-matrix-shell,
     .dd-matrix-wrap {
         max-height: min(58dvh, 420px);
     }
 
-    .dd-matrix thead th.dd-topic-col {
+    .dd-name-head,
+    .dd-matrix--grid thead th.dd-topic-col {
         height: 110px;
     }
 
-    .dd-matrix thead th.dd-topic-col span {
+    .dd-matrix--grid thead th.dd-topic-col span {
         max-height: 92px;
         font-size: 0.62rem;
     }
@@ -1437,9 +1432,8 @@ body.dd-topic-modal-open {
         padding: 0.95rem 1rem;
     }
 
-    .dd-matrix thead th.dd-sticky-col,
-    .dd-matrix tbody td.dd-sticky-col {
-        min-width: 108px;
-        max-width: 120px;
+    .dd-matrix-frozen {
+        flex-basis: 132px;
+        width: 132px;
     }
 }
