@@ -590,28 +590,97 @@ body.ktt-modal-open {
 .ktt-sonuc-save-bar {
     display: flex;
     justify-content: flex-end;
-    margin-bottom: 16px;
-    padding-bottom: 14px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
     border-bottom: 1px solid #e2e8f0;
 }
 
+/* Sonuç girişi — dar ve nizamlı satırlar */
+#kttSonucGirPage .result-card {
+    padding: 14px 16px 12px;
+}
+
+#kttSonucTable thead th {
+    padding: 8px 10px !important;
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+#kttSonucTable tbody td {
+    padding: 6px 10px !important;
+    font-size: 13px !important;
+    line-height: 1.25 !important;
+    vertical-align: middle !important;
+}
+
+#kttSonucTable .ktt-talebe-cell {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 8px;
+    min-width: 0;
+}
+
+#kttSonucTable .ktt-talebe-cell strong {
+    font-size: 13px;
+    font-weight: 650;
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+}
+
+#kttSonucTable input.input,
+#kttSonucTable input[type="number"] {
+    width: 64px !important;
+    min-height: 34px !important;
+    height: 34px !important;
+    padding: 4px 8px !important;
+    margin: 0 !important;
+    font-size: 13px !important;
+    line-height: 1.2 !important;
+    border-radius: 8px !important;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+#kttSonucTable .num-col {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    color: #334155;
+    white-space: nowrap;
+}
+
+#kttSonucTable tbody tr:nth-child(even) td {
+    background: #fafbfc;
+}
+
+#kttSonucTable tbody tr:hover td {
+    background: #f1f5f9;
+}
+
 .ktt-check-col {
-    width: 42px;
-    min-width: 42px;
+    width: 36px;
+    min-width: 36px;
     text-align: center;
     vertical-align: middle;
 }
 
 .ktt-check-input {
-    width: 16px;
-    height: 16px;
+    width: 15px;
+    height: 15px;
     margin: 0;
     cursor: pointer;
     accent-color: #dc2626;
+    vertical-align: middle;
 }
 
 .ktt-row-katilmayan td {
-    background: #fffbfb;
+    background: #fffbfb !important;
+}
+
+.ktt-row-katilmayan:hover td {
+    background: #fff5f5 !important;
 }
 
 .ktt-row-removing {
@@ -621,15 +690,18 @@ body.ktt-modal-open {
 }
 
 .ktt-katilmayan-tag {
-    display: inline-block;
-    margin-left: 8px;
-    padding: 2px 8px;
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+    padding: 1px 7px;
     border-radius: 999px;
     background: #fee2e2;
     color: #991b1b;
-    font-size: 11px;
-    font-weight: 600;
-    vertical-align: middle;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.35;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
 }
 
 .ktt-empty {

@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}{{ ktt.ad }} · Sonuç{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=ktt-katilmayan3">
+<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=ktt-sonuc-compact1">
 {% endblock %}
 {% block content %}
 <div
@@ -91,12 +91,14 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <strong>{{ satir.talebe.ad_soyad }}</strong>
-                                {% if satir.katilmayan %}<span class="ktt-katilmayan-tag">Katılmadı</span>{% endif %}
+                                <div class="ktt-talebe-cell">
+                                    <strong>{{ satir.talebe.ad_soyad }}</strong>
+                                    {% if satir.katilmayan %}<span class="ktt-katilmayan-tag">Katılmadı</span>{% endif %}
+                                </div>
                             </td>
-                            <td><input type="number" min="0" max="{{ toplam_soru }}" name="dogru_{{ satir.talebe.id }}" value="{{ satir.dogru }}" class="input" style="width:70px;"></td>
-                            <td><input type="number" min="0" max="{{ toplam_soru }}" name="yanlis_{{ satir.talebe.id }}" value="{{ satir.yanlis }}" class="input" style="width:70px;"></td>
-                            <td><input type="number" min="0" max="{{ toplam_soru }}" name="bos_{{ satir.talebe.id }}" value="{{ satir.bos }}" class="input" style="width:70px;"></td>
+                            <td><input type="number" min="0" max="{{ toplam_soru }}" name="dogru_{{ satir.talebe.id }}" value="{{ satir.dogru }}" class="input" inputmode="numeric"></td>
+                            <td><input type="number" min="0" max="{{ toplam_soru }}" name="yanlis_{{ satir.talebe.id }}" value="{{ satir.yanlis }}" class="input" inputmode="numeric"></td>
+                            <td><input type="number" min="0" max="{{ toplam_soru }}" name="bos_{{ satir.talebe.id }}" value="{{ satir.bos }}" class="input" inputmode="numeric"></td>
                             <td class="num-col">{{ satir.net }}</td>
                             <td class="num-col">{{ satir.puan }}</td>
                         </tr>
