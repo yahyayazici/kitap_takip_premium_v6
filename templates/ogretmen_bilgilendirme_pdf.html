@@ -1,0 +1,278 @@
+{% load static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>{{ panel_name }} · Etüt Hocası Kullanım Rehberi</title>
+    <style>
+        {% include "includes/pdf_rehber_css.html" %}
+    </style>
+</head>
+<body>
+
+{# —— Kapak —— #}
+<section class="rehber-cover page-break">
+    {% if logo_url %}<img class="rehber-cover-logo" src="{{ logo_url }}" alt="">{% endif %}
+    <div class="rehber-cover-brand">{{ panel_name }}</div>
+    <div class="rehber-cover-module">{{ panel_module }}</div>
+    <h1 class="rehber-cover-title">Etüt Hocası Kullanım Rehberi</h1>
+    <div class="rehber-cover-url">{{ panel_giris_url }}</div>
+    <p class="rehber-cover-foot">{{ panel_tagline }} · {{ tarih|date:"d.m.Y" }}</p>
+</section>
+
+{# —— 1. Giriş —— #}
+<section class="rehber-page page-break">
+    <header class="rehber-head">
+        <div>
+            <div class="rehber-head-brand">{{ panel_org }}</div>
+            <div class="rehber-head-sub">Etüt hocası rehberi · 1/6</div>
+        </div>
+        <div class="rehber-head-meta">{{ tarih|date:"d.m.Y" }}</div>
+    </header>
+
+    <p class="rehber-kicker">Başlangıç</p>
+    <h2 class="rehber-title">Panele giriş</h2>
+    <p class="rehber-lead">
+        {{ panel_name }} platformuna etüt hocası olarak giriş yaptığınızda
+        <strong>Personel Paneli</strong>ne yönlendirilirsiniz. Buradan etüt grubunuzdaki
+        talebeleri, haftalık karneleri, kitap takibini ve günlük işlemleri yönetirsiniz.
+    </p>
+
+    <div class="rehber-url-box">{{ panel_giris_url }}</div>
+
+    <ol class="rehber-steps">
+        <li><span class="rehber-step-no">1</span>Tarayıcıda veya telefonda yukarıdaki adresi açın.</li>
+        <li><span class="rehber-step-no">2</span>Size verilen <strong>kullanıcı adı</strong> ve <strong>şifre</strong> ile giriş yapın.</li>
+        <li><span class="rehber-step-no">3</span>İlk girişten sonra şifrenizi değiştirmeniz önerilir.</li>
+        <li><span class="rehber-step-no">4</span>Telefonda menüden <strong>Ana ekrana ekle</strong> ile kısayol oluşturabilirsiniz.</li>
+    </ol>
+
+    <div class="rehber-note">
+        Kişisel giriş bilgileriniz ayrı bir <strong>Giriş Kartı PDF</strong> belgesinde yer alır.
+        Bu rehber tüm etüt hocaları için ortaktır.
+    </div>
+
+    {% if gorseller.giris %}
+    <div class="rehber-shot"><img src="{{ gorseller.giris }}" alt="Giriş ekranı"></div>
+    {% endif %}
+
+    <footer class="rehber-foot">
+        <span>{{ panel_short }}</span>
+        <span>Sayfa 1</span>
+    </footer>
+</section>
+
+{# —— 2. Personel paneli —— #}
+<section class="rehber-page page-break">
+    <header class="rehber-head">
+        <div>
+            <div class="rehber-head-brand">{{ panel_org }}</div>
+            <div class="rehber-head-sub">Etüt hocası rehberi · 2/6</div>
+        </div>
+        <div class="rehber-head-meta">{{ tarih|date:"d.m.Y" }}</div>
+    </header>
+
+    <p class="rehber-kicker">Ana sayfa</p>
+    <h2 class="rehber-title">Personel paneline genel bakış</h2>
+    <p class="rehber-lead">
+        Ana sayfada günün özeti kartları (sınıf/talebe sayısı, imam-müezzin, yemekçi, namaz),
+        duyurular ve modül kısayolları yer alır.
+    </p>
+
+    <div class="rehber-pill-row">
+        <span class="rehber-pill">Haftalık karneler</span>
+        <span class="rehber-pill">Talebeler</span>
+        <span class="rehber-pill">Kitap takip</span>
+        <span class="rehber-pill">Etüt planı</span>
+        <span class="rehber-pill">Namaz yoklama</span>
+    </div>
+
+    <div class="rehber-grid-2">
+        <div class="col">
+            <div class="rehber-card">
+                <div class="rehber-card-head">Özet kartlar</div>
+                <div class="rehber-card-body">
+                    Etüt kapsamındaki sınıf ve talebe sayısı, günlük görev atamaları
+                    ve namaza gelmeyenler tek bakışta görünür.
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="rehber-card">
+                <div class="rehber-card-head">Kısayollar</div>
+                <div class="rehber-card-body">
+                    Yetkinize göre açılan modüllere hızlı erişim sağlar.
+                    Sık kullanılan işlemler buradan başlar.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if gorseller.panel %}
+    <div class="rehber-shot"><img src="{{ gorseller.panel }}" alt="Personel paneli"></div>
+    {% endif %}
+
+    <footer class="rehber-foot">
+        <span>{{ panel_short }}</span>
+        <span>Sayfa 2</span>
+    </footer>
+</section>
+
+{# —— 3. Haftalık karneler —— #}
+<section class="rehber-page page-break">
+    <header class="rehber-head">
+        <div>
+            <div class="rehber-head-brand">{{ panel_org }}</div>
+            <div class="rehber-head-sub">Etüt hocası rehberi · 3/6</div>
+        </div>
+        <div class="rehber-head-meta">{{ tarih|date:"d.m.Y" }}</div>
+    </header>
+
+    <p class="rehber-kicker">Haftalık takip</p>
+    <h2 class="rehber-title">Haftalık eğitim karneleri</h2>
+    <p class="rehber-lead">
+        Branş öğretmenlerinin girdiği haftalık notlar burada arşivlenir.
+        Etüt hocası olarak etüdünüzdeki talebelerin haftalık durumunu takip eder,
+        karne PDF çıktısı alabilirsiniz.
+    </p>
+
+    <ol class="rehber-steps">
+        <li><span class="rehber-step-no">1</span>Ana sayfadan <strong>Haftalık Karneler</strong> kısayoluna gidin.</li>
+        <li><span class="rehber-step-no">2</span>Aktif haftayı veya arşivden geçmiş haftayı seçin.</li>
+        <li><span class="rehber-step-no">3</span>Her talebe için ders sayısı ve ortalamayı görün.</li>
+        <li><span class="rehber-step-no">4</span><strong>PDF</strong> butonu ile bireysel haftalık karne indirin.</li>
+    </ol>
+
+    <div class="rehber-note">
+        Notlar branş öğretmenleri tarafından girilir; veli paneline de yansır.
+        Eksik not varsa ilgili branş öğretmeniyle iletişime geçin.
+    </div>
+
+    {% if gorseller.karneler %}
+    <div class="rehber-shot"><img src="{{ gorseller.karneler }}" alt="Haftalık karneler"></div>
+    {% endif %}
+
+    <footer class="rehber-foot">
+        <span>{{ panel_short }}</span>
+        <span>Sayfa 3</span>
+    </footer>
+</section>
+
+{# —— 4. Kitap takip —— #}
+<section class="rehber-page page-break">
+    <header class="rehber-head">
+        <div>
+            <div class="rehber-head-brand">{{ panel_org }}</div>
+            <div class="rehber-head-sub">Etüt hocası rehberi · 4/6</div>
+        </div>
+        <div class="rehber-head-meta">{{ tarih|date:"d.m.Y" }}</div>
+    </header>
+
+    <p class="rehber-kicker">Okuma</p>
+    <h2 class="rehber-title">Kitap takip ve günlük okuma</h2>
+    <p class="rehber-lead">
+        Talebelerin zimmetli kitapları için günlük okuma kaydı girebilir,
+        toplu okuma ekranından sınıf bazında işlem yapabilirsiniz.
+    </p>
+
+    <ol class="rehber-steps">
+        <li><span class="rehber-step-no">1</span><strong>Kitap Takip</strong> veya <strong>Toplu Günlük Okuma</strong> modülüne gidin.</li>
+        <li><span class="rehber-step-no">2</span>Sınıf ve tarih seçin.</li>
+        <li><span class="rehber-step-no">3</span>Her talebe için okunan sayfa sayısını girin.</li>
+        <li><span class="rehber-step-no">4</span>Kaydet — okuma raporlarına anında yansır.</li>
+    </ol>
+
+    {% if gorseller.kitap %}
+    <div class="rehber-shot"><img src="{{ gorseller.kitap }}" alt="Kitap takip"></div>
+    {% endif %}
+
+    <footer class="rehber-foot">
+        <span>{{ panel_short }}</span>
+        <span>Sayfa 4</span>
+    </footer>
+</section>
+
+{# —— 5. Talebeler & mobil —— #}
+<section class="rehber-page page-break">
+    <header class="rehber-head">
+        <div>
+            <div class="rehber-head-brand">{{ panel_org }}</div>
+            <div class="rehber-head-sub">Etüt hocası rehberi · 5/6</div>
+        </div>
+        <div class="rehber-head-meta">{{ tarih|date:"d.m.Y" }}</div>
+    </header>
+
+    <p class="rehber-kicker">Talebe yönetimi</p>
+    <h2 class="rehber-title">Talebe listesi</h2>
+    <p class="rehber-lead">
+        Etüt grubunuza bağlı talebeleri listeleyebilir, sınıf ve durum filtreleri
+        uygulayabilirsiniz. Talebe profiline buradan ulaşılır.
+    </p>
+
+    {% if gorseller.talebeler %}
+    <div class="rehber-shot"><img src="{{ gorseller.talebeler }}" alt="Talebe listesi"></div>
+    {% endif %}
+
+    <p class="rehber-kicker" style="margin-top:14px;">Mobil kullanım</p>
+    <h2 class="rehber-title" style="font-size:17px;">Telefondan erişim</h2>
+    <p class="rehber-lead" style="margin-bottom:8px;">
+        Site mobil uyumludur. Safari veya Chrome’da adresi açıp
+        <strong>Ana ekrana ekle</strong> ile uygulama gibi kullanabilirsiniz.
+    </p>
+
+    {% if gorseller.mobil %}
+    <div class="rehber-shot rehber-shot-narrow"><img src="{{ gorseller.mobil }}" alt="Mobil görünüm"></div>
+    {% endif %}
+
+    <footer class="rehber-foot">
+        <span>{{ panel_short }}</span>
+        <span>Sayfa 5</span>
+    </footer>
+</section>
+
+{# —— 6. SSS —— #}
+<section class="rehber-page">
+    <header class="rehber-head">
+        <div>
+            <div class="rehber-head-brand">{{ panel_org }}</div>
+            <div class="rehber-head-sub">Etüt hocası rehberi · 6/6</div>
+        </div>
+        <div class="rehber-head-meta">{{ tarih|date:"d.m.Y" }}</div>
+    </header>
+
+    <p class="rehber-kicker">Destek</p>
+    <h2 class="rehber-title">Sık sorulan sorular</h2>
+
+    <dl class="rehber-faq">
+        <dt>Şifremi unuttum, ne yapmalıyım?</dt>
+        <dd>Kurum yönetimine başvurun. Yönetim panelinden yeni giriş kartı PDF’i oluşturulabilir.</dd>
+
+        <dt>Etüt grubumda talebe görünmüyor.</dt>
+        <dd>Yönetim → Talebeler veya Etüt zimmeti ekranından talebenin size bağlanması gerekir.</dd>
+
+        <dt>Haftalık karne boş geliyor.</dt>
+        <dd>Branş öğretmeni henüz o hafta not girmemiş olabilir. Pazar 20:00’ye kadar giriş yapılabilir.</dd>
+
+        <dt>Branş öğretmeni paneli ile fark nedir?</dt>
+        <dd>Branş öğretmenleri not girer; etüt hocası etüt grubunu, karneleri ve günlük takibi yönetir.</dd>
+
+        <dt>Site açılmıyor veya eski görünüm geliyor.</dt>
+        <dd>Tarayıcı önbelleğini temizleyin veya farklı tarayıcı deneyin.</dd>
+
+        <dt>PDF giriş kartımı kaybettim.</dt>
+        <dd>Yönetimden tekrar <strong>Giriş PDF</strong> indirilebilir (yeni şifre oluşturulur).</dd>
+    </dl>
+
+    <div class="rehber-note">
+        Teknik sorun veya erişim talebi için kurum yönetiminize ulaşın.
+        Giriş adresi: <strong>{{ panel_giris_url }}</strong>
+    </div>
+
+    <footer class="rehber-foot">
+        <span>{{ panel_short }} · {{ panel_tagline }}</span>
+        <span>Sayfa 6</span>
+    </footer>
+</section>
+
+</body>
+</html>

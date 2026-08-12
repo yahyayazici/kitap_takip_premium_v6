@@ -6,7 +6,7 @@ from django import forms
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 
 from takip.hizli_kayit_service import ogretmen_pasif_et
 from takip.models import EtutHocasi, SinifSube
@@ -17,6 +17,7 @@ from takip.ogretmen_service import (
     ogretmen_ekstra_rol_slugleri,
 )
 from takip.permissions.service import can, clear_permission_cache
+from takip.ogretmen_bilgilendirme_service import ogretmen_bilgilendirme_pdf_olustur
 from takip.personel_giris_service import (
     ogretmen_giris_kaydi_yenile,
     personel_giris_pdf_olustur,
@@ -257,3 +258,13 @@ def ogretmen_giris_pdf_tek(request, pk: int):
 
     dosya = hoca.ad_soyad.lower().replace(" ", "-")
     return make_pdf_response(pdf, f"giris-{dosya}.pdf")
+
+
+@yonetici_gerekli
+@require_GET
+def etut_hocasi_rehber_pdf(request):
+    """Etüt hocaları için ortak kullanım rehberi PDF."""
+    pdf = ogretmen_bilgilendirme_pdf_olustur(request)
+    if not pdf:
+        return pdf_error_response("Etüt hocası rehber PDF'i oluşturulamadı.")
+    return make_pdf_response(pdf, "cinili-saray-etut-hocasi-rehberi.pdf")

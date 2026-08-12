@@ -1,0 +1,343 @@
+{% load static %}
+@font-face {
+    font-family: "Poppins";
+    src: url("{% static 'fonts/Poppins-Regular.ttf' %}") format("truetype");
+    font-weight: 400;
+}
+@font-face {
+    font-family: "Poppins";
+    src: url("{% static 'fonts/Poppins-Medium.ttf' %}") format("truetype");
+    font-weight: 500;
+}
+@font-face {
+    font-family: "Poppins";
+    src: url("{% static 'fonts/Poppins-SemiBold.ttf' %}") format("truetype");
+    font-weight: 600;
+}
+
+@page {
+    size: A4 portrait;
+    margin: 14mm 16mm 12mm;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: "Poppins", Arial, sans-serif;
+    color: #334155;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+.page-break {
+    page-break-after: always;
+}
+
+.rehber-page {
+    min-height: 255mm;
+    display: flex;
+    flex-direction: column;
+}
+
+.rehber-cover {
+    min-height: 255mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: linear-gradient(160deg, #0f2744 0%, #173b80 45%, #2563eb 100%);
+    color: #ffffff;
+    border-radius: 18px;
+    padding: 36px 32px;
+}
+
+.rehber-cover-logo {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 28px;
+}
+
+.rehber-cover-brand {
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.3pt;
+}
+
+.rehber-cover-module {
+    margin-top: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 1.4pt;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.rehber-cover-title {
+    margin: 32px 0 0;
+    font-size: 22px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.rehber-cover-url {
+    margin-top: 18px;
+    padding: 12px 20px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    font-size: 13px;
+    font-weight: 500;
+    color: #e8f0ff;
+}
+
+.rehber-cover-foot {
+    margin-top: auto;
+    padding-top: 40px;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.rehber-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 12px;
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+    border-bottom: 2px solid #173b80;
+}
+
+.rehber-head-brand {
+    font-size: 12px;
+    font-weight: 600;
+    color: #173b80;
+    line-height: 1.2;
+}
+
+.rehber-head-sub {
+    margin-top: 2px;
+    font-size: 8px;
+    font-weight: 500;
+    letter-spacing: 0.6pt;
+    text-transform: uppercase;
+    color: #94a3b8;
+}
+
+.rehber-head-meta {
+    font-size: 8px;
+    color: #64748b;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.rehber-kicker {
+    margin: 0 0 4px;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.9pt;
+    text-transform: uppercase;
+    color: #2563eb;
+}
+
+.rehber-title {
+    margin: 0 0 10px;
+    font-size: 20px;
+    font-weight: 600;
+    color: #0f172a;
+    line-height: 1.25;
+}
+
+.rehber-lead {
+    margin: 0 0 14px;
+    font-size: 12px;
+    line-height: 1.55;
+    color: #475569;
+}
+
+.rehber-steps {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.rehber-steps li {
+    position: relative;
+    margin: 0 0 10px;
+    padding: 10px 12px 10px 38px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #f8fbff;
+    font-size: 11px;
+    line-height: 1.5;
+    color: #334155;
+}
+
+.rehber-steps li strong {
+    color: #0f172a;
+}
+
+.rehber-step-no {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    background: #173b80;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 600;
+    text-align: center;
+    line-height: 20px;
+}
+
+.rehber-note {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-left: 3px solid #2563eb;
+    border-radius: 0 10px 10px 0;
+    background: #eff6ff;
+    font-size: 10px;
+    line-height: 1.55;
+    color: #1e40af;
+}
+
+.rehber-note-warn {
+    border-left-color: #d97706;
+    background: #fffbeb;
+    color: #92400e;
+}
+
+.rehber-shot {
+    margin: 12px 0 0;
+    border: 1px solid #dbe4f0;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #f1f5f9;
+}
+
+.rehber-shot img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 280px;
+    object-fit: contain;
+}
+
+.rehber-shot-narrow {
+    max-width: 220px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.rehber-shot-narrow img {
+    max-height: 360px;
+}
+
+.rehber-shot-placeholder {
+    display: none;
+}
+
+.rehber-grid-2 {
+    display: table;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 10px 0;
+    margin-top: 8px;
+}
+
+.rehber-grid-2 .col {
+    display: table-cell;
+    width: 50%;
+    vertical-align: top;
+}
+
+.rehber-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #ffffff;
+    margin-bottom: 10px;
+}
+
+.rehber-card-head {
+    padding: 8px 12px;
+    background: #173b80;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5pt;
+    text-transform: uppercase;
+}
+
+.rehber-card-body {
+    padding: 10px 12px;
+    font-size: 10px;
+    line-height: 1.55;
+    color: #475569;
+}
+
+.rehber-card-body ul {
+    margin: 6px 0 0;
+    padding-left: 16px;
+}
+
+.rehber-card-body li {
+    margin-bottom: 4px;
+}
+
+.rehber-faq dt {
+    margin: 10px 0 3px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.rehber-faq dd {
+    margin: 0 0 8px;
+    font-size: 10px;
+    line-height: 1.55;
+    color: #64748b;
+}
+
+.rehber-foot {
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    font-size: 8px;
+    color: #94a3b8;
+}
+
+.rehber-url-box {
+    margin: 10px 0;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1d4ed8;
+    word-break: break-all;
+}
+
+.rehber-pill-row {
+    margin-top: 8px;
+}
+
+.rehber-pill {
+    display: inline-block;
+    margin: 0 6px 6px 0;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    font-size: 9px;
+    font-weight: 600;
+    color: #1d4ed8;
+}

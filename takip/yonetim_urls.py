@@ -228,6 +228,11 @@ urlpatterns = [
         ogretmen_odeme_yonetim_views.ogretmen_giris_pdf_tek,
         name="ogretmen_giris_pdf_tek",
     ),
+    path(
+        "etut-hocasi-rehber-pdf/",
+        ogretmen_odeme_yonetim_views.etut_hocasi_rehber_pdf,
+        name="etut_hocasi_rehber_pdf",
+    ),
 
     path(
         "mezuniyet/",

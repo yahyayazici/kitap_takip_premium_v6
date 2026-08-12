@@ -12,6 +12,7 @@
         <p class="muted">Rol, kullanıcı hesabı ve yetkileri yönetin.</p>
     </div>
     <div class="yonetim-page-head-actions">
+        <a href="{% url 'yonetim:etut_hocasi_rehber_pdf' %}" class="ghost-btn" target="_blank" rel="noopener">Etüt Hocası Rehberi PDF</a>
         {% if aktif_personel_sayisi %}
         <form method="post" action="{% url 'yonetim:personel_giris_pdf_toplu' %}" class="yonetim-inline-action" onsubmit="return confirm('{{ aktif_personel_sayisi }} aktif personelin şifreleri yenilenecek ve giriş bilgileri ZIP olarak indirilecek. Devam edilsin mi?');">
             {% csrf_token %}
