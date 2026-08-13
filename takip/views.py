@@ -1163,13 +1163,27 @@ def toplu_zimmet(request):
         if not secili_talebe_idleri:
             hatalar.append("En az bir talebe seçmelisiniz.")
 
-        try:
-            kitap_sayfa_sayisi = int(kitap_sayfa_sayisi_raw)
+        kitap = None
+        if kitap_id and not hatalar:
+            kitap = Kitap.objects.filter(id=kitap_id, aktif=True).first()
+            if not kitap:
+                hatalar.append("Seçilen kitap bulunamadı.")
+
+        kitap_sayfa_sayisi = None
+        if kitap_sayfa_sayisi_raw:
+            try:
+                kitap_sayfa_sayisi = int(kitap_sayfa_sayisi_raw)
+                if kitap_sayfa_sayisi < 1:
+                    raise ValueError
+            except (TypeError, ValueError):
+                hatalar.append("Geçerli bir kitap sayfa sayısı girin.")
+        elif kitap:
+            kitap_sayfa_sayisi = kitap.toplam_sayfa
             if kitap_sayfa_sayisi < 1:
-                raise ValueError
-        except (TypeError, ValueError):
-            kitap_sayfa_sayisi = None
-            hatalar.append("Geçerli bir kitap sayfa sayısı girin.")
+                hatalar.append(
+                    "Seçilen kitabın sayfa sayısı tanımlı değil. "
+                    "Kitap arşivinden düzenleyin."
+                )
 
         try:
             zimmet_tarihi = date.fromisoformat(zimmet_tarihi_raw)
@@ -1198,7 +1212,13 @@ def toplu_zimmet(request):
 
             hatalari_ozetle(request, hatalar)
         else:
-            kitap = get_object_or_404(Kitap, id=kitap_id)
+            if kitap is None or kitap_sayfa_sayisi is None:
+                messages.error(request, "Zimmet oluşturulamadı.")
+                return render(
+                    request,
+                    "toplu_zimmet.html",
+                    {"talebeler": talebeler, "kitaplar": kitaplar},
+                )
 
             if kitap.toplam_sayfa != kitap_sayfa_sayisi:
                 kitap.toplam_sayfa = kitap_sayfa_sayisi

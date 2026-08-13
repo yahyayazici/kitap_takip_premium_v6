@@ -67,6 +67,12 @@
                                 </option>
                             {% endfor %}
                         </select>
+                        <input
+                                type="hidden"
+                                name="kitap_sayfa_sayisi"
+                                id="kitap_sayfa_sayisi"
+                                value=""
+                        >
                     </div>
 
 
@@ -840,13 +846,17 @@
                         }
 
                         if (
-                            !pageCountInput.value ||
-                            Number(pageCountInput.value) < 1
+                            pageCountInput &&
+                            (
+                                !pageCountInput.value ||
+                                Number(pageCountInput.value) < 1
+                            )
                         ) {
                             event.preventDefault();
 
                             alert(
-                                "Geçerli bir kitap sayfa sayısı girin."
+                                "Seçilen kitabın sayfa sayısı tanımlı değil. " +
+                                "Kitap arşivinden sayfa sayısını girin."
                             );
                         }
                     }
