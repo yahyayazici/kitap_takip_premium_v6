@@ -103,6 +103,7 @@ def dini_ders_panel(request):
     talebe_satirlari = []
     sidebar_ozet = None
     son_kayitlar = []
+    beklenen_yuzde_deger = None
 
     if seviye_id and alan_id:
         seviye = seviyeler.filter(pk=seviye_id).first()
@@ -154,6 +155,7 @@ def dini_ders_panel(request):
             talebe_satirlari = talebe_matris_satirlari(talebeler, konular)
             sidebar_ozet = cizelge_sidebar_ozeti(talebeler, konular)
             son_kayitlar = son_islenen_konular(talebeler, konular)
+            beklenen_yuzde_deger = beklenen_yuzde(seviye, alan)
 
     ornek_cizelge_link = None
     seviye_ornek = seviyeler.filter(ad="Seviye 1").first()
@@ -179,6 +181,7 @@ def dini_ders_panel(request):
             "duzenleyebilir": duzenleyebilir(request.user),
             "ornek_cizelge_link": ornek_cizelge_link,
             "seviye_kilitli": seviye_kilitli,
+            "beklenen_yuzde_deger": beklenen_yuzde_deger,
         },
     )
 
@@ -200,7 +203,7 @@ def dini_ders_rapor(request):
     alan = alanlar.filter(pk=alan_id).first() if alan_id else None
 
     talebeler = yetkili_dini_talebeler(request.user)
-    ozet = rapor_ozeti(talebeler, seviye=seviye, alan=alan)
+    rapor_ozet = rapor_ozeti(talebeler, seviye=seviye, alan=alan)
 
     satirlar = []
     for talebe in talebeler.order_by("ad_soyad")[:200]:
@@ -227,10 +230,10 @@ def dini_ders_rapor(request):
         durum_sinif = ""
         beklenen = None
         if alan:
-            ozet = alan_ilerleme_ozeti(talebe, alan)
-            durum_etiket = ozet.durum_etiket
-            durum_sinif = ozet.durum_sinif
-            beklenen = ozet.beklenen_yuzde
+            talebe_analiz = alan_ilerleme_ozeti(talebe, alan)
+            durum_etiket = talebe_analiz.durum_etiket
+            durum_sinif = talebe_analiz.durum_sinif
+            beklenen = talebe_analiz.beklenen_yuzde
         satirlar.append(
             {
                 "talebe": talebe,
@@ -299,7 +302,7 @@ def dini_ders_rapor(request):
             "alanlar": alanlar,
             "seviye": seviye,
             "alan": alan,
-            "ozet": ozet,
+            "rapor_ozet": rapor_ozet,
             "satirlar": satirlar,
             "grup_karsilastirma": grup_karsilastirma,
             "grup_ozetleri": grup_ozetleri,

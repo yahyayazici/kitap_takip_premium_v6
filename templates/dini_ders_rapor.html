@@ -2,19 +2,19 @@
 {% load static %}
 {% block title %}Dini Ders Rapor · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}">
+<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}?v=dd-rapor2">
 {% endblock %}
 {% block content %}
 <div class="dd-page">
-    <header class="dd-head">
-        <div>
-            <p class="dd-eyebrow">Dini Ders Takip</p>
+    <header class="page-head patterned-page-head dd-page-head">
+        <div class="dd-head-main">
+            <p class="kicker">DİNİ DERS TAKİP</p>
             <h1>İlerleme Raporu</h1>
-            <p class="dd-desc">Seviye ve alana göre talebe ilerlemesini görüntüleyin.</p>
-        </div>
-        <div class="dd-actions">
-            <a href="{% url 'dini_ders_panel' %}{% if seviye and alan %}?seviye={{ seviye.id }}&alan={{ alan.id }}{% endif %}" class="dd-btn">Çizelge</a>
-            <a href="{% url 'dashboard' %}" class="dd-btn">Ana Sayfa</a>
+            <p class="dd-head-desc">Seviye ve alana göre talebe ilerlemesini görüntüleyin.</p>
+            <div class="dd-head-actions result-header-actions">
+                <a href="{% url 'dini_ders_panel' %}{% if seviye and alan %}?seviye={{ seviye.id }}&alan={{ alan.id }}{% endif %}" class="result-secondary-button">Çizelge</a>
+                <a href="{% url 'dashboard' %}" class="result-back-button">Ana Sayfa</a>
+            </div>
         </div>
     </header>
 
@@ -46,10 +46,10 @@
     </section>
 
     <div class="dd-report-stats">
-        <article class="dd-report-stat"><span>Talebe</span><strong>{{ ozet.talebe_sayisi }}</strong></article>
-        <article class="dd-report-stat"><span>Konu</span><strong>{{ ozet.konu_sayisi }}</strong></article>
-        <article class="dd-report-stat"><span>Tamamlanan</span><strong>{{ ozet.tamamlanan }}/{{ ozet.beklenen }}</strong></article>
-        <article class="dd-report-stat"><span>İlerleme</span><strong>%{{ ozet.yuzde }}</strong></article>
+        <article class="dd-report-stat"><span>Talebe</span><strong>{{ rapor_ozet.talebe_sayisi }}</strong></article>
+        <article class="dd-report-stat"><span>Konu</span><strong>{{ rapor_ozet.konu_sayisi }}</strong></article>
+        <article class="dd-report-stat"><span>Tamamlanan</span><strong>{{ rapor_ozet.tamamlanan }}/{{ rapor_ozet.beklenen }}</strong></article>
+        <article class="dd-report-stat"><span>İlerleme</span><strong>%{{ rapor_ozet.yuzde }}</strong></article>
         {% if beklenen_genel is not None %}
         <article class="dd-report-stat"><span>Beklenen (bugün)</span><strong>%{{ beklenen_genel }}</strong></article>
         {% endif %}

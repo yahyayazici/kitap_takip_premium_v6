@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Dini Ders Takip · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}?v=dd-tablo12">
+<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}?v=dd-rapor2">
 {% endblock %}
 {% block content %}
 <div class="dd-page">
@@ -194,6 +194,15 @@
                     <div class="dd-progress-fill" style="width: {{ sidebar_ozet.yuzde }}%;"></div>
                 </div>
             </div>
+            {% if beklenen_yuzde_deger is not None %}
+            <div class="dd-plan-hint">
+                <div class="dd-progress-label">
+                    <span>Beklenen (bugün)</span>
+                    <strong>%{{ beklenen_yuzde_deger }}</strong>
+                </div>
+                <a href="{% url 'dini_ders_rapor' %}?seviye={{ seviye.id }}&alan={{ alan.id }}" class="dd-btn dd-btn-sm">Detaylı rapor →</a>
+            </div>
+            {% endif %}
         </section>
         {% endif %}
 

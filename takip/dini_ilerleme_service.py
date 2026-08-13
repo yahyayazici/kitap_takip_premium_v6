@@ -484,7 +484,11 @@ def gruplar_karsilastirma(seviye_id: int) -> list[dict]:
         if not talebeler.exists():
             continue
         t0 = talebeler.first()
-        assert t0 and t0.dini_ders_hocasi
+        if not t0 or not t0.dini_ders_hocasi_id:
+            continue
+        hoca_obj = t0.dini_ders_hocasi
+        if not hoca_obj:
+            continue
         alan_yuzdeleri = []
         for alan in DiniDersTakipAlani.objects.filter(aktif=True):
             toplam = toplam_konu_sayisi(t0.dini_ders_seviyesi, alan)
@@ -501,7 +505,7 @@ def gruplar_karsilastirma(seviye_id: int) -> list[dict]:
         sinif = str(t0.sinif_sube) if t0.sinif_sube_id else t0.sinif or "—"
         satirlar.append(
             {
-                "hoca": t0.dini_ders_hocasi.ad_soyad,
+                "hoca": hoca_obj.ad_soyad,
                 "sinif_etiket": sinif,
                 "talebe_sayisi": talebeler.count(),
                 "grup_yuzde": genel,
