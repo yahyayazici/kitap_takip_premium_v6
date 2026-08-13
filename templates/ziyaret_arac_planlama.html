@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}{{ plan.ad }} · Planlama{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ziyaret-arac-premium.css' %}?v=za6">
+<link rel="stylesheet" href="{% static 'css/ziyaret-arac-premium.css' %}?v=za7">
 {% endblock %}
 {% block content %}
 <div class="za-page za-planlama" data-za-planlama
@@ -23,6 +23,8 @@
                 <button type="button" class="primary-btn" data-za-otomatik>Otomatik Dağıt</button>
                 <button type="button" class="ghost-btn" data-za-yeniden-dagit>Yeniden Dağıt</button>
                 <button type="button" class="ghost-btn" data-za-geri-al>Geri Al</button>
+                <a href="{% url 'ziyaret_arac_pdf_tum_araclar' plan.pk %}" class="ghost-btn">Araç PDF'leri (ZIP)</a>
+                <a href="{% url 'ziyaret_arac_pdf_genel' plan.pk %}" class="ghost-btn" target="_blank" rel="noopener">Genel PDF</a>
                 <a href="{% url 'ziyaret_arac_onizleme' plan.pk %}" class="ghost-btn">Önizleme</a>
                 <a href="{% url 'ziyaret_arac_duzenle' plan.pk %}" class="ghost-btn">Plan Ayarları</a>
             </div>
@@ -101,7 +103,10 @@
         <section class="za-card za-board-panel za-board-col za-board-col--right">
             <div class="za-panel-head">
                 <h2 class="za-board-title">Araçlar</h2>
-                <button type="button" class="ghost-btn" data-za-arac-ekle>+ Araç</button>
+                <div class="za-panel-head-actions">
+                    <a href="{% url 'ziyaret_arac_pdf_tum_araclar' plan.pk %}" class="ghost-btn za-btn-compact">Tüm PDF (ZIP)</a>
+                    <button type="button" class="ghost-btn za-btn-compact" data-za-arac-ekle>+ Araç</button>
+                </div>
             </div>
             <div class="za-arac-grid" data-za-arac-grid>
                 {% include "includes/ziyaret_arac_kartlari.html" with arac_kartlari=arac_kartlari plan=plan %}
@@ -122,5 +127,5 @@
     </div>
 </div>
 
-<script src="{% static 'js/ziyaret-arac-panel.js' %}?v=za6"></script>
+<script src="{% static 'js/ziyaret-arac-panel.js' %}?v=za7"></script>
 {% endblock %}

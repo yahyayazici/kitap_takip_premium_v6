@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import re
 import zipfile
 
 from django.contrib import messages
@@ -52,6 +53,12 @@ from takip.ziyaret_arac_service import (
 
 def _plan_or_404(pk: int) -> ZiyaretPlani:
     return get_object_or_404(plan_queryset_yonetim(), pk=pk)
+
+
+def _arac_pdf_dosya_adi(sira: int, surucu_ad: str, tarih) -> str:
+    slug = re.sub(r"[^\w\-]+", "_", surucu_ad.lower().replace(" ", "_"))[:40].strip("_")
+    slug = slug or "arac"
+    return f"{sira:02d}_{slug}_{tarih:%d_%m_%Y}.pdf"
 
 
 def _json_ok(extra: dict | None = None) -> JsonResponse:
@@ -588,8 +595,7 @@ def ziyaret_arac_pdf_arac(request, pk, arac_id):
         },
     ).content.decode("utf-8")
     pdf = html_to_pdf(html, base_url=request.build_absolute_uri("/"))
-    slug = arac.surucu_ad.lower().replace(" ", "_")[:40]
-    dosya = f"ziyaret_{slug}_{plan.tarih:%d_%m_%Y}.pdf"
+    dosya = _arac_pdf_dosya_adi(1, arac.surucu_ad, plan.tarih)
     return make_pdf_response(pdf, dosya)
 
 
@@ -602,9 +608,14 @@ def ziyaret_arac_pdf_tum_araclar(request, pk):
         return redirect("ziyaret_arac_listesi")
 
     plan = _plan_or_404(pk)
+    araclar = list(plan.araclar.all().order_by("surucu_ad", "id"))
+    if not araclar:
+        messages.error(request, "Henüz araç yok — ZIP oluşturulamadı.")
+        return redirect("ziyaret_arac_planlama", pk=plan.pk)
+
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
-        for arac in plan.araclar.all():
+        for sira, arac in enumerate(araclar, start=1):
             kart = next(
                 (k for k in arac_kart_verisi(plan) if k["arac"].pk == arac.pk),
                 None,
@@ -620,8 +631,7 @@ def ziyaret_arac_pdf_tum_araclar(request, pk):
                 },
             ).content.decode("utf-8")
             pdf = html_to_pdf(html, base_url=request.build_absolute_uri("/"))
-            slug = arac.surucu_ad.lower().replace(" ", "_")[:40]
-            zf.writestr(f"ziyaret_{slug}_{plan.tarih:%d_%m_%Y}.pdf", pdf)
+            zf.writestr(_arac_pdf_dosya_adi(sira, arac.surucu_ad, plan.tarih), pdf)
 
     buffer.seek(0)
     response = HttpResponse(buffer.read(), content_type="application/zip")
