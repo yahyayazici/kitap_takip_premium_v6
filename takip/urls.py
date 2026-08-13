@@ -1,5 +1,5 @@
 from django.contrib.auth import views as auth_views
-from django.urls import path
+from django.urls import include, path
 
 from . import etut_plan_views
 from . import etut_karne_views
@@ -33,6 +33,7 @@ from . import ai_views
 from . import dershane_program_views
 from . import yemekci_views
 from . import sinav_basvuru_views
+from . import ziyaret_arac_views
 from . import views
 from .auth_views import PanelLoginView
 
@@ -461,6 +462,8 @@ urlpatterns = [
         pazar_izin_donus_views.pazar_izin_donus_rapor,
         name="pazar_izin_donus_rapor",
     ),
+
+    path("ziyaret-arac/", include("takip.ziyaret_arac_urls")),
 
     path(
         "ogretmen-odeme/",

@@ -140,6 +140,11 @@ PANEL_MODULES = {
         "enabled": True,
         "nav_group": "Disiplin & Takip",
     },
+    "ziyaret_arac": {
+        "label": "Ziyaret Araç Planlama",
+        "enabled": True,
+        "nav_group": "Program",
+    },
     "yazili_takip": {
         "label": "Yazılı Takip",
         "enabled": True,

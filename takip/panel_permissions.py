@@ -160,6 +160,25 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         nav_group="Program",
     ),
     PanelNavItem(
+        key="ziyaret_arac",
+        label="Ziyaret Araç Planı",
+        url_name="ziyaret_arac_listesi",
+        roller=PROGRAM_MODULU_ROLLER,
+        active_names=(
+            "ziyaret_arac_listesi",
+            "ziyaret_arac_olustur",
+            "ziyaret_arac_duzenle",
+            "ziyaret_arac_detay",
+            "ziyaret_arac_etut",
+            "ziyaret_arac_planlama",
+            "ziyaret_arac_onizleme",
+            "ziyaret_arac_pdf_genel",
+            "ziyaret_arac_pdf_arac",
+            "ziyaret_arac_pdf_tum_araclar",
+        ),
+        nav_group="Program",
+    ),
+    PanelNavItem(
         key="imam_muezzin",
         label="İmam / Müezzin",
         url_name="imam_muezzin_panel",
@@ -678,6 +697,13 @@ def pazar_izin_donus_modulu_erisimi_var(user: User) -> bool:
     return modul_erisimi_var(user, "pazar_izin_donus")
 
 
+def ziyaret_arac_modulu_erisimi_var(user: User) -> bool:
+    if not PANEL_MODULES.get("ziyaret_arac", {}).get("enabled", False):
+        return False
+
+    return modul_erisimi_var(user, "ziyaret_arac")
+
+
 def ogretmen_odeme_modulu_erisimi_var(user: User) -> bool:
     if not PANEL_MODULES.get("ogretmen_odeme", {}).get("enabled", False):
         return False
@@ -782,6 +808,8 @@ def panel_nav_items(user: User) -> list[PanelNavItem]:
         if item.key == "pazar_izin_donus" and not pazar_izin_donus_modulu_erisimi_var(
             user
         ):
+            continue
+        if item.key == "ziyaret_arac" and not ziyaret_arac_modulu_erisimi_var(user):
             continue
         if item.key == "ogretmen_odeme" and not ogretmen_odeme_modulu_erisimi_var(user):
             continue

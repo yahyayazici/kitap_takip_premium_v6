@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ plan.ad }} · Önizleme{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ziyaret-arac-premium.css' %}?v=za4">
+<link rel="stylesheet" href="{% static 'css/ziyaret-arac-print.css' %}?v=za4" media="print">
+{% endblock %}
+{% block content %}
+<div class="za-page za-onizleme">
+    <header class="page-head patterned-page-head za-head za-no-print">
+        <div class="za-head-main">
+            <p class="kicker">PLAN ÖNİZLEME</p>
+            <h1>{{ plan.ad }}</h1>
+            <p class="za-head-desc">{{ plan.tarih|date:"d F Y" }}</p>
+            <div class="za-head-actions">
+                <a href="{% url 'ziyaret_arac_pdf_genel' plan.pk %}" class="primary-btn" target="_blank" rel="noopener">PDF İndir</a>
+                <a href="{% url 'ziyaret_arac_pdf_tum_araclar' plan.pk %}" class="ghost-btn">Tüm Araç PDF'leri (ZIP)</a>
+                <button type="button" class="ghost-btn" onclick="window.print()">Yazdır</button>
+                <a href="{% url 'ziyaret_arac_planlama' plan.pk %}" class="ghost-btn">Planlamaya Dön</a>
+                <form method="post" action="{% url 'ziyaret_arac_hazir' plan.pk %}" style="display:inline">
+                    {% csrf_token %}
+                    <button type="submit" class="primary-btn">Plan Hazır</button>
+                </form>
+            </div>
+        </div>
+    </header>
+
+    {% if kontrol.hatalar or kontrol.uyarilar %}
+    <section class="za-card za-no-print">
+        {% for h in kontrol.hatalar %}<p class="za-alert za-alert--danger">{{ h }}</p>{% endfor %}
+        {% for u in kontrol.uyarilar %}<p class="za-alert za-alert--warn">{{ u }}</p>{% endfor %}
+    </section>
+    {% endif %}
+
+    <div class="za-stats za-no-print">
+        <article><span>Talebe</span><strong>{{ ozet.talebe_sayisi }}</strong></article>
+        <article><span>Atandı</span><strong>{{ ozet.atanan }}</strong></article>
+        <article><span>Atanmadı</span><strong>{{ ozet.atanmamis }}</strong></article>
+    </div>
+
+    <div class="za-onizleme-grid">
+        {% for kart in arac_kartlari %}
+        <article class="za-onizleme-kart">
+            <h2>{{ kart.arac.surucu_ad|upper }}</h2>
+            {% for h in kart.etut_hocalari %}
+            <div class="za-rozet za-rozet--etut">
+                <strong>{{ h.ad_soyad }}</strong>
+                <span>ETÜT HOCASI</span>
+            </div>
+            {% endfor %}
+            <ul>
+                {% for t in kart.talebeler %}
+                <li>{{ t.ad_soyad }}</li>
+                {% empty %}
+                <li class="za-muted">Talebe atanmadı</li>
+                {% endfor %}
+            </ul>
+        </article>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

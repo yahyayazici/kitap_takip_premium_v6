@@ -1,0 +1,240 @@
+{% load static %}
+{# Ziyaret araç PDF — ortak premium stiller (WeasyPrint / xhtml2pdf) #}
+{% include "includes/pdf_kart_belge_css.html" %}
+
+@page {
+    size: A4 portrait;
+    margin: 12mm 14mm;
+}
+
+html, body {
+    background: #eef2f7;
+}
+
+.za-pdf-wrap {
+    border-radius: 22px;
+}
+
+.za-pdf-head {
+    text-align: center;
+    padding: 22px 28px 18px;
+    border-top-left-radius: 21px;
+    border-top-right-radius: 21px;
+}
+
+.za-pdf-logo {
+    width: 44px;
+    height: 44px;
+    margin: 0 auto 10px;
+    display: block;
+}
+
+.za-pdf-kicker {
+    margin: 10px 0 0;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #ffffff;
+}
+
+.za-pdf-plan-ad {
+    margin: 6px 0 0;
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.za-pdf-tarih-pill {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    color: #ffffff;
+}
+
+.za-pdf-body {
+    padding: 22px 28px 24px;
+}
+
+.za-gold-rule {
+    height: 3px;
+    background: linear-gradient(90deg, #9a7a38 0%, #c9a85a 50%, #9a7a38 100%);
+    margin: 0;
+    border: none;
+}
+
+.za-program-row td {
+    padding: 10px 0;
+    border-bottom: 1px solid #eef2f7;
+    vertical-align: middle;
+}
+
+.za-program-row:last-child td {
+    border-bottom: none;
+}
+
+.za-program-saat {
+    width: 72px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #173b80;
+    white-space: nowrap;
+}
+
+.za-program-text {
+    font-size: 12px;
+    color: #334155;
+    line-height: 1.45;
+}
+
+.za-surucu-name {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: #0f172a;
+    line-height: 1.15;
+}
+
+.za-surucu-meta {
+    margin: 8px 0 0;
+    font-size: 11px;
+    color: #64748b;
+}
+
+.za-etut-box {
+    border: 1px solid #fdba74;
+    border-left: 4px solid #ea580c;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+    padding: 14px 16px;
+}
+
+.za-etut-name {
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+    color: #c2410c;
+    line-height: 1.2;
+}
+
+.za-etut-role {
+    display: block;
+    margin-top: 4px;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1.1px;
+    text-transform: uppercase;
+    color: #9a3412;
+}
+
+.za-talebe-no {
+    width: 36px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #173b80;
+}
+
+.za-talebe-ad {
+    font-size: 13px;
+    font-weight: 500;
+    color: #0f172a;
+}
+
+.za-empty-row td {
+    padding: 14px;
+    font-size: 12px;
+    color: #94a3b8;
+    text-align: center;
+}
+
+.za-pdf-note {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    font-size: 10px;
+    line-height: 1.5;
+    color: #64748b;
+    text-align: center;
+}
+
+/* Genel plan — landscape kartlar */
+.za-genel-grid {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 8px;
+}
+
+.za-genel-kart {
+    border: 1px solid #dbe4f0;
+    border-radius: 14px;
+    background: #ffffff;
+    vertical-align: top;
+    page-break-inside: avoid;
+}
+
+.za-genel-kart-head {
+    background: linear-gradient(135deg, #173b80 0%, #2563eb 100%);
+    color: #ffffff;
+    padding: 8px 10px;
+    border-top-left-radius: 13px;
+    border-top-right-radius: 13px;
+}
+
+.za-genel-kart-head strong {
+    display: block;
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.za-genel-kart-head span {
+    display: block;
+    margin-top: 2px;
+    font-size: 8px;
+    opacity: 0.85;
+}
+
+.za-genel-kart-body {
+    padding: 8px 10px 10px;
+}
+
+.za-genel-kart-body ol {
+    margin: 6px 0 0;
+    padding-left: 16px;
+}
+
+.za-genel-kart-body li {
+    font-size: 8px;
+    margin-bottom: 2px;
+    color: #334155;
+}
+
+.za-genel-etut {
+    margin-bottom: 6px;
+    padding: 4px 6px;
+    border-radius: 8px;
+    background: #fff7ed;
+    border-left: 2px solid #ea580c;
+}
+
+.za-genel-etut strong {
+    font-size: 8px;
+    color: #c2410c;
+    display: block;
+}
+
+.za-genel-etut span {
+    font-size: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9a3412;
+}

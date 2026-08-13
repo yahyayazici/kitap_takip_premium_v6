@@ -1,0 +1,44 @@
+{% for kart in arac_kartlari %}
+<article class="za-arac-kart {% if kart.dolu_mu %}is-full{% endif %}" data-arac-id="{{ kart.arac.id }}" data-droppable="1">
+    <header class="za-arac-kart-head">
+        <div>
+            <h3>{{ kart.arac.surucu_ad|upper }}</h3>
+            <p class="za-arac-kapasite" data-arac-kapasite>
+                <span data-dolu>{{ kart.dolu }}</span> / <span data-toplam>{{ kart.kapasite }}</span> Talebe
+                {% if kart.dolu_mu %}<em class="za-full-badge">DOLU</em>{% endif %}
+            </p>
+            {% if kart.arac.ekleyen %}
+            <p class="za-arac-meta">Aracı bulan: {{ kart.arac.ekleyen.ad_soyad }}</p>
+            {% endif %}
+        </div>
+        <div class="za-arac-kart-actions">
+            <a href="{% url 'ziyaret_arac_pdf_arac' plan.pk kart.arac.id %}" class="za-kart-link" target="_blank" rel="noopener">PDF</a>
+            <button type="button" class="za-tool-btn za-tool-btn--edit" data-za-arac-duzenle data-id="{{ kart.arac.id }}" data-ad="{{ kart.arac.surucu_ad }}" data-kapasite="{{ kart.arac.kapasite }}" title="Düzenle" aria-label="Düzenle">Düzenle</button>
+        </div>
+    </header>
+    <div class="za-arac-body" data-arac-body>
+        {% for h in kart.etut_hocalari %}
+        <div class="za-rozet za-rozet--etut" draggable="true" data-tur="etut_hocasi" data-id="{{ h.id }}">
+            <div class="za-rozet-main">
+                <strong>{{ h.ad_soyad }}</strong>
+                <span>ETÜT HOCASI</span>
+            </div>
+            <button type="button" class="za-tool-btn za-tool-btn--remove" data-za-cikar data-tur="etut_hocasi" data-id="{{ h.id }}" title="Çıkar" aria-label="Çıkar">×</button>
+        </div>
+        {% endfor %}
+        {% for t in kart.talebeler %}
+        <div class="za-chip za-chip--talebe za-chip--in-arac" draggable="true" data-tur="talebe" data-id="{{ t.id }}">
+            <div class="za-chip-main">
+                <strong>{{ t.ad_soyad }}</strong>
+            </div>
+            <div class="za-chip-tools">
+                <button type="button" class="za-tool-btn za-tool-btn--pin" data-za-sabitle data-id="{{ t.id }}" title="Sabitle" aria-label="Sabitle">Sabitle</button>
+                <button type="button" class="za-tool-btn za-tool-btn--remove" data-za-cikar data-tur="talebe" data-id="{{ t.id }}" title="Çıkar" aria-label="Çıkar">×</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</article>
+{% empty %}
+<p class="za-empty">Henüz araç yok. Etüt hocaları araç ekleyene kadar bekleyin veya manuel ekleyin.</p>
+{% endfor %}

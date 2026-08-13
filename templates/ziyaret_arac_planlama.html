@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ plan.ad }} · Planlama{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ziyaret-arac-premium.css' %}?v=za4">
+{% endblock %}
+{% block content %}
+<div class="za-page za-planlama" data-za-planlama
+     data-plan-id="{{ plan.pk }}"
+     data-csrf="{{ csrf_token }}"
+     data-api-ata="{% url 'ziyaret_arac_api_ata' plan.pk %}"
+     data-api-cikar="{% url 'ziyaret_arac_api_cikar' plan.pk %}"
+     data-api-otomatik="{% url 'ziyaret_arac_api_otomatik' plan.pk %}"
+     data-api-geri-al="{% url 'ziyaret_arac_api_geri_al' plan.pk %}"
+     data-api-sabitle="{% url 'ziyaret_arac_api_sabitle' plan.pk %}">
+
+    <header class="page-head patterned-page-head za-head">
+        <div class="za-head-main">
+            <p class="kicker">PLANLAMA · {{ plan.get_durum_display|upper }}</p>
+            <h1>{{ plan.ad }}</h1>
+            <p class="za-head-desc">{{ plan.tarih|date:"d F Y" }}</p>
+            <div class="za-head-actions">
+                <button type="button" class="primary-btn" data-za-otomatik>Otomatik Dağıt</button>
+                <button type="button" class="ghost-btn" data-za-yeniden-dagit>Yeniden Dağıt</button>
+                <button type="button" class="ghost-btn" data-za-geri-al>Geri Al</button>
+                <a href="{% url 'ziyaret_arac_onizleme' plan.pk %}" class="ghost-btn">Önizleme</a>
+                <a href="{% url 'ziyaret_arac_duzenle' plan.pk %}" class="ghost-btn">Plan Ayarları</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="za-ozet-strip">
+        <div class="za-stats za-stats--plan" data-za-ozet>
+            <article><span>Talebe</span><strong data-ozet-talebe>{{ ozet.talebe_sayisi }}</strong></article>
+            <article><span>Atandı</span><strong data-ozet-atanan>{{ ozet.atanan }}</strong></article>
+            <article class="{% if ozet.atanmamis %}is-accent{% endif %}"><span>Atanmadı</span><strong data-ozet-atanmamis>{{ ozet.atanmamis }}</strong></article>
+            <article><span>Araç</span><strong data-ozet-arac>{{ ozet.arac_sayisi }}</strong></article>
+            <article><span>Kapasite</span><strong data-ozet-kapasite>{{ ozet.toplam_kapasite }}</strong></article>
+        </div>
+        <p class="za-kapasite-banner{% if not ozet.kapasite.yeterli %} is-warn{% elif ozet.atanmamis == 0 %} is-ok{% else %} is-muted{% endif %}" data-za-kapasite-mesaj>{{ ozet.kapasite.mesaj }}</p>
+    </div>
+
+    <section class="za-card za-talebe-ekle-card">
+        <details class="za-details">
+            <summary class="za-details-summary">Talebe Ekle / Toplu Seçim</summary>
+            <form method="post" action="{% url 'ziyaret_arac_talebe_ekle' plan.pk %}" class="za-talebe-ekle-form">
+                {% csrf_token %}
+                <div class="za-form-grid">
+                    <label class="za-field za-field--full">
+                        <span>Sınıf / Şube (toplu)</span>
+                        <select name="sinif_sube_ids" multiple size="4">
+                            {% for ss in sinif_subeler %}
+                            <option value="{{ ss.id }}">{{ ss }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label class="za-field za-field--full">
+                        <span>Etüt Hocası grubu (toplu)</span>
+                        <select name="etut_hocasi_ids" multiple size="4">
+                            {% for h in etut_hocalari %}
+                            <option value="{{ h.id }}">{{ h.ad_soyad }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                </div>
+                <button type="submit" class="primary-btn">Seçilenleri Listeye Ekle</button>
+            </form>
+            <div class="za-arama-wrap">
+                <input type="search" placeholder="İsimle ara…" data-za-talebe-ara data-url="{% url 'ziyaret_arac_talebe_ara' plan.pk %}">
+                <div data-za-arama-sonuc></div>
+            </div>
+        </details>
+    </section>
+
+    <div class="za-board">
+        <aside class="za-card za-board-panel za-board-col za-board-col--left">
+            <h2 class="za-board-title">Atanmamış Talebeler</h2>
+            <div class="za-board-scroll za-chip-list" data-za-atanmamis>
+                {% for t in atanmamis %}
+                <div class="za-chip za-chip--talebe" draggable="true" data-tur="talebe" data-id="{{ t.id }}">
+                    <strong>{{ t.ad_soyad }}</strong>
+                    <span>{% if t.sinif_sube %}{{ t.sinif_sube }}{% else %}—{% endif %}</span>
+                    <button type="button" class="za-chip-assign" data-za-mobil-ata>Araca Ata</button>
+                </div>
+                {% empty %}
+                <p class="za-empty">Tüm talebeler atandı veya liste boş.</p>
+                {% endfor %}
+            </div>
+
+            <h2 class="za-board-title za-board-sub">Etüt Hocaları</h2>
+            <div class="za-board-scroll za-board-scroll--sm za-chip-list" data-za-etut-havuz>
+                {% for h in etut_hocalari %}
+                <div class="za-chip za-chip--etut" draggable="true" data-tur="etut_hocasi" data-id="{{ h.id }}">
+                    <strong>{{ h.ad_soyad }}</strong>
+                    <span>ETÜT HOCASI</span>
+                </div>
+                {% endfor %}
+            </div>
+        </aside>
+
+        <section class="za-card za-board-panel za-board-col za-board-col--right">
+            <div class="za-panel-head">
+                <h2 class="za-board-title">Araçlar</h2>
+                <button type="button" class="ghost-btn" data-za-arac-ekle>+ Araç</button>
+            </div>
+            <div class="za-arac-grid" data-za-arac-grid>
+                {% include "includes/ziyaret_arac_kartlari.html" with arac_kartlari=arac_kartlari plan=plan %}
+            </div>
+        </section>
+    </div>
+</div>
+
+<div class="za-modal" id="za-mobil-modal" hidden>
+    <div class="za-modal-backdrop" data-za-modal-kapat></div>
+    <div class="za-modal-panel">
+        <h3>Araca Ata</h3>
+        <select id="za-mobil-arac-select"></select>
+        <div class="za-modal-actions">
+            <button type="button" class="primary-btn" id="za-mobil-onayla">Ata</button>
+            <button type="button" class="ghost-btn" data-za-modal-kapat>İptal</button>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/ziyaret-arac-panel.js' %}?v=za4"></script>
+{% endblock %}

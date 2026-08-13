@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{% if plan %}Plan Düzenle{% else %}Yeni Plan{% endif %} · Ziyaret{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ziyaret-arac-premium.css' %}?v=za4">
+{% endblock %}
+{% block content %}
+<div class="za-page">
+    <header class="page-head patterned-page-head za-head">
+        <div class="za-head-main">
+            <p class="kicker">ZİYARET ARAÇ PLANLAMA</p>
+            <h1>{% if plan %}{{ plan.ad }}{% else %}Yeni Ziyaret Planı{% endif %}</h1>
+            <div class="za-head-actions">
+                {% if plan %}
+                <a href="{% url 'ziyaret_arac_planlama' plan.pk %}" class="primary-btn">Planlama</a>
+                {% endif %}
+                <a href="{% url 'ziyaret_arac_listesi' %}" class="ghost-btn">Listeye Dön</a>
+            </div>
+        </div>
+    </header>
+
+    <form method="post" class="za-card za-form">
+        {% csrf_token %}
+        <div class="za-form-grid">
+            <label class="za-field">
+                <span>Plan Adı</span>
+                <input type="text" name="ad" value="{{ plan.ad|default:'' }}" required placeholder="Veli Ziyaretleri">
+            </label>
+            <label class="za-field">
+                <span>Tarih</span>
+                <input type="date" name="tarih" value="{{ plan.tarih|date:'Y-m-d' }}" required>
+            </label>
+            {% if plan %}
+            <label class="za-field">
+                <span>Durum</span>
+                <select name="durum">
+                    {% for val, label in plan.Durum.choices %}
+                    <option value="{{ val }}" {% if plan.durum == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            {% endif %}
+            <label class="za-field za-field--full">
+                <span>Açıklama</span>
+                <textarea name="aciklama" rows="2">{{ plan.aciklama|default:'' }}</textarea>
+            </label>
+        </div>
+        <div class="za-form-actions">
+            <button type="submit" class="primary-btn">Kaydet</button>
+        </div>
+    </form>
+
+    {% if plan %}
+    <form method="post" class="za-card za-form" id="za-program-form">
+        {% csrf_token %}
+        <input type="hidden" name="program_kaydet" value="1">
+        <input type="hidden" name="ad" value="{{ plan.ad }}">
+        <input type="hidden" name="tarih" value="{{ plan.tarih|date:'Y-m-d' }}">
+        <input type="hidden" name="durum" value="{{ plan.durum }}">
+        <input type="hidden" name="aciklama" value="{{ plan.aciklama }}">
+        <div class="za-panel-head">
+            <h2>Program Akışı</h2>
+            <button type="button" class="ghost-btn" id="za-program-ekle">+ Program Ekle</button>
+        </div>
+        <div class="za-program-list" id="za-program-list">
+            {% for adim in program %}
+            <div class="za-program-row">
+                <input type="time" name="program_saat" value="{{ adim.saat|time:'H:i' }}" required>
+                <input type="text" name="program_aciklama" value="{{ adim.aciklama }}" placeholder="Kurumdan Hareket" required>
+                <button type="button" class="za-icon-btn za-program-sil" aria-label="Sil">×</button>
+            </div>
+            {% empty %}
+            <div class="za-program-row">
+                <input type="time" name="program_saat" value="09:00">
+                <input type="text" name="program_aciklama" placeholder="Kurumdan Hareket">
+                <button type="button" class="za-icon-btn za-program-sil" aria-label="Sil">×</button>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="za-form-actions">
+            <button type="submit" class="primary-btn">Programı Kaydet</button>
+        </div>
+    </form>
+    {% endif %}
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    var list = document.getElementById("za-program-list");
+    var ekle = document.getElementById("za-program-ekle");
+    if (!list || !ekle) return;
+    ekle.addEventListener("click", function () {
+        var row = document.createElement("div");
+        row.className = "za-program-row";
+        row.innerHTML = '<input type="time" name="program_saat"><input type="text" name="program_aciklama" placeholder="Açıklama"><button type="button" class="za-icon-btn za-program-sil" aria-label="Sil">×</button>';
+        list.appendChild(row);
+    });
+    list.addEventListener("click", function (e) {
+        if (e.target.classList.contains("za-program-sil")) {
+            var rows = list.querySelectorAll(".za-program-row");
+            if (rows.length > 1) e.target.closest(".za-program-row").remove();
+        }
+    });
+});
+</script>
+{% endblock %}

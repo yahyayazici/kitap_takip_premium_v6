@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Ziyaret Araç Planlama · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ziyaret-arac-premium.css' %}?v=za4">
+{% endblock %}
+{% block content %}
+<div class="za-page">
+    <header class="page-head patterned-page-head za-head">
+        <div class="za-head-main">
+            <p class="kicker">ZİYARET ARAÇ PLANLAMA</p>
+            <h1>Ziyaret Planları</h1>
+            <p class="za-head-desc">Veli ziyaretleri için araç toplama ve talebe dağıtımı.</p>
+            <div class="za-head-actions">
+                {% if yonetim %}
+                <a href="{% url 'ziyaret_arac_olustur' %}" class="primary-btn">+ Yeni Plan</a>
+                {% endif %}
+                <a href="{% url 'dashboard' %}" class="ghost-btn">Ana Sayfa</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="za-card">
+        {% if planlar %}
+        <div class="za-table-wrap">
+            <table class="za-table">
+                <thead>
+                    <tr>
+                        <th>Plan</th>
+                        <th>Tarih</th>
+                        <th>Durum</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for plan in planlar %}
+                    <tr>
+                        <td><strong>{{ plan.ad }}</strong></td>
+                        <td>{{ plan.tarih|date:"d.m.Y" }}</td>
+                        <td><span class="za-durum za-durum--{{ plan.durum }}">{{ plan.get_durum_display }}</span></td>
+                        <td class="za-table-actions">
+                            {% if yonetim %}
+                            <a href="{% url 'ziyaret_arac_planlama' plan.pk %}">Planlama</a>
+                            <a href="{% url 'ziyaret_arac_duzenle' plan.pk %}">Düzenle</a>
+                            {% else %}
+                            <a href="{% url 'ziyaret_arac_etut' plan.pk %}">Araç Ekle</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="za-empty">Henüz ziyaret planı yok.</p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

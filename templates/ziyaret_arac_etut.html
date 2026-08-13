@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ plan.ad }} · Araç Ekle{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ziyaret-arac-premium.css' %}?v=za4">
+{% endblock %}
+{% block content %}
+<div class="za-page">
+    <header class="page-head patterned-page-head za-head">
+        <div class="za-head-main">
+            <p class="kicker">ZİYARET · {{ plan.get_durum_display|upper }}</p>
+            <h1>{{ plan.ad }}</h1>
+            <p class="za-head-desc">{{ plan.tarih|date:"d F Y" }} · Araç bulup sisteme girin.</p>
+        </div>
+    </header>
+
+    <div class="za-stats">
+        <article><span>Araç</span><strong>{{ kapasite.arac_sayisi }}</strong></article>
+        <article><span>Toplam Kapasite</span><strong>{{ kapasite.toplam_kapasite }} talebe</strong></article>
+    </div>
+    <p class="za-kapasite-banner{% if not kapasite.yeterli %} is-warn{% elif kapasite.arac_sayisi == 0 %} is-muted{% else %} is-ok{% endif %}">{{ kapasite.mesaj }}</p>
+
+    {% if arac_ekleyebilir and arac_ekle_yetkisi %}
+    <section class="za-card za-etut-form-card">
+        <h2>+ Araç Ekle</h2>
+        <form method="post" class="za-etut-form">
+            {% csrf_token %}
+            <label class="za-field">
+                <span>Araç Sahibi / Sürücü</span>
+                <input type="text" name="surucu_ad" required placeholder="Mehmet Çokal" list="za-personel-list" autocomplete="off">
+                <datalist id="za-personel-list">
+                    {% for p in personel_adaylari %}
+                    <option value="{{ p.ad_soyad }}">
+                    {% endfor %}
+                </datalist>
+            </label>
+            <label class="za-field">
+                <span>Talebe Kapasitesi</span>
+                <input type="number" name="kapasite" min="1" max="20" required placeholder="4" inputmode="numeric">
+            </label>
+            <label class="za-field">
+                <span>Not (isteğe bağlı)</span>
+                <input type="text" name="notlar" maxlength="300">
+            </label>
+            <button type="submit" class="primary-btn za-etut-submit">Kaydet</button>
+        </form>
+    </section>
+    {% elif plan.durum == 'hazir' or plan.durum == 'arsiv' %}
+    <section class="za-card">
+        <p class="za-alert za-alert--info">Plan <strong>{{ plan.get_durum_display|lower }}</strong> durumunda. Bu aşamada yeni araç eklenemez. Ek araç gerekiyorsa idare planı tekrar <em>Araç Toplanıyor</em> durumuna almalıdır.</p>
+    </section>
+    {% elif not arac_ekle_yetkisi %}
+    <section class="za-card">
+        <p class="za-alert za-alert--warn">Araç ekleme yetkiniz bulunmuyor.</p>
+    </section>
+    {% else %}
+    <section class="za-card">
+        <p class="za-alert za-alert--warn">Bu planda şu an araç eklenemiyor. Plan idare tarafından açıldığında form burada görünür.</p>
+    </section>
+    {% endif %}
+
+    <section class="za-card">
+        <h2>Eklediğim Araçlar</h2>
+        {% if araclar %}
+        <ul class="za-arac-list">
+            {% for arac in araclar %}
+            <li class="za-arac-list-item">
+                <div>
+                    <strong>{{ arac.surucu_ad }}</strong>
+                    <span>{{ arac.kapasite }} talebe kapasitesi</span>
+                    {% if arac.ekleyen %}<small>Aracı bulan: {{ arac.ekleyen.ad_soyad }}</small>{% endif %}
+                    {% if arac.notlar %}<small>{{ arac.notlar }}</small>{% endif %}
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="za-empty">Henüz araç eklemediniz.</p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

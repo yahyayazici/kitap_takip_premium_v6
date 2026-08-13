@@ -1,0 +1,109 @@
+{% load static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>Ziyaret · {{ kart.arac.surucu_ad }}</title>
+    <style>
+        {% include "includes/ziyaret_arac_pdf_css.html" %}
+    </style>
+</head>
+<body>
+<table class="kart-wrap za-pdf-wrap" cellpadding="0" cellspacing="0">
+    <tr>
+        <td class="kart-head za-pdf-head">
+            <img class="za-pdf-logo" src="{% static 'images/cinili-saray-logo-white.png' %}" alt="">
+            <div class="kart-brand">{{ panel_org }}</div>
+            <div class="kart-sub">Ziyaret Araç Planı</div>
+            <p class="za-pdf-kicker">Ziyaret</p>
+            <p class="za-pdf-plan-ad">{{ plan.ad }}</p>
+            <span class="za-pdf-tarih-pill">{{ plan.tarih|date:"d F Y" }}</span>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <hr class="za-gold-rule">
+        </td>
+    </tr>
+    <tr>
+        <td class="kart-body za-pdf-body">
+
+            {% if program %}
+            <div class="section-block">
+                <div class="section-head">Program Akışı</div>
+                <table cellpadding="0" cellspacing="0" width="100%">
+                    {% for adim in program %}
+                    <tr class="za-program-row">
+                        <td class="za-program-saat">{{ adim.saat|time:"H.i" }}</td>
+                        <td class="za-program-text">{{ adim.aciklama }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            {% endif %}
+
+            <div class="section-block" style="margin-top:14px;">
+                <div class="section-head">Araç Sahibi</div>
+                <div style="padding:16px 16px 14px;">
+                    <h1 class="za-surucu-name">{{ kart.arac.surucu_ad }}</h1>
+                    <p class="za-surucu-meta">Talebe kapasitesi: <span class="pill">{{ kart.kapasite }}</span></p>
+                </div>
+            </div>
+
+            {% if kart.etut_hocalari %}
+            <div class="section-block" style="margin-top:14px;">
+                <div class="section-head">Etüt Hocası</div>
+                <div style="padding:14px 16px;">
+                    {% for h in kart.etut_hocalari %}
+                    <div class="za-etut-box"{% if not forloop.first %} style="margin-top:8px;"{% endif %}>
+                        <span class="za-etut-name">{{ h.ad_soyad }}</span>
+                        <span class="za-etut-role">Etüt Hocası</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="section-block" style="margin-top:14px;">
+                <div class="section-head">Araçtaki Talebeler</div>
+                <table class="data-table" cellpadding="0" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th style="width:44px;">#</th>
+                            <th>Talebe</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in kart.talebeler %}
+                        <tr>
+                            <td class="za-talebe-no">{{ forloop.counter|stringformat:"02d" }}</td>
+                            <td class="za-talebe-ad">{{ t.ad_soyad }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr class="za-empty-row">
+                            <td colspan="2">Henüz talebe atanmadı.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="za-pdf-note">
+                Bu belge yalnızca <strong>{{ kart.arac.surucu_ad }}</strong> aracına özeldir.
+                Lütfen ziyaret günü talebeleri bu listeye göre organize ediniz.
+            </p>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <table class="kart-foot" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="left">{{ panel_short }}</td>
+                    <td class="right">{{ plan.tarih|date:"d.m.Y" }}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
