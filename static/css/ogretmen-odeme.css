@@ -50,25 +50,36 @@
 }
 
 .oo-matrix-wrap {
-    overflow: auto;
+    overflow-x: auto;
+    overflow-y: visible;
     margin-top: 8px;
-    border: 1px solid #e8edf3;
-    border-radius: 14px;
-    background: #fff;
+    border: 1px solid var(--cs-border, #e8edf3);
+    border-radius: var(--cs-radius-lg, 14px);
+    background: var(--cs-surface, #fff);
+    -webkit-overflow-scrolling: touch;
 }
 .oo-matrix-table {
-    width: 100%;
-    min-width: 720px;
+    width: max-content;
+    min-width: 100%;
     border-collapse: separate;
     border-spacing: 0;
+    table-layout: fixed;
 }
 .oo-matrix-table th,
 .oo-matrix-table td {
-    padding: 8px 6px;
+    padding: 6px 4px;
     border-bottom: 1px solid #eef2f7;
     border-right: 1px solid #eef2f7;
     text-align: center;
     vertical-align: middle;
+    box-sizing: border-box;
+}
+.oo-matrix-table thead th:not(.oo-matrix-sticky),
+.oo-matrix-table tbody td,
+.oo-matrix-table tfoot td {
+    min-width: 58px;
+    width: 58px;
+    max-width: 58px;
 }
 .oo-matrix-table thead th {
     background: #f8fafc;
@@ -85,7 +96,9 @@
     z-index: 3;
     background: #fff;
     text-align: left !important;
-    min-width: 88px;
+    width: 92px;
+    min-width: 92px;
+    max-width: 92px;
     box-shadow: 4px 0 8px rgba(15, 23, 42, 0.04);
 }
 .oo-matrix-table thead .oo-matrix-sticky { background: #f8fafc; z-index: 4; }
@@ -99,15 +112,17 @@
 .oo-date-label { display: block; font-size: 11px; color: #94a3b8; margin-top: 2px; }
 .oo-weekend { background: #fff8f0; }
 .oo-cell-input {
-    width: 54px;
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
     min-height: 36px !important;
-    padding: 0 8px !important;
-    text-align: left;
-    border-radius: 8px !important;
+    padding: 0 6px !important;
+    text-align: center;
+    border-radius: var(--cs-radius-md, 8px) !important;
     border: 1px solid #dbe3ee !important;
     background: #fff;
     font-variant-numeric: tabular-nums;
-    max-width: 100%;
     box-sizing: border-box;
 }
 .oo-cell-input:focus {
@@ -126,5 +141,11 @@
 
 @media (max-width: 900px) {
     .oo-form-grid, .oo-report-filter { grid-template-columns: 1fr; }
-    .oo-cell-input { width: 48px; }
+    .oo-matrix-table thead th:not(.oo-matrix-sticky),
+    .oo-matrix-table tbody td,
+    .oo-matrix-table tfoot td {
+        min-width: 52px;
+        width: 52px;
+        max-width: 52px;
+    }
 }
