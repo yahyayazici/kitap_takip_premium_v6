@@ -57,12 +57,20 @@ def talebeler_sirali(qs: QuerySet[Talebe]) -> list[Talebe]:
     )
 
 
+def _sinif_etiket_sirasi(etiket: str) -> tuple[int, str]:
+    rakamlar = re.sub(r"\D", "", etiket.split("-", 1)[0])
+    return (int(rakamlar) if rakamlar else 99, etiket.casefold())
+
+
 def talebeler_gruplu(qs: QuerySet[Talebe]) -> list[dict]:
     gruplar: dict[str, list[Talebe]] = {}
     for talebe in talebeler_sirali(qs):
         etiket = talebe_sinif_etiketi(talebe)
         gruplar.setdefault(etiket, []).append(talebe)
-    return [{"sinif": sinif, "talebeler": items} for sinif, items in gruplar.items()]
+    return [
+        {"sinif": sinif, "talebeler": gruplar[sinif]}
+        for sinif in sorted(gruplar.keys(), key=_sinif_etiket_sirasi)
+    ]
 
 
 def panel_talebeleri(
@@ -77,20 +85,23 @@ def panel_talebeleri(
 
     qs = Talebe.objects.filter(aktif=True)
 
+    if sinif_sube_id:
+        qs = qs.filter(sinif_sube_id=sinif_sube_id)
+
     if user.is_superuser or tum_talebe_kapsami_var(user):
         if etudum:
             hoca = etut_hocasi_for_user(user)
             if hoca:
                 qs = qs.filter(etut_hocasi=hoca)
-        if sinif_sube_id:
-            qs = qs.filter(sinif_sube_id=sinif_sube_id)
         if etut_hocasi_id:
             qs = qs.filter(etut_hocasi_id=etut_hocasi_id)
         return qs
 
     hoca = etut_hocasi_for_user(user)
     if hoca:
-        return qs.filter(etut_hocasi=hoca)
+        if etudum:
+            qs = qs.filter(etut_hocasi=hoca)
+        return qs
 
     talebe_ids = yetkili_talebeler(user, aktif_only=True).values_list("id", flat=True)
     return qs.filter(id__in=talebe_ids)

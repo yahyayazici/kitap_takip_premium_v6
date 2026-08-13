@@ -29,32 +29,41 @@
 .ny-page *::before,
 .ny-page *::after { box-sizing: border-box; }
 
-/* —— panel-unified navy hero'yu iptal et —— */
+/* —— Sayfa başlığı: diğer modüllerle uyumlu soft kart —— */
 .ny-page .ny-head,
 .ny-page header.page-head.ny-head,
 .ny-page header.patterned-page-head.ny-head,
 .ny-head {
     position: relative !important;
-    overflow: visible !important;
+    overflow: hidden !important;
     isolation: auto !important;
     display: flex !important;
     flex-wrap: wrap !important;
     justify-content: space-between !important;
     align-items: flex-start !important;
     gap: 12px !important;
-    padding: 0 !important;
-    margin: 0 0 4px !important;
-    border: 0 !important;
-    border-radius: 0 !important;
-    background: transparent !important;
-    background-image: none !important;
+    padding: 22px 26px !important;
+    margin: 0 0 14px !important;
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-xl) !important;
+    background: linear-gradient(135deg, var(--cs-surface) 0%, var(--cs-background) 100%) !important;
+    background-image: linear-gradient(135deg, var(--cs-surface) 0%, var(--cs-background) 100%) !important;
     animation: none !important;
-    box-shadow: none !important;
+    box-shadow: var(--cs-shadow-sm) !important;
     color: var(--ny-text) !important;
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
     width: 100% !important;
+}
+
+.ny-page .ny-head .kicker {
+    margin: 0 0 4px !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    color: var(--ny-muted) !important;
 }
 
 .ny-page .ny-head-main {
@@ -72,8 +81,17 @@
 
 .ny-page .ny-head::before,
 .ny-head::before {
-    content: none !important;
-    display: none !important;
+    content: "" !important;
+    display: block !important;
+    position: absolute !important;
+    width: 220px !important;
+    height: 220px !important;
+    right: -60px !important;
+    top: -120px !important;
+    border-radius: var(--cs-radius-xl) !important;
+    transform: rotate(35deg) !important;
+    background: linear-gradient(135deg, rgba(47, 111, 243, 0.1), rgba(118, 87, 232, 0.06)) !important;
+    pointer-events: none !important;
 }
 
 .ny-page .ny-head > *,

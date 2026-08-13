@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Namaz Yoklaması · {{ panel_short }}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/namaz-yoklama.css' %}?v=qa-p4">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/namaz-yoklama.css' %}?v=qa-p5">{% endblock %}
 {% block content %}
 <div class="ny-page" data-ny-panel data-odak="{{ odak_vakit }}">
-    <header class="page-head patterned-page-head ny-head ny-hero">
+    <header class="page-head patterned-page-head ny-head">
         <div class="ny-head-main">
             <p class="kicker">NAMAZ YOKLAMASI</p>
             <h1>Namaz Yoklaması</h1>
             <p class="ny-sub ny-head-desc">İsim okunur · Gelen boş kalır · Gelmeyen <strong class="g">G</strong> · Takke/tesbih <strong class="tt">T&amp;T</strong> · İzin <strong class="i">İ</strong></p>
             <div class="ny-head-actions">
-                {% if tam_yetki %}
+                {% if etut_hocasi_var %}
                 <a href="?tarih={{ tarih|date:'Y-m-d' }}&vakit={{ odak_vakit }}&etudum=1" class="ny-chip{% if etudum %} is-on{% endif %}">Etüdüm</a>
                 <a href="?tarih={{ tarih|date:'Y-m-d' }}&vakit={{ odak_vakit }}" class="ny-chip{% if not etudum %} is-on{% endif %}">Tümü</a>
                 {% endif %}

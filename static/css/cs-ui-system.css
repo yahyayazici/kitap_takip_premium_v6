@@ -213,13 +213,37 @@ body.talebe-body {
     min-height: var(--cs-touch-min);
 }
 
-/* Namaz page-head: clip yok — içerik yüksekliği doğal (phase8 ile aynı specificity) */
-.ny-page .ny-head.ny-hero.patterned-page-head,
-.ny-page > header.page-head.ny-head {
-    overflow: visible !important;
+/* Namaz page-head: soft kart — navy hero yerine kurum standardı */
+.ny-page > header.page-head.ny-head,
+.ny-page > header.patterned-page-head.ny-head {
+    overflow: hidden !important;
     height: auto !important;
     max-height: none !important;
     align-items: flex-start !important;
+    padding: 22px 26px !important;
+    margin: 0 0 14px !important;
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-xl) !important;
+    background: linear-gradient(135deg, var(--cs-surface) 0%, var(--cs-background) 100%) !important;
+    background-image: linear-gradient(135deg, var(--cs-surface) 0%, var(--cs-background) 100%) !important;
+    animation: none !important;
+    box-shadow: var(--cs-shadow-sm) !important;
+    color: var(--cs-text-primary) !important;
+}
+
+.ny-page > header.page-head.ny-head h1,
+.ny-page > header.patterned-page-head.ny-head h1 {
+    color: var(--cs-primary-dark) !important;
+}
+
+.ny-page > header.page-head.ny-head .kicker,
+.ny-page > header.patterned-page-head.ny-head .kicker {
+    color: var(--cs-text-muted) !important;
+}
+
+.ny-page > header.page-head.ny-head .ny-sub,
+.ny-page > header.patterned-page-head.ny-head .ny-sub {
+    color: var(--cs-text-secondary) !important;
 }
 
 /* —— Form: iOS zoom önleme (constitution font-size ile uyumlu) —— */

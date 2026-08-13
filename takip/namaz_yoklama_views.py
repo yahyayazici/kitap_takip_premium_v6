@@ -32,6 +32,7 @@ from takip.namaz_yoklama_service import (
 from takip.pdf_utils import html_to_pdf, make_pdf_response, pdf_engine_status, pdf_error_response
 from takip.permissions.decorators import require_permission
 from takip.permissions.service import can
+from takip.user_helpers import etut_hocasi_for_user
 
 
 def _parse_tarih(value: str | None):
@@ -116,8 +117,6 @@ def namaz_yoklama_panel(request):
 
     tarih = _parse_tarih(request.GET.get("tarih"))
     etudum = request.GET.get("etudum") == "1"
-    if not namaz_tam_yetki(request.user):
-        etudum = True
     odak = _odak_vakit(request.GET.get("vakit"))
 
     qs = panel_talebeleri(
@@ -155,6 +154,7 @@ def namaz_yoklama_panel(request):
             "kaydedebilir": namaz_yoklama_kaydedebilir(request.user),
             "tam_yetki": namaz_tam_yetki(request.user),
             "etudum": etudum,
+            "etut_hocasi_var": bool(etut_hocasi_for_user(request.user)),
             "talebe_sayisi": qs.count(),
             "sinif_subeler": SinifSube.objects.filter(aktif=True).order_by("sinif", "sube"),
             "etut_hocalari": EtutHocasi.objects.filter(aktif=True).order_by("ad_soyad"),
