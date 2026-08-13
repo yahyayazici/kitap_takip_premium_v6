@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Paylaşım Önizleme · {{ paket.baslik }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/iletisim-merkezi-premium.css' %}?v=im3">
+<link rel="stylesheet" href="{% static 'css/iletisim-merkezi-premium.css' %}?v=im4">
 {% endblock %}
 {% block content %}
 <div class="im-page im-onizleme" data-im-share
@@ -52,7 +52,12 @@
                 {% for ek in paket.ekler.all %}
                 <li>
                     <span class="im-attach-name" title="{{ ek.dosya_adi }}">📎 {{ ek.dosya_adi }}</span>
-                    <a href="{% url 'iletisim_ek_indir' ek.pk %}" class="ghost-btn im-btn-sm" data-im-download data-ek-id="{{ ek.pk }}">PDF İndir</a>
+                    <div class="im-attach-actions">
+                        <a href="{% url 'iletisim_ek_indir' ek.pk %}" class="ghost-btn im-btn-sm" data-im-download data-ek-id="{{ ek.pk }}">PDF İndir</a>
+                        {% if paylas_yetkisi %}
+                        <button type="button" class="primary-btn im-btn-sm im-wa-btn" data-im-wa-pdf-send disabled>WhatsApp'a Gönder</button>
+                        {% endif %}
+                    </div>
                 </li>
                 {% endfor %}
             </ul>
@@ -74,5 +79,5 @@
     <p class="im-feedback" data-im-feedback hidden></p>
     {% endif %}
 </div>
-<script src="{% static 'js/iletisim-share.js' %}?v=im8"></script>
+<script src="{% static 'js/iletisim-share.js' %}?v=im12"></script>
 {% endblock %}

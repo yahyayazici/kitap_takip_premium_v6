@@ -5,6 +5,10 @@
         return (root || document).querySelector(sel);
     }
 
+    function qsa(sel, root) {
+        return Array.prototype.slice.call((root || document).querySelectorAll(sel));
+    }
+
     function postForm(url, data, csrf) {
         var body = new URLSearchParams();
         Object.keys(data).forEach(function (k) {
@@ -47,6 +51,10 @@
         if (preview) preview.textContent = guncelMesaj(root);
     }
 
+    function mobilMi() {
+        return /Android|iPhone|iPod/i.test(navigator.userAgent);
+    }
+
     function nativeShareDestek() {
         return typeof navigator !== "undefined" && typeof navigator.share === "function";
     }
@@ -57,6 +65,15 @@
             text: mesaj,
             title: (file.name || "KTT").replace(/\.pdf$/i, ""),
         };
+    }
+
+    function waButonlariHazir(root, hazir) {
+        qsa("[data-im-whatsapp-share], [data-im-wa-pdf-send]", root).forEach(function (btn) {
+            btn.disabled = !hazir;
+            if (btn.hasAttribute("data-im-whatsapp-share")) {
+                btn.textContent = hazir ? "WhatsApp'ta Paylaş" : "PDF hazırlanıyor…";
+            }
+        });
     }
 
     async function pdfBlobAl(url) {
@@ -74,32 +91,22 @@
 
     function pdfOnbellekYukle(root) {
         var download = qs("[data-im-download]", root);
-        var waBtn = qs("[data-im-whatsapp-share]", root);
         if (!download) {
             root._imPdfReady = true;
             return Promise.resolve(null);
         }
-        if (waBtn) {
-            waBtn.disabled = true;
-            waBtn.textContent = "PDF hazırlanıyor…";
-        }
+        waButonlariHazir(root, false);
         return pdfBlobAl(download.getAttribute("href"))
             .then(function (pdf) {
                 root._imPdf = pdf;
                 root._imPdfFile = new File([pdf.blob], pdf.ad, { type: "application/pdf" });
                 root._imPdfReady = true;
-                if (waBtn) {
-                    waBtn.disabled = false;
-                    waBtn.textContent = "WhatsApp'ta Paylaş";
-                }
+                waButonlariHazir(root, true);
                 return pdf;
             })
             .catch(function () {
                 root._imPdfReady = false;
-                if (waBtn) {
-                    waBtn.disabled = false;
-                    waBtn.textContent = "WhatsApp'ta Paylaş";
-                }
+                waButonlariHazir(root, false);
                 feedback(root, "PDF yüklenemedi. Sayfayı yenileyin.", true);
                 return null;
             });
@@ -161,14 +168,14 @@
     }
 
     function dosyaPaylasimDene(root, mesaj, file) {
-        if (!nativeShareDestek()) {
+        if (!nativeShareDestek() || !file) {
             return Promise.resolve(false);
         }
         return navigator
             .share(paylasimPayload(file, mesaj))
             .then(function () {
                 olayKaydet(root, "native_share_opened");
-                feedback(root, "Mesaj ve PDF birlikte paylaşıldı.");
+                feedback(root, "Mesaj ve PDF paylaşıldı — WhatsApp'ı seçin.");
                 return true;
             })
             .catch(function (err) {
@@ -177,81 +184,27 @@
             });
     }
 
-    function paylasimModaliKapat(root) {
-        var modal = qs("[data-im-share-modal]", root);
-        if (modal) modal.remove();
+    function whatsappYedek(root, mesaj, file) {
+        return pdfPanoyaKopyala(file).then(function (panoOk) {
+            pdfIndir(file);
+            olayKaydet(root, "file_downloaded");
+            whatsappDirektAc(mesaj);
+            olayKaydet(root, "whatsapp_share_opened");
+            if (panoOk) {
+                feedback(
+                    root,
+                    "WhatsApp açıldı. PDF indirildi ve panoda — sohbette 📎 veya Cmd+V ile ekleyin."
+                );
+                return;
+            }
+            feedback(
+                root,
+                "WhatsApp açıldı. PDF indirildi — sohbette 📎 ile ekleyin."
+            );
+        });
     }
 
-    function paylasimModaliAc(root, mesaj, file) {
-        paylasimModaliKapat(root);
-
-        var overlay = document.createElement("div");
-        overlay.className = "im-share-modal";
-        overlay.setAttribute("data-im-share-modal", "");
-        overlay.innerHTML =
-            '<div class="im-share-modal-box" role="dialog" aria-modal="true">' +
-            '<p class="im-share-modal-title">Mesaj ve KTT PDF birlikte gidecek</p>' +
-            '<p class="im-share-modal-hint">Açılan paylaşım ekranından <strong>WhatsApp</strong> seçin. Link değil, dosya eklenir.</p>' +
-            '<button type="button" class="primary-btn im-wa-btn" data-im-modal-share>Mesaj + PDF Paylaş</button>' +
-            '<button type="button" class="ghost-btn" data-im-modal-wa>Mesajı WhatsApp\'ta aç (PDF ayrı)</button>' +
-            '<button type="button" class="ghost-btn" data-im-modal-close>Kapat</button>' +
-            "</div>";
-        root.appendChild(overlay);
-
-        var shareBtn = qs("[data-im-modal-share]", overlay);
-        var waBtn = qs("[data-im-modal-wa]", overlay);
-        var closeBtn = qs("[data-im-modal-close]", overlay);
-
-        closeBtn.addEventListener("click", function () {
-            paylasimModaliKapat(root);
-        });
-        overlay.addEventListener("click", function (ev) {
-            if (ev.target === overlay) paylasimModaliKapat(root);
-        });
-
-        shareBtn.addEventListener("click", function () {
-            shareBtn.disabled = true;
-            dosyaPaylasimDene(root, mesaj, file)
-                .then(function (ok) {
-                    shareBtn.disabled = false;
-                    if (ok) {
-                        paylasimModaliKapat(root);
-                        return;
-                    }
-                    feedback(
-                        root,
-                        "Dosyalı paylaşım açılamadı. Safari veya telefondan deneyin.",
-                        true
-                    );
-                })
-                .catch(function (err) {
-                    shareBtn.disabled = false;
-                    if (err && err.name === "AbortError") return;
-                });
-        });
-
-        waBtn.addEventListener("click", function () {
-            pdfPanoyaKopyala(file).then(function (panoOk) {
-                whatsappDirektAc(mesaj);
-                olayKaydet(root, "whatsapp_share_opened");
-                paylasimModaliKapat(root);
-                if (panoOk) {
-                    feedback(
-                        root,
-                        "WhatsApp açıldı. PDF panoda — sohbette Cmd+V ile yapıştırın."
-                    );
-                } else {
-                    pdfIndir(file);
-                    olayKaydet(root, "file_downloaded");
-                    feedback(root, "WhatsApp açıldı. PDF indirildi — 📎 ile ekleyin.");
-                }
-            });
-        });
-
-        shareBtn.focus();
-    }
-
-    function whatsappPaylas(root) {
+    function whatsappMesajPdfGonder(root) {
         var mesaj = guncelMesaj(root);
         if (!mesaj) {
             feedback(root, "Mesaj boş.", true);
@@ -271,15 +224,20 @@
             return;
         }
 
-        dosyaPaylasimDene(root, mesaj, file)
-            .then(function (ok) {
-                if (ok) return;
-                paylasimModaliAc(root, mesaj, file);
-            })
-            .catch(function (err) {
-                if (err && err.name === "AbortError") return;
-                paylasimModaliAc(root, mesaj, file);
-            });
+        if (nativeShareDestek()) {
+            dosyaPaylasimDene(root, mesaj, file)
+                .then(function (ok) {
+                    if (ok) return;
+                    return whatsappYedek(root, mesaj, file);
+                })
+                .catch(function (err) {
+                    if (err && err.name === "AbortError") return;
+                    return whatsappYedek(root, mesaj, file);
+                });
+            return;
+        }
+
+        whatsappYedek(root, mesaj, file);
     }
 
     function init() {
@@ -329,12 +287,12 @@
             });
         }
 
-        var waBtn = qs("[data-im-whatsapp-share]", root);
-        if (waBtn) {
-            waBtn.addEventListener("click", function () {
-                whatsappPaylas(root);
-            });
-        }
+        root.addEventListener("click", function (e) {
+            var waBtn = e.target.closest("[data-im-whatsapp-share], [data-im-wa-pdf-send]");
+            if (!waBtn) return;
+            e.preventDefault();
+            whatsappMesajPdfGonder(root);
+        });
 
         var draftBtn = qs("[data-im-draft-save]", root);
         if (draftBtn) {
