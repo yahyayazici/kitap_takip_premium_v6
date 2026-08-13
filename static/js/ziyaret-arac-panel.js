@@ -94,7 +94,7 @@
                             h.id +
                             '"><div class="za-rozet-main"><strong>' +
                             escapeHtml(h.ad) +
-                            '</strong><span>ETÜT HOCASI</span></div><button type="button" class="za-tool-btn za-tool-btn--remove" data-za-cikar data-tur="etut_hocasi" data-id="' +
+                            '</strong><span>Etüt Mesulü</span></div><button type="button" class="za-tool-btn za-tool-btn--remove" data-za-cikar data-tur="etut_hocasi" data-id="' +
                             h.id +
                             '" title="Çıkar" aria-label="Çıkar">×</button></div>'
                         );

@@ -17,3 +17,14 @@ def etut_hocasi_for_user(user: User):
             return hoca
 
     return None
+
+
+def etut_mesul_for_user(user: User):
+    """Etüt veya sınıf mesulü — branş öğretmeni EtutHocasi kaydı değil."""
+    hoca = etut_hocasi_for_user(user)
+    if not hoca or not hoca.aktif:
+        return None
+
+    from takip.etut_zimmet_service import etut_mesul_mu
+
+    return hoca if etut_mesul_mu(hoca) else None

@@ -10,6 +10,7 @@ from django.db import transaction
 from django.db.models import Count, Prefetch, Q
 
 from takip.models import EtutHocasi, PersonelProfili, SinifSube, Talebe
+from takip.etut_zimmet_service import etut_mesul_mu, etut_mesul_queryset
 from takip.ziyaret_arac_models import (
     ZiyaretAracAtama,
     ZiyaretAraci,
@@ -321,6 +322,10 @@ def talebe_cikar(plan: ZiyaretPlani, talebe_id: int) -> None:
 
 @transaction.atomic
 def etut_hocasi_ata(plan: ZiyaretPlani, etut_hocasi_id: int, arac_id: int) -> tuple[bool, str]:
+    hoca = EtutHocasi.objects.filter(pk=etut_hocasi_id, aktif=True).first()
+    if not hoca or not etut_mesul_mu(hoca):
+        return False, "Yalnızca etüt veya sınıf mesulü araca atanabilir."
+
     arac = ZiyaretAraci.objects.get(pk=arac_id, plan=plan)
     baska = ZiyaretAracAtama.objects.filter(
         arac__plan=plan,
@@ -486,6 +491,16 @@ def plan_kontrol(plan: ZiyaretPlani) -> PlanKontrol:
     if etut_cift.exists():
         hatalar.append("Bazı etüt hocaları birden fazla araca atanmış.")
 
+    for atama in ZiyaretAracAtama.objects.filter(
+        arac__plan=plan,
+        tur=ZiyaretAracAtama.Tur.ETUT_HOCASI,
+    ).select_related("etut_hocasi"):
+        if atama.etut_hocasi_id and not etut_mesul_mu(atama.etut_hocasi):
+            uyarilar.append(
+                f"{atama.etut_hocasi.ad_soyad} etüt/sınıf mesulü değil; "
+                "araca atanan kişiyi kaldırıp mesul seçin."
+            )
+
     hazir = not hatalar
     return PlanKontrol(hazir=hazir, uyarilar=uyarilar, hatalar=hatalar)
 
@@ -502,7 +517,12 @@ def toplu_talebe_adaylari(
     if sinif_sube_ids:
         qs = qs.filter(sinif_sube_id__in=sinif_sube_ids)
     if etut_hocasi_ids:
-        qs = qs.filter(etut_hocasi_id__in=etut_hocasi_ids)
+        mesul_ids = list(
+            etut_mesul_queryset()
+            .filter(pk__in=etut_hocasi_ids)
+            .values_list("pk", flat=True)
+        )
+        qs = qs.filter(etut_hocasi_id__in=mesul_ids) if mesul_ids else qs.none()
     if q.strip():
         qs = qs.filter(
             Q(ad_soyad__icontains=q.strip()) | Q(talebe_no__icontains=q.strip())
@@ -518,9 +538,7 @@ def personel_surucu_adaylari(q: str = "") -> list[PersonelProfili]:
 
 
 def etut_hocalari_listesi() -> list[EtutHocasi]:
-    return list(
-        EtutHocasi.objects.filter(aktif=True).order_by("ad_soyad")
-    )
+    return list(etut_mesul_queryset())
 
 
 def sinif_sube_listesi() -> list[SinifSube]:

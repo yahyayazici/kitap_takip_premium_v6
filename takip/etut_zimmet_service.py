@@ -22,6 +22,20 @@ def etut_mesul_mu(hoca: EtutHocasi | None) -> bool:
     )
 
 
+def etut_mesul_queryset():
+    """Aktif etüt / sınıf mesulü kayıtları (branş öğretmeni EtutHocasi kayıtları hariç)."""
+    return (
+        EtutHocasi.objects.filter(
+            aktif=True,
+            personel_kaydi__aktif=True,
+            personel_kaydi__ana_rol__in=_MESUL_ROLLER,
+        )
+        .select_related("personel_kaydi", "user")
+        .order_by("ad_soyad")
+        .distinct()
+    )
+
+
 def mesul_zimmet_sinif_ids(hoca: EtutHocasi) -> list[int]:
     return list(
         hoca.sorumlu_sinif_subeler.filter(aktif=True).values_list("pk", flat=True)

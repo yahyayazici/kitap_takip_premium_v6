@@ -16,7 +16,7 @@ from takip.pdf_utils import html_to_pdf, make_pdf_response
 from config.branding import panel_branding_context
 from takip.permissions.decorators import require_permission
 from takip.permissions.service import can
-from takip.user_helpers import etut_hocasi_for_user
+from takip.user_helpers import etut_mesul_for_user
 from takip.ziyaret_arac_models import (
     ZiyaretAraci,
     ZiyaretPlani,
@@ -89,7 +89,7 @@ def ziyaret_arac_listesi(request):
             {"planlar": planlar, "yonetim": True},
         )
 
-    hoca = etut_hocasi_for_user(request.user)
+    hoca = etut_mesul_for_user(request.user)
     if not hoca:
         messages.error(request, "Bu modüle erişim yetkiniz yok.")
         return redirect("dashboard")
@@ -187,7 +187,7 @@ def ziyaret_arac_detay(request, pk):
 @require_permission("ziyaret_arac", "view")
 def ziyaret_arac_etut(request, pk):
     plan = _plan_or_404(pk)
-    hoca = etut_hocasi_for_user(request.user)
+    hoca = etut_mesul_for_user(request.user)
     if not hoca and not plan_yonetimi_var(request.user):
         messages.error(request, "Etüt hocası profili bulunamadı.")
         return redirect("dashboard")
