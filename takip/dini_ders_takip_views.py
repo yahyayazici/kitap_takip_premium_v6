@@ -12,10 +12,10 @@ from django.utils.timezone import localdate
 
 from takip.dini_ilerleme_service import (
     DURUM_ETIKETLERI,
-    alan_ilerleme_ozeti,
     beklenen_yuzde,
     gruplar_karsilastirma,
     grup_saglik_ozeti,
+    rapor_talebe_satirlari,
 )
 from takip.dini_ders_takip_service import (
     cizelge_sidebar_ozeti,
@@ -204,93 +204,57 @@ def dini_ders_rapor(request):
 
     talebeler = yetkili_dini_talebeler(request.user)
     rapor_ozet = rapor_ozeti(talebeler, seviye=seviye, alan=alan)
-
-    satirlar = []
-    for talebe in talebeler.order_by("ad_soyad")[:200]:
-        if not talebe.dini_ders_seviyesi_id:
-            continue
-        konu_qs = konular_for(
-            talebe.dini_ders_seviyesi,
-            alan,
-        ) if alan else talebe.dini_ders_seviyesi.dini_ders_konulari.filter(
-            aktif=True
-        )
-        toplam = konu_qs.count()
-        if not toplam:
-            continue
-        from takip.models import DiniDersKonuKaydi
-
-        tamamlanan = DiniDersKonuKaydi.objects.filter(
-            talebe=talebe,
-            konu__in=konu_qs,
-            tamamlandi=True,
-        ).count()
-        yuzde = round(100 * tamamlanan / toplam) if toplam else 0
-        durum_etiket = ""
-        durum_sinif = ""
-        beklenen = None
-        if alan:
-            talebe_analiz = alan_ilerleme_ozeti(talebe, alan)
-            durum_etiket = talebe_analiz.durum_etiket
-            durum_sinif = talebe_analiz.durum_sinif
-            beklenen = talebe_analiz.beklenen_yuzde
-        satirlar.append(
-            {
-                "talebe": talebe,
-                "tamamlanan": tamamlanan,
-                "toplam": toplam,
-                "yuzde": yuzde,
-                "beklenen": beklenen,
-                "durum_etiket": durum_etiket,
-                "durum_sinif": durum_sinif,
-            }
-        )
+    satirlar = rapor_talebe_satirlari(talebeler, seviye, alan)
 
     grup_karsilastirma = []
     grup_ozetleri = []
     if seviye:
-        grup_karsilastirma = gruplar_karsilastirma(seviye.id)
+        if request.user.is_superuser or tum_talebe_kapsami_var(request.user):
+            grup_karsilastirma = gruplar_karsilastirma(seviye.id)
         if alan:
-            hoca_ids = (
-                talebeler.filter(dini_ders_hocasi_id__isnull=False)
+            hoca_ids = {
+                hoca_id
+                for hoca_id in talebeler.filter(dini_ders_hocasi_id__isnull=False)
                 .values_list("dini_ders_hocasi_id", flat=True)
-                .distinct()
-            )
-            for hoca_id in hoca_ids:
-                saglik = grup_saglik_ozeti(hoca_id, seviye.id)
-                alan_saglik = next(
-                    (a for a in saglik.get("alanlar", []) if a["alan"] == alan.ad),
-                    None,
-                )
-                if alan_saglik:
-                    from takip.models import EtutHocasi
+                if hoca_id
+            }
+            from takip.models import EtutHocasi
 
-                    hoca = EtutHocasi.objects.filter(pk=hoca_id).first()
-                    durum_listesi = [
-                        {
-                            "kod": kod,
-                            "adet": adet,
-                            "etiket": DURUM_ETIKETLERI.get(kod, (kod, "muted"))[0],
-                            "sinif": DURUM_ETIKETLERI.get(kod, (kod, "muted"))[1],
-                        }
-                        for kod, adet in alan_saglik.get("durum_dagilimi", {}).items()
-                    ]
-                    fark = alan_saglik.get("plan_fark", 0)
-                    if fark > 0:
-                        fark_metni = f"{fark} puan önde"
-                    elif fark < 0:
-                        fark_metni = f"{abs(fark)} puan geride"
-                    else:
-                        fark_metni = "Plana uygun"
-                    grup_ozetleri.append(
-                        {
-                            "hoca_id": hoca_id,
-                            "hoca_ad": hoca.ad_soyad if hoca else "—",
-                            "durum_listesi": durum_listesi,
-                            "plan_fark_metni": fark_metni,
-                            **alan_saglik,
-                        }
-                    )
+            hoca_map = {
+                h.id: h
+                for h in EtutHocasi.objects.filter(pk__in=list(hoca_ids))
+            }
+            for hoca_id in hoca_ids:
+                saglik = grup_saglik_ozeti(hoca_id, seviye.id, alan=alan)
+                alan_saglik = saglik["alanlar"][0] if saglik.get("alanlar") else None
+                if not alan_saglik:
+                    continue
+                hoca = hoca_map.get(hoca_id)
+                durum_listesi = [
+                    {
+                        "kod": kod,
+                        "adet": adet,
+                        "etiket": DURUM_ETIKETLERI.get(kod, (kod, "muted"))[0],
+                        "sinif": DURUM_ETIKETLERI.get(kod, (kod, "muted"))[1],
+                    }
+                    for kod, adet in alan_saglik.get("durum_dagilimi", {}).items()
+                ]
+                fark = alan_saglik.get("plan_fark", 0)
+                if fark > 0:
+                    fark_metni = f"{fark} puan önde"
+                elif fark < 0:
+                    fark_metni = f"{abs(fark)} puan geride"
+                else:
+                    fark_metni = "Plana uygun"
+                grup_ozetleri.append(
+                    {
+                        "hoca_id": hoca_id,
+                        "hoca_ad": hoca.ad_soyad if hoca else "—",
+                        "durum_listesi": durum_listesi,
+                        "plan_fark_metni": fark_metni,
+                        **alan_saglik,
+                    }
+                )
 
     beklenen_genel = beklenen_yuzde(seviye, alan) if seviye and alan else None
 

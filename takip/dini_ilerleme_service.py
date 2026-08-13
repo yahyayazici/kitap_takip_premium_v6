@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import statistics
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date, timedelta
 
@@ -423,91 +424,323 @@ def talebe_alan_analizleri(talebe: Talebe) -> list[AlanIlerlemeOzet]:
     return [alan_ilerleme_ozeti(talebe, alan) for alan in alanlar if toplam_konu_sayisi(talebe.dini_ders_seviyesi, alan)]
 
 
-def grup_saglik_ozeti(hoca_id: int, seviye_id: int) -> dict:
-    """Personel/yönetim: grubun alan bazlı sağlık dağılımı."""
-    talebeler = Talebe.objects.filter(
-        durum=Talebe.Durum.AKTIF,
-        dini_ders_hocasi_id=hoca_id,
-        dini_ders_seviyesi_id=seviye_id,
+def _batch_tamamlanan_sayilari(
+    talebe_ids: list[int],
+    seviye: DiniDersSeviyesi,
+    alan: DiniDersTakipAlani,
+) -> dict[int, int]:
+    if not talebe_ids:
+        return {}
+    rows = (
+        DiniDersKonuKaydi.objects.filter(
+            talebe_id__in=talebe_ids,
+            tamamlandi=True,
+            konu__alan=alan,
+            konu__seviye=seviye,
+            konu__aktif=True,
+        )
+        .values("talebe_id")
+        .annotate(adet=Count("id"))
     )
-    if not talebeler.exists():
+    return {row["talebe_id"]: row["adet"] for row in rows}
+
+
+def _batch_hiz_artis(
+    talebe_ids: list[int],
+    seviye: DiniDersSeviyesi,
+    alan: DiniDersTakipAlani,
+    toplam: int,
+    gun: int = 30,
+) -> dict[int, bool]:
+    if not talebe_ids or not toplam:
+        return {talebe_id: False for talebe_id in talebe_ids}
+
+    bugun = timezone.localdate()
+    bas = bugun - timedelta(days=gun - 1)
+    onceki_bas = bas - timedelta(days=gun)
+    esik = DEFAULT_ESIKLER["hiz_artis_esik_puan"]
+
+    yeni_rows = {
+        row["talebe_id"]: row["adet"]
+        for row in DiniDersKonuKaydi.objects.filter(
+            talebe_id__in=talebe_ids,
+            tamamlandi=True,
+            konu__alan=alan,
+            konu__seviye=seviye,
+            konu__aktif=True,
+            tamamlanma_tarihi__gte=bas,
+            tamamlanma_tarihi__lte=bugun,
+        )
+        .values("talebe_id")
+        .annotate(adet=Count("id"))
+    }
+    onceki_rows = {
+        row["talebe_id"]: row["adet"]
+        for row in DiniDersKonuKaydi.objects.filter(
+            talebe_id__in=talebe_ids,
+            tamamlandi=True,
+            konu__alan=alan,
+            konu__seviye=seviye,
+            konu__aktif=True,
+            tamamlanma_tarihi__gte=onceki_bas,
+            tamamlanma_tarihi__lt=bas,
+        )
+        .values("talebe_id")
+        .annotate(adet=Count("id"))
+    }
+
+    sonuc: dict[int, bool] = {}
+    for talebe_id in talebe_ids:
+        yeni_puan = round(100 * yeni_rows.get(talebe_id, 0) / toplam)
+        onceki_puan = round(100 * onceki_rows.get(talebe_id, 0) / toplam)
+        sonuc[talebe_id] = yeni_puan - onceki_puan >= esik
+    return sonuc
+
+
+def _grup_ortalama_yuzde(
+    talebe_ids: list[int],
+    seviye: DiniDersSeviyesi,
+    alan: DiniDersTakipAlani,
+    toplam: int,
+    tam_map: dict[int, int] | None = None,
+) -> int:
+    if not talebe_ids or not toplam:
+        return 0
+    tam_map = tam_map or _batch_tamamlanan_sayilari(talebe_ids, seviye, alan)
+    yuzdeler = [round(100 * tam_map.get(talebe_id, 0) / toplam) for talebe_id in talebe_ids]
+    return round(statistics.mean(yuzdeler)) if yuzdeler else 0
+
+
+def _durum_etiketi(kod: str) -> tuple[str, str]:
+    return DURUM_ETIKETLERI.get(kod, DURUM_ETIKETLERI["veri_yok"])
+
+
+def rapor_talebe_satirlari(
+    talebeler: QuerySet[Talebe],
+    seviye: DiniDersSeviyesi | None,
+    alan: DiniDersTakipAlani | None,
+) -> list[dict]:
+    """Rapor tablosu — toplu sorgularla hafif satır üretimi."""
+    qs = talebeler.filter(dini_ders_seviyesi_id__isnull=False).order_by("ad_soyad")
+    if seviye:
+        qs = qs.filter(dini_ders_seviyesi=seviye)
+    talebe_list = list(qs[:200])
+    if not talebe_list:
+        return []
+
+    if not alan:
+        satirlar = []
+        for talebe in talebe_list:
+            konu_qs = talebe.dini_ders_seviyesi.dini_ders_konulari.filter(aktif=True)
+            toplam = konu_qs.count()
+            if not toplam:
+                continue
+            tamamlanan = DiniDersKonuKaydi.objects.filter(
+                talebe=talebe,
+                konu__in=konu_qs,
+                tamamlandi=True,
+            ).count()
+            yuzde = round(100 * tamamlanan / toplam)
+            satirlar.append(
+                {
+                    "talebe": talebe,
+                    "tamamlanan": tamamlanan,
+                    "toplam": toplam,
+                    "yuzde": yuzde,
+                    "beklenen": None,
+                    "durum_etiket": "",
+                    "durum_sinif": "",
+                }
+            )
+        return satirlar
+
+    esikler = _esikler(aktif_egitim_yili())
+    by_seviye: dict[int, list[Talebe]] = defaultdict(list)
+    for talebe in talebe_list:
+        by_seviye[talebe.dini_ders_seviyesi_id].append(talebe)
+
+    grup_ort_map: dict[tuple[int | None, int], int] = {}
+    for seviye_id, members in by_seviye.items():
+        sev_obj = members[0].dini_ders_seviyesi
+        if not sev_obj:
+            continue
+        toplam = toplam_konu_sayisi(sev_obj, alan)
+        if not toplam:
+            continue
+        by_cohort: dict[tuple[int | None, int], list[Talebe]] = defaultdict(list)
+        for member in members:
+            by_cohort[(member.dini_ders_hocasi_id, seviye_id)].append(member)
+        for (hoca_id, _), cohort in by_cohort.items():
+            cohort_ids = [member.id for member in cohort]
+            tam_map = _batch_tamamlanan_sayilari(cohort_ids, sev_obj, alan)
+            grup_ort_map[(hoca_id, seviye_id)] = _grup_ortalama_yuzde(
+                cohort_ids, sev_obj, alan, toplam, tam_map
+            )
+
+    satirlar = []
+    for seviye_id, members in by_seviye.items():
+        sev_obj = members[0].dini_ders_seviyesi
+        if not sev_obj:
+            continue
+        toplam = toplam_konu_sayisi(sev_obj, alan)
+        if not toplam:
+            continue
+        beklenen = beklenen_yuzde(sev_obj, alan)
+        member_ids = [member.id for member in members]
+        tam_map = _batch_tamamlanan_sayilari(member_ids, sev_obj, alan)
+        hiz_map = _batch_hiz_artis(member_ids, sev_obj, alan, toplam)
+
+        for talebe in members:
+            tamamlanan = tam_map.get(talebe.id, 0)
+            yuzde = round(100 * tamamlanan / toplam)
+            grup_ort = grup_ort_map.get(
+                (talebe.dini_ders_hocasi_id, seviye_id),
+                yuzde,
+            )
+            kod = _durum_kodu(
+                yuzde,
+                grup_ort,
+                beklenen,
+                {"artis": hiz_map.get(talebe.id, False)},
+                esikler,
+            )
+            durum_etiket, durum_sinif = _durum_etiketi(kod)
+            satirlar.append(
+                {
+                    "talebe": talebe,
+                    "tamamlanan": tamamlanan,
+                    "toplam": toplam,
+                    "yuzde": yuzde,
+                    "beklenen": beklenen,
+                    "durum_etiket": durum_etiket,
+                    "durum_sinif": durum_sinif,
+                }
+            )
+
+    return sorted(satirlar, key=lambda satir: satir["talebe"].ad_soyad or "")
+
+
+def grup_saglik_ozeti(
+    hoca_id: int,
+    seviye_id: int,
+    alan: DiniDersTakipAlani | None = None,
+) -> dict:
+    """Personel/yönetim: grubun alan bazlı sağlık dağılımı."""
+    talebeler = list(
+        Talebe.objects.filter(
+            durum=Talebe.Durum.AKTIF,
+            dini_ders_hocasi_id=hoca_id,
+            dini_ders_seviyesi_id=seviye_id,
+        )
+    )
+    if not talebeler:
         return {"talebe_sayisi": 0, "alanlar": []}
 
-    ornek = talebeler.first()
-    assert ornek is not None
+    seviye = talebeler[0].dini_ders_seviyesi
+    if not seviye:
+        return {"talebe_sayisi": 0, "alanlar": []}
+
+    esikler = _esikler(aktif_egitim_yili())
+    talebe_ids = [talebe.id for talebe in talebeler]
+    alan_qs = DiniDersTakipAlani.objects.filter(aktif=True).order_by("sira", "ad")
+    if alan:
+        alan_qs = alan_qs.filter(pk=alan.pk)
+
     alanlar = []
-    for alan in DiniDersTakipAlani.objects.filter(aktif=True).order_by("sira", "ad"):
-        if not toplam_konu_sayisi(ornek.dini_ders_seviyesi, alan):
+    for alan_obj in alan_qs:
+        toplam = toplam_konu_sayisi(seviye, alan_obj)
+        if not toplam:
             continue
-        beklenen = beklenen_yuzde(ornek.dini_ders_seviyesi, alan)
-        yuzdeler = [talebe_alan_yuzde(t, alan)[0] for t in talebeler]
+        beklenen = beklenen_yuzde(seviye, alan_obj)
+        tam_map = _batch_tamamlanan_sayilari(talebe_ids, seviye, alan_obj)
+        yuzdeler = [round(100 * tam_map.get(talebe.id, 0) / toplam) for talebe in talebeler]
         grup_yuzde = round(statistics.mean(yuzdeler)) if yuzdeler else 0
+        hiz_map = _batch_hiz_artis(talebe_ids, seviye, alan_obj, toplam)
 
         durum_dagilimi: dict[str, int] = {}
-        for t in talebeler:
-            ozet = alan_ilerleme_ozeti(t, alan)
-            durum_dagilimi[ozet.durum_kodu] = durum_dagilimi.get(ozet.durum_kodu, 0) + 1
+        for talebe, yuzde in zip(talebeler, yuzdeler, strict=True):
+            kod = _durum_kodu(
+                yuzde,
+                grup_yuzde,
+                beklenen,
+                {"artis": hiz_map.get(talebe.id, False)},
+                esikler,
+            )
+            durum_dagilimi[kod] = durum_dagilimi.get(kod, 0) + 1
 
         alanlar.append(
             {
-                "alan": alan.ad,
+                "alan": alan_obj.ad,
                 "grup_yuzde": grup_yuzde,
                 "beklenen_yuzde": beklenen,
                 "plan_fark": grup_yuzde - beklenen,
                 "durum_dagilimi": durum_dagilimi,
-                "talebe_sayisi": talebeler.count(),
+                "talebe_sayisi": len(talebeler),
             }
         )
 
-    return {"talebe_sayisi": talebeler.count(), "alanlar": alanlar}
+    return {"talebe_sayisi": len(talebeler), "alanlar": alanlar}
 
 
 def gruplar_karsilastirma(seviye_id: int) -> list[dict]:
     """Yönetim: aynı seviyede farklı hocaların grup ortalamaları."""
-    beklenen_cache: dict[int, int] = {}
-    satirlar = []
-    hoca_ids = (
+    talebeler = list(
         Talebe.objects.filter(
             durum=Talebe.Durum.AKTIF,
             dini_ders_seviyesi_id=seviye_id,
             dini_ders_hocasi_id__isnull=False,
-        )
-        .values_list("dini_ders_hocasi_id", flat=True)
-        .distinct()
+        ).select_related("dini_ders_hocasi", "sinif_sube", "dini_ders_seviyesi")
     )
-    for hoca_id in hoca_ids:
-        talebeler = Talebe.objects.filter(
-            durum=Talebe.Durum.AKTIF,
-            dini_ders_seviyesi_id=seviye_id,
-            dini_ders_hocasi_id=hoca_id,
-        ).select_related("dini_ders_hocasi", "sinif_sube")
-        if not talebeler.exists():
-            continue
-        t0 = talebeler.first()
-        if not t0 or not t0.dini_ders_hocasi_id:
-            continue
-        hoca_obj = t0.dini_ders_hocasi
+    if not talebeler:
+        return []
+
+    seviye = talebeler[0].dini_ders_seviyesi
+    if not seviye:
+        return []
+
+    alan_list = [
+        alan
+        for alan in DiniDersTakipAlani.objects.filter(aktif=True).order_by("sira", "ad")
+        if toplam_konu_sayisi(seviye, alan)
+    ]
+    if not alan_list:
+        return []
+
+    beklenen_cache = {
+        alan.id: beklenen_yuzde(seviye, alan)
+        for alan in alan_list
+    }
+
+    by_hoca: dict[int, list[Talebe]] = defaultdict(list)
+    for talebe in talebeler:
+        if talebe.dini_ders_hocasi_id:
+            by_hoca[talebe.dini_ders_hocasi_id].append(talebe)
+
+    satirlar = []
+    for hoca_id, group in by_hoca.items():
+        hoca_obj = group[0].dini_ders_hocasi
         if not hoca_obj:
             continue
         alan_yuzdeleri = []
-        for alan in DiniDersTakipAlani.objects.filter(aktif=True):
-            toplam = toplam_konu_sayisi(t0.dini_ders_seviyesi, alan)
+        for alan in alan_list:
+            toplam = toplam_konu_sayisi(seviye, alan)
             if not toplam:
                 continue
-            yuzdeler = [talebe_alan_yuzde(t, alan)[0] for t in talebeler]
+            group_ids = [member.id for member in group]
+            tam_map = _batch_tamamlanan_sayilari(group_ids, seviye, alan)
+            yuzdeler = [round(100 * tam_map.get(member_id, 0) / toplam) for member_id in group_ids]
             alan_yuzdeleri.append(statistics.mean(yuzdeler))
-            if alan.id not in beklenen_cache:
-                beklenen_cache[alan.id] = beklenen_yuzde(t0.dini_ders_seviyesi, alan)
         if not alan_yuzdeleri:
             continue
         genel = round(statistics.mean(alan_yuzdeleri))
         beklenen = round(statistics.mean(beklenen_cache.values())) if beklenen_cache else 0
+        t0 = group[0]
         sinif = str(t0.sinif_sube) if t0.sinif_sube_id else t0.sinif or "—"
         satirlar.append(
             {
                 "hoca": hoca_obj.ad_soyad,
                 "sinif_etiket": sinif,
-                "talebe_sayisi": talebeler.count(),
+                "talebe_sayisi": len(group),
                 "grup_yuzde": genel,
                 "beklenen_yuzde": beklenen,
                 "plan_fark": genel - beklenen,
