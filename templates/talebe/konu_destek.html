@@ -25,6 +25,9 @@
             <span class="kd-kaynak">{{ kart.kaynak_etiket }}</span>
         </div>
         <h2>{{ kart.konu.konu_ad }}</h2>
+        {% if kart.hakimiyet %}
+        <p class="kd-meta">Konu hâkimiyeti: %{{ kart.hakimiyet.ortalama_puan }} — {{ kart.hakimiyet.seviye_etiket }}</p>
+        {% endif %}
         <p class="kd-meta">{{ kart.konu.sinif_seviyesi }}. sınıf · {{ kart.videolar|length }} video önerisi</p>
 
         <div class="kd-video-chips">

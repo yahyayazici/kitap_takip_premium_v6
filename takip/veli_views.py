@@ -181,6 +181,7 @@ def veli_talebe_sinavlar(request, talebe_id: int):
             "deneme_performans": ozet["deneme_performans"],
             "yazili_sonuclari": ozet["yazili_sonuclari"],
             "ogretmen_notlari": ozet["ogretmen_notlari"],
+            "akademik_gelisim": ozet.get("akademik_gelisim"),
         },
     )
 

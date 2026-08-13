@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}KTT Akıllı Takip · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=ktt-akilli1">
+{% endblock %}
+{% block content %}
+<div class="ktt-page">
+    <header class="page-head patterned-page-head ktt-page-head">
+        <div class="ktt-head-main">
+            <p class="kicker">KTT AKILLI TAKİP</p>
+            <h1>Konu analizi &amp; eksik kapatma</h1>
+            <div class="ktt-head-actions profile-head-actions">
+                <a href="{% url 'ktt_listesi' %}" class="ktt-outline-btn ghost-btn">← KTT Listesi</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="ktt-akilli-panel">
+        <div class="ktt-akilli-panel-head"><h2>Bugün dikkat gerektirenler</h2></div>
+        {% if dikkat %}
+        <div class="ktt-akilli-list">
+            {% for satir in dikkat %}
+            <article class="ktt-akilli-row ktt-akilli-row--{{ satir.oncelik_sinif }}">
+                <div class="ktt-akilli-row-main">
+                    <strong>{{ satir.talebe.ad_soyad }}</strong>
+                    <span>{{ satir.konu.brans_etiket }} — {{ satir.konu.konu_ad }}</span>
+                    <small>Konu hâkimiyeti: %{{ satir.konu.ortalama_puan }} · {{ satir.konu.trend_etiket }}</small>
+                    <em>Önerilen: {{ satir.oneri }}</em>
+                </div>
+                <span class="ktt-durum-pill ktt-durum-pill--{{ satir.oncelik_sinif }}">{{ satir.oncelik_etiket }}</span>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="ktt-akilli-empty">Şu an öncelikli talebe×konu kaydı yok.</p>
+        {% endif %}
+    </section>
+
+    {% if ortak_eksikler %}
+    <section class="ktt-akilli-panel">
+        <div class="ktt-akilli-panel-head"><h2>Grup ortak eksik konular</h2></div>
+        <div class="ktt-grup-eksik-grid">
+            {% for g in ortak_eksikler %}
+            <article class="ktt-grup-eksik-card">
+                <strong>{{ g.brans_etiket }} — {{ g.konu_ad }}</strong>
+                <span>{{ g.eksik_sayisi }} / {{ g.talebe_sayisi }} talebede eksik (%{{ g.oran_yuzde }})</span>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if bekleyen_eksikler %}
+    <section class="ktt-akilli-panel">
+        <div class="ktt-akilli-panel-head"><h2>Müdahale bekleyen eksikler</h2></div>
+        <div class="ktt-akilli-list">
+            {% for eksik in bekleyen_eksikler %}
+            <article class="ktt-akilli-row ktt-akilli-row--warn">
+                <div class="ktt-akilli-row-main">
+                    <strong>{{ eksik.talebe.ad_soyad }}</strong>
+                    <span>{{ eksik.konu.konu_ad }} · Skor %{{ eksik.skor }}</span>
+                </div>
+                <form method="post" action="{% url 'ktt_mudahale_calisildi' eksik.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.path }}">
+                    <button type="submit" class="ktt-solid-btn primary-btn">Çalışıldı ✓</button>
+                </form>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if eslestirmeler %}
+    <section class="ktt-akilli-panel">
+        <div class="ktt-akilli-panel-head"><h2>Şüpheli konu eşleştirmeleri</h2></div>
+        <div class="ktt-eslestirme-list">
+            {% for e in eslestirmeler %}
+            <article class="ktt-eslestirme-row">
+                <div>
+                    <strong>{{ e.ham_metin }}</strong>
+                    <span>→ {{ e.onerilen_konu.konu_ad }} (%{{ e.guven_yuzde }})</span>
+                </div>
+                <form method="post" action="{% url 'ktt_eslestirme_onayla' e.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.path }}">
+                    <button type="submit" class="ktt-outline-btn">Onayla</button>
+                </form>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

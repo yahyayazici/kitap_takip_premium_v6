@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from django.contrib.auth.models import User
 from django.db.models import QuerySet
+from django.utils import timezone
 
 from takip.models import (
     DiniDersKonu,
@@ -329,14 +330,23 @@ def kayitlari_kaydet(
                     konu_id=konu_id,
                     tamamlandi=tamamlandi,
                     isaretleyen=user,
+                    tamamlanma_tarihi=timezone.localdate() if tamamlandi else None,
                 )
                 guncellenen += 1
                 continue
 
+            update_fields = ["tamamlandi", "isaretleyen", "guncellenme"]
+            if tamamlandi and not kayit.tamamlanma_tarihi:
+                kayit.tamamlanma_tarihi = timezone.localdate()
+                update_fields.append("tamamlanma_tarihi")
+            elif not tamamlandi and kayit.tamamlanma_tarihi:
+                kayit.tamamlanma_tarihi = None
+                update_fields.append("tamamlanma_tarihi")
+
             if kayit.tamamlandi != tamamlandi or kayit.isaretleyen_id != user.id:
                 kayit.tamamlandi = tamamlandi
                 kayit.isaretleyen = user
-                kayit.save(update_fields=["tamamlandi", "isaretleyen", "guncellenme"])
+                kayit.save(update_fields=update_fields)
                 guncellenen += 1
     return guncellenen
 

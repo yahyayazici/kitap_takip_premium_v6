@@ -12,6 +12,51 @@
     </div>
 
     {% if sinav_tab == 'ktt' %}
+
+    {% if akademik_gelisim and akademik_gelisim.dersler %}
+    <section class="dash-panel veli-akademik-panel">
+        <div class="dash-panel-head">
+            <div>
+                <p class="dash-eyebrow">Akademik gelişim</p>
+                <h2>KTT konu hâkimiyeti</h2>
+            </div>
+        </div>
+        {% for ders in akademik_gelisim.dersler %}
+        <article class="veli-akademik-ders veli-akademik-ders--{{ ders.genel_sinif }}">
+            <header>
+                <h3>{{ ders.brans }}</h3>
+                <span class="veli-akademik-durum veli-akademik-durum--{{ ders.genel_sinif }}">{{ ders.genel_durum }}</span>
+            </header>
+            {% if ders.gelisim_cizgisi %}
+            <p class="veli-akademik-trend">{{ ders.trend }} · {% for p in ders.gelisim_cizgisi %}{{ p }}{% if not forloop.last %} → {% endif %}{% endfor %}</p>
+            {% endif %}
+            {% if ders.grup_karsilastirma %}
+            <p class="veli-akademik-grup">{{ ders.grup_karsilastirma }}</p>
+            {% endif %}
+            {% if ders.guclu_konular %}
+            <div class="veli-akademik-list">
+                <span class="label">Güçlü konular</span>
+                {% for k in ders.guclu_konular %}
+                <span class="veli-akademik-chip veli-akademik-chip--success">✓ {{ k.konu_ad }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% if ders.zayif_konular %}
+            <div class="veli-akademik-list">
+                <span class="label">Geliştirilmesi gereken</span>
+                {% for k in ders.zayif_konular %}
+                <span class="veli-akademik-chip veli-akademik-chip--warn">△ {{ k.konu_ad }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% for metin in ders.mudahale_metinleri %}
+            <p class="veli-akademik-mudahale">{{ metin }}</p>
+            {% endfor %}
+        </article>
+        {% endfor %}
+    </section>
+    {% endif %}
+
     <section class="dash-panel">
         <div class="dash-panel-head">
             <div>

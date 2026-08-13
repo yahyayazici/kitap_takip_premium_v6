@@ -2101,6 +2101,12 @@ from takip.dini_ders_takip_models import (  # noqa: E402,F401
     DiniDersTakipAlani,
 )
 
+from takip.dini_ilerleme_models import (  # noqa: E402,F401
+    DiniAlanPlani,
+    DiniIlerlemeEsik,
+    DiniKonuHedefTarihi,
+)
+
 from takip.ogretmen_odeme_models import (  # noqa: E402,F401
     OgretmenOdemeDersKaydi,
     OgretmenOdemeDonemi,
@@ -2219,6 +2225,13 @@ from takip.konu_destek_models import (  # noqa: E402,F401
     KonuTestOturu,
     KonuVideoIzleme,
     TalebeKonuEksigi,
+)
+
+from takip.ktt_akilli_models import (  # noqa: E402,F401
+    KonuAlias,
+    KonuEslestirmeInceleme,
+    KttEslestirmeEsik,
+    KttEtutMudahale,
 )
 
 from takip.dershane_program_models import (  # noqa: E402,F401

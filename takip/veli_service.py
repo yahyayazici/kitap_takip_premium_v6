@@ -10,6 +10,7 @@ from django.db.models import Avg, Count, QuerySet, Sum
 from django.utils.timezone import localdate
 
 from takip.dini_ders_takip_service import talebe_ilerleme_ozeti
+from takip.dini_ilerleme_service import talebe_alan_analizleri
 from takip.models import (
     AkademikMudahale,
     DiniDersKonu,
@@ -176,6 +177,9 @@ def talebe_veli_ozeti(talebe: Talebe, *, sinav_verisi: bool = False) -> dict:
         ozet["deneme_performans"] = talebe_deneme_performans_ozeti(talebe)
         ozet["yazili_sonuclari"] = _veli_yazili_sonuclari_guvenli(talebe)
         ozet["ogretmen_notlari"] = list(talebe_ogretmen_notlari(talebe, limit=50))
+        from takip.ktt_akilli_service import veli_akademik_gelisim
+
+        ozet["akademik_gelisim"] = veli_akademik_gelisim(talebe)
 
     return ozet
 
@@ -292,6 +296,9 @@ def dini_ders_mufredat_detay(talebe: Talebe) -> dict | None:
         ).values_list("konu_id", flat=True)
     )
 
+    analizler = talebe_alan_analizleri(talebe)
+    analiz_map = {a.alan_id: a for a in analizler}
+
     alanlar = []
     toplam_konu = 0
     tamamlanan_konu = 0
@@ -318,6 +325,25 @@ def dini_ders_mufredat_detay(talebe: Talebe) -> dict | None:
         tamamlanan = sum(1 for k in konu_list if k["tamamlandi"])
         toplam_konu += len(konu_list)
         tamamlanan_konu += tamamlanan
+
+        ozet = analiz_map.get(alan.id)
+        alan_analiz = None
+        if ozet:
+            alan_analiz = {
+                "talebe_yuzde": ozet.talebe_yuzde,
+                "grup_ortalama": ozet.grup_ortalama,
+                "beklenen_yuzde": ozet.beklenen_yuzde,
+                "grup_fark_puan": ozet.grup_fark_puan,
+                "plan_fark_puan": ozet.plan_fark_puan,
+                "durum_etiket": ozet.durum_etiket,
+                "durum_sinif": ozet.durum_sinif,
+                "karsilastirma_metni": ozet.karsilastirma_metni,
+                "durum_aciklama": ozet.durum_aciklama,
+                "son_30_gun": ozet.son_30_gun,
+                "siradaki_konu": ozet.siradaki_konu,
+                "son_hareket": ozet.son_hareket,
+            }
+
         alanlar.append(
             {
                 "id": alan.id,
@@ -326,6 +352,7 @@ def dini_ders_mufredat_detay(talebe: Talebe) -> dict | None:
                 "toplam": len(konu_list),
                 "yuzde": round(100 * tamamlanan / len(konu_list)) if konu_list else 0,
                 "konular": konu_list,
+                "analiz": alan_analiz,
             }
         )
 
@@ -334,6 +361,20 @@ def dini_ders_mufredat_detay(talebe: Talebe) -> dict | None:
         "tamamlanan": tamamlanan_konu,
         "toplam": toplam_konu,
         "alanlar": alanlar,
+        "analizler": [
+            {
+                "alan_id": a.alan_id,
+                "alan_ad": a.alan_ad,
+                "talebe_yuzde": a.talebe_yuzde,
+                "grup_ortalama": a.grup_ortalama,
+                "beklenen_yuzde": a.beklenen_yuzde,
+                "durum_etiket": a.durum_etiket,
+                "durum_sinif": a.durum_sinif,
+                "karsilastirma_metni": a.karsilastirma_metni,
+                "durum_aciklama": a.durum_aciklama,
+            }
+            for a in analizler
+        ],
     }
 
 

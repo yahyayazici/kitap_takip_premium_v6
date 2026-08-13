@@ -50,7 +50,64 @@
         <article class="dd-report-stat"><span>Konu</span><strong>{{ ozet.konu_sayisi }}</strong></article>
         <article class="dd-report-stat"><span>Tamamlanan</span><strong>{{ ozet.tamamlanan }}/{{ ozet.beklenen }}</strong></article>
         <article class="dd-report-stat"><span>İlerleme</span><strong>%{{ ozet.yuzde }}</strong></article>
+        {% if beklenen_genel is not None %}
+        <article class="dd-report-stat"><span>Beklenen (bugün)</span><strong>%{{ beklenen_genel }}</strong></article>
+        {% endif %}
     </div>
+
+    {% if grup_karsilastirma %}
+    <section class="dd-card">
+        <div class="dd-panel-head"><h2>Grup Karşılaştırması</h2></div>
+        <div class="dd-table-wrap">
+            <table class="dd-table">
+                <thead>
+                    <tr>
+                        <th>Grup / Hoca</th>
+                        <th>Sınıf</th>
+                        <th>Talebe</th>
+                        <th>Grup %</th>
+                        <th>Beklenen</th>
+                        <th>Fark</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for g in grup_karsilastirma %}
+                    <tr>
+                        <td><strong>{{ g.hoca }}</strong></td>
+                        <td>{{ g.sinif_etiket }}</td>
+                        <td>{{ g.talebe_sayisi }}</td>
+                        <td>%{{ g.grup_yuzde }}</td>
+                        <td>%{{ g.beklenen_yuzde }}</td>
+                        <td>{% if g.plan_fark > 0 %}+{% endif %}{{ g.plan_fark }} puan</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if grup_ozetleri %}
+    <section class="dd-card">
+        <div class="dd-panel-head"><h2>Grup Sağlığı — {{ alan.ad }}</h2></div>
+        <div class="dd-grup-saglik-grid">
+            {% for g in grup_ozetleri %}
+            <article class="dd-grup-saglik-card">
+                <header>
+                    <strong>{{ g.hoca_ad }}</strong>
+                    <span>%{{ g.grup_yuzde }} · beklenen %{{ g.beklenen_yuzde }}</span>
+                </header>
+                <p class="dd-grup-saglik-fark">{{ g.plan_fark_metni }}</p>
+                <div class="dd-durum-dagilimi">
+                    {% for d in g.durum_listesi %}
+                    <span class="dd-durum-pill dd-durum-pill--{{ d.sinif }}">{{ d.adet }} · {{ d.etiket }}</span>
+                    {% endfor %}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
 
     <section class="dd-card">
         <div class="dd-table-wrap">
@@ -62,6 +119,7 @@
                         <th>Tamamlanan</th>
                         <th>Toplam</th>
                         <th>%</th>
+                        {% if alan %}<th>Beklenen</th><th>Durum</th>{% endif %}
                     </tr>
                 </thead>
                 <tbody>
@@ -72,10 +130,18 @@
                         <td>{{ satir.tamamlanan }}</td>
                         <td>{{ satir.toplam }}</td>
                         <td>%{{ satir.yuzde }}</td>
+                        {% if alan %}
+                        <td>{% if satir.beklenen is not None %}%{{ satir.beklenen }}{% else %}—{% endif %}</td>
+                        <td>
+                            {% if satir.durum_etiket %}
+                            <span class="dd-durum-pill dd-durum-pill--{{ satir.durum_sinif }}">{{ satir.durum_etiket }}</span>
+                            {% else %}—{% endif %}
+                        </td>
+                        {% endif %}
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="5" class="dd-empty">
+                        <td colspan="{% if alan %}7{% else %}5{% endif %}" class="dd-empty">
                             Henüz ilerleme kaydı yok. Önce talebelere dini ders seviyesi atayın,
                             ardından <a href="{% url 'dini_ders_panel' %}">toplu çizelge</a>den konu işaretleyin.
                         </td>

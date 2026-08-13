@@ -56,6 +56,25 @@ class KttSinav(models.Model):
         related_name="olusturdugu_ktt_sinavlari",
         verbose_name="Oluşturan",
     )
+    konu_katalog = models.ForeignKey(
+        "KonuKatalogu",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="ktt_sinavlari",
+        verbose_name="Standart konu",
+    )
+    konu_ham_ad = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name="Ham konu adı",
+        help_text="Etüt hocasının yazdığı orijinal ifade.",
+    )
+    eslestirme_guven = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Konu eşleştirme güveni (%)",
+    )
     olusturulma = models.DateTimeField(auto_now_add=True)
     guncellenme = models.DateTimeField(auto_now=True)
 

@@ -21,6 +21,7 @@ from . import cuma_durum_views
 from . import bildirim_views
 from . import akademik_mudahale_views
 from . import ktt_views
+from . import ktt_akilli_views
 from . import soru_takip_views
 from . import ogretmen_views
 from . import talebe_panel_views
@@ -221,6 +222,18 @@ urlpatterns = [
     path("raporlar/pdf/", views.okuma_raporu_pdf, name="okuma_raporu_pdf"),
 
     path("ktt/", ktt_views.ktt_listesi, name="ktt_listesi"),
+    path("ktt/akilli/", ktt_akilli_views.ktt_akilli_ozet, name="ktt_akilli_ozet"),
+    path("ktt/konu-oneri/", ktt_akilli_views.ktt_konu_oneri, name="ktt_konu_oneri"),
+    path(
+        "ktt/mudahale/<int:eksik_id>/calisildi/",
+        ktt_akilli_views.ktt_mudahale_calisildi,
+        name="ktt_mudahale_calisildi",
+    ),
+    path(
+        "ktt/eslestirme/<int:pk>/onayla/",
+        ktt_akilli_views.ktt_eslestirme_onayla,
+        name="ktt_eslestirme_onayla",
+    ),
     path("ktt/rapor/", ktt_views.ktt_rapor, name="ktt_rapor"),
     path("ktt/rapor/analiz/", ktt_views.ktt_rapor_analiz, name="ktt_rapor_analiz"),
     path("ktt/ekle/", ktt_views.ktt_ekle, name="ktt_ekle"),

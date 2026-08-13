@@ -1,0 +1,41 @@
+{% extends "yonetim/base.html" %}
+{% load static %}
+{% block title %}KTT Akıllı Takip Özeti{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=ktt-akilli1">
+{% endblock %}
+{% block content %}
+<div class="yonetim-page ktt-page">
+    <header class="yonetim-page-head">
+        <div>
+            <p class="kicker">Yönetim</p>
+            <h1>KTT Akıllı Takip — {{ ozet.ay }}</h1>
+        </div>
+    </header>
+
+    <div class="ktt-yonetim-stats">
+        <article><span>Tespit edilen eksik</span><strong>{{ ozet.tespit }}</strong></article>
+        <article><span>Müdahale yapılan</span><strong>{{ ozet.mudahale }}</strong></article>
+        <article><span>Kapanan eksik</span><strong>{{ ozet.kapandi }}</strong></article>
+        <article><span>Bekleyen</span><strong>{{ ozet.bekleyen }}</strong></article>
+        <article><span>Müdahale oranı</span><strong>%{{ ozet.mudahale_orani }}</strong></article>
+        <article><span>Kapanma oranı</span><strong>%{{ ozet.kapanma_orani }}</strong></article>
+    </div>
+
+    {% if eslestirmeler %}
+    <section class="ktt-akilli-panel">
+        <div class="ktt-akilli-panel-head"><h2>İnceleme bekleyen konu eşleştirmeleri ({{ ozet.inceleme_bekleyen }})</h2></div>
+        <div class="ktt-eslestirme-list">
+            {% for e in eslestirmeler %}
+            <article class="ktt-eslestirme-row">
+                <div>
+                    <strong>{{ e.ham_metin }}</strong>
+                    <span>{{ e.sinif_seviyesi }}. sınıf · {{ e.onerilen_konu.konu_ad }} (%{{ e.guven_yuzde }})</span>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

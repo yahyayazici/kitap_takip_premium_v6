@@ -265,19 +265,26 @@ def ktt_eksiklerini_tespit(talebe: Talebe) -> list[TalebeKonuEksigi]:
         brans = ders_adindan_brans(ders_ad)
         if not brans:
             continue
-        konu_ad = sonuc.ktt.ad.strip() or ders_ad or "Genel tekrar"
-        konu = konu_getir_veya_olustur(sinif, brans, konu_ad)
+        if sonuc.ktt.konu_katalog_id:
+            konu = sonuc.ktt.konu_katalog
+        else:
+            konu_ad = sonuc.ktt.ad.strip() or ders_ad or "Genel tekrar"
+            konu = konu_getir_veya_olustur(sinif, brans, konu_ad)
         oncelik = max(10, 100 - int(puan))
-        kayitlar.append(
-            _eksik_kaydet(
-                talebe,
-                konu,
-                TalebeKonuEksigi.Kaynak.KTT,
-                puan,
-                oncelik,
-                sonuc.ktt.sinav_tarihi,
-            )
+        kayit, _ = TalebeKonuEksigi.objects.update_or_create(
+            talebe=talebe,
+            konu=konu,
+            kaynak=TalebeKonuEksigi.Kaynak.KTT,
+            defaults={
+                "skor": puan,
+                "oncelik": oncelik,
+                "tespit_tarihi": sonuc.ktt.sinav_tarihi,
+                "cozuldu": False,
+                "son_ktt_sonuc": sonuc,
+                "mudahale_durumu": "bekliyor",
+            },
         )
+        kayitlar.append(kayit)
     return kayitlar
 
 
@@ -407,6 +414,9 @@ def talebe_konu_destek_listesi(talebe: Talebe) -> list[dict[str, Any]]:
             .order_by("-baslama")
             .first()
         )
+        from takip.ktt_akilli_service import konu_hakimiyeti
+
+        hakimiyet = konu_hakimiyeti(talebe, konu)
 
         sonuc.append(
             {
@@ -417,6 +427,7 @@ def talebe_konu_destek_listesi(talebe: Talebe) -> list[dict[str, Any]]:
                 "son_test": son_test,
                 "test_hazir": True,
                 "kaynak_etiket": eksik.get_kaynak_display(),
+                "hakimiyet": hakimiyet,
             }
         )
     return sonuc

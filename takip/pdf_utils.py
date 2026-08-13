@@ -131,14 +131,14 @@ def _local_pdf_base_url() -> str:
 
 
 def _weasyprint_url_fetcher(url: str, timeout=10, ssl_context=None, **kwargs):
-    """Yalnızca file:// kaynaklarına izin ver — ağ isteği PDF'i kilitlemesin."""
-    if not url.startswith("file:"):
-        raise ValueError(f"PDF ağ erişimi engellendi: {url}")
+    """file:// ve data: kaynaklarına izin ver — http(s) self-fetch engellenir."""
     from weasyprint import default_url_fetcher
 
-    return default_url_fetcher(
-        url, timeout=timeout, ssl_context=ssl_context, **kwargs
-    )
+    if url.startswith("file:") or url.startswith("data:"):
+        return default_url_fetcher(
+            url, timeout=timeout, ssl_context=ssl_context, **kwargs
+        )
+    raise ValueError(f"PDF ağ erişimi engellendi: {url}")
 
 
 def _sanitize_html_for_xhtml2pdf(html_string: str) -> str:

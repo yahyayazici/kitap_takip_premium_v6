@@ -10,6 +10,13 @@ from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.utils.timezone import localdate
 
+from takip.dini_ilerleme_service import (
+    DURUM_ETIKETLERI,
+    alan_ilerleme_ozeti,
+    beklenen_yuzde,
+    gruplar_karsilastirma,
+    grup_saglik_ozeti,
+)
 from takip.dini_ders_takip_service import (
     cizelge_sidebar_ozeti,
     duzenleyebilir,
@@ -215,14 +222,74 @@ def dini_ders_rapor(request):
             konu__in=konu_qs,
             tamamlandi=True,
         ).count()
+        yuzde = round(100 * tamamlanan / toplam) if toplam else 0
+        durum_etiket = ""
+        durum_sinif = ""
+        beklenen = None
+        if alan:
+            ozet = alan_ilerleme_ozeti(talebe, alan)
+            durum_etiket = ozet.durum_etiket
+            durum_sinif = ozet.durum_sinif
+            beklenen = ozet.beklenen_yuzde
         satirlar.append(
             {
                 "talebe": talebe,
                 "tamamlanan": tamamlanan,
                 "toplam": toplam,
-                "yuzde": round(100 * tamamlanan / toplam) if toplam else 0,
+                "yuzde": yuzde,
+                "beklenen": beklenen,
+                "durum_etiket": durum_etiket,
+                "durum_sinif": durum_sinif,
             }
         )
+
+    grup_karsilastirma = []
+    grup_ozetleri = []
+    if seviye:
+        grup_karsilastirma = gruplar_karsilastirma(seviye.id)
+        if alan:
+            hoca_ids = (
+                talebeler.filter(dini_ders_hocasi_id__isnull=False)
+                .values_list("dini_ders_hocasi_id", flat=True)
+                .distinct()
+            )
+            for hoca_id in hoca_ids:
+                saglik = grup_saglik_ozeti(hoca_id, seviye.id)
+                alan_saglik = next(
+                    (a for a in saglik.get("alanlar", []) if a["alan"] == alan.ad),
+                    None,
+                )
+                if alan_saglik:
+                    from takip.models import EtutHocasi
+
+                    hoca = EtutHocasi.objects.filter(pk=hoca_id).first()
+                    durum_listesi = [
+                        {
+                            "kod": kod,
+                            "adet": adet,
+                            "etiket": DURUM_ETIKETLERI.get(kod, (kod, "muted"))[0],
+                            "sinif": DURUM_ETIKETLERI.get(kod, (kod, "muted"))[1],
+                        }
+                        for kod, adet in alan_saglik.get("durum_dagilimi", {}).items()
+                    ]
+                    fark = alan_saglik.get("plan_fark", 0)
+                    if fark > 0:
+                        fark_metni = f"{fark} puan önde"
+                    elif fark < 0:
+                        fark_metni = f"{abs(fark)} puan geride"
+                    else:
+                        fark_metni = "Plana uygun"
+                    grup_ozetleri.append(
+                        {
+                            "hoca_id": hoca_id,
+                            "hoca_ad": hoca.ad_soyad if hoca else "—",
+                            "durum_listesi": durum_listesi,
+                            "plan_fark_metni": fark_metni,
+                            **alan_saglik,
+                        }
+                    )
+
+    beklenen_genel = beklenen_yuzde(seviye, alan) if seviye and alan else None
 
     return render(
         request,
@@ -234,6 +301,10 @@ def dini_ders_rapor(request):
             "alan": alan,
             "ozet": ozet,
             "satirlar": satirlar,
+            "grup_karsilastirma": grup_karsilastirma,
+            "grup_ozetleri": grup_ozetleri,
+            "beklenen_genel": beklenen_genel,
+            "durum_etiketleri": DURUM_ETIKETLERI,
         },
     )
 

@@ -17,9 +17,40 @@
                 </button>
                 {% endif %}
                 <a href="{% url 'ktt_rapor' %}" class="ktt-outline-btn green ghost-btn">Rapor &amp; Analiz</a>
+                <a href="{% url 'ktt_akilli_ozet' %}" class="ktt-outline-btn ghost-btn">Akıllı Takip</a>
             </div>
         </div>
     </header>
+
+    {% if akilli_ozet %}
+    <section class="ktt-akilli-strip">
+        <div class="ktt-akilli-strip-head">
+            <h2>Bugün dikkat gerektirenler</h2>
+            <a href="{% url 'ktt_akilli_ozet' %}" class="ktt-text-link">Tümünü gör →</a>
+        </div>
+        {% if akilli_ozet.dikkat %}
+        <div class="ktt-akilli-cards">
+            {% for satir in akilli_ozet.dikkat %}
+            <article class="ktt-akilli-card ktt-akilli-card--{{ satir.oncelik_sinif }}">
+                <strong>{{ satir.talebe.ad_soyad }}</strong>
+                <span>{{ satir.konu.brans_etiket }} — {{ satir.konu.konu_ad }}</span>
+                <small>%{{ satir.konu.ortalama_puan }} · {{ satir.oneri }}</small>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="ktt-akilli-empty">Şu an acil müdahale gerektiren konu bulunmuyor.</p>
+        {% endif %}
+        {% if akilli_ozet.ortak %}
+        <div class="ktt-grup-eksik">
+            <span class="label">Grup ortak eksik</span>
+            {% for g in akilli_ozet.ortak %}
+            <span class="ktt-grup-eksik-chip">{{ g.brans_etiket }} · {{ g.konu_ad }} ({{ g.eksik_sayisi }}/{{ g.talebe_sayisi }})</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </section>
+    {% endif %}
 
     <section class="ktt-table-card ktt-list-only">
         <h2>Mevcut Konu Tarama Testleri</h2>

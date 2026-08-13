@@ -92,6 +92,9 @@ def _ktt_olustur_kaydet(request, form, sinif_etiketleri):
 
     ktt.olusturan = request.user
     ktt.save()
+    from takip.ktt_konu_normalize_service import ktt_konu_eslestir
+
+    ktt_konu_eslestir(ktt, kullanici=request.user)
     return ktt, None
 
 
@@ -131,6 +134,15 @@ def ktt_listesi(request):
 
     sinif_secenekleri = ktt_sinif_secenekleri(request.user)
 
+    akilli_ozet = None
+    if hoca:
+        from takip.ktt_akilli_service import etut_bugun_dikkat, grup_ortak_eksikler
+
+        akilli_ozet = {
+            "dikkat": etut_bugun_dikkat(hoca, limit=5),
+            "ortak": grup_ortak_eksikler(hoca)[:3],
+        }
+
     return render(
         request,
         "ktt_listesi.html",
@@ -140,6 +152,7 @@ def ktt_listesi(request):
             "sinif_secenekleri": sinif_secenekleri,
             "olusturabilir": olusturabilir,
             "silme_yetkisi": can(request.user, "ktt", "delete"),
+            "akilli_ozet": akilli_ozet,
         },
     )
 
@@ -180,6 +193,9 @@ def ktt_duzenle(request, pk):
 
     if form.is_valid():
         form.save()
+        from takip.ktt_konu_normalize_service import ktt_konu_eslestir
+
+        ktt_konu_eslestir(ktt, kullanici=request.user)
         messages.success(request, "KTT güncellendi.")
         return redirect("ktt_detay", pk=ktt.pk)
 
@@ -291,6 +307,10 @@ def ktt_sonuc_gir(request, pk):
                         "kaydeden": request.user,
                     },
                 )
+                sonuc = KttSonucu.objects.get(ktt=ktt, talebe=talebe)
+                from takip.ktt_akilli_service import ktt_sonuc_sonrasi_isle
+
+                ktt_sonuc_sonrasi_isle(sonuc)
                 ktt_sonucu_soru_takibe_yansit(
                     user=request.user,
                     ktt=ktt,

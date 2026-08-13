@@ -8,8 +8,8 @@
     <section class="dash-panel">
         <div class="dash-panel-head">
             <div>
-                <p class="dash-eyebrow">Genel ilerleme</p>
-                <h2>Dini ders müfredat durumu</h2>
+                <p class="dash-eyebrow">Dinî eğitim gelişimi</p>
+                <h2>Genel müfredat durumu</h2>
             </div>
         </div>
         <div class="veli-dini-summary">
@@ -28,6 +28,49 @@
             </div>
         </div>
     </section>
+
+    {% for alan in mufredat.alanlar %}
+    {% if alan.analiz %}
+    <section class="dash-panel veli-dini-analiz veli-dini-analiz--{{ alan.analiz.durum_sinif }}">
+        <div class="dash-panel-head">
+            <div>
+                <p class="dash-eyebrow">{{ alan.ad }}</p>
+                <h2>%{{ alan.analiz.talebe_yuzde }} tamamlandı</h2>
+                <p class="og-empty-note og-empty-note-tight">{{ alan.tamamlanan }} / {{ alan.toplam }} tamamlandı</p>
+            </div>
+            <span class="veli-dini-durum veli-dini-durum--{{ alan.analiz.durum_sinif }}">{{ alan.analiz.durum_etiket }}</span>
+        </div>
+        <div class="veli-dini-analiz-grid">
+            <div class="veli-dini-stat">
+                <span class="label">Grup ortalaması</span>
+                <strong>%{{ alan.analiz.grup_ortalama }}</strong>
+            </div>
+            <div class="veli-dini-stat">
+                <span class="label">Beklenen ilerleme</span>
+                <strong>%{{ alan.analiz.beklenen_yuzde }}</strong>
+            </div>
+            <div class="veli-dini-stat veli-dini-stat--wide">
+                <span class="label">Karşılaştırma</span>
+                <strong>{{ alan.analiz.karsilastirma_metni }}</strong>
+            </div>
+        </div>
+        <p class="veli-dini-aciklama">{{ alan.analiz.durum_aciklama }}</p>
+        {% if alan.analiz.son_30_gun.yeni_tamamlanan %}
+        <p class="veli-dini-hiz">Son {{ alan.analiz.son_30_gun.gun }} gün: {{ alan.analiz.son_30_gun.yeni_tamamlanan }} yeni konu · %{{ alan.analiz.son_30_gun.ilerleme_puan }} ilerleme{% if alan.analiz.son_30_gun.artis %} · hızlandı{% endif %}</p>
+        {% endif %}
+        {% if alan.analiz.siradaki_konu or alan.analiz.son_hareket %}
+        <div class="veli-dini-detay-mini">
+            {% if alan.analiz.siradaki_konu %}
+            <div><span class="label">Sıradaki</span><strong>{{ alan.analiz.siradaki_konu }}</strong></div>
+            {% endif %}
+            {% if alan.analiz.son_hareket %}
+            <div><span class="label">Son hareket</span><strong>{{ alan.analiz.son_hareket.konu_ad }} — {{ alan.analiz.son_hareket.zaman }}</strong></div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </section>
+    {% endif %}
+    {% endfor %}
 
     <section class="dash-panel">
         <div class="dash-panel-head">

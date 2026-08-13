@@ -518,6 +518,13 @@ class DiniDersTakipAlaniForm(StyledModelForm):
 
 
 class DiniDersKonuForm(StyledModelForm):
+    hedef_tarih = forms.DateField(
+        required=False,
+        label="Hedef tarih",
+        help_text="İsteğe bağlı: bu konunun tamamlanması beklenen tarih.",
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+
     class Meta:
         from takip.models import DiniDersKonu
 
@@ -534,6 +541,57 @@ class DiniDersKonuForm(StyledModelForm):
         self.fields["seviye"].queryset = DiniDersSeviyesi.objects.filter(
             aktif=True
         ).order_by("sira", "ad")
+        if self.instance and self.instance.pk:
+            kayit = getattr(self.instance, "hedef_tarihi_kaydi", None)
+            if kayit:
+                self.fields["hedef_tarih"].initial = kayit.hedef_tarih
+
+
+class DiniAlanPlaniForm(StyledModelForm):
+    class Meta:
+        from takip.models import DiniAlanPlani
+
+        model = DiniAlanPlani
+        fields = [
+            "egitim_yili",
+            "seviye",
+            "alan",
+            "birinci_donem_hedef",
+            "yil_sonu_hedef",
+            "aktif",
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from takip.models import DiniDersSeviyesi, DiniDersTakipAlani, EgitimYili
+
+        self.fields["egitim_yili"].queryset = EgitimYili.objects.order_by("-baslangic")
+        self.fields["seviye"].queryset = DiniDersSeviyesi.objects.filter(
+            aktif=True
+        ).order_by("sira", "ad")
+        self.fields["alan"].queryset = DiniDersTakipAlani.objects.filter(
+            aktif=True
+        ).order_by("sira", "ad")
+
+
+class DiniIlerlemeEsikForm(StyledModelForm):
+    class Meta:
+        from takip.models import DiniIlerlemeEsik
+
+        model = DiniIlerlemeEsik
+        fields = [
+            "egitim_yili",
+            "plan_onunde_puan",
+            "geride_puan",
+            "grupla_uyumlu_puan",
+            "hiz_artis_esik_puan",
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from takip.models import EgitimYili
+
+        self.fields["egitim_yili"].queryset = EgitimYili.objects.order_by("-baslangic")
 
 
 class VeliHesapForm(forms.Form):

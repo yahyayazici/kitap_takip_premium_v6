@@ -175,6 +175,37 @@ class TalebeKonuEksigi(models.Model):
     oncelik = models.PositiveSmallIntegerField(default=50, verbose_name="Öncelik")
     tespit_tarihi = models.DateField(verbose_name="Tespit tarihi")
     cozuldu = models.BooleanField(default=False, verbose_name="Tamamlandı")
+    mudahale_durumu = models.CharField(
+        max_length=20,
+        choices=[
+            ("bekliyor", "Müdahale bekliyor"),
+            ("calisildi", "Etüt çalışması yapıldı"),
+            ("kapandi", "Eksik kapandı"),
+            ("takip", "Takip ediliyor"),
+        ],
+        default="bekliyor",
+        verbose_name="Müdahale durumu",
+    )
+    son_ktt_sonuc = models.ForeignKey(
+        "KttSonucu",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="tespit_ettigi_eksikler",
+        verbose_name="Son tetikleyen KTT sonucu",
+    )
+    kapanma_skor = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="Kapanma skoru",
+    )
+    gelisim_puan = models.SmallIntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Gelişim puanı",
+    )
     notlar = models.TextField(blank=True, verbose_name="Not")
     olusturulma = models.DateTimeField(auto_now_add=True)
 

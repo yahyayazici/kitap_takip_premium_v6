@@ -8,6 +8,7 @@ from . import yazili_takip_yonetim_views
 from . import dini_ders_takip_yonetim_views
 from . import akademik_mudahale_yonetim_views
 from . import ktt_yonetim_views
+from . import ktt_akilli_views
 from . import yonetim_rbac_views
 from . import yonetim_views
 from . import ogretmen_odeme_yonetim_views
@@ -573,6 +574,11 @@ urlpatterns = [
         ktt_yonetim_views.ktt_listesi,
         name="ktt_listesi",
     ),
+    path(
+        "ktt/akilli-ozet/",
+        ktt_akilli_views.yonetim_ktt_akilli_ozet,
+        name="yonetim_ktt_akilli_ozet",
+    ),
 
     path(
         "mudahale-turleri/",
@@ -685,6 +691,21 @@ urlpatterns = [
         "dini-ders/konular/<int:pk>/duzenle/",
         dini_ders_takip_yonetim_views.dini_ders_konu_duzenle,
         name="dini_ders_konu_duzenle",
+    ),
+    path(
+        "dini-ders/ilerleme-planlari/",
+        dini_ders_takip_yonetim_views.dini_ders_plani_listesi,
+        name="dini_ders_plani_listesi",
+    ),
+    path(
+        "dini-ders/ilerleme-planlari/ekle/",
+        dini_ders_takip_yonetim_views.dini_ders_plani_ekle,
+        name="dini_ders_plani_ekle",
+    ),
+    path(
+        "dini-ders/ilerleme-planlari/<int:pk>/duzenle/",
+        dini_ders_takip_yonetim_views.dini_ders_plani_duzenle,
+        name="dini_ders_plani_duzenle",
     ),
 
     path(

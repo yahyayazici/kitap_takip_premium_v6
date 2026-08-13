@@ -1,0 +1,85 @@
+{% extends "yonetim/base.html" %}
+{% load static %}
+{% block title %}İlerleme Planları{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}">
+{% endblock %}
+{% block content %}
+<div class="yonetim-page dd-yonetim-page">
+    {% include "includes/dini_ders_yonetim_shell.html" %}
+
+    {% if yil %}
+    <section class="dd-card">
+        <div class="dd-panel-head">
+            <div>
+                <h2>{{ yil.ad }} — Yıllık Hedefler</h2>
+                <p class="dd-help-link" style="margin:0.35rem 0 0">1. dönem ve yıl sonu konu hedeflerini girin; beklenen ilerleme otomatik hesaplanır.</p>
+            </div>
+        </div>
+        <form method="get" class="dd-filter-grid" style="margin-bottom:1rem">
+            <div class="dd-field">
+                <label for="plan-seviye">Seviye</label>
+                <select id="plan-seviye" name="seviye" onchange="this.form.submit()">
+                    {% for s in seviyeler %}
+                    <option value="{{ s.id }}" {% if seviye and seviye.id == s.id %}selected{% endif %}>{{ s.ad }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+        <div class="dd-table-wrap">
+            <table class="dd-table">
+                <thead>
+                    <tr>
+                        <th>Alan</th>
+                        <th>Müfredat</th>
+                        <th>1. Dönem Hedef</th>
+                        <th>Yıl Sonu Hedef</th>
+                        <th>İşlem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for satir in planlar %}
+                    <tr>
+                        <td><strong>{{ satir.alan.ad }}</strong></td>
+                        <td>{{ satir.konu_sayisi }} konu</td>
+                        <td>{% if satir.d1_hedef %}{{ satir.d1_hedef }}{% else %}<span class="dd-muted">—</span>{% endif %}</td>
+                        <td>{{ satir.yil_hedef }}</td>
+                        <td>
+                            {% if duzenleyebilir %}
+                            {% if satir.plan %}
+                            <a href="{% url 'yonetim:dini_ders_plani_duzenle' satir.plan.pk %}" class="dd-btn dd-btn-sm">Düzenle</a>
+                            {% else %}
+                            <a href="{% url 'yonetim:dini_ders_plani_ekle' %}?seviye={{ seviye.id }}&alan={{ satir.alan.id }}" class="dd-btn dd-btn-sm dd-btn-primary">Plan Ekle</a>
+                            {% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="dd-empty">Bu seviye için müfredat tanımlı değil.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    {% if duzenleyebilir %}
+    <section class="dd-card">
+        <div class="dd-panel-head"><h2>Durum Motoru Eşikleri</h2></div>
+        <p class="dd-help-link" style="margin:0 0 1rem">Planın önünde / geride / grupla uyumlu kararları için puan eşikleri.</p>
+        <form method="post" class="yonetim-form">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="esik">
+            {{ esik_form.as_p }}
+            <div class="dd-form-actions">
+                <button type="submit" class="dd-btn dd-btn-primary">Eşikleri Kaydet</button>
+            </div>
+        </form>
+    </section>
+    {% endif %}
+    {% else %}
+    <section class="dd-card">
+        <p class="dd-empty">Aktif eğitim yılı bulunamadı. Önce eğitim yılı tanımlayın.</p>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

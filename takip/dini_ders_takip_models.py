@@ -77,6 +77,11 @@ class DiniDersKonuKaydi(models.Model):
         related_name="dini_ders_isaretleri",
         verbose_name="İşaretleyen",
     )
+    tamamlanma_tarihi = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Tamamlanma tarihi",
+    )
     guncellenme = models.DateTimeField(auto_now=True)
 
     class Meta:

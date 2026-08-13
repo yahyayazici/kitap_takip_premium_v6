@@ -371,6 +371,131 @@
     font-weight: 600;
 }
 
+/* Dinî eğitim ilerleme analizi */
+.veli-dini-analiz {
+    border-left: 4px solid var(--cs-border, #e2e8f0);
+}
+
+.veli-dini-analiz--success {
+    border-left-color: var(--cs-success, #10b981);
+}
+
+.veli-dini-analiz--info {
+    border-left-color: var(--cs-accent, #0071e3);
+}
+
+.veli-dini-analiz--warn {
+    border-left-color: var(--cs-warning, #f59e0b);
+}
+
+.veli-dini-analiz--danger {
+    border-left-color: var(--cs-danger, #ef4444);
+}
+
+.veli-dini-analiz--muted {
+    border-left-color: var(--cs-border, #cbd5e1);
+}
+
+.veli-dini-durum {
+    align-self: flex-start;
+    padding: 6px 12px;
+    border-radius: var(--cs-radius-pill, 999px);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.veli-dini-durum--success {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.veli-dini-durum--info {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.veli-dini-durum--warn {
+    background: #fffbeb;
+    color: #b45309;
+}
+
+.veli-dini-durum--danger {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.veli-dini-durum--muted {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.veli-dini-analiz-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin: 16px 0 12px;
+}
+
+.veli-dini-stat {
+    padding: 12px 14px;
+    background: var(--cs-surface-muted, #f8fafc);
+    border-radius: var(--cs-radius-sm, 12px);
+    min-width: 0;
+}
+
+.veli-dini-stat--wide {
+    grid-column: 1 / -1;
+}
+
+.veli-dini-stat .label {
+    display: block;
+    font-size: 11px;
+    color: var(--cs-text-muted, #64748b);
+    margin-bottom: 4px;
+}
+
+.veli-dini-stat strong {
+    display: block;
+    font-size: 15px;
+    color: var(--cs-text-primary, #0f172a);
+    word-break: break-word;
+}
+
+.veli-dini-aciklama {
+    margin: 0 0 8px;
+    font-size: 14px;
+    color: var(--cs-text-secondary, #475569);
+    line-height: 1.5;
+}
+
+.veli-dini-hiz {
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: var(--cs-text-muted, #64748b);
+}
+
+.veli-dini-detay-mini {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.veli-dini-detay-mini .label {
+    display: block;
+    font-size: 11px;
+    color: var(--cs-text-muted, #64748b);
+    margin-bottom: 2px;
+}
+
+.veli-dini-detay-mini strong {
+    font-size: 14px;
+    color: var(--cs-text-primary, #0f172a);
+    word-break: break-word;
+}
+
 @media (max-width: 900px) {
     .veli-two-col {
         grid-template-columns: 1fr;
@@ -387,7 +512,87 @@
     .veli-konu-grid {
         grid-template-columns: 1fr;
     }
+
+    .veli-dini-analiz-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .veli-dini-stat--wide {
+        grid-column: auto;
+    }
+
+    .veli-dini-detay-mini {
+        grid-template-columns: 1fr;
+    }
+
+    .veli-dini-durum {
+        margin-top: 8px;
+    }
 }
+
+.veli-akademik-panel {
+    display: grid;
+    gap: 12px;
+}
+
+.veli-akademik-ders {
+    padding: 14px 16px;
+    border-radius: var(--cs-radius-md, 12px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-left-width: 4px;
+}
+
+.veli-akademik-ders--success { border-left-color: #10b981; }
+.veli-akademik-ders--info { border-left-color: #0071e3; }
+.veli-akademik-ders--warn { border-left-color: #f59e0b; }
+.veli-akademik-ders--danger { border-left-color: #ef4444; }
+
+.veli-akademik-ders header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.veli-akademik-ders h3 { margin: 0; font-size: 16px; }
+
+.veli-akademik-durum {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+
+.veli-akademik-durum--success { background: #ecfdf5; color: #047857; }
+.veli-akademik-durum--warn { background: #fffbeb; color: #b45309; }
+
+.veli-akademik-trend,
+.veli-akademik-grup,
+.veli-akademik-mudahale {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: #475569;
+}
+
+.veli-akademik-list { margin-bottom: 8px; }
+.veli-akademik-list .label {
+    display: block;
+    font-size: 11px;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+
+.veli-akademik-chip {
+    display: inline-flex;
+    margin: 0 6px 6px 0;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+}
+
+.veli-akademik-chip--success { background: #ecfdf5; color: #047857; }
+.veli-akademik-chip--warn { background: #fffbeb; color: #b45309; }
 
 /* Premium veli KPI + menü — öğretmen paneli diline hizalı renkli kutular */
 .veli-kpi-grid {
