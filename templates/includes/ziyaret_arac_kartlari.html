@@ -14,6 +14,9 @@
         <div class="za-arac-kart-actions">
             <a href="{% url 'ziyaret_arac_pdf_arac' plan.pk kart.arac.id %}" class="za-kart-action-btn" target="_blank" rel="noopener">PDF</a>
             <button type="button" class="za-kart-action-btn" data-za-arac-duzenle data-id="{{ kart.arac.id }}" data-ad="{{ kart.arac.surucu_ad }}" data-kapasite="{{ kart.arac.kapasite }}" title="Düzenle" aria-label="Düzenle">Düzenle</button>
+            {% if arac_sil_yetkisi %}
+            <button type="button" class="za-kart-action-btn za-kart-action-btn--danger" data-za-arac-sil data-id="{{ kart.arac.id }}" data-ad="{{ kart.arac.surucu_ad }}" title="Aracı sil" aria-label="Aracı sil">Sil</button>
+            {% endif %}
         </div>
     </header>
     <div class="za-arac-body" data-arac-body>

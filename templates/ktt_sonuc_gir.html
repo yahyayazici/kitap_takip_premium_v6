@@ -25,6 +25,10 @@
         </div>
     </header>
 
+    {% if veli_paylasim_hazir and paylas_yetkisi %}
+    {% include "includes/iletisim_paylas_hazir.html" with modul=paylas_modul kaynak_id=paylas_kaynak_id paylas_baslik=paylas_baslik %}
+    {% endif %}
+
     {% if katilmayan_sayisi %}
     <section class="result-card ktt-katilmayan-bar" id="kttKatilmayanBar">
         <div class="ktt-katilmayan-bar-text">

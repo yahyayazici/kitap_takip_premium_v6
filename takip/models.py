@@ -2268,3 +2268,11 @@ from takip.ziyaret_arac_models import (  # noqa: E402,F401
     ZiyaretPlaniTalebe,
     ZiyaretProgramAdimi,
 )
+
+from takip.iletisim_models import (  # noqa: E402,F401
+    IletisimEki,
+    IletisimKurumAyar,
+    IletisimOlay,
+    IletisimPaketi,
+    IletisimSablon,
+)

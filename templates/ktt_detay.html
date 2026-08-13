@@ -20,6 +20,9 @@
             {% url 'ktt_detay_pdf' ktt.pk as ktt_pdf_href %}
             {% include "includes/pdf_sayfa_secici.html" with pdf_href=ktt_pdf_href pdf_sayfa=pdf_sayfa pdf_btn_class="result-secondary-button" pdf_btn_label="PDF İndir" %}
             {% endif %}
+            {% if veli_paylasim_hazir and paylas_yetkisi %}
+            <a href="{% url 'iletisim_hazirla' 'ktt' ktt.pk %}" class="primary-btn">Paylaş</a>
+            {% endif %}
             <a href="{% url 'ktt_excel_indir' ktt.pk %}" class="result-secondary-button">Excel</a>
             {% if duzenleyebilir %}
             <a href="{% url 'ktt_duzenle' ktt.pk %}" class="ghost-btn">Düzenle</a>
@@ -27,6 +30,10 @@
             <a href="{% url 'ktt_listesi' %}" class="result-back-button">Listeye Dön</a>
         </div>
     </header>
+
+    {% if veli_paylasim_hazir and paylas_yetkisi %}
+    {% include "includes/iletisim_paylas_hazir.html" with modul=paylas_modul kaynak_id=paylas_kaynak_id paylas_baslik=paylas_baslik %}
+    {% endif %}
 
     <section class="result-card">
         <div class="responsive-table">

@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}İletişim Merkezi · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/iletisim-merkezi-premium.css' %}?v=im3">
+{% endblock %}
+{% block content %}
+<div class="im-page">
+    <header class="page-head patterned-page-head im-head">
+        <div class="im-head-main">
+            <p class="im-kicker">Veli Paylaşım Altyapısı</p>
+            <h1>İletişim Merkezi</h1>
+            <p class="im-desc">Paylaşıma hazır içerikler, taslaklar ve paylaşım geçmişi — tek operasyon ekranı.</p>
+        </div>
+        <div class="im-head-actions">
+            <a href="{% url 'iletisim_yeni_mesaj' %}" class="primary-btn">+ Yeni Mesaj</a>
+            {% if sablon_yonetimi %}
+            <a href="{% url 'yonetim:iletisim_sablon_listesi' %}" class="ghost-btn">Mesaj Şablonları</a>
+            {% endif %}
+        </div>
+    </header>
+
+    <form method="get" class="im-search">
+        <input type="search" name="q" value="{{ arama }}" placeholder="KTT, sınıf, talebe ara…" aria-label="Ara">
+        <button type="submit" class="ghost-btn">Ara</button>
+    </form>
+
+    <div class="im-grid">
+        <section class="im-card im-card--wide">
+            <div class="im-card-head">
+                <h2>Paylaşılmaya Hazır</h2>
+                <span class="im-badge">{{ hazir_paketler|length }}</span>
+            </div>
+            {% if kuyruk %}
+            <div class="im-queue">
+                {% for item in kuyruk %}
+                <article class="im-queue-item">
+                    <div>
+                        <p class="im-queue-modul">{{ item.modul_label }}</p>
+                        <h3>{{ item.baslik }}</h3>
+                        <p class="im-muted">{{ item.alt }}</p>
+                    </div>
+                    <a href="{% url 'iletisim_hazirla' item.modul item.kaynak_id %}" class="primary-btn im-btn-sm">Paylaşmaya Hazırla</a>
+                </article>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% if hazir_paketler %}
+            <div class="im-list">
+                {% for paket in hazir_paketler %}
+                <a href="{% url 'iletisim_paket_onizleme' paket.pk %}" class="im-list-row">
+                    <div>
+                        <strong>{{ paket.baslik }}</strong>
+                        <span class="im-muted">{{ paket.hedef_etiket }} · {{ paket.get_kaynak_modul_display }}</span>
+                    </div>
+                    <span class="im-status im-status--ready">{{ paket.get_durum_display }}</span>
+                </a>
+                {% endfor %}
+            </div>
+            {% elif not kuyruk %}
+            <p class="im-empty">Şu an paylaşıma hazır içerik yok.</p>
+            {% endif %}
+        </section>
+
+        <section class="im-card">
+            <div class="im-card-head"><h2>Taslaklar</h2></div>
+            {% if taslak_paketler %}
+            <div class="im-list">
+                {% for paket in taslak_paketler %}
+                <a href="{% url 'iletisim_paket_onizleme' paket.pk %}" class="im-list-row">
+                    <strong>{{ paket.baslik }}</strong>
+                    <span class="im-muted">{{ paket.guncellenme|date:"d.m.Y H:i" }}</span>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="im-empty">Taslak yok.</p>
+            {% endif %}
+        </section>
+
+        <section class="im-card im-card--wide">
+            <div class="im-card-head"><h2>Paylaşım Geçmişi</h2></div>
+            <p class="im-note">Sistem yalnızca doğrulayabildiği olayları kaydeder; WhatsApp’ta gerçekten gönderildi bilgisi kaydedilmez.</p>
+            {% if gecmis_olaylar %}
+            <div class="im-timeline">
+                {% for olay in gecmis_olaylar %}
+                <div class="im-timeline-row">
+                    <time>{{ olay.olusturulma|date:"d.m.Y H:i" }}</time>
+                    <div>
+                        <strong>{{ olay.paket.baslik }}</strong>
+                        <span>{{ olay.get_olay_tur_display }}{% if olay.kullanici %} · {{ olay.kullanici.get_username }}{% endif %}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="im-empty">Henüz kayıt yok.</p>
+            {% endif %}
+        </section>
+    </div>
+</div>
+{% endblock %}

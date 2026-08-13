@@ -20,6 +20,7 @@ from . import sinav_basvuru_mesaj_yonetim_views
 from . import yonetim_hizli_kayit_views
 from . import idareci_views
 from . import personel_toplanti_views
+from . import iletisim_yonetim_views
 
 app_name = "yonetim"
 
@@ -333,6 +334,26 @@ urlpatterns = [
         "duyurular/<int:pk>/sil/",
         yonetim_views.duyuru_sil,
         name="duyuru_sil",
+    ),
+    path(
+        "iletisim/sablonlar/",
+        iletisim_yonetim_views.iletisim_sablon_listesi,
+        name="iletisim_sablon_listesi",
+    ),
+    path(
+        "iletisim/sablonlar/ekle/",
+        iletisim_yonetim_views.iletisim_sablon_ekle,
+        name="iletisim_sablon_ekle",
+    ),
+    path(
+        "iletisim/sablonlar/<int:pk>/duzenle/",
+        iletisim_yonetim_views.iletisim_sablon_duzenle,
+        name="iletisim_sablon_duzenle",
+    ),
+    path(
+        "iletisim/kurum-ayar/",
+        iletisim_yonetim_views.iletisim_kurum_ayar_kaydet,
+        name="iletisim_kurum_ayar_kaydet",
     ),
     path(
         "sohbet-mevzuu/",

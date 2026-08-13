@@ -36,6 +36,7 @@ from takip.ktt_service import (
     yetkili_ktt_sonuclari,
 )
 from takip.ktt_analiz_service import ktt_analiz_durumu, ktt_rapor_analizi, ktt_sinav_grup_analizi
+from takip.iletisim_adapters import ktt_konu_metni, ktt_paylasim_hazir_mi
 from takip.models import Ders, KttSinav, KttSonucu, Talebe
 from takip.pdf_utils import (
     coz_pdf_sayfa,
@@ -232,6 +233,11 @@ def ktt_detay(request, pk):
             "sonuc_girebilir": can(request.user, "ktt", "edit"),
             "pdf_yetkisi": can(request.user, "ktt", "export_pdf"),
             "pdf_sayfa": coz_pdf_sayfa(request),
+            "paylas_yetkisi": can(request.user, "iletisim_merkezi", "share"),
+            "veli_paylasim_hazir": ktt_paylasim_hazir_mi(ktt),
+            "paylas_baslik": f"{ktt.ders.ad} · {ktt_konu_metni(ktt)}",
+            "paylas_modul": "ktt",
+            "paylas_kaynak_id": ktt.pk,
         },
     )
 
@@ -371,6 +377,11 @@ def ktt_sonuc_gir(request, pk):
             "toplam_soru": toplam_soru,
             "katilmayan_sayisi": katilmayan_sayisi,
             "pdf_yetkisi": can(request.user, "ktt", "export_pdf"),
+            "paylas_yetkisi": can(request.user, "iletisim_merkezi", "share"),
+            "veli_paylasim_hazir": ktt_paylasim_hazir_mi(ktt),
+            "paylas_baslik": f"{ktt.ad} · {ktt.ders.ad} · {ktt_konu_metni(ktt)}",
+            "paylas_modul": "ktt",
+            "paylas_kaynak_id": ktt.pk,
         },
     )
 

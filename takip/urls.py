@@ -464,6 +464,7 @@ urlpatterns = [
     ),
 
     path("ziyaret-arac/", include("takip.ziyaret_arac_urls")),
+    path("iletisim/", include("takip.iletisim_urls")),
 
     path(
         "ogretmen-odeme/",

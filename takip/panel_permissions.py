@@ -396,6 +396,20 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         nav_group="İletişim",
     ),
     PanelNavItem(
+        key="iletisim_merkezi",
+        label="İletişim Merkezi",
+        url_name="iletisim_merkezi",
+        roller=EGITIM_MODULU_ROLLER,
+        active_names=(
+            "iletisim_merkezi",
+            "iletisim_yeni_mesaj",
+            "iletisim_hazirla",
+            "iletisim_paket_onizleme",
+            "iletisim_ek_indir",
+        ),
+        nav_group="İletişim",
+    ),
+    PanelNavItem(
         key="veli_iletisim",
         label="Veli & Talebe İletişim",
         url_name="iletisim_listesi",
@@ -733,6 +747,13 @@ def rehberlik_modulu_erisimi_var(user: User) -> bool:
     return modul_erisimi_var(user, "rehberlik")
 
 
+def iletisim_merkezi_modulu_erisimi_var(user: User) -> bool:
+    if not PANEL_MODULES.get("iletisim_merkezi", {}).get("enabled", False):
+        return False
+
+    return modul_erisimi_var(user, "iletisim_merkezi")
+
+
 def veli_iletisim_modulu_erisimi_var(user: User) -> bool:
     if not PANEL_MODULES.get("veli_iletisim", {}).get("enabled", False):
         return False
@@ -819,6 +840,8 @@ def panel_nav_items(user: User) -> list[PanelNavItem]:
         if item.key == "aidat" and not aidat_modulu_erisimi_var(user):
             continue
         if item.key == "rehberlik" and not rehberlik_modulu_erisimi_var(user):
+            continue
+        if item.key == "iletisim_merkezi" and not iletisim_merkezi_modulu_erisimi_var(user):
             continue
         if item.key == "veli_iletisim" and not veli_iletisim_modulu_erisimi_var(user):
             continue

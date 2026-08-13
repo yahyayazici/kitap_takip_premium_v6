@@ -90,6 +90,7 @@
         var grid = qs("[data-za-arac-grid]", root);
         if (!grid || !kartlar) return;
         var planId = root.getAttribute("data-plan-id");
+        var silYetki = root.getAttribute("data-arac-sil-yetki") === "1";
         grid.innerHTML = kartlar
             .map(function (k) {
                 var etutHtml = (k.etut_hocalari || [])
@@ -147,7 +148,15 @@
                     escapeHtml(k.surucu_ad) +
                     '" data-kapasite="' +
                     k.kapasite +
-                    '" title="Düzenle" aria-label="Düzenle">Düzenle</button></div></header><div class="za-arac-body" data-arac-body>' +
+                    '" title="Düzenle" aria-label="Düzenle">Düzenle</button>' +
+                    (silYetki
+                        ? '<button type="button" class="za-kart-action-btn za-kart-action-btn--danger" data-za-arac-sil data-id="' +
+                          k.id +
+                          '" data-ad="' +
+                          escapeHtml(k.surucu_ad) +
+                          '" title="Aracı sil" aria-label="Aracı sil">Sil</button>'
+                        : "") +
+                    "</div></header><div class=\"za-arac-body\" data-arac-body>" +
                     etutHtml +
                     talebeHtml +
                     "</div></article>"
@@ -342,6 +351,30 @@
         });
     }
 
+    function bindAracSil(root) {
+        root.addEventListener("click", function (e) {
+            var btn = e.target.closest("[data-za-arac-sil]");
+            if (!btn) return;
+            e.preventDefault();
+            var aracId = btn.getAttribute("data-id");
+            var ad = btn.getAttribute("data-ad") || "Bu araç";
+            if (!confirm(ad + " aracını silmek istiyor musunuz?\nAraçtaki talebeler atanmamış listesine döner.")) {
+                return;
+            }
+            postForm(
+                "/ziyaret-arac/" +
+                    root.getAttribute("data-plan-id") +
+                    "/api/arac/" +
+                    aracId +
+                    "/sil/",
+                {},
+                root
+            ).then(function (data) {
+                applyResponse(root, data);
+            });
+        });
+    }
+
     function init() {
         var root = qs("[data-za-planlama]");
         if (!root) return;
@@ -352,6 +385,7 @@
         bindSabitle(root);
         bindMobilAta(root);
         bindAracDuzenle(root);
+        bindAracSil(root);
 
         var otomatik = qs("[data-za-otomatik]", root);
         if (otomatik) {

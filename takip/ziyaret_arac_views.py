@@ -275,6 +275,7 @@ def ziyaret_arac_planlama(request, pk):
             "sinif_subeler": sinif_sube_listesi(),
             "kontrol": plan_kontrol(plan),
             "kapasite_olustu": kapasite_olustu_mesaji(planlama_ozeti(plan).kapasite),
+            "arac_sil_yetkisi": can(request.user, "ziyaret_arac", "edit"),
         },
     )
 
@@ -520,19 +521,22 @@ def ziyaret_arac_arac_kaydet(request, pk):
 
 @login_required
 @require_POST
-@require_permission("ziyaret_arac", "delete")
+@require_permission("ziyaret_arac", "edit")
 def ziyaret_arac_arac_sil(request, pk, arac_id):
     if not plan_yonetimi_var(request.user):
         return _json_err("Yetkisiz", 403)
 
     plan = _plan_or_404(pk)
     arac = get_object_or_404(ZiyaretAraci, pk=arac_id, plan=plan)
+    geri_al_kaydet(plan.pk, request.session)
     arac.delete()
     plan = _plan_or_404(pk)
     return _json_ok(
         {
+            "mesaj": "Araç silindi.",
             "ozet": _plan_ozet_json(plan),
             "arac_kartlari": _arac_kartlari_json(plan),
+            "atanmamis": _atanmamis_json(plan),
         }
     )
 

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Yeni Mesaj · İletişim{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/iletisim-merkezi-premium.css' %}?v=im3">
+{% endblock %}
+{% block content %}
+<div class="im-page">
+    <header class="page-head patterned-page-head im-head">
+        <div class="im-head-main">
+            <h1>Yeni Mesaj</h1>
+            <p class="im-desc">Manuel veli bilgilendirmesi — ilk sürümde taslak akışı yakında genişletilecek.</p>
+        </div>
+        <a href="{% url 'iletisim_merkezi' %}" class="ghost-btn">Geri</a>
+    </header>
+    <section class="im-card">
+        <p class="im-note">Modül entegrasyonlarından gelen paylaşımlar otomatik hazırlanır. Manuel mesaj için şimdilik İletişim Merkezi üzerinden modül kaynaklarını kullanın.</p>
+        <p class="im-muted">Kullanılabilir değişkenler: {% for kod, etiket in degiskenler %}{{{ kod }}}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+    </section>
+</div>
+{% endblock %}

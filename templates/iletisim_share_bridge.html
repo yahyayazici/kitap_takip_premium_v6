@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>WhatsApp Paylaşım</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            display: grid;
+            place-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 24px;
+            background: #eef1f6;
+            color: #15427f;
+            text-align: center;
+        }
+        .box {
+            max-width: 360px;
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 24px rgba(21, 66, 127, 0.08);
+        }
+        p { margin: 0 0 12px; line-height: 1.5; }
+        .muted { color: #8491a3; font-size: 0.9rem; }
+        button {
+            margin-top: 12px;
+            min-height: 44px;
+            min-width: 220px;
+            padding: 0 16px;
+            border: none;
+            border-radius: 10px;
+            background: #128c7e;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        button:disabled {
+            opacity: 0.55;
+            cursor: wait;
+        }
+    </style>
+</head>
+<body>
+<div class="box">
+    <form style="display:none">{% csrf_token %}</form>
+    <p id="status">PDF hazırlanıyor…</p>
+    <p class="muted" id="hint">Hazır olunca WhatsApp paylaşımını başlatın.</p>
+    <button type="button" id="share-btn" disabled>WhatsApp'ta Paylaş</button>
+</div>
+<script>
+(function () {
+    "use strict";
+    var pdfUrl = "{{ pdf_url|escapejs }}";
+    var pdfName = "{{ pdf_name|escapejs }}";
+    var paketId = "{{ paket_id }}";
+    var statusEl = document.getElementById("status");
+    var hintEl = document.getElementById("hint");
+    var shareBtn = document.getElementById("share-btn");
+    var pdfFile = null;
+
+    function mesajOku() {
+        try {
+            return sessionStorage.getItem("im_share_msg_" + paketId) || "";
+        } catch (e) {
+            return "";
+        }
+    }
+
+    function olayKaydet(tur) {
+        var csrfInput = document.querySelector("[name=csrfmiddlewaretoken]");
+        var csrf = csrfInput ? csrfInput.value : "";
+        var body = new URLSearchParams({ olay_tur: tur });
+        fetch("/iletisim/api/paket/" + paketId + "/olay/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "X-CSRFToken": csrf,
+            },
+            body: body.toString(),
+            credentials: "same-origin",
+        });
+    }
+
+    function paylas() {
+        var mesaj = mesajOku();
+        if (!mesaj) {
+            statusEl.textContent = "Mesaj bulunamadı. Ana pencereyi kapatıp tekrar deneyin.";
+            return;
+        }
+        if (!pdfFile) {
+            statusEl.textContent = "PDF henüz hazır değil.";
+            return;
+        }
+        if (!navigator.share) {
+            statusEl.textContent = "Bu tarayıcı dosyalı paylaşımı desteklemiyor.";
+            hintEl.textContent = "Safari veya mobil Chrome deneyin.";
+            return;
+        }
+        shareBtn.disabled = true;
+        statusEl.textContent = "Paylaşım ekranı açılıyor…";
+        navigator
+            .share({
+                files: [pdfFile],
+                text: mesaj,
+                title: pdfName.replace(/\.pdf$/i, ""),
+            })
+            .then(function () {
+                olayKaydet("native_share_opened");
+                statusEl.textContent = "Tamam — WhatsApp'ta gönderin.";
+                hintEl.textContent = "Bu pencereyi kapatabilirsiniz.";
+                setTimeout(function () { window.close(); }, 1200);
+            })
+            .catch(function (err) {
+                shareBtn.disabled = false;
+                if (err && err.name === "AbortError") {
+                    statusEl.textContent = "Paylaşım iptal edildi.";
+                    return;
+                }
+                statusEl.textContent = "Paylaşım açılamadı.";
+                hintEl.textContent = err && err.message ? err.message : "Tekrar deneyin.";
+            });
+    }
+
+    shareBtn.addEventListener("click", paylas);
+
+    fetch(pdfUrl, { credentials: "same-origin" })
+        .then(function (res) {
+            if (!res.ok) throw new Error("PDF alınamadı");
+            return res.blob();
+        })
+        .then(function (blob) {
+            pdfFile = new File([blob], pdfName || "ktt.pdf", { type: "application/pdf" });
+            statusEl.textContent = "Hazır — mesaj ve PDF birlikte paylaşılacak.";
+            hintEl.textContent = "Butona basınca WhatsApp'ı seçin.";
+            shareBtn.disabled = false;
+            shareBtn.focus();
+        })
+        .catch(function (err) {
+            statusEl.textContent = "PDF yüklenemedi.";
+            hintEl.textContent = err && err.message ? err.message : "Sayfayı yenileyin.";
+        });
+})();
+</script>
+</body>
+</html>

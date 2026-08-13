@@ -1,0 +1,52 @@
+{% extends "yonetim/base.html" %}
+{% block title %}{% if sablon %}Şablon Düzenle{% else %}Yeni Şablon{% endif %}{% endblock %}
+{% block content %}
+<div class="yonetim-page">
+    <header class="yonetim-page-head">
+        <h1>{% if sablon %}Şablon Düzenle{% else %}Yeni Şablon{% endif %}</h1>
+        <a href="{% url 'yonetim:iletisim_sablon_listesi' %}" class="ghost-btn">Listeye Dön</a>
+    </header>
+
+    <div class="im-sablon-editor-grid">
+        <section class="yonetim-card">
+            <form method="post">
+                {% csrf_token %}
+                <div class="im-form-grid">
+                    <label>Kod<input type="text" name="kod" value="{{ sablon.kod|default:'' }}" required {% if sablon %}readonly{% endif %}></label>
+                    <label>Ad<input type="text" name="ad" value="{{ sablon.ad|default:'' }}" required></label>
+                    <label>Kategori
+                        <select name="kategori">
+                            {% for val, label in kategoriler %}
+                            <option value="{{ val }}" {% if sablon.kategori == val %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                    <label>Sıra<input type="number" name="sira" value="{{ sablon.sira|default:50 }}"></label>
+                </div>
+                <label class="im-check"><input type="checkbox" name="aktif" value="1" {% if not sablon or sablon.aktif %}checked{% endif %}> Aktif</label>
+                <label class="im-check"><input type="checkbox" name="varsayilan" value="1" {% if sablon.varsayilan %}checked{% endif %}> Varsayılan</label>
+                <p class="im-muted">Modüller:</p>
+                <div class="im-check-group">
+                    {% for kod, ad in modul_secenekleri %}
+                    <label class="im-check"><input type="checkbox" name="kaynak_moduller" value="{{ kod }}" {% if kod in secili_moduller %}checked{% endif %}> {{ ad }}</label>
+                    {% empty %}
+                    <label class="im-check"><input type="checkbox" name="kaynak_moduller" value="ktt"> KTT</label>
+                    <label class="im-check"><input type="checkbox" name="kaynak_moduller" value="deneme"> Deneme</label>
+                    <label class="im-check"><input type="checkbox" name="kaynak_moduller" value="kitap"> Kitap</label>
+                    <label class="im-check"><input type="checkbox" name="kaynak_moduller" value="karne"> Karne</label>
+                    {% endfor %}
+                </div>
+                <label>Mesaj şablonu
+                    <textarea name="icerik" rows="10" required>{{ sablon.icerik|default:'' }}</textarea>
+                </label>
+                <p class="im-muted">Değişkenler: {% for kod, etiket in degiskenler %}{{{ kod }}}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+                <button type="submit" class="primary-btn">Kaydet</button>
+            </form>
+        </section>
+        <section class="yonetim-card">
+            <h2>WhatsApp Önizleme</h2>
+            <div class="im-wa-preview">{% if onizleme %}{{ onizleme }}{% else %}Önizleme için şablon metni girin.{% endif %}</div>
+        </section>
+    </div>
+</div>
+{% endblock %}

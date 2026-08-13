@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}{{ plan.ad }} · Planlama{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ziyaret-arac-premium.css' %}?v=za11">
+<link rel="stylesheet" href="{% static 'css/ziyaret-arac-premium.css' %}?v=za12">
 {% endblock %}
 {% block content %}
 <div class="za-page za-planlama" data-za-planlama
@@ -12,7 +12,8 @@
      data-api-cikar="{% url 'ziyaret_arac_api_cikar' plan.pk %}"
      data-api-otomatik="{% url 'ziyaret_arac_api_otomatik' plan.pk %}"
      data-api-geri-al="{% url 'ziyaret_arac_api_geri_al' plan.pk %}"
-     data-api-sabitle="{% url 'ziyaret_arac_api_sabitle' plan.pk %}">
+     data-api-sabitle="{% url 'ziyaret_arac_api_sabitle' plan.pk %}"
+     data-arac-sil-yetki="{% if arac_sil_yetkisi %}1{% else %}0{% endif %}">
 
     <header class="page-head patterned-page-head za-head">
         <div class="za-head-main">
@@ -113,7 +114,7 @@
                 </div>
             </div>
             <div class="za-arac-grid" data-za-arac-grid>
-                {% include "includes/ziyaret_arac_kartlari.html" with arac_kartlari=arac_kartlari plan=plan %}
+                {% include "includes/ziyaret_arac_kartlari.html" with arac_kartlari=arac_kartlari plan=plan arac_sil_yetkisi=arac_sil_yetkisi %}
             </div>
         </section>
     </div>
@@ -131,5 +132,5 @@
     </div>
 </div>
 
-<script src="{% static 'js/ziyaret-arac-panel.js' %}?v=za11"></script>
+<script src="{% static 'js/ziyaret-arac-panel.js' %}?v=za12"></script>
 {% endblock %}

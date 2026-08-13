@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Paylaşım Önizleme · {{ paket.baslik }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/iletisim-merkezi-premium.css' %}?v=im3">
+{% endblock %}
+{% block content %}
+<div class="im-page im-onizleme" data-im-share
+     data-paket-id="{{ paket.pk }}"
+     data-csrf="{{ csrf_token }}"
+     data-paket-json='{{ paket_json|escapejs }}'>
+    <header class="page-head patterned-page-head im-head">
+        <div class="im-head-main">
+            <p class="im-kicker">{{ paket.get_kaynak_modul_display|upper }}</p>
+            <h1>{{ paket.baslik }}</h1>
+            <p class="im-desc">Hedef: {{ paket.hedef_etiket }}</p>
+        </div>
+        <div class="im-head-actions">
+            <a href="{% url 'iletisim_merkezi' %}" class="ghost-btn">Merkeze Dön</a>
+        </div>
+    </header>
+
+    {% if paket.talebe %}
+    <div class="im-verify-banner">
+        <span>TALEBE</span>
+        <strong>{{ paket.talebe.ad_soyad }}</strong>
+        <span>RAPOR</span>
+        <strong>{{ paket.baslik }}</strong>
+    </div>
+    {% endif %}
+
+    <div class="im-preview-grid">
+        <section class="im-card">
+            <h2>Mesaj</h2>
+            {% if paylas_yetkisi %}
+            <textarea class="im-message-edit" data-im-message rows="8">{{ paket.mesaj }}</textarea>
+            <button type="button" class="ghost-btn im-btn-sm" data-im-save-message>Mesajı Kaydet</button>
+            {% else %}
+            <pre class="im-message-preview">{{ paket.mesaj }}</pre>
+            {% endif %}
+        </section>
+
+        <section class="im-card">
+            <h2>WhatsApp Önizleme</h2>
+            <div class="im-wa-preview" data-im-wa-preview>{{ paket.mesaj }}</div>
+        </section>
+
+        <section class="im-card">
+            <h2>Ekler</h2>
+            {% if paket.ekler.all %}
+            <ul class="im-attachments">
+                {% for ek in paket.ekler.all %}
+                <li>
+                    <span class="im-attach-name" title="{{ ek.dosya_adi }}">📎 {{ ek.dosya_adi }}</span>
+                    <a href="{% url 'iletisim_ek_indir' ek.pk %}" class="ghost-btn im-btn-sm" data-im-download data-ek-id="{{ ek.pk }}">PDF İndir</a>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="im-muted">Bu paylaşımda dosya eki yok.</p>
+            {% endif %}
+        </section>
+    </div>
+
+    {% if paylas_yetkisi %}
+    <section class="im-actions-bar">
+        <button type="button" class="primary-btn im-wa-btn" data-im-whatsapp-share disabled>PDF hazırlanıyor…</button>
+        <button type="button" class="ghost-btn" data-im-copy-message>Mesajı Kopyala</button>
+        {% if paket.ekler.all %}
+        <a href="{% url 'iletisim_ek_indir' paket.ekler.first.pk %}" class="ghost-btn" data-im-download>PDF İndir</a>
+        {% endif %}
+        <button type="button" class="ghost-btn" data-im-draft-save>Taslak Olarak Kaydet</button>
+    </section>
+    <p class="im-feedback" data-im-feedback hidden></p>
+    {% endif %}
+</div>
+<script src="{% static 'js/iletisim-share.js' %}?v=im8"></script>
+{% endblock %}

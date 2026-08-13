@@ -17,6 +17,11 @@ OGRETMEN_ODEME_ACTIONS: tuple[tuple[str, str], ...] = STANDARD_ACTIONS + (
     ("view_financial", "Finansal Görüntüle"),
 )
 
+ILETISIM_ACTIONS: tuple[tuple[str, str], ...] = STANDARD_ACTIONS + (
+    ("share", "Paylaş"),
+    ("manage_templates", "Şablon Yönet"),
+)
+
 
 @dataclass(frozen=True)
 class ModulTanim:
@@ -46,7 +51,8 @@ MODUL_KATALOGU: tuple[ModulTanim, ...] = (
     ModulTanim("aidat", "Finans Yönetimi", 33),
     ModulTanim("rehberlik", "Rehberlik", 34),
     ModulTanim("veli_iletisim", "Veli & Talebe İletişim", 35),
-    ModulTanim("veli_randevu", "Veli Randevu", 36),
+    ModulTanim("iletisim_merkezi", "İletişim Merkezi", 36, islemler=ILETISIM_ACTIONS),
+    ModulTanim("veli_randevu", "Veli Randevu", 37),
     ModulTanim("disiplin", "Disiplin", 36),
     ModulTanim("disiplin_kurulu", "İstişare ve Disiplin Kurulu", 35),
     ModulTanim("gunluk_takip", "Günlük Takip", 36),
@@ -87,6 +93,7 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
             "mezun",
             "aidat",
             "veli_iletisim",
+            "iletisim_merkezi",
             "veli_randevu",
             "disiplin",
             "disiplin_kurulu",
@@ -124,6 +131,7 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
             "mezun",
             "aidat",
             "veli_iletisim",
+            "iletisim_merkezi",
             "veli_randevu",
             "disiplin",
             "disiplin_kurulu",
@@ -159,6 +167,7 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
             "mezun",
             "aidat",
             "veli_iletisim",
+            "iletisim_merkezi",
             "veli_randevu",
             "disiplin",
             "disiplin_kurulu",
@@ -194,6 +203,7 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
             "aidat",
             "gunluk_takip",
             "veli_iletisim",
+            "iletisim_merkezi",
             "veli_randevu",
             "gunluk_takip",
             "ogretmen_odeme",
@@ -212,6 +222,7 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
             "gelisim_dosyasi",
             "rehberlik",
             "veli_iletisim",
+            "iletisim_merkezi",
             "veli_randevu",
             "raporlar",
         }
@@ -233,6 +244,7 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
             "mezun",
             "aidat",
             "veli_iletisim",
+            "iletisim_merkezi",
             "veli_randevu",
             "disiplin",
             "disiplin_kurulu",
