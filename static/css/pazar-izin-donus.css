@@ -54,6 +54,7 @@
 .pid-chip {
     display: inline-flex;
     align-items: center;
+    min-height: var(--cs-touch-min, 44px);
     padding: 0.45rem 0.85rem;
     border-radius: 999px;
     border: 1px solid var(--pid-line);
@@ -62,6 +63,23 @@
     font-size: 0.85rem;
     font-weight: 600;
     text-decoration: none;
+}
+
+.pid-chip.is-on {
+    background: var(--pid-navy);
+    border-color: var(--pid-navy);
+    color: #fff;
+}
+
+.pid-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.pid-filter-chips .pid-chip-row {
+    min-height: var(--cs-touch-min, 44px);
+    align-items: center;
 }
 
 .pid-chip-pdf { border-color: #fecaca; background: #fef2f2; }
@@ -151,6 +169,16 @@
 .pid-table .pid-name {
     font-weight: 600;
     min-width: 160px;
+}
+
+.pid-group-row td {
+    background: var(--cs-background, #f3f7fc);
+    border-top: 1px solid var(--pid-line);
+    border-bottom: 1px solid var(--pid-line);
+    padding: 0.55rem 0.75rem;
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+    color: var(--pid-navy);
 }
 
 .pid-durum { min-width: 130px; }

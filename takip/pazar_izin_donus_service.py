@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+from collections.abc import Iterable
 from datetime import date, datetime, time, timedelta
 
 from django.contrib.auth.models import User
@@ -20,6 +22,32 @@ from takip.permissions.service import can
 from takip.user_helpers import etut_hocasi_for_user
 
 VARSAYILAN_BEKLENEN_SAAT = time(18, 0)
+
+
+def _sinif_numarasi(talebe: Talebe) -> int:
+    sinif = talebe.sinif_sube.sinif if talebe.sinif_sube_id else (talebe.sinif or "")
+    rakamlar = re.sub(r"\D", "", str(sinif))
+    return int(rakamlar) if rakamlar else 99
+
+
+def talebe_sinif_etiketi(talebe: Talebe) -> str:
+    if talebe.sinif_sube_id:
+        return f"{talebe.sinif_sube.sinif}-{talebe.sinif_sube.sube}"
+    if talebe.sinif and talebe.sube:
+        return f"{talebe.sinif}-{talebe.sube}"
+    return talebe.sinif or "—"
+
+
+def _sinif_etiket_sirasi(etiket: str) -> tuple[int, str]:
+    rakamlar = re.sub(r"\D", "", etiket.split("-", 1)[0])
+    return (int(rakamlar) if rakamlar else 99, etiket.casefold())
+
+
+def talebeler_sirali(qs: QuerySet[Talebe]) -> list[Talebe]:
+    return sorted(
+        qs.select_related("sinif_sube", "etut_hocasi"),
+        key=lambda t: (_sinif_numarasi(t), talebe_sinif_etiketi(t), t.ad_soyad.casefold()),
+    )
 
 
 def pazar_izin_tam_yetki(user: User) -> bool:
@@ -113,7 +141,12 @@ def yetkili_sinif_subeler(user: User) -> QuerySet[SinifSube]:
     return qs.filter(id__in=sinif_ids).order_by("sinif", "sube")
 
 
-def panel_talebeleri(user: User, sinif_sube_id: int | str | None) -> QuerySet[Talebe]:
+def panel_talebeleri(
+    user: User,
+    sinif_sube_id: int | str | None,
+    *,
+    etudum: bool = False,
+) -> QuerySet[Talebe]:
     if not pazar_izin_gorebilir(user):
         return Talebe.objects.none()
 
@@ -126,18 +159,36 @@ def panel_talebeleri(user: User, sinif_sube_id: int | str | None) -> QuerySet[Ta
         qs = qs.filter(sinif_sube_id=sinif_sube_id)
 
     if pazar_izin_tam_yetki(user):
-        return qs.order_by("sinif_sube__sinif", "sinif_sube__sube", "ad_soyad")
+        if etudum:
+            hoca = etut_hocasi_for_user(user)
+            if hoca:
+                qs = qs.filter(etut_hocasi=hoca)
+        return qs
 
     hoca = etut_hocasi_for_user(user)
     if hoca:
-        return qs.filter(etut_hocasi=hoca).order_by(
-            "sinif_sube__sinif", "sinif_sube__sube", "ad_soyad"
-        )
+        if etudum:
+            qs = qs.filter(etut_hocasi=hoca)
+        return qs
 
     talebe_ids = yetkili_talebeler(user, aktif_only=True).values_list("id", flat=True)
-    return qs.filter(id__in=talebe_ids).order_by(
-        "sinif_sube__sinif", "sinif_sube__sube", "ad_soyad"
-    )
+    return qs.filter(id__in=talebe_ids)
+
+
+def panel_satirlar_gruplu(
+    qs: QuerySet[Talebe],
+    harita: dict[int, PazarIzinDonusKaydi],
+) -> list[dict]:
+    gruplar: dict[str, list[dict]] = {}
+    for talebe in talebeler_sirali(qs):
+        etiket = talebe_sinif_etiketi(talebe)
+        gruplar.setdefault(etiket, []).append(
+            satir_verisi(talebe, harita.get(talebe.id))
+        )
+    return [
+        {"sinif": sinif, "satirlar": gruplar[sinif]}
+        for sinif in sorted(gruplar.keys(), key=_sinif_etiket_sirasi)
+    ]
 
 
 def oturum_getir(

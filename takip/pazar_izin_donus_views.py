@@ -20,6 +20,7 @@ from takip.pazar_izin_donus_service import (
     kayit_haritasi_tarih,
     oturum_getir,
     oturum_hazirla,
+    panel_satirlar_gruplu,
     pazar_izin_kaydedebilir,
     pazar_izin_tam_yetki,
     panel_talebeleri,
@@ -27,6 +28,7 @@ from takip.pazar_izin_donus_service import (
     rapor_istatistik,
     rapor_kayitlari,
     satir_verisi,
+    talebeler_sirali,
     varsayilan_beklenen,
     yetkili_sinif_subeler,
     yoklama_kaydet,
@@ -36,6 +38,7 @@ from takip.pdf_utils import html_to_pdf, make_pdf_response, pdf_engine_status, p
 from takip.permissions.decorators import require_permission
 from takip.permissions.scope import yetkili_talebeler
 from takip.permissions.service import can
+from takip.user_helpers import etut_hocasi_for_user
 
 
 def _parse_tarih(value: str | None):
@@ -58,8 +61,11 @@ def _parse_saat(value: str | None, fallback: time) -> time:
     return fallback
 
 
-def _redirect_params(tarih, secili_sinif: str) -> str:
-    return f"?tarih={tarih:%Y-%m-%d}&sinif_sube={secili_sinif}"
+def _redirect_params(tarih, secili_sinif: str, etudum: bool = False) -> str:
+    params = f"?tarih={tarih:%Y-%m-%d}&sinif_sube={secili_sinif}"
+    if etudum:
+        params += "&etudum=1"
+    return params
 
 
 def _post_satirlari(
@@ -121,6 +127,7 @@ def _filtreli_qs(user, filtre: dict):
 def pazar_izin_donus_panel(request):
     siniflar = yetkili_sinif_subeler(request.user)
     secili_sinif = request.GET.get("sinif_sube") or request.POST.get("sinif_sube") or ""
+    etudum = request.GET.get("etudum") == "1" or request.POST.get("etudum") == "1"
     tarih = _parse_tarih(
         request.GET.get("tarih") or request.POST.get("tarih")
     )
@@ -158,7 +165,7 @@ def pazar_izin_donus_panel(request):
                 request,
                 f"İzin dönüş saati kaydedildi: {beklenen_tarih:%d.%m.%Y} {beklenen_saat:%H:%M}",
             )
-            return redirect(request.path + _redirect_params(tarih, secili_sinif))
+            return redirect(request.path + _redirect_params(tarih, secili_sinif, etudum))
 
         if not secili_sinif:
             messages.error(request, "Lütfen sınıf veya tüm kurum seçin.")
@@ -168,7 +175,7 @@ def pazar_izin_donus_panel(request):
         beklenen_saat = _parse_saat(
             request.POST.get("beklenen_giris_saati"), beklenen_saat
         )
-        qs = panel_talebeleri(request.user, secili_sinif)
+        qs = panel_talebeleri(request.user, secili_sinif, etudum=etudum)
         talebeler = list(qs)
         talebe_ids = [t.id for t in talebeler]
         satirlar = _post_satirlari(
@@ -200,12 +207,19 @@ def pazar_izin_donus_panel(request):
             )
 
         messages.success(request, f"{tarih:%d.%m.%Y} yoklaması kaydedildi.")
-        return redirect(request.path + _redirect_params(tarih, secili_sinif))
+        return redirect(request.path + _redirect_params(tarih, secili_sinif, etudum))
 
-    qs = panel_talebeleri(request.user, secili_sinif)
+    qs = panel_talebeleri(request.user, secili_sinif, etudum=etudum)
     talebe_ids = list(qs.values_list("id", flat=True))
     harita = kayit_haritasi_tarih(tarih, talebe_ids)
-    satirlar = [satir_verisi(t, harita.get(t.id)) for t in qs]
+    if tum_kurum:
+        gruplar = panel_satirlar_gruplu(qs, harita)
+        satirlar = [satir for grup in gruplar for satir in grup["satirlar"]]
+    else:
+        gruplar = []
+        satirlar = [
+            satir_verisi(t, harita.get(t.id)) for t in talebeler_sirali(qs)
+        ]
 
     return render(
         request,
@@ -221,7 +235,10 @@ def pazar_izin_donus_panel(request):
             "durum_secenekleri": PazarIzinDonusDurumu.choices,
             "kaydedebilir": pazar_izin_kaydedebilir(request.user),
             "tam_yetki": pazar_izin_tam_yetki(request.user),
+            "etudum": etudum,
+            "etut_hocasi_var": bool(etut_hocasi_for_user(request.user)),
             "talebe_sayisi": qs.count(),
+            "gruplar": gruplar,
         },
     )
 

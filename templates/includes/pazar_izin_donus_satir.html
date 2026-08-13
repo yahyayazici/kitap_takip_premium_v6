@@ -1,0 +1,27 @@
+<tr data-pid-row data-talebe-id="{{ s.talebe.id }}">
+    <td class="pid-name">{{ s.talebe.ad_soyad }}</td>
+    <td>
+        <select name="s_{{ s.talebe.id }}_durum" class="input pid-durum"
+                data-pid-durum {% if not kaydedebilir %}disabled{% endif %}>
+            {% for val, label in durum_secenekleri %}
+            <option value="{{ val }}" {% if s.durum == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </td>
+    <td class="pid-giris-cell">
+        <input type="time" name="s_{{ s.talebe.id }}_giris_saati"
+               class="input pid-giris-saat" data-pid-giris-saat
+               value="{% if s.giris_saati %}{{ s.giris_saati|time:'H:i' }}{% endif %}"
+               {% if not kaydedebilir or s.durum != 'gec_geldi' %}disabled{% endif %}
+               hidden>
+        <span class="pid-giris-placeholder" data-pid-giris-placeholder>—</span>
+    </td>
+    <td>
+        <span class="pid-gecikme" data-pid-gecikme>{% if s.durum == 'gec_geldi' %}{{ s.gecikme_dk }}{% else %}—{% endif %}</span>
+    </td>
+    <td>
+        <input type="text" name="s_{{ s.talebe.id }}_aciklama" class="input"
+               placeholder="Açıklama..." value="{{ s.aciklama }}"
+               {% if not kaydedebilir %}disabled{% endif %}>
+    </td>
+</tr>

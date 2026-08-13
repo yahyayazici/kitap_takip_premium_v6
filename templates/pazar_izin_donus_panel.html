@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Pazar İzin Dönüşü · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/pazar-izin-donus.css' %}?v=pid2">
+<link rel="stylesheet" href="{% static 'css/pazar-izin-donus.css' %}?v=pid3">
 {% endblock %}
 
 {% block content %}
@@ -21,6 +21,17 @@
 
 <form method="get" class="pid-filter-card dashboard-card">
     <div class="pid-filter-row">
+        {% if etut_hocasi_var %}
+        <div class="pid-field pid-filter-chips">
+            <span>Kapsam</span>
+            <div class="pid-chip-row">
+                <a href="?tarih={{ tarih|date:'Y-m-d' }}&sinif_sube={{ secili_sinif }}&etudum=1"
+                   class="pid-chip{% if etudum %} is-on{% endif %}">Etüdüm</a>
+                <a href="?tarih={{ tarih|date:'Y-m-d' }}&sinif_sube={{ secili_sinif }}"
+                   class="pid-chip{% if not etudum %} is-on{% endif %}">Tümü</a>
+            </div>
+        </div>
+        {% endif %}
         <label class="pid-field">
             <span>Sınıf / Kurum</span>
             <select name="sinif_sube" onchange="this.form.submit()">
@@ -36,6 +47,7 @@
             <span>Yoklama Tarihi</span>
             <input type="date" name="tarih" value="{{ tarih|date:'Y-m-d' }}" onchange="this.form.submit()">
         </label>
+        {% if etudum %}<input type="hidden" name="etudum" value="1">{% endif %}
     </div>
 </form>
 
@@ -44,6 +56,7 @@
     {% csrf_token %}
     <input type="hidden" name="sinif_sube" value="{{ secili_sinif }}">
     <input type="hidden" name="tarih" value="{{ tarih|date:'Y-m-d' }}">
+    {% if etudum %}<input type="hidden" name="etudum" value="1">{% endif %}
 
     <section class="dashboard-card pid-beklenen-card">
         <div class="card-heading">
@@ -80,7 +93,7 @@
         <div class="card-heading">
             <div>
                 <p class="card-kicker">YOKLAMA LİSTESİ</p>
-                <h2>{{ talebe_sayisi }} öğrenci{% if tum_kurum %} · Tüm kurum{% endif %}</h2>
+                <h2>{{ talebe_sayisi }} öğrenci{% if tum_kurum %}{% if etudum %} · Etüdüm{% else %} · Tüm kurum{% endif %}{% endif %}</h2>
             </div>
             {% if kaydedebilir %}
             <button type="submit" name="islem" value="kaydet" class="primary-btn">Yoklamayı Kaydet</button>
@@ -91,7 +104,6 @@
             <table class="report-data-table pid-table">
                 <thead>
                     <tr>
-                        {% if tum_kurum %}<th>Sınıf</th>{% endif %}
                         <th>Öğrenci Adı</th>
                         <th>Durum</th>
                         <th>Giriş Saati</th>
@@ -100,40 +112,24 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for s in satirlar %}
-                    <tr data-pid-row data-talebe-id="{{ s.talebe.id }}">
-                        {% if tum_kurum %}
-                        <td class="pid-sinif">{% if s.talebe.sinif_sube %}{{ s.talebe.sinif_sube.sinif }}-{{ s.talebe.sinif_sube.sube }}{% else %}—{% endif %}</td>
-                        {% endif %}
-                        <td class="pid-name">{{ s.talebe.ad_soyad }}</td>
-                        <td>
-                            <select name="s_{{ s.talebe.id }}_durum" class="input pid-durum"
-                                    data-pid-durum {% if not kaydedebilir %}disabled{% endif %}>
-                                {% for val, label in durum_secenekleri %}
-                                <option value="{{ val }}" {% if s.durum == val %}selected{% endif %}>{{ label }}</option>
-                                {% endfor %}
-                            </select>
-                        </td>
-                        <td class="pid-giris-cell">
-                            <input type="time" name="s_{{ s.talebe.id }}_giris_saati"
-                                   class="input pid-giris-saat" data-pid-giris-saat
-                                   value="{% if s.giris_saati %}{{ s.giris_saati|time:'H:i' }}{% endif %}"
-                                   {% if not kaydedebilir or s.durum != 'gec_geldi' %}disabled{% endif %}
-                                   hidden>
-                            <span class="pid-giris-placeholder" data-pid-giris-placeholder>—</span>
-                        </td>
-                        <td>
-                            <span class="pid-gecikme" data-pid-gecikme>{% if s.durum == 'gec_geldi' %}{{ s.gecikme_dk }}{% else %}—{% endif %}</span>
-                        </td>
-                        <td>
-                            <input type="text" name="s_{{ s.talebe.id }}_aciklama" class="input"
-                                   placeholder="Açıklama..." value="{{ s.aciklama }}"
-                                   {% if not kaydedebilir %}disabled{% endif %}>
-                        </td>
+                    {% if gruplar %}
+                    {% for grup in gruplar %}
+                    <tr class="pid-group-row">
+                        <td colspan="5"><strong>{{ grup.sinif }}</strong></td>
                     </tr>
-                    {% empty %}
-                    <tr><td colspan="{% if tum_kurum %}6{% else %}5{% endif %}" class="report-empty">Öğrenci bulunamadı.</td></tr>
+                    {% for s in grup.satirlar %}
+                    {% include "includes/pazar_izin_donus_satir.html" with s=s kaydedebilir=kaydedebilir durum_secenekleri=durum_secenekleri %}
                     {% endfor %}
+                    {% empty %}
+                    <tr><td colspan="5" class="report-empty">Öğrenci bulunamadı.</td></tr>
+                    {% endfor %}
+                    {% else %}
+                    {% for s in satirlar %}
+                    {% include "includes/pazar_izin_donus_satir.html" with s=s kaydedebilir=kaydedebilir durum_secenekleri=durum_secenekleri %}
+                    {% empty %}
+                    <tr><td colspan="5" class="report-empty">Öğrenci bulunamadı.</td></tr>
+                    {% endfor %}
+                    {% endif %}
                 </tbody>
             </table>
         </div>
