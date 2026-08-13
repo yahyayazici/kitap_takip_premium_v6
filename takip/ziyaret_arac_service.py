@@ -215,6 +215,38 @@ def arac_kart_verisi(plan: ZiyaretPlani) -> list[dict]:
     return kartlar
 
 
+def genel_pdf_grid_meta(kartlar: list[dict]) -> dict:
+    """Genel plan PDF — tek sayfaya sığacak sütun/yoğunluk."""
+    n = len(kartlar)
+    if n == 0:
+        return {"cols": 4, "col_width_pct": 25, "density": "normal", "rows": 0}
+
+    max_talebe = max(len(k.get("talebeler") or []) for k in kartlar)
+    cols = 4
+    if n > 8:
+        cols = 5
+    if n > 14:
+        cols = 6
+    if n > 18:
+        cols = 7
+
+    rows = (n + cols - 1) // cols
+    density = "normal"
+    if n >= 10 or rows >= 3 or max_talebe > 8:
+        density = "compact"
+    if n >= 16 or rows >= 4 or max_talebe > 11:
+        density = "dense"
+    if n >= 19 or rows >= 4 or max_talebe > 9:
+        density = "ultra"
+
+    return {
+        "cols": cols,
+        "col_width_pct": int(100 / cols),
+        "density": density,
+        "rows": rows,
+    }
+
+
 def talebe_sabit_mi(plan: ZiyaretPlani, talebe_id: int) -> bool:
     kayit = (
         plan.plan_talebeleri.filter(talebe_id=talebe_id, aktif=True)

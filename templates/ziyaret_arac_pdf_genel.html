@@ -6,23 +6,23 @@
     <title>Ziyaret Araç Planı · {{ plan.ad }}</title>
     <style>
         {% include "includes/ziyaret_arac_pdf_css.html" %}
-        @page { size: A4 landscape; margin: 10mm 12mm; }
+        @page { size: A4 landscape; margin: 5mm 7mm; }
     </style>
 </head>
 <body>
-<table class="kart-wrap za-pdf-wrap" cellpadding="0" cellspacing="0">
+<table class="kart-wrap za-pdf-wrap za-pdf-wrap--genel" cellpadding="0" cellspacing="0">
     <tr>
-        <td class="kart-head za-pdf-head za-pdf-head--genel" style="padding:16px 24px 14px;">
+        <td class="kart-head za-pdf-head za-pdf-head--genel" style="padding:7px 12px 6px;">
             <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
-                    <td style="width:52px; vertical-align:middle;">
-                        <img class="za-pdf-logo" style="margin:0;" src="{% static 'images/cinili-saray-logo-white.png' %}" alt="">
+                    <td style="width:32px; vertical-align:middle;">
+                        <img class="za-pdf-logo za-pdf-logo--genel" style="margin:0;" src="{% static 'images/cinili-saray-logo-white.png' %}" alt="">
                     </td>
-                    <td style="vertical-align:middle; text-align:left; padding-left:10px;">
-                        <div class="kart-brand" style="font-size:16px;">{{ panel_org }}</div>
-                        <div class="kart-sub" style="margin-top:4px;">Ziyaret Araç Planı</div>
+                    <td style="vertical-align:middle; text-align:left; padding-left:6px;">
+                        <div class="kart-brand" style="font-size:12px;">{{ panel_org }}</div>
+                        <div class="kart-sub" style="margin-top:1px; font-size:10px;">Ziyaret Araç Planı</div>
                     </td>
-                    <td class="za-pdf-head-date" style="vertical-align:middle; text-align:right; width:120px;">
+                    <td class="za-pdf-head-date" style="vertical-align:middle; text-align:right; width:100px;">
                         <span class="za-pdf-tarih-pill">{{ plan.tarih|date:"d.m.Y" }}</span>
                     </td>
                 </tr>
@@ -33,11 +33,11 @@
         <td><hr class="za-gold-rule"></td>
     </tr>
     <tr>
-        <td class="kart-body za-pdf-body" style="padding:14px 18px 16px;">
+        <td class="kart-body za-pdf-body za-pdf-body--genel za-genel-density-{{ pdf_grid.density }}" style="padding:8px 10px 8px;">
             <table class="za-genel-grid" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                 {% for kart in arac_kartlari %}
-                <td class="za-genel-kart" width="25%">
+                <td class="za-genel-kart" width="{{ pdf_grid.col_width_pct }}%">
                     <div class="za-genel-kart-head">
                         <strong>{{ kart.arac.surucu_ad }}</strong>
                         <span>{{ kart.dolu }} / {{ kart.kapasite }} talebe{% if kart.dolu_mu %} · DOLU{% endif %}</span>
@@ -53,12 +53,12 @@
                             {% for t in kart.talebeler %}
                             <li>{{ t.ad_soyad }}</li>
                             {% empty %}
-                            <li style="list-style:none;color:#94a3b8;">—</li>
+                            <li class="za-genel-empty">—</li>
                             {% endfor %}
                         </ol>
                     </div>
                 </td>
-                {% if forloop.counter|divisibleby:4 and not forloop.last %}
+                {% if forloop.counter|divisibleby:pdf_grid.cols and not forloop.last %}
                 </tr><tr>
                 {% endif %}
                 {% endfor %}
@@ -68,7 +68,7 @@
     </tr>
     <tr>
         <td>
-            <table class="kart-foot" cellpadding="0" cellspacing="0">
+            <table class="kart-foot za-pdf-foot--genel" cellpadding="0" cellspacing="0">
                 <tr>
                     <td class="left">{{ panel_short }} · Genel plan</td>
                     <td class="right">{{ plan.tarih|date:"d.m.Y" }}</td>

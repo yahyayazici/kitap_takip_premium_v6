@@ -26,6 +26,7 @@ from takip.ziyaret_arac_models import (
 )
 from takip.ziyaret_arac_service import (
     arac_kart_verisi,
+    genel_pdf_grid_meta,
     atanmamis_talebeler,
     etut_arac_duzenleyebilir,
     etut_arac_ekleyebilir,
@@ -574,13 +575,15 @@ def ziyaret_arac_pdf_genel(request, pk):
         return redirect("ziyaret_arac_listesi")
 
     plan = _plan_or_404(pk)
+    kartlar = arac_kart_verisi(plan)
     html = render(
         request,
         "ziyaret_arac_pdf_genel.html",
         {
             **panel_branding_context(),
             "plan": plan,
-            "arac_kartlari": arac_kart_verisi(plan),
+            "arac_kartlari": kartlar,
+            "pdf_grid": genel_pdf_grid_meta(kartlar),
         },
     ).content.decode("utf-8")
     pdf = html_to_pdf(html, base_url=request.build_absolute_uri("/"))

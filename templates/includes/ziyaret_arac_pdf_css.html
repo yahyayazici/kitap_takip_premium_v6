@@ -180,60 +180,88 @@ html, body {
     display: inline-block;
     margin-top: 0;
 }
+
+.za-pdf-wrap--genel {
+    page-break-after: avoid;
+}
+
+.za-pdf-logo--genel {
+    width: 28px;
+    height: 28px;
+}
+
+.za-pdf-body--genel {
+    padding: 8px 10px !important;
+}
+
+.za-pdf-foot--genel {
+    padding: 6px 12px !important;
+}
+
+.za-pdf-foot--genel td {
+    font-size: 8px !important;
+    padding: 4px 0 !important;
+}
+
+.za-genel-grid {
     width: 100%;
     border-collapse: separate;
-    border-spacing: 8px;
+    border-spacing: 5px;
+    table-layout: fixed;
 }
 
 .za-genel-kart {
     border: 1px solid #dbe4f0;
-    border-radius: 14px;
+    border-radius: 10px;
     background: #ffffff;
     vertical-align: top;
-    page-break-inside: avoid;
+    page-break-inside: auto;
+    overflow: hidden;
 }
 
 .za-genel-kart-head {
     background: linear-gradient(135deg, #1f5a9e 0%, #3778ff 100%);
     color: #ffffff;
-    padding: 8px 10px;
-    border-top-left-radius: 13px;
-    border-top-right-radius: 13px;
+    padding: 6px 8px;
+    border-top-left-radius: 9px;
+    border-top-right-radius: 9px;
 }
 
 .za-genel-kart-head strong {
     display: block;
-    font-size: 9px;
-    letter-spacing: 0.5px;
+    font-size: 8px;
+    letter-spacing: 0.4px;
     text-transform: uppercase;
+    line-height: 1.15;
 }
 
 .za-genel-kart-head span {
     display: block;
-    margin-top: 2px;
-    font-size: 8px;
+    margin-top: 1px;
+    font-size: 7px;
     opacity: 0.85;
 }
 
 .za-genel-kart-body {
-    padding: 8px 10px 10px;
+    padding: 5px 7px 6px;
 }
 
 .za-genel-kart-body ol {
-    margin: 6px 0 0;
-    padding-left: 16px;
+    margin: 4px 0 0;
+    padding-left: 14px;
 }
 
 .za-genel-kart-body li {
-    font-size: 8px;
-    margin-bottom: 2px;
+    font-size: 7px;
+    margin-bottom: 1px;
+    line-height: 1.15;
     color: #334155;
 }
 
 .za-genel-etut {
-    margin-bottom: 6px;
-    padding: 4px 6px;
-    border-radius: 8px;
+    margin-bottom: 4px;
+    padding: 3px 5px;
+    border-radius: 6px;
     background: #fff7ed;
     border-left: 2px solid #ea580c;
 }
@@ -249,4 +277,111 @@ html, body {
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: #9a3412;
+}
+
+.za-genel-empty {
+    list-style: none;
+    color: #94a3b8;
+}
+
+/* Yoğunluk — tek sayfaya sığdırma */
+.za-genel-density-compact .za-genel-kart-head {
+    padding: 6px 8px;
+}
+
+.za-genel-density-compact .za-genel-kart-head strong {
+    font-size: 8px;
+}
+
+.za-genel-density-compact .za-genel-kart-body {
+    padding: 6px 8px 7px;
+}
+
+.za-genel-density-compact .za-genel-kart-body li {
+    font-size: 7px;
+    margin-bottom: 1px;
+    line-height: 1.2;
+}
+
+.za-genel-density-dense .za-genel-grid {
+    border-spacing: 4px;
+}
+
+.za-genel-density-dense .za-genel-kart {
+    border-radius: 8px;
+}
+
+.za-genel-density-dense .za-genel-kart-head {
+    padding: 5px 6px;
+}
+
+.za-genel-density-dense .za-genel-kart-head strong {
+    font-size: 7.5px;
+}
+
+.za-genel-density-dense .za-genel-kart-head span {
+    font-size: 7px;
+}
+
+.za-genel-density-dense .za-genel-kart-body {
+    padding: 4px 6px 5px;
+}
+
+.za-genel-density-dense .za-genel-kart-body ol {
+    margin-top: 4px;
+    padding-left: 13px;
+}
+
+.za-genel-density-dense .za-genel-kart-body li {
+    font-size: 6.5px;
+    margin-bottom: 0;
+    line-height: 1.15;
+}
+
+.za-genel-density-dense .za-genel-etut {
+    margin-bottom: 4px;
+    padding: 3px 5px;
+}
+
+.za-genel-density-ultra .za-genel-grid {
+    border-spacing: 3px;
+}
+
+.za-genel-density-ultra .za-genel-kart-head {
+    padding: 4px 5px;
+}
+
+.za-genel-density-ultra .za-genel-kart-head strong {
+    font-size: 7px;
+}
+
+.za-genel-density-ultra .za-genel-kart-head span {
+    font-size: 6px;
+}
+
+.za-genel-density-ultra .za-genel-kart-body {
+    padding: 3px 5px 4px;
+}
+
+.za-genel-density-ultra .za-genel-kart-body ol {
+    margin-top: 3px;
+    padding-left: 11px;
+}
+
+.za-genel-density-ultra .za-genel-kart-body li {
+    font-size: 5.5px;
+    line-height: 1.05;
+}
+
+.za-genel-density-ultra .za-genel-etut {
+    margin-bottom: 2px;
+    padding: 2px 3px;
+}
+
+.za-genel-density-ultra .za-genel-etut strong {
+    font-size: 6px;
+}
+
+.za-genel-density-ultra .za-genel-etut span {
+    font-size: 4.5px;
 }
