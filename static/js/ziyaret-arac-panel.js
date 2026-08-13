@@ -135,11 +135,19 @@
                     (k.dolu_mu ? '<em class="za-full-badge">DOLU</em>' : "") +
                     '</p><p class="za-arac-meta">Aracı bulan: ' +
                     escapeHtml(k.ekleyen) +
-                    '</p></div><div class="za-arac-kart-actions"><a href="/ziyaret-arac/' +
+                    '</p></div><div class="za-arac-kart-actions">' +
+                    '<a href="/ziyaret-arac/' +
                     planId +
                     "/pdf/arac/" +
                     k.id +
-                    '/" class="za-kart-link" target="_blank" rel="noopener">PDF</a></div></header><div class="za-arac-body" data-arac-body>' +
+                    '/" class="za-kart-action-btn" target="_blank" rel="noopener">PDF</a>' +
+                    '<button type="button" class="za-kart-action-btn" data-za-arac-duzenle data-id="' +
+                    k.id +
+                    '" data-ad="' +
+                    escapeHtml(k.surucu_ad) +
+                    '" data-kapasite="' +
+                    k.kapasite +
+                    '" title="Düzenle" aria-label="Düzenle">Düzenle</button></div></header><div class="za-arac-body" data-arac-body>' +
                     etutHtml +
                     talebeHtml +
                     "</div></article>"
@@ -302,6 +310,38 @@
         }
     }
 
+    function bindAracDuzenle(root) {
+        root.addEventListener("click", function (e) {
+            var btn = e.target.closest("[data-za-arac-duzenle]");
+            if (!btn) return;
+            e.preventDefault();
+            var aracId = btn.getAttribute("data-id");
+            var ad = btn.getAttribute("data-ad") || "";
+            var kap = btn.getAttribute("data-kapasite") || "4";
+            var yeniAd = prompt("Araç sahibi / sürücü adı:", ad);
+            if (yeniAd === null) return;
+            yeniAd = yeniAd.trim();
+            if (!yeniAd) return;
+            var yeniKap = prompt("Talebe kapasitesi:", kap);
+            if (yeniKap === null) return;
+            if (!yeniKap || parseInt(yeniKap, 10) < 1) {
+                alert("Geçerli bir kapasite girin.");
+                return;
+            }
+            postForm(
+                "/ziyaret-arac/" + root.getAttribute("data-plan-id") + "/api/arac/",
+                {
+                    arac_id: aracId,
+                    surucu_ad: yeniAd,
+                    kapasite: yeniKap,
+                },
+                root
+            ).then(function (data) {
+                applyResponse(root, data);
+            });
+        });
+    }
+
     function init() {
         var root = qs("[data-za-planlama]");
         if (!root) return;
@@ -311,6 +351,7 @@
         bindCikar(root);
         bindSabitle(root);
         bindMobilAta(root);
+        bindAracDuzenle(root);
 
         var otomatik = qs("[data-za-otomatik]", root);
         if (otomatik) {

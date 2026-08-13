@@ -14,6 +14,17 @@
     --za-text: var(--cs-text-primary, #0f172a);
     --za-radius: var(--cs-radius-lg, 18px);
     --za-shadow: var(--cs-shadow-card, var(--cs-shadow-sm));
+    --za-glass: var(--cs-surface-translucent, rgba(255, 255, 255, 0.72));
+    --za-glass-line: linear-gradient(
+        90deg,
+        var(--cs-primary, #15427f) 0%,
+        var(--cs-accent, #2f6ff3) 52%,
+        rgba(47, 111, 243, 0.28) 100%
+    );
+    --za-glass-glow:
+        0 1px 0 rgba(255, 255, 255, 0.92) inset,
+        0 10px 32px rgba(21, 66, 127, 0.07),
+        0 0 0 1px rgba(47, 111, 243, 0.05);
 
     width: 100%;
     min-width: 0;
@@ -484,87 +495,145 @@
 }
 
 .za-arac-kart {
-    border: 1px solid var(--za-border);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.78);
     border-radius: var(--za-radius);
-    background: var(--za-surface);
-    box-shadow: var(--za-shadow);
+    background: var(--za-glass);
+    backdrop-filter: blur(16px) saturate(175%);
+    -webkit-backdrop-filter: blur(16px) saturate(175%);
+    box-shadow: var(--za-glass-glow);
     min-height: 160px;
     display: flex;
     flex-direction: column;
     min-width: 0;
+    transition: box-shadow 0.22s ease, transform 0.22s ease;
+}
+
+.za-arac-kart::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--za-glass-line);
+    opacity: 0.9;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.za-arac-kart:hover {
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.95) inset,
+        0 14px 40px rgba(47, 111, 243, 0.11),
+        0 0 0 1px rgba(47, 111, 243, 0.09);
 }
 
 .za-arac-kart.is-full {
-    border-color: #fca5a5;
+    border-color: rgba(220, 38, 38, 0.22);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.92) inset,
+        0 10px 32px rgba(220, 38, 38, 0.1),
+        0 0 0 1px rgba(220, 38, 38, 0.07);
+}
+
+.za-arac-kart.is-full::before {
+    background: linear-gradient(
+        90deg,
+        var(--cs-danger, #d74a4a) 0%,
+        #f87171 55%,
+        rgba(248, 113, 113, 0.35) 100%
+    );
 }
 
 .za-arac-kart-head {
-    padding: 0.75rem 0.85rem;
-    border-bottom: none;
+    position: relative;
+    z-index: 2;
+    padding: 0.65rem 0.75rem;
+    border-bottom: 1px solid rgba(210, 220, 232, 0.42);
     display: flex;
     justify-content: space-between;
-    gap: 0.5rem;
+    align-items: flex-start;
+    gap: 0.45rem;
     min-width: 0;
-    background: linear-gradient(135deg, var(--za-navy-soft) 0%, var(--za-accent) 100%);
-    color: #fff;
+    background: linear-gradient(
+        180deg,
+        rgba(232, 240, 255, 0.52) 0%,
+        rgba(255, 255, 255, 0.08) 100%
+    );
+    color: var(--cs-text-primary, var(--za-text));
 }
 
 .za-arac-kart-head h3 {
     margin: 0;
-    font-size: 0.82rem;
-    letter-spacing: 0.06em;
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
     word-break: break-word;
-    color: #fff !important;
+    color: var(--cs-primary, var(--za-navy)) !important;
+    line-height: 1.2;
+    font-weight: 700;
 }
 
 .za-arac-kapasite {
-    margin: 0.25rem 0 0;
-    font-size: 0.82rem;
+    margin: 0.2rem 0 0;
+    font-size: 0.72rem;
     color: var(--za-muted);
 }
 
 .za-arac-kart-head .za-arac-kapasite,
 .za-arac-kart-head .za-arac-kapasite span {
-    color: rgba(255, 255, 255, 0.9) !important;
+    color: var(--cs-text-secondary, var(--za-muted)) !important;
 }
 
 .za-full-badge {
-    color: #dc2626;
+    color: var(--cs-danger, #d74a4a);
     font-style: normal;
     font-weight: 700;
     margin-left: 0.35rem;
 }
 
 .za-arac-kart-head .za-full-badge {
-    color: #fecaca !important;
+    color: var(--cs-danger, #d74a4a) !important;
 }
 
 .za-arac-meta {
-    font-size: 0.72rem;
+    font-size: 0.65rem;
     color: var(--za-muted);
-    margin: 0.25rem 0 0;
+    margin: 0.15rem 0 0;
 }
 
 .za-arac-kart-head .za-arac-meta {
-    color: rgba(255, 255, 255, 0.82) !important;
+    color: var(--cs-text-muted, var(--za-muted)) !important;
 }
 
 .za-arac-kart.is-full .za-arac-kart-head {
-    background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 100%);
+    background: linear-gradient(
+        180deg,
+        rgba(255, 243, 243, 0.55) 0%,
+        rgba(255, 255, 255, 0.06) 100%
+    );
 }
 
 .za-arac-body {
+    position: relative;
+    z-index: 2;
     padding: 0.65rem;
     flex: 1;
     min-height: 80px;
     display: flex;
     flex-direction: column;
     gap: 0.45rem;
+    background: rgba(255, 255, 255, 0.28);
 }
 
 .za-arac-kart.is-drop-target {
-    outline: 2px dashed var(--za-accent);
+    outline: 2px dashed var(--cs-accent, var(--za-accent));
     outline-offset: 2px;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.95) inset,
+        0 14px 40px rgba(47, 111, 243, 0.16),
+        0 0 0 1px rgba(47, 111, 243, 0.14);
 }
 
 .za-link-sm {
@@ -878,11 +947,46 @@
 }
 
 .za-arac-kart-actions {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.35rem;
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.3rem;
     flex-shrink: 0;
+    align-self: flex-start;
+}
+
+.za-kart-action-btn,
+.za-arac-kart-head .za-kart-link,
+.za-arac-kart-head .za-tool-btn--edit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 26px;
+    height: 26px;
+    padding: 0 0.45rem;
+    border-radius: var(--cs-radius-xs, 8px);
+    border: 1px solid rgba(210, 220, 232, 0.85);
+    background: rgba(255, 255, 255, 0.82) !important;
+    color: var(--cs-primary, var(--za-navy)) !important;
+    font-size: 0.62rem;
+    font-weight: 650;
+    font-family: inherit;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    box-shadow: 0 1px 2px rgba(15, 40, 80, 0.04);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.za-kart-action-btn:hover {
+    background: rgba(255, 255, 255, 0.96) !important;
+    border-color: rgba(47, 111, 243, 0.28);
+    box-shadow: 0 2px 8px rgba(47, 111, 243, 0.1);
 }
 
 .za-kart-link {
@@ -902,12 +1006,12 @@
 }
 
 .za-arac-kart-head .za-kart-link,
-.za-arac-kart-head .za-tool-btn,
-.za-arac-kart-head .za-tool-btn--edit {
-    background: #fff !important;
-    color: var(--cs-primary-dark, #15427f) !important;
-    border: 1px solid rgba(255, 255, 255, 0.55) !important;
-    box-shadow: 0 1px 3px rgba(15, 40, 80, 0.12);
+.za-arac-kart-head .za-tool-btn--edit,
+.za-arac-kart-head .za-kart-action-btn {
+    background: rgba(255, 255, 255, 0.82) !important;
+    color: var(--cs-primary, var(--za-navy)) !important;
+    border: 1px solid rgba(210, 220, 232, 0.85) !important;
+    box-shadow: 0 1px 2px rgba(15, 40, 80, 0.04);
 }
 
 .za-details {
