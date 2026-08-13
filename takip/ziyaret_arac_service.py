@@ -216,27 +216,33 @@ def arac_kart_verisi(plan: ZiyaretPlani) -> list[dict]:
 
 
 def genel_pdf_grid_meta(kartlar: list[dict]) -> dict:
-    """Genel plan PDF — tek sayfaya sığacak sütun/yoğunluk."""
+    """Genel plan PDF — dikey A4, tek sayfa, okunabilir grid."""
     n = len(kartlar)
     if n == 0:
-        return {"cols": 4, "col_width_pct": 25, "density": "normal", "rows": 0}
+        return {"cols": 2, "col_width_pct": 50, "density": "normal", "rows": 0, "row_height_pct": 100, "pad_cells": 0}
 
     max_talebe = max(len(k.get("talebeler") or []) for k in kartlar)
-    cols = 4
-    if n > 8:
-        cols = 5
-    if n > 14:
-        cols = 6
-    if n > 18:
-        cols = 7
+
+    # Dikey sayfa: geniş kart, 2–4 sütun
+    if n <= 6:
+        cols = 2
+    elif n <= 18:
+        cols = 3
+    elif n <= 24:
+        cols = 4
+    else:
+        cols = 4
 
     rows = (n + cols - 1) // cols
+    row_height_pct = int(100 / rows) if rows else 100
+    pad_cells = (cols - (n % cols)) % cols if n else 0
+
     density = "normal"
-    if n >= 10 or rows >= 3 or max_talebe > 8:
+    if rows >= 5 or max_talebe > 6:
         density = "compact"
-    if n >= 16 or rows >= 4 or max_talebe > 11:
+    if rows >= 6 or max_talebe > 9 or n > 18:
         density = "dense"
-    if n >= 19 or rows >= 4 or max_talebe > 9:
+    if rows >= 7 or max_talebe > 12:
         density = "ultra"
 
     return {
@@ -244,6 +250,8 @@ def genel_pdf_grid_meta(kartlar: list[dict]) -> dict:
         "col_width_pct": int(100 / cols),
         "density": density,
         "rows": rows,
+        "row_height_pct": row_height_pct,
+        "pad_cells": pad_cells,
     }
 
 

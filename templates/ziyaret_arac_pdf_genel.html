@@ -6,23 +6,23 @@
     <title>Ziyaret Araç Planı · {{ plan.ad }}</title>
     <style>
         {% include "includes/ziyaret_arac_pdf_css.html" %}
-        @page { size: A4 landscape; margin: 5mm 7mm; }
+        @page { size: A4 portrait; margin: 7mm 9mm; }
     </style>
 </head>
 <body>
-<table class="kart-wrap za-pdf-wrap za-pdf-wrap--genel" cellpadding="0" cellspacing="0">
+<table class="kart-wrap za-pdf-wrap za-pdf-wrap--genel" width="100%" cellpadding="0" cellspacing="0">
     <tr>
-        <td class="kart-head za-pdf-head za-pdf-head--genel" style="padding:7px 12px 6px;">
+        <td class="kart-head za-pdf-head za-pdf-head--genel" style="padding:10px 14px 8px;">
             <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
-                    <td style="width:32px; vertical-align:middle;">
+                    <td style="width:36px; vertical-align:middle;">
                         <img class="za-pdf-logo za-pdf-logo--genel" style="margin:0;" src="{% static 'images/cinili-saray-logo-white.png' %}" alt="">
                     </td>
-                    <td style="vertical-align:middle; text-align:left; padding-left:6px;">
-                        <div class="kart-brand" style="font-size:12px;">{{ panel_org }}</div>
-                        <div class="kart-sub" style="margin-top:1px; font-size:10px;">Ziyaret Araç Planı</div>
+                    <td style="vertical-align:middle; text-align:left; padding-left:8px;">
+                        <div class="kart-brand" style="font-size:13px;">{{ panel_org }}</div>
+                        <div class="kart-sub" style="margin-top:2px; font-size:11px;">Ziyaret Araç Planı</div>
                     </td>
-                    <td class="za-pdf-head-date" style="vertical-align:middle; text-align:right; width:100px;">
+                    <td class="za-pdf-head-date" style="vertical-align:middle; text-align:right; width:110px;">
                         <span class="za-pdf-tarih-pill">{{ plan.tarih|date:"d.m.Y" }}</span>
                     </td>
                 </tr>
@@ -33,42 +33,51 @@
         <td><hr class="za-gold-rule"></td>
     </tr>
     <tr>
-        <td class="kart-body za-pdf-body za-pdf-body--genel za-genel-density-{{ pdf_grid.density }}" style="padding:8px 10px 8px;">
+        <td class="kart-body za-pdf-body za-pdf-body--genel za-genel-density-{{ pdf_grid.density }}" style="padding:10px 12px 10px; vertical-align:top;">
             <table class="za-genel-grid" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                 {% for kart in arac_kartlari %}
                 <td class="za-genel-kart" width="{{ pdf_grid.col_width_pct }}%">
-                    <div class="za-genel-kart-head">
-                        <strong>{{ kart.arac.surucu_ad }}</strong>
-                        <span>{{ kart.dolu }} / {{ kart.kapasite }} talebe{% if kart.dolu_mu %} · DOLU{% endif %}</span>
-                    </div>
-                    <div class="za-genel-kart-body">
-                        {% for h in kart.etut_hocalari %}
-                        <div class="za-genel-etut">
-                            <strong>{{ h.ad_soyad }}</strong>
-                            <span>Etüt Mesulü</span>
+                    <div class="za-genel-kart-inner">
+                        <div class="za-genel-kart-head">
+                            <strong>{{ kart.arac.surucu_ad }}</strong>
+                            <span>{{ kart.dolu }} / {{ kart.kapasite }} talebe{% if kart.dolu_mu %} · DOLU{% endif %}</span>
                         </div>
-                        {% endfor %}
-                        <ol>
-                            {% for t in kart.talebeler %}
-                            <li>{{ t.ad_soyad }}</li>
-                            {% empty %}
-                            <li class="za-genel-empty">—</li>
+                        <div class="za-genel-kart-body">
+                            {% for h in kart.etut_hocalari %}
+                            <div class="za-genel-etut">
+                                <strong>{{ h.ad_soyad }}</strong>
+                                <span>Etüt Mesulü</span>
+                            </div>
                             {% endfor %}
-                        </ol>
+                            <ol>
+                                {% for t in kart.talebeler %}
+                                <li>{{ t.ad_soyad }}</li>
+                                {% empty %}
+                                <li class="za-genel-empty">—</li>
+                                {% endfor %}
+                            </ol>
+                        </div>
                     </div>
                 </td>
                 {% if forloop.counter|divisibleby:pdf_grid.cols and not forloop.last %}
                 </tr><tr>
                 {% endif %}
                 {% endfor %}
+                {% if pdf_grid.pad_cells %}
+                {% for _ in "123456789"|make_list %}
+                    {% if forloop.counter <= pdf_grid.pad_cells %}
+                    <td class="za-genel-kart za-genel-kart--pad" width="{{ pdf_grid.col_width_pct }}%"></td>
+                    {% endif %}
+                {% endfor %}
+                {% endif %}
                 </tr>
             </table>
         </td>
     </tr>
     <tr>
         <td>
-            <table class="kart-foot za-pdf-foot--genel" cellpadding="0" cellspacing="0">
+            <table class="kart-foot za-pdf-foot--genel" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                     <td class="left">{{ panel_short }} · Genel plan</td>
                     <td class="right">{{ plan.tarih|date:"d.m.Y" }}</td>
