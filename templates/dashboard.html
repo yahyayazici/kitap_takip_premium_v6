@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/duyuru-carousel.css' %}?v=half5">
-<link rel="stylesheet" href="{% static 'css/personel-dash-split.css' %}?v=half7">
+<link rel="stylesheet" href="{% static 'css/personel-dash-split.css' %}?v=half8">
 <link rel="stylesheet" href="{% static 'css/vazife-premium.css' %}">
 {% if etut_plani_onizleme or dershane_onizleme %}
 <link rel="stylesheet" href="{% static 'css/etut-plan-premium.css' %}">
@@ -72,13 +72,20 @@
         <div class="personel-ozel-main">
             <h2>İmam &amp; müezzin</h2>
             {% if gunluk_gorevler.imam %}
-            <p class="personel-ozel-body">{{ gunluk_gorevler.imam.deger }}</p>
+            <ul class="personel-ozel-list personel-ozel-list--stack">
+                {% for satir in gunluk_gorevler.imam %}
+                <li>
+                    <span class="personel-ozel-list-label">{{ satir.baslik }}</span>
+                    <strong class="personel-ozel-list-name">{{ satir.deger }}</strong>
+                </li>
+                {% endfor %}
+            </ul>
             {% else %}
             <p class="personel-ozel-empty">Atama yok</p>
             {% endif %}
         </div>
-        {% if gunluk_gorevler.imam.url %}
-        <a href="{{ gunluk_gorevler.imam.url }}" class="personel-ozel-link">Detay</a>
+        {% if gunluk_gorevler.imam.0.url %}
+        <a href="{{ gunluk_gorevler.imam.0.url }}" class="personel-ozel-link">Detay</a>
         {% endif %}
     </article>
 

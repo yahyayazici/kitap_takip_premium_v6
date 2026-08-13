@@ -995,11 +995,19 @@ def dashboard_gunluk_gorevler(user: User, *, bugun: date | None = None) -> dict[
 
         atama = bugunun_atamasi()
         if atama:
-            sonuc["imam"] = DashboardGunlukGorev(
-                baslik="Günün imam & müezzini",
-                deger=f"İmam: {atama.imam.ad_soyad} · Müezzin: {atama.muezzin.ad_soyad}",
-                url=reverse("imam_muezzin_panel"),
-            )
+            imam_url = reverse("imam_muezzin_panel")
+            sonuc["imam"] = [
+                DashboardGunlukGorev(
+                    baslik="İmam",
+                    deger=atama.imam.ad_soyad,
+                    url=imam_url,
+                ),
+                DashboardGunlukGorev(
+                    baslik="Müezzin",
+                    deger=atama.muezzin.ad_soyad,
+                    url=imam_url,
+                ),
+            ]
 
     if yemekcilik_modulu_erisimi_var(user):
         from takip.yemekci_service import bugunun_atamalari
