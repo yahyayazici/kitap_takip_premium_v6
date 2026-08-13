@@ -36,17 +36,14 @@ def ktt_akilli_ozet(request):
         dikkat = etut_bugun_dikkat(hoca)
         ortak = grup_ortak_eksikler(hoca)
 
-    bekleyen_eksikler = (
-        TalebeKonuEksigi.objects.filter(
-            kaynak=TalebeKonuEksigi.Kaynak.KTT,
-            mudahale_durumu="bekliyor",
-            cozuldu=False,
-        )
-        .select_related("talebe", "konu")
-        .order_by("-oncelik", "-tespit_tarihi")[:20]
+    qs = TalebeKonuEksigi.objects.filter(
+        kaynak=TalebeKonuEksigi.Kaynak.KTT,
+        mudahale_durumu="bekliyor",
+        cozuldu=False,
     )
     if hoca:
-        bekleyen_eksikler = bekleyen_eksikler.filter(talebe__etut_hocasi=hoca)
+        qs = qs.filter(talebe__etut_hocasi=hoca)
+    bekleyen_eksikler = qs.select_related("talebe", "konu").order_by("-oncelik", "-tespit_tarihi")[:20]
 
     return render(
         request,
