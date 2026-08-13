@@ -32,6 +32,7 @@ from takip.ziyaret_arac_service import (
     etut_hocalari_listesi,
     geri_al,
     geri_al_kaydet,
+    kapasite_olustu_mesaji,
     kapasite_ozeti,
     otomatik_dagit,
     personel_surucu_adaylari,
@@ -80,6 +81,7 @@ def _plan_ozet_json(plan: ZiyaretPlani) -> dict:
         "atanmamis": ozet.atanmamis,
         "arac_sayisi": ozet.arac_sayisi,
         "toplam_kapasite": ozet.toplam_kapasite,
+        "kapasite_olustu_mesaj": kapasite_olustu_mesaji(ozet.kapasite),
         "kapasite_mesaj": ozet.kapasite.mesaj,
         "kapasite_yeterli": ozet.kapasite.yeterli,
     }
@@ -221,12 +223,17 @@ def ziyaret_arac_etut(request, pk):
                 if plan.durum == ZiyaretPlani.Durum.TASLAK:
                     plan.durum = ZiyaretPlani.Durum.ARAC_TOPLANIYOR
                     plan.save(update_fields=["durum", "guncellenme"])
-                messages.success(request, "Araç eklendi.")
+                oz = kapasite_ozeti(plan)
+                messages.success(
+                    request,
+                    f"Araç eklendi. {kapasite_olustu_mesaji(oz)}",
+                )
 
     araclar = plan.araclar.all()
     if hoca and not plan_yonetimi_var(request.user):
         araclar = araclar.filter(ekleyen=hoca)
 
+    kapasite = kapasite_ozeti(plan)
     return render(
         request,
         "ziyaret_arac_etut.html",
@@ -234,7 +241,8 @@ def ziyaret_arac_etut(request, pk):
             "plan": plan,
             "araclar": araclar,
             "hoca": hoca,
-            "kapasite": kapasite_ozeti(plan),
+            "kapasite": kapasite,
+            "kapasite_olustu": kapasite_olustu_mesaji(kapasite),
             "arac_ekleyebilir": etut_arac_ekleyebilir(plan),
             "arac_ekle_yetkisi": can(request.user, "ziyaret_arac", "create"),
             "duzenleyebilir": etut_arac_duzenleyebilir(plan),
@@ -266,6 +274,7 @@ def ziyaret_arac_planlama(request, pk):
             "etut_hocalari": etut_hocalari_listesi(),
             "sinif_subeler": sinif_sube_listesi(),
             "kontrol": plan_kontrol(plan),
+            "kapasite_olustu": kapasite_olustu_mesaji(planlama_ozeti(plan).kapasite),
         },
     )
 
@@ -278,14 +287,16 @@ def ziyaret_arac_onizleme(request, pk):
         messages.error(request, "Önizleme yetkiniz yok.")
         return redirect("ziyaret_arac_etut", pk=plan.pk)
 
+    ozet = planlama_ozeti(plan)
     return render(
         request,
         "ziyaret_arac_onizleme.html",
         {
             "plan": plan,
             "arac_kartlari": arac_kart_verisi(plan),
-            "ozet": planlama_ozeti(plan),
+            "ozet": ozet,
             "kontrol": plan_kontrol(plan),
+            "kapasite_olustu": kapasite_olustu_mesaji(ozet.kapasite),
         },
     )
 
@@ -570,6 +581,32 @@ def ziyaret_arac_pdf_genel(request, pk):
     ).content.decode("utf-8")
     pdf = html_to_pdf(html, base_url=request.build_absolute_uri("/"))
     dosya = f"ziyaret_arac_plani_{plan.tarih:%Y%m%d}.pdf"
+    return make_pdf_response(pdf, dosya)
+
+
+@login_required
+@require_GET
+@require_permission("ziyaret_arac", "export_pdf")
+def ziyaret_arac_pdf_program(request, pk):
+    if not plan_yonetimi_var(request.user):
+        messages.error(request, "PDF yetkiniz yok.")
+        return redirect("ziyaret_arac_listesi")
+
+    plan = _plan_or_404(pk)
+    kapasite = kapasite_ozeti(plan)
+    html = render(
+        request,
+        "ziyaret_arac_pdf_program.html",
+        {
+            **panel_branding_context(),
+            "plan": plan,
+            "program": plan.program_adimlari.all(),
+            "kapasite": kapasite,
+            "kapasite_olustu": kapasite_olustu_mesaji(kapasite),
+        },
+    ).content.decode("utf-8")
+    pdf = html_to_pdf(html, base_url=request.build_absolute_uri("/"))
+    dosya = f"ziyaret_program_{plan.tarih:%Y%m%d}.pdf"
     return make_pdf_response(pdf, dosya)
 
 

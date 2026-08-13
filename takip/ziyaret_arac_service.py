@@ -137,6 +137,16 @@ def kapasite_ozeti(plan: ZiyaretPlani) -> KapasiteOzet:
     )
 
 
+def kapasite_olustu_mesaji(ozet: KapasiteOzet) -> str:
+    """Araç toplama aşamasında biriken kapasite özeti."""
+    if ozet.arac_sayisi == 0:
+        return "Henüz araç eklenmedi — kişilik kapasitesi oluşmadı."
+    return (
+        f"Toplam {ozet.arac_sayisi} araç ile "
+        f"{ozet.toplam_kapasite} kişilik kapasite oluştu."
+    )
+
+
 def planlama_ozeti(plan: ZiyaretPlani) -> PlanlamaOzet:
     aktif_kayitlar = plan.plan_talebeleri.filter(aktif=True)
     talebe_sayisi = aktif_kayitlar.count()

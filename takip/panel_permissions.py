@@ -173,6 +173,7 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
             "ziyaret_arac_planlama",
             "ziyaret_arac_onizleme",
             "ziyaret_arac_pdf_genel",
+            "ziyaret_arac_pdf_program",
             "ziyaret_arac_pdf_arac",
             "ziyaret_arac_pdf_tum_araclar",
         ),

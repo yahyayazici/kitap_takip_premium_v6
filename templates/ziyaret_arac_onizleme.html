@@ -2,8 +2,8 @@
 {% load static %}
 {% block title %}{{ plan.ad }} · Önizleme{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ziyaret-arac-premium.css' %}?v=za6">
-<link rel="stylesheet" href="{% static 'css/ziyaret-arac-print.css' %}?v=za6" media="print">
+<link rel="stylesheet" href="{% static 'css/ziyaret-arac-premium.css' %}?v=za8">
+<link rel="stylesheet" href="{% static 'css/ziyaret-arac-print.css' %}?v=za8" media="print">
 {% endblock %}
 {% block content %}
 <div class="za-page za-onizleme">
@@ -13,8 +13,9 @@
             <h1>{{ plan.ad }}</h1>
             <p class="za-head-desc">{{ plan.tarih|date:"d F Y" }}</p>
             <div class="za-head-actions">
-                <a href="{% url 'ziyaret_arac_pdf_genel' plan.pk %}" class="primary-btn" target="_blank" rel="noopener">PDF İndir</a>
-                <a href="{% url 'ziyaret_arac_pdf_tum_araclar' plan.pk %}" class="ghost-btn">Tüm Araç PDF'leri (ZIP)</a>
+                <a href="{% url 'ziyaret_arac_pdf_genel' plan.pk %}" class="primary-btn" target="_blank" rel="noopener">Genel Plan PDF</a>
+                <a href="{% url 'ziyaret_arac_pdf_program' plan.pk %}" class="ghost-btn" target="_blank" rel="noopener">Program PDF</a>
+                <a href="{% url 'ziyaret_arac_pdf_tum_araclar' plan.pk %}" class="ghost-btn">Araç PDF'leri (ZIP)</a>
                 <button type="button" class="ghost-btn" onclick="window.print()">Yazdır</button>
                 <a href="{% url 'ziyaret_arac_planlama' plan.pk %}" class="ghost-btn">Planlamaya Dön</a>
                 <form method="post" action="{% url 'ziyaret_arac_hazir' plan.pk %}" style="display:inline">
@@ -31,6 +32,8 @@
         {% for u in kontrol.uyarilar %}<p class="za-alert za-alert--warn">{{ u }}</p>{% endfor %}
     </section>
     {% endif %}
+
+    <p class="za-kapasite-olustu za-no-print{% if ozet.arac_sayisi == 0 %} is-muted{% endif %}">{{ kapasite_olustu }}</p>
 
     <div class="za-stats za-no-print">
         <article><span>Talebe</span><strong>{{ ozet.talebe_sayisi }}</strong></article>

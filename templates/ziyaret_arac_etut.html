@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}{{ plan.ad }} · Araç Ekle{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ziyaret-arac-premium.css' %}?v=za6">
+<link rel="stylesheet" href="{% static 'css/ziyaret-arac-premium.css' %}?v=za8">
 {% endblock %}
 {% block content %}
 <div class="za-page">
@@ -14,11 +14,16 @@
         </div>
     </header>
 
-    <div class="za-stats">
-        <article><span>Araç</span><strong>{{ kapasite.arac_sayisi }}</strong></article>
-        <article><span>Toplam Kapasite</span><strong>{{ kapasite.toplam_kapasite }} talebe</strong></article>
+    <div class="za-ozet-strip">
+        <div class="za-stats">
+            <article><span>Araç</span><strong>{{ kapasite.arac_sayisi }}</strong></article>
+            <article><span>Toplam Kapasite</span><strong>{{ kapasite.toplam_kapasite }} kişi</strong></article>
+        </div>
+        <p class="za-kapasite-olustu{% if kapasite.arac_sayisi == 0 %} is-muted{% endif %}" data-za-kapasite-olustu>{{ kapasite_olustu }}</p>
+        {% if kapasite.talebe_sayisi > 0 or not kapasite.yeterli %}
+        <p class="za-kapasite-banner{% if not kapasite.yeterli %} is-warn{% elif kapasite.yeterli %} is-ok{% endif %}" data-za-kapasite-mesaj>{{ kapasite.mesaj }}</p>
+        {% endif %}
     </div>
-    <p class="za-kapasite-banner{% if not kapasite.yeterli %} is-warn{% elif kapasite.arac_sayisi == 0 %} is-muted{% else %} is-ok{% endif %}">{{ kapasite.mesaj }}</p>
 
     {% if arac_ekleyebilir and arac_ekle_yetkisi %}
     <section class="za-card za-etut-form-card">

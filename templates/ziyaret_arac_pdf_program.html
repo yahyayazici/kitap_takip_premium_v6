@@ -1,0 +1,94 @@
+{% load static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>{{ plan.ad }} · Program Akışı</title>
+    <style>
+        {% include "includes/ziyaret_arac_pdf_css.html" %}
+        .za-pdf-program-page .za-program-saat {
+            width: 88px;
+            font-size: 15px;
+        }
+        .za-pdf-program-page .za-program-text {
+            font-size: 14px;
+        }
+        .za-pdf-program-page .za-program-row td {
+            padding: 12px 0;
+        }
+        .za-pdf-kapasite-strip {
+            margin-top: 16px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            font-size: 11px;
+            color: #64748b;
+            text-align: center;
+        }
+        .za-pdf-kapasite-strip strong {
+            color: #15427f;
+        }
+    </style>
+</head>
+<body>
+<table class="kart-wrap za-pdf-wrap za-pdf-program-page" cellpadding="0" cellspacing="0">
+    <tr>
+        <td class="kart-head za-pdf-head">
+            <img class="za-pdf-logo" src="{% static 'images/cinili-saray-logo-white.png' %}" alt="">
+            <div class="kart-brand">{{ panel_org }}</div>
+            <div class="kart-sub">Ziyaret Program Akışı</div>
+            <p class="za-pdf-kicker">Ziyaret</p>
+            <p class="za-pdf-plan-ad">{{ plan.ad }}</p>
+            <span class="za-pdf-tarih-pill">{{ plan.tarih|date:"d F Y" }}</span>
+        </td>
+    </tr>
+    <tr>
+        <td><hr class="za-gold-rule"></td>
+    </tr>
+    <tr>
+        <td class="kart-body za-pdf-body">
+            <div class="section-block">
+                <div class="section-head">Program Akışı</div>
+                {% if program %}
+                <div style="padding: 16px 16px 14px;">
+                    <table cellpadding="0" cellspacing="0" width="100%">
+                        {% for adim in program %}
+                        <tr class="za-program-row">
+                            <td class="za-program-saat">{{ adim.saat|time:"H.i" }}</td>
+                            <td class="za-program-text">{{ adim.aciklama }}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+                {% else %}
+                <p class="section-empty">Bu plan için henüz program adımı eklenmemiş.</p>
+                {% endif %}
+            </div>
+
+            {% if plan.aciklama %}
+            <div class="section-block" style="margin-top:14px;">
+                <div class="section-head">Açıklama</div>
+                <p class="section-empty" style="color:#334155;text-align:left;">{{ plan.aciklama }}</p>
+            </div>
+            {% endif %}
+
+            <p class="za-pdf-kapasite-strip">
+                <strong>{{ kapasite_olustu }}</strong>
+                {% if kapasite.talebe_sayisi %} · {{ kapasite.mesaj }}{% endif %}
+            </p>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <table class="kart-foot" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="left">{{ panel_short }} · Program</td>
+                    <td class="right">{{ plan.tarih|date:"d.m.Y" }}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

@@ -21,6 +21,11 @@ urlpatterns = [
     ),
     path("<int:pk>/pdf/", views.ziyaret_arac_pdf_genel, name="ziyaret_arac_pdf_genel"),
     path(
+        "<int:pk>/pdf/program/",
+        views.ziyaret_arac_pdf_program,
+        name="ziyaret_arac_pdf_program",
+    ),
+    path(
         "<int:pk>/pdf/arac/<int:arac_id>/",
         views.ziyaret_arac_pdf_arac,
         name="ziyaret_arac_pdf_arac",

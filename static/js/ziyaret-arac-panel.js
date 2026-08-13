@@ -43,6 +43,11 @@
             var el = root.querySelector("[" + attr + "]");
             if (el) el.textContent = map[attr];
         });
+        var olustu = qs("[data-za-kapasite-olustu]", root);
+        if (olustu && ozet.kapasite_olustu_mesaj) {
+            olustu.textContent = ozet.kapasite_olustu_mesaj;
+            olustu.classList.toggle("is-muted", !ozet.arac_sayisi);
+        }
         var mesaj = qs("[data-za-kapasite-mesaj]", root);
         if (mesaj && ozet.kapasite_mesaj) {
             mesaj.textContent = ozet.kapasite_mesaj;

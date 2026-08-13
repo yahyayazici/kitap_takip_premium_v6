@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}{{ plan.ad }} · Planlama{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ziyaret-arac-premium.css' %}?v=za7">
+<link rel="stylesheet" href="{% static 'css/ziyaret-arac-premium.css' %}?v=za8">
 {% endblock %}
 {% block content %}
 <div class="za-page za-planlama" data-za-planlama
@@ -24,6 +24,7 @@
                 <button type="button" class="ghost-btn" data-za-yeniden-dagit>Yeniden Dağıt</button>
                 <button type="button" class="ghost-btn" data-za-geri-al>Geri Al</button>
                 <a href="{% url 'ziyaret_arac_pdf_tum_araclar' plan.pk %}" class="ghost-btn">Araç PDF'leri (ZIP)</a>
+                <a href="{% url 'ziyaret_arac_pdf_program' plan.pk %}" class="ghost-btn" target="_blank" rel="noopener">Program PDF</a>
                 <a href="{% url 'ziyaret_arac_pdf_genel' plan.pk %}" class="ghost-btn" target="_blank" rel="noopener">Genel PDF</a>
                 <a href="{% url 'ziyaret_arac_onizleme' plan.pk %}" class="ghost-btn">Önizleme</a>
                 <a href="{% url 'ziyaret_arac_duzenle' plan.pk %}" class="ghost-btn">Plan Ayarları</a>
@@ -39,7 +40,10 @@
             <article><span>Araç</span><strong data-ozet-arac>{{ ozet.arac_sayisi }}</strong></article>
             <article><span>Kapasite</span><strong data-ozet-kapasite>{{ ozet.toplam_kapasite }}</strong></article>
         </div>
+        <p class="za-kapasite-olustu{% if ozet.arac_sayisi == 0 %} is-muted{% endif %}" data-za-kapasite-olustu>{{ kapasite_olustu }}</p>
+        {% if ozet.talebe_sayisi > 0 or not ozet.kapasite.yeterli %}
         <p class="za-kapasite-banner{% if not ozet.kapasite.yeterli %} is-warn{% elif ozet.atanmamis == 0 %} is-ok{% else %} is-muted{% endif %}" data-za-kapasite-mesaj>{{ ozet.kapasite.mesaj }}</p>
+        {% endif %}
     </div>
 
     <section class="za-card za-talebe-ekle-card">
@@ -127,5 +131,5 @@
     </div>
 </div>
 
-<script src="{% static 'js/ziyaret-arac-panel.js' %}?v=za7"></script>
+<script src="{% static 'js/ziyaret-arac-panel.js' %}?v=za8"></script>
 {% endblock %}
