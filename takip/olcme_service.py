@@ -30,6 +30,17 @@ def yetkili_olcme_sinavlari(user) -> QuerySet[KttSinav]:
     return yetkili_ktt_sinavlari(user)
 
 
+def olcme_silebilir(user, sinav: KttSinav) -> bool:
+    from takip.ktt_service import ktt_duzenleyebilir, ktt_tam_yetki
+    from takip.permissions.service import can
+
+    if not can(user, "olcme", "edit"):
+        return False
+    if user.is_superuser or ktt_tam_yetki(user):
+        return True
+    return ktt_duzenleyebilir(user, sinav)
+
+
 def net_hesapla(dogru: int, yanlis: int, goturme_orani: int = 4) -> Decimal:
     net = Decimal(int(dogru or 0))
     if goturme_orani and int(yanlis or 0):

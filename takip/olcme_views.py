@@ -58,6 +58,7 @@ from takip.olcme_service import (
     zimmet_ozet,
     yayinlanabilir_mi,
     zayif_konulari_etut_planina_aktar,
+    olcme_silebilir,
 )
 from takip.olcme_qr import optik_form_satirlari, optik_karekod_parse, varsayilan_kitapcik
 from takip.permissions.decorators import require_permission
@@ -144,13 +145,15 @@ def olcme_sinav_listesi(request):
     qs = yetkili_olcme_sinavlari(request.user).order_by("-sinav_tarihi", "-id")
     if tur:
         qs = qs.filter(sinav_turu=tur)
+    sinavlar = list(qs[:100])
     return render(
         request,
         "olcme/sinav_listesi.html",
         {
-            "sinavlar": qs[:100],
+            "sinavlar": sinavlar,
             "tur": tur,
             "tur_secenekleri": KttSinav.SinavTuru.choices,
+            "silinebilir_ids": {s.pk for s in sinavlar if olcme_silebilir(request.user, s)},
         },
     )
 
@@ -399,8 +402,24 @@ def olcme_sinav_detay(request, pk):
             "sonuc_tamam": KttSonucu.objects.filter(ktt=sinav).count(),
             "yayinlayabilir": perm_can(request.user, "olcme", "yayinla"),
             "veli_yonetebilir": perm_can(request.user, "olcme", "yayinla"),
+            "silebilir": olcme_silebilir(request.user, sinav),
         },
     )
+
+
+@login_required
+@require_permission("olcme", "edit")
+@require_POST
+def olcme_sinav_sil(request, pk):
+    sinav = _sinav_or_404(request, pk)
+    if not olcme_silebilir(request.user, sinav):
+        messages.error(request, "Bu sınavı silme yetkiniz yok.")
+        return redirect("olcme_sinav_detay", pk=pk)
+
+    ad = sinav.ad
+    sinav.delete()
+    messages.success(request, f"{ad} silindi.")
+    return redirect("olcme_sinav_listesi")
 
 
 @login_required

@@ -37,6 +37,12 @@
             <div class="olcme-list-quick">
                 <a href="{% url 'olcme_sinav_zimmet' s.pk %}" class="ghost-btn olcme-btn-sm">Zimmet</a>
                 <a href="{% url 'olcme_sinav_sonuc_toplu' s.pk %}" class="ghost-btn olcme-btn-sm">Sonuç</a>
+                {% if s.pk in silinebilir_ids %}
+                <form method="post" action="{% url 'olcme_sinav_sil' s.pk %}" class="olcme-inline-delete" onsubmit="return confirm('{{ s.ad|escapejs }} silinsin mi?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-danger olcme-btn-sm">Sil</button>
+                </form>
+                {% endif %}
             </div>
         </article>
         {% empty %}

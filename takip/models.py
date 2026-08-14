@@ -62,6 +62,10 @@ class SinifSube(models.Model):
     def __str__(self):
         return f"{self.sinif}/{self.sube}"
 
+    @property
+    def etiket(self) -> str:
+        return f"{self.sinif}-{self.sube}"
+
 
 class PersonelProfili(models.Model):
     class Rol(models.TextChoices):

@@ -17,6 +17,12 @@
             <a href="{% url 'olcme_sinav_zimmet' sinav.pk %}" class="primary-btn">Soru Zimmetle</a>
             {% endif %}
             <a href="{% url 'olcme_sinav_sonuc_toplu' sinav.pk %}" class="ghost-btn">Toplu Sonuç</a>
+            {% if silebilir %}
+            <form method="post" action="{% url 'olcme_sinav_sil' sinav.pk %}" class="olcme-inline-delete" onsubmit="return confirm('{{ sinav.ad|escapejs }} silinsin mi?');">
+                {% csrf_token %}
+                <button type="submit" class="btn-danger">Sil</button>
+            </form>
+            {% endif %}
         </div>
     </header>
 

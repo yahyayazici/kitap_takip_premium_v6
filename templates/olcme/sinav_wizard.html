@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Sınav Oluştur · Ölçme Merkezi{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/olcme-premium.css' %}?v=ol5">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/olcme-premium.css' %}?v=ol11">{% endblock %}
 {% block content %}
 <div class="olcme-page">
     <header class="page-head patterned-page-head olcme-head olcme-head--compact">
@@ -38,9 +38,15 @@
             {% endfor %}
             <fieldset class="olcme-fieldset">
                 <legend>Hedef sınıflar</legend>
-                {% for sinif in sinif_secenekleri %}
-                <label class="olcme-check"><input type="checkbox" name="sinif_subeler" value="{{ sinif.etiket }}"{% if sinif.etiket in secili_sinif_etiketleri %} checked{% endif %}> {{ sinif.etiket }}</label>
-                {% endfor %}
+                {% if sinif_secenekleri %}
+                <div class="olcme-checkbox-grid">
+                    {% for sinif in sinif_secenekleri %}
+                    <label class="olcme-check"><input type="checkbox" name="sinif_subeler" value="{{ sinif.etiket }}"{% if sinif.etiket in secili_sinif_etiketleri %} checked{% elif not secili_sinif_etiketleri and sinif_secenekleri|length == 1 %} checked{% endif %}> {{ sinif.etiket }}</label>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="olcme-muted">Size tanımlı sınıf bulunamadı. Kurum idaresinden sorumlu sınıf ataması isteyin.</p>
+                {% endif %}
             </fieldset>
             <button type="submit" class="primary-btn">Şablondan Oluştur →</button>
         </form>
@@ -64,11 +70,17 @@
         {% endfor %}
         <fieldset class="olcme-fieldset">
             <legend>Hedef sınıflar</legend>
-            {% for sinif in sinif_secenekleri %}
-            <label class="olcme-check"><input type="checkbox" name="sinif_subeler" value="{{ sinif.etiket }}"{% if sinif.etiket in secili_sinif_etiketleri %} checked{% endif %}> {{ sinif.etiket }}</label>
-            {% endfor %}
+            {% if sinif_secenekleri %}
+            <div class="olcme-checkbox-grid">
+                {% for sinif in sinif_secenekleri %}
+                <label class="olcme-check"><input type="checkbox" name="sinif_subeler" value="{{ sinif.etiket }}"{% if sinif.etiket in secili_sinif_etiketleri %} checked{% elif not secili_sinif_etiketleri and sinif_secenekleri|length == 1 %} checked{% endif %}> {{ sinif.etiket }}</label>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="olcme-muted">Size tanımlı sınıf bulunamadı. Kurum idaresinden sorumlu sınıf ataması isteyin.</p>
+            {% endif %}
         </fieldset>
-        <button type="submit" class="primary-btn">{% if sinav %}Kaydet →{% else %}Devam →{% endif %}</button>
+        <button type="submit" class="primary-btn"{% if not sinif_secenekleri %} disabled{% endif %}>{% if sinav %}Kaydet →{% else %}Devam →{% endif %}</button>
     </form>
     </section>
 

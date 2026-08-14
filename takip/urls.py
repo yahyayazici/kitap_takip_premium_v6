@@ -228,6 +228,7 @@ urlpatterns = [
     path("olcme/sinav/yeni/", olcme_views.olcme_sinav_wizard_yeni, name="olcme_sinav_wizard_yeni"),
     path("olcme/sinav/<int:pk>/duzenle/", olcme_views.olcme_sinav_wizard, name="olcme_sinav_wizard"),
     path("olcme/sinav/<int:pk>/", olcme_views.olcme_sinav_detay, name="olcme_sinav_detay"),
+    path("olcme/sinav/<int:pk>/sil/", olcme_views.olcme_sinav_sil, name="olcme_sinav_sil"),
     path("olcme/sinav/<int:pk>/zimmet/", olcme_views.olcme_sinav_zimmet, name="olcme_sinav_zimmet"),
     path("olcme/sinav/<int:pk>/sablondan/", olcme_views.olcme_sinav_sablondan, name="olcme_sinav_sablondan"),
     path("olcme/sinav/<int:pk>/sablon-kaydet/", olcme_views.olcme_sinav_sablon_kaydet, name="olcme_sinav_sablon_kaydet"),
