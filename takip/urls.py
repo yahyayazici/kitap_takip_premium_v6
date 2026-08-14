@@ -22,6 +22,7 @@ from . import bildirim_views
 from . import akademik_mudahale_views
 from . import ktt_views
 from . import ktt_akilli_views
+from . import olcme_views
 from . import soru_takip_views
 from . import ogretmen_views
 from . import talebe_panel_views
@@ -222,6 +223,43 @@ urlpatterns = [
     path("raporlar/", views.raporlar, name="raporlar"),
     path("raporlar/pdf/", views.okuma_raporu_pdf, name="okuma_raporu_pdf"),
 
+    path("olcme/", olcme_views.olcme_hub, name="olcme_hub"),
+    path("olcme/sinavlar/", olcme_views.olcme_sinav_listesi, name="olcme_sinav_listesi"),
+    path("olcme/sinav/yeni/", olcme_views.olcme_sinav_wizard_yeni, name="olcme_sinav_wizard_yeni"),
+    path("olcme/sinav/<int:pk>/duzenle/", olcme_views.olcme_sinav_wizard, name="olcme_sinav_wizard"),
+    path("olcme/sinav/<int:pk>/", olcme_views.olcme_sinav_detay, name="olcme_sinav_detay"),
+    path("olcme/sinav/<int:pk>/zimmet/", olcme_views.olcme_sinav_zimmet, name="olcme_sinav_zimmet"),
+    path("olcme/sinav/<int:pk>/sablondan/", olcme_views.olcme_sinav_sablondan, name="olcme_sinav_sablondan"),
+    path("olcme/sinav/<int:pk>/sablon-kaydet/", olcme_views.olcme_sinav_sablon_kaydet, name="olcme_sinav_sablon_kaydet"),
+    path("olcme/sinav/<int:pk>/sonuc/", olcme_views.olcme_sinav_sonuc_soru, name="olcme_sinav_sonuc_soru"),
+    path("olcme/sinav/<int:pk>/sonuc-toplu/", olcme_views.olcme_sinav_sonuc_toplu, name="olcme_sinav_sonuc_toplu"),
+    path("olcme/sinav/<int:pk>/durum/", olcme_views.olcme_sinav_durum, name="olcme_sinav_durum"),
+    path(
+        "olcme/sinav/<int:pk>/veli-toggle/",
+        olcme_views.olcme_sinav_veli_toggle,
+        name="olcme_sinav_veli_toggle",
+    ),
+    path("olcme/sinav/<int:pk>/analiz-excel/", olcme_views.olcme_sinav_analiz_excel, name="olcme_sinav_analiz_excel"),
+    path("olcme/sinav/<int:pk>/sonuc-csv/", olcme_views.olcme_sinav_sonuc_csv, name="olcme_sinav_sonuc_csv"),
+    path("olcme/sinav/<int:pk>/optik-pdf/", olcme_views.olcme_optik_form_pdf, name="olcme_optik_form_pdf"),
+    path("olcme/raporlar/", olcme_views.olcme_rapor_sec, name="olcme_rapor_sec"),
+    path("olcme/konu-analiz/", olcme_views.olcme_konu_analiz_sec, name="olcme_konu_analiz_sec"),
+    path("olcme/sinav/<int:pk>/konu-analiz/", olcme_views.olcme_konu_analiz, name="olcme_konu_analiz"),
+    path(
+        "olcme/sinav/<int:pk>/etut-aktar/",
+        olcme_views.olcme_sinav_etut_aktar,
+        name="olcme_sinav_etut_aktar",
+    ),
+    path("olcme/konu-havuzu/", olcme_views.olcme_konu_havuzu, name="olcme_konu_havuzu"),
+    path("olcme/api/konu/", olcme_views.olcme_konu_ara_api, name="olcme_konu_ara_api"),
+    path("olcme/api/kazanim/", olcme_views.olcme_kazanim_ara_api, name="olcme_kazanim_ara_api"),
+    path("olcme/sablonlar/", olcme_views.olcme_sablon_listesi, name="olcme_sablon_listesi"),
+    path("olcme/optik/", olcme_views.olcme_optik_sec, name="olcme_optik_sec"),
+    path("olcme/optik-oku/", olcme_views.olcme_optik_oku_sec, name="olcme_optik_oku_sec"),
+    path("olcme/sinav/<int:pk>/optik/", olcme_views.olcme_optik_form, name="olcme_optik_form"),
+    path("olcme/sinav/<int:pk>/optik-oku/", olcme_views.olcme_optik_oku, name="olcme_optik_oku"),
+    path("olcme/sinav/<int:pk>/optik-mobil/", olcme_views.olcme_optik_mobil, name="olcme_optik_mobil"),
+    path("olcme/sinav/<int:pk>/optik-foto/", olcme_views.olcme_optik_foto, name="olcme_optik_foto"),
     path("ktt/", ktt_views.ktt_listesi, name="ktt_listesi"),
     path("ktt/akilli/", ktt_akilli_views.ktt_akilli_ozet, name="ktt_akilli_ozet"),
     path("ktt/konu-oneri/", ktt_akilli_views.ktt_konu_oneri, name="ktt_konu_oneri"),

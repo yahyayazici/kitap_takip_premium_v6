@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Sınav Şablonları{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/olcme-premium.css' %}?v=ol1">{% endblock %}
+{% block content %}
+<div class="olcme-page">
+    <header class="page-head patterned-page-head olcme-head olcme-head--compact">
+        <div class="olcme-head-main"><h1>Sınav Şablonları</h1></div>
+        <a href="{% url 'olcme_hub' %}" class="ghost-btn">← Merkez</a>
+    </header>
+    <div class="olcme-list">
+        {% for s in sablonlar %}
+        <div class="olcme-list-row">
+            <div><strong>{{ s.ad }}</strong><span class="olcme-muted">{{ s.sinav_turu }} · {{ s.soru_sayisi }} soru · {{ s.sinif_seviyesi }}. sınıf</span></div>
+            {% if olusturabilir %}
+            <a href="{% url 'olcme_sinav_wizard_yeni' %}?sablon={{ s.pk }}" class="ghost-btn">Sınav Oluştur</a>
+            {% endif %}
+        </div>
+        {% empty %}
+        <p class="olcme-empty">Henüz şablon yok. Tamamlanan bir sınavın detay sayfasından şablon kaydedebilirsiniz.</p>
+        {% endfor %}
+    </div>
+    {% if olusturabilir %}
+    <a href="{% url 'olcme_sinav_wizard_yeni' %}" class="primary-btn">+ Yeni Sınav</a>
+    {% endif %}
+</div>
+{% endblock %}

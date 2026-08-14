@@ -25,6 +25,14 @@ class KonuKatalogu(models.Model):
         help_text="Örn. 5, 6, 7, 8",
     )
     brans = models.CharField(max_length=20, choices=Brans.choices, verbose_name="Branş")
+    unite = models.ForeignKey(
+        "OlcumUnite",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="konular",
+        verbose_name="Ünite",
+    )
     konu_ad = models.CharField(max_length=200, verbose_name="Konu adı")
     slug = models.SlugField(max_length=220, blank=True)
     aciklama = models.TextField(blank=True, verbose_name="Açıklama")

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Konu Analizi · {{ sinav.ad }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/olcme-premium.css' %}?v=ol4">{% endblock %}
+{% block content %}
+<div class="olcme-page">
+    <header class="page-head patterned-page-head olcme-head olcme-head--compact">
+        <div class="olcme-head-main">
+            <p class="olcme-kicker">KONU & KAZANIM ANALİZİ</p>
+            <h1>{{ sinav.ad }}</h1>
+            {% if not soru_bazli %}
+            <p class="olcme-desc">Soru bazlı cevap girilmedi; başarı yüzdeleri hesaplanmaz.</p>
+            {% elif etut_aktarabilir %}
+            <p class="olcme-desc">Zayıf konuları bu haftanın etüt planındaki boş slotlara tek tıkla aktarabilirsiniz.</p>
+            {% endif %}
+        </div>
+        <a href="{% url 'olcme_konu_analiz_sec' %}" class="ghost-btn">← Sınavlar</a>
+        <a href="{% url 'olcme_sinav_analiz_excel' sinav.pk %}" class="ghost-btn">Excel</a>
+        {% if soru_bazli and etut_aktarabilir %}
+        <form method="post" action="{% url 'olcme_sinav_etut_aktar' sinav.pk %}" class="olcme-inline-actions">
+            {% csrf_token %}
+            <button type="submit" class="primary-btn">Etüt Planına Aktar</button>
+        </form>
+        {% endif %}
+    </header>
+
+    <section class="olcme-panel">
+        <div class="olcme-panel-head"><h2>Konu bazlı</h2></div>
+        <div class="olcme-zimmet-table-wrap cs-table-wrap">
+            <table class="olcme-zimmet-table">
+                <thead>
+                    <tr>
+                        <th>Konu</th>
+                        <th>Soru</th>
+                        {% if soru_bazli %}<th>D</th><th>Y</th><th>B</th><th>Başarı</th>{% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in analiz %}
+                    <tr{% if row.kanit_dusuk %} class="olcme-row-warn"{% endif %}>
+                        <td>{{ row.konu_ad }}{% if row.kanit_dusuk %} <span class="olcme-pill olcme-pill--warn">Tek soru</span>{% endif %}</td>
+                        <td>{{ row.soru_sayisi }} (S{{ row.soru_nolar|join:", S" }})</td>
+                        {% if soru_bazli %}
+                        <td>{{ row.dogru }}</td><td>{{ row.yanlis }}</td><td>{{ row.bos }}</td>
+                        <td><strong>{{ row.basari_yuzde }}%</strong></td>
+                        {% endif %}
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="olcme-empty">Zimmetlenmiş konu yok.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    {% if kazanim_analiz %}
+    <section class="olcme-panel">
+        <div class="olcme-panel-head"><h2>Kazanım bazlı</h2></div>
+        <div class="olcme-zimmet-table-wrap cs-table-wrap">
+            <table class="olcme-zimmet-table">
+                <thead>
+                    <tr>
+                        <th>Kazanım</th>
+                        <th>Konu</th>
+                        <th>Soru</th>
+                        {% if soru_bazli %}<th>D</th><th>Y</th><th>B</th><th>Başarı</th>{% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in kazanim_analiz %}
+                    <tr{% if row.kanit_dusuk %} class="olcme-row-warn"{% endif %}>
+                        <td>{{ row.kazanim_ad }}</td>
+                        <td>{{ row.konu_ad }}</td>
+                        <td>{{ row.soru_sayisi }}</td>
+                        {% if soru_bazli %}
+                        <td>{{ row.dogru }}</td><td>{{ row.yanlis }}</td><td>{{ row.bos }}</td>
+                        <td><strong>{{ row.basari_yuzde }}%</strong></td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

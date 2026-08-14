@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Optik Tara · {{ sinav.ad }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/olcme-premium.css' %}?v=ol10">{% endblock %}
+{% block content %}
+<div class="olcme-page olcme-foto-page">
+    <header class="page-head patterned-page-head olcme-head olcme-head--compact">
+        <div class="olcme-head-main">
+            <p class="olcme-kicker">OPTİK TARA</p>
+            <h1>{{ sinav.ad }}</h1>
+            <p class="olcme-desc">Form fotoğrafını çekin veya karekodu tarayın — cevaplar otomatik dolar.</p>
+        </div>
+        <div class="olcme-head-actions">
+            <a href="{% url 'olcme_optik_sec' %}" class="ghost-btn">← Optik</a>
+        </div>
+    </header>
+
+    {% if talebe %}
+    <p class="olcme-foto-talebe-banner">
+        {{ talebe.ad_soyad }}{% if talebe.talebe_no %} · No {{ talebe.talebe_no }}{% endif %}
+        · Kitapçık <strong>{{ kitapcik }}</strong>
+    </p>
+    {% endif %}
+
+    <section class="olcme-panel olcme-foto-main">
+        <label class="olcme-foto-upload">
+            <span class="primary-btn">{% if talebe %}Fotoğraf çek / yükle{% else %}Form fotoğrafı çek{% endif %}</span>
+            <input type="file" id="olcme-foto-input" accept="image/*" capture="environment" hidden>
+        </label>
+        <div class="olcme-foto-canvas-wrap" id="olcme-foto-canvas-wrap" hidden>
+            <canvas id="olcme-foto-canvas" class="olcme-foto-canvas"></canvas>
+        </div>
+        <p class="olcme-muted olcme-foto-status" id="olcme-foto-status"></p>
+
+        {% if talebe %}
+        <button type="button" class="primary-btn olcme-foto-scan-main" id="olcme-foto-scan">Cevapları Tara</button>
+        <details class="olcme-foto-advanced">
+            <summary>Hizalama ayarları</summary>
+            <div class="olcme-foto-calibration">
+                <label>Üst %<input type="range" id="olcme-cal-top" min="10" max="40" value="22"></label>
+                <label>Sol %<input type="range" id="olcme-cal-left" min="2" max="20" value="8"></label>
+                <label>Genişlik %<input type="range" id="olcme-cal-width" min="60" max="95" value="84"></label>
+                <label>Yükseklik %<input type="range" id="olcme-cal-height" min="50" max="85" value="72"></label>
+                <label>Eşik %<input type="range" id="olcme-cal-threshold" min="15" max="55" value="28"></label>
+            </div>
+        </details>
+        {% else %}
+        <details class="olcme-foto-advanced">
+            <summary>Talebe elle seç</summary>
+            <form method="get" class="olcme-filter">
+                <select name="talebe" onchange="if(this.value){this.form.submit();}">
+                    <option value="">Talebe seçin</option>
+                    {% for t in talebeler %}
+                    <option value="{{ t.pk }}">{{ t.ad_soyad }}{% if t.talebe_no %} · {{ t.talebe_no }}{% endif %}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </details>
+        {% endif %}
+    </section>
+
+    {% if talebe %}
+    <form method="post" class="olcme-panel" id="olcme-foto-save-form">
+        {% csrf_token %}
+        <input type="hidden" name="talebe_id" value="{{ talebe.pk }}">
+        <input type="hidden" name="kitapcik" value="{{ kitapcik }}">
+        <div class="olcme-foto-results olcme-sonuc-sorular">
+            {% for s in sorular %}
+            <label class="olcme-sonuc-item">
+                <span>S{{ s.soru_no }}</span>
+                <select name="s_{{ s.soru_no }}" data-soru="{{ s.soru_no }}">
+                    {% for sec in secenekler %}
+                    <option value="{{ sec }}"{% if s.secilen == sec %} selected{% endif %}>{{ sec }}</option>
+                    {% endfor %}
+                    <option value="BOS"{% if s.secilen == "BOS" %} selected{% endif %}>Boş</option>
+                </select>
+            </label>
+            {% endfor %}
+        </div>
+        <div class="olcme-foto-save-row">
+            <button type="submit" class="primary-btn">Kaydet</button>
+            <a href="{% url 'olcme_optik_foto' sinav.pk %}" class="ghost-btn">Sonraki talebe</a>
+        </div>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+window.OLCME_FOTO = {
+    sinavId: {{ sinav.pk }},
+    soruSayisi: {{ sinav.soru_sayisi }},
+    secenekler: [{% for sec in secenekler %}"{{ sec }}"{% if not forloop.last %}, {% endif %}{% endfor %}],
+    baseUrl: "{% url 'olcme_optik_foto' sinav.pk %}",
+    hasTalebe: {% if talebe %}true{% else %}false{% endif %}
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js" crossorigin="anonymous"></script>
+<script src="{% static 'js/olcme-optik-foto.js' %}?v=ol4"></script>
+{% endblock %}

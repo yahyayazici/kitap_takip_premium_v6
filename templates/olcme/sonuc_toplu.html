@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Toplu Sonuç · {{ sinav.ad }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/olcme-premium.css' %}?v=ol4">{% endblock %}
+{% block content %}
+<div class="olcme-page">
+    <header class="page-head patterned-page-head olcme-head olcme-head--compact">
+        <div class="olcme-head-main">
+            <p class="olcme-kicker">TOPLU SONUÇ</p>
+            <h1>{{ sinav.ad }}</h1>
+            <p class="olcme-desc">{{ tamam_sayisi }}/{{ toplam_sayisi }} talebe tamamlandı</p>
+        </div>
+        <div class="olcme-head-actions">
+            <a href="{% url 'olcme_optik_foto' sinav.pk %}" class="primary-btn">Optik Tara</a>
+            <a href="{% url 'olcme_sinav_sonuc_csv' sinav.pk %}" class="ghost-btn">CSV</a>
+            <a href="{% url 'olcme_sinav_detay' sinav.pk %}" class="ghost-btn">← Sınav</a>
+        </div>
+    </header>
+
+    <section class="olcme-panel">
+        <div class="olcme-panel-head"><h2>Toplu yapıştır</h2></div>
+        <form method="post" class="olcme-form-stack" enctype="multipart/form-data">
+            {% csrf_token %}
+            <select name="kitapcik"><option value="A">Kitapçık A</option><option value="B">B</option></select>
+            <input type="file" name="optik_dosya" accept=".txt,text/plain">
+            <textarea name="optik_metin" rows="8" placeholder="talebe_no|ABCDE..."></textarea>
+            <button type="submit" class="primary-btn">Toplu Kaydet</button>
+        </form>
+    </section>
+
+    <div class="olcme-zimmet-table-wrap cs-table-wrap">
+        <table class="olcme-zimmet-table">
+            <thead>
+                <tr>
+                    <th>Talebe</th>
+                    <th>Cevap</th>
+                    <th>D · Y · B</th>
+                    <th>Net</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in ozet %}
+                <tr{% if row.tamam %} class="olcme-row-ok"{% elif row.kismi %} class="olcme-row-warn"{% endif %}>
+                    <td>
+                        <strong>{{ row.talebe.ad_soyad }}</strong>
+                        {% if row.talebe.talebe_no %}<br><span class="olcme-muted">No: {{ row.talebe.talebe_no }}</span>{% endif %}
+                    </td>
+                    <td>
+                        {% if row.tamam %}<span class="olcme-pill olcme-pill--ok">Tamam</span>
+                        {% elif row.kismi %}<span class="olcme-pill olcme-pill--warn">{{ row.cevap_adet }}/{{ sinav.soru_sayisi }}</span>
+                        {% else %}<span class="olcme-muted">—</span>{% endif %}
+                    </td>
+                    <td>{% if row.sonuc %}{{ row.dogru }} · {{ row.yanlis }} · {{ row.bos }}{% else %}—{% endif %}</td>
+                    <td>{% if row.net is not None %}<strong>{{ row.net }}</strong>{% else %}—{% endif %}</td>
+                    <td><a href="{% url 'olcme_sinav_sonuc_soru' sinav.pk %}?talebe={{ row.talebe.pk }}" class="ghost-btn olcme-btn-sm">Düzenle</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="olcme-empty">Talebe yok.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Sınavlar · Ölçme Merkezi{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/olcme-premium.css' %}?v=ol3">{% endblock %}
+{% block content %}
+<div class="olcme-page">
+    <header class="page-head patterned-page-head olcme-head olcme-head--compact">
+        <div class="olcme-head-main">
+            <p class="olcme-kicker">ÖLÇME MERKEZİ</p>
+            <h1>Sınavlar</h1>
+        </div>
+        <div class="olcme-head-actions">
+            <a href="{% url 'olcme_hub' %}" class="ghost-btn">← Merkez</a>
+            <a href="{% url 'olcme_sinav_wizard_yeni' %}" class="primary-btn">+ Yeni</a>
+        </div>
+    </header>
+
+    <form method="get" class="olcme-filter">
+        <select name="tur" onchange="this.form.submit()">
+            <option value="">Tüm türler</option>
+            {% for val, label in tur_secenekleri %}
+            <option value="{{ val }}"{% if tur == val %} selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </form>
+
+    <div class="olcme-list olcme-list--actions">
+        {% for s in sinavlar %}
+        <article class="olcme-list-row olcme-list-row--split">
+            <a class="olcme-list-main" href="{% url 'olcme_sinav_detay' s.pk %}">
+                <div>
+                    <strong>{{ s.ad }}</strong>
+                    <span class="olcme-muted">{{ s.get_sinav_turu_display }} · {{ s.soru_sayisi }} soru · {{ s.sinav_tarihi|date:"d.m.Y" }}</span>
+                </div>
+                <span class="olcme-pill">{{ s.get_durum_display }}</span>
+            </a>
+            <div class="olcme-list-quick">
+                <a href="{% url 'olcme_sinav_zimmet' s.pk %}" class="ghost-btn olcme-btn-sm">Zimmet</a>
+                <a href="{% url 'olcme_sinav_sonuc_toplu' s.pk %}" class="ghost-btn olcme-btn-sm">Sonuç</a>
+            </div>
+        </article>
+        {% empty %}
+        <p class="olcme-empty">Henüz sınav yok.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Sınav Oluştur · Ölçme Merkezi{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/olcme-premium.css' %}?v=ol5">{% endblock %}
+{% block content %}
+<div class="olcme-page">
+    <header class="page-head patterned-page-head olcme-head olcme-head--compact">
+        <div class="olcme-head-main">
+            <p class="olcme-kicker">YENİ SINAV · ADIM {{ step }}/6</p>
+            <h1>{% if sinav %}{{ sinav.ad }}{% else %}Sınav oluştur{% endif %}</h1>
+        </div>
+        <a href="{% url 'olcme_sinav_listesi' %}" class="ghost-btn">← Sınavlar</a>
+    </header>
+
+    <nav class="olcme-steps" aria-label="Sınav adımları">
+        {% for n in "123456" %}
+        <span class="olcme-step{% if step == forloop.counter %} is-active{% elif step > forloop.counter %} is-done{% endif %}">{{ forloop.counter }}</span>
+        {% endfor %}
+    </nav>
+
+    {% if step == 1 %}
+    {% if sablonlar and not sinav %}
+    <section class="olcme-panel">
+        <div class="olcme-panel-head"><h2>Şablondan oluştur</h2></div>
+        <form method="post" class="olcme-form-card">
+            {% csrf_token %}
+            <input type="hidden" name="step" value="1">
+            <label>Şablon
+                <select name="sablon_id" required>
+                    <option value="">Seçin</option>
+                    {% for s in sablonlar %}
+                    <option value="{{ s.pk }}"{% if secili_sablon_id == s.pk|stringformat:"s" %} selected{% endif %}>{{ s.ad }} · {{ s.soru_sayisi }} soru · {{ s.sinif_seviyesi }}. sınıf</option>
+                    {% endfor %}
+                </select>
+            </label>
+            {% for field in form %}
+            <label>{{ field.label }}{{ field }}{% if field.errors %}<em class="olcme-error">{{ field.errors.0 }}</em>{% endif %}</label>
+            {% endfor %}
+            <fieldset class="olcme-fieldset">
+                <legend>Hedef sınıflar</legend>
+                {% for sinif in sinif_secenekleri %}
+                <label class="olcme-check"><input type="checkbox" name="sinif_subeler" value="{{ sinif.etiket }}"{% if sinif.etiket in secili_sinif_etiketleri %} checked{% endif %}> {{ sinif.etiket }}</label>
+                {% endfor %}
+            </fieldset>
+            <button type="submit" class="primary-btn">Şablondan Oluştur →</button>
+        </form>
+    </section>
+    {% endif %}
+
+    <section class="olcme-panel">
+        <div class="olcme-panel-head"><h2>{% if sinav %}Sınav bilgilerini düzenle{% else %}Sıfırdan oluştur{% endif %}</h2></div>
+    <form method="post" class="olcme-form-card">
+        {% csrf_token %}
+        <input type="hidden" name="step" value="1">
+        <label>Sınav türü
+            <select name="sinav_turu">
+                {% for val, label in tur_secenekleri %}
+                <option value="{{ val }}"{% if sinav and sinav.sinav_turu == val %} selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        {% for field in form %}
+        <label>{{ field.label }}{{ field }}{% if field.errors %}<em class="olcme-error">{{ field.errors.0 }}</em>{% endif %}</label>
+        {% endfor %}
+        <fieldset class="olcme-fieldset">
+            <legend>Hedef sınıflar</legend>
+            {% for sinif in sinif_secenekleri %}
+            <label class="olcme-check"><input type="checkbox" name="sinif_subeler" value="{{ sinif.etiket }}"{% if sinif.etiket in secili_sinif_etiketleri %} checked{% endif %}> {{ sinif.etiket }}</label>
+            {% endfor %}
+        </fieldset>
+        <button type="submit" class="primary-btn">{% if sinav %}Kaydet →{% else %}Devam →{% endif %}</button>
+    </form>
+    </section>
+
+    {% elif step == 2 %}
+    <form method="post" class="olcme-form-card olcme-wizard-step2">
+        {% csrf_token %}
+        <input type="hidden" name="step" value="2">
+        <div class="olcme-inline-actions">
+            <span class="olcme-muted">Hızlı:</span>
+            <button type="button" class="ghost-btn olcme-btn-sm" data-olcme-soru-preset="20">20 soru</button>
+            <button type="button" class="ghost-btn olcme-btn-sm" data-olcme-soru-preset="40">40 branş</button>
+            <button type="button" class="ghost-btn olcme-btn-sm" data-olcme-soru-preset="90">90 LGS</button>
+        </div>
+        <label>Toplam soru<input type="number" name="soru_sayisi" min="1" max="120" value="{{ sinav.soru_sayisi }}" required></label>
+        <label>Seçenek sayısı<input type="number" name="secenek_sayisi" min="4" max="5" value="{{ sinav.secenek_sayisi|default:4 }}"></label>
+        <label>Yanlış götürme (4 = 3Y1D)<input type="number" name="yanlis_goturme_orani" min="0" max="10" value="{{ sinav.yanlis_goturme_orani|default:4 }}"></label>
+        <label>Kitapçıklar<input type="text" name="kitapcik_turleri" value="{{ sinav.kitapcik_turleri|default:'A' }}" placeholder="A veya A,B,C,D"></label>
+        <label class="olcme-check"><input type="checkbox" name="kazanim_zorunlu"{% if sinav.kazanim_zorunlu %} checked{% endif %}> Kazanım zorunlu</label>
+        <button type="submit" class="primary-btn">Soruları oluştur →</button>
+    </form>
+
+    {% elif step == 3 %}
+    <form method="post" class="olcme-form-card olcme-wizard-step3" data-hedef-soru="{{ sinav.soru_sayisi }}" data-sinav-turu="{{ sinav.sinav_turu }}">
+        {% csrf_token %}
+        <input type="hidden" name="step" value="3">
+        <p class="olcme-muted">Ders blokları toplamı <strong data-olcme-toplam>0</strong> / {{ sinav.soru_sayisi }} soru olmalı.</p>
+        <div class="olcme-inline-actions">
+            <button type="button" class="ghost-btn olcme-btn-sm" data-olcme-preset="tek">Tek ders</button>
+            <button type="button" class="ghost-btn olcme-btn-sm" data-olcme-preset="brans40">Branş 40</button>
+            <button type="button" class="ghost-btn olcme-btn-sm" data-olcme-preset="lgs90">LGS 90</button>
+            <button type="button" class="ghost-btn olcme-btn-sm" data-olcme-add-blok">+ Ders ekle</button>
+        </div>
+        <div id="olcme-ders-bloklari" class="olcme-ders-blok-list">
+            {% for b in olcme_dersleri %}
+            <div class="olcme-ders-blok-row olcme-ders-blok">
+                <select name="ders_id"><option value="">—</option>{% for d in dersler %}<option value="{{ d.pk }}"{% if b.ders_id == d.pk %} selected{% endif %}>{{ d.ad }}</option>{% endfor %}</select>
+                <select name="bolum"><option value="genel"{% if b.bolum == 'genel' %} selected{% endif %}>Genel</option><option value="sozel"{% if b.bolum == 'sozel' %} selected{% endif %}>Sözel</option><option value="sayisal"{% if b.bolum == 'sayisal' %} selected{% endif %}>Sayısal</option></select>
+                <input type="number" name="soru_sayisi_blok" placeholder="Soru" value="{{ b.soru_sayisi }}" min="1">
+                <input type="text" name="katsayi" placeholder="Katsayı" value="{{ b.katsayi }}">
+                <button type="button" class="ghost-btn olcme-btn-sm" data-olcme-del-blok">Sil</button>
+            </div>
+            {% endfor %}
+        </div>
+        <template id="olcme-ders-blok-tpl">
+            <div class="olcme-ders-blok-row olcme-ders-blok">
+                <select name="ders_id"><option value="">—</option>{% for d in dersler %}<option value="{{ d.pk }}">{{ d.ad }}</option>{% endfor %}</select>
+                <select name="bolum"><option value="genel">Genel</option><option value="sozel">Sözel</option><option value="sayisal">Sayısal</option></select>
+                <input type="number" name="soru_sayisi_blok" placeholder="Soru" min="1">
+                <input type="text" name="katsayi" placeholder="Katsayı" value="1">
+                <button type="button" class="ghost-btn olcme-btn-sm" data-olcme-del-blok">Sil</button>
+            </div>
+        </template>
+        <button type="submit" class="primary-btn">Kaydet →</button>
+    </form>
+
+    {% elif step == 4 %}
+    <form method="post" class="olcme-form-card">
+        {% csrf_token %}
+        <input type="hidden" name="step" value="4">
+        <label>Kitapçık<select name="kitapcik"><option value="A">A</option><option value="B">B</option></select></label>
+        <label>Cevap anahtarı (tek satır)<textarea name="anahtar_satir" rows="3" placeholder="ABCDABCD... ({{ sinav.soru_sayisi }} karakter)"></textarea></label>
+        <button type="submit" class="primary-btn">Anahtarı kaydet →</button>
+    </form>
+
+    {% elif step == 5 %}
+    <div class="olcme-form-card">
+        <p>Soru zimmetleme ekranına geçin. {{ ozet.tamam }}/{{ ozet.toplam }} soru zimmetlendi.</p>
+        <a href="{% url 'olcme_sinav_zimmet' sinav.pk %}" class="primary-btn">Soru Zimmetle →</a>
+        <a href="{% url 'olcme_sinav_wizard' sinav.pk %}?step=6" class="ghost-btn">Kontrol adımına geç</a>
+    </div>
+
+    {% elif step == 6 %}
+    <div class="olcme-form-card">
+        <h2>Yayın öncesi kontrol</h2>
+        {% if hatalar %}
+        <ul class="olcme-error-list">
+            {% for h in hatalar %}
+            <li>{{ h.mesaj }}{% if h.soru_filter %} <a href="{% url 'olcme_sinav_zimmet' sinav.pk %}?f={{ h.soru_filter }}">Düzelt</a>{% endif %}</li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="olcme-success">Eksik bulunmadı.</p>
+        {% endif %}
+        <form method="post">{% csrf_token %}<input type="hidden" name="step" value="6"><button type="submit" class="primary-btn"{% if hatalar %} disabled{% endif %}>Hazır olarak işaretle</button></form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/olcme-wizard.js' %}?v=ol1"></script>
+{% endblock %}

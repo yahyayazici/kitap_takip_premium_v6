@@ -260,6 +260,38 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         nav_group="Kitaplar",
     ),
     PanelNavItem(
+        key="olcme",
+        label="Ölçme ve Değerlendirme",
+        url_name="olcme_hub",
+        roller=EGITIM_MODULU_ROLLER,
+        active_names=(
+            "olcme_hub",
+            "olcme_sinav_listesi",
+            "olcme_sinav_wizard_yeni",
+            "olcme_sinav_wizard",
+            "olcme_sinav_detay",
+            "olcme_sinav_zimmet",
+            "olcme_sablon_listesi",
+        ),
+        nav_group="Eğitim",
+    ),
+    PanelNavItem(
+        key="olcme_optik",
+        label="Optik",
+        url_name="olcme_optik_sec",
+        roller=frozenset({ROL_IDARECI, ROL_IC_MESUL}),
+        active_names=(
+            "olcme_optik_sec",
+            "olcme_optik_form",
+            "olcme_optik_foto",
+            "olcme_optik_form_pdf",
+            "olcme_optik_oku",
+            "olcme_optik_mobil",
+            "olcme_optik_oku_sec",
+        ),
+        nav_group="Optik",
+    ),
+    PanelNavItem(
         key="ktt",
         label="KTT",
         url_name="ktt_listesi",
@@ -271,6 +303,7 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
             "ktt_detay",
             "ktt_duzenle",
             "ktt_sonuc_gir",
+            "ktt_akilli_ozet",
         ),
         nav_group="Eğitim",
     ),
@@ -535,6 +568,7 @@ NAV_GROUP_ORDER: tuple[str, ...] = (
     "Görevler",
     "Kitaplar",
     "Eğitim",
+    "Optik",
     "İletişim",
     "Disiplin & Takip",
     "Kurum",
@@ -661,6 +695,13 @@ def ktt_modulu_erisimi_var(user: User) -> bool:
         return False
 
     return modul_erisimi_var(user, "ktt")
+
+
+def olcme_modulu_erisimi_var(user: User) -> bool:
+    if not PANEL_MODULES.get("olcme", {}).get("enabled", False):
+        return False
+
+    return modul_erisimi_var(user, "olcme")
 
 
 def deneme_modulu_erisimi_var(user: User) -> bool:
@@ -808,6 +849,10 @@ def panel_nav_items(user: User) -> list[PanelNavItem]:
         if item.key == "yemekcilik" and not PANEL_MODULES.get(
             "yemekcilik", {}
         ).get("enabled", False):
+            continue
+        if item.key == "olcme" and not olcme_modulu_erisimi_var(user):
+            continue
+        if item.key == "olcme_optik" and not olcme_modulu_erisimi_var(user):
             continue
         if item.key == "ktt" and not ktt_modulu_erisimi_var(user):
             continue

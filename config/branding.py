@@ -110,6 +110,16 @@ PANEL_MODULES = {
         "enabled": True,
         "nav_group": "Eğitim",
     },
+    "olcme": {
+        "label": "Ölçme ve Değerlendirme",
+        "enabled": True,
+        "nav_group": "Eğitim",
+    },
+    "olcme_optik": {
+        "label": "Optik",
+        "enabled": True,
+        "nav_group": "Optik",
+    },
     "deneme": {
         "label": "Deneme",
         "enabled": True,

@@ -9,6 +9,53 @@ from django.utils import timezone
 
 
 class KttSinav(models.Model):
+    class SinavTuru(models.TextChoices):
+        KTT = "ktt", "KTT — Konu Tarama Testi"
+        BRANS = "brans", "Branş Denemesi"
+        SOZEL_SAYISAL = "sozel_sayisal", "Sözel–Sayısal Deneme"
+
+    class SinavDurum(models.TextChoices):
+        TASLAK = "taslak", "Taslak"
+        ZIMMETLEME = "zimmetleme_bekliyor", "Zimmetleme bekliyor"
+        HAZIR = "hazir", "Hazır"
+        UYGULANDI = "uygulandi", "Uygulandı"
+        OKUMA = "okuma_devam", "Okuma devam ediyor"
+        KONTROL = "sonuc_kontrol", "Sonuçlar kontrol ediliyor"
+        SONUCLANDI = "sonuclandi", "Sonuçlandı"
+        YAYINLANDI = "yayinlandi", "Yayınlandı"
+        ARSIV = "arsiv", "Arşivlendi"
+
+    sinav_turu = models.CharField(
+        max_length=20,
+        choices=SinavTuru.choices,
+        default=SinavTuru.KTT,
+        verbose_name="Sınav türü",
+    )
+    durum = models.CharField(
+        max_length=24,
+        choices=SinavDurum.choices,
+        default=SinavDurum.TASLAK,
+        verbose_name="Durum",
+    )
+    sinav_kodu = models.CharField(max_length=40, blank=True, verbose_name="Sınav kodu")
+    uygulama_saati = models.TimeField(null=True, blank=True, verbose_name="Uygulama saati")
+    yayinevi = models.CharField(max_length=120, blank=True, verbose_name="Yayınevi")
+    deneme_serisi = models.CharField(max_length=120, blank=True, verbose_name="Deneme serisi")
+    deneme_no = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name="Deneme no")
+    secenek_sayisi = models.PositiveSmallIntegerField(default=4, verbose_name="Seçenek sayısı")
+    kitapcik_turleri = models.CharField(
+        max_length=20,
+        default="A",
+        verbose_name="Kitapçık türleri",
+        help_text="Virgülle: A,B,C,D",
+    )
+    yanlis_goturme_orani = models.PositiveSmallIntegerField(
+        default=4,
+        verbose_name="Yanlış götürme oranı",
+        help_text="0 = kapalı; 4 = 3 yanlış 1 doğruyu götürür.",
+    )
+    kazanim_zorunlu = models.BooleanField(default=False, verbose_name="Kazanım zorunlu")
+
     ad = models.CharField(max_length=200, verbose_name="KTT adı")
     ders = models.ForeignKey(
         "Ders",

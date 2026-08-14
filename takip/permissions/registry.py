@@ -22,6 +22,13 @@ ILETISIM_ACTIONS: tuple[tuple[str, str], ...] = STANDARD_ACTIONS + (
     ("manage_templates", "Şablon Yönet"),
 )
 
+OLCME_ACTIONS: tuple[tuple[str, str], ...] = STANDARD_ACTIONS + (
+    ("zimmetle", "Soru Zimmetle"),
+    ("yayinla", "Yayınla"),
+    ("manage_konu_havuzu", "Konu Havuzu"),
+    ("manage_sablon", "Şablon Yönet"),
+)
+
 
 @dataclass(frozen=True)
 class ModulTanim:
@@ -36,6 +43,7 @@ MODUL_KATALOGU: tuple[ModulTanim, ...] = (
     ModulTanim("egitim_kitap", "Kitap & Okuma", 10),
     ModulTanim("gelisim_dosyasi", "Gelişim Dosyası", 15),
     ModulTanim("ktt", "KTT", 18),
+    ModulTanim("olcme", "Ölçme ve Değerlendirme", 17, islemler=OLCME_ACTIONS),
     ModulTanim("deneme", "Deneme", 19),
     ModulTanim("soru_takip", "Soru Takip", 20),
     ModulTanim("akademik_mudahale", "Akademik Müdahale", 21),
@@ -78,6 +86,7 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
             "egitim_kitap",
             "asistan",
             "gelisim_dosyasi",
+            "olcme",
             "ktt",
             "deneme",
             "soru_takip",
@@ -118,6 +127,7 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
             "egitim_kitap",
             "asistan",
             "gelisim_dosyasi",
+            "olcme",
             "ktt",
             "deneme",
             "soru_takip",
@@ -154,6 +164,7 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
             "egitim_kitap",
             "asistan",
             "gelisim_dosyasi",
+            "olcme",
             "ktt",
             "deneme",
             "soru_takip",
@@ -190,6 +201,7 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
             "egitim_kitap",
             "asistan",
             "gelisim_dosyasi",
+            "olcme",
             "ktt",
             "deneme",
             "soru_takip",
@@ -232,6 +244,7 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
             "egitim_kitap",
             "asistan",
             "gelisim_dosyasi",
+            "olcme",
             "ktt",
             "deneme",
             "soru_takip",

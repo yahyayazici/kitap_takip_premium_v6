@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Soru Zimmetleme · {{ sinav.ad }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/olcme-premium.css' %}?v=ol2">{% endblock %}
+{% block content %}
+<div class="olcme-page" data-sinif="{{ sinav.sinif_seviyesi }}" data-brans="{{ brans }}">
+    <header class="page-head patterned-page-head olcme-head olcme-head--compact">
+        <div class="olcme-head-main">
+            <p class="olcme-kicker">SORU ZİMMETLEME</p>
+            <h1>{{ sinav.ad }}</h1>
+            <p class="olcme-desc">{{ ozet.toplam }} sorudan {{ ozet.tamam }} zimmetlendi · {{ ozet.eksik }} eksik</p>
+        </div>
+        <a href="{% url 'olcme_sinav_detay' sinav.pk %}" class="ghost-btn">← Sınav</a>
+    </header>
+
+    <div class="olcme-progress" role="progressbar" aria-valuenow="{{ ozet.tamam }}" aria-valuemin="0" aria-valuemax="{{ ozet.toplam }}">
+        <span style="width:{% if ozet.toplam %}{% widthratio ozet.tamam ozet.toplam 100 %}{% else %}0{% endif %}%"></span>
+    </div>
+
+    <nav class="olcme-filter-tabs">
+        <a href="?f=tumu" class="{% if filtre == 'tumu' %}is-active{% endif %}">Tümü</a>
+        <a href="?f=eksik" class="{% if filtre == 'eksik' %}is-active{% endif %}">Eksik</a>
+        <a href="?f=konu_eksik" class="{% if filtre == 'konu_eksik' %}is-active{% endif %}">Konu eksik</a>
+        <a href="?f=ders_eksik" class="{% if filtre == 'ders_eksik' %}is-active{% endif %}">Ders eksik</a>
+    </nav>
+
+    <form method="post" class="olcme-toplu-bar" id="olcme-toplu-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="toplu">
+        <select name="toplu_sinav_ders_id"><option value="">Toplu ders</option>{% for b in ders_bloklari %}<option value="{{ b.pk }}">{{ b.ders.ad }}</option>{% endfor %}</select>
+        <div class="olcme-ac-wrap olcme-ac-wrap--inline">
+            <input type="text" class="olcme-konu-ac" name="toplu_konu_q" placeholder="Toplu konu ara" autocomplete="off">
+            <input type="hidden" name="toplu_konu_id" value="">
+            <div class="olcme-ac-list" role="listbox"></div>
+        </div>
+        <button type="submit" class="ghost-btn">Seçililere uygula</button>
+    </form>
+
+    <div class="olcme-zimmet-table-wrap cs-table-wrap">
+        <table class="olcme-zimmet-table">
+            <thead>
+                <tr>
+                    <th><span class="olcme-muted">Seç</span></th>
+                    <th>Soru</th>
+                    <th>Ders</th>
+                    <th>Konu</th>
+                    <th>Kazanım</th>
+                    <th>Durum</th>
+                    <th>İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in sorular %}
+                <tr class="{% if not s.zimmet_tamam %}olcme-row-warn{% endif %}">
+                    <td><input type="checkbox" name="secili" value="{{ s.pk }}" form="olcme-toplu-form"></td>
+                    <td><strong>S{{ s.soru_no }}</strong>{% if s.konu %}<br><span class="olcme-muted">{{ s.konu.konu_ad }}</span>{% endif %}</td>
+                    <td>
+                        <form method="post" class="olcme-row-form olcme-zimmet-row-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="tek">
+                            <input type="hidden" name="soru_id" value="{{ s.pk }}">
+                            <select name="sinav_ders_id">
+                                <option value="">—</option>
+                                {% for b in ders_bloklari %}
+                                <option value="{{ b.pk }}"{% if s.sinav_ders_id == b.pk %} selected{% endif %}>{{ b.ders.ad }}</option>
+                                {% endfor %}
+                            </select>
+                    </td>
+                    <td>
+                            <div class="olcme-ac-wrap">
+                                <input type="text" class="olcme-konu-ac" name="konu_q" value="{% if s.konu %}{{ s.konu.konu_ad }}{% endif %}" placeholder="Konu ara" autocomplete="off">
+                                <input type="hidden" name="konu_id" value="{{ s.konu_id|default:'' }}">
+                                <div class="olcme-ac-list" role="listbox"></div>
+                            </div>
+                    </td>
+                    <td>
+                            <div class="olcme-ac-wrap">
+                                <input type="text" class="olcme-kazanim-ac" data-konu-id="{{ s.konu_id|default:'' }}" name="kazanim_q" value="{% if s.kazanim %}{{ s.kazanim.kazanim_ad }}{% endif %}" placeholder="Kazanım ara" autocomplete="off">
+                                <input type="hidden" name="kazanim_id" value="{{ s.kazanim_id|default:'' }}">
+                                <div class="olcme-ac-list" role="listbox"></div>
+                            </div>
+                    </td>
+                    <td>{% if s.zimmet_tamam %}<span class="olcme-pill olcme-pill--ok">Tamam</span>{% else %}<span class="olcme-pill olcme-pill--warn">Eksik</span>{% endif %}</td>
+                    <td>
+                            <button type="submit" class="ghost-btn olcme-btn-sm">Kaydet</button>
+                        </form>
+                        {% if s.soru_no > 1 %}
+                        <form method="post" style="display:inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="onceki_kopyala">
+                            <input type="hidden" name="soru_id" value="{{ s.pk }}">
+                            <button type="submit" class="ghost-btn olcme-btn-sm">← Önceki</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="olcme-mobile-cards">
+        {% for s in sorular %}
+        <article class="olcme-soru-card{% if not s.zimmet_tamam %} olcme-soru-card--warn{% endif %}">
+            <header><strong>Soru {{ s.soru_no }}</strong>{% if s.zimmet_tamam %}<span class="olcme-pill olcme-pill--ok">Zimmetlendi</span>{% else %}<span class="olcme-pill olcme-pill--warn">Eksik</span>{% endif %}</header>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="tek">
+                <input type="hidden" name="soru_id" value="{{ s.pk }}">
+                <label>Ders
+                    <select name="sinav_ders_id">
+                        <option value="">—</option>
+                        {% for b in ders_bloklari %}
+                        <option value="{{ b.pk }}"{% if s.sinav_ders_id == b.pk %} selected{% endif %}>{{ b.ders.ad }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label>Konu
+                    <div class="olcme-ac-wrap">
+                        <input type="text" class="olcme-konu-ac" name="konu_q" value="{% if s.konu %}{{ s.konu.konu_ad }}{% endif %}" placeholder="Konu ara" autocomplete="off">
+                        <input type="hidden" name="konu_id" value="{{ s.konu_id|default:'' }}">
+                        <div class="olcme-ac-list"></div>
+                    </div>
+                </label>
+                <label>Kazanım
+                    <div class="olcme-ac-wrap">
+                        <input type="text" class="olcme-kazanim-ac" data-konu-id="{{ s.konu_id|default:'' }}" name="kazanim_q" value="{% if s.kazanim %}{{ s.kazanim.kazanim_ad }}{% endif %}" placeholder="Kazanım ara" autocomplete="off">
+                        <input type="hidden" name="kazanim_id" value="{{ s.kazanim_id|default:'' }}">
+                        <div class="olcme-ac-list"></div>
+                    </div>
+                </label>
+                <button type="submit" class="primary-btn">Kaydet</button>
+            </form>
+        </article>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+window.OLCME_ZIMMET = {
+    konuUrl: "{% url 'olcme_konu_ara_api' %}",
+    kazanimUrl: "{% url 'olcme_kazanim_ara_api' %}",
+    sinif: "{{ sinav.sinif_seviyesi }}",
+    brans: "{{ brans }}"
+};
+</script>
+<script src="{% static 'js/olcme-zimmet.js' %}?v=ol1"></script>
+{% endblock %}

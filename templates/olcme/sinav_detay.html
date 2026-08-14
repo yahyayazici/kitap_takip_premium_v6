@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ sinav.ad }} · Ölçme Merkezi{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/olcme-premium.css' %}?v=ol2">{% endblock %}
+{% block content %}
+<div class="olcme-page">
+    <header class="page-head patterned-page-head olcme-head olcme-head--compact">
+        <div class="olcme-head-main">
+            <p class="olcme-kicker">{{ sinav.get_sinav_turu_display|upper }}</p>
+            <h1>{{ sinav.ad }}</h1>
+            <p class="olcme-desc">{{ sinav.sinif_goster }} · {{ sinav.sinav_tarihi|date:"d.m.Y" }} · {{ sinav.soru_sayisi }} soru</p>
+        </div>
+        <div class="olcme-head-actions">
+            <a href="{% url 'olcme_sinav_listesi' %}" class="ghost-btn">← Sınavlar</a>
+            {% if duzenleyebilir %}
+            <a href="{% url 'olcme_sinav_wizard' sinav.pk %}" class="ghost-btn">Düzenle</a>
+            <a href="{% url 'olcme_sinav_zimmet' sinav.pk %}" class="primary-btn">Soru Zimmetle</a>
+            {% endif %}
+            <a href="{% url 'olcme_sinav_sonuc_toplu' sinav.pk %}" class="ghost-btn">Toplu Sonuç</a>
+        </div>
+    </header>
+
+    <div class="olcme-stats">
+        <article class="olcme-stat"><span>Durum</span><strong>{{ sinav.get_durum_display }}</strong></article>
+        <article class="olcme-stat"><span>Zimmet</span><strong>{{ ozet.tamam }}/{{ ozet.toplam }}</strong></article>
+        <article class="olcme-stat"><span>Sonuç</span><strong>{{ sonuc_tamam }}/{{ sonuc_ozet|length }}</strong></article>
+        <article class="olcme-stat"><span>Veli paneli</span><strong>{% if sinav.veliye_goster %}Açık{% else %}Kapalı{% endif %}</strong></article>
+    </div>
+
+    {% if sablon_kaydedebilir %}
+    <section class="olcme-panel">
+        <div class="olcme-panel-head"><h2>Şablon olarak kaydet</h2></div>
+        <form method="post" action="{% url 'olcme_sinav_sablon_kaydet' sinav.pk %}" class="olcme-inline-actions">
+            {% csrf_token %}
+            <input type="text" name="sablon_ad" value="{{ sinav.ad }}" placeholder="Şablon adı">
+            <button type="submit" class="ghost-btn">Şablon Kaydet</button>
+        </form>
+    </section>
+    {% endif %}
+
+    {% if duzenleyebilir and sablonlar %}
+    <section class="olcme-panel">
+        <div class="olcme-panel-head"><h2>Şablondan zimmet kopyala</h2></div>
+        <form method="post" action="{% url 'olcme_sinav_sablondan' sinav.pk %}" class="olcme-inline-actions">
+            {% csrf_token %}
+            <select name="sablon_id" required>
+                <option value="">Şablon seçin</option>
+                {% for s in sablonlar %}
+                <option value="{{ s.pk }}">{{ s.ad }} · {{ s.soru_sayisi }} soru</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="ghost-btn">Zimmetleri Kopyala</button>
+        </form>
+    </section>
+    {% endif %}
+
+    {% if hatalar %}
+    <section class="olcme-panel olcme-panel--warn">
+        <div class="olcme-panel-head"><h2>Eksikler</h2></div>
+        <ul>{% for h in hatalar %}<li>{{ h.mesaj }}</li>{% endfor %}</ul>
+    </section>
+    {% endif %}
+
+    {% if yayinlayabilir %}
+    <section class="olcme-panel">
+        <div class="olcme-panel-head"><h2>Sınav durumu</h2></div>
+        <form method="post" action="{% url 'olcme_sinav_durum' sinav.pk %}" class="olcme-inline-actions">
+            {% csrf_token %}
+            <button type="submit" name="durum" value="uygulandi" class="ghost-btn">Uygulandı</button>
+            <button type="submit" name="durum" value="sonuclandi" class="ghost-btn">Sonuçlandı</button>
+            <button type="submit" name="durum" value="yayinlandi" class="primary-btn">Yayınla</button>
+        </form>
+        {% if veli_yonetebilir %}
+        <form method="post" action="{% url 'olcme_sinav_veli_toggle' sinav.pk %}" class="olcme-inline-actions" style="margin-top:var(--cs-space-3)">
+            {% csrf_token %}
+            <span class="olcme-muted">Veli paneli: {% if sinav.veliye_goster %}görünür{% else %}gizli{% endif %}</span>
+            <button type="submit" class="ghost-btn">{% if sinav.veliye_goster %}Veliden Gizle{% else %}Veliye Göster{% endif %}</button>
+        </form>
+        {% endif %}
+    </section>
+    {% endif %}
+
+    <section class="olcme-panel">
+        <div class="olcme-panel-head"><h2>Raporlar</h2></div>
+        <div class="olcme-inline-actions">
+            <a href="{% url 'olcme_sinav_analiz_excel' sinav.pk %}" class="ghost-btn">Excel Analiz</a>
+            <a href="{% url 'olcme_sinav_sonuc_csv' sinav.pk %}" class="ghost-btn">Sonuç CSV</a>
+            <a href="{% url 'olcme_optik_form_pdf' sinav.pk %}" class="ghost-btn">Optik PDF</a>
+            <a href="{% url 'olcme_konu_analiz' sinav.pk %}" class="ghost-btn">Konu Analizi</a>
+            <a href="{% url 'ktt_akilli_ozet' %}" class="ghost-btn">Akıllı Takip</a>
+        </div>
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Konu Havuzu{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/olcme-premium.css' %}?v=ol2">{% endblock %}
+{% block content %}
+<div class="olcme-page">
+    <header class="page-head patterned-page-head olcme-head olcme-head--compact">
+        <div class="olcme-head-main"><h1>Konu Havuzu</h1></div>
+        <a href="{% url 'olcme_hub' %}" class="ghost-btn">← Merkez</a>
+    </header>
+
+    <form method="get" class="olcme-filter">
+        <select name="sinif" onchange="this.form.submit()">
+            <option value="5"{% if sinif == "5" %} selected{% endif %}>5. sınıf</option>
+            <option value="6"{% if sinif == "6" %} selected{% endif %}>6. sınıf</option>
+            <option value="7"{% if sinif == "7" %} selected{% endif %}>7. sınıf</option>
+            <option value="8"{% if sinif == "8" %} selected{% endif %}>8. sınıf</option>
+        </select>
+        <select name="brans" onchange="this.form.submit()">
+            <option value="">Tüm branşlar</option>
+            {% for val, label in brans_secenekleri %}
+            <option value="{{ val }}"{% if brans == val %} selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </form>
+
+    {% if duzenleyebilir %}
+    <div class="olcme-panel-grid">
+        <section class="olcme-panel">
+            <div class="olcme-panel-head"><h2>Ünite ekle</h2></div>
+            <form method="post" class="olcme-form-stack">
+                {% csrf_token %}
+                <input type="hidden" name="islem" value="unite">
+                <input type="hidden" name="sinif_seviyesi" value="{{ sinif }}">
+                <select name="brans">
+                    {% for val, label in brans_secenekleri %}
+                    <option value="{{ val }}"{% if brans == val %} selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <input type="text" name="unite_ad" placeholder="Ünite adı" required>
+                <button type="submit" class="primary-btn">Ekle</button>
+            </form>
+        </section>
+        <section class="olcme-panel">
+            <div class="olcme-panel-head"><h2>Kazanım ekle</h2></div>
+            <form method="post" class="olcme-form-stack">
+                {% csrf_token %}
+                <input type="hidden" name="islem" value="kazanim">
+                <input type="number" name="konu_id" placeholder="Konu ID" min="1" required>
+                <input type="text" name="kazanim_ad" placeholder="Kazanım adı" required>
+                <input type="text" name="kod" placeholder="Kod (opsiyonel)">
+                <button type="submit" class="primary-btn">Ekle</button>
+            </form>
+        </section>
+    </div>
+    {% endif %}
+
+    <div class="olcme-zimmet-table-wrap cs-table-wrap">
+        <table class="olcme-zimmet-table">
+            <thead>
+                <tr><th>ID</th><th>Konu</th><th>Branş</th><th>Sınıf</th><th>Ünite</th></tr>
+            </thead>
+            <tbody>
+                {% for k in konular %}
+                <tr>
+                    <td>{{ k.pk }}</td>
+                    <td>{{ k.konu_ad }}</td>
+                    <td>{{ k.get_brans_display }}</td>
+                    <td>{{ k.sinif_seviyesi }}</td>
+                    <td>{% if k.unite %}{{ k.unite.unite_ad }}{% else %}—{% endif %}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="olcme-empty">Kayıt yok.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Soru Bazlı Sonuç · {{ sinav.ad }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/olcme-premium.css' %}?v=ol2">{% endblock %}
+{% block content %}
+<div class="olcme-page">
+    <header class="page-head patterned-page-head olcme-head olcme-head--compact">
+        <div class="olcme-head-main">
+            <p class="olcme-kicker">SONUÇ GİRİŞİ</p>
+            <h1>{{ sinav.ad }}</h1>
+            <p class="olcme-desc">Soru bazlı cevap girişi — tamamlanınca D/Y/B ve net otomatik hesaplanır.</p>
+        </div>
+        <a href="{% url 'olcme_sinav_detay' sinav.pk %}" class="ghost-btn">← Sınav</a>
+    </header>
+
+    <form method="get" class="olcme-filter">
+        <label>Talebe
+            <select name="talebe" onchange="this.form.submit()">
+                <option value="">Seçin</option>
+                {% for t in talebeler %}
+                <option value="{{ t.pk }}"{% if talebe and talebe.pk == t.pk %} selected{% endif %}>{{ t.ad_soyad }}</option>
+                {% endfor %}
+            </select>
+        </label>
+    </form>
+
+    {% if talebe %}
+    <section class="olcme-panel">
+        <div class="olcme-panel-head"><h2>Hızlı satır girişi</h2></div>
+        <form method="post" class="olcme-form-stack">
+            {% csrf_token %}
+            <input type="hidden" name="talebe_id" value="{{ talebe.pk }}">
+            <textarea name="satir" rows="2" placeholder="Örn: A B C D veya ABCD ({{ sinav.soru_sayisi }} cevap)"></textarea>
+            <button type="submit" class="primary-btn">Satırı Kaydet</button>
+        </form>
+    </section>
+
+    <form method="post" class="olcme-sonuc-grid">
+        {% csrf_token %}
+        <input type="hidden" name="talebe_id" value="{{ talebe.pk }}">
+        <div class="olcme-sonuc-sorular">
+            {% for s in sorular %}
+            <label class="olcme-sonuc-item">
+                <span>S{{ s.soru_no }}</span>
+                <select name="s_{{ s.soru_no }}">
+                    <option value="A"{% if s.secilen == "A" %} selected{% endif %}>A</option>
+                    <option value="B"{% if s.secilen == "B" %} selected{% endif %}>B</option>
+                    <option value="C"{% if s.secilen == "C" %} selected{% endif %}>C</option>
+                    <option value="D"{% if s.secilen == "D" %} selected{% endif %}>D</option>
+                    <option value="E"{% if s.secilen == "E" %} selected{% endif %}>E</option>
+                    <option value="BOS"{% if s.secilen == "BOS" %} selected{% endif %}>Boş</option>
+                </select>
+            </label>
+            {% endfor %}
+        </div>
+        <button type="submit" class="primary-btn">Cevapları Kaydet</button>
+    </form>
+    {% else %}
+    <p class="olcme-empty">Sonuç girmek için talebe seçin.</p>
+    {% endif %}
+</div>
+{% endblock %}

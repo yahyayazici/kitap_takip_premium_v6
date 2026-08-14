@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Raporlar · Ölçme Merkezi{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/olcme-premium.css' %}?v=ol5">{% endblock %}
+{% block content %}
+<div class="olcme-page">
+    <header class="page-head patterned-page-head olcme-head olcme-head--compact">
+        <div class="olcme-head-main"><h1>Raporlar</h1><p class="olcme-desc">Excel analiz ve PDF optik form indirme</p></div>
+        <a href="{% url 'olcme_hub' %}" class="ghost-btn">← Merkez</a>
+    </header>
+    <div class="olcme-list">
+        {% for s in sinavlar %}
+        <article class="olcme-list-row olcme-list-row--split">
+            <div class="olcme-list-main">
+                <div><strong>{{ s.ad }}</strong><span class="olcme-muted">{{ s.sinav_tarihi|date:"d.m.Y" }}</span></div>
+            </div>
+            <div class="olcme-list-quick">
+                <a href="{% url 'olcme_sinav_analiz_excel' s.pk %}" class="ghost-btn olcme-btn-sm">Excel</a>
+                <a href="{% url 'olcme_sinav_sonuc_csv' s.pk %}" class="ghost-btn olcme-btn-sm">CSV</a>
+                <a href="{% url 'olcme_optik_form_pdf' s.pk %}" class="ghost-btn olcme-btn-sm">Optik PDF</a>
+                <a href="{% url 'olcme_konu_analiz' s.pk %}" class="ghost-btn olcme-btn-sm">Analiz</a>
+            </div>
+        </article>
+        {% empty %}
+        <p class="olcme-empty">Rapor için sınav yok.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

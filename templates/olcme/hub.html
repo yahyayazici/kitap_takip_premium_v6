@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Ölçme ve Değerlendirme · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/olcme-premium.css' %}?v=ol1">
+{% endblock %}
+{% block content %}
+<div class="olcme-page">
+    <header class="page-head patterned-page-head olcme-head">
+        <div class="olcme-head-main">
+            <p class="olcme-kicker">ÖLÇME VE DEĞERLENDİRME MERKEZİ</p>
+            <h1>Genel Bakış</h1>
+            <p class="olcme-desc">KTT, branş ve sözel–sayısal sınavları; soru zimmeti ve sonuç analizlerini tek merkezden yönetin.</p>
+        </div>
+        <div class="olcme-head-actions">
+            <a href="{% url 'olcme_sinav_wizard_yeni' %}" class="primary-btn">+ Yeni Sınav</a>
+            <a href="{% url 'ktt_listesi' %}" class="ghost-btn">Klasik KTT</a>
+        </div>
+    </header>
+
+    <div class="olcme-stats">
+        <article class="olcme-stat"><span>Taslak / zimmet</span><strong>{{ taslak_sayisi }}</strong></article>
+        <article class="olcme-stat"><span>Hazır</span><strong>{{ hazir_sayisi }}</strong></article>
+        <article class="olcme-stat"><span>Sonuçlandı</span><strong>{{ sonuclandi_sayisi }}</strong></article>
+        <article class="olcme-stat"><span>Toplam sınav</span><strong>{{ toplam_sayisi }}</strong></article>
+    </div>
+
+    <section class="olcme-grid-nav">
+        {% for b in bolumler %}
+        <article class="olcme-nav-card{% if not b.ready %} olcme-nav-card--soon{% endif %}">
+            <h2>{{ b.label }}</h2>
+            {% if b.ready and b.url %}
+            <a href="{% url b.url %}" class="ghost-btn">Aç</a>
+            {% elif b.ready and b.key == 'zimmet' %}
+            <span class="olcme-muted">Sınav detayından erişilir</span>
+            {% else %}
+            <span class="olcme-badge-soon">Yakında</span>
+            {% endif %}
+        </article>
+        {% endfor %}
+    </section>
+
+    {% if son_sinavlar %}
+    <section class="olcme-panel">
+        <div class="olcme-panel-head"><h2>Son sınavlar</h2></div>
+        <div class="olcme-list">
+            {% for s in son_sinavlar %}
+            <a class="olcme-list-row" href="{% url 'olcme_sinav_detay' s.pk %}">
+                <div>
+                    <strong>{{ s.ad }}</strong>
+                    <span class="olcme-muted">{{ s.get_sinav_turu_display }} · {{ s.sinif_goster }} · {{ s.sinav_tarihi|date:"d.m.Y" }}</span>
+                </div>
+                <span class="olcme-pill">{{ s.get_durum_display }}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

@@ -2234,6 +2234,19 @@ from takip.ktt_akilli_models import (  # noqa: E402,F401
     KttEtutMudahale,
 )
 
+from takip.olcme_models import (  # noqa: E402,F401
+    OlcumCevapAnahtari,
+    OlcumIslemGecmisi,
+    OlcumKazanim,
+    OlcumSablonDers,
+    OlcumSablonSoru,
+    OlcumSinavDers,
+    OlcumSinavSablon,
+    OlcumSoru,
+    OlcumTalebeCevap,
+    OlcumUnite,
+)
+
 from takip.dershane_program_models import (  # noqa: E402,F401
     DershaneDersAtamasi,
     DershaneEtutGrubu,

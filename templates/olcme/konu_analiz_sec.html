@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Konu Analizi{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/olcme-premium.css' %}?v=ol2">{% endblock %}
+{% block content %}
+<div class="olcme-page">
+    <header class="page-head patterned-page-head olcme-head olcme-head--compact">
+        <div class="olcme-head-main"><h1>Konu Analizi — Sınav Seç</h1></div>
+        <a href="{% url 'olcme_hub' %}" class="ghost-btn">← Merkez</a>
+    </header>
+    <div class="olcme-list">
+        {% for s in sinavlar %}
+        <a class="olcme-list-row" href="{% url 'olcme_konu_analiz' s.pk %}">
+            <div>
+                <strong>{{ s.ad }}</strong>
+                <span class="olcme-muted">{{ s.sinav_tarihi|date:"d.m.Y" }} · {{ s.soru_sayisi }} soru</span>
+            </div>
+        </a>
+        {% empty %}
+        <p class="olcme-empty">Analiz için sınav yok.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

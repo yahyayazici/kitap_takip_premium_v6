@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Mobil Optik · {{ sinav.ad }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/olcme-premium.css' %}?v=ol6">{% endblock %}
+{% block content %}
+<div class="olcme-page olcme-mobil-page">
+    <header class="page-head patterned-page-head olcme-head olcme-head--compact">
+        <div class="olcme-head-main">
+            <p class="olcme-kicker">MOBİL OPTİK</p>
+            <h1>{{ sinav.ad }}</h1>
+            <p class="olcme-desc">{{ sinav.soru_sayisi }} soru · dokunmatik cevap girişi</p>
+        </div>
+        <div class="olcme-head-actions">
+            <a href="{% url 'olcme_optik_oku' sinav.pk %}" class="ghost-btn">Toplu Oku</a>
+            <a href="{% url 'olcme_sinav_detay' sinav.pk %}" class="ghost-btn">← Sınav</a>
+        </div>
+    </header>
+
+    <form method="get" class="olcme-filter">
+        <label>Talebe
+            <select name="talebe" onchange="this.form.submit()">
+                <option value="">Seçin</option>
+                {% for t in talebeler %}
+                <option value="{{ t.pk }}"{% if talebe and talebe.pk == t.pk %} selected{% endif %}>{{ t.ad_soyad }}</option>
+                {% endfor %}
+            </select>
+        </label>
+    </form>
+
+    {% if talebe %}
+    <form method="post" class="olcme-mobil-optik" id="olcme-mobil-form">
+        {% csrf_token %}
+        <input type="hidden" name="talebe_id" value="{{ talebe.pk }}">
+        <label class="olcme-mobil-kitapcik">Kitapçık
+            <select name="kitapcik"><option value="A">A</option><option value="B">B</option></select>
+        </label>
+
+        <div class="olcme-mobil-progress">
+            <span id="olcme-mobil-counter">Soru 1 / {{ sorular|length }}</span>
+            <span class="olcme-muted" id="olcme-mobil-answered">0 cevaplı</span>
+        </div>
+
+        <div class="olcme-mobil-dots" id="olcme-mobil-dots" aria-hidden="true">
+            {% for s in sorular %}
+            <button type="button" class="olcme-mobil-dot{% if forloop.first %} is-current{% endif %}" data-index="{{ forloop.counter0 }}" aria-label="Soru {{ s.soru_no }}"></button>
+            {% endfor %}
+        </div>
+
+        {% for s in sorular %}
+        <section class="olcme-mobil-soru{% if forloop.first %} is-active{% endif %}" data-soru-no="{{ s.soru_no }}" data-index="{{ forloop.counter0 }}"{% if not forloop.first %} hidden{% endif %}>
+            <h2>S{{ s.soru_no }}</h2>
+            <div class="olcme-cevap-pad">
+                {% for sec in secenekler %}
+                <button type="button" class="olcme-cevap-btn{% if s.secilen == sec %} is-selected{% endif %}" data-secim="{{ sec }}">{{ sec }}</button>
+                {% endfor %}
+                <button type="button" class="olcme-cevap-btn olcme-cevap-btn--bos{% if s.secilen == 'BOS' %} is-selected{% endif %}" data-secim="BOS">Boş</button>
+            </div>
+            <input type="hidden" name="s_{{ s.soru_no }}" value="{{ s.secilen|default:'BOS' }}">
+        </section>
+        {% endfor %}
+
+        <div class="olcme-mobil-nav">
+            <button type="button" class="ghost-btn" id="olcme-mobil-prev">← Önceki</button>
+            <button type="button" class="ghost-btn" id="olcme-mobil-next">Sonraki →</button>
+        </div>
+        <button type="submit" class="primary-btn olcme-mobil-save">Kaydet · {{ talebe.ad_soyad }}</button>
+    </form>
+    {% else %}
+    <p class="olcme-empty">Cevap girmek için talebe seçin.</p>
+    {% endif %}
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/olcme-optik-mobil.js' %}?v=ol1"></script>
+{% endblock %}

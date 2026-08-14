@@ -120,6 +120,7 @@ def _legacy_islem_izin(rol_slug: str | None, modul_kod: str, islem_kod: str) -> 
         if modul_kod == "egitim_kitap" and rol_slug in {"etut_mesul", "sinif_mesul"}:
             return True
         if modul_kod in {
+            "olcme",
             "ktt",
             "deneme",
             "yazili_takip",

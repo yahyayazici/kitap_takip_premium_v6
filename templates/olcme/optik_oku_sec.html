@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Optik Oku · Sınav Seç{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/olcme-premium.css' %}?v=ol4">{% endblock %}
+{% block content %}
+<div class="olcme-page">
+    <header class="page-head patterned-page-head olcme-head olcme-head--compact">
+        <div class="olcme-head-main"><h1>Optik Oku</h1><p class="olcme-desc">Toplu cevap satırı yapıştırın; talebe no veya ad ile eşleştirilir.</p></div>
+        <a href="{% url 'olcme_hub' %}" class="ghost-btn">← Merkez</a>
+    </header>
+    <div class="olcme-list">
+        {% for s in sinavlar %}
+        <a class="olcme-list-row" href="{% url 'olcme_optik_oku' s.pk %}">
+            <div>
+                <strong>{{ s.ad }}</strong>
+                <span class="olcme-muted">{{ s.soru_sayisi }} soru · {{ s.sinav_tarihi|date:"d.m.Y" }}</span>
+            </div>
+        </a>
+        {% empty %}
+        <p class="olcme-empty">Sınav yok.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

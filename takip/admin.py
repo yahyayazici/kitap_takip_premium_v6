@@ -1016,3 +1016,32 @@ class KonuVideoIzlemeAdmin(admin.ModelAdmin):
 class KonuTestOturuAdmin(admin.ModelAdmin):
     list_display = ("talebe", "konu", "dogru_sayisi", "toplam_soru", "basari_yuzde", "bitis")
     list_filter = ("konu__brans",)
+
+
+from takip.olcme_models import (  # noqa: E402
+    OlcumSinavSablon,
+    OlcumSoru,
+    OlcumTalebeCevap,
+)
+
+
+@admin.register(OlcumSinavSablon)
+class OlcumSinavSablonAdmin(admin.ModelAdmin):
+    list_display = ("ad", "sinav_turu", "sinif_seviyesi", "soru_sayisi", "olusturulma")
+    search_fields = ("ad",)
+    list_filter = ("sinav_turu", "sinif_seviyesi")
+
+
+@admin.register(OlcumSoru)
+class OlcumSoruAdmin(admin.ModelAdmin):
+    list_display = ("sinav", "soru_no", "zimmet_tamam", "konu", "kazanim")
+    list_filter = ("zimmet_tamam",)
+    search_fields = ("sinav__ad", "konu__konu_ad")
+    raw_id_fields = ("sinav", "sinav_ders", "unite", "konu", "kazanim")
+
+
+@admin.register(OlcumTalebeCevap)
+class OlcumTalebeCevapAdmin(admin.ModelAdmin):
+    list_display = ("sinav", "talebe", "soru", "secilen", "dogru_mu", "kitapcik")
+    list_filter = ("dogru_mu", "secilen", "kitapcik")
+    raw_id_fields = ("sinav", "talebe", "soru")

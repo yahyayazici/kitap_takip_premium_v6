@@ -96,6 +96,9 @@ def _ktt_olustur_kaydet(request, form, sinif_etiketleri):
     from takip.ktt_konu_normalize_service import ktt_konu_eslestir
 
     ktt_konu_eslestir(ktt, kullanici=request.user)
+    from takip.olcme_service import mevcut_ktt_backfill
+
+    mevcut_ktt_backfill(ktt)
     return ktt, None
 
 
