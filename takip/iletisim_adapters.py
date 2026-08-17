@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils.formats import date_format
 
 from config.branding import PANEL_ORG
@@ -30,9 +31,15 @@ def ktt_hedef_etiket(ktt: KttSinav) -> str:
 
 def ktt_konu_metni(ktt: KttSinav) -> str:
     if ktt.konu_katalog_id:
-        return ktt.konu_katalog.ad
-    if ktt.konu_ham_ad.strip():
-        return ktt.konu_ham_ad.strip()
+        try:
+            ad = (ktt.konu_katalog.konu_ad or "").strip()
+        except ObjectDoesNotExist:
+            ad = ""
+        if ad:
+            return ad
+    ham = (ktt.konu_ham_ad or "").strip()
+    if ham:
+        return ham
     return ktt.ad
 
 

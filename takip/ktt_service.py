@@ -27,7 +27,7 @@ def yetkili_ktt_sinavlari(user: User) -> QuerySet[KttSinav]:
 
     qs = (
         KttSinav.objects.filter(aktif=True)
-        .select_related("ders", "ders__brans", "etut_hocasi", "olusturan")
+        .select_related("ders", "ders__brans", "etut_hocasi", "olusturan", "konu_katalog")
         .annotate(sonuc_sayisi=Count("sonuclar"))
     )
 
