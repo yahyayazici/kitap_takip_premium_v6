@@ -1,6 +1,25 @@
 {% extends "base.html" %}
 
 {% block title %}Kitap Arşivi{% endblock %}
+{% block extra_css %}
+<style>
+.library-page .library-page-head.patterned-page-head { overflow: visible !important; }
+.library-page .library-panel-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+}
+.library-page .library-add-btn {
+    background: var(--cs-primary, #15427f) !important;
+    color: #fff !important;
+    border: none !important;
+    box-shadow: none !important;
+    white-space: nowrap;
+}
+</style>
+{% endblock %}
 
 {% block content %}
 
@@ -12,7 +31,7 @@
             <h1>Kitap Arşivi</h1>
             <p class="library-head-desc">Kurumda kullanılan bütün kitapları ve zimmet durumlarını görüntüleyin.</p>
             <div class="library-head-actions">
-                <a href="{% url 'kitap_ekle' %}" class="primary-btn">Yeni Kitap</a>
+                <a href="{% url 'kitap_ekle' %}" class="primary-btn library-add-btn">Yeni Kitap</a>
             </div>
         </div>
     </header>
@@ -42,16 +61,19 @@
                 <h2>Kitaplar</h2>
                 <p class="library-panel-desc">Arşivdeki kitapları inceleyin.</p>
             </div>
-            <div class="library-search">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="11" cy="11" r="7"></circle>
-                    <path d="m20 20-3.5-3.5"></path>
-                </svg>
-                <input
-                    type="search"
-                    id="book-search"
-                    placeholder="Kitap veya yazar ara..."
-                >
+            <div class="library-panel-tools">
+                <a href="{% url 'kitap_ekle' %}" class="primary-btn library-add-btn">Yeni Kitap</a>
+                <div class="library-search">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <path d="m20 20-3.5-3.5"></path>
+                    </svg>
+                    <input
+                        type="search"
+                        id="book-search"
+                        placeholder="Kitap veya yazar ara..."
+                    >
+                </div>
             </div>
         </div>
 

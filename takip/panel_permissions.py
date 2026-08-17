@@ -212,11 +212,19 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         nav_group="Eğitim",
     ),
     PanelNavItem(
+        key="kitaplar",
+        label="Kitap Arşivi",
+        url_name="kitap_listesi",
+        roller=EGITIM_MODULU_ROLLER,
+        active_names=("kitap_listesi", "kitap_sil"),
+        nav_group="Kitaplar",
+    ),
+    PanelNavItem(
         key="kitap_ekle",
         label="Kitap Ekle",
         url_name="kitap_ekle",
         roller=EGITIM_MODULU_ROLLER,
-        active_names=("kitap_ekle", "kitap_listesi", "kitap_sil"),
+        active_names=("kitap_ekle",),
         nav_group="Kitaplar",
     ),
     PanelNavItem(
