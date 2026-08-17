@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ deneme.ad }} · {{ bolum_etiket }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=ktt-mob2">
+<link rel="stylesheet" href="{% static 'css/ss-deneme.css' %}?v=ss1">
+{% endblock %}
+{% block content %}
+<div class="ss-page">
+    <header class="page-head patterned-page-head ktt-page-head ktt-hero">
+        <div class="ktt-head-main">
+            <p class="kicker">{{ deneme.sinav_tarihi|date:"d F Y"|upper }} · {{ deneme.soru_formati }} SORU</p>
+            <h1>{{ deneme.ad }}</h1>
+            <div class="ktt-head-actions">
+                {% if duzenleyebilir %}
+                <a href="{% url 'ss_deneme_sonuc_gir' deneme.pk %}" class="ktt-solid-btn primary-btn">Sonuç gir</a>
+                {% endif %}
+                <a href="{% url 'ss_deneme_listesi' %}" class="result-back-button">Liste</a>
+            </div>
+        </div>
+    </header>
+
+    <nav class="ss-bolum-tabs" aria-label="Rapor bölümü">
+        <a class="{% if bolum == 'hepsi' %}is-active{% endif %}" href="?bolum=hepsi">Sözel + Sayısal</a>
+        <a class="{% if bolum == 'sozel' %}is-active{% endif %}" href="?bolum=sozel">Sadece sözel</a>
+        <a class="{% if bolum == 'sayisal' %}is-active{% endif %}" href="?bolum=sayisal">Sadece sayısal</a>
+    </nav>
+
+    {% if pdf_yetkisi %}
+    <div class="ss-pdf-row">
+        <a class="ghost-btn" href="{% url 'ss_deneme_detay_pdf' deneme.pk %}?bolum={{ bolum }}">Sıralı liste PDF</a>
+        <a class="ghost-btn" href="{% url 'ss_deneme_bireysel_pdf' deneme.pk %}?bolum={{ bolum }}">Tüm bireysel PDF</a>
+        {% if silebilir %}
+        <form method="post" action="{% url 'ss_deneme_sil' deneme.pk %}" onsubmit="return confirm('Bu deneme silinsin mi? Bu işlem geri alınamaz.');">
+            {% csrf_token %}
+            <button type="submit" class="btn-danger">Sil</button>
+        </form>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <section class="ktt-table-card">
+        <h2>{{ bolum_etiket }} sıralaması</h2>
+        <div class="ss-grid-wrap cs-table-wrap">
+            <table class="ss-rank">
+                <thead>
+                    <tr>
+                        <th rowspan="2">#</th>
+                        <th rowspan="2">Talebe</th>
+                        {% for kol in kolonlar %}
+                        <th colspan="4">{{ kol.etiket }}</th>
+                        {% endfor %}
+                        {% if bolum == 'hepsi' or bolum == 'sozel' %}<th rowspan="2">Sözel net</th>{% endif %}
+                        {% if bolum == 'hepsi' or bolum == 'sayisal' %}<th rowspan="2">Sayısal net</th>{% endif %}
+                        {% if bolum == 'hepsi' %}<th rowspan="2">Toplam net</th>{% endif %}
+                        <th rowspan="2"></th>
+                    </tr>
+                    <tr class="ss-dyb">
+                        {% for kol in kolonlar %}
+                        <th>D</th><th>Y</th><th>B</th><th>N</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for satir in satirlar %}
+                    <tr>
+                        <td>{{ satir.sira }}</td>
+                        <td>
+                            <strong>{{ satir.talebe.ad_soyad }}</strong>
+                            {% if satir.talebe.sinif_sube %}<small>{{ satir.talebe.sinif_sube }}</small>{% endif %}
+                        </td>
+                        {% for h in satir.hucreler %}
+                        <td>{{ h.dogru }}</td>
+                        <td>{{ h.yanlis }}</td>
+                        <td>{{ h.bos }}</td>
+                        <td>{{ h.net }}</td>
+                        {% endfor %}
+                        {% if bolum == 'hepsi' or bolum == 'sozel' %}<td><strong>{{ satir.sonuc.sozel_net }}</strong></td>{% endif %}
+                        {% if bolum == 'hepsi' or bolum == 'sayisal' %}<td><strong>{{ satir.sonuc.sayisal_net }}</strong></td>{% endif %}
+                        {% if bolum == 'hepsi' %}<td><strong>{{ satir.sonuc.toplam_net }}</strong></td>{% endif %}
+                        <td>
+                            {% if pdf_yetkisi %}
+                            <a class="ktt-btn ktt-btn-ghost" href="{% url 'ss_deneme_bireysel_talebe_pdf' deneme.pk satir.talebe.id %}?bolum={{ bolum }}">PDF</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="24">Henüz sonuç yok. Önce sonuç girin.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

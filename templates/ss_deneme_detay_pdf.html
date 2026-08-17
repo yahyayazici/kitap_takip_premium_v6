@@ -1,0 +1,66 @@
+{% load static pdf_extras %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>{{ deneme.ad }} · {{ bolum_etiket }}</title>
+    <style>
+        {% include "includes/pdf_karne_fonts.html" %}
+        {% include "includes/pdf_karne_a4_css.html" %}
+        @page { size: A4 landscape; margin: 8mm 8mm 7mm; }
+        body { font-family: "Poppins", "PdfTurkish", sans-serif; color: #122a4a; font-size: 9px; }
+        h1 { font-size: 15px; margin: 0 0 2px; }
+        .meta { color: #5b6b80; font-size: 8px; margin-bottom: 8px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #d5deea; padding: 3px 4px; text-align: center; }
+        th { background: #15427f; color: #fff; font-weight: 600; font-size: 7.5px; }
+        td.name { text-align: left; font-weight: 600; }
+        tr:nth-child(even) td { background: #f6f8fc; }
+        .net { font-weight: 700; color: #15427f; }
+    </style>
+</head>
+<body>
+    <h1>{{ deneme.ad }}</h1>
+    <div class="meta">{{ bolum_etiket }} · {{ deneme.sinif_goster }} · {{ deneme.sinav_tarihi|date:"d.m.Y" }} · {{ deneme.soru_formati }} soru</div>
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Talebe</th>
+                {% for kol in kolonlar %}
+                <th colspan="4">{{ kol.etiket }}</th>
+                {% endfor %}
+                {% if bolum == 'hepsi' or bolum == 'sozel' %}<th>Sözel net</th>{% endif %}
+                {% if bolum == 'hepsi' or bolum == 'sayisal' %}<th>Sayısal net</th>{% endif %}
+                {% if bolum == 'hepsi' %}<th>Toplam net</th>{% endif %}
+            </tr>
+            <tr>
+                <th></th><th></th>
+                {% for kol in kolonlar %}
+                <th>D</th><th>Y</th><th>B</th><th>N</th>
+                {% endfor %}
+                {% if bolum == 'hepsi' or bolum == 'sozel' %}<th></th>{% endif %}
+                {% if bolum == 'hepsi' or bolum == 'sayisal' %}<th></th>{% endif %}
+                {% if bolum == 'hepsi' %}<th></th>{% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for satir in satirlar %}
+            <tr>
+                <td>{{ satir.sira }}</td>
+                <td class="name">{{ satir.talebe.ad_soyad }}</td>
+                {% for h in satir.hucreler %}
+                <td>{{ h.dogru }}</td>
+                <td>{{ h.yanlis }}</td>
+                <td>{{ h.bos }}</td>
+                <td class="net">{{ h.net }}</td>
+                {% endfor %}
+                {% if bolum == 'hepsi' or bolum == 'sozel' %}<td class="net">{{ satir.sonuc.sozel_net }}</td>{% endif %}
+                {% if bolum == 'hepsi' or bolum == 'sayisal' %}<td class="net">{{ satir.sonuc.sayisal_net }}</td>{% endif %}
+                {% if bolum == 'hepsi' %}<td class="net">{{ satir.sonuc.toplam_net }}</td>{% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

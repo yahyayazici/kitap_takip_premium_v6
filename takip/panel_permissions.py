@@ -308,6 +308,18 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         nav_group="Eğitim",
     ),
     PanelNavItem(
+        key="ss_deneme",
+        label="Sözel–Sayısal Deneme",
+        url_name="ss_deneme_listesi",
+        roller=EGITIM_MODULU_ROLLER,
+        active_names=(
+            "ss_deneme_listesi",
+            "ss_deneme_detay",
+            "ss_deneme_sonuc_gir",
+        ),
+        nav_group="Eğitim",
+    ),
+    PanelNavItem(
         key="deneme",
         label="Deneme",
         url_name="deneme_listesi",
@@ -857,6 +869,8 @@ def panel_nav_items(user: User) -> list[PanelNavItem]:
         if item.key == "olcme_optik" and not olcme_modulu_erisimi_var(user):
             continue
         if item.key == "ktt" and not ktt_modulu_erisimi_var(user):
+            continue
+        if item.key == "ss_deneme" and not ktt_modulu_erisimi_var(user):
             continue
         if item.key == "deneme" and not deneme_modulu_erisimi_var(user):
             continue

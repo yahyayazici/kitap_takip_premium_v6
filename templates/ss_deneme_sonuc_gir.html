@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ deneme.ad }} · Sonuç{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=ktt-mob2">
+<link rel="stylesheet" href="{% static 'css/ss-deneme.css' %}?v=ss1">
+{% endblock %}
+{% block content %}
+<div class="ss-page" id="ssSonucGirPage">
+    <header class="page-head patterned-page-head ktt-page-head ktt-hero">
+        <div class="ktt-head-main">
+            <p class="kicker">{{ deneme.sinav_tarihi|date:"d F Y"|upper }} · {{ deneme.soru_formati }} SORU</p>
+            <h1>{{ deneme.ad }}</h1>
+            <div class="ktt-head-actions">
+                <a href="{% url 'ss_deneme_detay' deneme.pk %}" class="ktt-outline-btn ghost-btn">Sıralı liste</a>
+                <a href="{% url 'ss_deneme_listesi' %}" class="result-back-button">Liste</a>
+            </div>
+        </div>
+        <p class="ktt-head-desc">Her derste doğru + yanlış girin; boş otomatik dolar. Net = Doğru − Yanlış/4. Kayıt günlük soru takibe işlenir.</p>
+    </header>
+
+    <form method="post" id="ssSonucForm">
+        {% csrf_token %}
+        <div class="ss-save-bar">
+            <button type="submit" class="primary-btn">Sonuçları kaydet</button>
+        </div>
+        <div class="ss-grid-wrap cs-table-wrap">
+            <table class="ss-grid" id="ssSonucTable">
+                <thead>
+                    <tr>
+                        <th class="ss-name-col" rowspan="2">Talebe</th>
+                        <th class="ss-bolum-sozel" colspan="12">Sözel</th>
+                        <th class="ss-bolum-sayisal" colspan="6">Sayısal</th>
+                    </tr>
+                    <tr>
+                        {% for h in satirlar.0.hucreler %}
+                        <th class="ss-ders-h ss-bolum-{{ h.bolum }}" colspan="3">
+                            {{ h.etiket }} <small>{{ h.hedef }}</small>
+                        </th>
+                        {% endfor %}
+                    </tr>
+                    <tr class="ss-dyb">
+                        <th></th>
+                        {% for h in satirlar.0.hucreler %}
+                        <th>D</th><th>Y</th><th>B</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for satir in satirlar %}
+                    <tr data-talebe-id="{{ satir.talebe.id }}">
+                        <td class="ss-name-col">
+                            <strong>{{ satir.talebe.ad_soyad }}</strong>
+                            {% if satir.talebe.sinif_sube %}<small>{{ satir.talebe.sinif_sube }}</small>{% endif %}
+                        </td>
+                        {% for h in satir.hucreler %}
+                        <td>
+                            <input class="ss-in ss-dogru" type="number" min="0" max="{{ h.hedef }}" inputmode="numeric"
+                                   name="{{ h.kod }}_{{ satir.talebe.id }}_dogru" value="{{ h.dogru }}"
+                                   data-hedef="{{ h.hedef }}" aria-label="{{ h.etiket }} doğru">
+                        </td>
+                        <td>
+                            <input class="ss-in ss-yanlis" type="number" min="0" max="{{ h.hedef }}" inputmode="numeric"
+                                   name="{{ h.kod }}_{{ satir.talebe.id }}_yanlis" value="{{ h.yanlis }}"
+                                   data-hedef="{{ h.hedef }}" aria-label="{{ h.etiket }} yanlış">
+                        </td>
+                        <td>
+                            <input class="ss-in ss-bos" type="number" min="0" max="{{ h.hedef }}" readonly
+                                   name="{{ h.kod }}_{{ satir.talebe.id }}_bos" value="{{ h.bos }}"
+                                   aria-label="{{ h.etiket }} boş">
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="19">Bu denemeye kayıtlı talebe yok.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="ss-save-bar">
+            <button type="submit" class="primary-btn">Sonuçları kaydet</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/ss-deneme-sonuc.js' %}?v=ss1"></script>
+{% endblock %}

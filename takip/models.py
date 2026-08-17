@@ -2072,6 +2072,11 @@ from takip.wave0_models import (  # noqa: E402,F401
 Rol = YetkiRol
 
 from takip.ktt_models import KttSinav, KttSonucu  # noqa: E402,F401
+from takip.ss_deneme_models import (  # noqa: E402,F401
+    SozelSayisalBransSonuc,
+    SozelSayisalDeneme,
+    SozelSayisalSonuc,
+)
 
 from takip.soru_takip_models import GunlukSoruDersSatiri, GunlukSoruKaydi  # noqa: E402,F401
 

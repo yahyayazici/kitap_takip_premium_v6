@@ -21,6 +21,7 @@ from . import cuma_durum_views
 from . import bildirim_views
 from . import akademik_mudahale_views
 from . import ktt_views
+from . import ss_deneme_views
 from . import ktt_akilli_views
 from . import olcme_views
 from . import soru_takip_views
@@ -284,6 +285,18 @@ urlpatterns = [
     path("ktt/<int:pk>/katilmayan-cikar/", ktt_views.ktt_katilmayan_cikar, name="ktt_katilmayan_cikar"),
     path("ktt/<int:pk>/excel/", ktt_views.ktt_excel_indir, name="ktt_excel_indir"),
     path("ktt/<int:pk>/pdf/", ktt_views.ktt_detay_pdf, name="ktt_detay_pdf"),
+
+    path("ss-deneme/", ss_deneme_views.ss_deneme_listesi, name="ss_deneme_listesi"),
+    path("ss-deneme/<int:pk>/", ss_deneme_views.ss_deneme_detay, name="ss_deneme_detay"),
+    path("ss-deneme/<int:pk>/sil/", ss_deneme_views.ss_deneme_sil, name="ss_deneme_sil"),
+    path("ss-deneme/<int:pk>/sonuclar/", ss_deneme_views.ss_deneme_sonuc_gir, name="ss_deneme_sonuc_gir"),
+    path("ss-deneme/<int:pk>/pdf/", ss_deneme_views.ss_deneme_detay_pdf, name="ss_deneme_detay_pdf"),
+    path("ss-deneme/<int:pk>/bireysel.pdf", ss_deneme_views.ss_deneme_bireysel_pdf, name="ss_deneme_bireysel_pdf"),
+    path(
+        "ss-deneme/<int:pk>/bireysel/<int:talebe_id>.pdf",
+        ss_deneme_views.ss_deneme_bireysel_pdf,
+        name="ss_deneme_bireysel_talebe_pdf",
+    ),
 
     path("denemeler/", deneme_views.deneme_listesi, name="deneme_listesi"),
     path("denemeler/<int:pk>/", deneme_views.deneme_detay, name="deneme_detay"),

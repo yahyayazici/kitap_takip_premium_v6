@@ -1,0 +1,67 @@
+{% load static pdf_extras %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>{{ deneme.ad }} · Bireysel</title>
+    <style>
+        {% include "includes/pdf_karne_fonts.html" %}
+        {% include "includes/pdf_karne_a4_css.html" %}
+        @page { size: A4 portrait; margin: 10mm; }
+        body { font-family: "Poppins", "PdfTurkish", sans-serif; color: #122a4a; }
+        .sheet { page-break-after: always; }
+        .sheet:last-child { page-break-after: auto; }
+        h1 { font-size: 16px; margin: 0 0 4px; }
+        .meta { color: #5b6b80; font-size: 10px; margin-bottom: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        th, td { border: 1px solid #d5deea; padding: 7px 8px; text-align: center; font-size: 11px; }
+        th { background: #15427f; color: #fff; }
+        td.name { text-align: left; font-weight: 600; }
+        .ozet { display: table; width: 100%; margin-top: 14px; }
+        .ozet > div { display: table-cell; width: 33%; padding: 10px; border: 1px solid #d5deea; }
+        .ozet strong { display: block; font-size: 18px; color: #15427f; }
+        .ozet span { font-size: 10px; color: #5b6b80; text-transform: uppercase; letter-spacing: .04em; }
+    </style>
+</head>
+<body>
+{% for satir in satirlar %}
+<div class="sheet">
+    <h1>{{ satir.talebe.ad_soyad }}</h1>
+    <div class="meta">{{ deneme.ad }} · {{ bolum_etiket }} · {{ deneme.sinav_tarihi|date:"d.m.Y" }} · {{ deneme.soru_formati }} soru · Sıra {{ satir.sira }}</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Ders</th>
+                <th>Doğru</th>
+                <th>Yanlış</th>
+                <th>Boş</th>
+                <th>Net</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for h in satir.hucreler %}
+            <tr>
+                <td class="name">{{ h.etiket }}</td>
+                <td>{{ h.dogru }}</td>
+                <td>{{ h.yanlis }}</td>
+                <td>{{ h.bos }}</td>
+                <td>{{ h.net }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="ozet">
+        {% if bolum == 'hepsi' or bolum == 'sozel' %}
+        <div><span>Sözel net</span><strong>{{ satir.sonuc.sozel_net }}</strong></div>
+        {% endif %}
+        {% if bolum == 'hepsi' or bolum == 'sayisal' %}
+        <div><span>Sayısal net</span><strong>{{ satir.sonuc.sayisal_net }}</strong></div>
+        {% endif %}
+        {% if bolum == 'hepsi' %}
+        <div><span>Toplam net</span><strong>{{ satir.sonuc.toplam_net }}</strong></div>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+</body>
+</html>

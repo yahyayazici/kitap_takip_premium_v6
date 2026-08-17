@@ -110,6 +110,11 @@ PANEL_MODULES = {
         "enabled": True,
         "nav_group": "Eğitim",
     },
+    "ss_deneme": {
+        "label": "Sözel–Sayısal Deneme",
+        "enabled": True,
+        "nav_group": "Eğitim",
+    },
     "olcme": {
         "label": "Ölçme ve Değerlendirme",
         "enabled": True,

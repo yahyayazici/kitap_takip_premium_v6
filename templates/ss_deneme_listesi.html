@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Sözel–Sayısal Deneme · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=ktt-mob2">
+<link rel="stylesheet" href="{% static 'css/ss-deneme.css' %}?v=ss1">
+{% endblock %}
+{% block content %}
+<div class="ktt-page ss-page">
+    <header class="page-head patterned-page-head ktt-page-head ktt-hero">
+        <div class="ktt-head-main">
+            <p class="kicker">SÖZEL · SAYISAL DENEME</p>
+            <h1>Sözel ve Sayısal Denemeler</h1>
+            <div class="ktt-head-actions profile-head-actions">
+                {% if olusturabilir and form %}
+                <button type="button" class="ktt-solid-btn primary-btn" id="ktt-open-form" aria-controls="ktt-form-modal" aria-expanded="false">
+                    + Deneme Ekle
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        <p class="ktt-head-desc">90 soruda Türkçe–Mat–Fen 20, diğerleri 10. 75 soruda Türkçe–Mat–Fen 15, diğerleri 10.</p>
+    </header>
+
+    <section class="ktt-table-card ktt-list-only">
+        <h2>Denemeler</h2>
+        {% if sinavlar %}
+        <div class="ktt-desktop-table responsive-table">
+            <table class="ktt-table">
+                <thead>
+                    <tr>
+                        <th>Deneme</th>
+                        <th>Sınıf</th>
+                        <th>Format</th>
+                        <th>Tarih</th>
+                        <th>Katılım</th>
+                        <th>İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for deneme in sinavlar %}
+                    <tr>
+                        <td><strong>{{ deneme.ad }}</strong></td>
+                        <td>{{ deneme.sinif_goster }}</td>
+                        <td>{{ deneme.soru_formati }} soru</td>
+                        <td>{{ deneme.sinav_tarihi|date:"d.m.Y" }}</td>
+                        <td>{{ deneme.sonuc_sayisi }} öğrenci</td>
+                        <td>
+                            <div class="ktt-actions">
+                                <a href="{% url 'ss_deneme_sonuc_gir' deneme.pk %}" class="ktt-btn ktt-btn-blue">Sonuç Gir</a>
+                                <a href="{% url 'ss_deneme_detay' deneme.pk %}" class="ktt-btn ktt-btn-ghost">Sıralı liste</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="ktt-empty">Henüz sözel–sayısal deneme yok.{% if olusturabilir %} <button type="button" class="ktt-empty-link" data-ktt-open-form>Yeni deneme ekleyin</button>{% endif %}</p>
+        {% endif %}
+    </section>
+</div>
+
+{% if olusturabilir and form %}
+<div class="ktt-modal" id="ktt-form-modal" hidden role="dialog" aria-modal="true" aria-labelledby="ktt-modal-title">
+    <div class="ktt-modal-backdrop" data-ktt-close></div>
+    <div class="ktt-modal-panel">
+        <div class="ktt-form-card ktt-form-card-modal">
+            <div class="ktt-form-card-head ktt-modal-head">
+                <span id="ktt-modal-title">+ Yeni Sözel–Sayısal Deneme</span>
+                <button type="button" class="ktt-modal-close" data-ktt-close aria-label="Kapat">&times;</button>
+            </div>
+            <div class="ktt-form-card-body">
+                <form method="post" class="ktt-create-form">
+                    {% csrf_token %}
+                    <div class="ktt-form-grid">
+                        <div class="ktt-field">
+                            <label for="{{ form.ad.id_for_label }}">Deneme adı</label>
+                            {{ form.ad }}
+                            {{ form.ad.errors }}
+                        </div>
+                        <div class="ktt-field">
+                            <label for="{{ form.sinav_tarihi.id_for_label }}">Sınav tarihi</label>
+                            {{ form.sinav_tarihi }}
+                            {{ form.sinav_tarihi.errors }}
+                        </div>
+                        <div class="ktt-field ktt-field-full">
+                            <label>Soru formatı</label>
+                            <div class="ss-format-row">
+                                {% for val, label in form.soru_formati.field.choices %}
+                                <label class="ss-format-chip">
+                                    <input type="radio" name="{{ form.soru_formati.html_name }}" value="{{ val }}" {% if form.soru_formati.value|stringformat:"s" == val|stringformat:"s" %}checked{% endif %}>
+                                    <span>{{ label }}</span>
+                                    {% if val == 90 %}<small>T–M–F 20 · diğer 10</small>{% else %}<small>T–M–F 15 · diğer 10</small>{% endif %}
+                                </label>
+                                {% endfor %}
+                            </div>
+                            {{ form.soru_formati.errors }}
+                        </div>
+                        <div class="ktt-field ktt-field-full">
+                            <label>Sınıf(lar)</label>
+                            {% if sinif_secenekleri %}
+                            <div class="ktt-checkbox-grid">
+                                {% for ss in sinif_secenekleri %}
+                                <label>
+                                    <input type="checkbox" name="sinif_subeler" value="{{ ss.sinif }}-{{ ss.sube }}" {% if sinif_secenekleri|length == 1 %}checked{% endif %}>
+                                    {{ ss.sinif }}-{{ ss.sube }}
+                                </label>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="ktt-field-note">Size tanımlı sınıf bulunamadı.</p>
+                            {% endif %}
+                        </div>
+                        <div class="ktt-field ktt-field-full ktt-field-compact">
+                            <label for="{{ form.aciklama.id_for_label }}">Açıklama</label>
+                            {{ form.aciklama }}
+                        </div>
+                        {% if form.etut_hocasi %}
+                        <div class="ktt-field ktt-field-full">
+                            <label for="{{ form.etut_hocasi.id_for_label }}">Etüt hocası</label>
+                            {{ form.etut_hocasi }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="ktt-modal-foot">
+                        <button type="button" class="ktt-btn ktt-btn-ghost" data-ktt-close>Vazgeç</button>
+                        <button type="submit" class="ktt-create-btn" {% if not sinif_secenekleri %}disabled{% endif %}>Deneme oluştur</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+{% block extra_js %}
+{% if olusturabilir and form %}
+<script src="{% static 'js/ktt-list.js' %}?v=1"></script>
+{% if form.errors %}
+<script>document.documentElement.dataset.kttFormOpen = "1";</script>
+{% endif %}
+{% endif %}
+{% endblock %}
