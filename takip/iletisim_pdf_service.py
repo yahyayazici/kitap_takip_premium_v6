@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 from django.template.loader import render_to_string
-from django.utils.text import slugify
-from django.utils.timezone import localdate, now
+from django.utils.timezone import now
 
 from takip.ktt_analiz_service import ktt_sinav_grup_analizi
 from takip.ktt_models import KttSinav
@@ -64,6 +63,5 @@ def ktt_pdf_bytes(request, ktt: KttSinav) -> tuple[bytes | None, str]:
     pdf_verisi = html_to_pdf(html, base_url=request.build_absolute_uri("/"))
     if not pdf_verisi:
         raise RuntimeError(f"PDF oluşturulamadı. (Motor: {pdf_engine_status()})")
-    dosya_adi = slugify(ktt.ad) or f"ktt_{ktt.pk}"
-    filename = f"ktt_{dosya_adi}_{pdf_sayfa['kod']}_{localdate():%Y%m%d}.pdf"
-    return pdf_verisi, filename
+    ad = (ktt.ad or "").strip() or f"KTT {ktt.pk}"
+    return pdf_verisi, f"{ad}.pdf"

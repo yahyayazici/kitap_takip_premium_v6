@@ -11,7 +11,6 @@ from django.db import transaction
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.utils.text import slugify
 from django.utils.timezone import localdate, now
 
 from takip.forms import KttSinavForm
@@ -527,11 +526,8 @@ def ktt_detay_pdf(request, pk):
             f"PDF oluşturulamadı. (Motor: {pdf_engine_status()})",
         )
 
-    dosya_adi = slugify(ktt.ad) or f"ktt_{ktt.pk}"
-    return make_pdf_response(
-        pdf_verisi,
-        f"ktt_{dosya_adi}_{pdf_sayfa['kod']}_{now():%Y%m%d_%H%M%S}.pdf",
-    )
+    ad = (ktt.ad or "").strip() or f"KTT {ktt.pk}"
+    return make_pdf_response(pdf_verisi, f"{ad}.pdf")
 
 
 def _ktt_rapor_sonuclar(request):
