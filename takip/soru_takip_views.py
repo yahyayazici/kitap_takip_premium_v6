@@ -54,7 +54,7 @@ def _rapor_export_tail(request) -> str:
 @login_required
 @require_permission("soru_takip", "view")
 def soru_takip_panel(request):
-    talebeler = yetkili_talebeler(request.user).select_related(
+    tum_talebeler = yetkili_talebeler(request.user).select_related(
         "sinif_sube", "etut_hocasi"
     ).order_by("ad_soyad")
 
@@ -62,12 +62,17 @@ def soru_takip_panel(request):
     tarih = _parse_tarih(request.GET.get("tarih") or request.POST.get("tarih"))
     sinif_sube_id = request.GET.get("sinif_sube")
 
-    if sinif_sube_id:
-        talebeler = talebeler.filter(sinif_sube_id=sinif_sube_id)
-
     talebe = None
     if talebe_id:
-        talebe = get_object_or_404(talebeler, pk=talebe_id)
+        talebe = tum_talebeler.filter(pk=talebe_id).first()
+
+    # Talebe seçildiyse sınıfı ona kilitle; sınıf/talebe çakışmasında 404 verme.
+    if talebe and talebe.sinif_sube_id:
+        sinif_sube_id = str(talebe.sinif_sube_id)
+
+    talebeler = tum_talebeler
+    if sinif_sube_id:
+        talebeler = talebeler.filter(sinif_sube_id=sinif_sube_id)
 
     dersler = soru_takip_dersleri()
     kayit = None
@@ -97,7 +102,7 @@ def soru_takip_panel(request):
     son_kayitlar = yetkili_soru_kayitlari(request.user)[:12]
 
     sinif_subeler = (
-        talebeler.values_list("sinif_sube_id", "sinif_sube__sinif", "sinif_sube__sube")
+        tum_talebeler.values_list("sinif_sube_id", "sinif_sube__sinif", "sinif_sube__sube")
         .distinct()
         .order_by("sinif_sube__sinif", "sinif_sube__sube")
     )
