@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Günlük Takip · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/gunluk-takip-etut.css' %}?v=gt-mob4">
+<link rel="stylesheet" href="{% static 'css/gunluk-takip-etut.css' %}?v=gt-filtre1">
 {% endblock %}
 
 {% block content %}
@@ -12,7 +12,7 @@
     <div class="gt-head-main">
         <p class="kicker">TAKİP</p>
         <h1 class="gt-hero-title" style="color:#fff!important">Günlük Takip</h1>
-        <p class="gt-head-desc">Etüt yoklaması — gelmeyenleri işaretleyin; işaretsiz olanlar etütte var sayılır.</p>
+        <p class="gt-head-desc">Etüt yoklaması — gelmeyenleri işaretleyin; işaretsiz olanlar etütte var sayılır. Devamsızlar kaydedilince o gün kursa gelmeyen olarak işlenir.</p>
     </div>
 </header>
 
@@ -39,15 +39,52 @@
                 <span class="gt-stat-pill">{{ ozet.toplam }} öğrenci</span>
                 <span class="gt-stat-pill ok" data-stat-katilan>{{ ozet.katilan }} etütte</span>
                 <span class="gt-stat-pill bad" data-stat-devamsiz>{{ ozet.devamsiz }} devamsız</span>
+                <span class="gt-stat-pill" data-stat-gorunen hidden></span>
             </div>
         </div>
 
+        <div class="gt-etut-filters" data-etut-filters>
+            <input type="hidden" name="sinif" id="gt-filtre-sinif" value="{{ filtre_sinif }}">
+            <input type="hidden" name="yoklama" id="gt-filtre-yoklama" value="{{ filtre_yoklama }}">
+            {% if sinif_secenekleri %}
+            <div class="gt-filter-group">
+                <span class="gt-filter-label">Sınıf</span>
+                <div class="gt-filter-chips" role="group" aria-label="Sınıf">
+                    <button type="button" class="gt-chip{% if not filtre_sinif %} is-active{% endif %}" data-sinif-chip="">Tümü</button>
+                    {% for c in sinif_secenekleri %}
+                    <button type="button" class="gt-chip{% if filtre_sinif == c.key %} is-active{% endif %}" data-sinif-chip="{{ c.key }}">{{ c.label }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            <div class="gt-filter-group">
+                <span class="gt-filter-label">Durum</span>
+                <div class="gt-filter-chips" role="group" aria-label="Gelen / gelmeyen">
+                    <button type="button" class="gt-chip{% if not filtre_yoklama %} is-active{% endif %}" data-yoklama-chip="">Tümü</button>
+                    <button type="button" class="gt-chip{% if filtre_yoklama == 'gelen' %} is-active{% endif %}" data-yoklama-chip="gelen">Gelenler</button>
+                    <button type="button" class="gt-chip{% if filtre_yoklama == 'gelmeyen' %} is-active{% endif %}" data-yoklama-chip="gelmeyen">Gelmeyenler</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="gt-kurs-preview" data-kurs-preview>
+            <div class="gt-kurs-preview-head">
+                <strong>Kursa gelmeyenler</strong>
+                <span class="gt-kurs-preview-count" data-kurs-count>0 öğrenci</span>
+            </div>
+            <p class="gt-kurs-preview-note">Kaydedilince bu listedekiler o gün kursa gelmedi olarak işlenir. İşaretsizler geldi sayılır.</p>
+            <ul class="gt-kurs-preview-list" data-kurs-list></ul>
+            <p class="gt-kurs-preview-empty" data-kurs-empty>Henüz devamsız işaretlenmedi.</p>
+        </div>
+
+        <p class="gt-filter-empty" data-filter-empty hidden>Bu filtrede öğrenci yok.</p>
+
         <div class="gt-etut-grid">
             {% for s in satirlar %}
-            <div class="gt-etut-row {% if s.devamsiz %}is-absent{% else %}is-present{% endif %}" data-etut-row>
+            <div class="gt-etut-row {% if s.devamsiz %}is-absent{% else %}is-present{% endif %}" data-etut-row data-sinif="{{ s.sinif_key }}" data-ad="{{ s.talebe.ad_soyad }}">
                 <div class="gt-etut-info">
                     <strong>{{ s.talebe.ad_soyad }}</strong>
-                    <span>{% if s.talebe.sinif_sube %}{{ s.talebe.sinif_sube }}{% else %}{{ s.talebe.sinif }}{% endif %} · {{ s.talebe.etut_hocasi.ad_soyad }}</span>
+                    <span>{{ s.sinif_etiket }} · {{ s.talebe.etut_hocasi.ad_soyad }}</span>
                 </div>
                 {% if duzenleyebilir %}
                 <label class="gt-devamsiz-toggle">
@@ -78,6 +115,8 @@
     <div class="card-heading"><div><p class="card-kicker">LİSTE</p><h2>Günlük Kayıtlar</h2></div></div>
     <form method="get" class="filter-row">
         <input type="hidden" name="tarih" value="{{ secili_tarih|date:'Y-m-d' }}">
+        <input type="hidden" name="sinif" id="gt-liste-sinif" value="{{ filtre_sinif }}">
+        <input type="hidden" name="yoklama" id="gt-liste-yoklama" value="{{ filtre_yoklama }}">
         <input type="search" name="q" value="{{ filtre_q }}" class="input" placeholder="Talebe ara...">
         <input type="date" name="liste_tarih" value="{{ filtre_tarih }}" class="input">
         <select name="devam" class="input">
@@ -118,16 +157,79 @@
     var form = document.getElementById("gt-etut-form");
     var tarihInput = document.getElementById("gt-tarih");
     var tarihBtn = document.getElementById("gt-tarih-git");
+    var sinifInput = document.getElementById("gt-filtre-sinif");
+    var yoklamaInput = document.getElementById("gt-filtre-yoklama");
+
+    function mevcutParametreler() {
+        var params = new URLSearchParams(window.location.search);
+        if (tarihInput && tarihInput.value) params.set("tarih", tarihInput.value);
+        if (sinifInput && sinifInput.value) params.set("sinif", sinifInput.value);
+        else params.delete("sinif");
+        if (yoklamaInput && yoklamaInput.value) params.set("yoklama", yoklamaInput.value);
+        else params.delete("yoklama");
+        return params;
+    }
+
     if (tarihBtn && tarihInput) {
         tarihBtn.addEventListener("click", function () {
-            window.location = "?tarih=" + encodeURIComponent(tarihInput.value);
+            window.location = "?" + mevcutParametreler().toString();
         });
     }
     if (!form) return;
 
+    function satirDevamsiz(row) {
+        var chk = row.querySelector("[data-devamsiz-check]");
+        if (chk) return chk.checked;
+        return row.classList.contains("is-absent");
+    }
+
+    function filtrele() {
+        var sinif = sinifInput ? sinifInput.value : "";
+        var yoklama = yoklamaInput ? yoklamaInput.value : "";
+        var gorunen = 0;
+        form.querySelectorAll("[data-etut-row]").forEach(function (row) {
+            var okSinif = !sinif || row.getAttribute("data-sinif") === sinif;
+            var absent = satirDevamsiz(row);
+            var okDurum = !yoklama || (yoklama === "gelmeyen" ? absent : !absent);
+            var goster = okSinif && okDurum;
+            row.hidden = !goster;
+            if (goster) gorunen += 1;
+        });
+        var emptyEl = form.querySelector("[data-filter-empty]");
+        if (emptyEl) emptyEl.hidden = gorunen > 0;
+        var gorunenEl = form.querySelector("[data-stat-gorunen]");
+        if (gorunenEl) {
+            var filtreVar = Boolean(sinif || yoklama);
+            gorunenEl.hidden = !filtreVar;
+            gorunenEl.textContent = gorunen + " görünüyor";
+        }
+    }
+
+    function onizleme() {
+        var listEl = form.querySelector("[data-kurs-list]");
+        var countEl = form.querySelector("[data-kurs-count]");
+        var emptyEl = form.querySelector("[data-kurs-empty]");
+        if (!listEl) return;
+        var names = [];
+        form.querySelectorAll("[data-etut-row]").forEach(function (row) {
+            if (!satirDevamsiz(row)) return;
+            names.push(row.getAttribute("data-ad") || "");
+        });
+        listEl.replaceChildren();
+        names.forEach(function (ad) {
+            var li = document.createElement("li");
+            li.textContent = ad;
+            listEl.appendChild(li);
+        });
+        if (countEl) countEl.textContent = names.length + " öğrenci";
+        if (emptyEl) emptyEl.hidden = names.length > 0;
+        listEl.hidden = names.length === 0;
+    }
+
     function guncelle() {
+        var checks = form.querySelectorAll("[data-devamsiz-check]");
         var devamsiz = form.querySelectorAll("[data-devamsiz-check]:checked").length;
-        var toplam = form.querySelectorAll("[data-devamsiz-check]").length;
+        var toplam = checks.length;
         var katilanEl = form.querySelector("[data-stat-katilan]");
         var devamsizEl = form.querySelector("[data-stat-devamsiz]");
         if (katilanEl) katilanEl.textContent = (toplam - devamsiz) + " etütte";
@@ -138,11 +240,39 @@
             row.classList.toggle("is-absent", chk.checked);
             row.classList.toggle("is-present", !chk.checked);
         });
+        filtrele();
+        onizleme();
     }
 
+    function chipSec(groupAttr, value, hiddenEl) {
+        form.querySelectorAll("[" + groupAttr + "]").forEach(function (btn) {
+            btn.classList.toggle("is-active", btn.getAttribute(groupAttr) === value);
+        });
+        if (hiddenEl) hiddenEl.value = value;
+        var listeSinif = document.getElementById("gt-liste-sinif");
+        var listeYoklama = document.getElementById("gt-liste-yoklama");
+        if (groupAttr === "data-sinif-chip" && listeSinif) listeSinif.value = value;
+        if (groupAttr === "data-yoklama-chip" && listeYoklama) listeYoklama.value = value;
+        var params = mevcutParametreler();
+        var url = window.location.pathname + "?" + params.toString();
+        window.history.replaceState({}, "", url);
+        guncelle();
+    }
+
+    form.querySelectorAll("[data-sinif-chip]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            chipSec("data-sinif-chip", btn.getAttribute("data-sinif-chip") || "", sinifInput);
+        });
+    });
+    form.querySelectorAll("[data-yoklama-chip]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            chipSec("data-yoklama-chip", btn.getAttribute("data-yoklama-chip") || "", yoklamaInput);
+        });
+    });
     form.querySelectorAll("[data-devamsiz-check]").forEach(function (chk) {
         chk.addEventListener("change", guncelle);
     });
+    guncelle();
 })();
 </script>
 {% endblock %}

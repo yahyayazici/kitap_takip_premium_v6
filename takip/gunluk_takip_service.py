@@ -102,9 +102,40 @@ def etut_yoklama_satirlari(user: User, tarih: date) -> list[dict]:
                 "kayit": kayit,
                 "devamsiz": devamsiz,
                 "katildi": not devamsiz,
+                "sinif_key": _sinif_key(talebe),
+                "sinif_etiket": _sinif_etiket(talebe),
             }
         )
     return satirlar
+
+
+def _sinif_key(talebe: Talebe) -> str:
+    if getattr(talebe, "sinif_sube_id", None) and talebe.sinif_sube:
+        return talebe.sinif_sube.etiket
+    sinif = (talebe.sinif or "").strip()
+    sube = (talebe.sube or "").strip()
+    if sinif and sube:
+        return f"{sinif}-{sube}"
+    return sinif or "diger"
+
+
+def _sinif_etiket(talebe: Talebe) -> str:
+    if getattr(talebe, "sinif_sube_id", None) and talebe.sinif_sube:
+        return str(talebe.sinif_sube)
+    sinif = (talebe.sinif or "").strip()
+    sube = (talebe.sube or "").strip()
+    if sinif and sube:
+        return f"{sinif}/{sube}"
+    return sinif or "—"
+
+
+def etut_sinif_secenekleri(satirlar: list[dict]) -> list[dict]:
+    seen: dict[str, str] = {}
+    for s in satirlar:
+        key = s.get("sinif_key") or _sinif_key(s["talebe"])
+        if key not in seen:
+            seen[key] = s.get("sinif_etiket") or _sinif_etiket(s["talebe"])
+    return [{"key": k, "label": seen[k]} for k in sorted(seen, key=lambda x: seen[x])]
 
 
 def etut_yoklama_kaydet(user: User, tarih: date, devamsiz_ids: set[int]) -> int:
@@ -120,12 +151,13 @@ def etut_yoklama_kaydet(user: User, tarih: date, devamsiz_ids: set[int]) -> int:
     sayac = 0
     for talebe in talebeler:
         kayit = mevcut.get(talebe.pk)
-        devam = (
-            kayit.devam
-            if kayit
-            else GunlukTakipKaydi.DevamDurumu.GELDI
-        )
         devamsiz = talebe.pk in devamsiz_ids
+        if devamsiz:
+            devam = GunlukTakipKaydi.DevamDurumu.GELMEDI
+        elif kayit and kayit.devam == GunlukTakipKaydi.DevamDurumu.GEC:
+            devam = kayit.devam
+        else:
+            devam = GunlukTakipKaydi.DevamDurumu.GELDI
         gunluk_kayit_kaydet(
             talebe,
             tarih,

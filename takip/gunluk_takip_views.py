@@ -11,6 +11,7 @@ from django.utils.timezone import localdate
 
 from takip.forms import GunlukTakipKaydiForm
 from takip.gunluk_takip_service import (
+    etut_sinif_secenekleri,
     etut_yoklama_kaydet,
     etut_yoklama_ozet,
     etut_yoklama_satirlari,
@@ -29,6 +30,15 @@ def _parse_tarih(deger: str | None) -> date | None:
         return datetime.strptime(deger, "%Y-%m-%d").date()
     except ValueError:
         return None
+
+
+def _etut_filtre(request, *, post: bool = False) -> tuple[str, str]:
+    src = request.POST if post else request.GET
+    sinif = (src.get("sinif") or "").strip()
+    yoklama = (src.get("yoklama") or "").strip()
+    if yoklama not in {"gelen", "gelmeyen"}:
+        yoklama = ""
+    return sinif, yoklama
 
 
 @login_required
@@ -66,14 +76,26 @@ def gunluk_takip_panel(request):
         messages.success(
             request,
             f"{secili_tarih:%d.%m.%Y} etüt yoklaması kaydedildi. "
-            f"{adet - len(devamsiz_ids)} katıldı, {len(devamsiz_ids)} devamsız.",
+            f"{adet - len(devamsiz_ids)} etütte, {len(devamsiz_ids)} kursa gelmeyen.",
         )
-        return redirect(f"{request.path}?tarih={secili_tarih:%Y-%m-%d}")
+        qs = request.GET.copy()
+        qs["tarih"] = f"{secili_tarih:%Y-%m-%d}"
+        sinif, yoklama = _etut_filtre(request, post=True)
+        if sinif:
+            qs["sinif"] = sinif
+        elif "sinif" in qs:
+            del qs["sinif"]
+        if yoklama:
+            qs["yoklama"] = yoklama
+        elif "yoklama" in qs:
+            del qs["yoklama"]
+        return redirect(f"{request.path}?{qs.urlencode()}" if qs else request.path)
 
     qs = yetkili_gunluk_kayitlari(request.user).order_by("-tarih", "talebe__ad_soyad")
     q = request.GET.get("q", "").strip()
     liste_tarih = request.GET.get("liste_tarih", "").strip() or secili_tarih.isoformat()
     devam = request.GET.get("devam", "").strip()
+    filtre_sinif, filtre_yoklama = _etut_filtre(request)
     qs = gunluk_kayitlari_filtrele(
         qs,
         q=q or None,
@@ -86,6 +108,9 @@ def gunluk_takip_panel(request):
         "gunluk_takip_panel.html",
         {
             "satirlar": satirlar,
+            "sinif_secenekleri": etut_sinif_secenekleri(satirlar),
+            "filtre_sinif": filtre_sinif,
+            "filtre_yoklama": filtre_yoklama,
             "ozet": ozet,
             "secili_tarih": secili_tarih,
             "kayitlar": qs[:200],
