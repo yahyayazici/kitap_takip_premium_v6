@@ -2,16 +2,17 @@
 <table class="results{% if kompakt %} results-kompakt{% endif %}">
     <thead>
         <tr>
-            <th class="th-sira" style="width:{% if kompakt %}10{% else %}8{% endif %}%;">Sıra</th>
-            <th class="left th-talebe" style="width:{% if kompakt %}38{% else %}28{% endif %}%;">Adı Soyadı</th>
+            <th class="th-sira" style="width:{% if kompakt %}8{% else %}7{% endif %}%;">Sıra</th>
+            <th class="left th-talebe" style="width:{% if kompakt %}30{% else %}22{% endif %}%;">Talebe Adı Soyadı</th>
+            <th class="th-sinif" style="width:{% if kompakt %}10{% else %}8{% endif %}%;">Sınıf</th>
             <th class="th-dyb" style="width:7%;">Doğru</th>
             <th class="th-dyb" style="width:7%;">Yanlış</th>
             <th class="th-dyb" style="width:7%;">Boş</th>
-            <th class="th-net" style="width:9%;">Net</th>
+            <th class="th-net" style="width:8%;">Net</th>
             {% if not kompakt %}
-            <th class="th-basari" style="width:18%;">Başarı</th>
+            <th class="th-basari" style="width:18%;">Başarı (%)</th>
             {% endif %}
-            <th class="th-puan" style="width:{% if kompakt %}15{% else %}16{% endif %}%;">Puan</th>
+            <th class="th-puan" style="width:{% if kompakt %}16{% else %}16{% endif %}%;">Puan (100)</th>
         </tr>
     </thead>
     <tbody>
@@ -19,24 +20,36 @@
         {% with sira=forloop.counter|add:sira_offset %}
         <tr>
             <td class="rank-cell">
+                {% if sira == 1 %}
+                <svg class="rank-medal" viewBox="0 0 12 10" xmlns="http://www.w3.org/2000/svg"><path d="M1.2 8.2h9.6L8.8 3.2 6 6.1 3.2 3.2z" fill="#d4a017"/><rect x="1.1" y="8" width="9.8" height="1.3" rx="0.3" fill="#d4a017"/></svg>
+                {% elif sira == 2 %}
+                <svg class="rank-medal" viewBox="0 0 12 10" xmlns="http://www.w3.org/2000/svg"><path d="M1.2 8.2h9.6L8.8 3.2 6 6.1 3.2 3.2z" fill="#8e9aab"/><rect x="1.1" y="8" width="9.8" height="1.3" rx="0.3" fill="#8e9aab"/></svg>
+                {% elif sira == 3 %}
+                <svg class="rank-medal" viewBox="0 0 12 10" xmlns="http://www.w3.org/2000/svg"><path d="M1.2 8.2h9.6L8.8 3.2 6 6.1 3.2 3.2z" fill="#c47a3a"/><rect x="1.1" y="8" width="9.8" height="1.3" rx="0.3" fill="#c47a3a"/></svg>
+                {% endif %}
                 <span class="rank-no{% if sira == 1 %} is-gold{% elif sira == 2 %} is-silver{% elif sira == 3 %} is-bronze{% endif %}">{{ sira }}</span>
             </td>
             <td class="left name-cell">
                 <div class="student-name">{{ sonuc.talebe.ad_soyad }}</div>
-                {% if not kompakt %}
-                <div class="student-meta">{{ sonuc.talebe.sinif_sube|default:"—" }}</div>
-                {% endif %}
             </td>
+            <td class="sinif-cell">{{ sonuc.talebe.sinif_sube|default:"—" }}</td>
             <td class="num-cell dyb-cell">{{ sonuc.dogru }}</td>
             <td class="num-cell dyb-cell">{{ sonuc.yanlis }}</td>
             <td class="num-cell dyb-cell">{{ sonuc.bos }}</td>
             <td class="num-cell net-cell">{{ sonuc.net }}</td>
             {% if not kompakt %}
             <td class="basari-cell">
-                <svg class="basari-track" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 13" preserveAspectRatio="none">
-                    <rect x="0.4" y="0.4" width="99.2" height="12.2" fill="#c3d2e6" stroke="#8fa4be" stroke-width="0.8"></rect>
-                    <rect x="0.4" y="0.4" width="{{ sonuc.puan|pdf_bar_pct }}" height="12.2" fill="#1e4fa3"></rect>
-                </svg>
+                <table class="basari-row" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td class="basari-bar-cell">
+                            <svg class="basari-track" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 8" preserveAspectRatio="none">
+                                <rect x="0" y="0" width="100" height="8" fill="#d5deea"></rect>
+                                <rect x="0" y="0" width="{{ sonuc.puan|pdf_bar_pct }}" height="8" fill="#2b6fd4"></rect>
+                            </svg>
+                        </td>
+                        <td class="basari-pct">%{{ sonuc.puan|pdf_puan }}</td>
+                    </tr>
+                </table>
             </td>
             {% endif %}
             <td class="puan-cell"><span class="puan-mark">{{ sonuc.puan|pdf_puan }}</span></td>
@@ -44,7 +57,7 @@
         {% endwith %}
         {% empty %}
         <tr>
-            <td colspan="{% if kompakt %}7{% else %}8{% endif %}" class="left" style="padding:8px;">—</td>
+            <td colspan="{% if kompakt %}8{% else %}9{% endif %}" class="left" style="padding:8px;">—</td>
         </tr>
         {% endfor %}
     </tbody>
