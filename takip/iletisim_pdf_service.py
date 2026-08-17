@@ -5,7 +5,6 @@ from __future__ import annotations
 from django.template.loader import render_to_string
 from django.utils.timezone import now
 
-from takip.ktt_analiz_service import ktt_sinav_grup_analizi
 from takip.ktt_models import KttSinav
 from takip.pdf_utils import coz_pdf_sayfa, html_to_pdf, pdf_engine_status
 
@@ -37,7 +36,6 @@ def ktt_pdf_bytes(request, ktt: KttSinav) -> tuple[bytes | None, str]:
     if not sonuclar_list:
         return None, ""
     ozet = _ktt_sonuc_ozeti(sonuclar_list)
-    analiz = ktt_sinav_grup_analizi(ktt, sonuclar_list, ozet)
     pdf_sayfa = coz_pdf_sayfa(request)
     adet = len(sonuclar_list)
     split_at = (adet + 1) // 2
@@ -52,9 +50,8 @@ def ktt_pdf_bytes(request, ktt: KttSinav) -> tuple[bytes | None, str]:
             "sonuclar_sag": sonuclar_list[split_at:],
             "sonuc_split": sonuc_split,
             "split_at": split_at,
-            "analiz_goster": not sonuc_split,
+            "analiz_goster": False,
             "ozet": ozet,
-            "analiz": analiz,
             "olusturma_tarihi": now(),
             "pdf_sayfa": pdf_sayfa,
         },

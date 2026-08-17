@@ -34,7 +34,7 @@ from takip.ktt_service import (
     yetkili_ktt_sinavlari,
     yetkili_ktt_sonuclari,
 )
-from takip.ktt_analiz_service import ktt_analiz_durumu, ktt_rapor_analizi, ktt_sinav_grup_analizi
+from takip.ktt_analiz_service import ktt_analiz_durumu, ktt_rapor_analizi
 from takip.iletisim_adapters import ktt_konu_metni, ktt_paylasim_hazir_mi
 from takip.models import Ders, KttSinav, KttSonucu, Talebe
 from takip.pdf_utils import (
@@ -493,7 +493,6 @@ def ktt_detay_pdf(request, pk):
     sonuclar = ktt.sonuclar.select_related("talebe").order_by("-puan", "-net", "talebe__ad_soyad")
     sonuclar_list = list(sonuclar)
     ozet = _ktt_sonuc_ozeti(sonuclar_list)
-    analiz = ktt_sinav_grup_analizi(ktt, sonuclar_list, ozet)
     pdf_sayfa = coz_pdf_sayfa(request)
     adet = len(sonuclar_list)
     split_at = (adet + 1) // 2
@@ -509,9 +508,8 @@ def ktt_detay_pdf(request, pk):
             "sonuclar_sag": sonuclar_list[split_at:],
             "sonuc_split": sonuc_split,
             "split_at": split_at,
-            "analiz_goster": not sonuc_split,
+            "analiz_goster": False,
             "ozet": ozet,
-            "analiz": analiz,
             "olusturma_tarihi": now(),
             "pdf_sayfa": pdf_sayfa,
         },
@@ -670,19 +668,6 @@ def ktt_rapor_pdf(request):
     filtre_etiketleri = ktt_rapor_filtre_etiketleri(filtre, secenekler)
     pdf_sayfa = coz_pdf_sayfa(request)
 
-    talebe = None
-    talebe_filtre = filtre.get("talebe") or []
-    if isinstance(talebe_filtre, list) and len(talebe_filtre) == 1:
-        talebe = Talebe.objects.filter(pk=talebe_filtre[0]).first()
-
-    analiz = ktt_rapor_analizi(
-        sonuclar_list,
-        istatistik,
-        filtre,
-        filtre_etiketleri,
-        talebe=talebe,
-    )
-
     html = render(
         request,
         "ktt_rapor_pdf.html",
@@ -692,7 +677,6 @@ def ktt_rapor_pdf(request):
             "filtre": filtre_etiketleri,
             "kayit_sayisi": len(sonuclar_list),
             "kapsam": "KTT Sonuç Özeti",
-            "analiz": analiz,
             "olusturma_tarihi": now(),
             "pdf_sayfa": pdf_sayfa,
         },
