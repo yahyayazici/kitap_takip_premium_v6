@@ -42,18 +42,23 @@
     try {
       var u = new URL(base, window.location.origin);
       u.searchParams.set("sayfa", sel.value || "a4_portrait");
+      u.searchParams.set("_t", String(Date.now()));
       link.setAttribute("href", u.pathname + u.search + u.hash);
     } catch (e) {
       var sep = base.indexOf("?") >= 0 ? "&" : "?";
-      link.setAttribute("href", base.replace(/([?&])sayfa=[^&]*/g, "").replace(/[?&]$/, "") + sep + "sayfa=" + encodeURIComponent(sel.value || "a4_portrait"));
+      link.setAttribute("href", base.replace(/([?&])sayfa=[^&]*/g, "").replace(/[?&]$/, "") + sep + "sayfa=" + encodeURIComponent(sel.value || "a4_portrait") + "&_t=" + Date.now());
     }
   }
   document.querySelectorAll("[data-pdf-sayfa]").forEach(function (root) {
     if (root.dataset.bound) return;
     root.dataset.bound = "1";
     var sel = root.querySelector("[data-pdf-sayfa-select]");
+    var link = root.querySelector("[data-pdf-sayfa-link]");
     if (sel) {
       sel.addEventListener("change", function () { applySayfa(root); });
+    }
+    if (link) {
+      link.addEventListener("click", function () { applySayfa(root); });
     }
     applySayfa(root);
   });

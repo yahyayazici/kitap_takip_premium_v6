@@ -530,7 +530,7 @@ def ktt_detay_pdf(request, pk):
     dosya_adi = slugify(ktt.ad) or f"ktt_{ktt.pk}"
     return make_pdf_response(
         pdf_verisi,
-        f"ktt_{dosya_adi}_{pdf_sayfa['kod']}_{localdate():%Y%m%d}.pdf",
+        f"ktt_{dosya_adi}_{pdf_sayfa['kod']}_{now():%Y%m%d_%H%M%S}.pdf",
     )
 
 
