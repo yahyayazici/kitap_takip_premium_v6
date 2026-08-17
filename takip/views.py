@@ -76,10 +76,9 @@ from .dashboard_service import (
 from .imam_muezzin_service import bugunun_atamasi, bugunun_listesi
 from .program_service import bugunun_programi, program_arsivi, tarihe_uygun_programlar
 from .temizlik_service import (
-    bugunun_atamalari,
-    bugunun_atamalari_kullanici,
-    bugunun_listesi as bugunun_temizlik_listesi,
     kullanici_kat_sorumluluklari,
+    sabit_temizlik_katlari,
+    sabit_temizlik_satirlari,
 )
 from .yemekci_service import bugunun_atamalari as bugunun_yemek_atamalari
 from .yemekci_service import bugunun_listesi as bugunun_yemekci_listesi
@@ -446,7 +445,7 @@ def dashboard(request):
         else None
     )
     bugun_temizlik_atamalari = (
-        bugunun_atamalari_kullanici(request.user)
+        sabit_temizlik_satirlari(request.user)
         if temizlik_paneli_gorebilir(request.user)
         else []
     )
@@ -2391,6 +2390,12 @@ def temizlik_pdf_yanit(request, liste):
     from .temizlik_yonetim_service import yonetim_merkezi
 
     merkez = yonetim_merkezi(liste)
+    kat_kartlari = list(merkez["kat_kartlari"])
+    yonetim_modu = yonetim_erisimi_var(request.user) or request.user.is_superuser
+    if not yonetim_modu:
+        kat_ids = {s.kat_id for s in kullanici_kat_sorumluluklari(request.user)}
+        if kat_ids:
+            kat_kartlari = [k for k in kat_kartlari if k["kat"].pk in kat_ids]
     fmt = (request.GET.get("format") or "a4").lower()
     yon = (request.GET.get("orientation") or "portrait").lower()
     if fmt not in ("a4", "a3"):
@@ -2410,12 +2415,12 @@ def temizlik_pdf_yanit(request, liste):
         "temizlik_pdf.html",
         {
             "liste": liste,
-            "kat_kartlari": merkez["kat_kartlari"],
+            "kat_kartlari": kat_kartlari,
             "stats": merkez["stats"],
             **panel_branding_context(),
             "pdf_format": fmt,
             "pdf_orientation": yon,
-            "bugun": merkez["bugun"],
+            "yazdirma_tarihi": localdate(),
         },
         request=request,
     )
@@ -2445,72 +2450,33 @@ def temizlik_panel(request):
 
     from .temizlik_service import aktif_temizlik_listesi
 
-    tarih_metni = request.GET.get("tarih", "").strip()
-    bugun = localdate()
-    bugun_liste = bugunun_temizlik_listesi()
-    bugun_gorevler = bugunun_atamalari_kullanici(request.user)
     kat_sorumluluklari = kullanici_kat_sorumluluklari(request.user)
     yonetim_modu = yonetim_erisimi_var(request.user) or request.user.is_superuser
     kat_ids = {s.kat_id for s in kat_sorumluluklari}
 
-    # Personel: tek aktif liste; arşiv seçimi yok
-    secili_liste = aktif_temizlik_listesi() or bugun_liste
+    secili_liste = aktif_temizlik_listesi()
     if yonetim_modu:
         secili_id = request.GET.get("liste", "").strip()
         if secili_id.isdigit():
             secili_liste = (
-                TemizlikListesi.objects.filter(pk=int(secili_id), aktif=True)
-                .prefetch_related("atamalar__alan", "atamalar__talebe")
-                .first()
+                TemizlikListesi.objects.filter(pk=int(secili_id), aktif=True).first()
                 or secili_liste
             )
 
-    secili_tarih = bugun
-    if tarih_metni:
-        try:
-            yil, ay, gun = tarih_metni.split("-")
-            secili_tarih = date(int(yil), int(ay), int(gun))
-        except ValueError:
-            secili_tarih = bugun
-    elif secili_liste:
-        if not (
-            secili_liste.baslangic_tarihi
-            <= bugun
-            <= secili_liste.bitis_tarihi
-        ):
-            secili_tarih = secili_liste.baslangic_tarihi
-
-    atamalar = (
-        list(
-            secili_liste.atamalar.select_related("alan", "alan__kat", "talebe")
-            .filter(tarih=secili_tarih)
-            .order_by("alan__kat__sira", "alan__sira", "alan__ad")
-        )
-        if secili_liste
-        else []
-    )
-
-    # Personel yalnızca zimmetli katlarını görür
-    if not yonetim_modu:
-        if kat_ids:
-            atamalar = [a for a in atamalar if a.alan and a.alan.kat_id in kat_ids]
-        else:
-            atamalar = []
+    kat_kartlari = sabit_temizlik_katlari(request.user, secili_liste) if secili_liste else []
+    mahal_sayisi = sum(len(k["mahaller"]) for k in kat_kartlari)
 
     return render(
         request,
         "temizlik_panel.html",
         {
-            "bugun": bugun,
-            "bugun_gorevler": bugun_gorevler,
             "kat_sorumluluklari": kat_sorumluluklari,
-            "listeler": [],
+            "kat_kartlari": kat_kartlari,
+            "mahal_sayisi": mahal_sayisi,
             "secili_liste": secili_liste,
-            "secili_tarih": secili_tarih,
-            "atamalar": atamalar,
             "yonetim_modulu": yonetim_modu,
             "sadece_kat_gorunumu": (not yonetim_modu) and bool(kat_ids),
-            "kat_zimmeti_yok": (not yonetim_modu) and not kat_ids,
+            "kat_zimmeti_yok": (not yonetim_modu) and not kat_ids and not kat_kartlari,
         },
     )
 

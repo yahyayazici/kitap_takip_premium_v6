@@ -664,14 +664,16 @@ def temizlik_kat_sorumlusu_mu(user: User) -> bool:
 
 
 def temizlik_paneli_gorebilir(user: User) -> bool:
-    """Etüt hocası yalnızca kat zimmeti varsa temizlik panelini görür."""
+    """Etüt hocası yalnızca kat veya mahal zimmeti varsa temizlik panelini görür."""
     if not temizlik_modulu_erisimi_var(user):
         return False
     if user.is_superuser or yonetim_erisimi_var(user):
         return True
     rol = kullanici_birincil_rol_slug(user)
     if rol == ROL_ETUT_MESUL:
-        return temizlik_kat_sorumlusu_mu(user)
+        from takip.temizlik_service import temizlik_zimmeti_var
+
+        return temizlik_zimmeti_var(user)
     return True
 
 

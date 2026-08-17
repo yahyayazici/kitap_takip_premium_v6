@@ -418,9 +418,9 @@ def _gorev_badge_sayisi(user: User, bugun: date) -> int:
         if bugunun_atamasi():
             sayac += 1
     if temizlik_modulu_erisimi_var(user):
-        from takip.temizlik_service import bugunun_atamalari
+        from takip.temizlik_service import sabit_temizlik_satirlari
 
-        sayac += len(bugunun_atamalari())
+        sayac += len(sabit_temizlik_satirlari(user))
     if yemekcilik_modulu_erisimi_var(user):
         from takip.yemekci_service import bugunun_atamalari
 
@@ -1027,21 +1027,21 @@ def dashboard_gunluk_gorevler(user: User, *, bugun: date | None = None) -> dict[
 
     if temizlik_paneli_gorebilir(user):
         from takip.temizlik_service import (
-            bugunun_atamalari_kullanici,
             kullanici_kat_sorumluluklari,
+            sabit_temizlik_satirlari,
         )
 
         sonuc["temizlik_katlari"] = [
             s.kat.ad for s in kullanici_kat_sorumluluklari(user)
         ]
         temizlik_satirlar = []
-        for atama in bugunun_atamalari_kullanici(user):
-            kat = atama.alan.kat.ad if atama.alan and atama.alan.kat else "—"
+        for satir in sabit_temizlik_satirlari(user)[:12]:
+            kat = satir["kat"].ad if satir.get("kat") else "—"
             temizlik_satirlar.append(
                 DashboardGunlukGorev(
-                    baslik=f"{kat} · {atama.alan.ad}",
-                    deger=atama.talebe.ad_soyad,
-                    alt=atama.alan.aciklama or "",
+                    baslik=f"{kat} · {satir['alan'].ad}",
+                    deger=", ".join(satir["temizlikciler"]) or "—",
+                    alt=satir["alan"].aciklama or "",
                     url=reverse("temizlik_panel"),
                 )
             )

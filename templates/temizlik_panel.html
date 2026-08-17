@@ -3,7 +3,7 @@
 
 {% block title %}Temizlik{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/temizlik-premium.css' %}?v=tz3">
+<link rel="stylesheet" href="{% static 'css/temizlik-premium.css' %}?v=tz-sabit1">
 {% endblock %}
 
 {% block content %}
@@ -13,7 +13,7 @@
     <div class="tz-head-main">
         <p class="kicker">GÖREV MODÜLÜ</p>
         <h1>Temizlik Görevleri</h1>
-        <p class="muted">{{ secili_tarih|date:"d F Y, l" }} · Sorumlu olduğunuz katlar</p>
+        <p class="muted">{% if sadece_kat_gorunumu %}Sorumlu olduğunuz katın sabit mahalleri{% else %}Sabit mahal ve temizlikçi listesi{% endif %}</p>
         <div class="tz-head-actions profile-head-actions">
             {% if secili_liste %}
             <a href="{% url 'temizlik_pdf' secili_liste.pk %}" class="primary-btn" target="_blank" rel="noopener">PDF İndir</a>
@@ -29,7 +29,7 @@
 <section class="tz-card tz-kat-banner">
     <p class="tz-card-kicker">Kat zimmeti</p>
     <strong>{% for sorumluluk in kat_sorumluluklari %}{{ sorumluluk.kat.ad }}{% if not forloop.last %}, {% endif %}{% endfor %}</strong>
-    <p class="tz-muted">Yalnızca bu katlardaki mahal ve görevliler listelenir.</p>
+    <p class="tz-muted">Bu katlardaki mahaller sabittir; gün gün değişmez.</p>
 </section>
 {% elif kat_zimmeti_yok %}
 <section class="tz-card tz-kat-banner">
@@ -38,47 +38,48 @@
 </section>
 {% endif %}
 
-<section class="tz-card">
-    <form method="get" class="tz-date-form">
-        <label for="tarih-select">Gün</label>
-        <input id="tarih-select" type="date" name="tarih" class="tz-input" value="{{ secili_tarih|date:'Y-m-d' }}">
-        <button type="submit" class="tz-btn tz-btn-primary">Göster</button>
-    </form>
-</section>
-
-{% if secili_liste and not kat_zimmeti_yok %}
+{% if kat_kartlari %}
+{% for kart in kat_kartlari %}
 <section class="tz-card">
     <div class="tz-card-head-row">
         <div>
-            <p class="tz-card-kicker">{{ secili_tarih|date:"d.m.Y" }}</p>
-            <h2>Görev listesi</h2>
+            <p class="tz-card-kicker">{{ kart.kat.ad }}</p>
+            <h2>Mahaller</h2>
+            {% if kart.sorumlular %}
+            <p class="tz-muted">Temizlikçi: {% for s in kart.sorumlular %}{{ s.ad }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+            {% endif %}
         </div>
-        <span class="tz-pill">{{ atamalar|length }} mahal</span>
+        <span class="tz-pill">{{ kart.mahaller|length }} mahal</span>
     </div>
     <div class="tz-table-wrap">
         <table class="tz-table">
             <thead>
                 <tr>
-                    <th>Kat / Alan</th>
-                    <th>Sorumlu Talebe</th>
+                    <th>Mahal</th>
+                    <th>Temizlikçi</th>
                 </tr>
             </thead>
             <tbody>
-                {% for atama in atamalar %}
+                {% for row in kart.mahaller %}
                 <tr>
                     <td>
-                        <strong>{% if atama.alan.kat %}{{ atama.alan.kat.ad }} · {% endif %}{{ atama.alan.ad }}</strong>
-                        {% if atama.alan.aciklama %}<br><span class="tz-muted">{{ atama.alan.aciklama }}</span>{% endif %}
+                        <strong>{{ row.alan.ad }}</strong>
+                        {% if row.alan.aciklama %}<br><span class="tz-muted">{{ row.alan.aciklama }}</span>{% endif %}
                     </td>
-                    <td>{{ atama.talebe.ad_soyad|default:"—" }}</td>
+                    <td>
+                        {% for ad in row.temizlikciler %}{{ ad }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}
+                    </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="2" class="tz-empty">Seçilen gün için görev yok.</td></tr>
+                <tr><td colspan="2" class="tz-empty">Bu katta mahal yok.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </section>
+{% endfor %}
+{% elif secili_liste and not kat_zimmeti_yok %}
+<section class="tz-card"><p class="tz-empty">Atanmış mahal bulunamadı.</p></section>
 {% elif not secili_liste %}
 <section class="tz-card"><p class="tz-empty">Aktif temizlik kaydı bulunamadı.</p></section>
 {% endif %}

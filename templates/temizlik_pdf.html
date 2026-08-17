@@ -162,7 +162,7 @@
             <h1>Temizlik Listesi</h1>
         </div>
         <p class="meta">
-            {{ liste.ad }} · {{ bugun|date:"d.m.Y" }}
+            {{ liste.ad }} · Sabit liste
             · {{ pdf_format|upper }} · {% if pdf_orientation == "landscape" %}Yatay{% else %}Dikey{% endif %}
         </p>
     </header>
@@ -185,7 +185,7 @@
             <thead>
                 <tr>
                     <th style="width:34%">Mahal</th>
-                    <th style="width:66%">Görevli Talebeler</th>
+                    <th style="width:66%">Temizlikçi</th>
                 </tr>
             </thead>
             <tbody>
@@ -196,7 +196,15 @@
                         {% if row.alan.aciklama %}<span class="mahal-sub">{{ row.alan.aciklama }}</span>{% endif %}
                     </td>
                     <td class="gorevli">
-                        {% for g in row.gorevliler %}{{ g.ad_soyad }}{% if not forloop.last %}, {% endif %}{% empty %}<span class="empty">—</span>{% endfor %}
+                        {% if row.gorevliler %}
+                            {% for g in row.gorevliler %}{{ g.ad_soyad }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                        {% elif row.sorumlular %}
+                            {% for s in row.sorumlular %}{{ s.ad }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                        {% elif kart.sorumlular %}
+                            {% for s in kart.sorumlular %}{{ s.ad }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                        {% else %}
+                            <span class="empty">—</span>
+                        {% endif %}
                     </td>
                 </tr>
                 {% empty %}
@@ -210,7 +218,7 @@
     {% endfor %}
 
     <div class="doc-foot">
-        <span>{{ stats.toplam_mahal }} mahal · {{ stats.gorevli_talebe }} görevli talebe</span>
+        <span>{{ stats.toplam_mahal }} mahal · sabit liste</span>
         <span>{{ panel_name }}</span>
     </div>
 </body>
