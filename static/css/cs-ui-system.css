@@ -494,73 +494,76 @@ body.talebe-body .ghost-btn {
     color: rgba(255, 255, 255, 0.88) !important;
 }
 
-/* Üst menü arkası — Çinili yıldız dokusu + ciltli kitap (ekrandan uçan silüet değil) */
+/* Üst menü arkası — Çinili yıldız dokusu + ciltli kitap (yazının altı, harfin arkası değil) */
 .v6-header-books {
     z-index: 1;
-    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 11%, #000 78%, transparent 97%);
-    mask-image: linear-gradient(90deg, transparent 0, #000 11%, #000 78%, transparent 97%);
+    -webkit-mask-image: linear-gradient(180deg, transparent 0 48%, #000 66%, #000 100%);
+    mask-image: linear-gradient(180deg, transparent 0 48%, #000 66%, #000 100%);
 }
 
 .v6-header-books::before {
     content: "";
     position: absolute;
     inset: 0;
-    opacity: 0.13;
+    opacity: 0.1;
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' fill='none'><path d='M40 6L45 29L68 24L52 40L68 56L45 51L40 74L35 51L12 56L28 40L12 24L35 29Z' stroke='white' stroke-width='0.7'/><circle cx='40' cy='40' r='5.5' stroke='white' stroke-width='0.7'/></svg>");
     background-size: 80px 80px;
     pointer-events: none;
 }
 
+.v3-header .v3-nav-link,
+.cs-v6-header .v3-nav-link {
+    text-shadow: 0 1px 8px rgba(8, 28, 64, 0.28);
+}
+
 .v3-header .v6-book,
 .cs-v6-header .v6-book {
+    top: auto;
     left: auto;
+    bottom: 3px;
     color: inherit;
-    filter: drop-shadow(0 4px 7px rgba(8, 24, 56, 0.22));
-    opacity: 0.62;
+    filter: drop-shadow(0 3px 5px rgba(8, 24, 56, 0.18));
+    opacity: 0.4;
     transform: rotate(var(--cs-book-r, 0deg));
     animation: csBookDrift 18s ease-in-out infinite alternate !important;
 }
 
 .v3-header .v6-book-1,
 .cs-v6-header .v6-book-1 {
-    top: 14%;
-    left: 20%;
-    width: 28px;
-    height: 36px;
-    --cs-book-r: -14deg;
+    left: 23%;
+    width: 24px;
+    height: 30px;
+    --cs-book-r: -12deg;
     animation-duration: 18s !important;
     animation-delay: 0s !important;
 }
 
 .v3-header .v6-book-2,
 .cs-v6-header .v6-book-2 {
-    top: 52%;
-    left: 39%;
-    width: 38px;
-    height: 24px;
-    --cs-book-r: 9deg;
+    left: 41%;
+    width: 34px;
+    height: 22px;
+    --cs-book-r: 8deg;
     animation-duration: 22s !important;
     animation-delay: -6s !important;
 }
 
 .v3-header .v6-book-3,
 .cs-v6-header .v6-book-3 {
-    top: 10%;
-    left: 56%;
-    width: 22px;
-    height: 32px;
-    --cs-book-r: 12deg;
+    left: 58%;
+    width: 20px;
+    height: 28px;
+    --cs-book-r: 11deg;
     animation-duration: 16s !important;
     animation-delay: -9s !important;
 }
 
 .v3-header .v6-book-4,
 .cs-v6-header .v6-book-4 {
-    top: 48%;
-    left: 71%;
-    width: 26px;
-    height: 34px;
-    --cs-book-r: -9deg;
+    left: 72%;
+    width: 22px;
+    height: 28px;
+    --cs-book-r: -8deg;
     animation-duration: 20s !important;
     animation-delay: -3s !important;
 }
