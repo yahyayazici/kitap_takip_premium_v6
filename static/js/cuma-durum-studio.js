@@ -37,6 +37,22 @@
         return str.length > len ? str.slice(0, len) + "…" : str;
     }
 
+    function quoteLenClass(metin) {
+        var n = (metin || "").length;
+        if (n > 240) return "is-long";
+        if (n > 120) return "is-mid";
+        return "is-short";
+    }
+
+    function storyClassName(sablon, metin) {
+        return "cd-story cd-theme-" + (sablon || "gece") + " " + quoteLenClass(metin);
+    }
+
+    function applyStorySkin() {
+        story.className = storyClassName(state.sablon, state.metin);
+        story.setAttribute("data-theme", state.sablon);
+    }
+
     function uygulaMetin(metin, kaynak, sablon, id) {
         state.metin = metin || "";
         state.kaynak = kaynak || "";
@@ -46,8 +62,7 @@
         previewMetin.textContent = state.metin;
         previewKaynak.textContent = state.kaynak ? "— " + state.kaynak : "";
 
-        story.className = "cd-story cd-theme-" + state.sablon;
-        story.setAttribute("data-theme", state.sablon);
+        applyStorySkin();
 
         document.querySelectorAll(".cd-quote-card").forEach(function (card) {
             card.classList.toggle(
@@ -113,8 +128,7 @@
             chip.textContent = s.etiket;
             chip.addEventListener("click", function () {
                 state.sablon = s.kod;
-                story.className = "cd-story cd-theme-" + s.kod;
-                story.setAttribute("data-theme", s.kod);
+                applyStorySkin();
                 document.querySelectorAll(".cd-theme-chip").forEach(function (c) {
                     c.classList.toggle("is-active", c.dataset.theme === s.kod);
                 });
@@ -176,7 +190,7 @@
         downloadBtn.textContent = "Hazırlanıyor…";
 
         var clone = story.cloneNode(true);
-        clone.className = "cd-story cd-theme-" + state.sablon;
+        clone.className = storyClassName(state.sablon, state.metin);
         clone.style.transform = "none";
         clone.style.marginBottom = "0";
         clone.style.width = "1080px";
@@ -187,31 +201,71 @@
         wrap.appendChild(clone);
         document.body.appendChild(wrap);
 
-        html2canvas(clone, {
-            scale: 1,
-            useCORS: true,
-            allowTaint: false,
-            backgroundColor: null,
-            width: 1080,
-            height: 1920,
-            logging: false,
-        })
-            .then(function (canvas) {
-                canvas.toBlob(function (blob) {
-                    if (!blob) {
-                        alert("Görsel oluşturulamadı.");
-                        return;
+        function downloadBlob(blob, filename) {
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            a.rel = "noopener";
+            a.style.display = "none";
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function () {
+                a.remove();
+                URL.revokeObjectURL(url);
+            }, 2500);
+        }
+
+        function blobFromCanvas(canvas) {
+            return new Promise(function (resolve, reject) {
+                function fromDataUrl() {
+                    try {
+                        var dataUrl = canvas.toDataURL("image/png");
+                        var bin = atob(dataUrl.split(",")[1] || "");
+                        var arr = new Uint8Array(bin.length);
+                        for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+                        resolve(new Blob([arr], { type: "image/png" }));
+                    } catch (err) {
+                        reject(err);
                     }
-                    var ad = (inputAd.value || stuyo.personel_ad || "cuma").replace(/\s+/g, "-");
-                    var url = URL.createObjectURL(blob);
-                    var a = document.createElement("a");
-                    a.href = url;
-                    a.download = "cuma-durum-" + ad + ".png";
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                    URL.revokeObjectURL(url);
+                }
+
+                if (typeof canvas.toBlob !== "function") {
+                    fromDataUrl();
+                    return;
+                }
+
+                canvas.toBlob(function (blob) {
+                    if (blob) resolve(blob);
+                    else fromDataUrl();
                 }, "image/png");
+            });
+        }
+
+        var capture = function () {
+            return html2canvas(clone, {
+                scale: 1,
+                useCORS: true,
+                allowTaint: false,
+                backgroundColor: null,
+                width: 1080,
+                height: 1920,
+                logging: false,
+            });
+        };
+
+        var fontsReady =
+            document.fonts && document.fonts.ready
+                ? document.fonts.ready.catch(function () {})
+                : Promise.resolve();
+
+        fontsReady
+            .then(capture)
+            .then(function (canvas) {
+                return blobFromCanvas(canvas).then(function (blob) {
+                    var ad = (inputAd.value || stuyo.personel_ad || "cuma").replace(/\s+/g, "-");
+                    downloadBlob(blob, "cuma-durum-" + ad + ".png");
+                });
             })
             .catch(function () {
                 alert("Görsel indirilemedi. Logo yüklenmemiş olabilir; yine de metin kaydedildi.");

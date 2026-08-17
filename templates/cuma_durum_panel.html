@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Cuma Durumu · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/cuma-durum-premium.css' %}?v=cd1">
+<link rel="stylesheet" href="{% static 'css/cuma-durum-premium.css' %}?v=cd11">
 {% endblock %}
 {% block content %}
 <div class="cd-page">
@@ -25,26 +25,31 @@
             <div class="cd-phone">
                 <div class="cd-phone-notch" aria-hidden="true"></div>
                 <div class="cd-phone-screen">
-                    <div id="cd-story-export" class="cd-story cd-theme-gece" data-theme="gece">
+                    <div id="cd-story-export" class="cd-story cd-theme-gece is-short" data-theme="gece">
                         <div class="cd-story-bg" aria-hidden="true"></div>
-                        <div class="cd-story-ornament cd-story-ornament-a" aria-hidden="true"></div>
-                        <div class="cd-story-ornament cd-story-ornament-b" aria-hidden="true"></div>
                         <div class="cd-story-inner">
-                            <div class="cd-story-top">
+                            <div class="cd-story-brand">
                                 <img class="cd-story-logo" src="{% static 'images/cinili-saray-logo-white.png' %}" alt="{{ panel_org }}" crossorigin="anonymous">
                                 <p class="cd-story-org">{{ panel_org }}</p>
                             </div>
-                            <div class="cd-story-mid">
-                                <p class="cd-story-badge">Hayırlı Cumalar</p>
-                                <blockquote class="cd-story-quote" id="cd-preview-metin"></blockquote>
-                                <p class="cd-story-source" id="cd-preview-kaynak"></p>
-                            </div>
-                            <div class="cd-story-bottom">
-                                <div class="cd-story-person">
-                                    <span class="cd-story-person-line" aria-hidden="true"></span>
-                                    <p class="cd-story-name" id="cd-preview-ad">{{ personel_ad }}</p>
-                                    <p class="cd-story-role" id="cd-preview-rol"></p>
+                            <div class="cd-story-core">
+                                <div class="cd-story-body">
+                                    <blockquote class="cd-story-quote" id="cd-preview-metin"></blockquote>
+                                    <p class="cd-story-source" id="cd-preview-kaynak"></p>
                                 </div>
+                            </div>
+                            <p class="cd-story-salute" aria-label="Hayırlı Cumalar">
+                                <span class="cd-salute-lockup">
+                                    <span class="cd-salute-block">CUMALAR</span>
+                                    <span class="cd-salute-script" aria-hidden="true">
+                                        <span class="cd-salute-halo">Hayırlı</span>
+                                        <span class="cd-salute-ink">Hayırlı</span>
+                                    </span>
+                                </span>
+                            </p>
+                            <div class="cd-story-sign">
+                                <p class="cd-story-name" id="cd-preview-ad">{{ personel_ad }}</p>
+                                <p class="cd-story-role" id="cd-preview-rol"></p>
                                 <p class="cd-story-date" id="cd-preview-tarih">{{ cuma_tarihi }}</p>
                             </div>
                         </div>
@@ -106,6 +111,6 @@
 </div>
 
 <script id="cd-stuyo-data" type="application/json">{{ stuyo_json|safe }}</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="{% static 'js/cuma-durum-studio.js' %}?v=cd1"></script>
+<script src="{% static 'js/html2canvas.min.js' %}?v=h2c141"></script>
+<script src="{% static 'js/cuma-durum-studio.js' %}?v=cd5"></script>
 {% endblock %}

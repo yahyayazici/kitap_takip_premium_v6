@@ -1,9 +1,29 @@
 /* Cuma Durum Stüdyosu — WhatsApp 9:16 story */
 
+@font-face {
+    font-family: "CD Script";
+    src: url("../fonts/GreatVibes-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "CD Display";
+    src: url("../fonts/Poppins-ExtraBold.ttf") format("truetype");
+    font-weight: 800;
+    font-style: normal;
+    font-display: swap;
+}
+
 .cd-page {
     max-width: 1280px;
     margin: 0 auto;
     padding: 0 0 48px;
+    --cd-ink: var(--cs-text-primary);
+    --cd-muted: var(--cs-text-secondary);
+    --cd-line: var(--cs-border);
+    --cd-surface: var(--cs-surface);
 }
 
 .cd-head {
@@ -21,7 +41,7 @@
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: #64748b;
+    color: var(--cd-muted);
 }
 
 .cd-head h1 {
@@ -29,13 +49,13 @@
     font-size: clamp(1.75rem, 4vw, 2.25rem);
     font-weight: 700;
     letter-spacing: -0.03em;
-    color: #0f172a;
+    color: var(--cd-ink);
 }
 
 .cd-head-meta {
     margin: 8px 0 0;
     font-size: 14px;
-    color: #64748b;
+    color: var(--cd-muted);
     max-width: 520px;
     line-height: 1.5;
 }
@@ -143,59 +163,54 @@
     z-index: 0;
 }
 
+.cd-theme-gece {
+    --cd-knockout: #0a2048;
+}
+
 .cd-theme-gece .cd-story-bg {
     background:
-        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(126, 180, 255, 0.35), transparent 55%),
-        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(196, 181, 253, 0.2), transparent 50%),
-        linear-gradient(165deg, #071b3a 0%, #0a2048 42%, #061530 100%);
+        radial-gradient(ellipse 70% 42% at 50% -8%, rgba(126, 180, 255, 0.16), transparent 58%),
+        linear-gradient(168deg, #071b3a 0%, #0a2048 46%, #061530 100%);
+}
+
+.cd-theme-zumrut {
+    --cd-knockout: #054e3d;
 }
 
 .cd-theme-zumrut .cd-story-bg {
     background:
-        radial-gradient(ellipse 70% 45% at 20% 0%, rgba(110, 231, 183, 0.28), transparent 50%),
-        linear-gradient(165deg, #064e3b 0%, #065f46 40%, #022c22 100%);
+        radial-gradient(ellipse 62% 38% at 22% 0%, rgba(110, 231, 183, 0.14), transparent 54%),
+        linear-gradient(168deg, #064e3b 0%, #065f46 42%, #022c22 100%);
+}
+
+.cd-theme-mor {
+    --cd-knockout: #3b0764;
 }
 
 .cd-theme-mor .cd-story-bg {
     background:
-        radial-gradient(ellipse 75% 50% at 80% 10%, rgba(216, 180, 254, 0.32), transparent 52%),
-        linear-gradient(165deg, #3b0764 0%, #581c87 45%, #2e1065 100%);
+        radial-gradient(ellipse 64% 40% at 78% 8%, rgba(216, 180, 254, 0.14), transparent 56%),
+        linear-gradient(168deg, #3b0764 0%, #581c87 46%, #2e1065 100%);
+}
+
+.cd-theme-altin {
+    --cd-knockout: #6b2f0c;
 }
 
 .cd-theme-altin .cd-story-bg {
     background:
-        radial-gradient(ellipse 80% 55% at 50% 0%, rgba(251, 191, 36, 0.28), transparent 55%),
-        linear-gradient(165deg, #78350f 0%, #92400e 38%, #451a03 100%);
+        radial-gradient(ellipse 70% 44% at 50% 0%, rgba(251, 191, 36, 0.14), transparent 58%),
+        linear-gradient(168deg, #78350f 0%, #92400e 40%, #451a03 100%);
+}
+
+.cd-theme-lacivert {
+    --cd-knockout: #0a4a6c;
 }
 
 .cd-theme-lacivert .cd-story-bg {
     background:
-        radial-gradient(ellipse 65% 45% at 50% 100%, rgba(56, 189, 248, 0.22), transparent 50%),
-        linear-gradient(165deg, #0c4a6e 0%, #075985 42%, #082f49 100%);
-}
-
-.cd-story-ornament {
-    position: absolute;
-    border-radius: 50%;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    z-index: 1;
-    pointer-events: none;
-}
-
-.cd-story-ornament-a {
-    width: 680px;
-    height: 680px;
-    top: -220px;
-    right: -180px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.04) 0%, transparent 70%);
-}
-
-.cd-story-ornament-b {
-    width: 520px;
-    height: 520px;
-    bottom: -120px;
-    left: -160px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.03) 0%, transparent 68%);
+        radial-gradient(ellipse 58% 38% at 50% 100%, rgba(56, 189, 248, 0.12), transparent 52%),
+        linear-gradient(168deg, #0c4a6e 0%, #075985 44%, #082f49 100%);
 }
 
 .cd-story-inner {
@@ -203,64 +218,94 @@
     z-index: 2;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    align-items: center;
     height: 100%;
-    padding: 88px 72px 96px;
+    padding: 112px 100px 118px;
     box-sizing: border-box;
-}
-
-.cd-story-top {
     text-align: center;
 }
 
+.cd-story-brand {
+    flex: 0 0 auto;
+    width: 100%;
+}
+
 .cd-story-logo {
-    width: 120px;
+    width: 268px;
     height: auto;
-    margin: 0 auto 20px;
+    margin: 0 auto 22px;
     display: block;
-    filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.25));
 }
 
 .cd-story-org {
     margin: 0;
-    font-size: 28px;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    opacity: 0.92;
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    opacity: 0.62;
 }
 
-.cd-story-mid {
-    flex: 1;
+.cd-story-brand::after {
+    content: "";
+    display: block;
+    width: 40px;
+    height: 1px;
+    margin: 36px auto 0;
+    background: currentColor;
+    opacity: 0.22;
+}
+
+.cd-story-core {
+    flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    text-align: center;
-    padding: 48px 0;
+    width: 100%;
+    min-height: 0;
 }
 
-.cd-story-badge {
-    margin: 0 0 40px;
-    display: inline-block;
-    padding: 14px 36px;
-    border-radius: 999px;
-    font-size: 26px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    backdrop-filter: blur(8px);
+.cd-story-body {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 48px 0 8px;
 }
 
 .cd-story-quote {
     margin: 0;
-    max-width: 920px;
+    max-width: 860px;
     font-size: 42px;
     font-weight: 500;
-    line-height: 1.55;
-    letter-spacing: -0.01em;
-    text-shadow: 0 2px 24px rgba(0, 0, 0, 0.2);
+    line-height: 1.58;
+    letter-spacing: -0.012em;
+}
+
+.cd-story.is-short .cd-story-quote {
+    font-size: 44px;
+    line-height: 1.62;
+}
+
+.cd-story.is-mid .cd-story-quote {
+    font-size: 40px;
+    line-height: 1.56;
+}
+
+.cd-story.is-long .cd-story-quote {
+    font-size: 34px;
+    line-height: 1.52;
+}
+
+.cd-story.is-long .cd-story-core {
+    justify-content: flex-start;
+}
+
+.cd-story.is-long .cd-story-body {
+    padding: 20px 0 4px;
 }
 
 .cd-story-quote:empty::before {
@@ -271,42 +316,122 @@
 }
 
 .cd-story-source {
-    margin: 36px 0 0;
-    font-size: 28px;
-    font-weight: 500;
-    opacity: 0.78;
+    margin: 28px 0 0;
+    max-width: 760px;
+    font-size: 22px;
+    font-weight: 400;
+    opacity: 0.58;
     font-style: italic;
+    letter-spacing: 0.02em;
 }
 
 .cd-story-source:empty {
     display: none;
 }
 
-.cd-story-bottom {
-    text-align: center;
+.cd-story-salute {
+    position: relative;
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin: 20px 0 44px;
+    overflow: visible;
+    line-height: 1;
 }
 
-.cd-story-person-line {
+.cd-salute-lockup {
+    position: relative;
+    display: inline-block;
+    font-size: 132px;
+    padding-top: 0.58em;
+}
+
+.cd-salute-block {
     display: block;
-    width: 80px;
-    height: 3px;
-    margin: 0 auto 28px;
-    border-radius: 3px;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+    font-family: "CD Display", "Poppins", sans-serif;
+    font-weight: 800;
+    font-size: 1em;
+    letter-spacing: -0.055em;
+    text-transform: uppercase;
+    color: #fff;
+    white-space: nowrap;
+}
+
+.cd-salute-script {
+    position: absolute;
+    left: 50%;
+    bottom: 0.56em;
+    transform: translateX(-50%);
+    z-index: 1;
+    pointer-events: none;
+}
+
+.cd-salute-halo,
+.cd-salute-ink {
+    font-family: "CD Script", "Great Vibes", cursive;
+    font-weight: 400;
+    font-size: 1.02em;
+    font-style: normal;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    line-height: 1;
+}
+
+.cd-salute-halo {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    color: var(--cd-knockout);
+    -webkit-text-stroke: 20px var(--cd-knockout);
+    text-shadow:
+        -7px 0 0 var(--cd-knockout),
+        7px 0 0 var(--cd-knockout),
+        0 -6px 0 var(--cd-knockout),
+        0 6px 0 var(--cd-knockout),
+        -5px -5px 0 var(--cd-knockout),
+        5px 5px 0 var(--cd-knockout);
+}
+
+.cd-salute-ink {
+    position: relative;
+    color: #fff;
+}
+
+.cd-story.is-mid .cd-salute-lockup {
+    font-size: 118px;
+}
+
+.cd-story.is-long .cd-story-salute {
+    margin: 10px 0 28px;
+}
+
+.cd-story.is-long .cd-salute-lockup {
+    font-size: 96px;
+}
+
+.cd-story.is-long .cd-salute-halo {
+    -webkit-text-stroke: 16px var(--cd-knockout);
+}
+
+.cd-story-sign {
+    flex: 0 0 auto;
+    width: 100%;
 }
 
 .cd-story-name {
     margin: 0;
-    font-size: 36px;
-    font-weight: 700;
+    font-size: 32px;
+    font-weight: 600;
     letter-spacing: -0.02em;
 }
 
 .cd-story-role {
-    margin: 8px 0 0;
-    font-size: 24px;
-    font-weight: 500;
-    opacity: 0.72;
+    margin: 10px 0 0;
+    font-size: 20px;
+    font-weight: 400;
+    opacity: 0.58;
 }
 
 .cd-story-role:empty {
@@ -314,11 +439,11 @@
 }
 
 .cd-story-date {
-    margin: 32px 0 0;
-    font-size: 22px;
-    font-weight: 500;
-    opacity: 0.55;
-    letter-spacing: 0.04em;
+    margin: 18px 0 0;
+    font-size: 17px;
+    font-weight: 400;
+    opacity: 0.38;
+    letter-spacing: 0.12em;
 }
 
 /* Kontroller */
@@ -340,14 +465,14 @@
     margin: 0 0 6px;
     font-size: 15px;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--cd-ink);
 }
 
 .cd-panel-lead {
     margin: 0 0 16px;
     font-size: 13px;
     line-height: 1.5;
-    color: #64748b;
+    color: var(--cd-muted);
 }
 
 .cd-tabs {
@@ -368,14 +493,14 @@
     font: inherit;
     font-size: 13px;
     font-weight: 600;
-    color: #64748b;
+    color: var(--cd-muted);
     cursor: pointer;
     transition: background 0.16s, color 0.16s, box-shadow 0.16s;
 }
 
 .cd-tab.is-active {
     background: #fff;
-    color: #0f172a;
+    color: var(--cd-ink);
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
 }
 
@@ -421,7 +546,7 @@
     display: block;
     font-size: 13px;
     line-height: 1.45;
-    color: #0f172a;
+    color: var(--cd-ink);
     font-weight: 600;
 }
 
@@ -429,7 +554,7 @@
     display: block;
     margin-top: 6px;
     font-size: 11px;
-    color: #64748b;
+    color: var(--cd-muted);
 }
 
 .cd-quote-card .cd-badge-oneri {
@@ -465,7 +590,7 @@
     border: 1px solid #e2e8f0;
     font: inherit;
     font-size: 14px;
-    color: #0f172a;
+    color: var(--cd-ink);
     background: #fff;
     transition: border-color 0.16s, box-shadow 0.16s;
     box-sizing: border-box;
@@ -586,9 +711,9 @@ textarea.cd-input {
 /* Export sırasında telefon dışında tam boyut klon */
 .cd-export-clone {
     position: fixed;
-    left: -9999px;
+    left: -10000px;
     top: 0;
-    z-index: -1;
+    z-index: 1;
     pointer-events: none;
 }
 
