@@ -1,6 +1,6 @@
-/* Çinili Saray Proje — PWA kurulum SW (isteklere girmez) */
+/* Çinili Saray Proje — PWA kurulum SW (navigasyonu bekletmez) */
 
-const SW_VERSION = "csp-pwa-12";
+const SW_VERSION = "csp-pwa-13";
 
 self.addEventListener("install", function () {
     self.skipWaiting();
@@ -14,10 +14,8 @@ self.addEventListener("activate", function (event) {
                     return caches.delete(key);
                 })
             );
+        }).then(function () {
+            return self.clients.claim();
         })
     );
 });
-
-/* Fetch dinleyicisi PWA için gerekli; respondWith yok = tarayıcı native gider.
-   Eski SW her GET'i sarıp mobil beyaz ekran / takılma yapıyordu. */
-self.addEventListener("fetch", function () {});

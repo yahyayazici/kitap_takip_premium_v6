@@ -1,14 +1,23 @@
 {% load static %}
 <meta name="theme-color" content="#071b3a">
-<style>html,body{background:#e8eef5}</style>
+<style>
+html,body{background:#071b3a}
+a,button,summary,[role="button"],.v3-nav-link,.v3-nav-trigger,.v3-menu-toggle,.primary-btn,.ghost-btn,.book-action-btn{
+    touch-action:manipulation;
+}
+@media (max-width:1400px){
+    .v3-nav-backdrop{transition:none!important}
+}
+</style>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="{{ panel_mobile_short|default:panel_short }}">
 <meta name="application-name" content="{{ panel_mobile_short|default:panel_short }}">
-<link rel="manifest" href="{% url 'web_manifest' %}?v=12">
-<link rel="apple-touch-icon" sizes="180x180" href="{% url 'pwa_icon_180' %}?v=12">
-<link rel="apple-touch-icon-precomposed" sizes="180x180" href="{% url 'pwa_icon_180' %}?v=12">
-<link rel="icon" type="image/png" sizes="192x192" href="{% url 'pwa_icon_192' %}?v=12">
-<link rel="icon" type="image/png" sizes="512x512" href="{% url 'pwa_icon_512' %}?v=12">
-<script src="{% static 'js/pwa-install.js' %}?v=12" defer></script>
+<link rel="manifest" href="{% url 'web_manifest' %}?v=13">
+<link rel="apple-touch-icon" sizes="180x180" href="{% url 'pwa_icon_180' %}?v=13">
+<link rel="apple-touch-icon-precomposed" sizes="180x180" href="{% url 'pwa_icon_180' %}?v=13">
+<link rel="icon" type="image/png" sizes="192x192" href="{% url 'pwa_icon_192' %}?v=13">
+<link rel="icon" type="image/png" sizes="512x512" href="{% url 'pwa_icon_512' %}?v=13">
+<script src="{% static 'js/pwa-install.js' %}?v=13" defer></script>
+<script src="{% static 'js/cs-mobile-snap.js' %}?v=13" defer></script>

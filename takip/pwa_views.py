@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import json
+from html import escape
+
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect
@@ -17,7 +20,7 @@ from config.branding import (
 from takip.og_share_image import render_og_share_png
 
 PWA_THEME_COLOR = "#071b3a"
-PWA_VERSION = "v12"
+PWA_VERSION = "v13"
 PWA_ID = f"/?pwa={PWA_VERSION}"
 
 _ICON_FILES = {
@@ -53,7 +56,7 @@ def web_manifest(request):
             "display": "standalone",
             "orientation": "any",
             "theme_color": PWA_THEME_COLOR,
-            "background_color": "#0a1f4a",
+            "background_color": "#071b3a",
             "lang": "tr",
             "icons": [
                 {
@@ -139,10 +142,22 @@ def _panel_giris_hedefi(user) -> str:
 @ensure_csrf_cookie
 @require_GET
 def pwa_baslat(request):
-    """Ana ekran kısayolu — yalnızca GET; oturum varsa panele, yoksa girişe."""
+    """Ana ekran kısayolu — lacivert splash, 302 beyaz ekran yok."""
     if request.user.is_authenticated:
-        return redirect(_panel_giris_hedefi(request.user))
-    return redirect(f"{reverse('login')}?source=pwa")
+        hedef = _panel_giris_hedefi(request.user)
+    else:
+        hedef = f"{reverse('login')}?source=pwa"
+    html = (
+        "<!doctype html><html lang='tr'><head>"
+        "<meta charset='utf-8'>"
+        f"<meta name='theme-color' content='{PWA_THEME_COLOR}'>"
+        f"<meta http-equiv='refresh' content='0;url={escape(hedef, quote=True)}'>"
+        "<style>html,body{margin:0;background:#071b3a;min-height:100dvh}</style>"
+        f"<script>location.replace({json.dumps(hedef)})</script>"
+        "</head><body></body></html>"
+    )
+    response = HttpResponse(html)
+    return _no_cache(response)
 
 
 def csrf_failure(request, reason=""):
