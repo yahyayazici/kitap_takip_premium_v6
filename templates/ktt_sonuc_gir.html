@@ -22,6 +22,7 @@
             {% if pdf_yetkisi %}
             <a href="{% url 'ktt_detay_pdf' ktt.pk %}?v=ktt14" class="result-secondary-button" download>PDF İndir</a>
             {% endif %}
+            {% include "includes/ktt_sil_form.html" with ktt=ktt silebilir=silebilir btn_class="ghost-btn" form_style="display:inline;" %}
             <a href="{% url 'ktt_listesi' %}" class="result-back-button">KTT Listesi</a>
         </div>
     </header>

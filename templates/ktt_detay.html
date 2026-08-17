@@ -27,6 +27,7 @@
             {% if duzenleyebilir %}
             <a href="{% url 'ktt_duzenle' ktt.pk %}" class="ghost-btn">Düzenle</a>
             {% endif %}
+            {% include "includes/ktt_sil_form.html" with ktt=ktt silebilir=silebilir btn_class="ghost-btn" form_style="display:inline;" %}
             <a href="{% url 'ktt_listesi' %}" class="result-back-button">Listeye Dön</a>
         </div>
     </header>

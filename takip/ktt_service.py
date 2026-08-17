@@ -73,9 +73,13 @@ def ktt_sonuc_girebilir(user: User, ktt: KttSinav) -> bool:
 
 
 def ktt_silebilir(user: User, ktt: KttSinav) -> bool:
-    if not can(user, "ktt", "delete"):
+    if not can(user, "ktt", "view"):
         return False
-    if ktt_tam_yetki(user):
+    if ktt_tam_yetki(user) or can(user, "ktt", "delete"):
+        return True
+    if not (can(user, "ktt", "create") or can(user, "ktt", "edit")):
+        return False
+    if ktt.olusturan_id == user.id:
         return True
     hoca = _etut_hocasi(user)
     return hoca is not None and ktt.etut_hocasi_id == hoca.id

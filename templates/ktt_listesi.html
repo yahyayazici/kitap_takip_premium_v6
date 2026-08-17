@@ -84,12 +84,7 @@
                     <div class="ktt-actions">
                         <a href="{% url 'ktt_sonuc_gir' ktt.pk %}" class="ktt-btn ktt-btn-blue">Sonuç Gir / Gör</a>
                         <a href="{% url 'ktt_detay' ktt.pk %}" class="ktt-btn ktt-btn-ghost">Detay</a>
-                        {% if silme_yetkisi %}
-                        <form method="post" action="{% url 'ktt_sil' ktt.pk %}" onsubmit="return confirm('{{ ktt.ad|escapejs }} silinsin mi?');">
-                            {% csrf_token %}
-                            <button type="submit" class="ktt-btn ktt-btn-red">Sil</button>
-                        </form>
-                        {% endif %}
+                        {% include "includes/ktt_sil_form.html" with ktt=ktt silebilir=ktt.silebilir %}
                     </div>
                 </div>
             </details>
@@ -122,12 +117,7 @@
                             <div class="ktt-actions">
                                 <a href="{% url 'ktt_sonuc_gir' ktt.pk %}" class="ktt-btn ktt-btn-blue">Sonuçlar</a>
                                 <a href="{% url 'ktt_detay' ktt.pk %}" class="ktt-btn ktt-btn-ghost">Detay</a>
-                                {% if silme_yetkisi %}
-                                <form method="post" action="{% url 'ktt_sil' ktt.pk %}" style="display:inline;" onsubmit="return confirm('{{ ktt.ad|escapejs }} silinsin mi?');">
-                                    {% csrf_token %}
-                                    <button type="submit" class="ktt-btn ktt-btn-red">Sil</button>
-                                </form>
-                                {% endif %}
+                                {% include "includes/ktt_sil_form.html" with ktt=ktt silebilir=ktt.silebilir form_style="display:inline;" %}
                             </div>
                         </td>
                     </tr>

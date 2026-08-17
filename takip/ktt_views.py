@@ -147,22 +147,26 @@ def ktt_listesi(request):
             "ortak": grup_ortak_eksikler(hoca)[:3],
         }
 
+    sinavlar = list(yetkili_ktt_sinavlari(request.user))
+    for ktt in sinavlar:
+        ktt.silebilir = ktt_silebilir(request.user, ktt)
+
     return render(
         request,
         "ktt_listesi.html",
         {
-            "sinavlar": yetkili_ktt_sinavlari(request.user),
+            "sinavlar": sinavlar,
             "form": form,
             "sinif_secenekleri": sinif_secenekleri,
             "olusturabilir": olusturabilir,
-            "silme_yetkisi": can(request.user, "ktt", "delete"),
+            "silme_yetkisi": any(ktt.silebilir for ktt in sinavlar),
             "akilli_ozet": akilli_ozet,
         },
     )
 
 
 @login_required
-@require_permission("ktt", "delete")
+@require_permission("ktt", "view")
 def ktt_sil(request, pk):
     ktt = get_object_or_404(yetkili_ktt_sinavlari(request.user), pk=pk)
     if not ktt_silebilir(request.user, ktt):
@@ -211,6 +215,7 @@ def ktt_duzenle(request, pk):
             "ktt": ktt,
             "sayfa_basligi": "KTT Düzenle",
             "duzenleme": True,
+            "silebilir": ktt_silebilir(request.user, ktt),
         },
     )
 
@@ -233,6 +238,7 @@ def ktt_detay(request, pk):
             "ktt": ktt,
             "sonuclar": sonuclar,
             "duzenleyebilir": ktt_duzenleyebilir(request.user, ktt),
+            "silebilir": ktt_silebilir(request.user, ktt),
             "sonuc_girebilir": can(request.user, "ktt", "edit"),
             "pdf_yetkisi": can(request.user, "ktt", "export_pdf"),
             "pdf_sayfa": coz_pdf_sayfa(request),
@@ -379,6 +385,7 @@ def ktt_sonuc_gir(request, pk):
             "satirlar": satirlar,
             "toplam_soru": toplam_soru,
             "katilmayan_sayisi": katilmayan_sayisi,
+            "silebilir": ktt_silebilir(request.user, ktt),
             "pdf_yetkisi": can(request.user, "ktt", "export_pdf"),
             "paylas_yetkisi": can(request.user, "iletisim_merkezi", "share"),
             "veli_paylasim_hazir": ktt_paylasim_hazir_mi(ktt),

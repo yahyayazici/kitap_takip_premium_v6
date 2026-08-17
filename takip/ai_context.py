@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from datetime import timedelta
+from decimal import Decimal
 from typing import Any
 
 from django.contrib.auth.models import User
@@ -154,7 +155,7 @@ def kurum_baglam(user: User) -> dict[str, Any]:
             talebe__in=qs,
             tarih__gte=ay_bas,
             tarih__lte=bugun,
-        ).aggregate(t=models.Sum("toplam_soru"))["t"]
+        ).aggregate(t=models.Sum("ders_satirlari__toplam_soru"))["t"]
         or 0
     )
 
@@ -368,4 +369,14 @@ def deneme_baglam(deneme, sonuclar) -> dict[str, Any]:
 
 
 def baglam_json(data: dict[str, Any]) -> str:
-    return json.dumps(data, ensure_ascii=False, indent=2)
+    def _default(obj: Any):
+        if isinstance(obj, Decimal):
+            return float(obj)
+        if hasattr(obj, "isoformat"):
+            try:
+                return obj.isoformat()
+            except Exception:
+                pass
+        return str(obj)
+
+    return json.dumps(data, ensure_ascii=False, indent=2, default=_default)

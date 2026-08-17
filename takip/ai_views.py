@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
@@ -30,6 +31,8 @@ from takip.ai_service import (
 from takip.deneme_service import deneme_sonuclari, yetkili_denemeler
 from takip.models import DenemeSinavi, Talebe
 from takip.rehberlik_models import OgrenciGorusmesi
+
+logger = logging.getLogger(__name__)
 
 
 def _json_hata(mesaj: str, status: int = 403) -> JsonResponse:
@@ -73,7 +76,11 @@ def ai_analiz_api(request):
     if tur == "kurum_zekasi":
         if not kurum_ai_erisebilir(request.user):
             return _json_hata("Kurum zekası erişimi yok.", 403)
-        sonuc = kurum_zekasi_ozet(request.user, yenile=yenile)
+        try:
+            sonuc = kurum_zekasi_ozet(request.user, yenile=yenile)
+        except Exception:
+            logger.exception("AI kurum_zekasi JSON üretilemedi")
+            return _json_hata("Analiz üretilemedi.", 200)
         meta = sonuc.meta or {}
         return JsonResponse(
             {
@@ -137,35 +144,43 @@ def ai_analiz_html(request):
     yenile = request.GET.get("yenile") == "1"
     analiz = None
 
-    if tur == "gelisim_zekasi":
-        talebe = get_object_or_404(Talebe, pk=request.GET.get("talebe_id"))
-        if not talebe_ai_erisebilir(request.user, talebe):
-            return HttpResponse("", status=403)
-        analiz = gelisim_zekasi_analizi(request.user, talebe, yenile=yenile)
-    elif tur == "veli_haftalik":
-        talebe = get_object_or_404(Talebe, pk=request.GET.get("talebe_id"))
-        if not talebe_ai_erisebilir(request.user, talebe):
-            return HttpResponse("", status=403)
-        analiz = veli_haftalik_ozet(talebe, user=request.user, yenile=yenile)
-    elif tur == "deneme_analiz":
-        deneme = get_object_or_404(yetkili_denemeler(request.user), pk=request.GET.get("deneme_id"))
-        sonuclar = list(deneme_sonuclari(request.user, deneme))
-        analiz = deneme_zekasi_analizi(request.user, deneme, sonuclar, yenile=yenile)
-    elif tur == "kurum_zekasi":
-        if not kurum_ai_erisebilir(request.user):
-            return HttpResponse("", status=403)
-        analiz = kurum_zekasi_ozet(request.user, yenile=yenile)
-    elif tur == "veli_takip":
-        if not veli_takip_ai_erisebilir(request.user):
-            return HttpResponse("", status=403)
-        analiz = veli_takip_zekasi_raporu(request.user, yenile=yenile)
-    elif tur == "rehberlik_ozet":
-        gorusme = get_object_or_404(OgrenciGorusmesi, pk=request.GET.get("gorusme_id"))
-        if not talebe_ai_erisebilir(request.user, gorusme.talebe):
-            return HttpResponse("", status=403)
-        analiz = rehberlik_gorusme_ozeti(gorusme, user=request.user, yenile=yenile)
-    else:
-        return HttpResponse("", status=400)
+    try:
+        if tur == "gelisim_zekasi":
+            talebe = get_object_or_404(Talebe, pk=request.GET.get("talebe_id"))
+            if not talebe_ai_erisebilir(request.user, talebe):
+                return HttpResponse("", status=403)
+            analiz = gelisim_zekasi_analizi(request.user, talebe, yenile=yenile)
+        elif tur == "veli_haftalik":
+            talebe = get_object_or_404(Talebe, pk=request.GET.get("talebe_id"))
+            if not talebe_ai_erisebilir(request.user, talebe):
+                return HttpResponse("", status=403)
+            analiz = veli_haftalik_ozet(talebe, user=request.user, yenile=yenile)
+        elif tur == "deneme_analiz":
+            deneme = get_object_or_404(yetkili_denemeler(request.user), pk=request.GET.get("deneme_id"))
+            sonuclar = list(deneme_sonuclari(request.user, deneme))
+            analiz = deneme_zekasi_analizi(request.user, deneme, sonuclar, yenile=yenile)
+        elif tur == "kurum_zekasi":
+            if not kurum_ai_erisebilir(request.user):
+                return HttpResponse("", status=403)
+            analiz = kurum_zekasi_ozet(request.user, yenile=yenile)
+        elif tur == "veli_takip":
+            if not veli_takip_ai_erisebilir(request.user):
+                return HttpResponse("", status=403)
+            analiz = veli_takip_zekasi_raporu(request.user, yenile=yenile)
+        elif tur == "rehberlik_ozet":
+            gorusme = get_object_or_404(OgrenciGorusmesi, pk=request.GET.get("gorusme_id"))
+            if not talebe_ai_erisebilir(request.user, gorusme.talebe):
+                return HttpResponse("", status=403)
+            analiz = rehberlik_gorusme_ozeti(gorusme, user=request.user, yenile=yenile)
+        else:
+            return HttpResponse("", status=400)
+    except Exception:
+        logger.exception("AI analiz HTML üretilemedi tur=%s", tur)
+        return HttpResponse(
+            '<p class="ai-zekasi-loading">Analiz üretilemedi.</p>',
+            status=200,
+            content_type="text/html; charset=utf-8",
+        )
 
     return render(
         request,

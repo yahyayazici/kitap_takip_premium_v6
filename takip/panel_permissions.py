@@ -216,7 +216,7 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         label="Kitap Ekle",
         url_name="kitap_ekle",
         roller=EGITIM_MODULU_ROLLER,
-        active_names=("kitap_ekle", "kitap_listesi"),
+        active_names=("kitap_ekle", "kitap_listesi", "kitap_sil"),
         nav_group="Kitaplar",
     ),
     PanelNavItem(

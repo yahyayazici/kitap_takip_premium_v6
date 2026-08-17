@@ -8,6 +8,7 @@ from typing import Any
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.db.models.deletion import ProtectedError
 from django.db.models import Avg, Count, Max, Q
 from django.forms import modelform_factory
 from .forms import StyledModelForm
@@ -59,6 +60,7 @@ from .talebe_panel_service import kullanici_talebe_mi
 from .ogretmen_service import ogretmen_paneli_kullanicisi_mi
 from .deneme_service import BRANS_ETIKETLERI, talebe_deneme_performans_ozeti, talebe_deneme_sonuclari
 from .permissions.service import can
+from .permissions.decorators import require_permission
 from .duyuru_service import kullaniciya_gorunur_duyurular
 from .dashboard_service import (
     bugunku_sinav_sayisi,
@@ -1015,9 +1017,23 @@ def talebe_profil_karne_pdf(request, talebe_id):
     )
 
 
-# =========================================================
-# KİTAPLAR
-# =========================================================
+def _kitap_silebilir(user, kitap) -> bool:
+    if not (
+        user.is_superuser
+        or can(user, "egitim_kitap", "create")
+        or can(user, "egitim_kitap", "delete")
+    ):
+        return False
+    zimmet_sayisi = getattr(kitap, "zimmet_sayisi", None)
+    if zimmet_sayisi is None:
+        zimmet_sayisi = kitap.zimmetler.count()
+    if zimmet_sayisi:
+        return False
+    if kitap.sinavlar.exists():
+        return False
+    if user.is_superuser or can(user, "egitim_kitap", "delete"):
+        return True
+    return kitap.olusturan_id in {None, user.id}
 
 
 @login_required
@@ -1036,6 +1052,7 @@ def kitap_listesi(request):
             .count()
         )
         toplam_zimmet += kitap.zimmet_sayisi
+        kitap.silebilir = _kitap_silebilir(request.user, kitap)
 
     aktif_okuma = (
         Zimmet.objects
@@ -1080,7 +1097,10 @@ def kitap_ekle(request):
     )
 
     if form.is_valid():
-        form.save()
+        kitap = form.save(commit=False)
+        if _alan_var_mi(Kitap, "olusturan"):
+            kitap.olusturan = request.user
+        kitap.save()
 
         messages.success(
             request,
@@ -1104,6 +1124,32 @@ def kitap_ekle(request):
             "geri_etiket": "Kitap Arşivi",
         },
     )
+
+
+@login_required
+@require_permission("egitim_kitap", "view")
+def kitap_sil(request, pk):
+    kitap = get_object_or_404(Kitap, pk=pk)
+    kitap.zimmet_sayisi = kitap.zimmetler.count()
+    if not _kitap_silebilir(request.user, kitap):
+        messages.error(request, "Bu kitabı silme yetkiniz yok veya kitap kullanımda.")
+        return redirect("kitap_listesi")
+
+    if request.method != "POST":
+        return redirect("kitap_listesi")
+
+    ad = kitap.ad
+    try:
+        kitap.delete()
+    except ProtectedError:
+        messages.error(
+            request,
+            f"{ad} silinemedi: zimmet veya kitap sınavı kaydı var.",
+        )
+        return redirect("kitap_listesi")
+
+    messages.success(request, f"{ad} arşivden silindi.")
+    return redirect("kitap_listesi")
 
 
 # =========================================================

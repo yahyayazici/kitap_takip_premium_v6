@@ -1051,7 +1051,15 @@ class Duyuru(models.Model):
 
     @property
     def gorsel_var_mi(self) -> bool:
-        return bool(self.gorsel)
+        if not self.gorsel:
+            return False
+        try:
+            name = (self.gorsel.name or "").strip()
+            if not name:
+                return False
+            return bool(self.gorsel.storage.exists(name))
+        except Exception:
+            return False
 
     @property
     def video_var_mi(self) -> bool:

@@ -1,0 +1,6 @@
+{% if silebilir %}
+<form method="post" action="{% url 'ktt_sil' ktt.pk %}"{% if form_style %} style="{{ form_style }}"{% endif %} onsubmit="return confirm('{{ ktt.ad|escapejs }} silinsin mi? Bu işlem geri alınamaz.');">
+    {% csrf_token %}
+    <button type="submit" class="{{ btn_class|default:'ktt-btn ktt-btn-red' }}">Sil</button>
+</form>
+{% endif %}

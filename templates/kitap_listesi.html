@@ -118,6 +118,12 @@
                     <div class="book-card-actions">
                         <a href="{% url 'toplu_zimmet' %}" class="ghost-btn book-action-btn">Zimmetle</a>
                         <a href="{% url 'raporlar' %}" class="primary-btn book-action-btn">Raporu Gör</a>
+                        {% if kitap.silebilir %}
+                        <form method="post" action="{% url 'kitap_sil' kitap.pk %}" class="book-sil-form" onsubmit="return confirm('{{ kitap.ad|escapejs }} arşivden silinsin mi?');">
+                            {% csrf_token %}
+                            <button type="submit" class="ghost-btn book-action-btn">Sil</button>
+                        </form>
+                        {% endif %}
                     </div>
                 </div>
             </article>

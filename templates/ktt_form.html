@@ -16,6 +16,9 @@
             {{ form.as_p }}
             <button type="submit" class="primary-btn">Kaydet</button>
         </form>
+        {% if duzenleme and silebilir %}
+        {% include "includes/ktt_sil_form.html" with ktt=ktt silebilir=silebilir btn_class="ghost-btn" %}
+        {% endif %}
     </section>
 </div>
 {% endblock %}

@@ -198,6 +198,7 @@ urlpatterns = [
 
     path("kitaplar/", views.kitap_listesi, name="kitap_listesi"),
     path("kitap-ekle/", views.kitap_ekle, name="kitap_ekle"),
+    path("kitap/<int:pk>/sil/", views.kitap_sil, name="kitap_sil"),
 
     path("toplu-zimmet/", views.toplu_zimmet, name="toplu_zimmet"),
     path("toplu-gunluk-okuma/", views.toplu_gunluk_okuma, name="toplu_gunluk_okuma"),

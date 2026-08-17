@@ -1,7 +1,13 @@
 {% if ai_platform_aktif and ai_kurum_erisim %}
 <section class="dash-panel dash-panel-lined dash-ai-hero dash-ai-bottom">
     {% if not ai_llm_aktif %}
-    <p class="ai-setup-notice">Yapay zeka analizleri için sunucuda <code>OPENAI_API_KEY</code> tanımlayın. Şimdilik kural tabanlı özet gösterilir.</p>
+    <p class="ai-setup-notice">
+        {% if yonetim_modulu %}
+        Yapay zeka analizleri için sunucuda <code>OPENAI_API_KEY</code> tanımlayın. Şimdilik kural tabanlı özet gösterilir.
+        {% else %}
+        Yapay zeka analizleri şu an kural tabanlı özet olarak gösterilir.
+        {% endif %}
+    </p>
     {% endif %}
     {% include "includes/ai_erken_uyari_strip.html" %}
     {% include "includes/ai_zekasi_widget.html" with ai_tur="kurum_zekasi" ai_kicker="Gelişim Zekası" ai_baslik="Kurum özeti ve öncelikli talebeler" %}
