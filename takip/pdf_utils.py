@@ -388,7 +388,6 @@ def html_to_pdf(html_string: str, base_url: str = "/") -> bytes | None:
     worker kendini bekleyerek (static fetch) kilitlenebilir.
     """
     del base_url  # bilinçli: ağ self-fetch engeli
-    global _weasyprint_html
     html_cls = get_weasyprint_html()
     local_html = _rewrite_static_urls_to_file(html_string)
     local_base = _local_pdf_base_url()
@@ -406,7 +405,6 @@ def html_to_pdf(html_string: str, base_url: str = "/") -> bytes | None:
             return document.write_pdf()
         except Exception as exc:
             logger.warning("WeasyPrint PDF üretimi başarısız, xhtml2pdf deneniyor: %s", exc)
-            _weasyprint_html = None
 
     try:
         from xhtml2pdf import pisa
@@ -463,8 +461,7 @@ def _safe_download_filename(
 
 def make_pdf_response(pdf_bytes: bytes, filename: str) -> HttpResponse:
     ascii_name, utf8_name = _safe_download_filename(filename)
-    # octet-stream: tarayıcı PDF panelinde açmak yerine indirmeyi zorlar
-    response = HttpResponse(pdf_bytes, content_type="application/octet-stream")
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
     response["Content-Disposition"] = (
         f'attachment; filename="{ascii_name}"; filename*=UTF-8\'\'{utf8_name}'
     )

@@ -19,7 +19,7 @@
     }
 
     window.addEventListener("load", function () {
-        navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(function () {
+        navigator.serviceWorker.register("/sw.js?v=11", { scope: "/" }).catch(function () {
             /* Sessiz — PWA olmadan da ana ekrana eklenebilir (iOS) */
         });
     });

@@ -17,7 +17,7 @@ from config.branding import (
 from takip.og_share_image import render_og_share_png
 
 PWA_THEME_COLOR = "#071b3a"
-PWA_VERSION = "v10"
+PWA_VERSION = "v11"
 PWA_ID = f"/?pwa={PWA_VERSION}"
 
 _ICON_FILES = {

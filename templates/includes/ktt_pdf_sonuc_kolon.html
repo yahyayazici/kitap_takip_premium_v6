@@ -1,13 +1,16 @@
 <table class="results{% if kompakt %} results-kompakt{% endif %}">
     <thead>
         <tr>
-            <th class="th-sira" style="width:11%;">Sıra</th>
-            <th class="left th-talebe" style="width:{% if kompakt %}36{% else %}39{% endif %}%;">Talebe</th>
-            <th class="th-dyb" style="width:7%;">D</th>
-            <th class="th-dyb" style="width:7%;">Y</th>
-            <th class="th-dyb" style="width:7%;">B</th>
-            <th class="th-net" style="width:12%;">Net</th>
-            <th class="th-puan" style="width:17%;">Puan</th>
+            <th class="th-sira" style="width:{% if kompakt %}10{% else %}8{% endif %}%;">Sıra</th>
+            <th class="left th-talebe" style="width:{% if kompakt %}38{% else %}28{% endif %}%;">Adı Soyadı</th>
+            <th class="th-dyb" style="width:7%;">Doğru</th>
+            <th class="th-dyb" style="width:7%;">Yanlış</th>
+            <th class="th-dyb" style="width:7%;">Boş</th>
+            <th class="th-net" style="width:9%;">Net</th>
+            {% if not kompakt %}
+            <th class="th-basari" style="width:18%;">Başarı</th>
+            {% endif %}
+            <th class="th-puan" style="width:{% if kompakt %}15{% else %}16{% endif %}%;">Puan</th>
         </tr>
     </thead>
     <tbody>
@@ -17,7 +20,7 @@
             <td class="rank-cell">
                 <span class="rank-no{% if sira <= 3 %} is-top{% endif %}">{{ sira }}</span>
             </td>
-            <td class="left">
+            <td class="left name-cell">
                 <div class="student-name">{{ sonuc.talebe.ad_soyad }}</div>
                 {% if not kompakt %}
                 <div class="student-meta">{{ sonuc.talebe.sinif_sube|default:"—" }}</div>
@@ -27,12 +30,19 @@
             <td class="num-cell dyb-cell">{{ sonuc.yanlis }}</td>
             <td class="num-cell dyb-cell">{{ sonuc.bos }}</td>
             <td class="num-cell net-cell">{{ sonuc.net }}</td>
+            {% if not kompakt %}
+            <td class="basari-cell">
+                <div class="basari-track">
+                    <div class="basari-fill" style="width: {% if sonuc.puan %}{{ sonuc.puan }}{% else %}0{% endif %}%;"></div>
+                </div>
+            </td>
+            {% endif %}
             <td class="puan-cell"><span class="puan-mark">{{ sonuc.puan }}</span></td>
         </tr>
         {% endwith %}
         {% empty %}
         <tr>
-            <td colspan="7" class="left" style="padding:8px;">—</td>
+            <td colspan="{% if kompakt %}7{% else %}8{% endif %}" class="left" style="padding:8px;">—</td>
         </tr>
         {% endfor %}
     </tbody>

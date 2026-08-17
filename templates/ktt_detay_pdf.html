@@ -3,55 +3,173 @@
 <html lang="tr">
 <head>
     <meta charset="utf-8">
-    <title>{{ ktt.ad }} · KTT Sonuç Tablosu</title>
+    <title>{{ ktt.ad }} · Başarı Listesi</title>
     <style>
         {% include "includes/pdf_karne_fonts.html" %}
         {% include "includes/pdf_karne_a4_css.html" %}
 
         @page {
             size: {{ pdf_sayfa.size_css|default:"A4 portrait" }};
-            margin: 4mm 6mm 3mm;
+            margin: 6mm 8mm 5mm;
         }
 
-        /* KTT veli PDF — sıra + puan kahraman, D/Y/B sakin, uzaktan okunur */
+        /* KTT veli PDF — referans başarı listesi: hiza, bant, sade tablo */
         .pdf-karne.ktt-detay-pdf {
             font-size: 10px;
+            color: #243044;
         }
 
-        .pdf-karne.ktt-detay-pdf .brand-logo-wrap { width: 48px; height: 48px; }
-        .pdf-karne.ktt-detay-pdf .brand-logo { width: 48px; height: 48px; }
-        .pdf-karne.ktt-detay-pdf .header-text-cell { padding-left: 10px; }
-        .pdf-karne.ktt-detay-pdf .brand-name { font-size: 13px; }
-        .pdf-karne.ktt-detay-pdf .brand-sub {
-            margin-top: 3px;
-            font-size: 8px;
-            letter-spacing: 0.55px;
+        .pdf-karne.ktt-detay-pdf .gap6 { height: 8px; }
+        .pdf-karne.ktt-detay-pdf .gap8 { height: 8px; }
+
+        .pdf-karne.ktt-detay-pdf .ktt-mast {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .pdf-karne.ktt-detay-pdf .ktt-mast-logo {
+            width: 1%;
+            padding: 0 8px 0 0;
+            vertical-align: middle;
+        }
+
+        .pdf-karne.ktt-detay-pdf .ktt-logo-disc {
+            width: 46px;
+            height: 46px;
+            overflow: hidden;
+            border-radius: 50%;
+            background: #fff;
+            border: 1px solid #e4ebf4;
+            line-height: 0;
+        }
+
+        .pdf-karne.ktt-detay-pdf .ktt-logo-disc img {
+            display: block;
+            width: 46px;
+            height: 46px;
+            object-fit: contain;
+        }
+
+        .pdf-karne.ktt-detay-pdf .ktt-mast-brand {
+            vertical-align: middle;
+            padding: 0;
+        }
+
+        .pdf-karne.ktt-detay-pdf .ktt-rib-org,
+        .pdf-karne.ktt-detay-pdf .ktt-rib-exam {
+            display: table;
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        .pdf-karne.ktt-detay-pdf .ktt-rib-org {
+            padding: 6px 22px 6px 12px;
+            background-color: #1e4fa3;
+            background-image: linear-gradient(105deg, #1e4fa3 0 86%, transparent 86%);
+            color: #fff;
+            font-family: "Poppins", "PdfTurkish", sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
             text-transform: uppercase;
+            line-height: 1.2;
         }
-        .pdf-karne.ktt-detay-pdf .doc-title { font-size: 8.5px; }
 
-        .pdf-karne.ktt-detay-pdf .gap6 { height: 5px; }
-        .pdf-karne.ktt-detay-pdf .gap8 { height: 6px; }
+        .pdf-karne.ktt-detay-pdf .ktt-rib-exam {
+            margin-top: 3px;
+            padding: 4px 20px 4px 12px;
+            background-color: #d7e6fb;
+            background-image: linear-gradient(105deg, #d7e6fb 0 86%, transparent 86%);
+            color: #1a3f7a;
+            font-family: "Poppins", "PdfTurkish", sans-serif;
+            font-size: 8.5px;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            line-height: 1.2;
+        }
 
-        .pdf-karne.ktt-detay-pdf .hero {
-            padding: 9px 12px;
+        .pdf-karne.ktt-detay-pdf .ktt-mast-right {
+            text-align: right;
+            vertical-align: middle;
+            padding: 0 0 0 10px;
+            white-space: nowrap;
+        }
+
+        .pdf-karne.ktt-detay-pdf .ktt-mast-date {
+            font-size: 8px;
+            font-weight: 500;
+            color: #8b98aa;
+        }
+
+        .pdf-karne.ktt-detay-pdf .ktt-mast-title {
+            margin-top: 2px;
+            font-family: "Poppins", "PdfTurkish", sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: #1e4fa3;
+            line-height: 1.15;
+        }
+
+        .pdf-karne.ktt-detay-pdf .ktt-mast-sub {
+            margin-top: 1px;
+            font-size: 8px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #7a8aa0;
+        }
+
+        .pdf-karne.ktt-detay-pdf .ktt-meta {
+            margin-top: 6px;
+            font-size: 8px;
+            color: #6b7a90;
+        }
+
+        .pdf-karne.ktt-detay-pdf .ktt-kpi {
+            width: 100%;
+            border-collapse: collapse;
+            border-top: 1px solid #e6edf5;
+            border-bottom: 1px solid #e6edf5;
+        }
+
+        .pdf-karne.ktt-detay-pdf .ktt-kpi td {
+            width: 25%;
+            padding: 7px 4px 7px 0;
+            vertical-align: top;
+        }
+
+        .pdf-karne.ktt-detay-pdf .ktt-kpi-label {
+            font-size: 7px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #8b98aa;
+        }
+
+        .pdf-karne.ktt-detay-pdf .ktt-kpi-val {
+            margin-top: 2px;
+            font-family: "Poppins", "PdfTurkish", sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: #14213d;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+        }
+
+        .pdf-karne.ktt-detay-pdf .table-panel {
+            border: 1px solid #e2e8f0;
             border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(26, 45, 84, 0.04);
         }
 
-        .pdf-karne.ktt-detay-pdf .hero-title { font-size: 16px; margin-top: 3px; }
-        .pdf-karne.ktt-detay-pdf .hero-meta { font-size: 8px; margin-top: 4px; }
-
-        .pdf-karne.ktt-detay-pdf .stat-cell { padding: 7px 8px; border-radius: 8px; }
-        .pdf-karne.ktt-detay-pdf .stat-metric { font-size: 16px; margin-top: 2px; }
-        .pdf-karne.ktt-detay-pdf .stat-label { font-size: 7.5px; }
-        .pdf-karne.ktt-detay-pdf .stat-sub { font-size: 7px; }
-
-        .pdf-karne.ktt-detay-pdf .table-panel-head { padding: 8px 10px 2px; }
-        .pdf-karne.ktt-detay-pdf .section-title { font-size: 11px; }
+        .pdf-karne.ktt-detay-pdf .table-panel-accent { display: none; }
+        .pdf-karne.ktt-detay-pdf .table-panel-head { display: none; }
 
         .pdf-karne.ktt-detay-pdf .results-wrap {
             column-count: 1 !important;
-            padding: 0 8px 8px;
+            padding: 4px 10px 8px;
         }
 
         .pdf-karne.ktt-detay-pdf table.results {
@@ -60,97 +178,106 @@
         }
 
         .pdf-karne.ktt-detay-pdf table.results thead th {
-            padding: 6px 4px;
-            font-size: 7.5px;
-            letter-spacing: 0.4px;
-            color: #8a96a8;
-            border-bottom: 1.5px solid #d7deea;
+            padding: 8px 4px 7px;
+            font-family: "Poppins", "PdfTurkish", sans-serif;
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            text-transform: none;
+            color: #4a5a70;
+            border-bottom: 1px solid #d5deea;
+            background: transparent;
         }
 
         .pdf-karne.ktt-detay-pdf table.results thead th.th-sira,
         .pdf-karne.ktt-detay-pdf table.results thead th.th-puan {
-            color: #0f2744;
+            color: #1a334f;
             font-size: 8.5px;
-            font-weight: 800;
         }
 
         .pdf-karne.ktt-detay-pdf table.results tbody td {
-            padding: 5px 4px;
+            padding: 6px 4px;
             font-size: 10px;
-            border-top: 1px solid #e8eef6;
+            border-top: 1px solid #eef2f7;
+            vertical-align: middle;
         }
 
         .pdf-karne.ktt-detay-pdf table.results tbody tr:nth-child(even) td {
-            background: #f6f8fc;
+            background: #f6f8fb;
         }
 
         .pdf-karne.ktt-detay-pdf .student-name {
-            font-size: 10.5px;
+            font-family: "Poppins", "PdfTurkish", sans-serif;
+            font-size: 10px;
             font-weight: 700;
-            line-height: 1.25;
+            line-height: 1.2;
             white-space: normal;
             word-wrap: break-word;
+            text-transform: uppercase;
             color: #15233a;
         }
 
         .pdf-karne.ktt-detay-pdf .student-meta {
-            font-size: 7.5px;
+            font-size: 8px;
             margin-top: 1px;
             color: #8a96a8;
         }
 
-        .pdf-karne.ktt-detay-pdf .rank-cell {
-            vertical-align: middle;
-        }
-
         .pdf-karne.ktt-detay-pdf .rank-no {
             display: inline-block;
-            min-width: 22px;
-            padding: 2px 0;
-            font-size: 13px;
-            font-weight: 800;
+            min-width: 18px;
+            font-family: "Poppins", "PdfTurkish", sans-serif;
+            font-size: 11px;
+            font-weight: 700;
             font-variant-numeric: tabular-nums;
-            color: #0f2744;
+            color: #1a334f;
             text-align: center;
             line-height: 1.15;
         }
 
         .pdf-karne.ktt-detay-pdf .rank-no.is-top {
-            min-width: 24px;
-            padding: 3px 6px;
-            border-radius: 5px;
-            background: #0f2744;
+            min-width: 20px;
+            padding: 2px 5px;
+            border-radius: 4px;
+            background: #1e4fa3;
             color: #fff;
         }
 
         .pdf-karne.ktt-detay-pdf .dyb-cell {
-            font-size: 9px;
-            font-weight: 500;
-            color: #7a8699;
+            font-size: 10px;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+            color: #33425a;
         }
 
         .pdf-karne.ktt-detay-pdf .net-cell {
             font-size: 10.5px;
             font-weight: 700;
-            color: #33425a;
+            font-variant-numeric: tabular-nums;
+            color: #1a334f;
         }
 
-        .pdf-karne.ktt-detay-pdf .puan-cell {
-            vertical-align: middle;
+        .pdf-karne.ktt-detay-pdf .basari-track {
+            height: 8px;
+            overflow: hidden;
+            border-radius: 4px;
+            background: #e6eef8;
+        }
+
+        .pdf-karne.ktt-detay-pdf .basari-fill {
+            height: 8px;
+            background: #2b6fd4;
         }
 
         .pdf-karne.ktt-detay-pdf .puan-mark {
             display: inline-block;
-            min-width: 46px;
-            padding: 3px 7px;
-            border-radius: 6px;
-            background: #e7eef8;
-            color: #0b3a6e;
-            font-size: 13px;
-            font-weight: 800;
+            font-family: "Poppins", "PdfTurkish", sans-serif;
+            font-size: 12.5px;
+            font-weight: 700;
             font-variant-numeric: tabular-nums;
-            text-align: center;
-            line-height: 1.15;
+            color: #0f2744;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
         }
 
         .pdf-karne.ktt-detay-pdf .ktt-split-layout {
@@ -170,26 +297,24 @@
         }
 
         .pdf-karne.ktt-detay-pdf .results-kompakt .student-name {
-            font-size: 9px;
+            font-size: 8.5px;
         }
 
         .pdf-karne.ktt-detay-pdf .results-kompakt .rank-no {
-            font-size: 11px;
-            min-width: 18px;
+            font-size: 10px;
+            min-width: 16px;
         }
 
         .pdf-karne.ktt-detay-pdf .results-kompakt .puan-mark {
             font-size: 11px;
-            min-width: 40px;
-            padding: 2px 5px;
         }
 
         .pdf-karne.ktt-detay-pdf .results-kompakt .dyb-cell {
-            font-size: 8px;
+            font-size: 9px;
         }
 
         .pdf-karne.ktt-detay-pdf .results-kompakt thead th {
-            padding: 5px 2px;
+            padding: 6px 2px;
             font-size: 7px;
         }
 
@@ -213,7 +338,7 @@
         }
 
         .pdf-karne.ktt-detay-pdf .footer-table { margin-top: 6px; }
-        .pdf-karne.ktt-detay-pdf .footer-table td { padding-top: 4px; font-size: 7px; }
+        .pdf-karne.ktt-detay-pdf .footer-table td { padding-top: 4px; font-size: 7px; color: #9aa6b7; }
     </style>
 </head>
 <body class="pdf-karne ktt-detay-pdf {{ sonuclar|length|pdf_density_class }}">
@@ -222,41 +347,26 @@
 <table class="layout">
     <tr>
         <td>
-            <table class="header-table" cellpadding="0" cellspacing="0">
+            <table class="ktt-mast" cellpadding="0" cellspacing="0">
                 <tr>
-                    <td class="header-logo-cell">
-                        <div class="brand-logo-wrap">
-                            <img class="brand-logo" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="{{ panel_short }}">
+                    <td class="ktt-mast-logo">
+                        <div class="ktt-logo-disc">
+                            <img src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="{{ panel_short }}">
                         </div>
                     </td>
-                    <td class="header-text-cell">
-                        <div class="brand-name">{{ panel_org }}</div>
-                        <div class="brand-sub">{{ panel_tagline }}</div>
+                    <td class="ktt-mast-brand">
+                        <div class="ktt-rib-org">{{ panel_org }}</div>
+                        <div class="ktt-rib-exam">{{ ktt.ders.ad }} · {{ ktt.ad }}</div>
                     </td>
-                    <td class="header-right">
-                        <div class="doc-title">KTT Sonuç Tablosu</div>
+                    <td class="ktt-mast-right">
+                        <div class="ktt-mast-date">Tarih: {{ ktt.sinav_tarihi|date:"d.m.Y" }}</div>
+                        <div class="ktt-mast-title">Başarı Listesi</div>
+                        <div class="ktt-mast-sub">KTT Sonuç Tablosu</div>
                     </td>
                 </tr>
             </table>
-        </td>
-    </tr>
-
-    <tr><td class="gap6"></td></tr>
-
-    <tr>
-        <td class="hero">
-            <svg class="hero-deco" width="80" height="48" viewBox="0 0 120 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="18" y="10" width="72" height="52" rx="8" fill="#FFFFFF" opacity="0.85"/>
-                <rect x="28" y="22" width="52" height="4" rx="2" fill="#FFFFFF" opacity="0.55"/>
-                <rect x="28" y="32" width="42" height="4" rx="2" fill="#FFFFFF" opacity="0.45"/>
-            </svg>
-            <div class="hero-inner">
-                <div class="hero-tag">Kazanım Tarama Testi</div>
-                <div class="hero-title">{{ ktt.ad }}</div>
-                <div class="hero-meta">
-                    {{ ktt.ders.ad }} · {{ ktt.sinif_goster }} · {{ ktt.soru_sayisi }} soru ·
-                    {{ ktt.sinav_tarihi|date:"d.m.Y" }} · Net = Doğru − Yanlış/4
-                </div>
+            <div class="ktt-meta">
+                {{ ktt.sinif_goster }} · {{ ktt.soru_sayisi }} soru · Net = Doğru − Yanlış/4
             </div>
         </td>
     </tr>
@@ -265,31 +375,23 @@
 
     <tr>
         <td>
-            <table class="stats-table" cellpadding="0">
+            <table class="ktt-kpi" cellpadding="0" cellspacing="0">
                 <tr>
-                    <td width="25%" class="stat-cell tone-blue">
-                        <div class="stat-accent"></div>
-                        <div class="stat-label">Öğrenci</div>
-                        <div class="stat-metric">{{ ozet.ogrenci_sayisi }}</div>
-                        <div class="stat-sub">Katılım</div>
+                    <td>
+                        <div class="ktt-kpi-label">Öğrenci</div>
+                        <div class="ktt-kpi-val">{{ ozet.ogrenci_sayisi }}</div>
                     </td>
-                    <td width="25%" class="stat-cell tone-green">
-                        <div class="stat-accent"></div>
-                        <div class="stat-label">Ort. Net</div>
-                        <div class="stat-metric">{{ ozet.ortalama_net }}</div>
-                        <div class="stat-sub">Ortalama</div>
+                    <td>
+                        <div class="ktt-kpi-label">Ort. Net</div>
+                        <div class="ktt-kpi-val">{{ ozet.ortalama_net }}</div>
                     </td>
-                    <td width="25%" class="stat-cell tone-orange">
-                        <div class="stat-accent"></div>
-                        <div class="stat-label">Ort. Puan</div>
-                        <div class="stat-metric">{{ ozet.ortalama_puan }}</div>
-                        <div class="stat-sub">100 üzerinden</div>
+                    <td>
+                        <div class="ktt-kpi-label">Ort. Puan</div>
+                        <div class="ktt-kpi-val">{{ ozet.ortalama_puan }}</div>
                     </td>
-                    <td width="25%" class="stat-cell tone-purple">
-                        <div class="stat-accent"></div>
-                        <div class="stat-label">En Yüksek</div>
-                        <div class="stat-metric">{{ ozet.en_yuksek_puan }}</div>
-                        <div class="stat-sub">Puan</div>
+                    <td>
+                        <div class="ktt-kpi-label">En Yüksek</div>
+                        <div class="ktt-kpi-val">{{ ozet.en_yuksek_puan }}</div>
                     </td>
                 </tr>
             </table>
