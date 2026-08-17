@@ -44,6 +44,7 @@ from takip.ss_deneme_service import (
     ss_silebilir,
     ss_sinif_secenekleri,
     ss_sinif_secimlerini_dogrula,
+    ss_sonuc_girebilir,
     ss_sonuc_talebeleri,
     yetkili_ss_denemeler,
 )
@@ -152,7 +153,7 @@ def ss_deneme_listesi(request):
 @require_permission("ktt", "edit")
 def ss_deneme_sonuc_gir(request, pk):
     deneme = get_object_or_404(yetkili_ss_denemeler(request.user), pk=pk)
-    if not ss_duzenleyebilir(request.user, deneme):
+    if not ss_sonuc_girebilir(request.user, deneme):
         messages.error(request, "Bu deneme için sonuç giremezsiniz.")
         return redirect("ss_deneme_listesi")
 

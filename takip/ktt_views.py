@@ -29,6 +29,7 @@ from takip.ktt_service import (
     ktt_silebilir,
     ktt_sinif_secenekleri,
     ktt_sinif_secimlerini_dogrula,
+    ktt_sonuc_girebilir,
     ktt_sonuc_talebeleri,
     ktt_tam_yetki,
     yetkili_ktt_sinavlari,
@@ -249,7 +250,7 @@ def ktt_detay(request, pk):
 def ktt_sonuc_gir(request, pk):
     ktt = get_object_or_404(yetkili_ktt_sinavlari(request.user), pk=pk)
 
-    if not ktt_duzenleyebilir(request.user, ktt):
+    if not ktt_sonuc_girebilir(request.user, ktt):
         messages.error(request, "Bu KTT için sonuç girişi yapamazsınız.")
         return redirect("ktt_listesi")
 
@@ -393,7 +394,7 @@ def ktt_sonuc_gir(request, pk):
 def ktt_katilmayan_cikar(request, pk):
     ktt = get_object_or_404(yetkili_ktt_sinavlari(request.user), pk=pk)
 
-    if not ktt_duzenleyebilir(request.user, ktt):
+    if not ktt_sonuc_girebilir(request.user, ktt):
         return JsonResponse(
             {"ok": False, "hata": "Bu KTT için işlem yapamazsınız."},
             status=403,

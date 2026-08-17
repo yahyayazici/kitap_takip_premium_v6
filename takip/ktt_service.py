@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import re
 from datetime import timedelta
 
 from django.contrib.auth.models import User
-from django.db.models import Avg, Count, Max, QuerySet
+from django.db.models import Avg, Count, Max, Q, QuerySet
 from django.utils.timezone import localdate
 
 from takip.filter_utils import get_int_list, qs_filtre_id
@@ -38,10 +39,14 @@ def yetkili_ktt_sinavlari(user: User) -> QuerySet[KttSinav]:
         return qs
 
     hoca = _etut_hocasi(user)
-    if hoca:
-        return qs.filter(etut_hocasi=hoca)
+    if not hoca:
+        return KttSinav.objects.none()
 
-    return KttSinav.objects.none()
+    q = Q(etut_hocasi=hoca)
+    ortak = ktt_sinif_paylasim_q(user)
+    if ortak:
+        q |= ortak
+    return qs.filter(q).distinct()
 
 
 def ktt_olusturabilir(user: User) -> bool:
@@ -57,6 +62,14 @@ def ktt_duzenleyebilir(user: User, ktt: KttSinav) -> bool:
 
     hoca = _etut_hocasi(user)
     return hoca is not None and ktt.etut_hocasi_id == hoca.id
+
+
+def ktt_sonuc_girebilir(user: User, ktt: KttSinav) -> bool:
+    if not can(user, "ktt", "edit"):
+        return False
+    if ktt_duzenleyebilir(user, ktt):
+        return True
+    return yetkili_ktt_sinavlari(user).filter(pk=ktt.pk).exists()
 
 
 def ktt_silebilir(user: User, ktt: KttSinav) -> bool:
@@ -107,6 +120,71 @@ def ktt_sinif_secenekleri(user: User) -> list[SinifSube]:
 
 def ktt_sinif_etiketleri(user: User) -> set[str]:
     return {f"{ss.sinif}-{ss.sube}" for ss in ktt_sinif_secenekleri(user)}
+
+
+def ktt_hoca_sinif_etiketleri(user: User) -> set[str]:
+    """Paylaşım için yalnızca hocanın zimmetindeki sınıflar (idare kapsamı hariç)."""
+    hoca = _etut_hocasi(user)
+    if not hoca:
+        return set()
+    secilen = list(hoca.sorumlu_sinif_subeler.filter(aktif=True))
+    if secilen:
+        return {f"{ss.sinif}-{ss.sube}" for ss in secilen}
+
+    siniflar = (
+        Talebe.objects.filter(etut_hocasi=hoca, aktif=True)
+        .exclude(sinif="")
+        .values_list("sinif", "sube")
+        .distinct()
+    )
+    return {f"{sinif}-{sube}" for sinif, sube in siniflar if sinif}
+
+
+def ktt_sinif_paylasim_q(user: User) -> Q | None:
+    """Aynı sınıf seviyesine / hedef şubeye bakan hocaların sınavlarını paylaş."""
+    etiketler = ktt_hoca_sinif_etiketleri(user)
+    if not etiketler:
+        return None
+    q = Q()
+    seviyeler = {
+        etiket.split("-", 1)[0].strip()
+        for etiket in etiketler
+        if etiket.split("-", 1)[0].strip()
+    }
+    if seviyeler:
+        q |= Q(sinif_seviyesi__in=seviyeler)
+    for etiket in etiketler:
+        q |= Q(hedef_siniflar__regex=rf"(^|,\s*){re.escape(etiket)}(,|$)")
+    return q
+
+
+def ktt_hedef_sinif_listesi(hedef_siniflar: str) -> list[str]:
+    return [s.strip() for s in (hedef_siniflar or "").split(",") if s.strip()]
+
+
+def hedef_sinifa_gore_talebeler(
+    talebeler: QuerySet[Talebe],
+    *,
+    hedef_siniflar: str,
+    sinif_seviyesi: str,
+) -> QuerySet[Talebe]:
+    etiketler = ktt_hedef_sinif_listesi(hedef_siniflar)
+    if etiketler:
+        q = Q()
+        for etiket in etiketler:
+            parca = etiket.split("-", 1)
+            if len(parca) == 2:
+                sinif, sube = parca[0].strip(), parca[1].strip()
+                q |= Q(sinif=sinif, sube=sube) | Q(
+                    sinif_sube__sinif=sinif, sinif_sube__sube=sube
+                )
+            else:
+                q |= Q(sinif=etiket) | Q(sinif_sube__sinif=etiket)
+        return talebeler.filter(q)
+    seviye = (sinif_seviyesi or "").strip()
+    if seviye:
+        return talebeler.filter(Q(sinif=seviye) | Q(sinif_sube__sinif=seviye))
+    return talebeler
 
 
 def ktt_sinif_secimlerini_dogrula(user: User, secilen: list[str]) -> tuple[list[str], str | None]:
@@ -223,15 +301,11 @@ def ktt_hedef_talebeleri(user: User, ktt: KttSinav) -> QuerySet[Talebe]:
     from takip.permissions.scope import yetkili_talebeler
 
     talebeler = yetkili_talebeler(user, aktif_only=True)
-
-    if ktt_tam_yetki(user):
-        return talebeler.filter(etut_hocasi=ktt.etut_hocasi).order_by("ad_soyad")
-
-    hoca = _etut_hocasi(user)
-    if hoca and ktt.etut_hocasi_id == hoca.id:
-        return talebeler.order_by("ad_soyad")
-
-    return Talebe.objects.none()
+    return hedef_sinifa_gore_talebeler(
+        talebeler,
+        hedef_siniflar=ktt.hedef_siniflar,
+        sinif_seviyesi=ktt.sinif_seviyesi,
+    ).order_by("ad_soyad")
 
 
 def ktt_sonuc_talebeleri(user: User, ktt: KttSinav) -> QuerySet[Talebe]:
@@ -298,10 +372,10 @@ def yetkili_ktt_sonuclari(user: User) -> QuerySet[KttSonucu]:
         return qs
 
     hoca = _etut_hocasi(user)
-    if hoca:
-        return qs.filter(ktt__etut_hocasi=hoca)
+    if not hoca:
+        return KttSonucu.objects.none()
 
-    return KttSonucu.objects.none()
+    return qs.filter(ktt_id__in=yetkili_ktt_sinavlari(user).values("pk"))
 
 
 def ktt_rapor_filtre_secenekleri(user: User) -> dict:

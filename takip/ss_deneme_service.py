@@ -9,6 +9,7 @@ from django.db.models import Count, Q, QuerySet
 
 from takip.ktt_service import (
     hedef_siniflar_kaydet as _hedef_siniflar_kaydet,
+    ktt_sinif_paylasim_q,
     ktt_sinif_secenekleri,
     ktt_sinif_secimlerini_dogrula,
     ktt_tam_yetki,
@@ -42,9 +43,14 @@ def yetkili_ss_denemeler(user: User) -> QuerySet[SozelSayisalDeneme]:
         return qs
 
     hoca = etut_hocasi_for_user(user)
-    if hoca:
-        return qs.filter(etut_hocasi=hoca)
-    return SozelSayisalDeneme.objects.none()
+    if not hoca:
+        return SozelSayisalDeneme.objects.none()
+
+    q = Q(etut_hocasi=hoca)
+    ortak = ktt_sinif_paylasim_q(user)
+    if ortak:
+        q |= ortak
+    return qs.filter(q).distinct()
 
 
 def ss_olusturabilir(user: User) -> bool:
@@ -58,6 +64,14 @@ def ss_duzenleyebilir(user: User, deneme: SozelSayisalDeneme) -> bool:
         return True
     hoca = etut_hocasi_for_user(user)
     return hoca is not None and deneme.etut_hocasi_id == hoca.id
+
+
+def ss_sonuc_girebilir(user: User, deneme: SozelSayisalDeneme) -> bool:
+    if not can(user, "ktt", "edit"):
+        return False
+    if ss_duzenleyebilir(user, deneme):
+        return True
+    return yetkili_ss_denemeler(user).filter(pk=deneme.pk).exists()
 
 
 def ss_silebilir(user: User, deneme: SozelSayisalDeneme) -> bool:
@@ -87,29 +101,14 @@ def ss_hedef_siniflar_kaydet(deneme: SozelSayisalDeneme, secilen: list[str]) -> 
 
 def ss_hedef_talebeleri(user: User, deneme: SozelSayisalDeneme) -> QuerySet[Talebe]:
     from takip.permissions.scope import yetkili_talebeler
+    from takip.ktt_service import hedef_sinifa_gore_talebeler
 
     talebeler = yetkili_talebeler(user, aktif_only=True)
-
-    if ktt_tam_yetki(user):
-        talebeler = talebeler.filter(etut_hocasi=deneme.etut_hocasi)
-    else:
-        hoca = etut_hocasi_for_user(user)
-        if not hoca or deneme.etut_hocasi_id != hoca.id:
-            return Talebe.objects.none()
-
-    etiketler = [s.strip() for s in (deneme.hedef_siniflar or "").split(",") if s.strip()]
-    if etiketler:
-        q = Q()
-        for etiket in etiketler:
-            parca = etiket.split("-", 1)
-            if len(parca) == 2:
-                q |= Q(sinif=parca[0].strip(), sube=parca[1].strip())
-            else:
-                q |= Q(sinif=etiket)
-        if q:
-            talebeler = talebeler.filter(q)
-
-    return talebeler.order_by("ad_soyad")
+    return hedef_sinifa_gore_talebeler(
+        talebeler,
+        hedef_siniflar=deneme.hedef_siniflar,
+        sinif_seviyesi=deneme.sinif_seviyesi,
+    ).order_by("ad_soyad")
 
 
 def ss_sonuc_talebeleri(user: User, deneme: SozelSayisalDeneme) -> QuerySet[Talebe]:
