@@ -9,6 +9,7 @@
     class="result-entry-page"
     id="kttSonucGirPage"
     data-cikar-url="{% url 'ktt_katilmayan_cikar' ktt.pk %}"
+    data-toplam-soru="{{ toplam_soru }}"
 >
     <header class="result-entry-header">
         <div>
@@ -100,11 +101,11 @@
                                     {% if satir.katilmayan %}<span class="ktt-katilmayan-tag">Katılmadı</span>{% endif %}
                                 </div>
                             </td>
-                            <td><input type="number" min="0" max="{{ toplam_soru }}" name="dogru_{{ satir.talebe.id }}" value="{{ satir.dogru }}" class="input" inputmode="numeric"></td>
-                            <td><input type="number" min="0" max="{{ toplam_soru }}" name="yanlis_{{ satir.talebe.id }}" value="{{ satir.yanlis }}" class="input" inputmode="numeric"></td>
-                            <td><input type="number" min="0" max="{{ toplam_soru }}" name="bos_{{ satir.talebe.id }}" value="{{ satir.bos }}" class="input" inputmode="numeric"></td>
-                            <td class="num-col">{{ satir.net }}</td>
-                            <td class="num-col">{{ satir.puan }}</td>
+                            <td><input type="number" min="0" max="{{ toplam_soru }}" name="dogru_{{ satir.talebe.id }}" value="{{ satir.dogru }}" class="input ktt-dogru" inputmode="numeric"></td>
+                            <td><input type="number" min="0" max="{{ toplam_soru }}" name="yanlis_{{ satir.talebe.id }}" value="{{ satir.yanlis }}" class="input ktt-yanlis" inputmode="numeric"></td>
+                            <td><input type="number" min="0" max="{{ toplam_soru }}" name="bos_{{ satir.talebe.id }}" value="{{ satir.bos }}" class="input ktt-bos" inputmode="numeric"></td>
+                            <td class="num-col ktt-net">{{ satir.net }}</td>
+                            <td class="num-col ktt-puan">{{ satir.puan }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -116,5 +117,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/ktt-sonuc-gir.js' %}?v=1"></script>
+<script src="{% static 'js/ktt-sonuc-gir.js' %}?v=2"></script>
 {% endblock %}

@@ -8,8 +8,54 @@
     const cikarBtn = document.getElementById("kttSecilenleriCikar");
     const selectAll = document.getElementById("kttSelectAllKatilmayan");
     const feedbackEl = document.getElementById("kttKatilmayanFeedback");
+    const toplamSoru = Math.max(0, parseInt(page.dataset.toplamSoru || "0", 10) || 0);
     const table = document.getElementById("kttSonucTable");
     const csrfToken = document.querySelector("#kttSonucForm [name=csrfmiddlewaretoken]")?.value || "";
+
+    function sayi(input) {
+        const n = parseInt(String(input?.value || "0"), 10);
+        return Number.isFinite(n) && n > 0 ? n : 0;
+    }
+
+    function formatSayi(n) {
+        return (Math.round(n * 100) / 100).toFixed(2);
+    }
+
+    function satiriHesapla(row) {
+        const dogruEl = row.querySelector(".ktt-dogru");
+        const yanlisEl = row.querySelector(".ktt-yanlis");
+        const bosEl = row.querySelector(".ktt-bos");
+        if (!dogruEl || !yanlisEl || !bosEl) return;
+
+        let dogru = sayi(dogruEl);
+        let yanlis = sayi(yanlisEl);
+        if (dogru > toplamSoru) {
+            dogru = toplamSoru;
+            dogruEl.value = String(dogru);
+        }
+        if (yanlis > toplamSoru - dogru) {
+            yanlis = Math.max(0, toplamSoru - dogru);
+            yanlisEl.value = String(yanlis);
+        }
+
+        const bos = Math.max(0, toplamSoru - dogru - yanlis);
+        bosEl.value = String(bos);
+
+        let net = dogru - yanlis / 4;
+        if (net < 0) net = 0;
+        const puan = toplamSoru > 0 ? (net * 100) / toplamSoru : 0;
+        const netHucre = row.querySelector(".ktt-net");
+        const puanHucre = row.querySelector(".ktt-puan");
+        if (netHucre) netHucre.textContent = formatSayi(net);
+        if (puanHucre) puanHucre.textContent = formatSayi(puan);
+    }
+
+    table?.querySelectorAll("tbody tr[data-talebe-id]").forEach((row) => {
+        row.querySelectorAll(".ktt-dogru, .ktt-yanlis").forEach((input) => {
+            input.addEventListener("input", () => satiriHesapla(row));
+            input.addEventListener("change", () => satiriHesapla(row));
+        });
+    });
 
     function katilmayanChecks() {
         return Array.from(document.querySelectorAll(".ktt-katilmayan-check"));
