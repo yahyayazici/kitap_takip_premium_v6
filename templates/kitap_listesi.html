@@ -18,6 +18,17 @@
     box-shadow: none !important;
     white-space: nowrap;
 }
+.library-page .book-card-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+.library-page .book-card-actions .book-sil-form {
+    grid-column: 1 / -1;
+}
+.library-page .book-card-actions .book-sil-form .book-action-btn {
+    width: 100%;
+}
 </style>
 {% endblock %}
 
@@ -141,7 +152,7 @@
                         <a href="{% url 'toplu_zimmet' %}" class="ghost-btn book-action-btn">Zimmetle</a>
                         <a href="{% url 'raporlar' %}" class="primary-btn book-action-btn">Raporu Gör</a>
                         {% if kitap.silebilir %}
-                        <form method="post" action="{% url 'kitap_sil' kitap.pk %}" class="book-sil-form" onsubmit="return confirm('{{ kitap.ad|escapejs }} arşivden silinsin mi?');">
+                        <form method="post" action="{% url 'kitap_sil' kitap.pk %}" class="book-sil-form" onsubmit="return confirm('{{ kitap.ad|escapejs }} arşivden silinsin mi?{% if kitap.zimmet_sayisi %} {{ kitap.zimmet_sayisi }} zimmet kaydı da silinir.{% endif %}');">
                             {% csrf_token %}
                             <button type="submit" class="ghost-btn book-action-btn">Sil</button>
                         </form>

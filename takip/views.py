@@ -1024,13 +1024,6 @@ def _kitap_silebilir(user, kitap) -> bool:
         or can(user, "egitim_kitap", "delete")
     ):
         return False
-    zimmet_sayisi = getattr(kitap, "zimmet_sayisi", None)
-    if zimmet_sayisi is None:
-        zimmet_sayisi = kitap.zimmetler.count()
-    if zimmet_sayisi:
-        return False
-    if kitap.sinavlar.exists():
-        return False
     if user.is_superuser or can(user, "egitim_kitap", "delete"):
         return True
     return kitap.olusturan_id in {None, user.id}
@@ -1140,11 +1133,14 @@ def kitap_sil(request, pk):
 
     ad = kitap.ad
     try:
-        kitap.delete()
+        with transaction.atomic():
+            Sinav.objects.filter(kitap=kitap).delete()
+            kitap.zimmetler.all().delete()
+            kitap.delete()
     except ProtectedError:
         messages.error(
             request,
-            f"{ad} silinemedi: zimmet veya kitap sınavı kaydı var.",
+            f"{ad} silinemedi: bağlı kayıtlar korumalı.",
         )
         return redirect("kitap_listesi")
 
