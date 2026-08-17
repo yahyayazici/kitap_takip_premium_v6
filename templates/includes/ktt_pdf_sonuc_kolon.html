@@ -1,31 +1,35 @@
 <table class="results{% if kompakt %} results-kompakt{% endif %}">
     <thead>
         <tr>
-            <th style="width:9%;">Sıra</th>
-            <th class="left" style="width:{% if kompakt %}38{% else %}42{% endif %}%;">Talebe</th>
-            <th style="width:9%;">D</th>
-            <th style="width:9%;">Y</th>
-            <th style="width:9%;">B</th>
-            <th style="width:13%;">Net</th>
-            <th style="width:13%;">Puan</th>
+            <th class="th-sira" style="width:11%;">Sıra</th>
+            <th class="left th-talebe" style="width:{% if kompakt %}36{% else %}39{% endif %}%;">Talebe</th>
+            <th class="th-dyb" style="width:7%;">D</th>
+            <th class="th-dyb" style="width:7%;">Y</th>
+            <th class="th-dyb" style="width:7%;">B</th>
+            <th class="th-net" style="width:12%;">Net</th>
+            <th class="th-puan" style="width:17%;">Puan</th>
         </tr>
     </thead>
     <tbody>
         {% for sonuc in kolon %}
+        {% with sira=forloop.counter|add:sira_offset %}
         <tr>
-            <td><span class="rank-no">{{ forloop.counter|add:sira_offset }}</span></td>
+            <td class="rank-cell">
+                <span class="rank-no{% if sira <= 3 %} is-top{% endif %}">{{ sira }}</span>
+            </td>
             <td class="left">
                 <div class="student-name">{{ sonuc.talebe.ad_soyad }}</div>
                 {% if not kompakt %}
                 <div class="student-meta">{{ sonuc.talebe.sinif_sube|default:"—" }}</div>
                 {% endif %}
             </td>
-            <td class="num-cell">{{ sonuc.dogru }}</td>
-            <td class="num-cell">{{ sonuc.yanlis }}</td>
-            <td class="num-cell">{{ sonuc.bos }}</td>
-            <td class="num-cell">{{ sonuc.net }}</td>
-            <td class="num-cell">{{ sonuc.puan }}</td>
+            <td class="num-cell dyb-cell">{{ sonuc.dogru }}</td>
+            <td class="num-cell dyb-cell">{{ sonuc.yanlis }}</td>
+            <td class="num-cell dyb-cell">{{ sonuc.bos }}</td>
+            <td class="num-cell net-cell">{{ sonuc.net }}</td>
+            <td class="puan-cell"><span class="puan-mark">{{ sonuc.puan }}</span></td>
         </tr>
+        {% endwith %}
         {% empty %}
         <tr>
             <td colspan="7" class="left" style="padding:8px;">—</td>
