@@ -1,3 +1,4 @@
+{% load pdf_extras %}
 <table class="results{% if kompakt %} results-kompakt{% endif %}">
     <thead>
         <tr>
@@ -18,7 +19,7 @@
         {% with sira=forloop.counter|add:sira_offset %}
         <tr>
             <td class="rank-cell">
-                <span class="rank-no{% if sira <= 3 %} is-top{% endif %}">{{ sira }}</span>
+                <span class="rank-no{% if sira == 1 %} is-gold{% elif sira == 2 %} is-silver{% elif sira == 3 %} is-bronze{% endif %}">{{ sira }}</span>
             </td>
             <td class="left name-cell">
                 <div class="student-name">{{ sonuc.talebe.ad_soyad }}</div>
@@ -32,12 +33,13 @@
             <td class="num-cell net-cell">{{ sonuc.net }}</td>
             {% if not kompakt %}
             <td class="basari-cell">
-                <div class="basari-track">
-                    <div class="basari-fill" style="width: {% if sonuc.puan %}{{ sonuc.puan }}{% else %}0{% endif %}%;"></div>
-                </div>
+                <svg class="basari-track" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 13" preserveAspectRatio="none">
+                    <rect x="0.4" y="0.4" width="99.2" height="12.2" fill="#c3d2e6" stroke="#8fa4be" stroke-width="0.8"></rect>
+                    <rect x="0.4" y="0.4" width="{{ sonuc.puan|pdf_bar_pct }}" height="12.2" fill="#1e4fa3"></rect>
+                </svg>
             </td>
             {% endif %}
-            <td class="puan-cell"><span class="puan-mark">{{ sonuc.puan }}</span></td>
+            <td class="puan-cell"><span class="puan-mark">{{ sonuc.puan|pdf_puan }}</span></td>
         </tr>
         {% endwith %}
         {% empty %}
