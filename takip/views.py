@@ -500,6 +500,10 @@ def dashboard(request):
 
     vazife_bildirimleri = vazife_bildirim_kartlari(request.user, bugun=bugun)
 
+    from takip.hatim_service import personel_aktif_gorevleri
+
+    hatim_gorevleri = personel_aktif_gorevleri(request.user, bugun=bugun)
+
     from takip.user_helpers import etut_hocasi_for_user
 
     etut_hocasi = etut_hocasi_for_user(request.user)
@@ -548,6 +552,7 @@ def dashboard(request):
             "bugun_yemek_atamalari": bugun_yemek_atamalari,
             "yemekcilik_modulu": yemekcilik_modulu_erisimi_var(request.user),
             "vazife_bildirimleri": vazife_bildirimleri,
+            "hatim_gorevleri": hatim_gorevleri,
             "etut_hocasi": etut_hocasi,
             "mudahale_adaylari": mudahale_adaylari,
             **dashboard_widgets,

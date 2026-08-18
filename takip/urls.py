@@ -22,6 +22,7 @@ from . import bildirim_views
 from . import akademik_mudahale_views
 from . import ktt_views
 from . import ss_deneme_views
+from . import hatim_views
 from . import ktt_akilli_views
 from . import olcme_views
 from . import soru_takip_views
@@ -298,6 +299,24 @@ urlpatterns = [
         ss_deneme_views.ss_deneme_bireysel_pdf,
         name="ss_deneme_bireysel_talebe_pdf",
     ),
+
+    path("hatim/", hatim_views.hatim_aktif_listesi, name="hatim_aktif_listesi"),
+    path("hatim/yeni/", hatim_views.hatim_olustur, name="hatim_olustur"),
+    path("hatim/gecmis/", hatim_views.hatim_gecmis, name="hatim_gecmis"),
+    path("hatim/gecmis/excel/", hatim_views.hatim_gecmis_excel, name="hatim_gecmis_excel"),
+    path("hatim/gecmis/pdf/", hatim_views.hatim_gecmis_pdf, name="hatim_gecmis_pdf"),
+    path("hatim/cuz-dagitim/", hatim_views.hatim_cuz_dagitim, name="hatim_cuz_dagitim_sec"),
+    path("hatim/cuz-dagitim/<int:pk>/", hatim_views.hatim_cuz_dagitim, name="hatim_cuz_dagitim"),
+    path("hatim/tamamlanma/", hatim_views.hatim_tamamlanma, name="hatim_tamamlanma_sec"),
+    path("hatim/tamamlanma/<int:pk>/", hatim_views.hatim_tamamlanma, name="hatim_tamamlanma"),
+    path("hatim/<int:pk>/", hatim_views.hatim_detay, name="hatim_detay"),
+    path("hatim/<int:pk>/tamamla/", hatim_views.hatim_program_tamamla, name="hatim_program_tamamla"),
+    path("hatim/<int:pk>/durdur/", hatim_views.hatim_program_durdur, name="hatim_program_durdur"),
+    path("hatim/<int:pk>/yeni-donem/", hatim_views.hatim_yeni_donem, name="hatim_yeni_donem"),
+    path("hatim/atama/<int:pk>/basla/", hatim_views.hatim_atama_basladi, name="hatim_atama_basladi"),
+    path("hatim/atama/<int:pk>/tamamla/", hatim_views.hatim_atama_tamamla, name="hatim_atama_tamamla"),
+    path("hatim/atama/<int:pk>/geri-al/", hatim_views.hatim_atama_geri_al, name="hatim_atama_geri_al"),
+    path("hatim/atama/<int:pk>/mesaj/", hatim_views.hatim_kisisel_mesaj, name="hatim_kisisel_mesaj"),
 
     path("denemeler/", deneme_views.deneme_listesi, name="deneme_listesi"),
     path("denemeler/<int:pk>/", deneme_views.deneme_detay, name="deneme_detay"),

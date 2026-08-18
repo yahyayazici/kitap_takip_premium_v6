@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Geçmiş Hatimler · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/hatim-premium.css' %}?v=1">
+{% endblock %}
+{% block content %}
+<div class="hatim-page page-content">
+    <header class="page-head patterned-page-head hatim-page-head">
+        <div>
+            <p class="hatim-kicker">MANEVÎ EĞİTİM</p>
+            <h1>Geçmiş Hatimler</h1>
+        </div>
+        <div class="hatim-head-actions">
+            {% if yonetici %}
+            <a href="{% url 'hatim_gecmis_excel' %}" class="ghost-btn">Excel</a>
+            <a href="{% url 'hatim_gecmis_pdf' %}" class="ghost-btn">PDF</a>
+            {% endif %}
+            <a href="{% url 'hatim_aktif_listesi' %}" class="ghost-btn">Aktif hatimler</a>
+        </div>
+    </header>
+
+    <section class="hatim-card">
+        {% if satirlar %}
+        <div class="hatim-table-wrap">
+            <table class="hatim-table">
+                <thead>
+                    <tr>
+                        <th>Hatim</th>
+                        <th>Tür</th>
+                        <th>Tarih</th>
+                        <th>Dönem</th>
+                        <th>Zamanında %</th>
+                        <th>Katılımcı</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in satirlar %}
+                    <tr>
+                        <td><strong>{{ s.ad }}</strong></td>
+                        <td>{{ s.tur }}</td>
+                        <td>{{ s.baslangic|date:"d.m.Y" }}{% if s.bitis %} – {{ s.bitis|date:"d.m.Y" }}{% endif %}</td>
+                        <td>{{ s.tamamlanan_donem }}/{{ s.donem_sayisi }}</td>
+                        <td>%{{ s.zamaninda_oran }}</td>
+                        <td>{{ s.katilimci_sayisi }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="hatim-alert">Geçmiş kayıt bulunmuyor.</p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

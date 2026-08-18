@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ baslik }} · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/hatim-premium.css' %}?v=1">
+{% endblock %}
+{% block content %}
+<div class="hatim-page page-content">
+    <header class="page-head patterned-page-head hatim-page-head">
+        <div>
+            <p class="hatim-kicker">MANEVÎ EĞİTİM</p>
+            <h1>{{ baslik }}</h1>
+        </div>
+        <a href="{% url 'hatim_aktif_listesi' %}" class="ghost-btn">← Geri</a>
+    </header>
+
+    <form method="post" class="hatim-card hatim-form-grid">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+        <div class="hatim-alert hatim-alert-warn hatim-form-section">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="hatim-field">{{ form.ad.label_tag }}{{ form.ad }}{{ form.ad.errors }}</div>
+        <div class="hatim-field">{{ form.tur.label_tag }}{{ form.tur }}{{ form.tur.errors }}</div>
+        <div class="hatim-field" style="grid-column:1/-1">{{ form.aciklama.label_tag }}{{ form.aciklama }}</div>
+        <div class="hatim-field">{{ form.baslangic_tarihi.label_tag }}{{ form.baslangic_tarihi }}</div>
+        <div class="hatim-field">{{ form.program_bitis_tarihi.label_tag }}{{ form.program_bitis_tarihi }}</div>
+        <div class="hatim-field">{{ form.son_tamamlama_saati.label_tag }}{{ form.son_tamamlama_saati }}</div>
+        <div class="hatim-field">{{ form.kisi_basina_cuz.label_tag }}{{ form.kisi_basina_cuz }}</div>
+        <div class="hatim-field">{{ form.cuz_dagitim_yontemi.label_tag }}{{ form.cuz_dagitim_yontemi }}</div>
+
+        <section class="hatim-form-section">
+            <h2>Okuma düzeni</h2>
+            <div class="hatim-form-grid">
+                <div class="hatim-field">{{ form.tekrar_turu.label_tag }}{{ form.tekrar_turu }}</div>
+                <div class="hatim-field">{{ form.tekrar_gun_araligi.label_tag }}{{ form.tekrar_gun_araligi }}</div>
+                <div class="hatim-field">{{ form.cuz_donem_stratejisi.label_tag }}{{ form.cuz_donem_stratejisi }}</div>
+                <div class="hatim-field"><label>{{ form.hafta_sonu_dahil }} {{ form.hafta_sonu_dahil.label }}</label></div>
+                <div class="hatim-field"><label>{{ form.yeni_donem_otomatik }} {{ form.yeni_donem_otomatik.label }}</label></div>
+                <div class="hatim-field"><label>{{ form.eksik_aktar }} {{ form.eksik_aktar.label }}</label></div>
+                <div class="hatim-field"><label>{{ form.gecikmis_sakla }} {{ form.gecikmis_sakla.label }}</label></div>
+                <div class="hatim-field"><label>{{ form.yarim_son_donem }} {{ form.yarim_son_donem.label }}</label></div>
+            </div>
+        </section>
+
+        <section class="hatim-form-section">
+            <h2>Katılımcılar</h2>
+            <div class="hatim-check-grid">{{ form.katilimcilar }}</div>
+            {{ form.katilimcilar.errors }}
+        </section>
+
+        <section class="hatim-form-section">
+            <h2>Hatırlatma ayarları</h2>
+            <div class="hatim-form-grid">
+                <div class="hatim-field"><label>{{ form.hatirlatma_program_baslangic }} Program başlangıcı</label></div>
+                <div class="hatim-field"><label>{{ form.hatirlatma_yeni_donem }} Yeni dönem</label></div>
+                <div class="hatim-field"><label>{{ form.hatirlatma_bitis_12h }} Bitişe 12 saat kala</label></div>
+                <div class="hatim-field"><label>{{ form.hatirlatma_bitis_2h }} Bitişe 2 saat kala</label></div>
+                <div class="hatim-field"><label>{{ form.hatirlatma_sure_gecti }} Süre geçince</label></div>
+                <div class="hatim-field"><label>{{ form.hatirlatma_program_tamamlandi }} Program tamamlanınca</label></div>
+            </div>
+        </section>
+
+        <div class="hatim-form-section">
+            <button type="submit" class="primary-btn">Kaydet ve başlat</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

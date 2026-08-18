@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Aktif Hatimler · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/hatim-premium.css' %}?v=1">
+{% endblock %}
+{% block content %}
+<div class="hatim-page page-content">
+    <header class="page-head patterned-page-head hatim-page-head">
+        <div>
+            <p class="hatim-kicker">MANEVÎ EĞİTİM</p>
+            <h1>Hatim Takip Merkezi</h1>
+        </div>
+        <div class="hatim-head-actions">
+            {% if yonetici %}
+            <a href="{% url 'hatim_olustur' %}" class="primary-btn">+ Yeni Hatim</a>
+            {% endif %}
+            <a href="{% url 'hatim_gecmis' %}" class="ghost-btn">Geçmiş Hatimler</a>
+        </div>
+    </header>
+
+    <section class="hatim-card">
+        <h2>Aktif programlar</h2>
+        {% if programlar %}
+        <div class="hatim-table-wrap">
+            <table class="hatim-table">
+                <thead>
+                    <tr>
+                        <th>Hatim</th>
+                        <th>Tür</th>
+                        <th>Başlangıç</th>
+                        <th>Bitiş</th>
+                        <th>Tekrar</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in programlar %}
+                    <tr>
+                        <td><strong>{{ p.ad }}</strong></td>
+                        <td>{{ p.get_tur_display }}</td>
+                        <td>{{ p.baslangic_tarihi|date:"d.m.Y" }}</td>
+                        <td>{% if p.program_bitis_tarihi %}{{ p.program_bitis_tarihi|date:"d.m.Y" }}{% else %}—{% endif %}</td>
+                        <td>{{ p.tekrar_etiketi }}</td>
+                        <td><a href="{% url 'hatim_detay' p.pk %}" class="ghost-btn small-button">Detay</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="hatim-alert">Aktif hatim programı bulunmuyor.</p>
+        {% endif %}
+    </section>
+
+    {% if yonetici and taslaklar %}
+    <section class="hatim-card">
+        <h2>Taslaklar</h2>
+        <ul>
+            {% for p in taslaklar %}
+            <li><a href="{% url 'hatim_detay' p.pk %}">{{ p.ad }}</a></li>
+            {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

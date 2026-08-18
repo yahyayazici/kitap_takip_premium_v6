@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head><meta charset="utf-8"><title>Geçmiş Hatimler</title></head>
+<body>
+<h1>Geçmiş Hatimler — {{ bugun|date:"d.m.Y" }}</h1>
+<table border="1" cellpadding="6" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <th>Hatim</th><th>Tür</th><th>Başlangıç</th><th>Bitiş</th>
+            <th>Dönem</th><th>Zamanında %</th><th>Katılımcı</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for s in satirlar %}
+        <tr>
+            <td>{{ s.ad }}</td>
+            <td>{{ s.tur }}</td>
+            <td>{{ s.baslangic|date:"d.m.Y" }}</td>
+            <td>{% if s.bitis %}{{ s.bitis|date:"d.m.Y" }}{% else %}—{% endif %}</td>
+            <td>{{ s.tamamlanan_donem }}/{{ s.donem_sayisi }}</td>
+            <td>%{{ s.zamaninda_oran }}</td>
+            <td>{{ s.katilimci_sayisi }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</body>
+</html>

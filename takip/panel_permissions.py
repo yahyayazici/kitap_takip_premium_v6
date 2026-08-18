@@ -407,6 +407,63 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         nav_group="Eğitim",
     ),
     PanelNavItem(
+        key="hatim_aktif",
+        label="Aktif Hatimler",
+        url_name="hatim_aktif_listesi",
+        roller=EGITIM_MODULU_ROLLER,
+        active_names=(
+            "hatim_aktif_listesi",
+            "hatim_detay",
+            "hatim_program_tamamla",
+            "hatim_program_durdur",
+            "hatim_yeni_donem",
+        ),
+        nav_group="Manevî Eğitim",
+    ),
+    PanelNavItem(
+        key="hatim_olustur",
+        label="Yeni Hatim Oluştur",
+        url_name="hatim_olustur",
+        roller=frozenset({ROL_IDARECI, ROL_IC_MESUL, ROL_EGITIM_MESUL}),
+        active_names=("hatim_olustur",),
+        nav_group="Manevî Eğitim",
+    ),
+    PanelNavItem(
+        key="hatim_cuz_dagitim",
+        label="Cüz Dağıtımı",
+        url_name="hatim_cuz_dagitim",
+        roller=EGITIM_MODULU_ROLLER,
+        active_names=(
+            "hatim_cuz_dagitim",
+            "hatim_cuz_dagitim_sec",
+        ),
+        nav_group="Manevî Eğitim",
+    ),
+    PanelNavItem(
+        key="hatim_tamamlanma",
+        label="Tamamlanma Takibi",
+        url_name="hatim_tamamlanma",
+        roller=EGITIM_MODULU_ROLLER,
+        active_names=(
+            "hatim_tamamlanma",
+            "hatim_tamamlanma_sec",
+            "hatim_atama_geri_al",
+        ),
+        nav_group="Manevî Eğitim",
+    ),
+    PanelNavItem(
+        key="hatim_gecmis",
+        label="Geçmiş Hatimler",
+        url_name="hatim_gecmis",
+        roller=EGITIM_MODULU_ROLLER,
+        active_names=(
+            "hatim_gecmis",
+            "hatim_gecmis_excel",
+            "hatim_gecmis_pdf",
+        ),
+        nav_group="Manevî Eğitim",
+    ),
+    PanelNavItem(
         key="namaz_yoklama",
         label="Namaz Yoklaması",
         url_name="namaz_yoklama_panel",
@@ -588,6 +645,7 @@ NAV_GROUP_ORDER: tuple[str, ...] = (
     "Görevler",
     "Kitaplar",
     "Eğitim",
+    "Manevî Eğitim",
     "Optik",
     "İletişim",
     "Disiplin & Takip",
@@ -761,6 +819,13 @@ def dini_ders_takip_modulu_erisimi_var(user: User) -> bool:
     return modul_erisimi_var(user, "dini_ders_takip")
 
 
+def hatim_takip_modulu_erisimi_var(user: User) -> bool:
+    if not PANEL_MODULES.get("hatim_takip", {}).get("enabled", False):
+        return False
+
+    return modul_erisimi_var(user, "hatim_takip")
+
+
 def namaz_yoklama_modulu_erisimi_var(user: User) -> bool:
     if not PANEL_MODULES.get("namaz_yoklama", {}).get("enabled", False):
         return False
@@ -893,6 +958,8 @@ def panel_nav_items(user: User) -> list[PanelNavItem]:
         if item.key == "dini_ders_takip" and not dini_ders_takip_modulu_erisimi_var(
             user
         ):
+            continue
+        if item.key.startswith("hatim_") and not hatim_takip_modulu_erisimi_var(user):
             continue
         if item.key == "namaz_yoklama" and not namaz_yoklama_modulu_erisimi_var(user):
             continue

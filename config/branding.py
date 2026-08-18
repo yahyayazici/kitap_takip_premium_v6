@@ -150,6 +150,11 @@ PANEL_MODULES = {
         "enabled": True,
         "nav_group": "Eğitim",
     },
+    "hatim_takip": {
+        "label": "Hatim Takip Merkezi",
+        "enabled": True,
+        "nav_group": "Manevî Eğitim",
+    },
     "namaz_yoklama": {
         "label": "Namaz Yoklaması",
         "enabled": True,

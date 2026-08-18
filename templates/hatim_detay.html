@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ program.ad }} · Hatim · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/hatim-premium.css' %}?v=1">
+{% endblock %}
+{% block content %}
+<div class="hatim-page page-content">
+    <header class="page-head patterned-page-head hatim-page-head">
+        <div>
+            <p class="hatim-kicker">{{ program.get_tur_display|upper }}</p>
+            <h1>{{ program.ad }}</h1>
+            <p class="hatim-dash-meta">{{ program.tekrar_etiketi }} · {{ program.get_cuz_donem_stratejisi_display }}</p>
+        </div>
+        <div class="hatim-head-actions">
+            <a href="{% url 'hatim_cuz_dagitim' program.pk %}" class="ghost-btn">Cüz Dağıtımı</a>
+            <a href="{% url 'hatim_tamamlanma' program.pk %}" class="ghost-btn">Tamamlanma</a>
+            {% if yonetici %}
+            <a href="{% url 'hatim_yeni_donem' program.pk %}" class="ghost-btn">Yeni dönem</a>
+            <a href="{% url 'hatim_program_tamamla' program.pk %}" class="primary-btn">Programı tamamla</a>
+            {% endif %}
+        </div>
+    </header>
+
+    {% if cakismalar %}
+    <div class="hatim-alert hatim-alert-warn">
+        {% for u in cakismalar %}{{ u }}{% if not forloop.last %} {% endif %}{% endfor %}
+    </div>
+    {% endif %}
+
+    {% if donem %}
+    <section class="hatim-card">
+        <h2>Dönem {{ donem.sira }} · {{ donem.baslangic|date:"d M Y H:i" }} – {{ donem.bitis|date:"d M Y H:i" }}</h2>
+        <div class="hatim-stats">
+            <div class="hatim-stat"><strong>{{ istat.tamamlanan|default:0 }}</strong><span>Tamamlanan cüz</span></div>
+            <div class="hatim-stat"><strong>{{ istat.okunuyor|default:0 }}</strong><span>Okunuyor</span></div>
+            <div class="hatim-stat"><strong>{{ istat.baslanmadi|default:0 }}</strong><span>Başlanmadı</span></div>
+            <div class="hatim-stat"><strong>{{ istat.geciken|default:0 }}</strong><span>Geciken</span></div>
+            <div class="hatim-stat"><strong>%{{ istat.donem_yuzde|default:0 }}</strong><span>Dönem tamamlanma</span></div>
+        </div>
+    </section>
+
+    <section class="hatim-card">
+        <h2>Cüz durumu (1–30)</h2>
+        <form method="get" class="hatim-filters">
+            <label>Dönem
+                <select name="donem" onchange="this.form.submit()">
+                    {% for d in donemler %}
+                    <option value="{{ d.pk }}" {% if d.pk == donem.pk %}selected{% endif %}>Dönem {{ d.sira }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>Durum
+                <select name="durum">
+                    <option value="">Tümü</option>
+                    {% for val, label in durum_secenekleri %}
+                    <option value="{{ val }}" {% if filtre_durum == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>Cüz <input type="number" name="cuz" min="1" max="30" value="{{ filtre_cuz }}"></label>
+            <button type="submit" class="ghost-btn small-button">Filtrele</button>
+        </form>
+        <div class="hatim-cuz-grid" style="margin-top:1rem">
+            {% for c in cuz_ozet %}
+            <div class="hatim-cuz-cell hatim-cuz-{{ c.durum }}" title="{{ c.durum_etiket }}{% if c.katilimci %} · {{ c.katilimci }}{% endif %}">{{ c.numara }}</div>
+            {% endfor %}
+        </div>
+        {% if dagitilmayan %}
+        <p class="hatim-alert" style="margin-top:1rem">Dağıtılmayan cüzler: {{ dagitilmayan|join:", " }}</p>
+        {% endif %}
+    </section>
+
+    {% if paylasim_metni and iletisim_paylas %}
+    <section class="hatim-card">
+        <h2>İletişim taslağı</h2>
+        <pre class="hatim-alert" style="white-space:pre-wrap">{{ paylasim_metni }}</pre>
+        <a href="{{ whatsapp_url }}" target="_blank" rel="noopener" class="primary-btn">WhatsApp'ta Paylaş</a>
+    </section>
+    {% endif %}
+    {% else %}
+    <p class="hatim-alert">Henüz dönem oluşturulmamış.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="{% static 'css/duyuru-carousel.css' %}?v=half5">
 <link rel="stylesheet" href="{% static 'css/personel-dash-split.css' %}?v=half8">
 <link rel="stylesheet" href="{% static 'css/vazife-premium.css' %}">
+<link rel="stylesheet" href="{% static 'css/hatim-premium.css' %}?v=1">
 {% if etut_plani_onizleme or dershane_onizleme %}
 <link rel="stylesheet" href="{% static 'css/etut-plan-premium.css' %}">
 {% endif %}
@@ -38,6 +39,49 @@
             </em>
             {% endif %}
         </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% if hatim_gorevleri %}
+<section class="hatim-dash-strip" aria-label="Hatim görevleri">
+    <div class="hatim-dash-strip-head">
+        <h2>Hatim göreviniz</h2>
+        <a href="{% url 'hatim_aktif_listesi' %}">Hatim Merkezi →</a>
+    </div>
+    <div class="hatim-dash-cards">
+        {% for g in hatim_gorevleri %}
+        <article class="hatim-dash-card{% if g.gecikti %} is-late{% endif %}">
+            <header>
+                <p class="hatim-dash-kicker">{{ g.tur_etiket }}</p>
+                <h3>{{ g.program_ad }}</h3>
+            </header>
+            <p class="hatim-dash-cuz">{{ g.cuz_etiketi }}</p>
+            <p class="hatim-dash-meta">{{ g.tekrar }} · {{ g.strateji_etiket }}</p>
+            <p class="hatim-dash-meta">
+                Bu dönem: {{ g.donem_baslangic|date:"d M" }} – {{ g.donem_bitis|date:"d M" }}
+                · Son: {{ g.donem_bitis|date:"d M H:i" }}
+            </p>
+            {% if g.program_bitis %}
+            <p class="hatim-dash-meta">Program bitişi: {{ g.program_bitis|date:"d M Y" }}</p>
+            {% endif %}
+            <p class="hatim-dash-status hatim-status-{{ g.durum }}">{{ g.durum_etiket }}</p>
+            <div class="hatim-dash-actions">
+                {% if g.durum == "baslanmadi" or g.durum == "gecikmis" %}
+                <form method="post" action="{% url 'hatim_atama_basladi' g.atama_id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="ghost-btn">Okumaya Başladım</button>
+                </form>
+                {% endif %}
+                {% if g.durum != "tamamlandi" %}
+                <form method="post" action="{% url 'hatim_atama_tamamla' g.atama_id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="primary-btn">Bu Dönemi Tamamladım</button>
+                </form>
+                {% endif %}
+            </div>
+        </article>
         {% endfor %}
     </div>
 </section>

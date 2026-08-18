@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ baslik }} · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/hatim-premium.css' %}?v=1">
+{% endblock %}
+{% block content %}
+<div class="hatim-page page-content">
+    <header class="page-head patterned-page-head hatim-page-head">
+        <div>
+            <p class="hatim-kicker">MANEVÎ EĞİTİM</p>
+            <h1>{{ baslik }}</h1>
+        </div>
+        <a href="{% url 'hatim_aktif_listesi' %}" class="ghost-btn">← Aktif Hatimler</a>
+    </header>
+
+    <section class="hatim-card">
+        {% if programlar %}
+        <ul>
+            {% for p in programlar %}
+            <li style="margin-bottom:0.75rem">
+                <a href="{% url hedef p.pk %}"><strong>{{ p.ad }}</strong></a>
+                <span class="hatim-dash-meta"> · {{ p.get_tur_display }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="hatim-alert">Seçilecek aktif program yok.</p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

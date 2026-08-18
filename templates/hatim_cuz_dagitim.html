@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Cüz Dağıtımı · {{ program.ad }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/hatim-premium.css' %}?v=1">
+{% endblock %}
+{% block content %}
+<div class="hatim-page page-content">
+    <header class="page-head patterned-page-head hatim-page-head">
+        <div>
+            <p class="hatim-kicker">DÖNEM {{ donem.sira }}</p>
+            <h1>Cüz Dağıtımı — {{ program.ad }}</h1>
+        </div>
+        <a href="{% url 'hatim_detay' program.pk %}" class="ghost-btn">← Detay</a>
+    </header>
+
+    {% if cakismalar %}
+    <div class="hatim-alert hatim-alert-warn">{% for u in cakismalar %}{{ u }} {% endfor %}</div>
+    {% endif %}
+
+    {% if yonetici %}
+    <form method="post" class="hatim-head-actions">
+        {% csrf_token %}
+        <button type="submit" name="aksiyon" value="yeniden_hesapla" class="ghost-btn">Dağılımı yeniden hesapla</button>
+    </form>
+    {% endif %}
+
+    <section class="hatim-card">
+        <div class="hatim-table-wrap">
+            <table class="hatim-table">
+                <thead>
+                    <tr>
+                        <th>Personel</th>
+                        <th>Cüzler</th>
+                        <th>Bu dönem durumu</th>
+                        <th>Son tarih</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in atamalar %}
+                    <tr>
+                        <td>{{ a.katilimci.gorunen_ad }}</td>
+                        <td>{{ a.cuz_etiketi }}</td>
+                        <td><span class="hatim-status hatim-status-{{ a.durum }}">{{ a.get_durum_display }}</span></td>
+                        <td>{{ donem.bitis|date:"d F H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4">Atama yok.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if dagitilmayan %}
+        <p class="hatim-alert" style="margin-top:1rem">Dağıtılmayan: {{ dagitilmayan|join:", " }}</p>
+        {% endif %}
+    </section>
+
+    {% if yonetici and program.cuz_dagitim_yontemi == "manual" %}
+    <section class="hatim-card">
+        <h2>Manuel dağıtım</h2>
+        <form method="post" class="hatim-form-grid">
+            {% csrf_token %}
+            <input type="hidden" name="aksiyon" value="manuel">
+            {% for kat in program.katilimcilar.all %}
+            <div class="hatim-field">
+                <label>{{ kat.gorunen_ad }}</label>
+                <div style="display:flex;gap:0.5rem">
+                    <input class="hatim-input" type="number" name="cuz_bas_{{ kat.pk }}" min="1" max="30" placeholder="Baş">
+                    <input class="hatim-input" type="number" name="cuz_bit_{{ kat.pk }}" min="1" max="30" placeholder="Bit">
+                </div>
+            </div>
+            {% endfor %}
+            <button type="submit" class="primary-btn">Kaydet</button>
+        </form>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

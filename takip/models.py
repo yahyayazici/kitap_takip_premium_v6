@@ -2086,6 +2086,15 @@ from takip.ss_deneme_models import (  # noqa: E402,F401
     SozelSayisalSonuc,
 )
 
+from takip.hatim_models import (  # noqa: E402,F401
+    CuzAtamasi,
+    DonemTamamlamaKaydi,
+    HatimDonemi,
+    HatimHatirlatmasi,
+    HatimKatilimcisi,
+    HatimProgrami,
+)
+
 from takip.soru_takip_models import GunlukSoruDersSatiri, GunlukSoruKaydi  # noqa: E402,F401
 
 from takip.akademik_mudahale_models import AkademikMudahale, MudahaleTuru  # noqa: E402,F401

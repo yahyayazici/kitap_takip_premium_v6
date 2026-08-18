@@ -21,6 +21,7 @@ from takip.panel_permissions import (
     gunluk_takip_modulu_erisimi_var,
     imam_muezzin_modulu_erisimi_var,
     ktt_modulu_erisimi_var,
+    hatim_takip_modulu_erisimi_var,
     program_modulu_erisimi_var,
     rehberlik_modulu_erisimi_var,
     veli_iletisim_modulu_erisimi_var,
@@ -304,6 +305,7 @@ def _legacy_personel_kisayollari(user: User, *, bugun: date) -> list[DashboardSh
     ekle(veli_iletisim_modulu_erisimi_var(user), "veli_iletisim", "Veli & Talebe İletişim", "Veli ve öğrenci görüşmeleri", "iletisim_listesi", "phone", mark="Vİ")
     ekle(deneme_modulu_erisimi_var(user), "deneme", "Deneme Sonuçları", "Deneme analizi", "deneme_listesi", "chart", mark="DN")
     ekle(ktt_modulu_erisimi_var(user), "ktt", "KTT Takip", "Kazanım tarama testleri", "ktt_listesi", "target", mark="KTT")
+    ekle(hatim_takip_modulu_erisimi_var(user), "hatim", "Hatim Merkezi", "Cüz dağıtım ve takip", "hatim_aktif_listesi", "book", mark="HT")
     gorev_url = _gorevler_url(user)
     if gorev_url:
         adaylar.append(

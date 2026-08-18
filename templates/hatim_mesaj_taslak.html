@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Mesaj taslağı{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/hatim-premium.css' %}?v=1">
+{% endblock %}
+{% block content %}
+<div class="hatim-page page-content">
+    <section class="hatim-card">
+        <h1>Kişisel hatırlatma taslağı</h1>
+        <pre class="hatim-alert" style="white-space:pre-wrap">{{ metin }}</pre>
+        <a href="{{ whatsapp_url }}" target="_blank" rel="noopener" class="primary-btn">WhatsApp'ta Paylaş</a>
+        <a href="{% url 'hatim_tamamlanma' atama.donem.program_id %}" class="ghost-btn">← Geri</a>
+    </section>
+</div>
+{% endblock %}

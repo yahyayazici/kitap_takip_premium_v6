@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Tamamlanma · {{ program.ad }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/hatim-premium.css' %}?v=1">
+{% endblock %}
+{% block content %}
+<div class="hatim-page page-content">
+    <header class="page-head patterned-page-head hatim-page-head">
+        <div>
+            <p class="hatim-kicker">TAMAMLANMA TAKİBİ</p>
+            <h1>{{ program.ad }}</h1>
+        </div>
+        <a href="{% url 'hatim_detay' program.pk %}" class="ghost-btn">← Detay</a>
+    </header>
+
+    {% if donem %}
+    <section class="hatim-card">
+        <p class="hatim-dash-meta">Dönem {{ donem.sira }} · son tarih {{ donem.bitis|date:"d M Y H:i" }}</p>
+        <div class="hatim-table-wrap">
+            <table class="hatim-table">
+                <thead>
+                    <tr>
+                        <th>Katılımcı</th>
+                        <th>Cüzler</th>
+                        <th>Durum</th>
+                        <th>Tamamlanma</th>
+                        {% if yonetici %}<th></th>{% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in atamalar %}
+                    <tr>
+                        <td>{{ a.katilimci.gorunen_ad }}</td>
+                        <td>{{ a.cuz_etiketi }}</td>
+                        <td><span class="hatim-status hatim-status-{{ a.durum }}">{{ a.get_durum_display }}</span></td>
+                        <td>{% if a.tamamlama_zamani %}{{ a.tamamlama_zamani|date:"d.m.Y H:i" }}{% else %}—{% endif %}</td>
+                        {% if yonetici %}
+                        <td>
+                            {% if a.durum == "tamamlandi" %}
+                            <a href="{% url 'hatim_atama_geri_al' a.pk %}" class="ghost-btn small-button">Geri al</a>
+                            {% endif %}
+                            <a href="{% url 'hatim_kisisel_mesaj' a.pk %}" class="ghost-btn small-button">Mesaj taslağı</a>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% else %}
+    <p class="hatim-alert">Aktif dönem yok.</p>
+    {% endif %}
+</div>
+{% endblock %}

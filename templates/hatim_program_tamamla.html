@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Programı tamamla · {{ program.ad }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/hatim-premium.css' %}?v=1">
+{% endblock %}
+{% block content %}
+<div class="hatim-page page-content">
+    <header class="page-head patterned-page-head hatim-page-head">
+        <div>
+            <p class="hatim-kicker">ONAY</p>
+            <h1>{{ program.ad }} — Tamamlama</h1>
+        </div>
+    </header>
+    <section class="hatim-card">
+        <p class="hatim-alert">Programı kapatmadan önce tüm dönemlerin ve cüzlerin durumunu kontrol edin.</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="hatim-field"><label>{{ form.dua_yapildi }} {{ form.dua_yapildi.label }}</label></div>
+            <div class="hatim-field"><label>{{ form.onay }} {{ form.onay.label }}</label>{{ form.onay.errors }}</div>
+            <button type="submit" class="primary-btn">Programı tamamla</button>
+            <a href="{% url 'hatim_detay' program.pk %}" class="ghost-btn">Vazgeç</a>
+        </form>
+    </section>
+</div>
+{% endblock %}
