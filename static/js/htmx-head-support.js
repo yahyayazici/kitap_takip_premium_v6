@@ -1,0 +1,87 @@
+(function(){
+    var api = null;
+
+    function mergeHead(newContent, defaultMergeStrategy) {
+        if (newContent && newContent.indexOf("<head") > -1) {
+            const htmlDoc = document.createElement("html");
+            var contentWithSvgsRemoved = newContent.replace(/<svg(\s[^>]*>|>)([\s\S]*?)<\/svg>/gim, "");
+            var headTag = contentWithSvgsRemoved.match(/(<head(\s[^>]*>|>)([\s\S]*?)<\/head>)/im);
+            if (!headTag) {
+                return;
+            }
+            var added = [];
+            var removed = [];
+            var preserved = [];
+            var nodesToAppend = [];
+            htmlDoc.innerHTML = headTag;
+            var newHeadTag = htmlDoc.querySelector("head");
+            var currentHead = document.head;
+            if (newHeadTag == null) {
+                return;
+            }
+            var srcToNewHeadNodes = new Map();
+            for (const newHeadChild of newHeadTag.children) {
+                srcToNewHeadNodes.set(newHeadChild.outerHTML, newHeadChild);
+            }
+            var mergeStrategy = api.getAttributeValue(newHeadTag, "hx-head") || defaultMergeStrategy;
+            for (const currentHeadElt of currentHead.children) {
+                var inNewContent = srcToNewHeadNodes.has(currentHeadElt.outerHTML);
+                var isReAppended = currentHeadElt.getAttribute("hx-head") === "re-eval";
+                var isPreserved = api.getAttributeValue(currentHeadElt, "hx-preserve") === "true";
+                if (inNewContent || isPreserved) {
+                    if (isReAppended) {
+                        removed.push(currentHeadElt);
+                    } else {
+                        srcToNewHeadNodes.delete(currentHeadElt.outerHTML);
+                        preserved.push(currentHeadElt);
+                    }
+                } else if (mergeStrategy === "append") {
+                    if (isReAppended) {
+                        removed.push(currentHeadElt);
+                        nodesToAppend.push(currentHeadElt);
+                    }
+                } else if (api.triggerEvent(document.body, "htmx:removingHeadElement", {headElement: currentHeadElt}) !== false) {
+                    removed.push(currentHeadElt);
+                }
+            }
+            nodesToAppend.push(...srcToNewHeadNodes.values());
+            for (const newNode of nodesToAppend) {
+                var newElt = document.createRange().createContextualFragment(newNode.outerHTML);
+                if (api.triggerEvent(document.body, "htmx:addingHeadElement", {headElement: newElt}) !== false) {
+                    currentHead.appendChild(newElt);
+                    added.push(newElt);
+                }
+            }
+            for (const removedElement of removed) {
+                if (api.triggerEvent(document.body, "htmx:removingHeadElement", {headElement: removedElement}) !== false) {
+                    currentHead.removeChild(removedElement);
+                }
+            }
+            api.triggerEvent(document.body, "htmx:afterHeadMerge", {added: added, kept: preserved, removed: removed});
+        }
+    }
+
+    htmx.defineExtension("head-support", {
+        init: function(apiRef) {
+            api = apiRef;
+            htmx.on("htmx:afterSwap", function(evt){
+                var serverResponse = evt.detail.xhr.response;
+                if (api.triggerEvent(document.body, "htmx:beforeHeadMerge", evt.detail)) {
+                    mergeHead(serverResponse, evt.detail.boosted ? "merge" : "append");
+                }
+            });
+            htmx.on("htmx:historyRestore", function(evt){
+                if (api.triggerEvent(document.body, "htmx:beforeHeadMerge", evt.detail)) {
+                    if (evt.detail.cacheMiss) {
+                        mergeHead(evt.detail.serverResponse, "merge");
+                    } else {
+                        mergeHead(evt.detail.item.head, "merge");
+                    }
+                }
+            });
+            htmx.on("htmx:historyItemCreated", function(evt){
+                evt.detail.item.head = document.head.outerHTML;
+            });
+        }
+    });
+})();

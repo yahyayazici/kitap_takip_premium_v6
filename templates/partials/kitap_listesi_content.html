@@ -1,6 +1,7 @@
 {% if request.htmx %}
 <title hx-swap-oob="true">Kitap Arşivi</title>
 {% endif %}
+{% if request.htmx %}<div id="main-content" class="page-content">{% endif %}
 <div class="library-page" data-page-title="Kitap Arşivi">
 
     <header class="page-head patterned-page-head library-page-head library-hero">
@@ -164,3 +165,4 @@
     });
 })();
 </script>
+{% if request.htmx %}</div>{% endif %}

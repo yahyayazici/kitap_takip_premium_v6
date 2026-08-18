@@ -3,6 +3,7 @@
 <title hx-swap-oob="true">KTT</title>
 <link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=ktt-mob2" hx-swap-oob="true">
 {% endif %}
+{% if request.htmx %}<div id="main-content" class="page-content">{% endif %}
 <div class="ktt-page" data-page-title="KTT">
     <header class="page-head patterned-page-head ktt-page-head ktt-hero">
         <div class="ktt-head-main">
@@ -218,3 +219,4 @@
 <script>document.documentElement.dataset.kttFormOpen = "1";</script>
 {% endif %}
 {% endif %}
+{% if request.htmx %}</div>{% endif %}

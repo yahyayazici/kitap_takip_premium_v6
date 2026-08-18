@@ -122,6 +122,16 @@
             maybeUpdateTitle(event.target);
             updateActiveNav();
             reinitDashboardWidgets(event.target);
+            document.querySelectorAll(".v3-nav-trigger[aria-expanded='true']").forEach(function (trigger) {
+                trigger.setAttribute("aria-expanded", "false");
+            });
+            document.querySelectorAll(".v3-nav-dropdown.open").forEach(function (el) {
+                el.classList.remove("open");
+            });
+            document.querySelectorAll(".v3-nav.open").forEach(function (el) {
+                el.classList.remove("open");
+            });
+            document.body.classList.remove("v3-nav-menu-open", "v3-mobile-nav-open");
         }
     });
 

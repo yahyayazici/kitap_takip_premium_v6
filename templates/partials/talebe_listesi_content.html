@@ -3,6 +3,7 @@
 <title hx-swap-oob="true">Talebeler</title>
 <link rel="stylesheet" href="{% static 'css/talebe-listesi.css' %}?v=tl4" hx-swap-oob="true">
 {% endif %}
+{% if request.htmx %}<div id="main-content" class="page-content">{% endif %}
 <div class="tl-page" data-page-title="Talebeler">
 
 <header class="page-head patterned-page-head tl-page-head tl-hero cs-page-head">
@@ -104,3 +105,4 @@
     });
 })();
 </script>
+{% if request.htmx %}</div>{% endif %}

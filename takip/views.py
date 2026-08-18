@@ -1039,18 +1039,11 @@ def _kitap_silebilir(user, kitap) -> bool:
 @login_required
 def kitap_listesi(request):
     kitaplar = list(
-        Kitap.objects
-        .all()
-        .order_by("ad")
+        Kitap.objects.annotate(zimmet_sayisi=Count("zimmetler")).order_by("ad")
     )
 
     toplam_zimmet = 0
     for kitap in kitaplar:
-        kitap.zimmet_sayisi = (
-            Zimmet.objects
-            .filter(kitap=kitap)
-            .count()
-        )
         toplam_zimmet += kitap.zimmet_sayisi
         kitap.silebilir = _kitap_silebilir(request.user, kitap)
 
