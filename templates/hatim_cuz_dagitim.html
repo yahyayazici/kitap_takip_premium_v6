@@ -23,6 +23,21 @@
         {% csrf_token %}
         <button type="submit" name="aksiyon" value="yeniden_hesapla" class="ghost-btn">Dağılımı yeniden hesapla</button>
     </form>
+
+    <section class="hatim-card">
+        <h2>Katılımcı ekle</h2>
+        <form method="post" class="hatim-head-actions">
+            {% csrf_token %}
+            <input type="hidden" name="aksiyon" value="katilimci_ekle">
+            <select name="personel_id" class="hatim-input" style="max-width:360px">
+                <option value="">Personel seçin</option>
+                {% for p in eklenebilir_personeller %}
+                <option value="{{ p.id }}">{{ p.ad_soyad }} — {{ p.get_ana_rol_display }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="primary-btn">Katılımcı Ekle</button>
+        </form>
+    </section>
     {% endif %}
 
     <section class="hatim-card">

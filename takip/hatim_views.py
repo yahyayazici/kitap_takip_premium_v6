@@ -13,7 +13,7 @@ from django.utils.formats import date_format
 from django.utils.timezone import localdate
 
 from takip.hatim_forms import HatimProgramTamamlaForm, HatimProgramiForm
-from takip.hatim_models import CuzAtamasi, HatimDonemi, HatimProgrami
+from takip.hatim_models import CuzAtamasi, HatimDonemi, HatimKatilimcisi, HatimProgrami
 from takip.hatim_service import (
     aktif_donem,
     aktif_hatim_programlari,
@@ -205,6 +205,41 @@ def hatim_cuz_dagitim(request, pk: int | None = None):
         if aksiyon == "yeniden_hesapla":
             cuzleri_dagit(program, donem)
             messages.success(request, "Cüz dağıtımı yeniden hesaplandı.")
+        elif aksiyon == "katilimci_ekle":
+            try:
+                personel_id = int(request.POST.get("personel_id", "0"))
+            except ValueError:
+                personel_id = 0
+            if personel_id <= 0:
+                messages.warning(request, "Eklemek için bir katılımcı seçin.")
+            else:
+                from takip.models import PersonelProfili
+
+                profil = PersonelProfili.objects.filter(pk=personel_id, aktif=True).first()
+                if not profil:
+                    messages.error(request, "Seçilen personel bulunamadı.")
+                else:
+                    mevcut = program.katilimcilar.filter(personel=profil).first()
+                    if mevcut:
+                        if not mevcut.aktif:
+                            mevcut.aktif = True
+                            mevcut.save(update_fields=["aktif"])
+                            messages.success(request, f"{profil.ad_soyad} tekrar aktif edildi.")
+                        else:
+                            messages.info(request, f"{profil.ad_soyad} zaten listede.")
+                    else:
+                        son_sira = (
+                            program.katilimcilar.order_by("-sira").values_list("sira", flat=True).first()
+                            or 0
+                        )
+                        HatimKatilimcisi.objects.create(
+                            program=program,
+                            personel=profil,
+                            user=profil.user,
+                            sira=son_sira + 1,
+                            aktif=True,
+                        )
+                        messages.success(request, f"{profil.ad_soyad} katılımcılara eklendi.")
         elif aksiyon == "manuel":
             manuel: dict[int, tuple[int, int]] = {}
             for kat in program.katilimcilar.filter(aktif=True):
@@ -226,6 +261,12 @@ def hatim_cuz_dagitim(request, pk: int | None = None):
     atamalar = donem.cuz_atamalari.select_related("katilimci").order_by(
         "katilimci__sira"
     )
+    aktif_ids = list(program.katilimcilar.filter(aktif=True, personel_id__isnull=False).values_list("personel_id", flat=True))
+    from takip.models import PersonelProfili
+
+    eklenebilir_personeller = (
+        PersonelProfili.objects.filter(aktif=True).exclude(id__in=aktif_ids).order_by("ad_soyad")
+    )
     return render(
         request,
         "hatim_cuz_dagitim.html",
@@ -236,6 +277,7 @@ def hatim_cuz_dagitim(request, pk: int | None = None):
             "cakismalar": cuz_cakisma_kontrolu(donem),
             "dagitilmayan": dagitilmayan_cuzler(donem),
             "yonetici": hatim_yonetebilir(request.user),
+            "eklenebilir_personeller": eklenebilir_personeller,
         },
     )
 

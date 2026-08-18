@@ -45,7 +45,14 @@
 
         <section class="hatim-form-section">
             <h2>Katılımcılar</h2>
-            <div class="hatim-check-grid">{{ form.katilimcilar }}</div>
+            <div class="hatim-check-grid">
+                {% for secenek in form.katilimcilar %}
+                <label class="hatim-check-item">
+                    <span class="hatim-check-box">{{ secenek.tag }}</span>
+                    <span class="hatim-check-name">{{ secenek.choice_label }}</span>
+                </label>
+                {% endfor %}
+            </div>
             {{ form.katilimcilar.errors }}
         </section>
 
