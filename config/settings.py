@@ -123,7 +123,25 @@ DATABASES = {
     )
 }
 
-AUTH_PASSWORD_VALIDATORS = []
+# Not: Bu validator'lar Django'nun login akışını ETKİLEMEZ — sadece
+# validate_password() açıkça çağrıldığında (yeni şifre belirleme/değiştirme
+# formlarında) devreye girer. Mevcut kullanıcıların mevcut şifreleriyle
+# giriş yapması bundan etkilenmez.
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {"min_length": 8},
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
+]
 
 LANGUAGE_CODE = "tr-tr"
 TIME_ZONE = "Europe/Istanbul"
@@ -227,6 +245,10 @@ LOGGING = {
         "takip.pdf_utils": {
             "handlers": ["console"],
             "level": "WARNING" if DEBUG else "ERROR",
+        },
+        "takip.bootstrap_views": {
+            "handlers": ["console"],
+            "level": "ERROR",
         },
     },
 }

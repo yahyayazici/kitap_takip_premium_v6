@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import json
-
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -21,7 +19,7 @@ def cuma_durum_panel(request):
         "cuma_durum_panel.html",
         {
             **panel_branding_context(),
-            "stuyo_json": json.dumps(veri, ensure_ascii=False),
+            "stuyo_data": veri,
             "cuma_tarihi": veri["cuma_tarihi"],
             "personel_ad": veri["personel_ad"],
         },

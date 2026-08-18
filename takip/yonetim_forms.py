@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
 from django.db import transaction
 from django.forms import inlineformset_factory
 
@@ -205,10 +206,10 @@ class PersonelProfiliForm(forms.ModelForm):
                 "Yeni personel için şifre zorunludur."
             )
 
-        if sifre and len(sifre) < 8:
-            raise forms.ValidationError(
-                "Şifre en az 8 karakter olmalıdır."
-            )
+        # Yalnızca YENİ bir şifre girildiğinde çalışır — düzenlemede boş
+        # bırakılırsa (şifre değişmiyor) hiç tetiklenmez.
+        if sifre:
+            validate_password(sifre)
 
         return sifre
 

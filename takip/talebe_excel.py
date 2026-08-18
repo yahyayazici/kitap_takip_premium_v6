@@ -826,9 +826,16 @@ def talebe_excel_ice_aktar(dosya) -> TalebeExcelSonuc:
             if talebe_tc and len(talebe_tc) == 11:
                 veli_ad = anne_ad or baba_ad or ""
                 veli_tel = anne_tel or baba_tel or talebe_telefon
-                if _veli_panel_ensure(mevcut, talebe_tc, veli_ad, veli_tel):
+                veli_sonuc = _veli_panel_ensure(mevcut, talebe_tc, veli_ad, veli_tel)
+                if veli_sonuc.basarili:
                     sonuc.veli_hesap += 1
                     islem_yapildi = True
+                    if veli_sonuc.olusturuldu and veli_sonuc.gecici_sifre:
+                        sonuc.bilgi.append(
+                            f"Satır {satir_no}: {talebe_tc} için yeni veli hesabı "
+                            f"oluşturuldu — geçici şifre: {veli_sonuc.gecici_sifre} "
+                            "(veliye iletin; ilk girişte değiştirmesini isteyin)."
+                        )
                 else:
                     sonuc.bilgi.append(
                         f"Satır {satir_no}: {talebe_tc} kullanıcı adı başka hesapta, "
@@ -961,7 +968,14 @@ def talebe_excel_ice_aktar(dosya) -> TalebeExcelSonuc:
         if talebe_tc and len(talebe_tc) == 11:
             veli_ad = anne_ad or baba_ad or ""
             veli_tel = anne_tel or baba_tel or talebe_telefon
-            if _veli_panel_ensure(talebe, talebe_tc, veli_ad, veli_tel):
+            veli_sonuc = _veli_panel_ensure(talebe, talebe_tc, veli_ad, veli_tel)
+            if veli_sonuc.basarili:
                 sonuc.veli_hesap += 1
+                if veli_sonuc.olusturuldu and veli_sonuc.gecici_sifre:
+                    sonuc.bilgi.append(
+                        f"Satır {satir_no}: {talebe_tc} için yeni veli hesabı "
+                        f"oluşturuldu — geçici şifre: {veli_sonuc.gecici_sifre} "
+                        "(veliye iletin; ilk girişte değiştirmesini isteyin)."
+                    )
 
     return sonuc

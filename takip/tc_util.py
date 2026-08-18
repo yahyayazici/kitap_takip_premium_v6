@@ -25,6 +25,11 @@ def tc_dogrula(deger: str, *, zorunlu: bool = True) -> str:
 
 
 def veli_sifre_tc_son4(tc: str) -> str:
+    """Artık YENİ hesap şifresi üretiminde kullanılmıyor (bkz. veli_hesap_util.gecici_sifre_uret).
+
+    Tahmin edilebilir olduğu için güvenlik nedeniyle terk edildi; geriye dönük
+    referans/uyumluluk amacıyla dosyada bırakıldı, aktif çağıranı yok.
+    """
     tc = tc_dogrula(tc)
     return tc[-4:]
 

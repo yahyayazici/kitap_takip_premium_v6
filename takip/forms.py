@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from django import forms
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
 
 from .models import (
@@ -652,6 +653,14 @@ class VeliHesapForm(forms.Form):
             raise forms.ValidationError("Bu kullanıcı adı kullanılıyor.")
         return username
 
+    def clean_password(self):
+        # Yalnızca YENİ bir şifre girildiğinde çalışır — düzenlemede boş
+        # bırakılırsa (şifre değişmiyor) hiç tetiklenmez.
+        password = self.cleaned_data.get("password", "")
+        if password:
+            validate_password(password)
+        return password
+
     def clean(self):
         cleaned = super().clean()
         if not self.duzenleme and not cleaned.get("password"):
@@ -710,6 +719,14 @@ class TalebeHesapForm(forms.Form):
         if qs.exists():
             raise forms.ValidationError("Bu öğrenci için zaten bir hesap var.")
         return talebe
+
+    def clean_password(self):
+        # Yalnızca YENİ bir şifre girildiğinde çalışır — düzenlemede boş
+        # bırakılırsa (şifre değişmiyor) hiç tetiklenmez.
+        password = self.cleaned_data.get("password", "")
+        if password:
+            validate_password(password)
+        return password
 
     def clean(self):
         cleaned = super().clean()
