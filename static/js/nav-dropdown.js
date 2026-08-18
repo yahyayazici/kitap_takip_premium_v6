@@ -86,14 +86,34 @@
     const nav = document.querySelector(SHELL_NAV_SEL);
 
     if (toggle && nav) {
-        toggle.addEventListener('click', function () {
+        var toggleArmedUntil = 0;
+        toggle.addEventListener('click', function (event) {
+            if (Date.now() < toggleArmedUntil) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                return;
+            }
             const open = nav.classList.toggle('open');
             toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-            if (!open) {
+            if (open) {
+                toggleArmedUntil = Date.now() + 450;
+                nav.classList.add('cs-nav-arming');
+                window.setTimeout(function () {
+                    nav.classList.remove('cs-nav-arming');
+                }, 450);
+            } else {
                 closeDropdowns();
             }
             updateBackdrop();
             scheduleHeaderHeightSync();
+        });
+
+        nav.querySelectorAll('a[href]').forEach(function (link) {
+            link.addEventListener('click', function () {
+                if (isCollapsedNav()) {
+                    closeMobileNav();
+                }
+            });
         });
     }
 

@@ -1,25 +1,7 @@
 (function () {
     "use strict";
 
-    var TOGGLE_SEL =
-        "#v3-menu-toggle, #yonetim-menu-toggle, #talebe-menu-toggle, #ogretmen-menu-toggle, #veli-menu-toggle";
-
-    document.addEventListener(
-        "pointerdown",
-        function (event) {
-            if (event.button != null && event.button !== 0) {
-                return;
-            }
-            if (event.pointerType === "mouse") {
-                return;
-            }
-            var control = event.target.closest(TOGGLE_SEL + ", .v3-nav-trigger");
-            if (!control) {
-                return;
-            }
-            event.preventDefault();
-            control.click();
-        },
-        { capture: true, passive: false }
-    );
+    /* touch-action:manipulation already removes the 300ms delay.
+       Do not synthesize click on pointerdown: that double-toggles the
+       hamburger / dropdown (open then immediately close) on iOS. */
 })();

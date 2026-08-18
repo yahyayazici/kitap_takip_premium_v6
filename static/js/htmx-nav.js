@@ -119,10 +119,19 @@
         );
     }
 
-    document.addEventListener("htmx:beforeRequest", function () {
-        if (typeof window.csCloseMobileNav === "function") {
-            window.csCloseMobileNav();
+    var lastNavAt = 0;
+    var lastNavPath = "";
+
+    document.addEventListener("htmx:beforeRequest", function (event) {
+        var pathInfo = event.detail && event.detail.pathInfo ? event.detail.pathInfo : null;
+        var path = pathInfo && (pathInfo.requestPath || pathInfo.path) ? (pathInfo.requestPath || pathInfo.path) : "";
+        var now = Date.now();
+        if (path && path === lastNavPath && now - lastNavAt < 400) {
+            event.preventDefault();
+            return;
         }
+        lastNavPath = path;
+        lastNavAt = now;
     });
 
     document.addEventListener("htmx:afterSwap", function (event) {
@@ -136,7 +145,7 @@
             document.querySelectorAll(".v3-nav-dropdown.open").forEach(function (el) {
                 el.classList.remove("open");
             });
-            document.querySelectorAll(".v3-nav.open").forEach(function (el) {
+            document.querySelectorAll(".v3-nav.open, .cs-v6-nav.open").forEach(function (el) {
                 el.classList.remove("open");
             });
             document.body.classList.remove("v3-nav-menu-open", "v3-mobile-nav-open");
@@ -158,7 +167,7 @@
     });
 
     if (window.htmx && window.htmx.config) {
-        window.htmx.config.timeout = 8000;
+        window.htmx.config.timeout = 30000;
     }
 
     window.addEventListener("popstate", updateActiveNav);
