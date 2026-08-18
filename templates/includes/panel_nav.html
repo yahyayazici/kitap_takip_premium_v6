@@ -17,9 +17,9 @@
                {% if item.url_name == 'talebe_listesi' or item.url_name == 'ktt_listesi' or item.url_name == 'hatim_aktif_listesi' or item.url_name == 'kitap_listesi' or item.url_name == 'deneme_listesi' %}
                hx-get="{% url item.url_name %}"
                hx-target="#main-content"
-               hx-select="#main-content"
                hx-push-url="true"
                hx-swap="innerHTML show:window:top"
+               hx-sync="this:replace"
                hx-indicator="#htmx-nav-indicator"
                {% endif %}
                role="menuitem"
@@ -34,9 +34,9 @@
            {% if item.url_name == 'talebe_listesi' or item.url_name == 'ktt_listesi' or item.url_name == 'hatim_aktif_listesi' or item.url_name == 'kitap_listesi' or item.url_name == 'deneme_listesi' %}
            hx-get="{% url item.url_name %}"
            hx-target="#main-content"
-           hx-select="#main-content"
            hx-push-url="true"
            hx-swap="innerHTML show:window:top"
+           hx-sync="this:replace"
            hx-indicator="#htmx-nav-indicator"
            {% endif %}
            class="v3-nav-link {% if rm.view_name == item.url_name or rm.url_name in item.active_names or item.key == 'yonetim' and rm.namespace == 'yonetim' %}active{% endif %}">{{ item.label }}</a>

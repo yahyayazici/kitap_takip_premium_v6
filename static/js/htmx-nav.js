@@ -134,6 +134,15 @@
         }
     });
 
+    document.addEventListener("htmx:sendError", function (event) {
+        var target = event.detail && event.detail.target ? event.detail.target : null;
+        renderHtmxError(target, 0);
+    });
+
+    if (window.htmx && window.htmx.config) {
+        window.htmx.config.timeout = 8000;
+    }
+
     window.addEventListener("popstate", updateActiveNav);
     document.addEventListener("DOMContentLoaded", updateActiveNav);
 })();

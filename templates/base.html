@@ -69,6 +69,7 @@
            hx-select="#main-content"
            hx-push-url="true"
            hx-swap="innerHTML show:window:top"
+           hx-sync="this:replace"
            hx-indicator="#htmx-nav-indicator">
             <span class="v3-brand-mark v6-brand-mark">
                 <img src="{% static 'images/cinili-saray-logo-white.png' %}" alt="{{ panel_short }}">
@@ -153,8 +154,8 @@
 <script src="{% static 'js/multi-select-filter.js' %}" defer></script>
 <script src="{% static 'js/bildirim-bell.js' %}" defer></script>
 <script src="{% static 'js/cs-table-mobile.js' %}?v=10" defer></script>
-<script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
-<script src="{% static 'js/htmx-nav.js' %}?v=1" defer></script>
+<script src="{% static 'js/htmx.min.js' %}?v=1.9.12" defer></script>
+<script src="{% static 'js/htmx-nav.js' %}?v=2" defer></script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>
