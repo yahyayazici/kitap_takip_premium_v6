@@ -431,7 +431,7 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
     PanelNavItem(
         key="hatim_cuz_dagitim",
         label="Cüz Dağıtımı",
-        url_name="hatim_cuz_dagitim",
+        url_name="hatim_cuz_dagitim_sec",
         roller=EGITIM_MODULU_ROLLER,
         active_names=(
             "hatim_cuz_dagitim",
@@ -442,7 +442,7 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
     PanelNavItem(
         key="hatim_tamamlanma",
         label="Tamamlanma Takibi",
-        url_name="hatim_tamamlanma",
+        url_name="hatim_tamamlanma_sec",
         roller=EGITIM_MODULU_ROLLER,
         active_names=(
             "hatim_tamamlanma",
