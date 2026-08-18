@@ -14,6 +14,14 @@
         <div class="v3-nav-dropdown-panel" role="menu">
             {% for item in group.items %}
             <a href="{% url item.url_name %}"
+               {% if item.url_name == 'talebe_listesi' or item.url_name == 'ktt_listesi' or item.url_name == 'hatim_aktif_listesi' or item.url_name == 'kitap_listesi' or item.url_name == 'deneme_listesi' %}
+               hx-get="{% url item.url_name %}"
+               hx-target="#main-content"
+               hx-select="#main-content"
+               hx-push-url="true"
+               hx-swap="innerHTML show:window:top"
+               hx-indicator="#htmx-nav-indicator"
+               {% endif %}
                role="menuitem"
                class="v3-nav-dropdown-link {% if rm.view_name == item.url_name or rm.url_name in item.active_names or item.key == 'yonetim' and rm.namespace == 'yonetim' %}active{% endif %}">{{ item.label }}</a>
             {% endfor %}
@@ -23,6 +31,14 @@
     {% else %}
         {% with item=group.items.0 rm=request.resolver_match %}
         <a href="{% url item.url_name %}"
+           {% if item.url_name == 'talebe_listesi' or item.url_name == 'ktt_listesi' or item.url_name == 'hatim_aktif_listesi' or item.url_name == 'kitap_listesi' or item.url_name == 'deneme_listesi' %}
+           hx-get="{% url item.url_name %}"
+           hx-target="#main-content"
+           hx-select="#main-content"
+           hx-push-url="true"
+           hx-swap="innerHTML show:window:top"
+           hx-indicator="#htmx-nav-indicator"
+           {% endif %}
            class="v3-nav-link {% if rm.view_name == item.url_name or rm.url_name in item.active_names or item.key == 'yonetim' and rm.namespace == 'yonetim' %}active{% endif %}">{{ item.label }}</a>
         {% endwith %}
     {% endif %}

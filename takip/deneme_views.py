@@ -30,11 +30,13 @@ def deneme_listesi(request):
     denemeler = yetkili_denemeler(request.user).filter(
         durum="aktif",
     )
-    return render(
-        request,
-        "deneme_listesi.html",
-        {"denemeler": denemeler},
+    context = {"denemeler": denemeler}
+    template_name = (
+        "partials/deneme_listesi_content.html"
+        if getattr(request, "htmx", False)
+        else "deneme_listesi.html"
     )
+    return render(request, template_name, context)
 
 
 def _deneme_detay_verisi(request, deneme):

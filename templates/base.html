@@ -8,13 +8,12 @@
     {% include "includes/social_meta.html" %}
     <title>{% block title %}{{ panel_name }}{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/app.css' %}">
-    <link rel="stylesheet" href="{% static 'css/cs-design-tokens.css' %}?v=ui4">
+    <link rel="stylesheet" href="{% static 'css/cs-design-tokens.css' %}?v=ui20">
     <link rel="stylesheet" href="{% static 'css/topnav-v3.css' %}?v=qa-p4">
     <link rel="stylesheet" href="{% static 'css/premium-typography-v4.css' %}">
     <link rel="stylesheet" href="{% static 'css/premium-system-v5.css' %}?v=qa-p4">
     <link rel="stylesheet" href="{% static 'css/premium-system-v6.css' %}">
-    <link rel="stylesheet" href="{% static 'css/nav-groups.css' %}?v=qa-p3">
-    <link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}?v=yct-compact1">
+    <link rel="stylesheet" href="{% static 'css/nav-groups.css' %}?v=qa-s2">
     <link rel="stylesheet" href="{% static 'css/panel-unified.css' %}?v=qa-p5">
     <link rel="stylesheet" href="{% static 'css/panel-mobile-shared.css' %}?v=pm1">
     <link rel="stylesheet" href="{% static 'css/choice-chip-grid.css' %}?v=chip1">
@@ -29,7 +28,7 @@
     {% endif %}
     <link rel="stylesheet" href="{% static 'css/cs-design-constitution.css' %}?v=2">
     <link rel="stylesheet" href="{% static 'css/cs-design-phase2.css' %}?v=2">
-    <link rel="stylesheet" href="{% static 'css/cs-design-phase3.css' %}?v=qa-p4">
+    <link rel="stylesheet" href="{% static 'css/cs-design-phase3.css' %}?v=qa-p4-sil">
     <link rel="stylesheet" href="{% static 'css/cs-design-phase4.css' %}?v=qa-p4-gt">
     <link rel="stylesheet" href="{% static 'css/cs-design-phase5.css' %}?v=3">
     <link rel="stylesheet" href="{% static 'css/cs-design-phase6.css' %}?v=qa-p4">
@@ -37,12 +36,39 @@
     <link rel="stylesheet" href="{% static 'css/cs-design-phase7.css' %}?v=qa-p4">
     <link rel="stylesheet" href="{% static 'css/cs-design-phase8.css' %}?v=qa-p4-gt">
     {% include "includes/cs_ui_system_css.html" %}
+    <style>
+    .htmx-nav-indicator{
+        position:fixed;
+        left:0;
+        top:0;
+        height:3px;
+        width:100%;
+        transform-origin:left;
+        transform:scaleX(0);
+        background:var(--cs-primary);
+        z-index:2147483000;
+        opacity:0;
+        transition:transform .14s ease,opacity .14s ease;
+    }
+    .htmx-request .htmx-nav-indicator,
+    .htmx-request.htmx-nav-indicator{
+        transform:scaleX(.72);
+        opacity:1;
+    }
+    </style>
 </head>
 <body class="v3-body">
+<div id="htmx-nav-indicator" class="htmx-nav-indicator" aria-hidden="true"></div>
 <header class="v3-header">
     {% include "includes/v6_header_books.html" %}
     <div class="v3-header-inner">
-        <a href="{% url 'dashboard' %}" class="v3-brand v6-brand-block">
+        <a href="{% url 'dashboard' %}" class="v3-brand v6-brand-block"
+           hx-get="{% url 'dashboard' %}"
+           hx-target="#main-content"
+           hx-select="#main-content"
+           hx-push-url="true"
+           hx-swap="innerHTML show:window:top"
+           hx-indicator="#htmx-nav-indicator">
             <span class="v3-brand-mark v6-brand-mark">
                 <img src="{% static 'images/cinili-saray-logo-white.png' %}" alt="{{ panel_short }}">
             </span>
@@ -109,23 +135,25 @@
 {% endif %}
 
 <main class="v3-main">
-    <div class="page-content">
+    <div id="main-content" class="page-content" hx-history-elt>
         {% block content %}{% endblock %}
     </div>
 </main>
 
 {% if asistan_aktif %}
 {% include "includes/asistan_widget.html" %}
-<script src="{% static 'js/asistan.js' %}"></script>
+<script src="{% static 'js/asistan.js' %}" defer></script>
 {% endif %}
 {% if ai_platform_aktif %}
-<script src="{% static 'js/ai-zekasi.js' %}"></script>
+<script src="{% static 'js/ai-zekasi.js' %}" defer></script>
 {% endif %}
 
-<script src="{% static 'js/nav-dropdown.js' %}?v=nav-tab1"></script>
-<script src="{% static 'js/multi-select-filter.js' %}"></script>
-<script src="{% static 'js/bildirim-bell.js' %}"></script>
-<script src="{% static 'js/cs-table-mobile.js' %}?v=6"></script>
+<script src="{% static 'js/nav-dropdown.js' %}?v=nav-s2" defer></script>
+<script src="{% static 'js/multi-select-filter.js' %}" defer></script>
+<script src="{% static 'js/bildirim-bell.js' %}" defer></script>
+<script src="{% static 'js/cs-table-mobile.js' %}?v=10" defer></script>
+<script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+<script src="{% static 'js/htmx-nav.js' %}?v=1" defer></script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

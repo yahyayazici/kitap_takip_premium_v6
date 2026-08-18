@@ -622,22 +622,24 @@ def talebe_listesi(request):
     from takip.talebe_liste_raporu_service import erisilebilir_siniflar
 
     talebe_qs = _yetkili_talebeler(request.user)
-    return render(
-        request,
-        "talebe_listesi.html",
-        {
-            "talebeler": talebeler,
-            "talebe_sayisi": len(talebeler),
-            "sinif_id": sinif_id,
-            "rapor_siniflar": erisilebilir_siniflar(talebe_qs),
-            "rapor_pdf_url": reverse("talebe_liste_raporu_pdf"),
-            "rapor_excel_url": reverse("talebe_liste_excel"),
-            "kurum_raporu_goster": (
-                request.user.is_superuser or tum_talebe_erisimi_var(request.user)
-            ),
-            "yonetim_erisim": yonetim_erisimi_var(request.user),
-        },
+    context = {
+        "talebeler": talebeler,
+        "talebe_sayisi": len(talebeler),
+        "sinif_id": sinif_id,
+        "rapor_siniflar": erisilebilir_siniflar(talebe_qs),
+        "rapor_pdf_url": reverse("talebe_liste_raporu_pdf"),
+        "rapor_excel_url": reverse("talebe_liste_excel"),
+        "kurum_raporu_goster": (
+            request.user.is_superuser or tum_talebe_erisimi_var(request.user)
+        ),
+        "yonetim_erisim": yonetim_erisimi_var(request.user),
+    }
+    template_name = (
+        "partials/talebe_listesi_content.html"
+        if getattr(request, "htmx", False)
+        else "talebe_listesi.html"
     )
+    return render(request, template_name, context)
 
 
 @login_required
@@ -1058,15 +1060,17 @@ def kitap_listesi(request):
         .count()
     )
 
-    return render(
-        request,
-        "kitap_listesi.html",
-        {
-            "kitaplar": kitaplar,
-            "toplam_zimmet": toplam_zimmet,
-            "aktif_okuma": aktif_okuma,
-        },
+    context = {
+        "kitaplar": kitaplar,
+        "toplam_zimmet": toplam_zimmet,
+        "aktif_okuma": aktif_okuma,
+    }
+    template_name = (
+        "partials/kitap_listesi_content.html"
+        if getattr(request, "htmx", False)
+        else "kitap_listesi.html"
     )
+    return render(request, template_name, context)
 
 
 @login_required

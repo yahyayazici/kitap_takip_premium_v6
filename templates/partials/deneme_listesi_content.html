@@ -1,0 +1,43 @@
+{% if request.htmx %}
+<title hx-swap-oob="true">Denemeler</title>
+{% endif %}
+<div class="deneme-page" data-page-title="Denemeler">
+    <header class="page-head patterned-page-head deneme-page-head deneme-hero">
+        <div class="deneme-head-main">
+            <p class="kicker">DENEME SONUÇLARI</p>
+            <h1>Deneme Arşivi</h1>
+            <p class="deneme-head-desc">Kurum geneli deneme sınav sonuçları.</p>
+        </div>
+    </header>
+
+    <section class="library-panel deneme-list-panel">
+        <h2>Mevcut Denemeler</h2>
+        <p class="deneme-list-hint">Detay için satırdaki bağlantıyı kullanın.</p>
+        <div class="responsive-table">
+            <table class="report-data-table">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Deneme</th>
+                        <th>Sınıf</th>
+                        <th>Sonuç</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in denemeler %}
+                    <tr>
+                        <td>{{ d.sinav_tarihi|date:"d.m.Y" }}</td>
+                        <td><strong>{{ d.ad }}</strong></td>
+                        <td>{{ d.sinif_seviyesi }}</td>
+                        <td><span class="deneme-katilim">{{ d.sonuc_sayisi }} öğrenci</span></td>
+                        <td><a href="{% url 'deneme_detay' d.pk %}" class="ghost-btn">Detay</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="report-empty">Henüz aktif deneme yok.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
