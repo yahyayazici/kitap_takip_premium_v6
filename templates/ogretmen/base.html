@@ -1,11 +1,11 @@
 {% load static %}
-{% if not request.htmx %}
 <!doctype html>
 <html lang="tr">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     {% include "includes/pwa_head.html" %}
+    <title>{% block title %}Öğretmen Paneli · {{ panel_short }}{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/app.css' %}">
     <link rel="stylesheet" href="{% static 'css/cs-design-tokens.css' %}?v=ui20">
     <link rel="stylesheet" href="{% static 'css/topnav-v3.css' %}?v=qa-p4">
@@ -29,31 +29,15 @@
     <link rel="stylesheet" href="{% static 'css/cs-design-phase4.css' %}?v=qa-p4">
     <link rel="stylesheet" href="{% static 'css/cs-design-phase5.css' %}?v=2">
     <link rel="stylesheet" href="{% static 'css/cs-design-phase6.css' %}?v=qa-p4">
-{% else %}
-<head hx-head="append">
-{% endif %}
-    <title{% if request.htmx %} hx-swap-oob="true"{% endif %}>{% block title %}Öğretmen Paneli · {{ panel_short }}{% endblock %}</title>
     {% block extra_css %}{% endblock %}
-{% if not request.htmx %}
     <link rel="stylesheet" href="{% static 'css/cs-design-phase7.css' %}?v=qa-p4">
     <link rel="stylesheet" href="{% static 'css/cs-design-phase8.css' %}?v=qa-p4">
     {% include "includes/cs_ui_system_css.html" %}
-    {% include "includes/htmx_boot_head.html" %}
 </head>
-<body class="v3-body ogretmen-body"
-      hx-ext="head-support"
-      hx-target="#main-content"
-      hx-select="#main-content"
-      hx-push-url="true"
-      hx-swap="innerHTML show:window:top"
-      hx-sync="#main-content:replace"
-      hx-indicator="#htmx-nav-indicator">
-<div id="htmx-nav-indicator" class="htmx-nav-indicator" aria-hidden="true"></div>
+<body class="v3-body ogretmen-body">
 <header class="cs-v6-header ogretmen-v6-header">
     <div class="cs-v6-inner">
-        <a href="{% url 'ogretmen_dashboard' %}" class="cs-v6-brand v6-brand-block"
-           hx-get="{% url 'ogretmen_dashboard' %}"
-           {% include "includes/hx_nav_swap.html" %}>
+        <a href="{% url 'ogretmen_dashboard' %}" class="cs-v6-brand v6-brand-block">
             <span class="cs-v6-brand-mark v6-brand-mark">
                 <img src="{% static 'images/cinili-saray-logo-white.png' %}" alt="{{ panel_short }}">
             </span>
@@ -67,24 +51,12 @@
             <span></span><span></span><span></span>
         </button>
         <nav class="cs-v6-nav" id="ogretmen-nav">
-            <a href="{% url 'ogretmen_dashboard' %}"
-               hx-get="{% url 'ogretmen_dashboard' %}"
-               {% include "includes/hx_nav_swap.html" %}
-               class="{% if request.resolver_match.url_name == 'ogretmen_dashboard' %}active{% endif %}">Ana Sayfa</a>
-            <a href="{% url 'ogretmen_not_girisi' %}"
-               hx-get="{% url 'ogretmen_not_girisi' %}"
-               {% include "includes/hx_nav_swap.html" %}
-               class="{% if 'ogretmen_not' in request.resolver_match.url_name %}active{% endif %}">Not Girişi</a>
-            <a href="{% url 'ogretmen_degerlendirmeler' %}"
-               hx-get="{% url 'ogretmen_degerlendirmeler' %}"
-               {% include "includes/hx_nav_swap.html" %}
-               class="{% if request.resolver_match.url_name == 'ogretmen_degerlendirmeler' or request.resolver_match.url_name == 'ogretmen_talebe_karne_pdf' %}active{% endif %}">Değerlendirmeler</a>
-            <a href="{% url 'ogretmen_ders_programi' %}"
-               hx-get="{% url 'ogretmen_ders_programi' %}"
-               {% include "includes/hx_nav_swap.html" %}
-               class="{% if 'ogretmen_ders' in request.resolver_match.url_name %}active{% endif %}">Ders Programı</a>
+            <a href="{% url 'ogretmen_dashboard' %}" class="{% if request.resolver_match.url_name == 'ogretmen_dashboard' %}active{% endif %}">Ana Sayfa</a>
+            <a href="{% url 'ogretmen_not_girisi' %}" class="{% if 'ogretmen_not' in request.resolver_match.url_name %}active{% endif %}">Not Girişi</a>
+            <a href="{% url 'ogretmen_degerlendirmeler' %}" class="{% if request.resolver_match.url_name == 'ogretmen_degerlendirmeler' or request.resolver_match.url_name == 'ogretmen_talebe_karne_pdf' %}active{% endif %}">Değerlendirmeler</a>
+            <a href="{% url 'ogretmen_ders_programi' %}" class="{% if 'ogretmen_ders' in request.resolver_match.url_name %}active{% endif %}">Ders Programı</a>
             {% if ogretmen_rehberlik_var %}
-            <a href="{% url 'rehberlik_listesi' %}" hx-boost="false" class="{% if 'rehberlik' in request.resolver_match.url_name %}active{% endif %}">Rehberlik</a>
+            <a href="{% url 'rehberlik_listesi' %}" class="{% if 'rehberlik' in request.resolver_match.url_name %}active{% endif %}">Rehberlik</a>
             {% endif %}
             {% include "includes/panel_mobile_logout.html" %}
         </nav>
@@ -95,22 +67,15 @@
     </div>
 </header>
 
-{% if messages %}
-<div class="ogretmen-messages">
-    {% for message in messages %}
-    <div class="ogretmen-message">{{ message }}</div>
-    {% endfor %}
-</div>
-{% endif %}
-
 <main class="cs-v6-main ogretmen-main">
-{% else %}
-</head>
-{% endif %}
-    <div id="main-content" hx-history-elt>
-        {% block content %}{% endblock %}
+    {% if messages %}
+    <div class="ogretmen-messages">
+        {% for message in messages %}
+        <div class="ogretmen-message">{{ message }}</div>
+        {% endfor %}
     </div>
-{% if not request.htmx %}
+    {% endif %}
+    {% block content %}{% endblock %}
 </main>
 
 {% if asistan_aktif %}
@@ -120,10 +85,6 @@
 <script src="{% static 'js/bildirim-bell.js' %}"></script>
 <script src="{% static 'js/cs-table-mobile.js' %}?v=10"></script>
 <script src="{% static 'js/nav-dropdown.js' %}?v=nav-s4"></script>
-<script src="{% static 'js/htmx-nav.js' %}?v=6" defer></script>
-{% endif %}
 {% block extra_js %}{% endblock %}
-{% if not request.htmx %}
 </body>
 </html>
-{% endif %}

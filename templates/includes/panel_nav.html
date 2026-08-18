@@ -13,34 +13,17 @@
         </button>
         <div class="v3-nav-dropdown-panel" role="menu">
             {% for item in group.items %}
-            {% if item.key == "yonetim" %}
             <a href="{% url item.url_name %}"
-               hx-boost="false"
                role="menuitem"
                class="v3-nav-dropdown-link {% if rm.view_name == item.url_name or rm.url_name in item.active_names or item.key == 'yonetim' and rm.namespace == 'yonetim' %}active{% endif %}">{{ item.label }}</a>
-            {% else %}
-            <a href="{% url item.url_name %}"
-               hx-get="{% url item.url_name %}"
-               {% include "includes/hx_nav_swap.html" %}
-               role="menuitem"
-               class="v3-nav-dropdown-link {% if rm.view_name == item.url_name or rm.url_name in item.active_names or item.key == 'yonetim' and rm.namespace == 'yonetim' %}active{% endif %}">{{ item.label }}</a>
-            {% endif %}
             {% endfor %}
         </div>
     </div>
     {% endwith %}
     {% else %}
         {% with item=group.items.0 rm=request.resolver_match %}
-        {% if item.key == "yonetim" %}
         <a href="{% url item.url_name %}"
-           hx-boost="false"
            class="v3-nav-link {% if rm.view_name == item.url_name or rm.url_name in item.active_names or item.key == 'yonetim' and rm.namespace == 'yonetim' %}active{% endif %}">{{ item.label }}</a>
-        {% else %}
-        <a href="{% url item.url_name %}"
-           hx-get="{% url item.url_name %}"
-           {% include "includes/hx_nav_swap.html" %}
-           class="v3-nav-link {% if rm.view_name == item.url_name or rm.url_name in item.active_names or item.key == 'yonetim' and rm.namespace == 'yonetim' %}active{% endif %}">{{ item.label }}</a>
-        {% endif %}
         {% endwith %}
     {% endif %}
 {% endfor %}

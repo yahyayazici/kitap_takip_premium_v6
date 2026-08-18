@@ -1,5 +1,4 @@
 {% load static %}
-{% if not request.htmx %}
 <!doctype html>
 <html lang="tr">
 <head>
@@ -7,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     {% include "includes/pwa_head.html" %}
     {% include "includes/social_meta.html" %}
+    <title>{% block title %}{{ panel_name }}{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/app.css' %}">
     <link rel="stylesheet" href="{% static 'css/cs-design-tokens.css' %}?v=ui20">
     <link rel="stylesheet" href="{% static 'css/topnav-v3.css' %}?v=qa-p4">
@@ -33,33 +33,16 @@
     <link rel="stylesheet" href="{% static 'css/cs-design-phase4.css' %}?v=qa-p4-gt">
     <link rel="stylesheet" href="{% static 'css/cs-design-phase5.css' %}?v=3">
     <link rel="stylesheet" href="{% static 'css/cs-design-phase6.css' %}?v=qa-p4">
-{% else %}
-<head hx-head="append">
-{% endif %}
-    <title{% if request.htmx %} hx-swap-oob="true"{% endif %}>{% block title %}{{ panel_name }}{% endblock %}</title>
     {% block extra_css %}{% endblock %}
-{% if not request.htmx %}
     <link rel="stylesheet" href="{% static 'css/cs-design-phase7.css' %}?v=qa-p4">
     <link rel="stylesheet" href="{% static 'css/cs-design-phase8.css' %}?v=qa-p4-gt">
     {% include "includes/cs_ui_system_css.html" %}
-    {% include "includes/htmx_boot_head.html" %}
 </head>
-<body class="v3-body"
-      hx-boost="true"
-      hx-ext="head-support"
-      hx-target="#main-content"
-      hx-select="#main-content"
-      hx-push-url="true"
-      hx-swap="innerHTML show:window:top"
-      hx-sync="#main-content:replace"
-      hx-indicator="#htmx-nav-indicator">
-<div id="htmx-nav-indicator" class="htmx-nav-indicator" aria-hidden="true"></div>
+<body class="v3-body">
 <header class="v3-header">
     {% include "includes/v6_header_books.html" %}
     <div class="v3-header-inner">
-        <a href="{% url 'dashboard' %}" class="v3-brand v6-brand-block"
-           hx-get="{% url 'dashboard' %}"
-           {% include "includes/hx_nav_swap.html" %}>
+        <a href="{% url 'dashboard' %}" class="v3-brand v6-brand-block">
             <span class="v3-brand-mark v6-brand-mark">
                 <img src="{% static 'images/cinili-saray-logo-white.png' %}" alt="{{ panel_short }}">
             </span>
@@ -89,11 +72,11 @@
                 <strong>{{ panel_user_name|default:request.user.username }}</strong>
                 <small>{{ panel_user_subtitle|default:panel_rol_etiketi }}</small>
             </span>
-            <form method="post" action="{% url 'logout' %}" class="panel-logout-desktop-form" hx-boost="false">
+            <form method="post" action="{% url 'logout' %}" class="panel-logout-desktop-form">
                 {% csrf_token %}
                 <button class="v3-logout" type="submit">Çıkış</button>
             </form>
-            <form method="post" action="{% url 'logout' %}" class="v3-logout-mobile-form" hx-boost="false">
+            <form method="post" action="{% url 'logout' %}" class="v3-logout-mobile-form">
                 {% csrf_token %}
                 <button class="v3-logout-mobile" type="submit" aria-label="Çıkış yap" title="Çıkış">Çıkış</button>
             </form>
@@ -126,13 +109,9 @@
 {% endif %}
 
 <main class="v3-main">
-{% else %}
-</head>
-{% endif %}
-    <div id="main-content" class="page-content" hx-history-elt>
+    <div class="page-content">
         {% block content %}{% endblock %}
     </div>
-{% if not request.htmx %}
 </main>
 
 {% if asistan_aktif %}
@@ -147,10 +126,6 @@
 <script src="{% static 'js/multi-select-filter.js' %}" defer></script>
 <script src="{% static 'js/bildirim-bell.js' %}" defer></script>
 <script src="{% static 'js/cs-table-mobile.js' %}?v=10" defer></script>
-<script src="{% static 'js/htmx-nav.js' %}?v=6" defer></script>
-{% endif %}
 {% block extra_js %}{% endblock %}
-{% if not request.htmx %}
 </body>
 </html>
-{% endif %}
