@@ -57,7 +57,6 @@
             return;
         }
         going = true;
-        document.documentElement.classList.add("cs-nav-going");
         window.location.assign(href);
     }
 
@@ -96,6 +95,10 @@
                 press = null;
                 return;
             }
+            if (event.pointerType === "mouse") {
+                press = null;
+                return;
+            }
             press = {
                 anchor: anchor,
                 x: event.clientX,
@@ -110,6 +113,10 @@
         "pointerup",
         function (event) {
             if (!press || !press.anchor) {
+                return;
+            }
+            if (event.pointerType === "mouse") {
+                press = null;
                 return;
             }
             var dx = event.clientX - press.x;
