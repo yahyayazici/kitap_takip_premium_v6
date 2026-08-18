@@ -1,4 +1,5 @@
 {% load static %}
+{% if not request.htmx %}
 <!doctype html>
 <html lang="tr">
 <head>
@@ -6,18 +7,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     {% include "includes/pwa_head.html" %}
     {% include "includes/social_meta.html" %}
-    <title>{% block title %}{{ panel_name }} · Yönetim{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'yonetim/css/yonetim.css' %}">
-    <link rel="stylesheet" href="{% static 'css/cs-design-tokens.css' %}?v=ui4">
+    <link rel="stylesheet" href="{% static 'css/cs-design-tokens.css' %}?v=ui20">
     <link rel="stylesheet" href="{% static 'css/premium-system-v5.css' %}?v=qa-p4">
     <link rel="stylesheet" href="{% static 'css/premium-system-v6.css' %}?v=nizam-tab2">
-    <link rel="stylesheet" href="{% static 'css/nav-groups.css' %}?v=qa-p3">
-    <link rel="stylesheet" href="{% static 'css/yonetim-nav.css' %}">
-    <link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}?v=sc-mob5">
+    <link rel="stylesheet" href="{% static 'css/nav-groups.css' %}?v=qa-s2">
+    <link rel="stylesheet" href="{% static 'css/yonetim-nav.css' %}?v=s2">
+    <link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}?v=s4">
     <link rel="stylesheet" href="{% static 'css/panel-unified.css' %}?v=qa-p5">
     <link rel="stylesheet" href="{% static 'css/panel-mobile-shared.css' %}?v=pm2">
     <link rel="stylesheet" href="{% static 'css/choice-chip-grid.css' %}?v=chip2">
-    <link rel="stylesheet" href="{% static 'css/yonetim-premium.css' %}?v=scroll2">
+    <link rel="stylesheet" href="{% static 'css/yonetim-premium.css' %}?v=s3">
     <link rel="stylesheet" href="{% static 'css/multi-select-filter.css' %}?v=qa-p4">
     <link rel="stylesheet" href="{% static 'css/bildirim-bell.css' %}?v=qa-p3">
     {% if asistan_aktif %}
@@ -33,17 +33,33 @@
     <link rel="stylesheet" href="{% static 'css/cs-design-phase4.css' %}?v=qa-p4">
     <link rel="stylesheet" href="{% static 'css/cs-design-phase5.css' %}?v=3">
     <link rel="stylesheet" href="{% static 'css/cs-design-phase6.css' %}?v=qa-p4">
+{% else %}
+<head hx-head="append">
+{% endif %}
+    <title{% if request.htmx %} hx-swap-oob="true"{% endif %}>{% block title %}{{ panel_name }} · Yönetim{% endblock %}</title>
     {% block extra_css %}{% endblock %}
+{% if not request.htmx %}
     <link rel="stylesheet" href="{% static 'css/cs-design-phase7.css' %}?v=qa-p4">
     <link rel="stylesheet" href="{% static 'css/cs-design-phase8.css' %}?v=qa-p4">
     {% include "includes/cs_ui_system_css.html" %}
+    {% include "includes/htmx_boot_head.html" %}
 </head>
-<body class="yonetim-body">
+<body class="yonetim-body"
+      hx-ext="head-support"
+      hx-target="#main-content"
+      hx-select="#main-content"
+      hx-push-url="true"
+      hx-swap="innerHTML show:window:top"
+      hx-sync="#main-content:replace"
+      hx-indicator="#htmx-nav-indicator">
+<div id="htmx-nav-indicator" class="htmx-nav-indicator" aria-hidden="true"></div>
 
 <header class="cs-v6-header yonetim-v6-header">
     {% include "includes/v6_header_books.html" %}
     <div class="cs-v6-inner">
-        <a href="{% url 'yonetim:dashboard' %}" class="cs-v6-brand v6-brand-block">
+        <a href="{% url 'yonetim:dashboard' %}" class="cs-v6-brand v6-brand-block"
+           hx-get="{% url 'yonetim:dashboard' %}"
+           {% include "includes/hx_nav_swap.html" %}>
             <span class="cs-v6-brand-mark v6-brand-mark">
                 <img src="{% static 'images/cinili-saray-logo-white.png' %}" alt="{{ panel_short }}">
             </span>
@@ -63,6 +79,7 @@
 
         <nav class="cs-v6-nav v3-nav" id="yonetim-nav">
             {% include "yonetim/includes/nav.html" %}
+            <a href="{% url 'dashboard' %}" class="v3-nav-link yonetim-site-link-mobile" hx-boost="false">Siteye Dön</a>
             {% include "includes/panel_mobile_logout.html" %}
         </nav>
 
@@ -73,12 +90,12 @@
                 <strong>{{ panel_user_name|default:request.user.username }}</strong>
                 <small>{{ panel_user_subtitle|default:panel_rol_etiketi|default:"Yönetici" }}</small>
             </span>
-            <a href="{% url 'dashboard' %}" class="yonetim-site-link">Siteye Dön</a>
-            <form method="post" action="{% url 'logout' %}" class="panel-logout-desktop-form">
+            <a href="{% url 'dashboard' %}" class="yonetim-site-link" hx-boost="false">Siteye Dön</a>
+            <form method="post" action="{% url 'logout' %}" class="panel-logout-desktop-form" hx-boost="false">
                 {% csrf_token %}
                 <button type="submit" class="yonetim-logout">Çıkış</button>
             </form>
-            <form method="post" action="{% url 'logout' %}" class="v3-logout-mobile-form">
+            <form method="post" action="{% url 'logout' %}" class="v3-logout-mobile-form" hx-boost="false">
                 {% csrf_token %}
                 <button class="v3-logout-mobile" type="submit" aria-label="Çıkış yap" title="Çıkış">Çıkış</button>
             </form>
@@ -86,18 +103,22 @@
     </div>
 </header>
 
-<main class="cs-v6-main">
-    {% if messages %}
-    <div class="yonetim-messages">
-        {% for message in messages %}
-        <div class="yonetim-message">{{ message }}</div>
-        {% endfor %}
-    </div>
-    {% endif %}
+{% if messages %}
+<div class="yonetim-messages">
+    {% for message in messages %}
+    <div class="yonetim-message">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
 
-    <div class="yonetim-page">
+<main class="cs-v6-main">
+{% else %}
+</head>
+{% endif %}
+    <div id="main-content" class="yonetim-page" hx-history-elt>
         {% block content %}{% endblock %}
     </div>
+{% if not request.htmx %}
 </main>
 
 {% if asistan_aktif %}
@@ -108,10 +129,14 @@
 <script src="{% static 'js/ai-zekasi.js' %}"></script>
 {% endif %}
 
-<script src="{% static 'js/nav-dropdown.js' %}?v=nav-tab1"></script>
+<script src="{% static 'js/nav-dropdown.js' %}?v=nav-s3"></script>
 <script src="{% static 'js/multi-select-filter.js' %}"></script>
 <script src="{% static 'js/bildirim-bell.js' %}"></script>
-<script src="{% static 'js/cs-table-mobile.js' %}?v=6"></script>
+<script src="{% static 'js/cs-table-mobile.js' %}?v=10"></script>
+<script src="{% static 'js/htmx-nav.js' %}?v=5" defer></script>
+{% endif %}
 {% block extra_js %}{% endblock %}
+{% if not request.htmx %}
 </body>
 </html>
+{% endif %}

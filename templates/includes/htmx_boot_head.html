@@ -1,0 +1,23 @@
+{% load static %}
+<style>
+.htmx-nav-indicator{
+    position:fixed;
+    left:0;
+    top:0;
+    height:3px;
+    width:100%;
+    transform-origin:left;
+    transform:scaleX(0);
+    background:var(--cs-primary);
+    z-index:2147483000;
+    opacity:0;
+    transition:transform .14s ease,opacity .14s ease;
+}
+.htmx-request .htmx-nav-indicator,
+.htmx-request.htmx-nav-indicator{
+    transform:scaleX(.72);
+    opacity:1;
+}
+</style>
+<script src="{% static 'js/htmx.min.js' %}?v=1.9.12"></script>
+<script src="{% static 'js/htmx-head-support.js' %}?v=1"></script>

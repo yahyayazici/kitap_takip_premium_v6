@@ -1,18 +1,18 @@
 {% load static %}
+{% if not request.htmx %}
 <!doctype html>
 <html lang="tr">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     {% include "includes/pwa_head.html" %}
-    <title>{% block title %}Veli Paneli · {{ panel_short }}{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/app.css' %}">
-    <link rel="stylesheet" href="{% static 'css/cs-design-tokens.css' %}?v=ui4">
+    <link rel="stylesheet" href="{% static 'css/cs-design-tokens.css' %}?v=ui20">
     <link rel="stylesheet" href="{% static 'css/topnav-v3.css' %}?v=qa-p4">
     <link rel="stylesheet" href="{% static 'css/premium-system-v5.css' %}?v=qa-p4">
     <link rel="stylesheet" href="{% static 'css/premium-system-v6.css' %}">
-    <link rel="stylesheet" href="{% static 'css/nav-groups.css' %}?v=qa-p3">
-    <link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}?v=sc-mob5">
+    <link rel="stylesheet" href="{% static 'css/nav-groups.css' %}?v=qa-s2">
+    <link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}?v=s4">
     <link rel="stylesheet" href="{% static 'css/panel-unified.css' %}?v=qa-p5">
     <link rel="stylesheet" href="{% static 'css/panel-mobile-shared.css' %}?v=pm2">
     <link rel="stylesheet" href="{% static 'css/choice-chip-grid.css' %}?v=chip1">
@@ -33,15 +33,31 @@
     <link rel="stylesheet" href="{% static 'css/cs-design-phase4.css' %}?v=qa-p4">
     <link rel="stylesheet" href="{% static 'css/cs-design-phase5.css' %}?v=2">
     <link rel="stylesheet" href="{% static 'css/cs-design-phase6.css' %}?v=qa-p4">
+{% else %}
+<head hx-head="append">
+{% endif %}
+    <title{% if request.htmx %} hx-swap-oob="true"{% endif %}>{% block title %}Veli Paneli · {{ panel_short }}{% endblock %}</title>
     {% block extra_css %}{% endblock %}
+{% if not request.htmx %}
     <link rel="stylesheet" href="{% static 'css/cs-design-phase7.css' %}?v=qa-p4">
     <link rel="stylesheet" href="{% static 'css/cs-design-phase8.css' %}?v=qa-p4">
     {% include "includes/cs_ui_system_css.html" %}
+    {% include "includes/htmx_boot_head.html" %}
 </head>
-<body class="v3-body veli-body">
+<body class="v3-body veli-body"
+      hx-ext="head-support"
+      hx-target="#main-content"
+      hx-select="#main-content"
+      hx-push-url="true"
+      hx-swap="innerHTML show:window:top"
+      hx-sync="#main-content:replace"
+      hx-indicator="#htmx-nav-indicator">
+<div id="htmx-nav-indicator" class="htmx-nav-indicator" aria-hidden="true"></div>
 <header class="cs-v6-header veli-v6-header">
     <div class="cs-v6-inner">
-        <a href="{% url 'veli_dashboard' %}" class="cs-v6-brand v6-brand-block">
+        <a href="{% url 'veli_dashboard' %}" class="cs-v6-brand v6-brand-block"
+           hx-get="{% url 'veli_dashboard' %}"
+           {% include "includes/hx_nav_swap.html" %}>
             <span class="cs-v6-brand-mark v6-brand-mark">
                 <img src="{% static 'images/cinili-saray-logo-white.png' %}" alt="{{ panel_short }}">
             </span>
@@ -51,9 +67,19 @@
                 <small>Veli Paneli</small>
             </span>
         </a>
-        <nav class="cs-v6-nav">
-            <a href="{% url 'veli_dashboard' %}" class="{% if request.resolver_match.url_name == 'veli_dashboard' %}active{% endif %}">Ana Sayfa</a>
-            <a href="{% url 'veli_duyurular' %}" class="{% if request.resolver_match.url_name == 'veli_duyurular' %}active{% endif %}">Duyurular</a>
+        <button class="v3-menu-toggle veli-menu-toggle" id="veli-menu-toggle" type="button" aria-label="Menüyü aç" aria-expanded="false">
+            <span></span><span></span><span></span>
+        </button>
+        <nav class="cs-v6-nav" id="veli-nav">
+            <a href="{% url 'veli_dashboard' %}"
+               hx-get="{% url 'veli_dashboard' %}"
+               {% include "includes/hx_nav_swap.html" %}
+               class="{% if request.resolver_match.url_name == 'veli_dashboard' %}active{% endif %}">Ana Sayfa</a>
+            <a href="{% url 'veli_duyurular' %}"
+               hx-get="{% url 'veli_duyurular' %}"
+               {% include "includes/hx_nav_swap.html" %}
+               class="{% if request.resolver_match.url_name == 'veli_duyurular' %}active{% endif %}">Duyurular</a>
+            {% include "includes/panel_mobile_logout.html" %}
         </nav>
         <div class="cs-v6-actions panel-user-actions">
             {% include "includes/bildirim_zili.html" %}
@@ -62,15 +88,22 @@
     </div>
 </header>
 
+{% if messages %}
+<div class="yonetim-messages">
+    {% for message in messages %}
+    <div class="yonetim-message">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
 <main class="cs-v6-main">
-    {% if messages %}
-    <div class="yonetim-messages">
-        {% for message in messages %}
-        <div class="yonetim-message">{{ message }}</div>
-        {% endfor %}
+{% else %}
+</head>
+{% endif %}
+    <div id="main-content" hx-history-elt>
+        {% block content %}{% endblock %}
     </div>
-    {% endif %}
-    {% block content %}{% endblock %}
+{% if not request.htmx %}
 </main>
 
 {% if asistan_aktif %}
@@ -81,7 +114,12 @@
 <script src="{% static 'js/ai-zekasi.js' %}"></script>
 {% endif %}
 <script src="{% static 'js/bildirim-bell.js' %}"></script>
-<script src="{% static 'js/cs-table-mobile.js' %}?v=5"></script>
+<script src="{% static 'js/cs-table-mobile.js' %}?v=10"></script>
+<script src="{% static 'js/nav-dropdown.js' %}?v=nav-s3"></script>
+<script src="{% static 'js/htmx-nav.js' %}?v=5" defer></script>
+{% endif %}
 {% block extra_js %}{% endblock %}
+{% if not request.htmx %}
 </body>
 </html>
+{% endif %}

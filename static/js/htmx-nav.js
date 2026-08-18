@@ -10,7 +10,9 @@
 
     function updateActiveNav() {
         var current = normalizePath(window.location.pathname);
-        var links = document.querySelectorAll(".v3-nav-link[href], .v3-nav-dropdown-link[href]");
+        var links = document.querySelectorAll(
+            ".v3-nav-link[href], .v3-nav-dropdown-link[href], #ogretmen-nav a[href], #talebe-nav a[href], #veli-nav a[href]"
+        );
         var bestLink = null;
         var bestLen = -1;
 
@@ -116,6 +118,12 @@
             "</section>"
         );
     }
+
+    document.addEventListener("htmx:beforeRequest", function () {
+        if (typeof window.csCloseMobileNav === "function") {
+            window.csCloseMobileNav();
+        }
+    });
 
     document.addEventListener("htmx:afterSwap", function (event) {
         if (event.target && event.target.id === "main-content") {

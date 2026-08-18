@@ -6,11 +6,11 @@ Ortak kullanıcı alanı: isim, alt satır (rol/talebe/veli), tek masaüstü + t
     <strong>{{ panel_user_name|default:request.user.username }}</strong>
     <small>{{ panel_user_subtitle|default:panel_rol_etiketi }}</small>
 </span>
-<form method="post" action="{% url 'logout' %}" class="panel-logout-desktop-form">
+<form method="post" action="{% url 'logout' %}" class="panel-logout-desktop-form" hx-boost="false">
     {% csrf_token %}
     <button type="submit" class="ghost-btn yonetim-ghost-light panel-logout-btn">Çıkış</button>
 </form>
-<form method="post" action="{% url 'logout' %}" class="v3-logout-mobile-form">
+<form method="post" action="{% url 'logout' %}" class="v3-logout-mobile-form" hx-boost="false">
     {% csrf_token %}
     <button class="v3-logout-mobile" type="submit" aria-label="Çıkış yap" title="Çıkış">Çıkış</button>
 </form>

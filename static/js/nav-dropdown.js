@@ -6,6 +6,8 @@
 
     const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
     const collapseQuery = window.matchMedia('(max-width: 1400px)');
+    const SHELL_TOGGLE_SEL = '#v3-menu-toggle, #yonetim-menu-toggle, #talebe-menu-toggle, #ogretmen-menu-toggle, #veli-menu-toggle';
+    const SHELL_NAV_SEL = '#v3-nav, #yonetim-nav, #talebe-nav, #ogretmen-nav, #veli-nav';
 
     function isCollapsedNav() {
         return collapseQuery.matches;
@@ -55,8 +57,8 @@
     }
 
     function closeMobileNav() {
-        const nav = document.getElementById('v3-nav') || document.getElementById('yonetim-nav') || document.getElementById('talebe-nav');
-        const toggle = document.getElementById('v3-menu-toggle') || document.getElementById('yonetim-menu-toggle') || document.getElementById('talebe-menu-toggle');
+        const nav = document.querySelector(SHELL_NAV_SEL);
+        const toggle = document.querySelector(SHELL_TOGGLE_SEL);
         if (nav) {
             nav.classList.remove('open');
         }
@@ -68,6 +70,8 @@
         scheduleHeaderHeightSync();
     }
 
+    window.csCloseMobileNav = closeMobileNav;
+
     function openDropdown(dropdown) {
         closeDropdowns(dropdown);
         dropdown.classList.add('open');
@@ -78,8 +82,8 @@
         updateBackdrop();
     }
 
-    const toggle = document.getElementById('v3-menu-toggle') || document.getElementById('yonetim-menu-toggle') || document.getElementById('talebe-menu-toggle');
-    const nav = document.getElementById('v3-nav') || document.getElementById('yonetim-nav') || document.getElementById('talebe-nav');
+    const toggle = document.querySelector(SHELL_TOGGLE_SEL);
+    const nav = document.querySelector(SHELL_NAV_SEL);
 
     if (toggle && nav) {
         toggle.addEventListener('click', function () {
@@ -149,16 +153,6 @@
             });
         }
     });
-
-    if (nav) {
-        nav.querySelectorAll('a.v3-nav-link, a.v3-nav-dropdown-link').forEach(function (link) {
-            link.addEventListener('click', function () {
-                if (isCollapsedNav()) {
-                    closeMobileNav();
-                }
-            });
-        });
-    }
 
     backdrop.addEventListener('click', function () {
         if (isCollapsedNav()) {
