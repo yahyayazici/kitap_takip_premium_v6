@@ -4,12 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    {% include "includes/pwa_head.html" %}
-    {% include "includes/social_meta.html" %}
     <title>Giriş · {{ panel_org }}</title>
+    <link rel="preload" as="image" href="{% static 'images/login-kurs-sketch-sm.jpg' %}?v=ps1" fetchpriority="high" media="(max-width: 900px)">
+    <link rel="preload" as="image" href="{% static 'images/login-kurs-sketch.jpg' %}?v=ps1" fetchpriority="high" media="(min-width: 901px)">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="{% static 'css/login-portal.css' %}?v=prestige20">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Manrope:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="{% static 'css/login-portal.css' %}?v=prestige21">
+    {% include "includes/pwa_head.html" %}
+    {% include "includes/social_meta.html" %}
 </head>
 <body>
 <div class="gate" id="gate">
@@ -25,12 +28,15 @@
         <aside class="gate-art" aria-hidden="true">
             <div class="gate-sketch-stage">
                 <img
-                    src="{% static 'images/login-kurs-sketch.png' %}?v=prestige20"
+                    src="{% static 'images/login-kurs-sketch-sm.jpg' %}?v=ps1"
+                    srcset="{% static 'images/login-kurs-sketch-sm.jpg' %}?v=ps1 800w,
+                            {% static 'images/login-kurs-sketch.jpg' %}?v=ps1 1280w"
+                    sizes="(max-width: 900px) 94vw, 50vw"
                     alt=""
                     class="gate-sketch-img"
                     width="1536"
                     height="1024"
-                    decoding="async"
+                    fetchpriority="high"
                 >
             </div>
             <p class="gate-art-caption">Çinili Saray · Eğitim yolculuğu</p>
@@ -90,6 +96,6 @@
         </main>
     </div>
 </div>
-<script src="{% static 'js/login-portal.js' %}?v=prestige20"></script>
+<script src="{% static 'js/login-portal.js' %}?v=prestige21" defer></script>
 </body>
 </html>
