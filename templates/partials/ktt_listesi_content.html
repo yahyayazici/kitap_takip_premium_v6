@@ -1,0 +1,220 @@
+{% load static %}
+{% if request.htmx %}
+<title hx-swap-oob="true">KTT</title>
+<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=ktt-mob2" hx-swap-oob="true">
+{% endif %}
+<div class="ktt-page" data-page-title="KTT">
+    <header class="page-head patterned-page-head ktt-page-head ktt-hero">
+        <div class="ktt-head-main">
+            <p class="kicker">KAZANIM TARAMA TESTİ</p>
+            <h1>Konu Tarama Testleri (KTT)</h1>
+            <div class="ktt-head-actions profile-head-actions">
+                {% if olusturabilir and form %}
+                <button type="button" class="ktt-solid-btn primary-btn" id="ktt-open-form" aria-controls="ktt-form-modal" aria-expanded="false">
+                    + KTT Ekle
+                </button>
+                {% endif %}
+                <a href="{% url 'ktt_rapor' %}" class="ktt-outline-btn green ghost-btn">Rapor &amp; Analiz</a>
+                <a href="{% url 'olcme_hub' %}" class="ktt-outline-btn ghost-btn">Ölçme Merkezi</a>
+                <a href="{% url 'ktt_akilli_ozet' %}" class="ktt-outline-btn ghost-btn">Akıllı Takip</a>
+            </div>
+        </div>
+    </header>
+
+    {% if akilli_ozet %}
+    <section class="ktt-akilli-strip">
+        <div class="ktt-akilli-strip-head">
+            <h2>Bugün dikkat gerektirenler</h2>
+            <a href="{% url 'ktt_akilli_ozet' %}" class="ktt-text-link">Tümünü gör →</a>
+        </div>
+        {% if akilli_ozet.dikkat %}
+        <div class="ktt-akilli-cards">
+            {% for satir in akilli_ozet.dikkat %}
+            <article class="ktt-akilli-card ktt-akilli-card--{{ satir.oncelik_sinif }}">
+                <strong>{{ satir.talebe.ad_soyad }}</strong>
+                <span>{{ satir.konu.brans_etiket }} — {{ satir.konu.konu_ad }}</span>
+                <small>%{{ satir.konu.ortalama_puan }} · {{ satir.oneri }}</small>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="ktt-akilli-empty">Şu an acil müdahale gerektiren konu bulunmuyor.</p>
+        {% endif %}
+        {% if akilli_ozet.ortak %}
+        <div class="ktt-grup-eksik">
+            <span class="label">Grup ortak eksik</span>
+            {% for g in akilli_ozet.ortak %}
+            <span class="ktt-grup-eksik-chip">{{ g.brans_etiket }} · {{ g.konu_ad }} ({{ g.eksik_sayisi }}/{{ g.talebe_sayisi }})</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </section>
+    {% endif %}
+
+    <section class="ktt-table-card ktt-list-only">
+        <h2>Mevcut Konu Tarama Testleri</h2>
+        <p class="ktt-list-hint">Kayda tıklayın — detaylar ve işlemler açılır.</p>
+
+        {% if sinavlar %}
+        <div class="ktt-acc-list">
+            {% for ktt in sinavlar %}
+            <details class="ktt-acc-item">
+                <summary class="ktt-acc-summary">
+                    <span class="ktt-acc-main">
+                        <strong class="ktt-acc-title">{{ ktt.ad }}</strong>
+                        <span class="ktt-acc-meta">
+                            <span>{{ ktt.sinif_goster }}</span>
+                            <span class="ktt-ders-pill">{{ ktt.ders.ad }}</span>
+                            <span>{{ ktt.sinav_tarihi|date:"d.m.Y" }}</span>
+                        </span>
+                    </span>
+                    <span class="ktt-acc-badge">{{ ktt.sonuc_sayisi }} öğrenci</span>
+                    <span class="ktt-acc-chevron" aria-hidden="true"></span>
+                </summary>
+                <div class="ktt-acc-body">
+                    <dl class="ktt-acc-details">
+                        <div><dt>Soru sayısı</dt><dd>{{ ktt.soru_sayisi }}</dd></div>
+                        <div><dt>Sınıf</dt><dd>{{ ktt.sinif_goster }}</dd></div>
+                        <div><dt>Ders</dt><dd>{{ ktt.ders.ad }}</dd></div>
+                        <div><dt>Tarih</dt><dd>{{ ktt.sinav_tarihi|date:"d.m.Y" }}</dd></div>
+                        <div><dt>Katılım</dt><dd>{{ ktt.sonuc_sayisi }} öğrenci</dd></div>
+                    </dl>
+                    <div class="ktt-actions">
+                        <a href="{% url 'ktt_sonuc_gir' ktt.pk %}" class="ktt-btn ktt-btn-blue">Sonuç Gir / Gör</a>
+                        <a href="{% url 'ktt_detay' ktt.pk %}" class="ktt-btn ktt-btn-ghost">Detay</a>
+                        {% include "includes/ktt_sil_form.html" with ktt=ktt silebilir=ktt.silebilir %}
+                    </div>
+                </div>
+            </details>
+            {% endfor %}
+        </div>
+
+        <div class="ktt-desktop-table responsive-table">
+            <table class="ktt-table">
+                <thead>
+                    <tr>
+                        <th>KTT Adı</th>
+                        <th>Sınıf</th>
+                        <th>Ders</th>
+                        <th>Soru</th>
+                        <th>Tarih</th>
+                        <th>Katılım</th>
+                        <th>İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ktt in sinavlar %}
+                    <tr>
+                        <td><strong>{{ ktt.ad }}</strong></td>
+                        <td>{{ ktt.sinif_goster }}</td>
+                        <td><span class="ktt-ders-pill">{{ ktt.ders.ad }}</span></td>
+                        <td>{{ ktt.soru_sayisi }}</td>
+                        <td>{{ ktt.sinav_tarihi|date:"d.m.Y" }}</td>
+                        <td><span class="ktt-katilim">{{ ktt.sonuc_sayisi }} öğrenci</span></td>
+                        <td>
+                            <div class="ktt-actions">
+                                <a href="{% url 'ktt_sonuc_gir' ktt.pk %}" class="ktt-btn ktt-btn-blue">Sonuçlar</a>
+                                <a href="{% url 'ktt_detay' ktt.pk %}" class="ktt-btn ktt-btn-ghost">Detay</a>
+                                {% include "includes/ktt_sil_form.html" with ktt=ktt silebilir=ktt.silebilir form_style="display:inline;" %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="ktt-empty">
+            Henüz KTT kaydı yok.
+            {% if olusturabilir %}<button type="button" class="ktt-empty-link" data-ktt-open-form>Yeni KTT ekleyin</button>{% endif %}
+        </p>
+        {% endif %}
+    </section>
+</div>
+
+{% if olusturabilir and form %}
+<div class="ktt-modal" id="ktt-form-modal" hidden role="dialog" aria-modal="true" aria-labelledby="ktt-modal-title">
+    <div class="ktt-modal-backdrop" data-ktt-close></div>
+    <div class="ktt-modal-panel">
+        <div class="ktt-form-card ktt-form-card-modal">
+            <div class="ktt-form-card-head ktt-modal-head">
+                <span id="ktt-modal-title">+ Yeni KTT Tanımla</span>
+                <button type="button" class="ktt-modal-close" data-ktt-close aria-label="Kapat">&times;</button>
+            </div>
+            <div class="ktt-form-card-body">
+                <form method="post" class="ktt-create-form" id="ktt-create-form">
+                    {% csrf_token %}
+                    <div class="ktt-form-grid">
+                        <div class="ktt-field">
+                            <label for="{{ form.ad.id_for_label }}">KTT Sınav Adı</label>
+                            {{ form.ad }}
+                            {{ form.ad.errors }}
+                        </div>
+                        <div class="ktt-field">
+                            <label for="{{ form.sinav_tarihi.id_for_label }}">Sınav Tarihi</label>
+                            {{ form.sinav_tarihi }}
+                            {{ form.sinav_tarihi.errors }}
+                        </div>
+                        <div class="ktt-field">
+                            <label for="{{ form.ders.id_for_label }}">İlgili Ders</label>
+                            {{ form.ders }}
+                            {{ form.ders.errors }}
+                        </div>
+                        <div class="ktt-field">
+                            <label for="{{ form.soru_sayisi.id_for_label }}">Toplam Soru Sayısı</label>
+                            {{ form.soru_sayisi }}
+                            {{ form.soru_sayisi.errors }}
+                        </div>
+                        <div class="ktt-field ktt-field-full">
+                            <label>Sınıf(lar)</label>
+                            {% if sinif_secenekleri %}
+                            <div class="ktt-checkbox-grid">
+                                {% for ss in sinif_secenekleri %}
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        name="sinif_subeler"
+                                        value="{{ ss.sinif }}-{{ ss.sube }}"
+                                        {% if sinif_secenekleri|length == 1 %}checked{% endif %}
+                                    >
+                                    {{ ss.sinif }}-{{ ss.sube }}
+                                </label>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="ktt-field-note">Size tanımlı sınıf bulunamadı. Kurum idaresinden sorumlu sınıf ataması isteyin.</p>
+                            {% endif %}
+                        </div>
+                        <div class="ktt-field ktt-field-full ktt-field-compact">
+                            <label for="{{ form.aciklama.id_for_label }}">Açıklama (Opsiyonel)</label>
+                            {{ form.aciklama }}
+                        </div>
+                        {% if form.etut_hocasi %}
+                        <div class="ktt-field ktt-field-full">
+                            <label for="{{ form.etut_hocasi.id_for_label }}">Etüt Hocası</label>
+                            {{ form.etut_hocasi }}
+                        </div>
+                        {% endif %}
+                        {% if form.veliye_goster %}
+                        <div class="ktt-field ktt-field-full">
+                            <label class="ktt-inline-check">{{ form.veliye_goster }} Veli panelinde göster</label>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="ktt-modal-foot">
+                        <button type="button" class="ktt-btn ktt-btn-ghost" data-ktt-close>Vazgeç</button>
+                        <button type="submit" class="ktt-create-btn" {% if not sinif_secenekleri %}disabled{% endif %}>KTT Oluştur</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if request.htmx and olusturabilir and form %}
+<script src="{% static 'js/ktt-list.js' %}?v=1"></script>
+{% if form.errors %}
+<script>document.documentElement.dataset.kttFormOpen = "1";</script>
+{% endif %}
+{% endif %}
