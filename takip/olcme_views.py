@@ -11,11 +11,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 
-from django.template.loader import render_to_string
-
 from takip.excel_rapor import excel_http_yanit
 from takip.olcme_excel import sinav_analiz_xlsx, sinav_sonuc_csv
-from takip.pdf_utils import html_to_pdf, make_pdf_response, pdf_error_response
 from takip.konu_destek_models import KonuKatalogu
 from takip.konu_destek_service import ders_adindan_brans, konu_getir_veya_olustur
 from takip.ktt_konu_normalize_service import ktt_konu_eslestir
@@ -60,14 +57,9 @@ from takip.olcme_service import (
     zayif_konulari_etut_planina_aktar,
     olcme_silebilir,
 )
-from takip.olcme_qr import optik_form_satirlari, optik_karekod_parse, varsayilan_kitapcik
 from takip.permissions.decorators import require_permission
 from takip.permissions.service import can as perm_can
 from takip.user_helpers import etut_hocasi_for_user
-
-
-def _optik_foto_base_url(request, sinav_pk: int) -> str:
-    return request.build_absolute_uri(reverse("olcme_optik_foto", kwargs={"pk": sinav_pk}))
 
 
 OLCME_BOLUMLER = (
@@ -789,140 +781,6 @@ def olcme_sinav_etut_aktar(request, pk):
 
 
 @login_required
-@require_permission("olcme", "view")
-def olcme_optik_sec(request):
-    sinavlar = yetkili_olcme_sinavlari(request.user).order_by("-sinav_tarihi")[:50]
-    return render(request, "olcme/optik_hub.html", {"sinavlar": sinavlar})
-
-
-@login_required
-@require_permission("olcme", "view")
-def olcme_optik_form(request, pk):
-    sinav = _sinav_or_404(request, pk)
-    secenekler = ["A", "B", "C", "D"]
-    if sinav.secenek_sayisi >= 5:
-        secenekler.append("E")
-    kitapcik = varsayilan_kitapcik(sinav)
-    talebeler = ktt_sonuc_talebeleri(request.user, sinav)
-    return render(
-        request,
-        "olcme/optik_form.html",
-        {
-            "sinav": sinav,
-            "talebeler": talebeler,
-            "optik_satirlar": optik_form_satirlari(
-                sinav,
-                talebeler,
-                kitapcik,
-                foto_base_url=_optik_foto_base_url(request, sinav.pk),
-            ),
-            "kitapcik": kitapcik,
-            "soru_nolar": list(range(1, sinav.soru_sayisi + 1)),
-            "secenekler": secenekler,
-        },
-    )
-
-
-@login_required
-@require_permission("olcme", "view")
-def olcme_optik_oku_sec(request):
-    return redirect("olcme_optik_sec")
-
-
-@login_required
-@require_permission("olcme", "edit")
-def olcme_optik_oku(request, pk):
-    return redirect("olcme_optik_foto", pk=pk)
-
-
-@login_required
-@require_permission("olcme", "edit")
-def olcme_optik_mobil(request, pk):
-    return redirect("olcme_optik_foto", pk=pk)
-
-
-@login_required
-@require_permission("olcme", "edit")
-def olcme_optik_foto(request, pk):
-    """Optik form fotoğrafından bubble tarama (client-side) + kayıt."""
-    sinav = _sinav_or_404(request, pk)
-    if not ktt_duzenleyebilir(request.user, sinav):
-        messages.error(request, "Bu sınav için optik foto okuma yapamazsınız.")
-        return redirect("olcme_sinav_detay", pk=pk)
-
-    talebeler = ktt_sonuc_talebeleri(request.user, sinav)
-
-    k_raw = request.GET.get("k") or request.GET.get("karekod")
-    if k_raw and not request.GET.get("talebe"):
-        parsed = optik_karekod_parse(k_raw)
-        if parsed and parsed["sinav_id"] == sinav.pk:
-            return redirect(
-                f"{request.path}?talebe={parsed['talebe_id']}&kitapcik={parsed['kitapcik']}"
-            )
-        if parsed:
-            messages.error(request, "Bu karekod başka bir sınava ait.")
-        else:
-            messages.error(request, "Karekod okunamadı. Metni veya bağlantıyı kontrol edin.")
-
-    talebe_id = request.GET.get("talebe") or request.POST.get("talebe_id")
-    talebe = None
-    if talebe_id:
-        talebe = get_object_or_404(talebeler, pk=int(talebe_id))
-
-    sorular = list(sinav.olcme_sorulari.order_by("soru_no"))
-    secenekler = ["A", "B", "C", "D"]
-    if sinav.secenek_sayisi >= 5:
-        secenekler.append("E")
-
-    if request.method == "POST" and talebe:
-        cevaplar = {}
-        for s in sorular:
-            cevaplar[s.soru_no] = request.POST.get(f"s_{s.soru_no}", "BOS")
-        try:
-            sonuc = talebe_cevaplari_kaydet(
-                sinav,
-                talebe,
-                cevaplar,
-                kitapcik=request.POST.get("kitapcik") or "A",
-                kullanici=request.user,
-            )
-            if sonuc:
-                messages.success(
-                    request,
-                    f"{talebe.ad_soyad}: {sonuc.dogru}D · {sonuc.yanlis}Y · net {sonuc.net}",
-                )
-            else:
-                messages.success(request, f"{talebe.ad_soyad}: cevaplar kaydedildi.")
-            return redirect(f"{request.path}?talebe={talebe.pk}")
-        except Exception as exc:
-            messages.error(request, str(exc))
-
-    mevcut = {}
-    if talebe:
-        mevcut = {
-            c.soru.soru_no: c.secilen
-            for c in sinav.talebe_cevaplari.filter(talebe=talebe).select_related("soru")
-        }
-    for s in sorular:
-        s.secilen = mevcut.get(s.soru_no, "BOS")
-
-    kitapcik = request.GET.get("kitapcik") or varsayilan_kitapcik(sinav)
-
-    return render(
-        request,
-        "olcme/optik_foto.html",
-        {
-            "sinav": sinav,
-            "talebeler": talebeler,
-            "talebe": talebe,
-            "sorular": sorular,
-            "secenekler": secenekler,
-            "kitapcik": kitapcik.upper()[:1],
-        },
-    )
-
-
-@login_required
 @require_permission("olcme", "edit")
 def olcme_sinav_sonuc_toplu(request, pk):
     sinav = _sinav_or_404(request, pk)
@@ -994,33 +852,3 @@ def olcme_sinav_sonuc_csv(request, pk):
     response["Content-Disposition"] = f'attachment; filename="olcme-{sinav.pk}-sonuc.csv"'
     return response
 
-
-@login_required
-@require_permission("olcme", "export_pdf")
-def olcme_optik_form_pdf(request, pk):
-    sinav = _sinav_or_404(request, pk)
-    secenekler = ["A", "B", "C", "D"]
-    if sinav.secenek_sayisi >= 5:
-        secenekler.append("E")
-    kitapcik = varsayilan_kitapcik(sinav)
-    talebeler = ktt_sonuc_talebeleri(request.user, sinav)
-    html = render_to_string(
-        "olcme/optik_form_pdf.html",
-        {
-            "sinav": sinav,
-            "talebeler": talebeler,
-            "optik_satirlar": optik_form_satirlari(
-                sinav,
-                talebeler,
-                kitapcik,
-                foto_base_url=_optik_foto_base_url(request, sinav.pk),
-            ),
-            "kitapcik": kitapcik,
-            "soru_nolar": list(range(1, sinav.soru_sayisi + 1)),
-            "secenekler": secenekler,
-        },
-    )
-    pdf = html_to_pdf(html)
-    if not pdf:
-        return pdf_error_response("PDF oluşturulamadı.")
-    return make_pdf_response(pdf, f"optik-{sinav.pk}.pdf")
