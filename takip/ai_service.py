@@ -726,8 +726,9 @@ def kurum_zekasi_ozet(
 def mudahale_oneri_listesi(user: User) -> list[dict[str, Any]]:
     """Proaktif müdahale adayları — dashboard kartı için."""
     adaylar = _mudahale_adaylari(user, limit=12)
+    talebeler = Talebe.objects.in_bulk(a["talebe_id"] for a in adaylar)
     for aday in adaylar:
-        talebe = Talebe.objects.filter(pk=aday["talebe_id"]).first()
+        talebe = talebeler.get(aday["talebe_id"])
         if talebe:
             aday["oneriler"] = _mudahale_metni_uret(
                 talebe, aday["skor"], aday.get("nedenler") or []

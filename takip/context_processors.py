@@ -13,7 +13,11 @@ from config.branding import (
     PANEL_TAGLINE,
     SINAV_BASVURU_BASLIK,
 )
-from takip.panel_permissions import panel_nav_groups, panel_nav_items, rol_etiketi
+from takip.panel_permissions import (
+    panel_nav_groups_from_items,
+    panel_nav_items,
+    rol_etiketi,
+)
 from takip.yonetim_nav import yonetim_nav_groups
 from takip.ogretmen_service import (
     ogretmen_hocasi_for_user,
@@ -46,10 +50,15 @@ def panel_branding(request):
     is_talebe = kullanici_talebe_mi(user) if user.is_authenticated else False
     is_ogretmen = ogretmen_paneli_kullanicisi_mi(user) if user.is_authenticated else False
     ozel_panel = is_veli or is_talebe or is_ogretmen
-    nav = [] if ozel_panel else (panel_nav_items(user) if user.is_authenticated else [])
-    nav_groups = [] if ozel_panel else (
-        panel_nav_groups(user) if user.is_authenticated else []
-    )
+    if ozel_panel or not user.is_authenticated:
+        nav = []
+        nav_groups = []
+    else:
+        # panel_nav_items(user) her item için yetki kontrolü (DB) yapıyor —
+        # aynı sonucu panel_nav_groups() içinde TEKRAR hesaplamamak için
+        # bir kez çağrılıp gruplama ondan türetiliyor.
+        nav = panel_nav_items(user)
+        nav_groups = panel_nav_groups_from_items(nav)
 
     talebe_hesap = talebe_hesabi_for_user(user) if is_talebe else None
     veli_hesap = veli_hesabi_for_user(user) if is_veli else None

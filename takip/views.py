@@ -458,6 +458,7 @@ def dashboard(request):
     )
 
     bugunku_sinav = bugunku_sinav_sayisi(request.user, bugun)
+    talebe_sayisi = talebeler.count()
     from takip.idareci_service import yct_ay_takvimi
 
     yct = yct_ay_takvimi(bugun.year, bugun.month)
@@ -473,7 +474,7 @@ def dashboard(request):
             request.user,
             hedef="personel",
             baglam={
-                "talebe_sayisi": talebeler.count(),
+                "talebe_sayisi": talebe_sayisi,
                 "toplam_okunan": bugun_toplam,
                 "bugunku_kayit": bugunku_kayit_sayisi,
                 "bekleyen": bekleyen,
@@ -521,7 +522,7 @@ def dashboard(request):
         "dashboard.html",
         {
             "talebeler": talebeler,
-            "talebe_sayisi": talebeler.count(),
+            "talebe_sayisi": talebe_sayisi,
             "zimmetler": zimmetler,
             "devam_eden": len(aktif_zimmetler),
             "tamamlanan": tamamlanan,

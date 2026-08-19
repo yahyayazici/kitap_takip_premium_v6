@@ -980,9 +980,13 @@ def panel_nav_items(user: User) -> list[PanelNavItem]:
     return items
 
 
-def panel_nav_groups(user: User) -> list[PanelNavGroup]:
+def panel_nav_groups_from_items(nav_items: list[PanelNavItem]) -> list[PanelNavGroup]:
+    """``panel_nav_items(user)`` çağrısı zaten yapılmışsa, onu TEKRAR
+    hesaplamadan (ki her biri yetki kontrolü/DB sorgusu içerir) gruplara
+    ayırır. Bkz. context_processors.panel_branding.
+    """
     by_group: dict[str, list[PanelNavItem]] = {}
-    for item in panel_nav_items(user):
+    for item in nav_items:
         by_group.setdefault(item.nav_group, []).append(item)
 
     groups: list[PanelNavGroup] = []
@@ -992,6 +996,10 @@ def panel_nav_groups(user: User) -> list[PanelNavGroup]:
             groups.append(PanelNavGroup(name=name, items=tuple(items)))
 
     return groups
+
+
+def panel_nav_groups(user: User) -> list[PanelNavGroup]:
+    return panel_nav_groups_from_items(panel_nav_items(user))
 
 
 def nav_aktif_mi(item: PanelNavItem, url_name: str | None) -> bool:

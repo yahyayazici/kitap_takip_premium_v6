@@ -56,7 +56,14 @@ def kullanici_veli_mi(user: User) -> bool:
 
     from takip.models import PersonelProfili
 
-    if PersonelProfili.objects.filter(user=user).exists():
+    # user.personel_profili Django'nun reverse-OneToOne descriptor'ı —
+    # aynı istekte başka bir yerde zaten okunmuşsa (çoğu zaman öyle)
+    # ekstra sorgu atmadan, instance-cache'ten döner.
+    try:
+        user.personel_profili
+    except PersonelProfili.DoesNotExist:
+        pass
+    else:
         return False
 
     hesap = veli_hesabi_for_user(user)
