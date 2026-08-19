@@ -7,6 +7,7 @@ from datetime import date, timedelta
 from typing import Any
 
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Max
 from django.utils.timezone import localdate
@@ -257,9 +258,16 @@ def _talebe_karti(talebe: Talebe | None) -> dict[str, Any] | None:
     }
 
 
-def gorevli_hesapla(tarih: date, sinif: str) -> dict[str, Any]:
-    """Bir sınıf için o günün görevlisi (manuel override öncelikli)."""
-    ayar = ayarlari_al()
+def gorevli_hesapla(tarih: date, sinif: str, ayar: YemekciAyar | None = None) -> dict[str, Any]:
+    """Bir sınıf için o günün görevlisi (manuel override öncelikli).
+
+    ``ayar`` verilmezse tek satırlık YemekciAyar tekrar sorgulanır — bu
+    fonksiyon bir tarih/sınıf döngüsü içinde çağrılıyorsa (bkz.
+    gunun_yemekcileri/aralik_uret) çağıran tarafın ``ayar``'ı bir kez çekip
+    geçmesi gereksiz tekrar sorguyu önler.
+    """
+    if ayar is None:
+        ayar = ayarlari_al()
     override = (
         YemekciGunAtama.objects.filter(tarih=tarih, sinif=sinif)
         .select_related("talebe", "talebe__sinif_sube")
@@ -297,9 +305,27 @@ def gorevli_hesapla(tarih: date, sinif: str) -> dict[str, Any]:
 
 
 def gunun_yemekcileri(tarih: date | None = None) -> list[dict[str, Any]]:
+    """Dashboard kartı için bugünkü sınıf görevlileri.
+
+    Bu fonksiyon (havuz senkronizasyonu dahil) tek bir dashboard
+    render'ında 2 farklı yerden (kısayol rozeti + günlük görevler kartı)
+    art arda çağrılıyor — 10 saniyelik kısa bir cache, aynı render
+    içindeki bu tekrarı önlüyor. Manuel bir atama kaydedildikten hemen
+    sonra görüntülenirse en fazla ~10sn eski veri görünebilir; bu kadar
+    kısa bir pencerede kabul edilebilir bir risk (senkronizasyon
+    mantığının KENDİSİ değişmedi, sadece ne sıklıkla çalıştığı).
+    """
     tarih = tarih or localdate()
+    cache_key = f"yemekci:gunun_yemekcileri:{tarih.isoformat()}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     havuzlari_kur(seed_talebeler=True)
-    return [gorevli_hesapla(tarih, s) for s in SINIF_SEVIYELERI]
+    ayar = ayarlari_al()
+    sonuc = [gorevli_hesapla(tarih, s, ayar) for s in SINIF_SEVIYELERI]
+    cache.set(cache_key, sonuc, 10)
+    return sonuc
 
 
 def aralik_uret(
@@ -313,10 +339,11 @@ def aralik_uret(
     """Tarih aralığı için satır listesi; kaydet=True ise YemekciGunAtama yazar."""
     gunler = aralik_gunleri(baslangic, bitis, hafta_sonu_cikar=hafta_sonu_cikar)
     satirlar: list[dict[str, Any]] = []
+    ayar = ayarlari_al()
     for gun in gunler:
         hucreler = {}
         for sinif in SINIF_SEVIYELERI:
-            kart = gorevli_hesapla(gun, sinif)
+            kart = gorevli_hesapla(gun, sinif, ayar)
             hucreler[sinif] = kart
             if kaydet and kart.get("talebe"):
                 YemekciGunAtama.objects.update_or_create(
