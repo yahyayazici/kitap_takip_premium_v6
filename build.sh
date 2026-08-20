@@ -8,6 +8,7 @@ python manage.py seed_ktt_konu_havuzu
 python manage.py backfill_ktt_konu_eslestirme
 python manage.py backfill_dini_tamamlanma_tarihi
 python manage.py ensure_veli_hesaplari
+python manage.py tesbit_veli_baglanti
 
 if [ -n "${ADMIN_PASSWORD:-}" ]; then
   python manage.py reset_admin --username "${ADMIN_USERNAME:-admin}" --password "$ADMIN_PASSWORD"
