@@ -7,6 +7,7 @@ from datetime import datetime
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.utils.timezone import localdate
 
 from config.branding import panel_branding_context
@@ -113,7 +114,7 @@ def namaz_yoklama_panel(request):
         sinif = request.POST.get("sinif_sube") or ""
         if sinif:
             params += f"&sinif_sube={sinif}"
-        return redirect("namaz_yoklama_panel" + params)
+        return redirect(reverse("namaz_yoklama_panel") + params)
 
     tarih = _parse_tarih(request.GET.get("tarih"))
     etudum = request.GET.get("etudum") == "1"
