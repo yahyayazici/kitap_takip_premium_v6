@@ -317,14 +317,25 @@ def home(request):
 
 @login_required
 def dashboard(request):
+    # Not: veli/talebe/öğretmen için burası hiç render edilmeyen bir ara
+    # durak — `redirect(...)` yerine hedef view'ı DOĞRUDAN çağırıyoruz ki
+    # tarayıcı gereksiz bir ekstra HTTP round-trip (302 + yeni GET)
+    # yapmasın. URL/davranış aynı, sadece bir ağ gidiş-dönüşü daha az.
     if kullanici_veli_mi(request.user):
-        return redirect("veli_dashboard")
-    if kullanici_talebe_mi(request.user):
-        return redirect("talebe_dashboard")
-    if ogretmen_paneli_kullanicisi_mi(request.user):
-        from takip.ogretmen_service import ogretmen_giris_url_adi
+        from takip.veli_views import veli_dashboard
 
-        return redirect(ogretmen_giris_url_adi(request.user))
+        return veli_dashboard(request)
+    if kullanici_talebe_mi(request.user):
+        from takip.talebe_panel_views import talebe_dashboard
+
+        return talebe_dashboard(request)
+    if ogretmen_paneli_kullanicisi_mi(request.user):
+        from takip.ogretmen_service import ogretmen_ekstra_rolu_var_mi
+        from takip.ogretmen_views import ogretmen_dashboard, ogretmen_not_girisi
+
+        if ogretmen_ekstra_rolu_var_mi(request.user):
+            return ogretmen_dashboard(request)
+        return ogretmen_not_girisi(request)
 
     bugun = localdate()
 
