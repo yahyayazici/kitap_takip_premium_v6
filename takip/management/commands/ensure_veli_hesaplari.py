@@ -9,6 +9,11 @@ veli panelinde hiçbir veri görünmüyor.
 İdempotent: `veli_panel_ensure()` var olan hesaplara asla dokunmaz (şifre
 sıfırlamaz), sadece eksik hesap/bağlantıyı tamamlar. Bu yüzden build.sh'te
 her deploy'da güvenle tekrar çalıştırılabilir.
+
+Anne/baba adı hiç girilmemişse veli hesabının görünen adı olarak
+öğrencinin kendi adı kullanılır (giriş TC ile çalışır, sadece görünen
+isim geçicidir) — idareci gerçek veli adını öğrenince panelden
+düzeltebilir.
 """
 
 from __future__ import annotations
@@ -35,19 +40,14 @@ class Command(BaseCommand):
 
         olusturulan = 0
         zaten_tamam = 0
-        atlanan_isimsiz = 0
+        isimsiz_yer_tutucu = 0
         atlanan_cakisma = 0
 
         for talebe in talebeler:
             veli_ad = talebe.anne_adi or talebe.baba_adi or ""
             if not veli_ad:
-                atlanan_isimsiz += 1
-                self.stdout.write(
-                    self.style.WARNING(
-                        f"ATLANDI (anne/baba adı yok): {talebe.ad_soyad} (id={talebe.pk})"
-                    )
-                )
-                continue
+                isimsiz_yer_tutucu += 1
+                veli_ad = talebe.ad_soyad
 
             if dry_run:
                 self.stdout.write(f"[dry-run] {talebe.ad_soyad} -> veli: {veli_ad}")
@@ -77,7 +77,7 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"Bitti: {olusturulan} yeni hesap, {zaten_tamam} zaten tamamdı, "
-                f"{atlanan_isimsiz} isimsiz atlandı, {atlanan_cakisma} çakışma atlandı."
+                f"Bitti: {olusturulan} yeni hesap ({isimsiz_yer_tutucu} yer tutucu adla), "
+                f"{zaten_tamam} zaten tamamdı, {atlanan_cakisma} çakışma atlandı."
             )
         )
