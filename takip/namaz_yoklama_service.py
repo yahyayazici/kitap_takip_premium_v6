@@ -7,6 +7,7 @@ from datetime import date, timedelta
 from typing import Iterable
 
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.db.models import Count, QuerySet
 
 from takip.filter_utils import qs_filtre_id
@@ -184,6 +185,7 @@ def etut_gelmedi_bildirimleri(user: User, tarih: date | None = None) -> list[dic
     return bildirimler
 
 
+@transaction.atomic
 def yoklama_kaydet(
     user: User,
     tarih: date,
@@ -191,6 +193,13 @@ def yoklama_kaydet(
     durumlar: dict[int, str],
     talebe_ids: Iterable[int],
 ) -> NamazYoklamaOturum:
+    """Bir vakit için tüm sınıfın yoklamasını kaydeder.
+
+    Önceden her talebe için ayrı ayrı update_or_create/delete çağrılıyordu
+    (80+ öğrencilik bir sınıfta 150+ ayrı sorgu, yavaş bağlantıda istek
+    zaman aşımına uğrayabiliyordu). Şimdi tek bir toplu upsert (bulk_create
+    + update_conflicts) kullanılıyor.
+    """
     oturum, _ = NamazYoklamaOturum.objects.update_or_create(
         tarih=tarih,
         vakit=vakit,
@@ -200,16 +209,28 @@ def yoklama_kaydet(
     izinli_ids = {int(i) for i in talebe_ids}
     oturum.kayitlar.exclude(talebe_id__in=izinli_ids).delete()
 
+    gecerli_durumlar = dict(NamazDurumu.choices)
+    silinecek_ids: set[int] = set()
+    kayitlar: list[NamazYoklamaKaydi] = []
     for talebe_id in izinli_ids:
         durum = durumlar.get(talebe_id, "")
-        if durum in dict(NamazDurumu.choices):
-            NamazYoklamaKaydi.objects.update_or_create(
-                oturum=oturum,
-                talebe_id=talebe_id,
-                defaults={"durum": durum},
+        if durum in gecerli_durumlar:
+            kayitlar.append(
+                NamazYoklamaKaydi(oturum=oturum, talebe_id=talebe_id, durum=durum)
             )
         else:
-            oturum.kayitlar.filter(talebe_id=talebe_id).delete()
+            silinecek_ids.add(talebe_id)
+
+    if silinecek_ids:
+        oturum.kayitlar.filter(talebe_id__in=silinecek_ids).delete()
+
+    if kayitlar:
+        NamazYoklamaKaydi.objects.bulk_create(
+            kayitlar,
+            update_conflicts=True,
+            unique_fields=["oturum", "talebe"],
+            update_fields=["durum"],
+        )
 
     return oturum
 
