@@ -664,6 +664,11 @@ urlpatterns = [
         name="veli_anketi_excel",
     ),
     path(
+        "veli-anketi/<int:pk>/sil/",
+        veli_anketi_yonetim_views.veli_anketi_sil,
+        name="veli_anketi_sil",
+    ),
+    path(
         "sinav-basvuru-mesaj-anlari/<int:pk>/",
         sinav_basvuru_mesaj_yonetim_views.mesaj_an_duzenle,
         name="sinav_basvuru_mesaj_an_duzenle",

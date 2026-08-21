@@ -34,6 +34,7 @@
                     <th>İstifade</th>
                     <th>Önerilen konular</th>
                     <th>Diğer öneriler</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -47,12 +48,27 @@
                     <td>{% if c.istifade_puani %}{{ c.istifade_puani }}/5{% else %}—{% endif %}</td>
                     <td>{{ c.onerilen_konular|default:"—" }}</td>
                     <td>{{ c.oneriler|default:"—" }}</td>
+                    <td class="yonetim-action-col">
+                        <button type="submit"
+                                form="va-sil-form-{{ c.pk }}"
+                                class="yonetim-link"
+                                style="background:none;border:0;padding:0;cursor:pointer;color:#b91c1c;"
+                                onclick="return confirm('Bu anket cevabını silmek istediğinize emin misiniz?');">
+                            Sil
+                        </button>
+                    </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="8" class="muted">Henüz yanıt yok.</td></tr>
+                <tr><td colspan="9" class="muted">Henüz yanıt yok.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+
+    {% for c in cevaplar %}
+    <form id="va-sil-form-{{ c.pk }}" method="post" action="{% url 'yonetim:veli_anketi_sil' c.pk %}" style="display:none;">
+        {% csrf_token %}
+    </form>
+    {% endfor %}
 </section>
 {% endblock %}
