@@ -14,7 +14,7 @@ def veli_anketi_listesi(request):
     from django.shortcuts import render
 
     cevaplar = VeliAnketCevap.objects.all()
-    ortalama = cevaplar.aggregate(ort=Avg("genel_degerlendirme"))["ort"]
+    ortalama = cevaplar.aggregate(ort=Avg("istifade_puani"))["ort"]
 
     return render(
         request,
@@ -33,10 +33,12 @@ def veli_anketi_excel(request):
     satirlar = [
         [
             c.olusturulma.strftime("%d.%m.%Y %H:%M"),
+            c.sinif,
             c.genel_degerlendirme,
-            c.konu_secimi_gorus,
+            c.konu_ihtiyaci_cevap,
             c.konusmaci_gorus,
-            c.istifade_duzeyi,
+            c.istifade_puani,
+            c.onerilen_konular,
             c.oneriler,
         ]
         for c in cevaplar
@@ -45,11 +47,13 @@ def veli_anketi_excel(request):
         baslik="Veli Anket Cevapları",
         kolon_basliklari=[
             "Tarih",
+            "Sınıf",
             "Genel Değerlendirme",
-            "Konu Seçimi",
+            "İhtiyaca Cevap Verdi mi",
             "Konuşmacı",
-            "İstifade",
-            "Öneriler",
+            "İstifade Puanı",
+            "Önerilen Konular",
+            "Diğer Öneriler",
         ],
         satirlar=satirlar,
         sayfa_adi="Anket",

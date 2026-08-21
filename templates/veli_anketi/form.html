@@ -4,13 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ anket_baslik }} · {{ panel_org }}</title>
+    <title>{{ anket_baslik }} · Çinili Saray Proje</title>
     <link rel="stylesheet" href="{% static 'css/sinav-basvuru.css' %}">
     <link rel="stylesheet" href="{% static 'css/veli-anketi.css' %}">
 </head>
 <body>
 <main class="sb-page">
-    <div class="sb-shell">
+    <div class="sb-shell va-shell">
         <header class="sb-brand">
             <div class="sb-logo">
                 <img src="{% static 'images/cinili-saray-logo-transparent.png' %}" alt="Çinili Saray Öğrenci Yurdu">
@@ -45,9 +45,46 @@
 
                 <div class="va-q sb-field--full">
                     <span class="va-q-num">01</span>
-                    <h3 class="va-q-title">Seminer genel değerlendirmeniz</h3>
-                    <p class="va-q-hint">1 (yetersiz) — 5 (mükemmel)</p>
-                    <input type="hidden" name="{{ form.genel_degerlendirme.html_name }}" id="{{ form.genel_degerlendirme.id_for_label }}" value="{{ form.genel_degerlendirme.value|default:'' }}">
+                    <h3 class="va-q-title">Velisi olduğunuz talebenin sınıfı</h3>
+                    <input type="hidden" name="{{ form.sinif.html_name }}" id="{{ form.sinif.id_for_label }}" value="{{ form.sinif.value|default:'' }}">
+                    <div class="va-scale-row" id="vaSinifRow" role="radiogroup">
+                        <button type="button" class="va-scale-pill" data-value="5. sınıf">5. sınıf</button>
+                        <button type="button" class="va-scale-pill" data-value="6. sınıf">6. sınıf</button>
+                        <button type="button" class="va-scale-pill" data-value="7. sınıf">7. sınıf</button>
+                        <button type="button" class="va-scale-pill" data-value="8. sınıf">8. sınıf</button>
+                    </div>
+                    {% if form.sinif.errors %}<p class="sb-field-error">{{ form.sinif.errors.0 }}</p>{% endif %}
+                    <p class="sb-field-error" id="vaSinifError" hidden>Lütfen talebenin sınıfını seçin.</p>
+                </div>
+
+                <div class="va-q sb-field--full">
+                    <span class="va-q-num">02</span>
+                    <h3 class="va-q-title">Seminere ilişkin genel değerlendirmeniz nedir?</h3>
+                    <textarea name="{{ form.genel_degerlendirme.html_name }}" id="{{ form.genel_degerlendirme.id_for_label }}" rows="2" placeholder="Görüşünüzü yazın">{{ form.genel_degerlendirme.value|default:'' }}</textarea>
+                </div>
+
+                <div class="va-q sb-field--full">
+                    <span class="va-q-num">03</span>
+                    <h3 class="va-q-title">Seminerin konusu, veli ve talebe açısından ihtiyaçlarınıza cevap verebildi mi?</h3>
+                    <input type="hidden" name="{{ form.konu_ihtiyaci_cevap.html_name }}" id="{{ form.konu_ihtiyaci_cevap.id_for_label }}" value="{{ form.konu_ihtiyaci_cevap.value|default:'' }}">
+                    <div class="va-scale-row" id="vaIhtiyacRow" role="radiogroup">
+                        <button type="button" class="va-scale-pill" data-value="Evet">Evet</button>
+                        <button type="button" class="va-scale-pill" data-value="Kısmen">Kısmen</button>
+                        <button type="button" class="va-scale-pill" data-value="Hayır">Hayır</button>
+                    </div>
+                </div>
+
+                <div class="va-q sb-field--full">
+                    <span class="va-q-num">04</span>
+                    <h3 class="va-q-title">Konuşmacının konuya hâkimiyeti ve anlatımı hakkındaki düşünceleriniz nelerdir?</h3>
+                    <textarea name="{{ form.konusmaci_gorus.html_name }}" id="{{ form.konusmaci_gorus.id_for_label }}" rows="2" placeholder="Görüşünüzü yazın">{{ form.konusmaci_gorus.value|default:'' }}</textarea>
+                </div>
+
+                <div class="va-q sb-field--full">
+                    <span class="va-q-num">05</span>
+                    <h3 class="va-q-title">Seminerden ne ölçüde istifade ettiğinizi düşünüyorsunuz?</h3>
+                    <p class="va-q-hint">1: Hiç istifade etmedim — 5: Çok istifade ettim.</p>
+                    <input type="hidden" name="{{ form.istifade_puani.html_name }}" id="{{ form.istifade_puani.id_for_label }}" value="{{ form.istifade_puani.value|default:'' }}">
                     <div class="va-rating-row" id="vaRatingRow" role="radiogroup">
                         <button type="button" class="va-rating-pill" data-value="1">1</button>
                         <button type="button" class="va-rating-pill" data-value="2">2</button>
@@ -55,45 +92,25 @@
                         <button type="button" class="va-rating-pill" data-value="4">4</button>
                         <button type="button" class="va-rating-pill" data-value="5">5</button>
                     </div>
-                    {% if form.genel_degerlendirme.errors %}<p class="sb-field-error">{{ form.genel_degerlendirme.errors.0 }}</p>{% endif %}
-                    <p class="sb-field-error" id="vaRatingError" hidden>Lütfen genel değerlendirme puanı seçin.</p>
+                    {% if form.istifade_puani.errors %}<p class="sb-field-error">{{ form.istifade_puani.errors.0 }}</p>{% endif %}
+                    <p class="sb-field-error" id="vaRatingError" hidden>Lütfen bir puan seçin.</p>
                 </div>
 
                 <div class="va-q sb-field--full">
-                    <span class="va-q-num">02</span>
-                    <h3 class="va-q-title">Seminer konu seçimi hakkında ne düşünüyorsunuz?</h3>
-                    <input type="text" name="{{ form.konu_secimi_gorus.html_name }}" id="{{ form.konu_secimi_gorus.id_for_label }}" value="{{ form.konu_secimi_gorus.value|default:'' }}" placeholder="Görüşünüzü yazın">
+                    <span class="va-q-num">06</span>
+                    <h3 class="va-q-title">Seminer düzenlenmesini istediğiniz başka konu veya konular varsa yazabilirsiniz</h3>
+                    <textarea name="{{ form.onerilen_konular.html_name }}" id="{{ form.onerilen_konular.id_for_label }}" rows="2" placeholder="(opsiyonel)">{{ form.onerilen_konular.value|default:'' }}</textarea>
                 </div>
 
                 <div class="va-q sb-field--full">
-                    <span class="va-q-num">03</span>
-                    <h3 class="va-q-title">Konuşmacının konu hakimiyeti ve anlatımı hakkında düşünceleriniz nelerdir?</h3>
-                    <textarea name="{{ form.konusmaci_gorus.html_name }}" id="{{ form.konusmaci_gorus.id_for_label }}" rows="3" placeholder="Görüşünüzü yazın">{{ form.konusmaci_gorus.value|default:'' }}</textarea>
-                </div>
-
-                <div class="va-q sb-field--full">
-                    <span class="va-q-num">04</span>
-                    <h3 class="va-q-title">Seminerden ne kadar istifade ettiğinizi düşünüyorsunuz?</h3>
-                    <input type="hidden" name="{{ form.istifade_duzeyi.html_name }}" id="{{ form.istifade_duzeyi.id_for_label }}" value="{{ form.istifade_duzeyi.value|default:'' }}">
-                    <div class="va-scale-row" id="vaBenefitRow" role="radiogroup">
-                        <button type="button" class="va-scale-pill" data-value="Hiç">Hiç</button>
-                        <button type="button" class="va-scale-pill" data-value="Az">Az</button>
-                        <button type="button" class="va-scale-pill" data-value="Orta">Orta</button>
-                        <button type="button" class="va-scale-pill" data-value="Çok">Çok</button>
-                        <button type="button" class="va-scale-pill" data-value="Çok Fazla">Çok Fazla</button>
-                    </div>
-                </div>
-
-                <div class="va-q sb-field--full">
-                    <span class="va-q-num">05</span>
-                    <h3 class="va-q-title">Görüş ve önerilerinizi yazabilirsiniz</h3>
-                    <textarea name="{{ form.oneriler.html_name }}" id="{{ form.oneriler.id_for_label }}" rows="3" placeholder="(opsiyonel)">{{ form.oneriler.value|default:'' }}</textarea>
+                    <span class="va-q-num">07</span>
+                    <h3 class="va-q-title">Diğer değerlendirme, teklif veya tavsiyelerinizi paylaşabilirsiniz</h3>
+                    <textarea name="{{ form.oneriler.html_name }}" id="{{ form.oneriler.id_for_label }}" rows="2" placeholder="(opsiyonel)">{{ form.oneriler.value|default:'' }}</textarea>
                 </div>
 
                 <article class="sb-notice sb-notice--eval sb-field--full">
                     <div class="sb-notice-body">
                         <p>Katkılarınız, eğitim sürecimizi daha nitelikli hale getirmemiz adına bizler için çok değerli.</p>
-                        <p>Katılımınız ve geri bildiriminiz, seminer sürecimizi değerlendirmemiz ve benzer çalışmaları daha verimli planlamamız adına bizim için kıymetlidir.</p>
                         <p class="va-thanks-line">⏳&nbsp; Zaman ayırdığınız için teşekkür ederiz.</p>
                     </div>
                 </article>
@@ -103,7 +120,7 @@
                 </div>
             </form>
 
-            <p class="sb-foot">{{ panel_org }}</p>
+            <p class="sb-foot">Çinili Saray Proje</p>
         </section>
     </div>
 </main>

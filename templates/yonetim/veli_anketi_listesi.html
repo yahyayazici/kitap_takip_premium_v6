@@ -6,7 +6,7 @@
     <div>
         <p class="kicker">EĞİTİM</p>
         <h1>Veli Değerlendirme Anketi</h1>
-        <p class="muted">{{ toplam }} yanıt{% if ortalama %} · Ortalama {{ ortalama }}/5{% endif %}</p>
+        <p class="muted">{{ toplam }} yanıt{% if ortalama %} · Ortalama istifade puanı {{ ortalama }}/5{% endif %}</p>
     </div>
     <div style="display:flex;flex-wrap:wrap;gap:0.6rem;">
         <a href="{% url 'yonetim:veli_anketi_excel' %}" class="secondary-btn">Excel indir</a>
@@ -27,25 +27,29 @@
             <thead>
                 <tr>
                     <th>Tarih</th>
-                    <th>Genel</th>
-                    <th>Konu seçimi</th>
+                    <th>Sınıf</th>
+                    <th>Genel değerlendirme</th>
+                    <th>İhtiyaca cevap verdi mi</th>
                     <th>Konuşmacı</th>
                     <th>İstifade</th>
-                    <th>Öneriler</th>
+                    <th>Önerilen konular</th>
+                    <th>Diğer öneriler</th>
                 </tr>
             </thead>
             <tbody>
                 {% for c in cevaplar %}
                 <tr>
                     <td>{{ c.olusturulma|date:"d.m.Y H:i" }}</td>
-                    <td>{{ c.genel_degerlendirme }}/5</td>
-                    <td>{{ c.konu_secimi_gorus|default:"—" }}</td>
+                    <td>{{ c.sinif|default:"—" }}</td>
+                    <td>{{ c.genel_degerlendirme|default:"—" }}</td>
+                    <td>{{ c.konu_ihtiyaci_cevap|default:"—" }}</td>
                     <td>{{ c.konusmaci_gorus|default:"—" }}</td>
-                    <td>{{ c.istifade_duzeyi|default:"—" }}</td>
+                    <td>{% if c.istifade_puani %}{{ c.istifade_puani }}/5{% else %}—{% endif %}</td>
+                    <td>{{ c.onerilen_konular|default:"—" }}</td>
                     <td>{{ c.oneriler|default:"—" }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="6" class="muted">Henüz yanıt yok.</td></tr>
+                <tr><td colspan="8" class="muted">Henüz yanıt yok.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

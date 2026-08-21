@@ -2,11 +2,16 @@
     const form = document.getElementById("va-anket-form");
     if (!form) return;
 
+    const sinifRow = document.getElementById("vaSinifRow");
+    const sinifHidden = document.querySelector('input[name="sinif"]');
+    const sinifError = document.getElementById("vaSinifError");
+
+    const ihtiyacRow = document.getElementById("vaIhtiyacRow");
+    const ihtiyacHidden = document.querySelector('input[name="konu_ihtiyaci_cevap"]');
+
     const ratingRow = document.getElementById("vaRatingRow");
-    const ratingHidden = document.querySelector('input[name="genel_degerlendirme"]');
+    const ratingHidden = document.querySelector('input[name="istifade_puani"]');
     const ratingError = document.getElementById("vaRatingError");
-    const benefitRow = document.getElementById("vaBenefitRow");
-    const benefitHidden = document.querySelector('input[name="istifade_duzeyi"]');
 
     function wirePills(row, hiddenInput, onSelect) {
         if (!row || !hiddenInput) return;
@@ -27,16 +32,28 @@
         });
     }
 
+    wirePills(sinifRow, sinifHidden, function () {
+        if (sinifError) sinifError.hidden = true;
+    });
+    wirePills(ihtiyacRow, ihtiyacHidden);
     wirePills(ratingRow, ratingHidden, function () {
         if (ratingError) ratingError.hidden = true;
     });
-    wirePills(benefitRow, benefitHidden);
 
     form.addEventListener("submit", function (e) {
+        let blocked = false;
+        if (!sinifHidden.value) {
+            blocked = true;
+            if (sinifError) sinifError.hidden = false;
+        }
         if (!ratingHidden.value) {
-            e.preventDefault();
+            blocked = true;
             if (ratingError) ratingError.hidden = false;
-            ratingRow.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        if (blocked) {
+            e.preventDefault();
+            const target = !sinifHidden.value ? sinifRow : ratingRow;
+            target.scrollIntoView({ behavior: "smooth", block: "center" });
         }
     });
 })();
