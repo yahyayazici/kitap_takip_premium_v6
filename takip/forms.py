@@ -1337,3 +1337,30 @@ class SinavBasvuruMesajSablonForm(StyledModelForm):
             "metin": forms.Textarea(attrs={"rows": 6}),
         }
 
+
+class VeliAnketForm(StyledModelForm):
+    class Meta:
+        from takip.models import VeliAnketCevap
+
+        model = VeliAnketCevap
+        fields = [
+            "genel_degerlendirme",
+            "konu_secimi_gorus",
+            "konusmaci_gorus",
+            "istifade_duzeyi",
+            "oneriler",
+        ]
+        widgets = {
+            "genel_degerlendirme": forms.HiddenInput(),
+            "istifade_duzeyi": forms.HiddenInput(),
+            "konu_secimi_gorus": forms.TextInput(attrs={"placeholder": "Görüşünüzü yazın"}),
+            "konusmaci_gorus": forms.Textarea(attrs={"rows": 3, "placeholder": "Görüşünüzü yazın"}),
+            "oneriler": forms.Textarea(attrs={"rows": 3, "placeholder": "(opsiyonel)"}),
+        }
+
+    def clean_genel_degerlendirme(self):
+        deger = self.cleaned_data.get("genel_degerlendirme")
+        if deger not in (1, 2, 3, 4, 5):
+            raise forms.ValidationError("Lütfen 1 ile 5 arasında bir puan seçin.")
+        return deger
+

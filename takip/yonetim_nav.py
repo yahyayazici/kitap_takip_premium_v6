@@ -340,6 +340,14 @@ YONETIM_NAV_GROUPS: tuple[YonetimNavGroup, ...] = (
                 ),
             ),
             YonetimNavItem(
+                label="Veli Anketi",
+                url_name="yonetim:veli_anketi_listesi",
+                active_names=(
+                    "veli_anketi_listesi",
+                    "veli_anketi_excel",
+                ),
+            ),
+            YonetimNavItem(
                 label="Başvuru Mesaj Anları",
                 url_name="yonetim:sinav_basvuru_mesaj_an_listesi",
                 active_names=(

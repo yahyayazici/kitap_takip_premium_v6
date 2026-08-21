@@ -1,0 +1,112 @@
+{% load static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ anket_baslik }} · {{ panel_org }}</title>
+    <link rel="stylesheet" href="{% static 'css/sinav-basvuru.css' %}">
+    <link rel="stylesheet" href="{% static 'css/veli-anketi.css' %}">
+</head>
+<body>
+<main class="sb-page">
+    <div class="sb-shell">
+        <header class="sb-brand">
+            <div class="sb-logo">
+                <img src="{% static 'images/cinili-saray-logo-transparent.png' %}" alt="Çinili Saray Öğrenci Yurdu">
+            </div>
+            <p>{{ anket_baslik }}</p>
+        </header>
+
+        <section class="sb-panel">
+            <div class="sb-panel-head">
+                <p class="sb-eyebrow">Online Anket</p>
+                <h2>Değerli Velimiz,</h2>
+                <p>Katıldığınız eğitim seminerine ilişkin görüşlerinizi almak bizim için çok kıymetli.</p>
+            </div>
+
+            <article class="sb-notice sb-notice--info" id="va-bilgilendirme">
+                <header class="sb-notice-head">
+                    <span class="sb-notice-badge">Önemli</span>
+                    <h3>Bilgilendirme</h3>
+                </header>
+                <div class="sb-notice-body">
+                    <p>📊&nbsp; Bu anket, düzenlediğimiz seminerin etkisini değerlendirmek ve gelecekteki programları daha verimli hale getirmek amacıyla hazırlanmıştır.</p>
+                    <p class="sb-notice-highlight">Lütfen soruları içtenlikle yanıtlayınız. Katkılarınız için teşekkür ederiz.</p>
+                </div>
+            </article>
+
+            {% if form.errors %}
+            <div class="sb-alert" role="alert">Lütfen işaretli alanları kontrol edin.</div>
+            {% endif %}
+
+            <form method="post" class="sb-form va-form" id="va-anket-form" novalidate>
+                {% csrf_token %}
+
+                <div class="va-q sb-field--full">
+                    <span class="va-q-num">01</span>
+                    <h3 class="va-q-title">Seminer genel değerlendirmeniz</h3>
+                    <p class="va-q-hint">1 (yetersiz) — 5 (mükemmel)</p>
+                    <input type="hidden" name="{{ form.genel_degerlendirme.html_name }}" id="{{ form.genel_degerlendirme.id_for_label }}" value="{{ form.genel_degerlendirme.value|default:'' }}">
+                    <div class="va-rating-row" id="vaRatingRow" role="radiogroup">
+                        <button type="button" class="va-rating-pill" data-value="1">1</button>
+                        <button type="button" class="va-rating-pill" data-value="2">2</button>
+                        <button type="button" class="va-rating-pill" data-value="3">3</button>
+                        <button type="button" class="va-rating-pill" data-value="4">4</button>
+                        <button type="button" class="va-rating-pill" data-value="5">5</button>
+                    </div>
+                    {% if form.genel_degerlendirme.errors %}<p class="sb-field-error">{{ form.genel_degerlendirme.errors.0 }}</p>{% endif %}
+                    <p class="sb-field-error" id="vaRatingError" hidden>Lütfen genel değerlendirme puanı seçin.</p>
+                </div>
+
+                <div class="va-q sb-field--full">
+                    <span class="va-q-num">02</span>
+                    <h3 class="va-q-title">Seminer konu seçimi hakkında ne düşünüyorsunuz?</h3>
+                    <input type="text" name="{{ form.konu_secimi_gorus.html_name }}" id="{{ form.konu_secimi_gorus.id_for_label }}" value="{{ form.konu_secimi_gorus.value|default:'' }}" placeholder="Görüşünüzü yazın">
+                </div>
+
+                <div class="va-q sb-field--full">
+                    <span class="va-q-num">03</span>
+                    <h3 class="va-q-title">Konuşmacının konu hakimiyeti ve anlatımı hakkında düşünceleriniz nelerdir?</h3>
+                    <textarea name="{{ form.konusmaci_gorus.html_name }}" id="{{ form.konusmaci_gorus.id_for_label }}" rows="3" placeholder="Görüşünüzü yazın">{{ form.konusmaci_gorus.value|default:'' }}</textarea>
+                </div>
+
+                <div class="va-q sb-field--full">
+                    <span class="va-q-num">04</span>
+                    <h3 class="va-q-title">Seminerden ne kadar istifade ettiğinizi düşünüyorsunuz?</h3>
+                    <input type="hidden" name="{{ form.istifade_duzeyi.html_name }}" id="{{ form.istifade_duzeyi.id_for_label }}" value="{{ form.istifade_duzeyi.value|default:'' }}">
+                    <div class="va-scale-row" id="vaBenefitRow" role="radiogroup">
+                        <button type="button" class="va-scale-pill" data-value="Hiç">Hiç</button>
+                        <button type="button" class="va-scale-pill" data-value="Az">Az</button>
+                        <button type="button" class="va-scale-pill" data-value="Orta">Orta</button>
+                        <button type="button" class="va-scale-pill" data-value="Çok">Çok</button>
+                        <button type="button" class="va-scale-pill" data-value="Çok Fazla">Çok Fazla</button>
+                    </div>
+                </div>
+
+                <div class="va-q sb-field--full">
+                    <span class="va-q-num">05</span>
+                    <h3 class="va-q-title">Görüş ve önerilerinizi yazabilirsiniz</h3>
+                    <textarea name="{{ form.oneriler.html_name }}" id="{{ form.oneriler.id_for_label }}" rows="3" placeholder="(opsiyonel)">{{ form.oneriler.value|default:'' }}</textarea>
+                </div>
+
+                <article class="sb-notice sb-notice--eval sb-field--full">
+                    <div class="sb-notice-body">
+                        <p>Katkılarınız, eğitim sürecimizi daha nitelikli hale getirmemiz adına bizler için çok değerli.</p>
+                        <p>Katılımınız ve geri bildiriminiz, seminer sürecimizi değerlendirmemiz ve benzer çalışmaları daha verimli planlamamız adına bizim için kıymetlidir.</p>
+                        <p class="va-thanks-line">⏳&nbsp; Zaman ayırdığınız için teşekkür ederiz.</p>
+                    </div>
+                </article>
+
+                <div class="sb-actions">
+                    <button type="submit" class="sb-submit" id="va-submit">Anketi Gönder</button>
+                </div>
+            </form>
+
+            <p class="sb-foot">{{ panel_org }}</p>
+        </section>
+    </div>
+</main>
+<script src="{% static 'js/veli-anketi.js' %}"></script>
+</body>
+</html>

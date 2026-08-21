@@ -1,0 +1,156 @@
+/* Veli değerlendirme anketi — sinav-basvuru.css tokenlarını kullanır, ek bileşenler */
+
+.va-form {
+    display: grid;
+    gap: 1.35rem;
+}
+
+.va-q {
+    padding: 1.5rem 1.6rem;
+    border: 1px solid var(--sb-line);
+    border-radius: calc(var(--sb-radius) - 4px);
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.va-q-num {
+    display: block;
+    font-family: "Outfit", sans-serif;
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--sb-accent);
+    margin-bottom: 0.4rem;
+}
+
+.va-q-title {
+    margin: 0 0 0.9rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.4;
+    color: var(--sb-ink);
+}
+
+.va-q-hint {
+    margin: -0.6rem 0 0.9rem;
+    font-size: 0.86rem;
+    color: var(--sb-muted);
+}
+
+.va-q input[type="text"],
+.va-q textarea {
+    width: 100%;
+    font: inherit;
+    font-size: 1rem;
+    color: var(--sb-ink);
+    background: #fbfbfc;
+    border: 1px solid var(--sb-line);
+    border-radius: 14px;
+    padding: 0.85rem 1rem;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.va-q input[type="text"]:hover,
+.va-q textarea:hover {
+    background: #fff;
+    border-color: rgba(0, 0, 0, 0.16);
+}
+
+.va-q input[type="text"]:focus,
+.va-q textarea:focus {
+    background: #fff;
+    border-color: var(--sb-accent);
+    box-shadow: 0 0 0 4px var(--sb-focus);
+}
+
+.va-rating-row {
+    display: flex;
+    gap: 0.6rem;
+}
+
+.va-rating-pill {
+    flex: 1;
+    aspect-ratio: 1;
+    max-width: 3.6rem;
+    border-radius: 50%;
+    border: 1.5px solid var(--sb-line);
+    background: #fbfbfc;
+    color: var(--sb-ink);
+    font: inherit;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+.va-rating-pill:hover {
+    border-color: var(--sb-accent);
+    transform: translateY(-1px);
+}
+
+.va-rating-pill.is-selected {
+    background: var(--sb-accent);
+    border-color: var(--sb-accent);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(0, 113, 227, 0.28);
+    transform: translateY(-1px);
+}
+
+.va-scale-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.va-scale-pill {
+    flex: 1;
+    min-width: 5.2rem;
+    border-radius: 12px;
+    border: 1.5px solid var(--sb-line);
+    background: #fbfbfc;
+    color: var(--sb-ink);
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 500;
+    padding: 0.7rem 0.5rem;
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+.va-scale-pill:hover {
+    border-color: var(--sb-accent);
+}
+
+.va-scale-pill.is-selected {
+    background: var(--sb-accent);
+    border-color: var(--sb-accent);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(0, 113, 227, 0.28);
+}
+
+.va-thanks-line {
+    color: var(--sb-accent) !important;
+    font-weight: 500;
+}
+
+.va-thanks-check {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    background: #1a8a4f;
+    color: #fff;
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.1rem;
+    box-shadow: 0 10px 26px rgba(26, 138, 79, 0.28);
+}
+
+@media (max-width: 480px) {
+    .va-rating-pill { max-width: 3rem; font-size: 0.92rem; }
+    .va-scale-pill { min-width: 4.2rem; font-size: 0.78rem; padding: 0.6rem 0.3rem; }
+    .va-q { padding: 1.2rem 1.1rem; }
+}

@@ -36,6 +36,7 @@ from . import ai_views
 from . import dershane_program_views
 from . import yemekci_views
 from . import sinav_basvuru_views
+from . import veli_anketi_views
 from . import ziyaret_arac_views
 from . import views
 from .auth_views import PanelLoginView
@@ -58,6 +59,17 @@ urlpatterns = [
         "sinav-basvuru/tesekkur/",
         sinav_basvuru_views.sinav_basvuru_tesekkur,
         name="sinav_basvuru_tesekkur",
+    ),
+
+    path(
+        "veli-anketi/",
+        veli_anketi_views.veli_anketi_form,
+        name="veli_anketi_form",
+    ),
+    path(
+        "veli-anketi/tesekkur/",
+        veli_anketi_views.veli_anketi_tesekkur,
+        name="veli_anketi_tesekkur",
     ),
 
     path("cikis/", auth_views.LogoutView.as_view(), name="logout"),

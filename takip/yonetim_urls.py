@@ -17,6 +17,7 @@ from . import aidat_yonetim_views
 from . import veli_randevu_yonetim_views
 from . import sinav_basvuru_yonetim_views
 from . import sinav_basvuru_mesaj_yonetim_views
+from . import veli_anketi_yonetim_views
 from . import yonetim_hizli_kayit_views
 from . import idareci_views
 from . import personel_toplanti_views
@@ -651,6 +652,16 @@ urlpatterns = [
         "sinav-basvuru-mesaj-anlari/",
         sinav_basvuru_mesaj_yonetim_views.mesaj_an_listesi,
         name="sinav_basvuru_mesaj_an_listesi",
+    ),
+    path(
+        "veli-anketi/",
+        veli_anketi_yonetim_views.veli_anketi_listesi,
+        name="veli_anketi_listesi",
+    ),
+    path(
+        "veli-anketi/excel/",
+        veli_anketi_yonetim_views.veli_anketi_excel,
+        name="veli_anketi_excel",
     ),
     path(
         "sinav-basvuru-mesaj-anlari/<int:pk>/",

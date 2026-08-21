@@ -2295,6 +2295,7 @@ from takip.sinav_basvuru_models import (  # noqa: E402,F401
     SinavBasvuru,
     SinavBasvuruDurum,
 )
+from takip.veli_anketi_models import VeliAnketCevap  # noqa: E402,F401
 from takip.sinav_basvuru_mesaj_models import (  # noqa: E402,F401
     SinavBasvuruMesajLog,
     SinavBasvuruMesajSablon,
