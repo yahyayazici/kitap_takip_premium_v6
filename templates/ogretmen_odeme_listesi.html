@@ -19,25 +19,64 @@
     </div>
 </header>
 
+{% if pencere_yonetebilir %}
+<section class="dashboard-card oo-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">YÖNETİCİ</p>
+            <h2>Aktif Ödeme Dönemi</h2>
+        </div>
+    </div>
+    {% if aktif_pencere %}
+    <p class="muted">
+        Şu an aktif: <strong>{{ aktif_pencere.baslangic|date:"d.m.Y" }} – {{ aktif_pencere.bitis|date:"d.m.Y" }}</strong>.
+        Öğretmenler ders saatini bu aralık için girer. Aralığı ileri tarihe uzatmak için bitiş tarihini değiştirip güncelleyin;
+        tamamen yeni bir dönem başlatmak için farklı bir başlangıç tarihi seçin (eski dönem kaydı olduğu gibi korunur).
+    </p>
+    {% else %}
+    <p class="muted">Henüz aktif bir dönem penceresi ayarlanmadı. Öğretmenler ders saati giremeden önce bir tarih aralığı belirleyin.</p>
+    {% endif %}
+    <form method="post" class="oo-create-form">
+        {% csrf_token %}
+        <input type="hidden" name="islem" value="pencere_guncelle">
+        {% if pencere_form.non_field_errors %}
+        <p class="form-error">{{ pencere_form.non_field_errors.0 }}</p>
+        {% endif %}
+        <div class="oo-form-grid">
+            <label>{{ pencere_form.baslangic.label }}{{ pencere_form.baslangic }}</label>
+            <label>{{ pencere_form.bitis.label }}{{ pencere_form.bitis }}</label>
+        </div>
+        <div class="oo-form-actions">
+            <button type="submit" class="primary-btn">Pencereyi Güncelle</button>
+        </div>
+    </form>
+</section>
+{% endif %}
+
 {% if girebilir and olustur_form %}
 <section class="dashboard-card oo-card">
     <div class="card-heading">
         <div>
-            <p class="card-kicker">YENİ DÖNEM</p>
-            <h2>Ödeme Girişi</h2>
+            <p class="card-kicker">DERS SAATİ GİRİŞİ</p>
+            <h2>Öğretmen Seç</h2>
         </div>
     </div>
+    {% if aktif_pencere %}
+    <p class="muted">Aktif dönem: <strong>{{ aktif_pencere.baslangic|date:"d.m.Y" }} – {{ aktif_pencere.bitis|date:"d.m.Y" }}</strong>. Öğretmeni seçin, tablo bu tarih aralığı için açılır.</p>
+    {% else %}
+    <p class="muted">Aktif bir dönem penceresi olmadığı için tablo açılamıyor — yöneticinin tarih aralığı belirlemesi gerekiyor.</p>
+    {% endif %}
     <form method="post" class="oo-create-form">
         {% csrf_token %}
         <input type="hidden" name="islem" value="olustur">
+        {% if olustur_form.non_field_errors %}
+        <p class="form-error">{{ olustur_form.non_field_errors.0 }}</p>
+        {% endif %}
         <div class="oo-form-grid">
             <label>{{ olustur_form.etut_hocasi.label }}{{ olustur_form.etut_hocasi }}</label>
-            <label>{{ olustur_form.baslangic.label }}{{ olustur_form.baslangic }}</label>
-            <label>{{ olustur_form.bitis.label }}{{ olustur_form.bitis }}</label>
         </div>
-        <label class="oo-full">{{ olustur_form.notlar.label }}{{ olustur_form.notlar }}</label>
         <div class="oo-form-actions">
-            <button type="submit" class="primary-btn">Tabloyu Oluştur</button>
+            <button type="submit" class="primary-btn" {% if not aktif_pencere %}disabled{% endif %}>Tabloyu Aç</button>
         </div>
     </form>
 </section>

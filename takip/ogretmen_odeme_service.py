@@ -15,6 +15,7 @@ from django.utils import timezone
 
 from takip.models import EtutHocasi, SinifSube
 from takip.ogretmen_odeme_models import (
+    OgretmenOdemeAktifDonem,
     OgretmenOdemeDersKaydi,
     OgretmenOdemeDonemi,
     OgretmenOdemeGunKaydi,
@@ -47,6 +48,11 @@ def ogretmen_odeme_girebilir(user: User) -> bool:
 
 def ogretmen_odeme_silebilir(user: User) -> bool:
     return can(user, "ogretmen_odeme", "delete")
+
+
+def aktif_donem_penceresi_yonetebilir(user: User) -> bool:
+    """Ödeme dönemi penceresini (başlangıç/bitiş) yalnızca tam kapsamlı roller yönetir."""
+    return odeme_tam_kapsam_var(user)
 
 
 def _yuvarla_saat(deger: Decimal) -> Decimal:
@@ -184,6 +190,117 @@ def donem_olustur(
             for tarih in _tarih_araligi(baslangic, bitis)
         ]
     )
+    return donem
+
+
+def aktif_donem_penceresi() -> OgretmenOdemeAktifDonem | None:
+    """Sistem geneli tek aktif ödeme penceresi. Henüz ayarlanmadıysa None döner."""
+    return OgretmenOdemeAktifDonem.objects.filter(pk=1).first()
+
+
+@transaction.atomic
+def aktif_donem_penceresi_guncelle(
+    *, baslangic: date, bitis: date, user: User
+) -> tuple[OgretmenOdemeAktifDonem, str]:
+    """Yöneticinin aktif dönem penceresini güncellemesi.
+
+    Var olan veriye asla dokunmaz / silmez:
+    - Pencerenin başlangıcı aynı kalıp yalnızca bitişi ileri alınırsa, bu
+      başlangıç-bitişle eşleşen mevcut dönemler (her öğretmen için) YERİNDE
+      genişletilir: eksik gün kayıtları eklenir, dönemin bitişi güncellenir.
+    - Başlangıç değişiyorsa (yeni bir dönem açılıyorsa), önceki dönemlere
+      dokunulmaz; onlar geçmiş kayıt olarak öylece kalır. Yeni pencere,
+      kapanan pencereyle takvim olarak çakışmamalı (çakışırsa reddedilir),
+      aksi halde aynı gün iki ayrı dönemde girilip çift sayılabilir.
+    """
+    if bitis < baslangic:
+        raise ValueError("Bitiş tarihi başlangıçtan önce olamaz.")
+
+    mevcut = aktif_donem_penceresi()
+
+    if mevcut is None:
+        pencere = OgretmenOdemeAktifDonem.objects.create(
+            baslangic=baslangic, bitis=bitis, guncelleyen=user
+        )
+        return pencere, "Aktif dönem penceresi oluşturuldu."
+
+    if baslangic == mevcut.baslangic and bitis == mevcut.bitis:
+        return mevcut, "Değişiklik yok."
+
+    if baslangic == mevcut.baslangic and bitis > mevcut.bitis:
+        eski_bitis = mevcut.bitis
+        donemler = OgretmenOdemeDonemi.objects.filter(
+            baslangic=mevcut.baslangic, bitis=eski_bitis
+        )
+        genisletilen = 0
+        for donem in donemler:
+            mevcut_tarihler = set(donem.gunler.values_list("tarih", flat=True))
+            yeni_gunler = [
+                OgretmenOdemeGunKaydi(donem=donem, tarih=tarih)
+                for tarih in _tarih_araligi(eski_bitis + timedelta(days=1), bitis)
+                if tarih not in mevcut_tarihler
+            ]
+            if yeni_gunler:
+                OgretmenOdemeGunKaydi.objects.bulk_create(yeni_gunler)
+            donem.bitis = bitis
+            donem.save(update_fields=["bitis"])
+            genisletilen += 1
+        mevcut.bitis = bitis
+        mevcut.guncelleyen = user
+        mevcut.save(update_fields=["bitis", "guncelleyen", "guncellendi"])
+        return mevcut, f"Dönem genişletildi ({genisletilen} öğretmen kaydı güncellendi)."
+
+    if baslangic == mevcut.baslangic and bitis < mevcut.bitis:
+        raise ValueError(
+            "Bitiş tarihini geriye alamazsınız — bu, o tarihlerde zaten girilmiş "
+            "verinin görünmez olmasına yol açar. Yalnızca ileri tarihe uzatabilir "
+            "veya farklı bir başlangıç tarihiyle yeni bir dönem açabilirsiniz."
+        )
+
+    if baslangic <= mevcut.bitis:
+        raise ValueError(
+            "Yeni dönem başlangıcı, mevcut aktif dönemin bitişiyle çakışıyor "
+            f"({mevcut.bitis:%d.%m.%Y}). Aynı başlangıçla yalnızca bitişi "
+            "uzatabilir ya da mevcut bitişten sonraki bir tarihten başlayan "
+            "yeni bir dönem açabilirsiniz."
+        )
+
+    mevcut.baslangic = baslangic
+    mevcut.bitis = bitis
+    mevcut.guncelleyen = user
+    mevcut.save(update_fields=["baslangic", "bitis", "guncelleyen", "guncellendi"])
+    return mevcut, "Yeni dönem penceresi açıldı (önceki dönem kayıtları korunuyor)."
+
+
+def donem_ac_veya_olustur(
+    *, etut_hocasi: EtutHocasi, user: User
+) -> OgretmenOdemeDonemi | None:
+    """Aktif pencere için bu öğretmenin dönemini getirir, yoksa oluşturur.
+
+    Aynı öğretmen + aynı (başlangıç, bitiş) için ikinci bir dönem asla
+    oluşturulmaz — get_or_create bunu garanti eder.
+    """
+    pencere = aktif_donem_penceresi()
+    if pencere is None:
+        return None
+
+    donem, created = OgretmenOdemeDonemi.objects.get_or_create(
+        etut_hocasi=etut_hocasi,
+        baslangic=pencere.baslangic,
+        bitis=pencere.bitis,
+        defaults={
+            "saatlik_ucret": ogretmen_profili(etut_hocasi).saatlik_ucret,
+            "olusturan": user,
+            "son_duzenleyen": user,
+        },
+    )
+    if created:
+        OgretmenOdemeGunKaydi.objects.bulk_create(
+            [
+                OgretmenOdemeGunKaydi(donem=donem, tarih=tarih)
+                for tarih in _tarih_araligi(pencere.baslangic, pencere.bitis)
+            ]
+        )
     return donem
 
 

@@ -9,12 +9,15 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 
 from config.branding import panel_branding_context
-from takip.forms import OgretmenOdemeDonemForm
+from takip.forms import OgretmenOdemeAktifPencereForm, OgretmenOdemeOgretmenSecForm
 from takip.ogretmen_odeme_service import (
+    aktif_donem_penceresi,
+    aktif_donem_penceresi_guncelle,
+    aktif_donem_penceresi_yonetebilir,
+    donem_ac_veya_olustur,
     donem_detay_verisi,
     donem_kaydet,
     donem_matris_verisi,
-    donem_olustur,
     odeme_tam_kapsam_var,
     ogretmen_odeme_finans_gorebilir,
     ogretmen_odeme_girebilir,
@@ -42,6 +45,8 @@ def _ortak_sayfa_verisi(user):
         "branslar": Brans.objects.filter(aktif=True).order_by("sira", "ad"),
         "ogretmenler": yetkili_odeme_ogretmenleri(user),
         "tam_kapsam": odeme_tam_kapsam_var(user),
+        "aktif_pencere": aktif_donem_penceresi(),
+        "pencere_yonetebilir": aktif_donem_penceresi_yonetebilir(user),
     }
 
 
@@ -55,26 +60,57 @@ def _izinli_sinif_ids(user) -> set[int] | None:
 @require_permission("ogretmen_odeme", "view")
 def ogretmen_odeme_listesi(request):
     olustur_form = None
-    if ogretmen_odeme_girebilir(request.user):
-        if request.method == "POST" and request.POST.get("islem") == "olustur":
-            olustur_form = OgretmenOdemeDonemForm(request.POST, user=request.user)
-            if olustur_form.is_valid():
-                donem = donem_olustur(
-                    etut_hocasi=olustur_form.cleaned_data["etut_hocasi"],
-                    baslangic=olustur_form.cleaned_data["baslangic"],
-                    bitis=olustur_form.cleaned_data["bitis"],
+    pencere_form = None
+    girebilir = ogretmen_odeme_girebilir(request.user)
+    yonetebilir = aktif_donem_penceresi_yonetebilir(request.user)
+
+    if request.method == "POST" and request.POST.get("islem") == "pencere_guncelle" and yonetebilir:
+        pencere_form = OgretmenOdemeAktifPencereForm(request.POST)
+        if pencere_form.is_valid():
+            try:
+                _, mesaj = aktif_donem_penceresi_guncelle(
+                    baslangic=pencere_form.cleaned_data["baslangic"],
+                    bitis=pencere_form.cleaned_data["bitis"],
                     user=request.user,
-                    notlar=olustur_form.cleaned_data.get("notlar", ""),
                 )
-                messages.success(request, "Ödeme dönemi oluşturuldu.")
-                return redirect("ogretmen_odeme_detay", pk=donem.pk)
+                messages.success(request, mesaj)
+                return redirect("ogretmen_odeme_listesi")
+            except ValueError as exc:
+                pencere_form.add_error(None, str(exc))
+
+    if girebilir:
+        if request.method == "POST" and request.POST.get("islem") == "olustur":
+            olustur_form = OgretmenOdemeOgretmenSecForm(request.POST, user=request.user)
+            if olustur_form.is_valid():
+                if aktif_donem_penceresi() is None:
+                    olustur_form.add_error(
+                        None,
+                        "Aktif ödeme dönemi penceresi henüz ayarlanmamış. "
+                        "Önce yönetici tarih aralığını belirlemeli.",
+                    )
+                else:
+                    donem = donem_ac_veya_olustur(
+                        etut_hocasi=olustur_form.cleaned_data["etut_hocasi"],
+                        user=request.user,
+                    )
+                    return redirect("ogretmen_odeme_detay", pk=donem.pk)
         else:
-            olustur_form = OgretmenOdemeDonemForm(user=request.user)
+            olustur_form = OgretmenOdemeOgretmenSecForm(user=request.user)
+
+    if pencere_form is None and yonetebilir:
+        aktif = aktif_donem_penceresi()
+        pencere_form = OgretmenOdemeAktifPencereForm(
+            initial={
+                "baslangic": aktif.baslangic if aktif else None,
+                "bitis": aktif.bitis if aktif else None,
+            }
+        )
 
     donemler = yetkili_odeme_donemleri(request.user).order_by("-baslangic", "-id")[:100]
     ctx = {
         "donemler": donemler,
         "olustur_form": olustur_form,
+        "pencere_form": pencere_form,
         **_ortak_sayfa_verisi(request.user),
     }
     return render(request, "ogretmen_odeme_listesi.html", ctx)

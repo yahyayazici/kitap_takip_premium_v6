@@ -788,6 +788,65 @@ class OgretmenOdemeDonemForm(forms.Form):
         return cleaned
 
 
+class OgretmenOdemeOgretmenSecForm(forms.Form):
+    """Ödeme girişi: yalnızca öğretmen seçilir — tablo aktif dönem penceresinden gelir."""
+
+    etut_hocasi = forms.ModelChoiceField(
+        queryset=None,
+        label="Öğretmen",
+        widget=forms.Select(attrs={"class": "input"}),
+    )
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        from takip.ogretmen_odeme_service import yetkili_odeme_ogretmenleri
+
+        self.user = user
+        if user is not None:
+            self.fields["etut_hocasi"].queryset = yetkili_odeme_ogretmenleri(
+                user,
+                olusturma_icin=True,
+            )
+        else:
+            from takip.ogretmen_odeme_service import aktif_ogretmenler
+
+            self.fields["etut_hocasi"].queryset = aktif_ogretmenler()
+
+    def clean(self):
+        cleaned = super().clean()
+        hoca = cleaned.get("etut_hocasi")
+        if self.user is not None and hoca is not None:
+            from takip.ogretmen_odeme_service import yetkili_odeme_ogretmenleri
+
+            if not yetkili_odeme_ogretmenleri(
+                self.user,
+                olusturma_icin=True,
+            ).filter(pk=hoca.pk).exists():
+                self.add_error("etut_hocasi", "Bu öğretmen için kayıt oluşturamazsınız.")
+        return cleaned
+
+
+class OgretmenOdemeAktifPencereForm(forms.Form):
+    """Yönetici: sistem geneli aktif ödeme dönemi penceresini belirler."""
+
+    baslangic = forms.DateField(
+        label="Başlangıç",
+        widget=forms.DateInput(attrs={"class": "input", "type": "date"}, format="%Y-%m-%d"),
+    )
+    bitis = forms.DateField(
+        label="Bitiş",
+        widget=forms.DateInput(attrs={"class": "input", "type": "date"}, format="%Y-%m-%d"),
+    )
+
+    def clean(self):
+        cleaned = super().clean()
+        baslangic = cleaned.get("baslangic")
+        bitis = cleaned.get("bitis")
+        if baslangic and bitis and bitis < baslangic:
+            self.add_error("bitis", "Bitiş tarihi başlangıçtan önce olamaz.")
+        return cleaned
+
+
 class MezuniyetIslemForm(StyledModelForm):
     talebe = forms.ModelChoiceField(
         queryset=Talebe.objects.none(),

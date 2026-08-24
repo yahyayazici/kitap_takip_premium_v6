@@ -92,6 +92,37 @@ class OgretmenOdemeDonemi(TimeStampedModel):
         )
 
 
+class OgretmenOdemeAktifDonem(models.Model):
+    """Sistem geneli tek aktif ödeme penceresi — yönetici tarafından belirlenir.
+
+    Öğretmen ödeme girişinde artık kullanıcı tarih aralığı seçmez; herkes
+    bu pencerenin tarihleri üzerinden çalışır. Singleton: her zaman pk=1.
+    """
+
+    baslangic = models.DateField(verbose_name="Başlangıç")
+    bitis = models.DateField(verbose_name="Bitiş")
+    guncelleyen = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name="Güncelleyen",
+    )
+    guncellendi = models.DateTimeField(auto_now=True, verbose_name="Güncellendi")
+
+    class Meta:
+        verbose_name = "Aktif ödeme dönemi penceresi"
+        verbose_name_plural = "Aktif ödeme dönemi penceresi"
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return f"Aktif dönem · {self.baslangic:%d.%m.%Y} – {self.bitis:%d.%m.%Y}"
+
+
 class OgretmenOdemeGunKaydi(models.Model):
     donem = models.ForeignKey(
         OgretmenOdemeDonemi,
