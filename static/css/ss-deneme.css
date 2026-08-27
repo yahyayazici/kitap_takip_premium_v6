@@ -92,6 +92,7 @@
     border: 1px solid var(--cs-border);
     border-radius: var(--cs-radius-lg);
     background: var(--cs-surface);
+    box-shadow: 0 1px 2px rgba(15, 32, 60, 0.04), 0 12px 28px rgba(15, 32, 60, 0.05);
 }
 
 .ss-grid,
@@ -107,11 +108,15 @@
 .ss-grid td,
 .ss-rank th,
 .ss-rank td {
-    border-bottom: 1px solid var(--cs-border);
-    border-right: 1px solid var(--cs-border-subtle);
-    padding: 6px 5px;
+    border-bottom: 1px solid var(--cs-border-subtle);
+    padding: 8px 6px;
     text-align: center;
     white-space: nowrap;
+}
+
+.ss-grid tbody td:nth-child(3n + 2),
+.ss-grid thead th.ss-ders-h {
+    border-left: 1px solid var(--cs-border);
 }
 
 .ss-name-col,
@@ -131,20 +136,22 @@
     color: #fff;
     font-weight: 600;
     font-size: 11px;
+    border-bottom-color: rgba(255, 255, 255, 0.14);
 }
 
 .ss-bolum-sozel { background: #163a73; }
 .ss-bolum-sayisal { background: #1f5a9e; }
 .ss-ders-h small { opacity: 0.75; font-weight: 500; }
-.ss-dyb th { font-size: 10px; font-weight: 500; }
+.ss-dyb th { font-size: 10px; font-weight: 500; color: rgba(255, 255, 255, 0.72); }
 
 .ss-in {
     width: 42px;
     min-height: 36px;
     text-align: center;
     border: 1px solid var(--cs-border);
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 16px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 #ssSonucTable .ss-in {
@@ -156,9 +163,20 @@
     box-sizing: border-box;
 }
 
+#ssSonucTable .ss-in:hover {
+    border-color: var(--cs-border-strong, var(--cs-primary));
+}
+
+#ssSonucTable .ss-in:focus-visible {
+    outline: none;
+    border-color: var(--cs-primary) !important;
+    box-shadow: 0 0 0 3px rgba(21, 66, 127, 0.14);
+}
+
 #ssSonucTable .ss-bos {
     background: var(--cs-surface-muted) !important;
     color: var(--cs-text-muted) !important;
+    border-style: dashed;
 }
 
 .ss-grid tbody tr:nth-child(even) td,
@@ -169,6 +187,14 @@
 .ss-grid tbody tr:nth-child(even) .ss-name-col,
 .ss-rank tbody tr:nth-child(even) td:nth-child(2) {
     background: var(--cs-surface-muted);
+}
+
+.ss-grid tbody tr:hover td {
+    background: rgba(21, 66, 127, 0.045);
+}
+
+.ss-grid tbody tr:hover .ss-name-col {
+    background: rgba(21, 66, 127, 0.045);
 }
 
 .ss-name-col small,
