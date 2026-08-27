@@ -1,4 +1,10 @@
-"""Canlı ortamda (Render Free) admin şifresi ve temel veri — bootstrap."""
+"""Canlı ortamda (Render Free) temel veri — bootstrap.
+
+Admin şifresi sıfırlama artık HTTP üzerinden yapılamaz (eski
+/bootstrap-admin/ endpoint'i kaldırıldı — anahtarı ele geçiren herkes
+admin hesabını devralabiliyordu). Admin şifresi gerekirse Render Shell
+üzerinden `python manage.py reset_admin --password ...` çalıştırın.
+"""
 
 from __future__ import annotations
 
@@ -6,7 +12,6 @@ import io
 import logging
 import os
 
-from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.http import HttpResponse, HttpResponseForbidden
 from django.views.decorators.http import require_GET
@@ -24,41 +29,6 @@ def _bootstrap_key_ok(request) -> bool:
     if not expected_key:
         return False
     return request.GET.get("key", "").strip() == expected_key
-
-
-@require_GET
-def bootstrap_admin(request):
-    """
-    ADMIN_BOOTSTRAP_KEY ve ADMIN_PASSWORD ortam değişkenleri tanımlıysa,
-    doğru key ile admin şifresini sıfırlar.
-
-    Örnek:
-    /bootstrap-admin/?key=GIZLI_ANAHTAR
-    """
-    password = os.environ.get("ADMIN_PASSWORD", "").strip()
-    username = os.environ.get("ADMIN_USERNAME", "admin").strip() or "admin"
-
-    if not os.environ.get("ADMIN_BOOTSTRAP_KEY", "").strip() or not password:
-        return HttpResponseForbidden(
-            "ADMIN_BOOTSTRAP_KEY ve ADMIN_PASSWORD ortam değişkenleri tanımlı değil."
-        )
-
-    if not _bootstrap_key_ok(request):
-        return HttpResponseForbidden("Geçersiz anahtar.")
-
-    user, created = User.objects.get_or_create(username=username)
-    user.is_active = True
-    user.is_staff = True
-    user.is_superuser = True
-    user.set_password(password)
-    user.save()
-
-    action = "oluşturuldu" if created else "güncellendi"
-    return HttpResponse(
-        f"Tamam — '{username}' kullanıcısı {action}. "
-        f"Şimdi /giris/ sayfasından giriş yapabilirsiniz.",
-        content_type="text/plain; charset=utf-8",
-    )
 
 
 @require_GET

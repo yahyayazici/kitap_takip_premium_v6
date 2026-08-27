@@ -1,7 +1,7 @@
 """Admin şifresini sıfırla — canlı ortam (Render) için."""
 
 from django.contrib.auth.models import User
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
 
 class Command(BaseCommand):
@@ -10,8 +10,8 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             "--password",
-            default="Admin123!",
-            help="Yeni şifre (varsayılan: Admin123!)",
+            default="",
+            help="Yeni şifre (zorunlu — güvenlik nedeniyle varsayılan yok).",
         )
         parser.add_argument(
             "--username",
@@ -22,6 +22,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         username = options["username"]
         password = options["password"]
+
+        if not password:
+            raise CommandError(
+                "--password zorunlu (güvenlik nedeniyle varsayılan şifre kaldırıldı)."
+            )
 
         user, created = User.objects.get_or_create(username=username)
         user.is_active = True
