@@ -18,13 +18,13 @@
             Seviye ve takip alanı seçin · Talebe × konu ilerleme işaretleme
             {% endif %}
         </p>
-        <div class="result-header-actions dd-head-actions">
-            {% if seviye and alan %}
-            <a href="{% url 'yonetim:dini_ders_konu_listesi' %}" class="result-secondary-button">Konu Listesini Düzenle</a>
-            {% endif %}
-            <a href="{% url 'dini_ders_rapor' %}{% if seviye and alan %}?seviye={{ seviye.id }}&alan={{ alan.id }}{% endif %}" class="result-secondary-button">Rapor</a>
-            <a href="{% url 'dashboard' %}" class="result-back-button">Ana Sayfa</a>
-        </div>
+    </div>
+    <div class="result-header-actions dd-head-actions">
+        {% if seviye and alan %}
+        <a href="{% url 'yonetim:dini_ders_konu_listesi' %}" class="result-secondary-button">Konu Listesini Düzenle</a>
+        {% endif %}
+        <a href="{% url 'dini_ders_rapor' %}{% if seviye and alan %}?seviye={{ seviye.id }}&alan={{ alan.id }}{% endif %}" class="result-secondary-button">Rapor</a>
+        <a href="{% url 'dashboard' %}" class="result-back-button">Ana Sayfa</a>
     </div>
 </header>
 

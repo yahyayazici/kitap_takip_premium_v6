@@ -182,6 +182,10 @@ body.talebe-body {
 .v3-menu-toggle,
 .yonetim-menu-toggle,
 .talebe-menu-toggle,
+.ogretmen-menu-toggle,
+.veli-menu-toggle,
+#ogretmen-menu-toggle,
+#veli-menu-toggle,
 .bn-bell-btn,
 .v3-user-area .bn-bell-btn,
 .cs-v6-actions .bn-bell-btn,
@@ -316,7 +320,7 @@ body.talebe-body .ghost-btn {
 /* —— Duyuru yarı panel = YÇT boyu (admin / etüt / öğretmen aynı ölçü) —— */
 :root {
     /* Tam kart yüksekliği — YÇT aylık takvim ile hizalı */
-    --cs-duyuru-panel-h: clamp(360px, 42vw, 440px);
+    --cs-duyuru-panel-h: clamp(180px, 22vw, 240px);
 }
 
 .personel-top-split,
@@ -464,6 +468,659 @@ body.talebe-body .ghost-btn {
     border-color: rgba(210, 220, 232, 0.85) !important;
 }
 
+/* —— Sprint 1: header taşmasını kes (dekoratif glow inset -15%) —— */
+.v3-header:before,
+.cs-v6-header:before {
+    inset: 0;
+}
+
+body.v3-body > .v3-header,
+body.yonetim-body > .cs-v6-header,
+body.ogretmen-body > .cs-v6-header,
+body.veli-body > .cs-v6-header,
+body.talebe-body > .cs-v6-header {
+    width: 100%;
+    max-width: 100%;
+    contain: inline-size;
+}
+
+.v3-header-inner,
+.cs-v6-inner {
+    max-width: 100%;
+    min-width: 0;
+}
+
+.v3-nav,
+.yonetim-v6-header .cs-v6-nav {
+    min-width: 0;
+}
+
+@media (max-width: 1400px) {
+    .yonetim-site-link {
+        display: none;
+    }
+
+    .v3-user-area .v3-logout-mobile,
+    .cs-v6-actions .v3-logout-mobile,
+    .yonetim-v6-actions .v3-logout-mobile {
+        height: auto;
+        min-width: var(--cs-touch-min);
+        min-height: var(--cs-touch-min);
+    }
+}
+
+/* —— Sprint 1: yoğun CRUD tablosu — kart değil, wrap içi kaydırma —— */
+.cs-table-dense {
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: clip;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.cs-table-dense table {
+    width: max-content;
+    min-width: 100%;
+}
+
+.cs-table-dense thead th,
+.cs-table-dense tbody td {
+    white-space: nowrap;
+}
+
+.cs-table-dense .yonetim-action-group {
+    flex-wrap: nowrap;
+}
+
+/* —— Sprint 1: toolbar / arama sığsın —— */
+.yonetim-toolbar {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.yonetim-search {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: var(--cs-space-2);
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    flex: 1 1 100%;
+}
+
+.yonetim-search input[type="search"],
+.yonetim-search input[name="q"] {
+    flex: 1 1 12rem;
+    min-width: 12rem;
+    width: auto;
+    max-width: 100%;
+}
+
+.yonetim-search select.yonetim-input,
+.yonetim-search .yonetim-search-btn {
+    flex: 0 1 auto;
+}
+
+@media (max-width: 640px) {
+    .yonetim-search input[type="search"],
+    .yonetim-search input[name="q"] {
+        flex: 1 1 100%;
+        min-width: 100%;
+        width: 100%;
+    }
+
+    .yonetim-search select.yonetim-input,
+    .yonetim-search .yonetim-search-btn {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .page-head-actions,
+    .yonetim-page-head-actions {
+        display: flex;
+        flex-wrap: wrap;
+        width: 100%;
+        gap: var(--cs-space-2);
+    }
+}
+
+/* —— Sprint 1: iOS zoom — panel-unified !important font-size token'ı 16px —— */
+@media (max-width: 900px) {
+    body.v3-body,
+    body.yonetim-body,
+    .yonetim-page {
+        --panel-input-font: 16px;
+    }
+
+    input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="file"]):not([type="range"]):not([type="color"]),
+    select,
+    textarea,
+    .yonetim-input,
+    .yonetim-search input,
+    .yonetim-search select,
+    .yonetim-field input,
+    .yonetim-field select,
+    .yonetim-field textarea {
+        font-size: 16px;
+    }
+}
+
+/* —— Sprint 2: page / section / card title hierarchy (token) —— */
+.dash-hero h1,
+.dash-hero-copy h1,
+.dash-home .welcome-panel h1,
+.welcome-panel h1,
+.page-head h1,
+.patterned-page-head h1,
+.yonetim-page-head h1,
+.ogretmen-page-head h1,
+.at-page-head h1,
+.ktt-page-head h1 {
+    font-size: var(--cs-font-page-title) !important;
+}
+
+.dash-panel-head h2 {
+    font-size: var(--cs-font-section);
+}
+
+.personel-ozel-card h2,
+.personel-yct-head h2 {
+    font-size: var(--cs-font-card-title) !important;
+}
+
+/* —— Sprint 2: page-head — desktop row, tablet wrap, phone stack —— */
+.page-head,
+.patterned-page-head,
+.yonetim-page-head,
+.ogretmen-page-head,
+.at-page-head,
+.ktt-page-head,
+.exam-page-head,
+.ny-head {
+    align-items: flex-start !important;
+}
+
+.page-head-actions,
+.yonetim-page-head-actions,
+.at-page-head-actions,
+.ny-head-actions,
+.result-header-actions,
+.dd-head-actions {
+    margin-left: auto;
+    flex: 0 1 auto;
+    max-width: 100%;
+}
+
+.page-head-actions > a,
+.page-head-actions > button,
+.yonetim-page-head-actions > a,
+.yonetim-page-head-actions > button,
+.yonetim-page-head-actions > .yonetim-head-ghost {
+    min-height: var(--cs-touch-min);
+}
+
+@media (max-width: 900px) and (min-width: 641px) {
+    .page-head,
+    .patterned-page-head,
+    .yonetim-page-head,
+    .ogretmen-page-head,
+    .at-page-head,
+    .ktt-page-head,
+    .exam-page-head {
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        align-items: flex-start !important;
+    }
+
+    .page-head-actions,
+    .yonetim-page-head-actions,
+    .result-header-actions,
+    .dd-head-actions {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        width: auto;
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 640px) {
+    .page-head,
+    .patterned-page-head,
+    .yonetim-page-head,
+    .ogretmen-page-head,
+    .at-page-head,
+    .ktt-page-head,
+    .exam-page-head,
+    .ny-head {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    .page-head-actions,
+    .yonetim-page-head-actions,
+    .at-page-head-actions,
+    .ny-head-actions,
+    .result-header-actions,
+    .dd-head-actions {
+        width: 100%;
+        margin-left: 0;
+        justify-content: flex-start;
+        gap: var(--cs-space-2);
+    }
+
+    .page-head-actions > a,
+    .page-head-actions > button,
+    .yonetim-page-head-actions > a,
+    .yonetim-page-head-actions > button {
+        min-height: var(--cs-touch-min);
+        flex: 1 1 auto;
+    }
+}
+
+/* Nested hero heads (phase8 column) — desktop/tablet: title | actions */
+@media (min-width: 641px) {
+    .tl-page .tl-page-head.patterned-page-head,
+    .dd-page .dd-page-head.patterned-page-head {
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        align-items: flex-start !important;
+        justify-content: space-between !important;
+    }
+
+    .tl-page .tl-head-main,
+    .dd-page .dd-head-main {
+        width: auto !important;
+        flex: 1 1 16rem;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .tl-page .tl-head-actions,
+    .dd-page .dd-head-actions {
+        width: auto !important;
+        margin-top: 0 !important;
+        margin-left: auto;
+        justify-content: flex-end !important;
+    }
+}
+
+/* ============================================================
+   Sprint 3 — Canonical CS components (alias-first)
+   HTML class sözleşmesi korunur; görsel davranış merkezî.
+   İstisna: .ep-btn-xs (yoğun tablo ikon silme)
+   ============================================================ */
+
+/* —— Button —— */
+.cs-btn,
+.cs-btn-primary,
+.cs-btn-secondary,
+.cs-btn-ghost,
+.cs-btn-danger,
+.primary-btn,
+.btn-primary,
+.ghost-btn,
+.btn-ghost,
+.btn-danger,
+.small-button,
+.yonetim-head-ghost,
+.yonetim-action-btn,
+.ep-btn,
+.dp-btn,
+.dd-btn,
+.fn-btn,
+.tz-btn,
+.dk-btn,
+.rh-btn,
+.mz-btn,
+.im-btn,
+.result-primary-button,
+.result-secondary-button,
+.result-back-button,
+.ktt-outline-btn,
+.ktt-create-btn {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--cs-btn-gap, var(--cs-space-2));
+    min-height: var(--cs-btn-h);
+    padding-inline: var(--cs-btn-pad-x, 18px);
+    border-radius: var(--cs-radius-md);
+    font-weight: var(--cs-btn-weight, 600);
+    line-height: 1.2;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background var(--cs-transition), border-color var(--cs-transition), color var(--cs-transition), box-shadow var(--cs-transition);
+}
+
+.cs-btn:hover,
+.primary-btn:hover,
+.ghost-btn:hover,
+.ep-btn:hover,
+.dp-btn:hover,
+.dd-btn:hover,
+.fn-btn:hover,
+.tz-btn:hover,
+.dk-btn:hover {
+    transform: none;
+}
+
+.cs-btn:focus-visible,
+.cs-btn-primary:focus-visible,
+.cs-btn-secondary:focus-visible,
+.cs-btn-ghost:focus-visible,
+.cs-btn-danger:focus-visible,
+.primary-btn:focus-visible,
+.btn-primary:focus-visible,
+.ghost-btn:focus-visible,
+.btn-ghost:focus-visible,
+.btn-danger:focus-visible,
+.yonetim-head-ghost:focus-visible,
+.ep-btn:focus-visible,
+.dp-btn:focus-visible,
+.dd-btn:focus-visible,
+.fn-btn:focus-visible,
+.tz-btn:focus-visible,
+.dk-btn:focus-visible {
+    outline: none;
+    box-shadow: var(--cs-shadow-focus);
+}
+
+.cs-btn:disabled,
+.primary-btn:disabled,
+.ghost-btn:disabled,
+.btn-danger:disabled,
+.ep-btn:disabled,
+.dp-btn:disabled,
+.dd-btn:disabled,
+button:disabled.primary-btn,
+button:disabled.ghost-btn {
+    opacity: 0.48;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.cs-btn-primary,
+.primary-btn,
+.btn-primary,
+.ep-btn-primary,
+.dp-btn-primary,
+.dd-btn-primary,
+.tz-btn-primary,
+.result-primary-button,
+.ktt-create-btn {
+    color: var(--cs-text-inverse);
+    background: linear-gradient(135deg, var(--cs-accent), var(--cs-primary-mid));
+    border: 1px solid transparent;
+}
+
+.cs-btn-secondary,
+.cs-btn-ghost,
+.ghost-btn,
+.btn-ghost,
+.yonetim-head-ghost,
+.small-button,
+.ep-btn-ghost,
+.dp-btn-ghost,
+.dd-btn:not(.dd-btn-primary),
+.result-secondary-button,
+.result-back-button,
+.ktt-outline-btn {
+    color: var(--cs-text-primary);
+    background: var(--cs-surface);
+    border: 1px solid var(--cs-border);
+}
+
+.cs-btn-danger,
+.btn-danger,
+.yonetim-action-btn-danger,
+.tz-btn-danger {
+    color: var(--cs-danger);
+    background: var(--cs-danger-bg);
+    border: 1px solid var(--cs-danger);
+}
+
+/* Yoğun tablo içi ikon silme — 44px zorunlu değil */
+.ep-btn-xs,
+.ep-page .ep-btn-xs {
+    min-height: 28px;
+    min-width: 28px;
+    padding: 0 6px;
+}
+
+.ep-page .ep-btn-sm {
+    min-height: var(--cs-btn-h) !important;
+}
+
+/* —— Form / search —— */
+.cs-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cs-space-2);
+    min-width: 0;
+}
+
+.cs-input,
+.cs-select,
+.cs-search,
+.yonetim-input,
+.ep-input,
+.fn-select,
+.search-box input,
+.yonetim-search input[type="search"],
+.yonetim-search input[name="q"] {
+    box-sizing: border-box;
+    min-height: var(--cs-input-h);
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-md);
+    background: var(--cs-surface);
+    color: var(--cs-text-primary);
+    font-family: var(--cs-font);
+}
+
+.cs-input:focus-visible,
+.cs-select:focus-visible,
+.cs-search:focus-visible,
+.yonetim-input:focus-visible,
+.ep-input:focus-visible,
+.search-box input:focus-visible,
+.yonetim-search input:focus-visible,
+.yonetim-field-control input:focus-visible,
+.yonetim-field-control select:focus-visible,
+.yonetim-field-control textarea:focus-visible {
+    outline: none;
+    border-color: var(--cs-accent);
+    box-shadow: var(--cs-shadow-focus);
+}
+
+.cs-input:disabled,
+.cs-select:disabled,
+.yonetim-input:disabled,
+.ep-input:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    background: var(--cs-surface-muted);
+}
+
+.cs-input::placeholder,
+.search-box input::placeholder,
+.yonetim-search input::placeholder {
+    color: var(--cs-text-muted);
+}
+
+.cs-toolbar,
+.yonetim-toolbar,
+.ep-actions,
+.dd-actions,
+.dp-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--cs-space-2);
+}
+
+/* —— Table —— */
+.cs-table-wrap,
+.yonetim-table-wrap {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.cs-table-wrap.cs-table-dense,
+.yonetim-table-wrap.cs-table-dense,
+.responsive-table.cs-table-dense {
+    overflow-x: auto;
+    overflow-y: clip;
+}
+
+.cs-table,
+.yonetim-data-table,
+.report-data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* —— Card / surface —— */
+.cs-card,
+.cs-surface,
+.dashboard-card,
+.report-table-card,
+.yonetim-table-card,
+.yonetim-form-card,
+.ep-card,
+.dd-card {
+    background: var(--cs-surface);
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-lg);
+    box-shadow: var(--cs-shadow-sm);
+}
+
+/* —— Page head: operational vs hero —— */
+.cs-page-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--cs-space-4);
+    padding: var(--cs-space-5) var(--cs-space-6);
+    margin: 0 0 var(--cs-section-gap);
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-xl);
+    background: var(--cs-surface);
+    box-shadow: var(--cs-shadow-sm);
+    color: var(--cs-text-primary);
+}
+
+.cs-page-title,
+.page-head h1,
+.yonetim-page-head h1,
+.patterned-page-head h1 {
+    font-size: var(--cs-font-page-title);
+}
+
+.cs-page-subtitle,
+.page-head .muted,
+.yonetim-page-head .muted {
+    color: var(--cs-text-secondary);
+}
+
+.cs-page-actions,
+.page-head-actions,
+.yonetim-page-head-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--cs-space-2);
+}
+
+.cs-page-head--hero,
+.dash-hero,
+.welcome-panel {
+    /* feature hero — navy surface lives in panel-unified; layout from Sprint 2 */
+}
+
+/* —— Badge / status —— */
+.cs-badge,
+.cs-status,
+.ep-badge,
+.yonetim-chip,
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: var(--cs-radius-pill);
+    font-size: var(--cs-font-caption);
+    font-weight: 600;
+    line-height: 1.2;
+    background: var(--cs-surface-muted);
+    color: var(--cs-text-secondary);
+}
+
+.cs-badge--success,
+.cs-status--success,
+.dd-status-tamam,
+.active-text {
+    color: var(--cs-success);
+}
+
+.cs-badge--warning,
+.cs-status--warning,
+.dd-status-devam {
+    color: var(--cs-warning);
+}
+
+.cs-badge--danger,
+.cs-status--danger,
+.passive-text {
+    color: var(--cs-danger);
+}
+
+.cs-badge--info,
+.cs-status--info {
+    color: var(--cs-info);
+}
+
+.cs-badge--neutral,
+.cs-status--neutral,
+.dd-status-bos {
+    color: var(--cs-text-muted);
+}
+
+/* —— Empty / alert / modal surface —— */
+.cs-empty-state,
+.empty-state {
+    display: grid;
+    justify-items: center;
+    gap: var(--cs-space-3);
+    padding: var(--cs-space-8) var(--cs-space-5);
+    text-align: center;
+    color: var(--cs-text-secondary);
+}
+
+.cs-alert,
+.yonetim-message,
+.ogretmen-message {
+    border-radius: var(--cs-radius-md);
+    border: 1px solid var(--cs-border);
+    background: var(--cs-surface);
+    color: var(--cs-text-primary);
+}
+
+.cs-modal,
+[data-ep-modal] .ep-modal-panel,
+[data-dp-modal] .dp-modal-panel,
+[data-tz-modal] .tz-modal-panel {
+    border-radius: var(--cs-radius-xl);
+    box-shadow: var(--cs-shadow-lg);
+    border: 1px solid var(--cs-border);
+    background: var(--cs-surface);
+}
+
 /* —— Reduced motion —— */
 @media (prefers-reduced-motion: reduce) {
     html {
@@ -479,7 +1136,7 @@ body.talebe-body .ghost-btn {
     }
 }
 
-/* Günlük Takip navy hero — lacivert bantta başlık beyaz */
+/* Günlük Takip navy hero — lacivert bantta başlık beyaz (son katman) */
 .gt-etut-page header.gt-etut-head.gt-hero h1,
 .gt-etut-page header.gt-etut-head.gt-hero h1.gt-hero-title,
 .gt-etut-head.gt-hero .gt-hero-title {
@@ -492,6 +1149,153 @@ body.talebe-body .ghost-btn {
 
 .gt-etut-page header.gt-etut-head.gt-hero .gt-head-desc {
     color: rgba(255, 255, 255, 0.88) !important;
+}
+
+/* display:flex, [hidden] özniteliğini eziyordu — 0 seçiliyken çubuk görünmesin */
+.yonetim-toplu-bar[hidden] {
+    display: none !important;
+}
+
+/* Yönetim talebe kartı — mobil satır kayması / kesik isim / ezik Sil */
+@media (max-width: 640px) {
+    .yonetim-data-table.cs-mobile-ready tbody td,
+    .report-data-table.cs-mobile-ready tbody td {
+        display: flex !important;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: flex-start;
+        justify-content: flex-start;
+        gap: var(--cs-space-3);
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        padding: 6px 0 !important;
+        border: none !important;
+        white-space: normal !important;
+        text-align: left !important;
+    }
+
+    .yonetim-data-table.cs-mobile-ready tbody td::before,
+    .report-data-table.cs-mobile-ready tbody td::before {
+        flex: 0 0 7.25rem;
+        width: 7.25rem;
+        max-width: 42%;
+        content: attr(data-label);
+        font-size: var(--cs-font-caption);
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--cs-text-muted);
+        line-height: 1.35;
+        padding-top: 2px;
+    }
+
+    .yonetim-data-table.cs-mobile-ready tbody td.yonetim-check-col,
+    .report-data-table.cs-mobile-ready tbody td.yonetim-check-col {
+        width: auto !important;
+        padding-bottom: var(--cs-space-3) !important;
+        margin-bottom: var(--cs-space-1);
+        border-bottom: 1px solid var(--cs-border) !important;
+    }
+
+    .yonetim-data-table.cs-mobile-ready tbody td.yonetim-check-col::before,
+    .report-data-table.cs-mobile-ready tbody td.yonetim-check-col::before {
+        display: none;
+    }
+
+    .yonetim-data-table.cs-mobile-ready .yonetim-check {
+        width: 22px;
+        height: 22px;
+        min-width: 22px;
+        min-height: 22px;
+    }
+
+    .yonetim-data-table.cs-mobile-ready .yonetim-person-cell {
+        flex: 1 1 auto;
+        min-width: 0;
+        width: auto;
+        max-width: 100%;
+        align-items: flex-start;
+    }
+
+    .yonetim-data-table.cs-mobile-ready .yonetim-person-cell strong,
+    .yonetim-page .yonetim-data-table.cs-mobile-ready .yonetim-person-cell strong {
+        display: block !important;
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: unset !important;
+        word-break: break-word;
+        line-height: 1.3;
+    }
+
+    .yonetim-data-table.cs-mobile-ready tbody td.yonetim-action-col,
+    .report-data-table.cs-mobile-ready tbody td.yonetim-action-col {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--cs-space-2);
+        width: 100% !important;
+        min-width: 0 !important;
+        padding-top: var(--cs-space-3) !important;
+        margin-top: var(--cs-space-1);
+        border-top: 1px solid var(--cs-border) !important;
+    }
+
+    .yonetim-data-table.cs-mobile-ready tbody td.yonetim-action-col::before,
+    .report-data-table.cs-mobile-ready tbody td.yonetim-action-col::before {
+        flex: none;
+        width: 100%;
+        max-width: none;
+        margin-bottom: 2px;
+    }
+
+    .yonetim-data-table.cs-mobile-ready .yonetim-action-group,
+    .yonetim-page .yonetim-data-table.cs-mobile-ready .yonetim-action-group {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--cs-space-2) !important;
+        width: 100%;
+        max-width: 100%;
+        flex-wrap: unset !important;
+        justify-content: stretch !important;
+    }
+
+    .yonetim-data-table.cs-mobile-ready .yonetim-inline-action {
+        display: block;
+        width: 100%;
+        margin: 0;
+    }
+
+    .yonetim-data-table.cs-mobile-ready .yonetim-action-group .yonetim-action-btn,
+    .yonetim-data-table.cs-mobile-ready .yonetim-inline-action .yonetim-action-btn {
+        width: 100%;
+        min-width: 0 !important;
+        min-height: var(--cs-touch-min) !important;
+        height: auto !important;
+        padding: 0 12px !important;
+        box-sizing: border-box;
+    }
+
+    .yonetim-data-table.cs-mobile-ready .yonetim-chip,
+    .yonetim-data-table.cs-mobile-ready .status-pill {
+        flex: 0 1 auto;
+        max-width: 100%;
+    }
+}
+
+/* Telefonda sonsuz header animasyonu GPU'yu yorup ufak donma yapıyordu */
+@media (max-width: 640px) {
+    .page-head,
+    .patterned-page-head,
+    .yonetim-page-head,
+    .welcome-panel,
+    .page-head::before,
+    .patterned-page-head::before,
+    .yonetim-page-head::before,
+    .welcome-panel::before,
+    .dash-hero,
+    .dash-hero::before {
+        animation: none !important;
+    }
 }
 
 /* Üst menü / hoş geldiniz — kesik kitap süsü yok */

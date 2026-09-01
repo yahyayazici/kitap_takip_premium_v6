@@ -164,7 +164,9 @@ def _demo_siniflar(hoca: EtutHocasi) -> list[OgretmenSinifKarti]:
     kartlar: list[OgretmenSinifKarti] = []
 
     for sinif in siniflar:
-        sayi = Talebe.objects.filter(sinif_sube=sinif, aktif=True).count()
+        sayi = Talebe.objects.filter(
+            sinif_sube=sinif, durum=Talebe.Durum.AKTIF
+        ).count()
         etiket = f"{sinif.sinif}-{sinif.sube}"
         kartlar.append(
             OgretmenSinifKarti(
@@ -206,7 +208,9 @@ def _demo_ogrenciler(sinif_etiket: str) -> list[dict[str, Any]]:
     sinif = SinifSube.objects.filter(aktif=True).order_by("sinif", "sube").first()
     qs = Talebe.objects.none()
     if sinif:
-        qs = Talebe.objects.filter(sinif_sube=sinif, aktif=True).order_by("ad_soyad")
+        qs = Talebe.objects.filter(
+            sinif_sube=sinif, durum=Talebe.Durum.AKTIF
+        ).order_by("ad_soyad")
 
     ogrenciler = list(qs[: len(isimler)])
     sonuc = []
