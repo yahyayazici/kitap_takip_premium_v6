@@ -151,20 +151,18 @@ def ktt_listesi(request):
     for ktt in sinavlar:
         ktt.silebilir = ktt_silebilir(request.user, ktt)
 
-    context = {
-        "sinavlar": sinavlar,
-        "form": form,
-        "sinif_secenekleri": sinif_secenekleri,
-        "olusturabilir": olusturabilir,
-        "silme_yetkisi": any(ktt.silebilir for ktt in sinavlar),
-        "akilli_ozet": akilli_ozet,
-    }
-    template_name = (
-        "partials/ktt_listesi_content.html"
-        if getattr(request, "htmx", False)
-        else "ktt_listesi.html"
+    return render(
+        request,
+        "ktt_listesi.html",
+        {
+            "sinavlar": sinavlar,
+            "form": form,
+            "sinif_secenekleri": sinif_secenekleri,
+            "olusturabilir": olusturabilir,
+            "silme_yetkisi": any(ktt.silebilir for ktt in sinavlar),
+            "akilli_ozet": akilli_ozet,
+        },
     )
-    return render(request, template_name, context)
 
 
 @login_required

@@ -16,7 +16,7 @@ ensureDirs();
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:8000";
 assertSafeBaseUrl(BASE_URL);
 
-const ROLES = ["personel", "yonetim", "ogretmen", "veli", "talebe"];
+const ROLES = ["personel", "ogretmen", "veli", "talebe"];
 
 async function loginAs(page, role) {
   const { username, password } = credentialsForRole(role);

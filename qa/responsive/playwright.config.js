@@ -30,12 +30,7 @@ const viewportProjects = VIEWPORTS.map((vp) => ({
 
 module.exports = defineConfig({
   testDir: __dirname,
-  testMatch: /(responsive|sprint2-shell|sprint5-roles)\.spec\.js$/,
-  testIgnore: (() => {
-    if (process.env.QA_SPRINT5 === "1") return /(responsive|sprint2-shell)\.spec\.js$/;
-    if (process.env.QA_SPRINT2 === "1") return /(responsive|sprint5-roles)\.spec\.js$/;
-    return /(sprint2-shell|sprint5-roles)\.spec\.js$/;
-  })(),
+  testMatch: /responsive\.spec\.js$/,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: 0,

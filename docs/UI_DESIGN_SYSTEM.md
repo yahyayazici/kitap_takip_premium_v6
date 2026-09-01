@@ -130,42 +130,30 @@ Dosya: `static/css/cs-design-tokens.css`
 
 ### 5.1 Butonlar
 
-| Rol | Canonical | Alias (HTML sözleşmesi korunur) |
-|-----|-----------|----------------------------------|
-| Primary | `.cs-btn-primary` | `.primary-btn`, `.btn-primary`, `.ep-btn-primary`, `.dp-btn-primary`, `.dd-btn-primary`, `.tz-btn-primary` |
-| Ghost / secondary | `.cs-btn-ghost` | `.ghost-btn`, `.btn-ghost`, `.yonetim-head-ghost`, `.small-button`, `.ep-btn-ghost`, `.dp-btn-ghost` |
-| Danger | `.cs-btn-danger` | `.btn-danger`, `.yonetim-action-btn-danger`, `.tz-btn-danger` |
+| Rol | Tercih sınıf | Alias’lar (görsel eş) |
+|-----|--------------|------------------------|
+| Primary | `.primary-btn` | `.btn-primary`, `.cs-btn-primary` |
+| Ghost | `.ghost-btn` | `.btn-ghost`, `.yonetim-head-ghost`, `.small-button` |
+| Danger | `.btn-danger` | ilgili danger action sınıfları |
 
-Kurallar: min-height `var(--cs-btn-h)` (44px), radius `var(--cs-radius-md)`, weight 600, ikon gap `var(--cs-btn-gap)`, `:focus-visible` → `var(--cs-shadow-focus)`.  
-İstisna: `.ep-btn-xs` (yoğun tablo ikon silme).
+Kurallar: min-height 44px, radius `var(--cs-radius-md)`, tek satır metin, ikon+metin gap `var(--cs-space-2)`.
 
 ### 5.2 Sayfa başlığı
 
-**Operational** (CRUD / form / rapor): `.cs-page-head`, `.ny-head` — yüzey, border, token gölge. Navy hero değil.  
-**Feature hero** (dashboard / öne çıkan modül): `.dash-hero`, `.welcome-panel`, `.dd-page-head`, `.tl-page-head`.  
-
-Layout: masaüstü başlık | aksiyonlar; tablet wrap; ≤640 stack. Mevcut `.page-head` / `.yonetim-page-head` layout’u canonical’e bağlı; navy yüzey Sprint 4 adayı.
+`.page-head`, `.patterned-page-head`, `.yonetim-page-head`, `.welcome-panel`  
+Navy/hero yüzeyi; action butonları sağda wrap; mobilde kolon.
 
 ### 5.3 Kart
 
-`.cs-card` / `.cs-surface` ← `.dashboard-card`, `.yonetim-table-card`, `.yonetim-form-card`, `.report-table-card`, `.ep-card`, `.dd-card`.  
-Border `var(--cs-border)`, radius `var(--cs-radius-lg)`, gölge `var(--cs-shadow-sm)`.
+Beyaz yüzey, border `var(--cs-border)`, radius `var(--cs-radius-lg)`, gölge `var(--cs-shadow-sm|card)`.  
+Padding `var(--cs-density-card-pad)`.
 
 ### 5.4 Form
 
-`.cs-input` / `.cs-select` / `.cs-search` ← `.yonetim-input`, `.ep-input`, `.search-box input`.  
-Mobil select/input ≥16px. Field `name` değişmez.
-
-### 5.5 Tablo
-
-- Normal: wrap, overflow yalnızca içerik taşınca (`cs-h-scroll`)  
-- Dense: `cs-table-mobile.js` — cols≥6 veya rows≥8 → `.cs-table-dense` + yatay kaydırma; kartlaştırma yok  
-- Canonical wrap: `.cs-table-wrap` + `.yonetim-table-wrap`
-
-### 5.6 Status / badge
-
-`.cs-badge` / `.cs-status` ← `.ep-badge`, `.yonetim-chip`, `.status-pill`, `.dd-status-*`  
-Semantic: `--success` / `--warning` / `--danger` / `--info` / `--muted`.
+- Label üstte, kontrol full width  
+- Grid: masaüstü 2 kolon, ≤900px 2→1, ≤640px 1  
+- Select mobilde `font-size: 16px`  
+- **Field `name` değiştirilmez**
 
 ### 5.5 Tablo
 
@@ -272,7 +260,7 @@ Modül dosyaları (`*-premium.css`) yerel değişken kullanabilir; değerler `--
 | Token dosyası | Var (`cs-design-tokens.css`) |
 | Cursor kuralı | `.cursor/rules/cinili-saray-ui.mdc` |
 | Bu belge | `docs/UI_DESIGN_SYSTEM.md` |
-| Son katman | `static/css/cs-ui-system.css` + `cs-product.css` (Sprint 4 görsel) |
+| Son katman | `static/css/cs-ui-system.css` — tüm base’lere bağlı |
 | Modül alias | `cs-ui-system` içinde toplu |
 | Login/PDF | İzole bırakıldı |
 

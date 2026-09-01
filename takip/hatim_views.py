@@ -57,17 +57,15 @@ def hatim_aktif_listesi(request):
     taslaklar = []
     if hatim_yonetebilir(request.user):
         taslaklar = HatimProgrami.objects.filter(durum=HatimProgrami.Durum.TASLAK)
-    context = {
-        "programlar": programlar,
-        "taslaklar": taslaklar,
-        "yonetici": hatim_yonetebilir(request.user),
-    }
-    template_name = (
-        "partials/hatim_aktif_listesi_content.html"
-        if getattr(request, "htmx", False)
-        else "hatim_aktif_listesi.html"
+    return render(
+        request,
+        "hatim_aktif_listesi.html",
+        {
+            "programlar": programlar,
+            "taslaklar": taslaklar,
+            "yonetici": hatim_yonetebilir(request.user),
+        },
     )
-    return render(request, template_name, context)
 
 
 @login_required

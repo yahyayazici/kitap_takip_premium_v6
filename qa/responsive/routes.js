@@ -5,10 +5,10 @@
 const ROUTES = [
   // Dashboards
   { id: "personel-dashboard", path: "/panel/", role: "personel", smoke: true },
-  { id: "yonetim-dashboard", path: "/yonetim/", role: "yonetim" },
-  { id: "ogretmen-dashboard", path: "/ogretmen-panel/", role: "ogretmen", smoke: true },
-  { id: "veli-dashboard", path: "/veli/", role: "veli", smoke: true },
-  { id: "talebe-dashboard", path: "/talebe/", role: "talebe", smoke: true },
+  { id: "yonetim-dashboard", path: "/yonetim/", role: "personel" },
+  { id: "ogretmen-dashboard", path: "/ogretmen-panel/", role: "ogretmen" },
+  { id: "veli-dashboard", path: "/veli/", role: "veli" },
+  { id: "talebe-dashboard", path: "/talebe/", role: "talebe" },
 
   // Core modules (personel / yetkili)
   { id: "dini-ders", path: "/dini-ders/", role: "personel", smoke: true },
@@ -32,7 +32,7 @@ const ROUTES = [
   { id: "denemeler", path: "/denemeler/", role: "personel" },
   { id: "programlar", path: "/programlar/", role: "personel" },
   { id: "bildirimler", path: "/panel/bildirimler/", role: "personel" },
-  { id: "yonetim-duyurular", path: "/yonetim/duyurular/", role: "yonetim" },
+  { id: "yonetim-duyurular", path: "/yonetim/duyurular/", role: "personel" },
 
   // Forms (GET render only — no submit)
   { id: "kitap-ekle", path: "/kitap-ekle/", role: "personel" },

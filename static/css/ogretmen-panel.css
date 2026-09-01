@@ -25,7 +25,7 @@
 }
 
 .ogretmen-v6-header .cs-v6-nav a {
-    min-height: var(--cs-touch-min, 44px);
+    min-height: 36px;
     padding: 8px 12px;
     font-size: 13px;
     letter-spacing: -0.01em;
@@ -113,8 +113,25 @@
     margin-bottom: 8px;
 }
 
-/* Dar ekranda ortak hamburger (nav-groups) — wrap ile ikinci satır açma */
+/* Yarım / orta genişlikte menü başlıkları kaybolmasın */
 @media (max-width: 1400px) {
+    .ogretmen-v6-header .cs-v6-inner {
+        flex-wrap: wrap !important;
+        height: auto !important;
+        min-height: 64px !important;
+        max-height: none !important;
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
+    }
+
+    .ogretmen-v6-header .cs-v6-nav {
+        order: 3;
+        flex: 1 1 100%;
+        width: 100%;
+        justify-content: flex-start;
+        overflow: visible !important;
+    }
+
     .ogretmen-v6-header .v6-brand-copy small {
         display: none;
     }
@@ -128,6 +145,15 @@
 
     .panel-user-copy {
         max-width: 120px;
+    }
+}
+
+@media (max-width: 700px) {
+    .ogretmen-v6-header .cs-v6-nav a {
+        flex: 1 1 auto;
+        text-align: center;
+        font-size: 12px;
+        padding: 8px 10px;
     }
 }
 

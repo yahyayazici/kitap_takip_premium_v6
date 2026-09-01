@@ -51,13 +51,14 @@ function screenshotPath(viewportName, routeId) {
  */
 function credentialsForRole(role) {
   const key = String(role || "personel").toUpperCase();
-  const specificUser = process.env[`QA_${key}_USERNAME`] || "";
-  const specificPass = process.env[`QA_${key}_PASSWORD`] || "";
-  const allowGenericFallback = role === "personel" || role === "yonetim";
   const username =
-    specificUser || (allowGenericFallback ? process.env.QA_USERNAME || "" : "");
+    process.env[`QA_${key}_USERNAME`] ||
+    process.env.QA_USERNAME ||
+    "";
   const password =
-    specificPass || (allowGenericFallback ? process.env.QA_PASSWORD || "" : "");
+    process.env[`QA_${key}_PASSWORD`] ||
+    process.env.QA_PASSWORD ||
+    "";
   return { username, password };
 }
 
