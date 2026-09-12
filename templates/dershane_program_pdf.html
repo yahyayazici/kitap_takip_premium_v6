@@ -3,7 +3,7 @@
 <html lang="tr">
 <head>
     <meta charset="utf-8">
-    <title>{{ mod_baslik|default:program.ad }} · Dershane Programı</title>
+    <title>{{ mod_baslik|default:program.ad }} - Dershane Programı</title>
     <style>
         @font-face {
             font-family: "Poppins";
@@ -44,13 +44,37 @@
             print-color-adjust: exact;
         }
 
-        .hero-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
-        .hero-logo-cell { width: 34px; min-width: 34px; max-width: 34px; padding: 0; vertical-align: top; white-space: nowrap; }
-        .hero-logo { display: block; width: 34px; height: 34px; max-width: 34px; max-height: 34px; object-fit: contain; }
-        .hero-text-cell { padding: 0 0 0 10px; vertical-align: top; text-align: left; }
-        .doc-h1 { margin: 0; font-size: 20px; font-weight: 700; color: #183f78; letter-spacing: -0.01em; line-height: 1.2; }
+        .hero-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+        .hero-logo-cell { width: 38px; min-width: 38px; max-width: 38px; padding: 0; vertical-align: middle; white-space: nowrap; }
+        .hero-logo { display: block; width: 38px; height: 38px; max-width: 38px; max-height: 38px; object-fit: contain; }
+        .hero-brand-cell {
+            padding: 0 16px 0 11px;
+            vertical-align: middle;
+            text-align: left;
+            white-space: nowrap;
+            border-right: 1px solid #e2e8f2;
+        }
+        .hero-brand-name { font-size: 12px; font-weight: 600; color: #183f78; line-height: 1.2; }
+        .hero-brand-sub { margin-top: 2px; font-size: 6.5px; font-weight: 500; letter-spacing: 0.5px; color: #9aa6b7; text-transform: uppercase; }
+        .hero-title-cell { padding: 0 0 0 16px; vertical-align: middle; text-align: left; }
+        .doc-h1 {
+            margin: 0;
+            font-size: 23px;
+            font-weight: 700;
+            color: #12305e;
+            letter-spacing: -0.015em;
+            line-height: 1.15;
+        }
+        .doc-h1-accent {
+            display: block;
+            width: 26px;
+            height: 3px;
+            margin-top: 6px;
+            border-radius: 2px;
+            background: linear-gradient(90deg, #0a6cff, #6c4fd1);
+        }
         .doc-sub {
-            margin: 4px 0 0;
+            margin: 6px 0 0;
             font-size: 8.5px;
             font-weight: 500;
             color: #7e8aa0;
@@ -58,11 +82,6 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-        }
-        .head-rule {
-            border: none;
-            border-top: 1.5px solid #dfe6f0;
-            margin: 0 0 10px;
         }
 
         h2 {
@@ -162,22 +181,25 @@
     <table class="hero-table" cellpadding="0" cellspacing="0">
         <tr>
             <td class="hero-logo-cell">
-                <img class="hero-logo" width="34" height="34" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="{{ panel_short|default:'CS' }}">
+                <img class="hero-logo" width="38" height="38" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="{{ panel_short|default:'CS' }}">
             </td>
-            <td class="hero-text-cell">
+            <td class="hero-brand-cell">
+                <div class="hero-brand-name">{{ panel_org|default:"Çinili Saray Proje" }}</div>
+                <div class="hero-brand-sub">{{ panel_module_label|default:"Eğitim Modülü" }}</div>
+            </td>
+            <td class="hero-title-cell">
                 <h1 class="doc-h1">{{ mod_baslik|default:"Haftalık Dershane Programı" }}</h1>
+                <span class="doc-h1-accent"></span>
                 <p class="doc-sub">
-                    {{ program.ad }}
-                    {% if tum_gunler %} · Tüm günler · Tüm sınıflar{% elif gun_adi %} · {{ gun_adi }}{% endif %}
-                    {% if program.tarih_araligi_goster %} · {{ program.tarih_araligi_goster }}{% endif %}
-                    {% if filtre.sinif %} · {{ filtre.sinif }}. Sınıf{% endif %}
-                    {% if filtre.etut_grubu and gorunum.gruplar %} · {{ gorunum.gruplar.0.etiket }}{% endif %}
-                    {% if filtre.ogretmen %} · {{ filtre.ogretmen }}{% endif %}
+                    {% if tum_gunler %}Tüm günler - Tüm sınıflar{% elif gun_adi %}{{ gun_adi }}{% endif %}
+                    {% if program.baslangic_tarihi and program.bitis_tarihi %} - {{ program.baslangic_tarihi|date:"d.m.Y" }} - {{ program.bitis_tarihi|date:"d.m.Y" }}{% endif %}
+                    {% if filtre.sinif %} - {{ filtre.sinif }}. Sınıf{% endif %}
+                    {% if filtre.etut_grubu and gorunum.gruplar %} - {{ gorunum.gruplar.0.etiket }}{% endif %}
+                    {% if filtre.ogretmen %} - {{ filtre.ogretmen }}{% endif %}
                 </p>
             </td>
         </tr>
     </table>
-    <hr class="head-rule">
 
     {% if tum_gunler and gun_panelleri %}
         {% for panel in gun_panelleri %}
@@ -224,7 +246,7 @@
 
     {% elif gorunum.tip == "etut" %}
         {% if gorunum.tek_grup %}
-        <h2>{{ gorunum.gruplar.0.etiket }} · {{ gun_adi }} akışı</h2>
+        <h2>{{ gorunum.gruplar.0.etiket }} - {{ gun_adi }} akışı</h2>
         <table class="timeline">
             <thead>
                 <tr>
