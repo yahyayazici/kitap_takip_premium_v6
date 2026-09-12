@@ -18,13 +18,25 @@
         modals.forEach((modal) => modal.classList.remove("open"));
     }
 
+    const moreMenu = document.querySelector("details.dp-more");
+
     openButtons.forEach((button) => {
-        button.addEventListener("click", () => openModal(button.dataset.dpOpen));
+        button.addEventListener("click", () => {
+            openModal(button.dataset.dpOpen);
+            if (moreMenu) moreMenu.open = false;
+        });
     });
 
     closeButtons.forEach((button) => {
         button.addEventListener("click", closeModals);
     });
+
+    if (moreMenu) {
+        document.addEventListener("click", (event) => {
+            if (!moreMenu.open) return;
+            if (!moreMenu.contains(event.target)) moreMenu.open = false;
+        });
+    }
 
     modals.forEach((modal) => {
         modal.addEventListener("click", (event) => {
@@ -53,6 +65,62 @@
             openModal("atama");
         });
     });
+
+    const atamaForm = document.getElementById("dp-atama-form");
+    if (atamaForm) {
+        atamaForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const url = matrix?.dataset.atamaAjaxUrl;
+            const blokId = document.getElementById("dp-atama-blok").value;
+            const grupId = document.getElementById("dp-atama-grup").value;
+            const dersId = document.getElementById("dp-atama-ders").value;
+            const ogretmenId = document.getElementById("dp-atama-ogretmen").value;
+            if (!url || !blokId || !grupId) return;
+
+            const submitBtn = atamaForm.querySelector('button[type="submit"]');
+            if (submitBtn) submitBtn.disabled = true;
+
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: JSON.stringify({
+                        saat_bloku_id: parseInt(blokId, 10),
+                        etut_grubu_id: parseInt(grupId, 10),
+                        ders_id: dersId ? parseInt(dersId, 10) : null,
+                        ogretmen_id: ogretmenId ? parseInt(ogretmenId, 10) : null,
+                    }),
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || "Kaydedilemedi.");
+                }
+                const cell = findAssignmentCell(blokId, grupId);
+                if (cell) {
+                    if (data.ders) {
+                        updateCell(cell, {
+                            ok: true,
+                            blok_id: blokId,
+                            grup_id: grupId,
+                            ders: data.ders,
+                            ogretmen: data.ogretmen,
+                            renk: data.renk,
+                        });
+                    } else {
+                        clearCell(cell);
+                    }
+                }
+                closeModals();
+            } catch (error) {
+                window.alert(error.message || "Kaydedilemedi.");
+            } finally {
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        });
+    }
 
     document.querySelectorAll("[data-dp-edit-block]").forEach((button) => {
         button.addEventListener("click", () => {
@@ -130,6 +198,8 @@
         };
         cell.dataset.dpAssign = JSON.stringify(assignData);
 
+        const delButton = `<button type="button" class="dp-cell-del" data-dp-del title="Kaldır">×</button>`;
+
         if (cell.classList.contains("dp-mob-group")) {
             cell.classList.remove("is-empty");
             cell.style.setProperty("--cell-bg", result.renk || "#f8fafc");
@@ -137,7 +207,8 @@
             cell.innerHTML =
                 `<span class="dp-mob-grup-label">${grupLabel}</span>` +
                 `<strong class="dp-mob-ders">${result.ders}</strong>` +
-                `<span class="dp-mob-ogretmen">${result.ogretmen || "—"}</span>`;
+                `<span class="dp-mob-ogretmen">${result.ogretmen || "—"}</span>` +
+                delButton;
             return;
         }
 
@@ -145,7 +216,8 @@
         cell.style.background = result.renk || "#f8fafc";
         cell.innerHTML =
             `<strong class="dp-cell-ders">${result.ders}</strong>` +
-            `<span class="dp-cell-ogretmen">${result.ogretmen || "—"}</span>`;
+            `<span class="dp-cell-ogretmen">${result.ogretmen || "—"}</span>` +
+            delButton;
     }
 
     async function surukleAtama(target, payload) {
@@ -183,6 +255,73 @@
             target.classList.remove("dp-drop-loading");
         }
     }
+
+    /* ——— Tek tık silme ——— */
+    function clearCell(cell) {
+        if (!cell) return;
+        cell.dataset.dpAssign = JSON.stringify({
+            blok: cell.dataset.blokId,
+            grup: cell.dataset.grupId,
+            ders: "",
+            ogretmen: "",
+        });
+
+        if (cell.classList.contains("dp-mob-group")) {
+            cell.classList.add("is-empty");
+            cell.style.removeProperty("--cell-accent");
+            const grupLabel = cell.querySelector(".dp-mob-grup-label")?.textContent || "";
+            cell.innerHTML =
+                `<span class="dp-mob-grup-label">${grupLabel}</span>` +
+                `<span class="dp-mob-empty">+ Ders ekle</span>`;
+            return;
+        }
+
+        cell.classList.add("dp-cell-empty");
+        cell.style.background = "";
+        cell.style.removeProperty("--cell-accent");
+        cell.innerHTML = `<span class="dp-cell-placeholder">+ Ders</span>`;
+    }
+
+    async function silAtama(button) {
+        const cell = button.closest(".dp-cell, .dp-mob-group");
+        if (!cell || !matrix) return;
+        const url = matrix.dataset.atamaSilUrl;
+        const blokId = cell.dataset.blokId;
+        const grupId = cell.dataset.grupId;
+        if (!url || !blokId || !grupId) return;
+
+        cell.classList.add("dp-drop-loading");
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrfToken,
+                },
+                body: JSON.stringify({
+                    saat_bloku_id: parseInt(blokId, 10),
+                    etut_grubu_id: parseInt(grupId, 10),
+                }),
+            });
+            if (!response.ok) {
+                const data = await response.json().catch(() => ({}));
+                throw new Error(data.error || "Kaldırılamadı.");
+            }
+            clearCell(cell);
+        } catch (error) {
+            window.alert(error.message || "Kaldırılamadı.");
+        } finally {
+            cell.classList.remove("dp-drop-loading");
+        }
+    }
+
+    document.addEventListener("click", (event) => {
+        const delButton = event.target.closest("[data-dp-del]");
+        if (!delButton) return;
+        event.preventDefault();
+        event.stopPropagation();
+        silAtama(delButton);
+    });
 
     document.querySelectorAll(".dp-ders-chip").forEach((chip) => {
         chip.addEventListener("dragstart", (event) => {

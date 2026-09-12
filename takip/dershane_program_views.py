@@ -18,6 +18,7 @@ from takip.dershane_program_service import (
     GUN_ADLARI,
     aktif_program,
     atama_kaydet,
+    atama_sil,
     atama_surukle,
     dershane_program_duzenleyebilir,
     excel_yanit,
@@ -218,6 +219,77 @@ def dershane_program_atama_surukle(request):
         tum_gruplar=bool(payload.get("tum_gruplar")),
     )
     return JsonResponse({"sonuclar": sonuclar})
+
+
+@login_required
+@require_permission("dershane_programi", "edit")
+@require_POST
+def dershane_program_atama_sil(request):
+    if not dershane_program_duzenleyebilir(request.user):
+        return JsonResponse({"error": "Yetkiniz yok."}, status=403)
+
+    try:
+        payload = json.loads(request.body.decode("utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return JsonResponse({"error": "Geçersiz istek."}, status=400)
+
+    program = _program_al(request.user, request)
+    try:
+        saat_bloku_id = int(payload.get("saat_bloku_id"))
+        etut_grubu_id = int(payload.get("etut_grubu_id"))
+    except (TypeError, ValueError):
+        return JsonResponse({"error": "Eksik parametre."}, status=400)
+
+    atama_sil(program, saat_bloku_id=saat_bloku_id, etut_grubu_id=etut_grubu_id)
+    return JsonResponse({"ok": True})
+
+
+@login_required
+@require_permission("dershane_programi", "edit")
+@require_POST
+def dershane_program_atama_ajax(request):
+    from takip.dershane_program_service import ders_renk
+
+    if not dershane_program_duzenleyebilir(request.user):
+        return JsonResponse({"error": "Yetkiniz yok."}, status=403)
+
+    try:
+        payload = json.loads(request.body.decode("utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return JsonResponse({"error": "Geçersiz istek."}, status=400)
+
+    program = _program_al(request.user, request)
+    try:
+        saat_bloku_id = int(payload.get("saat_bloku_id"))
+        etut_grubu_id = int(payload.get("etut_grubu_id"))
+    except (TypeError, ValueError):
+        return JsonResponse({"error": "Eksik parametre."}, status=400)
+
+    ders_id = payload.get("ders_id") or None
+    ogretmen_id = payload.get("ogretmen_id") or None
+
+    if not ders_id and not ogretmen_id:
+        atama_sil(program, saat_bloku_id=saat_bloku_id, etut_grubu_id=etut_grubu_id)
+        return JsonResponse({"ok": True, "ders": "", "ogretmen": "", "renk": ""})
+
+    atama, hata = atama_kaydet(
+        program,
+        saat_bloku_id=saat_bloku_id,
+        etut_grubu_id=etut_grubu_id,
+        ders_id=int(ders_id) if ders_id else None,
+        ogretmen_id=int(ogretmen_id) if ogretmen_id else None,
+    )
+    if hata:
+        return JsonResponse({"error": hata}, status=400)
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "ders": atama.gorunen_ders,
+            "ogretmen": atama.gorunen_ogretmen,
+            "renk": ders_renk(atama.gorunen_ders),
+        }
+    )
 
 
 @login_required

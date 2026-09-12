@@ -1071,6 +1071,23 @@ def atama_kaydet(
     return atama, None
 
 
+@transaction.atomic
+def atama_sil(
+    program: DershaneProgrami,
+    *,
+    saat_bloku_id: int,
+    etut_grubu_id: int,
+) -> bool:
+    """Tek hücredeki ders/öğretmen atamasını temizler (tek tık silme)."""
+    silinen, _ = program.ders_atamalari.filter(
+        saat_bloku_id=saat_bloku_id, etut_grubu_id=etut_grubu_id
+    ).delete()
+    blok = program.saat_bloklari.filter(pk=saat_bloku_id).first()
+    if blok:
+        gun_durum_guncelle(program, blok.gun)
+    return bool(silinen)
+
+
 def _ogretmen_tercih_kaydet(
     program: DershaneProgrami,
     grup: DershaneEtutGrubu,

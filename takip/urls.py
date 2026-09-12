@@ -125,6 +125,16 @@ urlpatterns = [
         name="dershane_program_atama_surukle",
     ),
     path(
+        "dershane-programi/atama-sil/",
+        dershane_program_views.dershane_program_atama_sil,
+        name="dershane_program_atama_sil",
+    ),
+    path(
+        "dershane-programi/atama-ajax/",
+        dershane_program_views.dershane_program_atama_ajax,
+        name="dershane_program_atama_ajax",
+    ),
+    path(
         "dershane-programi/goruntule/<str:mod>/",
         dershane_program_views.dershane_program_goruntule,
         name="dershane_program_goruntule",

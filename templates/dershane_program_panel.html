@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Dershane Programı · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dershane-program-premium.css' %}?v=qa-p4">
+<link rel="stylesheet" href="{% static 'css/dershane-program-premium.css' %}?v=qa-p6">
 {% endblock %}
 
 {% block content %}
@@ -24,14 +24,19 @@
             <span class="dp-metric" title="Planlanan ders">Ders <strong>{{ ozet.planlanan_ders }}</strong></span>
             <span class="dp-metric is-ok" title="Tamamlanan gün">Gün <strong>{{ ozet.tamamlanan_gun }}/7</strong></span>
         </div>
-        {% if duzenleyebilir %}
-        <button type="button" class="dp-btn dp-btn-ghost" data-dp-open="sablon">Şablon</button>
-        <button type="button" class="dp-btn dp-btn-ghost" data-dp-open="kopyala">Kopyala</button>
-        {% endif %}
-        <a href="{% url 'dershane_program_pdf' %}?{{ export_qs }}" class="dp-btn dp-btn-ghost" target="_blank" rel="noopener" title="Seçili gün">PDF</a>
-        <a href="{% url 'dershane_program_excel' %}?{{ export_qs }}" class="dp-btn dp-btn-ghost" title="Seçili gün">Excel</a>
-        <a href="{% url 'dershane_program_pdf' %}?program={{ program.pk }}&tum=1" class="dp-btn dp-btn-ghost" target="_blank" rel="noopener" title="Tüm günler ve sınıflar">Tüm PDF</a>
-        <a href="{% url 'dershane_program_excel' %}?program={{ program.pk }}&tum=1" class="dp-btn dp-btn-ghost" title="Tüm günler ve sınıflar">Tüm Excel</a>
+        <a href="{% url 'dershane_program_pdf' %}?{{ export_qs }}" class="dp-btn dp-btn-ghost" target="_blank" rel="noopener" title="Bu günün PDF'i">PDF</a>
+        <a href="{% url 'dershane_program_excel' %}?{{ export_qs }}" class="dp-btn dp-btn-ghost" title="Bu günün Excel'i">Excel</a>
+        <details class="dp-more">
+            <summary class="dp-btn dp-btn-ghost dp-more-summary" title="Diğer işlemler">⋯</summary>
+            <div class="dp-more-panel">
+                {% if duzenleyebilir %}
+                <button type="button" class="dp-more-item" data-dp-open="sablon">Şablon</button>
+                <button type="button" class="dp-more-item" data-dp-open="kopyala">Günü kopyala</button>
+                {% endif %}
+                <a href="{% url 'dershane_program_pdf' %}?program={{ program.pk }}&tum=1" class="dp-more-item" target="_blank" rel="noopener">Tüm PDF</a>
+                <a href="{% url 'dershane_program_excel' %}?program={{ program.pk }}&tum=1" class="dp-more-item">Tüm Excel</a>
+            </div>
+        </details>
         {% if duzenleyebilir %}
         <form method="post" style="display:inline;">
             {% csrf_token %}
@@ -99,7 +104,11 @@
         </div>
     </details>
 
-    <div class="dp-tools">
+    <details class="dp-tools" {% if filtre.sinif or filtre.etut_grubu or filtre.ders or filtre.ogretmen or filtre.atanmamis %}open{% endif %}>
+        <summary class="dp-blocks-head">
+            <span>Filtre{% if duzenleyebilir %} ve ders paleti{% endif %}</span>
+            <em class="dp-blocks-toggle">Aç / kapat</em>
+        </summary>
         <form method="get" class="dp-filter-bar">
             <input type="hidden" name="program" value="{{ program.pk }}">
             <input type="hidden" name="gun" value="{{ gun }}">
@@ -162,11 +171,11 @@
             </div>
         </div>
         {% endif %}
-    </div>
+    </details>
 
     <p class="dp-scroll-hint">Saat sütunu sabit kalır — sütunları görmek için tabloda yatay kaydırın.</p>
 
-    <div class="dp-matrix-scroll" data-dp-matrix data-atama-url="{% url 'dershane_program_atama_surukle' %}?program={{ program.pk }}&gun={{ gun }}">
+    <div class="dp-matrix-scroll" data-dp-matrix data-atama-url="{% url 'dershane_program_atama_surukle' %}?program={{ program.pk }}&gun={{ gun }}" data-atama-sil-url="{% url 'dershane_program_atama_sil' %}?program={{ program.pk }}&gun={{ gun }}" data-atama-ajax-url="{% url 'dershane_program_atama_ajax' %}?program={{ program.pk }}&gun={{ gun }}">
         <table class="dp-matrix">
             <thead>
                 <tr>
@@ -225,6 +234,7 @@
                             {% else %}
                             <strong class="dp-cell-ders">{{ hucre.ders }}</strong>
                             <span class="dp-cell-ogretmen">{{ hucre.ogretmen }}</span>
+                            <button type="button" class="dp-cell-del" data-dp-del title="Kaldır">×</button>
                             {% endif %}
                         </div>
                         {% else %}
@@ -283,7 +293,7 @@
             <h3 id="dp-atama-title">Ders ataması</h3>
             <button type="button" class="dp-icon-btn" data-dp-close>×</button>
         </div>
-        <form method="post" class="dp-modal-body">
+        <form method="post" class="dp-modal-body" id="dp-atama-form">
             {% csrf_token %}
             <input type="hidden" name="program" value="{{ program.pk }}">
             <input type="hidden" name="gun" value="{{ gun }}">
@@ -420,5 +430,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/dershane-program-panel.js' %}?v=dp7"></script>
+<script src="{% static 'js/dershane-program-panel.js' %}?v=dp9"></script>
 {% endblock %}
