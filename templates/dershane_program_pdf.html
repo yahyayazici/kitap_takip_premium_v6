@@ -44,26 +44,44 @@
             print-color-adjust: exact;
         }
 
+        /* KTT / landscape rapor ile aynı iskelet — hero border'lara yakalanmasın */
+        table.layout { width: 100%; border-collapse: collapse; }
+        table.layout > tbody > tr > td,
+        table.layout > tr > td { border: none; padding: 0; vertical-align: top; }
+
         .header-table { width: 100%; border-collapse: collapse; }
         .header-logo-cell { width: 1%; padding: 0; vertical-align: middle; white-space: nowrap; }
         .header-text-cell { width: 1%; padding: 0 0 0 8px; vertical-align: middle; text-align: left; white-space: nowrap; }
-        .brand-logo-wrap { width: 36px; height: 36px; overflow: hidden; line-height: 0; }
-        .brand-logo { display: block; width: 36px; height: 36px; max-width: 36px; max-height: 36px; object-fit: contain; }
-        .brand-name { font-size: 13px; font-weight: 600; color: #183f78; line-height: 1.15; text-align: left; }
-        .brand-sub { margin-top: 3px; font-size: 7px; font-weight: 500; letter-spacing: 0.45px; color: #98a4b5; text-transform: uppercase; text-align: left; }
+        .header-right { text-align: right; vertical-align: bottom; padding: 0 0 0 16px; white-space: nowrap; }
+        .brand-logo-wrap { width: 36px; height: 36px; line-height: 0; }
+        .brand-logo { display: block; width: 36px; height: 36px; object-fit: contain; }
+        .brand-name { font-size: 13px; font-weight: 600; color: #183F78; line-height: 1.15; text-align: left; }
+        .brand-sub { margin-top: 3px; font-size: 7px; font-weight: 500; letter-spacing: 0.45px; color: #98A4B5; text-transform: uppercase; text-align: left; }
+        .doc-title { font-size: 6.5px; font-weight: 600; letter-spacing: 0.5px; color: #8B98AA; text-transform: uppercase; text-align: right; }
 
         .gap16 { height: 16px; font-size: 0; line-height: 0; }
 
-        .hero-table2 { width: 100%; border-collapse: collapse; }
-        .hero-table2 td { border: none; }
+        /* pdf_rapor_landscape_css.html .hero — üretimde KTT ile aynı */
         .hero {
-            background: #1a4fa8;
-            color: #ffffff;
+            position: relative;
+            overflow: hidden;
+            border-radius: 14px;
+            background: linear-gradient(128deg, #1A4FA8 0%, #2B6FD4 42%, #173B73 100%);
+            color: #FFFFFF;
             padding: 16px 18px;
         }
+        .hero-deco {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            margin-top: -36px;
+            opacity: 0.14;
+            pointer-events: none;
+        }
+        .hero-inner { position: relative; z-index: 1; }
         .hero-tag { font-size: 6.5px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: rgba(255, 255, 255, 0.72); }
-        .hero-title { margin-top: 8px; font-size: 20px; font-weight: 700; line-height: 1.2; letter-spacing: -0.25px; color: #ffffff; }
-        .hero-meta { margin-top: 8px; font-size: 7px; font-weight: 400; line-height: 1.5; color: rgba(255, 255, 255, 0.76); }
+        .hero-title { margin-top: 8px; font-size: 20px; font-weight: 700; line-height: 1.2; letter-spacing: -0.25px; color: #FFFFFF; }
+        .hero-meta { margin-top: 8px; font-size: 7px; font-weight: 400; line-height: 1.45; color: rgba(255, 255, 255, 0.76); }
 
         h2 {
             margin: 12px 0 6px;
@@ -72,19 +90,20 @@
             color: #17243a;
             page-break-after: avoid;
         }
-        table {
+        table.program-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 2px;
             table-layout: fixed;
         }
-        th, td {
+        table.program-table th,
+        table.program-table td {
             border: 1px solid #eef2f6;
             padding: 0;
             text-align: left;
             vertical-align: middle;
         }
-        th {
+        table.program-table th {
             background: #f8fafc;
             color: #183f78;
             font-size: 7px;
@@ -95,11 +114,12 @@
             padding: 6px 5px;
             border-bottom: 1.5px solid #dfe6f0;
         }
-        td.saat, th.saat {
+        table.program-table td.saat,
+        table.program-table th.saat {
             width: 58px;
             background: #f7f9fc;
         }
-        th.saat { color: #183f78; }
+        table.program-table th.saat { color: #183f78; }
         .cell-box {
             box-sizing: border-box;
             min-height: 28px;
@@ -163,45 +183,61 @@
     </style>
 </head>
 <body>
-    <table class="header-table" cellpadding="0" cellspacing="0">
-        <tr>
-            <td class="header-logo-cell">
-                <div class="brand-logo-wrap">
-                    <img class="brand-logo" width="36" height="36" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="{{ panel_short|default:'CS' }}">
-                </div>
-            </td>
-            <td class="header-text-cell">
-                <div class="brand-name">{{ panel_org|default:"Çinili Saray Proje" }}</div>
-                <div class="brand-sub">{{ panel_module_label|default:"Eğitim Modülü" }}</div>
-            </td>
-        </tr>
-    </table>
+<table class="layout">
+    <tr>
+        <td colspan="3">
+            <table class="header-table" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="header-logo-cell">
+                        <div class="brand-logo-wrap">
+                            <img class="brand-logo" width="36" height="36" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="{{ panel_short|default:'CS' }}">
+                        </div>
+                    </td>
+                    <td class="header-text-cell">
+                        <div class="brand-name">{{ panel_org|default:"Çinili Saray Proje" }}</div>
+                        <div class="brand-sub">{{ panel_module_label|default:"Eğitim Modülü" }}</div>
+                    </td>
+                    <td class="header-right">
+                        <div class="doc-title">Dershane Programı</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
 
-    <div class="gap16"></div>
+    <tr><td colspan="3" class="gap16"></td></tr>
 
-    <table class="hero-table2" cellpadding="0" cellspacing="0">
-        <tr>
-            <td class="hero">
+    <tr>
+        <td colspan="3" class="hero">
+            <svg class="hero-deco" width="120" height="72" viewBox="0 0 120 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="18" y="10" width="72" height="52" rx="8" fill="#FFFFFF" opacity="0.85"/>
+                <rect x="28" y="22" width="52" height="4" rx="2" fill="#FFFFFF" opacity="0.55"/>
+                <rect x="38" y="32" width="32" height="4" rx="2" fill="#FFFFFF" opacity="0.4"/>
+            </svg>
+            <div class="hero-inner">
                 <div class="hero-tag">Dershane Programı</div>
                 <div class="hero-title">{{ mod_baslik|default:"Haftalık Dershane Programı" }}</div>
                 <div class="hero-meta">
-                    {% if tum_gunler %}Tüm günler - Tüm sınıflar{% elif gun_adi %}{{ gun_adi }}{% endif %}
-                    {% if program.baslangic_tarihi and program.bitis_tarihi %} - {{ program.baslangic_tarihi|date:"d.m.Y" }} - {{ program.bitis_tarihi|date:"d.m.Y" }}{% endif %}
-                    {% if filtre.sinif %} - {{ filtre.sinif }}. Sınıf{% endif %}
-                    {% if filtre.etut_grubu and gorunum.gruplar %} - {{ gorunum.gruplar.0.etiket }}{% endif %}
-                    {% if filtre.ogretmen %} - {{ filtre.ogretmen }}{% endif %}
+                    {% if tum_gunler %}Tüm günler · Tüm sınıflar{% elif gun_adi %}{{ gun_adi }}{% endif %}
+                    {% if program.baslangic_tarihi and program.bitis_tarihi %} · {{ program.baslangic_tarihi|date:"d.m.Y" }} — {{ program.bitis_tarihi|date:"d.m.Y" }}{% endif %}
+                    {% if filtre.sinif %} · {{ filtre.sinif }}. Sınıf{% endif %}
+                    {% if filtre.etut_grubu and gorunum.gruplar %} · {{ gorunum.gruplar.0.etiket }}{% endif %}
+                    {% if filtre.ogretmen %} · {{ filtre.ogretmen }}{% endif %}
                 </div>
-            </td>
-        </tr>
-    </table>
+            </div>
+        </td>
+    </tr>
 
-    <div class="gap16"></div>
+    <tr><td colspan="3" class="gap16"></td></tr>
+
+    <tr>
+        <td colspan="3">
 
     {% if tum_gunler and gun_panelleri %}
         {% for panel in gun_panelleri %}
         <div class="gun-panel">
             <h2>{{ panel.gun_adi }}</h2>
-            <table>
+            <table class="program-table">
                 <thead>
                     <tr>
                         <th class="saat">Saat</th>
@@ -245,7 +281,7 @@
     {% elif gorunum.tip == "etut" %}
         {% if gorunum.tek_grup %}
         <h2>{{ gorunum.gruplar.0.etiket }} - {{ gun_adi }} akışı</h2>
-        <table class="timeline">
+        <table class="program-table timeline">
             <thead>
                 <tr>
                     <th class="saat">Saat</th>
@@ -280,7 +316,7 @@
             </tbody>
         </table>
         {% else %}
-        <table>
+        <table class="program-table">
             <thead>
                 <tr>
                     <th class="saat">Saat</th>
@@ -317,7 +353,7 @@
         {% for panel in gorunum.paneller %}
         <div class="panel">
             <h2>{{ panel.baslik }}</h2>
-            <table>
+            <table class="program-table">
                 <thead>
                     <tr>
                         <th class="saat">Saat</th>
@@ -359,7 +395,7 @@
         {% if not gorunum.ogretmenler %}
         <p class="empty">Bu günde atanmış öğretmen yok.</p>
         {% else %}
-        <table>
+        <table class="program-table">
             <thead>
                 <tr>
                     <th class="saat">Saat</th>
@@ -397,7 +433,7 @@
         {% endif %}
 
     {% else %}
-        <table>
+        <table class="program-table">
             <thead>
                 <tr>
                     <th class="saat">Saat</th>
@@ -433,6 +469,9 @@
         </table>
     {% endif %}
 
-    <p class="doc-foot">{{ panel_org|default:"Çinili Saray Proje" }}</p>
+        <p class="doc-foot">{{ panel_org|default:"Çinili Saray Proje" }}</p>
+        </td>
+    </tr>
+</table>
 </body>
 </html>
