@@ -44,43 +44,27 @@
             print-color-adjust: exact;
         }
 
-        .hero-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 12px;
-            border-bottom: 1px solid #e7ebf1;
-        }
-        .hero-logo-cell { width: 34px; min-width: 34px; max-width: 34px; padding: 8px 0; vertical-align: middle; white-space: nowrap; }
-        .hero-logo { display: block; width: 30px; height: 30px; max-width: 30px; max-height: 30px; object-fit: contain; }
-        .hero-brand-cell {
-            padding: 8px 14px;
-            vertical-align: middle;
-            text-align: left;
-            white-space: nowrap;
-            border-right: 1px solid #e7ebf1;
-        }
-        .hero-brand-name { font-size: 12px; font-weight: 600; color: #183f78; line-height: 1.3; }
-        .hero-brand-sub { margin-top: 3px; font-size: 6.5px; font-weight: 500; letter-spacing: 0.5px; color: #9aa6b7; text-transform: uppercase; line-height: 1.3; }
-        .hero-title-cell { padding: 8px 0 8px 14px; vertical-align: middle; text-align: left; }
-        .doc-h1 {
-            margin: 0;
-            font-size: 15px;
-            font-weight: 600;
-            color: #12305e;
-            letter-spacing: -0.005em;
-            line-height: 1.3;
-        }
-        .doc-sub {
-            margin-top: 4px;
-            font-size: 8px;
-            font-weight: 500;
-            color: #7e8aa0;
-            letter-spacing: 0.1px;
-            line-height: 1.3;
-            white-space: nowrap;
+        .header-table { width: 100%; border-collapse: collapse; }
+        .header-logo-cell { width: 1%; padding: 0; vertical-align: middle; white-space: nowrap; }
+        .header-text-cell { width: 1%; padding: 0 0 0 8px; vertical-align: middle; text-align: left; white-space: nowrap; }
+        .brand-logo-wrap { width: 36px; height: 36px; overflow: hidden; line-height: 0; }
+        .brand-logo { display: block; width: 36px; height: 36px; max-width: 36px; max-height: 36px; object-fit: contain; }
+        .brand-name { font-size: 13px; font-weight: 600; color: #183f78; line-height: 1.15; text-align: left; }
+        .brand-sub { margin-top: 3px; font-size: 7px; font-weight: 500; letter-spacing: 0.45px; color: #98a4b5; text-transform: uppercase; text-align: left; }
+
+        .gap16 { height: 16px; font-size: 0; line-height: 0; }
+
+        .hero {
+            position: relative;
             overflow: hidden;
-            text-overflow: ellipsis;
+            border-radius: 14px;
+            background: linear-gradient(128deg, #1a4fa8 0%, #2b6fd4 42%, #173b73 100%);
+            color: #ffffff;
+            padding: 16px 18px;
         }
+        .hero-tag { font-size: 6.5px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: rgba(255, 255, 255, 0.72); }
+        .hero-title { margin-top: 8px; font-size: 20px; font-weight: 700; line-height: 1.2; letter-spacing: -0.25px; color: #ffffff; }
+        .hero-meta { margin-top: 8px; font-size: 7px; font-weight: 400; line-height: 1.5; color: rgba(255, 255, 255, 0.76); }
 
         h2 {
             margin: 12px 0 6px;
@@ -180,27 +164,35 @@
     </style>
 </head>
 <body>
-    <table class="hero-table" cellpadding="0" cellspacing="0">
+    <table class="header-table" cellpadding="0" cellspacing="0">
         <tr>
-            <td class="hero-logo-cell">
-                <img class="hero-logo" width="38" height="38" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="{{ panel_short|default:'CS' }}">
+            <td class="header-logo-cell">
+                <div class="brand-logo-wrap">
+                    <img class="brand-logo" width="36" height="36" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="{{ panel_short|default:'CS' }}">
+                </div>
             </td>
-            <td class="hero-brand-cell">
-                <div class="hero-brand-name">{{ panel_org|default:"Çinili Saray Proje" }}</div>
-                <div class="hero-brand-sub">{{ panel_module_label|default:"Eğitim Modülü" }}</div>
-            </td>
-            <td class="hero-title-cell">
-                <h1 class="doc-h1">{{ mod_baslik|default:"Haftalık Dershane Programı" }}</h1>
-                <p class="doc-sub">
-                    {% if tum_gunler %}Tüm günler - Tüm sınıflar{% elif gun_adi %}{{ gun_adi }}{% endif %}
-                    {% if program.baslangic_tarihi and program.bitis_tarihi %} - {{ program.baslangic_tarihi|date:"d.m.Y" }} - {{ program.bitis_tarihi|date:"d.m.Y" }}{% endif %}
-                    {% if filtre.sinif %} - {{ filtre.sinif }}. Sınıf{% endif %}
-                    {% if filtre.etut_grubu and gorunum.gruplar %} - {{ gorunum.gruplar.0.etiket }}{% endif %}
-                    {% if filtre.ogretmen %} - {{ filtre.ogretmen }}{% endif %}
-                </p>
+            <td class="header-text-cell">
+                <div class="brand-name">{{ panel_org|default:"Çinili Saray Proje" }}</div>
+                <div class="brand-sub">{{ panel_module_label|default:"Eğitim Modülü" }}</div>
             </td>
         </tr>
     </table>
+
+    <div class="gap16"></div>
+
+    <div class="hero">
+        <div class="hero-tag">Dershane Programı</div>
+        <div class="hero-title">{{ mod_baslik|default:"Haftalık Dershane Programı" }}</div>
+        <div class="hero-meta">
+            {% if tum_gunler %}Tüm günler - Tüm sınıflar{% elif gun_adi %}{{ gun_adi }}{% endif %}
+            {% if program.baslangic_tarihi and program.bitis_tarihi %} - {{ program.baslangic_tarihi|date:"d.m.Y" }} - {{ program.bitis_tarihi|date:"d.m.Y" }}{% endif %}
+            {% if filtre.sinif %} - {{ filtre.sinif }}. Sınıf{% endif %}
+            {% if filtre.etut_grubu and gorunum.gruplar %} - {{ gorunum.gruplar.0.etiket }}{% endif %}
+            {% if filtre.ogretmen %} - {{ filtre.ogretmen }}{% endif %}
+        </div>
+    </div>
+
+    <div class="gap16"></div>
 
     {% if tum_gunler and gun_panelleri %}
         {% for panel in gun_panelleri %}
