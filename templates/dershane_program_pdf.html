@@ -54,9 +54,10 @@
 
         .gap16 { height: 16px; font-size: 0; line-height: 0; }
 
+        .hero-table2 { width: 100%; border-collapse: collapse; }
+        .hero-table2 td { border: none; }
         .hero {
-            background-color: #1a4fa8;
-            background-image: linear-gradient(128deg, #1a4fa8 0%, #2b6fd4 42%, #173b73 100%);
+            background: #1a4fa8;
             color: #ffffff;
             padding: 16px 18px;
         }
@@ -178,17 +179,21 @@
 
     <div class="gap16"></div>
 
-    <div class="hero">
-        <div class="hero-tag">Dershane Programı</div>
-        <div class="hero-title">{{ mod_baslik|default:"Haftalık Dershane Programı" }}</div>
-        <div class="hero-meta">
-            {% if tum_gunler %}Tüm günler - Tüm sınıflar{% elif gun_adi %}{{ gun_adi }}{% endif %}
-            {% if program.baslangic_tarihi and program.bitis_tarihi %} - {{ program.baslangic_tarihi|date:"d.m.Y" }} - {{ program.bitis_tarihi|date:"d.m.Y" }}{% endif %}
-            {% if filtre.sinif %} - {{ filtre.sinif }}. Sınıf{% endif %}
-            {% if filtre.etut_grubu and gorunum.gruplar %} - {{ gorunum.gruplar.0.etiket }}{% endif %}
-            {% if filtre.ogretmen %} - {{ filtre.ogretmen }}{% endif %}
-        </div>
-    </div>
+    <table class="hero-table2" cellpadding="0" cellspacing="0">
+        <tr>
+            <td class="hero">
+                <div class="hero-tag">Dershane Programı</div>
+                <div class="hero-title">{{ mod_baslik|default:"Haftalık Dershane Programı" }}</div>
+                <div class="hero-meta">
+                    {% if tum_gunler %}Tüm günler - Tüm sınıflar{% elif gun_adi %}{{ gun_adi }}{% endif %}
+                    {% if program.baslangic_tarihi and program.bitis_tarihi %} - {{ program.baslangic_tarihi|date:"d.m.Y" }} - {{ program.bitis_tarihi|date:"d.m.Y" }}{% endif %}
+                    {% if filtre.sinif %} - {{ filtre.sinif }}. Sınıf{% endif %}
+                    {% if filtre.etut_grubu and gorunum.gruplar %} - {{ gorunum.gruplar.0.etiket }}{% endif %}
+                    {% if filtre.ogretmen %} - {{ filtre.ogretmen }}{% endif %}
+                </div>
+            </td>
+        </tr>
+    </table>
 
     <div class="gap16"></div>
 
