@@ -50,18 +50,18 @@
             margin-bottom: 12px;
             border-bottom: 1px solid #e7ebf1;
         }
-        .hero-logo-cell { width: 40px; min-width: 40px; max-width: 40px; padding: 12px 0; vertical-align: middle; white-space: nowrap; }
-        .hero-logo { display: block; width: 34px; height: 34px; max-width: 34px; max-height: 34px; object-fit: contain; }
+        .hero-logo-cell { width: 34px; min-width: 34px; max-width: 34px; padding: 8px 0; vertical-align: middle; white-space: nowrap; }
+        .hero-logo { display: block; width: 30px; height: 30px; max-width: 30px; max-height: 30px; object-fit: contain; }
         .hero-brand-cell {
-            padding: 12px 18px;
+            padding: 8px 14px;
             vertical-align: middle;
             text-align: left;
             white-space: nowrap;
             border-right: 1px solid #e7ebf1;
         }
-        .hero-brand-name { font-size: 12.5px; font-weight: 600; color: #183f78; line-height: 1.3; }
-        .hero-brand-sub { margin-top: 4px; font-size: 6.5px; font-weight: 500; letter-spacing: 0.5px; color: #9aa6b7; text-transform: uppercase; line-height: 1.3; }
-        .hero-title-cell { padding: 12px 0 12px 18px; vertical-align: middle; text-align: left; }
+        .hero-brand-name { font-size: 12px; font-weight: 600; color: #183f78; line-height: 1.3; }
+        .hero-brand-sub { margin-top: 3px; font-size: 6.5px; font-weight: 500; letter-spacing: 0.5px; color: #9aa6b7; text-transform: uppercase; line-height: 1.3; }
+        .hero-title-cell { padding: 8px 0 8px 14px; vertical-align: middle; text-align: left; }
         .doc-h1 {
             margin: 0;
             font-size: 15px;
@@ -109,7 +109,7 @@
             letter-spacing: 0.35px;
             text-transform: uppercase;
             text-align: center;
-            padding: 8px 6px;
+            padding: 6px 5px;
             border-bottom: 1.5px solid #dfe6f0;
         }
         td.saat, th.saat {
@@ -118,22 +118,15 @@
         }
         th.saat { color: #183f78; }
         .cell-box {
-            position: relative;
             box-sizing: border-box;
-            min-height: 34px;
-            padding: 9px 9px 9px 10px;
+            min-height: 28px;
+            padding: 6px 7px;
+            border-left: 3px solid transparent;
         }
         .cell-box-saat {
-            padding: 9px 8px;
+            padding: 6px 6px;
             text-align: center;
-        }
-        .cell-accent {
-            position: absolute;
-            top: 6px;
-            bottom: 6px;
-            left: 0;
-            width: 3px;
-            border-radius: 1.5px;
+            border-left: none;
         }
         .saat-bas, .saat-bit {
             display: block;
@@ -166,12 +159,12 @@
             color: #183f78;
             letter-spacing: 0.35px;
             font-size: 8.5px;
-            padding: 10px 8px;
+            padding: 7px 6px;
         }
         .merged-yemek { background: #fff7ed; color: #9a3412; }
         .merged-namaz { background: #ecfdf5; color: #065f46; }
         .empty { color: #9aa5b5; font-style: italic; }
-        td.empty { padding: 12px; text-align: left; }
+        td.empty { padding: 8px; text-align: left; }
         .panel { margin-bottom: 12px; page-break-inside: avoid; }
         .gun-panel { margin-bottom: 14px; page-break-before: always; }
         .gun-panel:first-of-type { page-break-before: avoid; }
@@ -234,9 +227,8 @@
                         <td class="saat"><div class="cell-box cell-box-saat"><span class="saat-bas">{{ satir.saat|saat_bas }}</span><span class="saat-bit">{{ satir.saat|saat_bit }}</span></div></td>
                         {% for hucre in satir.hucreler %}
                         <td>
-                            <div class="cell-box">
+                            <div class="cell-box" {% if not hucre.bos %}style="border-left: 3px solid {{ hucre.ders|ders_aksan }};"{% endif %}>
                             {% if not hucre.bos %}
-                            <span class="cell-accent" style="background:{{ hucre.ders|ders_aksan }};"></span>
                             <span class="ders">{{ hucre.ders }}</span>
                             <span class="ogretmen">{{ hucre.ogretmen }}</span>
                             {% endif %}
@@ -275,9 +267,8 @@
                     {% else %}
                         {% with hucre=satir.hucreler.0 %}
                         <td>
-                            <div class="cell-box">
+                            <div class="cell-box" {% if hucre and not hucre.bos %}style="border-left: 3px solid {{ hucre.ders|ders_aksan }};"{% endif %}>
                             {% if hucre and not hucre.bos %}
-                            <span class="cell-accent" style="background:{{ hucre.ders|ders_aksan }};"></span>
                             <span class="ders">{{ hucre.ders }}</span>
                             {% else %}
                             <span class="empty">Boş saat</span>
@@ -312,9 +303,8 @@
                     {% else %}
                         {% for hucre in satir.hucreler %}
                         <td>
-                            <div class="cell-box">
+                            <div class="cell-box" {% if not hucre.bos %}style="border-left: 3px solid {{ hucre.ders|ders_aksan }};"{% endif %}>
                             {% if not hucre.bos %}
-                            <span class="cell-accent" style="background:{{ hucre.ders|ders_aksan }};"></span>
                             <span class="ders">{{ hucre.ders }}</span>
                             <span class="ogretmen">{{ hucre.ogretmen }}</span>
                             {% endif %}
@@ -350,9 +340,8 @@
                         {% else %}
                             {% for hucre in satir.hucreler %}
                             <td>
-                                <div class="cell-box">
+                                <div class="cell-box" {% if not hucre.bos %}style="border-left: 3px solid {{ hucre.ders|ders_aksan }};"{% endif %}>
                                 {% if not hucre.bos %}
-                                <span class="cell-accent" style="background:{{ hucre.ders|ders_aksan }};"></span>
                                 <span class="ders">{{ hucre.ders }}</span>
                                 <span class="ogretmen">{{ hucre.ogretmen }}</span>
                                 {% endif %}
@@ -434,9 +423,8 @@
                     <td class="saat"><div class="cell-box cell-box-saat"><span class="saat-bas">{{ satir.saat|saat_bas }}</span><span class="saat-bit">{{ satir.saat|saat_bit }}</span></div></td>
                     {% for hucre in satir.hucreler %}
                     <td>
-                        <div class="cell-box">
+                        <div class="cell-box" {% if not hucre.bos %}style="border-left: 3px solid {{ hucre.ders|ders_aksan }};"{% endif %}>
                         {% if not hucre.bos %}
-                        <span class="cell-accent" style="background:{{ hucre.ders|ders_aksan }};"></span>
                         <span class="ders">{{ hucre.ders }}</span>
                         <span class="ogretmen">{{ hucre.ogretmen }}</span>
                         {% endif %}
