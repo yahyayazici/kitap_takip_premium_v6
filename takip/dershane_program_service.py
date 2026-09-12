@@ -1001,6 +1001,14 @@ def saat_bloku_sil(program: DershaneProgrami, blok_id: int) -> None:
 
 
 @transaction.atomic
+def gun_atamalarini_temizle(program: DershaneProgrami, gun: int) -> int:
+    """Bir günün tüm ders atamalarını tek seferde siler (saat blokları kalır)."""
+    silinen, _ = program.ders_atamalari.filter(saat_bloku__gun=gun).delete()
+    gun_durum_guncelle(program, gun)
+    return silinen
+
+
+@transaction.atomic
 def saat_bloku_sirala(
     program: DershaneProgrami, gun: int, sira_listesi: list[int]
 ) -> None:

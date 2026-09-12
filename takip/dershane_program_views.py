@@ -22,6 +22,7 @@ from takip.dershane_program_service import (
     atama_surukle,
     dershane_program_duzenleyebilir,
     excel_yanit,
+    gun_atamalarini_temizle,
     gun_kopyala,
     panel_baglami,
     sablon_kaydet,
@@ -159,6 +160,10 @@ def dershane_program_panel(request):
             )
             surum_geri_yukle(program, surum)
             messages.success(request, f"Sürüm geri yüklendi: {surum.etiket}")
+
+        elif action == "gun_temizle":
+            silinen = gun_atamalarini_temizle(program, gun)
+            messages.success(request, f"{silinen} ders ataması temizlendi.")
 
         elif action == "gun_kopyala":
             gun_kopyala(

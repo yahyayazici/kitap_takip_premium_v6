@@ -47,6 +47,7 @@
     document.querySelectorAll("[data-dp-assign]").forEach((el) => {
         el.addEventListener("click", (event) => {
             if (el.classList.contains("dp-dragging-active")) return;
+            if (event.target.closest("[data-dp-del]")) return;
             const data = JSON.parse(el.dataset.dpAssign || "{}");
             document.getElementById("dp-atama-blok").value = data.blok || "";
             document.getElementById("dp-atama-grup").value = data.grup || "";

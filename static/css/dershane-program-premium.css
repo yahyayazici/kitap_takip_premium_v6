@@ -729,6 +729,7 @@
 
 .dp-cell {
     position: relative;
+    overflow: hidden;
     min-width: 100px;
     min-height: 40px;
     padding: 0.25rem 0.35rem;
@@ -737,21 +738,25 @@
     transition: background var(--dp-transition);
 }
 
+.dp-cell:not(.dp-cell-empty) {
+    padding-right: 22px;
+}
+
 .dp-cell-del {
     position: absolute;
-    top: 3px;
-    right: 3px;
+    top: 2px;
+    right: 2px;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     padding: 0;
     border: 0;
     border-radius: 50%;
     background: rgba(15, 40, 80, 0.08);
     color: var(--dp-muted);
-    font-size: 0.85rem;
+    font-size: 0.7rem;
     line-height: 1;
     cursor: pointer;
     opacity: 0.55;
@@ -799,6 +804,9 @@
 
 .dp-cell-ders {
     display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font-size: 0.78rem;
     font-weight: 700;
     color: var(--dp-navy);
@@ -807,6 +815,9 @@
 
 .dp-cell-ogretmen {
     display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     margin-top: 0.2rem;
     font-size: 0.65rem !important;
     font-weight: 500;

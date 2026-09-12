@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Dershane Programı · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dershane-program-premium.css' %}?v=qa-p7">
+<link rel="stylesheet" href="{% static 'css/dershane-program-premium.css' %}?v=qa-p8">
 {% endblock %}
 
 {% block content %}
@@ -70,6 +70,12 @@
         <div class="dp-toolbar-actions">
             <button type="button" class="dp-btn dp-btn-sm dp-btn-ghost" data-dp-share>Link</button>
             {% if duzenleyebilir %}
+            <form method="post" style="display:inline;" onsubmit="return confirm('{{ gun_adi }} gününün tüm ders atamaları silinsin mi? Bu işlem geri alınamaz.');">
+                {% csrf_token %}
+                <input type="hidden" name="program" value="{{ program.pk }}">
+                <input type="hidden" name="gun" value="{{ gun }}">
+                <button type="submit" name="action" value="gun_temizle" class="dp-btn dp-btn-sm dp-btn-ghost" title="Bu günün tüm ders atamalarını temizle">Günü Temizle</button>
+            </form>
             <button type="button" class="dp-btn dp-btn-sm dp-btn-primary" data-dp-open="saat">+ Saat</button>
             {% endif %}
         </div>
@@ -430,5 +436,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/dershane-program-panel.js' %}?v=dp9"></script>
+<script src="{% static 'js/dershane-program-panel.js' %}?v=dp10"></script>
 {% endblock %}
