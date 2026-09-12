@@ -44,23 +44,17 @@
             print-color-adjust: exact;
         }
 
-        .header-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-        .header-logo-cell { width: 40px; min-width: 40px; max-width: 40px; padding: 0; vertical-align: middle; white-space: nowrap; }
-        .header-text-cell { padding: 0 0 0 8px; vertical-align: middle; text-align: left; white-space: nowrap; }
-        .header-right { text-align: right; vertical-align: middle; padding: 0 0 0 12px; }
-        .brand-logo-wrap { width: 36px; height: 36px; overflow: hidden; line-height: 0; }
-        .brand-logo { display: block; width: 36px; height: 36px; max-width: 36px; max-height: 36px; object-fit: contain; }
-        .brand-name { font-size: 13px; font-weight: 600; color: #183f78; line-height: 1.15; }
-        .brand-sub { margin-top: 3px; font-size: 7px; font-weight: 500; letter-spacing: 0.45px; color: #98a4b5; text-transform: uppercase; }
-        .doc-eyebrow { font-size: 6.5px; font-weight: 600; letter-spacing: 0.5px; color: #8b98aa; text-transform: uppercase; text-align: right; }
-        .doc-title { margin-top: 2px; font-size: 13px; font-weight: 700; color: #183f78; letter-spacing: -0.01em; text-align: right; }
-        .doc-meta {
-            margin-top: 4px;
-            font-size: 7.5px;
+        .hero-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+        .hero-logo-cell { width: 34px; min-width: 34px; max-width: 34px; padding: 0; vertical-align: top; white-space: nowrap; }
+        .hero-logo { display: block; width: 34px; height: 34px; max-width: 34px; max-height: 34px; object-fit: contain; }
+        .hero-text-cell { padding: 0 0 0 10px; vertical-align: top; text-align: left; }
+        .doc-h1 { margin: 0; font-size: 20px; font-weight: 700; color: #183f78; letter-spacing: -0.01em; line-height: 1.2; }
+        .doc-sub {
+            margin: 4px 0 0;
+            font-size: 8.5px;
             font-weight: 500;
-            color: #8b98aa;
-            text-align: right;
-            letter-spacing: 0.2px;
+            color: #7e8aa0;
+            letter-spacing: 0.1px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -117,9 +111,6 @@
         }
         .saat-bas { color: #183f78; font-weight: 700; }
         .saat-bit { margin-top: 2px; color: #7e93b3; font-weight: 500; font-size: 7.5px; }
-        tbody tr:nth-child(even) td:not(.merged):not(.saat) {
-            background: #fbfdff;
-        }
         td.ders-hucre {
             padding-left: 7px;
         }
@@ -168,27 +159,21 @@
     </style>
 </head>
 <body>
-    <table class="header-table" cellpadding="0" cellspacing="0">
+    <table class="hero-table" cellpadding="0" cellspacing="0">
         <tr>
-            <td class="header-logo-cell">
-                <div class="brand-logo-wrap">
-                    <img class="brand-logo" width="36" height="36" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="{{ panel_short|default:'CS' }}">
-                </div>
+            <td class="hero-logo-cell">
+                <img class="hero-logo" width="34" height="34" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="{{ panel_short|default:'CS' }}">
             </td>
-            <td class="header-text-cell">
-                <div class="brand-name">{{ panel_org|default:"Çinili Saray Proje" }}</div>
-                <div class="brand-sub">{{ panel_module_label|default:"Eğitim Modülü" }}</div>
-            </td>
-            <td class="header-right">
-                <div class="doc-eyebrow">Dershane Programı</div>
-                <div class="doc-title">{{ mod_baslik|default:"Genel Program" }}</div>
-                <div class="doc-meta">
-                    {% if tum_gunler %}Tüm günler · Tüm sınıflar{% elif gun_adi %}{{ gun_adi }}{% endif %}
+            <td class="hero-text-cell">
+                <h1 class="doc-h1">{{ mod_baslik|default:"Haftalık Dershane Programı" }}</h1>
+                <p class="doc-sub">
+                    {{ program.ad }}
+                    {% if tum_gunler %} · Tüm günler · Tüm sınıflar{% elif gun_adi %} · {{ gun_adi }}{% endif %}
                     {% if program.tarih_araligi_goster %} · {{ program.tarih_araligi_goster }}{% endif %}
                     {% if filtre.sinif %} · {{ filtre.sinif }}. Sınıf{% endif %}
                     {% if filtre.etut_grubu and gorunum.gruplar %} · {{ gorunum.gruplar.0.etiket }}{% endif %}
                     {% if filtre.ogretmen %} · {{ filtre.ogretmen }}{% endif %}
-                </div>
+                </p>
             </td>
         </tr>
     </table>
@@ -218,7 +203,7 @@
                     <tr>
                         <td class="saat"><span class="saat-bas">{{ satir.saat|saat_bas }}</span><span class="saat-bit">{{ satir.saat|saat_bit }}</span></td>
                         {% for hucre in satir.hucreler %}
-                        <td {% if not hucre.bos %}class="ders-hucre" style="background:{{ hucre.ders|ders_ton_zemin }}; border-left: 3px solid {{ hucre.ders|ders_aksan }};"{% endif %}>
+                        <td {% if not hucre.bos %}class="ders-hucre" style="border-left: 3px solid {{ hucre.ders|ders_aksan }};"{% endif %}>
                             {% if not hucre.bos %}
                             <span class="ders">{{ hucre.ders }}</span>
                             <span class="ogretmen">{{ hucre.ogretmen }}</span>
@@ -256,7 +241,7 @@
                     <td colspan="2" class="merged {% if satir.tur == 'namaz' %}merged-namaz{% elif satir.tur == 'yemek' %}merged-yemek{% endif %}">{{ satir.metin }}</td>
                     {% else %}
                         {% with hucre=satir.hucreler.0 %}
-                        <td {% if hucre and not hucre.bos %}class="ders-hucre" style="background:{{ hucre.ders|ders_ton_zemin }}; border-left: 3px solid {{ hucre.ders|ders_aksan }};"{% endif %}>
+                        <td {% if hucre and not hucre.bos %}class="ders-hucre" style="border-left: 3px solid {{ hucre.ders|ders_aksan }};"{% endif %}>
                             {% if hucre and not hucre.bos %}
                             <span class="ders">{{ hucre.ders }}</span>
                             {% else %}
@@ -290,7 +275,7 @@
                     <td colspan="{{ gorunum.gruplar|length }}" class="merged">{{ satir.metin }}</td>
                     {% else %}
                         {% for hucre in satir.hucreler %}
-                        <td {% if not hucre.bos %}class="ders-hucre" style="background:{{ hucre.ders|ders_ton_zemin }}; border-left: 3px solid {{ hucre.ders|ders_aksan }};"{% endif %}>
+                        <td {% if not hucre.bos %}class="ders-hucre" style="border-left: 3px solid {{ hucre.ders|ders_aksan }};"{% endif %}>
                             {% if not hucre.bos %}
                             <span class="ders">{{ hucre.ders }}</span>
                             <span class="ogretmen">{{ hucre.ogretmen }}</span>
@@ -325,7 +310,7 @@
                         <td colspan="{{ panel.gruplar|length }}" class="merged {% if satir.tur == 'namaz' %}merged-namaz{% elif satir.tur == 'yemek' %}merged-yemek{% endif %}">{{ satir.metin }}</td>
                         {% else %}
                             {% for hucre in satir.hucreler %}
-                            <td {% if not hucre.bos %}class="ders-hucre" style="background:{{ hucre.ders|ders_ton_zemin }}; border-left: 3px solid {{ hucre.ders|ders_aksan }};"{% endif %}>
+                            <td {% if not hucre.bos %}class="ders-hucre" style="border-left: 3px solid {{ hucre.ders|ders_aksan }};"{% endif %}>
                                 {% if not hucre.bos %}
                                 <span class="ders">{{ hucre.ders }}</span>
                                 <span class="ogretmen">{{ hucre.ogretmen }}</span>
@@ -368,7 +353,7 @@
                         <td>
                             {% if not hucre.bos %}
                                 {% for k in hucre.kayitlar %}
-                                <div class="ogretmen-slot" style="background:{{ k.ders|ders_ton_zemin }}; border-left: 3px solid {{ k.ders|ders_aksan }};">
+                                <div class="ogretmen-slot" style="border-left: 3px solid {{ k.ders|ders_aksan }};">
                                     <span class="ders">{{ k.ders }}</span>
                                     <span class="ogretmen">{{ k.grup }}</span>
                                 </div>
@@ -404,7 +389,7 @@
                 <tr>
                     <td class="saat"><span class="saat-bas">{{ satir.saat|saat_bas }}</span><span class="saat-bit">{{ satir.saat|saat_bit }}</span></td>
                     {% for hucre in satir.hucreler %}
-                    <td {% if not hucre.bos %}class="ders-hucre" style="background:{{ hucre.ders|ders_ton_zemin }}; border-left: 3px solid {{ hucre.ders|ders_aksan }};"{% endif %}>
+                    <td {% if not hucre.bos %}class="ders-hucre" style="border-left: 3px solid {{ hucre.ders|ders_aksan }};"{% endif %}>
                         {% if not hucre.bos %}
                         <span class="ders">{{ hucre.ders }}</span>
                         <span class="ogretmen">{{ hucre.ogretmen }}</span>
