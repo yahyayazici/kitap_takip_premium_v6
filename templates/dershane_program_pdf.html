@@ -61,27 +61,64 @@
 
         .gap16 { height: 16px; font-size: 0; line-height: 0; }
 
-        /* pdf_rapor_landscape_css.html .hero — üretimde KTT ile aynı */
-        .hero {
-            position: relative;
-            overflow: hidden;
+        /*
+          Üretim WeasyPrint: overflow+radius+gradient birleşince hero kayboluyor;
+          background-color + background-image birlikte 3 banda bölünüyor.
+          KTT hiyerarşisini koruyup yalnızca güvenli boyama kullanıyoruz:
+          ayrı tablo + düz lacivert + (destekleyen motorlarda) radius.
+        */
+        table.hero-shell {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
             border-radius: 14px;
-            background: linear-gradient(128deg, #1A4FA8 0%, #2B6FD4 42%, #173B73 100%);
+        }
+        table.hero-shell td.hero-paint {
+            background-color: #1A4FA8;
             color: #FFFFFF;
             padding: 16px 18px;
+            border: none;
+            border-radius: 14px;
+            vertical-align: middle;
         }
-        .hero-deco {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            margin-top: -36px;
-            opacity: 0.14;
-            pointer-events: none;
+        table.hero-inner {
+            width: 100%;
+            border-collapse: collapse;
         }
-        .hero-inner { position: relative; z-index: 1; }
-        .hero-tag { font-size: 6.5px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: rgba(255, 255, 255, 0.72); }
-        .hero-title { margin-top: 8px; font-size: 20px; font-weight: 700; line-height: 1.2; letter-spacing: -0.25px; color: #FFFFFF; }
-        .hero-meta { margin-top: 8px; font-size: 7px; font-weight: 400; line-height: 1.45; color: rgba(255, 255, 255, 0.76); }
+        table.hero-inner td {
+            border: none;
+            padding: 0;
+            vertical-align: middle;
+            background: transparent;
+        }
+        td.hero-copy { text-align: left; }
+        td.hero-deco-cell {
+            width: 96px;
+            text-align: right;
+            padding-left: 12px;
+        }
+        .hero-tag {
+            font-size: 6.5px;
+            font-weight: 600;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            color: #B7C9E6;
+        }
+        .hero-title {
+            margin-top: 8px;
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: -0.25px;
+            color: #FFFFFF;
+        }
+        .hero-meta {
+            margin-top: 8px;
+            font-size: 7px;
+            font-weight: 400;
+            line-height: 1.45;
+            color: #C5D3E8;
+        }
 
         h2 {
             margin: 12px 0 6px;
@@ -208,23 +245,35 @@
     <tr><td colspan="3" class="gap16"></td></tr>
 
     <tr>
-        <td colspan="3" class="hero">
-            <svg class="hero-deco" width="120" height="72" viewBox="0 0 120 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="18" y="10" width="72" height="52" rx="8" fill="#FFFFFF" opacity="0.85"/>
-                <rect x="28" y="22" width="52" height="4" rx="2" fill="#FFFFFF" opacity="0.55"/>
-                <rect x="38" y="32" width="32" height="4" rx="2" fill="#FFFFFF" opacity="0.4"/>
-            </svg>
-            <div class="hero-inner">
-                <div class="hero-tag">Dershane Programı</div>
-                <div class="hero-title">{{ mod_baslik|default:"Haftalık Dershane Programı" }}</div>
-                <div class="hero-meta">
-                    {% if tum_gunler %}Tüm günler · Tüm sınıflar{% elif gun_adi %}{{ gun_adi }}{% endif %}
-                    {% if program.baslangic_tarihi and program.bitis_tarihi %} · {{ program.baslangic_tarihi|date:"d.m.Y" }} — {{ program.bitis_tarihi|date:"d.m.Y" }}{% endif %}
-                    {% if filtre.sinif %} · {{ filtre.sinif }}. Sınıf{% endif %}
-                    {% if filtre.etut_grubu and gorunum.gruplar %} · {{ gorunum.gruplar.0.etiket }}{% endif %}
-                    {% if filtre.ogretmen %} · {{ filtre.ogretmen }}{% endif %}
-                </div>
-            </div>
+        <td colspan="3">
+            <table class="hero-shell" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                    <td class="hero-paint" bgcolor="#1A4FA8" style="background-color:#1A4FA8; color:#FFFFFF; padding:16px 18px;">
+                        <table class="hero-inner" cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                                <td class="hero-copy">
+                                    <div class="hero-tag" style="color:#B7C9E6;">Dershane Programı</div>
+                                    <div class="hero-title" style="color:#FFFFFF;">{{ mod_baslik|default:"Haftalık Dershane Programı" }}</div>
+                                    <div class="hero-meta" style="color:#C5D3E8;">
+                                        {% if tum_gunler %}Tüm günler · Tüm sınıflar{% elif gun_adi %}{{ gun_adi }}{% endif %}
+                                        {% if program.baslangic_tarihi and program.bitis_tarihi %} · {{ program.baslangic_tarihi|date:"d.m.Y" }} — {{ program.bitis_tarihi|date:"d.m.Y" }}{% endif %}
+                                        {% if filtre.sinif %} · {{ filtre.sinif }}. Sınıf{% endif %}
+                                        {% if filtre.etut_grubu and gorunum.gruplar %} · {{ gorunum.gruplar.0.etiket }}{% endif %}
+                                        {% if filtre.ogretmen %} · {{ filtre.ogretmen }}{% endif %}
+                                    </div>
+                                </td>
+                                <td class="hero-deco-cell" width="96" align="right" valign="middle">
+                                    <svg width="88" height="52" viewBox="0 0 120 72" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                        <rect x="18" y="10" width="72" height="52" rx="8" fill="#FFFFFF" fill-opacity="0.18"/>
+                                        <rect x="28" y="22" width="52" height="4" rx="2" fill="#FFFFFF" fill-opacity="0.28"/>
+                                        <rect x="38" y="32" width="32" height="4" rx="2" fill="#FFFFFF" fill-opacity="0.22"/>
+                                    </svg>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
         </td>
     </tr>
 
