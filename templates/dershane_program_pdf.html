@@ -1,4 +1,4 @@
-{% load static %}
+{% load static pdf_extras %}
 <!doctype html>
 <html lang="tr">
 <head>
@@ -52,8 +52,19 @@
         .brand-logo { display: block; width: 36px; height: 36px; max-width: 36px; max-height: 36px; object-fit: contain; }
         .brand-name { font-size: 13px; font-weight: 600; color: #183f78; line-height: 1.15; }
         .brand-sub { margin-top: 3px; font-size: 7px; font-weight: 500; letter-spacing: 0.45px; color: #98a4b5; text-transform: uppercase; }
-        .doc-title { font-size: 12px; font-weight: 700; color: #183f78; letter-spacing: -0.01em; text-align: right; }
-        .doc-meta { margin-top: 4px; font-size: 7.5px; font-weight: 500; color: #8b98aa; text-align: right; letter-spacing: 0.2px; line-height: 1.4; }
+        .doc-eyebrow { font-size: 6.5px; font-weight: 600; letter-spacing: 0.5px; color: #8b98aa; text-transform: uppercase; text-align: right; }
+        .doc-title { margin-top: 2px; font-size: 13px; font-weight: 700; color: #183f78; letter-spacing: -0.01em; text-align: right; }
+        .doc-meta {
+            margin-top: 4px;
+            font-size: 7.5px;
+            font-weight: 500;
+            color: #8b98aa;
+            text-align: right;
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
         .head-rule {
             border: none;
             border-top: 1.5px solid #dfe6f0;
@@ -90,7 +101,7 @@
             border-bottom: 1.5px solid #dfe6f0;
         }
         td.saat, th.saat {
-            width: 68px;
+            width: 56px;
             white-space: nowrap;
             color: #35659c;
             font-variant-numeric: tabular-nums;
@@ -100,8 +111,17 @@
             text-align: left;
         }
         th.saat { color: #183f78; }
+        .saat-bas, .saat-bit {
+            display: block;
+            font-variant-numeric: tabular-nums;
+        }
+        .saat-bas { color: #183f78; font-weight: 700; }
+        .saat-bit { margin-top: 2px; color: #7e93b3; font-weight: 500; font-size: 7.5px; }
         tbody tr:nth-child(even) td:not(.merged):not(.saat) {
             background: #fbfdff;
+        }
+        td.ders-hucre {
+            padding-left: 7px;
         }
         .ders {
             font-weight: 600;
@@ -117,8 +137,8 @@
             margin-top: 1px;
         }
         .ogretmen-slot {
-            padding: 2px 4px;
-            border-radius: 4px;
+            padding: 2px 4px 2px 7px;
+            border-radius: 3px;
         }
         .ogretmen-slot + .ogretmen-slot { margin-top: 3px; }
         .merged {
@@ -157,13 +177,13 @@
             </td>
             <td class="header-text-cell">
                 <div class="brand-name">{{ panel_org|default:"Çinili Saray Proje" }}</div>
-                <div class="brand-sub">Dershane Programı</div>
+                <div class="brand-sub">{{ panel_module_label|default:"Eğitim Modülü" }}</div>
             </td>
             <td class="header-right">
-                <div class="doc-title">{{ mod_baslik|default:"Haftalık Dershane Programı" }}</div>
+                <div class="doc-eyebrow">Dershane Programı</div>
+                <div class="doc-title">{{ mod_baslik|default:"Genel Program" }}</div>
                 <div class="doc-meta">
-                    {{ program.ad }}
-                    {% if tum_gunler %} · Tüm günler · Tüm sınıflar{% elif gun_adi %} · {{ gun_adi }}{% endif %}
+                    {% if tum_gunler %}Tüm günler · Tüm sınıflar{% elif gun_adi %}{{ gun_adi }}{% endif %}
                     {% if program.tarih_araligi_goster %} · {{ program.tarih_araligi_goster }}{% endif %}
                     {% if filtre.sinif %} · {{ filtre.sinif }}. Sınıf{% endif %}
                     {% if filtre.etut_grubu and gorunum.gruplar %} · {{ gorunum.gruplar.0.etiket }}{% endif %}
@@ -191,14 +211,14 @@
                     {% for satir in panel.matris %}
                     {% if satir.birlestirilmis %}
                     <tr>
-                        <td class="saat">{{ satir.saat }}</td>
+                        <td class="saat"><span class="saat-bas">{{ satir.saat|saat_bas }}</span><span class="saat-bit">{{ satir.saat|saat_bit }}</span></td>
                         <td colspan="{{ panel.gruplar|length }}" class="merged {% if satir.tur == 'yemek' %}merged-yemek{% elif satir.tur == 'namaz' %}merged-namaz{% endif %}">{{ satir.birlestirilmis_metin }}</td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td class="saat">{{ satir.saat }}</td>
+                        <td class="saat"><span class="saat-bas">{{ satir.saat|saat_bas }}</span><span class="saat-bit">{{ satir.saat|saat_bit }}</span></td>
                         {% for hucre in satir.hucreler %}
-                        <td {% if not hucre.bos %}style="background:{{ hucre.renk }};"{% endif %}>
+                        <td {% if not hucre.bos %}class="ders-hucre" style="background:{{ hucre.ders|ders_ton_zemin }}; border-left: 3px solid {{ hucre.ders|ders_aksan }};"{% endif %}>
                             {% if not hucre.bos %}
                             <span class="ders">{{ hucre.ders }}</span>
                             <span class="ogretmen">{{ hucre.ogretmen }}</span>
@@ -231,12 +251,12 @@
             <tbody>
                 {% for satir in gorunum.satirlar %}
                 <tr>
-                    <td class="saat">{{ satir.saat }}</td>
+                    <td class="saat"><span class="saat-bas">{{ satir.saat|saat_bas }}</span><span class="saat-bit">{{ satir.saat|saat_bit }}</span></td>
                     {% if satir.birlestirilmis %}
                     <td colspan="2" class="merged {% if satir.tur == 'namaz' %}merged-namaz{% elif satir.tur == 'yemek' %}merged-yemek{% endif %}">{{ satir.metin }}</td>
                     {% else %}
                         {% with hucre=satir.hucreler.0 %}
-                        <td {% if hucre and not hucre.bos %}style="background:{{ hucre.renk }};"{% endif %}>
+                        <td {% if hucre and not hucre.bos %}class="ders-hucre" style="background:{{ hucre.ders|ders_ton_zemin }}; border-left: 3px solid {{ hucre.ders|ders_aksan }};"{% endif %}>
                             {% if hucre and not hucre.bos %}
                             <span class="ders">{{ hucre.ders }}</span>
                             {% else %}
@@ -265,12 +285,12 @@
             <tbody>
                 {% for satir in gorunum.satirlar %}
                 <tr>
-                    <td class="saat">{{ satir.saat }}</td>
+                    <td class="saat"><span class="saat-bas">{{ satir.saat|saat_bas }}</span><span class="saat-bit">{{ satir.saat|saat_bit }}</span></td>
                     {% if satir.birlestirilmis %}
                     <td colspan="{{ gorunum.gruplar|length }}" class="merged">{{ satir.metin }}</td>
                     {% else %}
                         {% for hucre in satir.hucreler %}
-                        <td {% if not hucre.bos %}style="background:{{ hucre.renk }};"{% endif %}>
+                        <td {% if not hucre.bos %}class="ders-hucre" style="background:{{ hucre.ders|ders_ton_zemin }}; border-left: 3px solid {{ hucre.ders|ders_aksan }};"{% endif %}>
                             {% if not hucre.bos %}
                             <span class="ders">{{ hucre.ders }}</span>
                             <span class="ogretmen">{{ hucre.ogretmen }}</span>
@@ -300,12 +320,12 @@
                 <tbody>
                     {% for satir in panel.satirlar %}
                     <tr>
-                        <td class="saat">{{ satir.saat }}</td>
+                        <td class="saat"><span class="saat-bas">{{ satir.saat|saat_bas }}</span><span class="saat-bit">{{ satir.saat|saat_bit }}</span></td>
                         {% if satir.birlestirilmis %}
                         <td colspan="{{ panel.gruplar|length }}" class="merged {% if satir.tur == 'namaz' %}merged-namaz{% elif satir.tur == 'yemek' %}merged-yemek{% endif %}">{{ satir.metin }}</td>
                         {% else %}
                             {% for hucre in satir.hucreler %}
-                            <td {% if not hucre.bos %}style="background:{{ hucre.renk }};"{% endif %}>
+                            <td {% if not hucre.bos %}class="ders-hucre" style="background:{{ hucre.ders|ders_ton_zemin }}; border-left: 3px solid {{ hucre.ders|ders_aksan }};"{% endif %}>
                                 {% if not hucre.bos %}
                                 <span class="ders">{{ hucre.ders }}</span>
                                 <span class="ogretmen">{{ hucre.ogretmen }}</span>
@@ -340,7 +360,7 @@
             <tbody>
                 {% for satir in gorunum.satirlar %}
                 <tr>
-                    <td class="saat">{{ satir.saat }}</td>
+                    <td class="saat"><span class="saat-bas">{{ satir.saat|saat_bas }}</span><span class="saat-bit">{{ satir.saat|saat_bit }}</span></td>
                     {% if satir.birlestirilmis %}
                     <td colspan="{{ gorunum.ogretmenler|length }}" class="merged {% if satir.tur == 'namaz' %}merged-namaz{% elif satir.tur == 'yemek' %}merged-yemek{% endif %}">{{ satir.metin }}</td>
                     {% else %}
@@ -348,7 +368,7 @@
                         <td>
                             {% if not hucre.bos %}
                                 {% for k in hucre.kayitlar %}
-                                <div class="ogretmen-slot" style="background:{{ k.renk }};">
+                                <div class="ogretmen-slot" style="background:{{ k.ders|ders_ton_zemin }}; border-left: 3px solid {{ k.ders|ders_aksan }};">
                                     <span class="ders">{{ k.ders }}</span>
                                     <span class="ogretmen">{{ k.grup }}</span>
                                 </div>
@@ -377,14 +397,14 @@
                 {% for satir in matris %}
                 {% if satir.birlestirilmis %}
                 <tr>
-                    <td class="saat">{{ satir.saat }}</td>
+                    <td class="saat"><span class="saat-bas">{{ satir.saat|saat_bas }}</span><span class="saat-bit">{{ satir.saat|saat_bit }}</span></td>
                     <td colspan="{{ gruplar|length }}" class="merged {% if satir.tur == 'yemek' %}merged-yemek{% elif satir.tur == 'namaz' %}merged-namaz{% endif %}">{{ satir.birlestirilmis_metin }}</td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td class="saat">{{ satir.saat }}</td>
+                    <td class="saat"><span class="saat-bas">{{ satir.saat|saat_bas }}</span><span class="saat-bit">{{ satir.saat|saat_bit }}</span></td>
                     {% for hucre in satir.hucreler %}
-                    <td {% if not hucre.bos %}style="background:{{ hucre.renk }};"{% endif %}>
+                    <td {% if not hucre.bos %}class="ders-hucre" style="background:{{ hucre.ders|ders_ton_zemin }}; border-left: 3px solid {{ hucre.ders|ders_aksan }};"{% endif %}>
                         {% if not hucre.bos %}
                         <span class="ders">{{ hucre.ders }}</span>
                         <span class="ogretmen">{{ hucre.ogretmen }}</span>
@@ -398,6 +418,6 @@
         </table>
     {% endif %}
 
-    <p class="doc-foot">Çinili Saray Proje · Dershane Programı</p>
+    <p class="doc-foot">{{ panel_org|default:"Çinili Saray Proje" }}</p>
 </body>
 </html>
