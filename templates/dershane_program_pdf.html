@@ -50,6 +50,9 @@
         table.layout > tr > td { border: none; padding: 0; vertical-align: top; }
 
         .gap16 { height: 16px; font-size: 0; line-height: 0; }
+        body.is-haftalik .gap16 { height: 8px; }
+        body.is-haftalik .hero { padding: 12px 16px; }
+        body.is-haftalik .hero-title { font-size: 16px; }
 
         /*
           KTT ile aynı gradient; WeasyPrint tuzakları:
@@ -80,6 +83,11 @@
             color: #17243a;
             page-break-after: avoid;
         }
+        body.is-haftalik h2 {
+            margin: 8px 0 4px;
+            font-size: 10px;
+        }
+        body.is-haftalik .gun-panel:first-of-type h2 { margin-top: 0; }
         table.program-table {
             width: 100%;
             border-collapse: collapse;
@@ -159,8 +167,25 @@
         .empty { color: #9aa5b5; font-style: italic; }
         td.empty { padding: 8px; text-align: left; }
         .panel { margin-bottom: 12px; page-break-inside: avoid; }
-        .gun-panel { margin-bottom: 14px; page-break-before: always; }
-        .gun-panel:first-of-type { page-break-before: avoid; }
+        .gun-panel { margin-bottom: 10px; page-break-before: auto; }
+        body.is-haftalik .gun-panel { margin-bottom: 8px; }
+        body.is-haftalik .cell-box {
+            min-height: 0;
+            padding: 3px 4px;
+        }
+        body.is-haftalik .cell-box-saat { padding: 3px 3px; }
+        body.is-haftalik .saat-bas,
+        body.is-haftalik .saat-bit {
+            display: inline;
+            font-size: 6.5px;
+            margin-top: 0;
+        }
+        body.is-haftalik .saat-bit::before { content: "–"; }
+        body.is-haftalik .ders { font-size: 7px; }
+        body.is-haftalik .ogretmen { font-size: 6px; margin-top: 0; }
+        body.is-haftalik .merged { padding: 3px 4px; font-size: 7px; }
+        body.is-haftalik table.program-table th { padding: 3px 2px; }
+        body.is-haftalik .doc-foot { margin-top: 8px; padding-top: 5px; }
         .doc-foot {
             margin-top: 12px;
             padding-top: 8px;
@@ -172,7 +197,7 @@
         }
     </style>
 </head>
-<body>
+<body{% if tum_gunler %} class="is-haftalik"{% endif %}>
 <table class="layout">
     <tr>
         <td colspan="3">
