@@ -44,80 +44,33 @@
             print-color-adjust: exact;
         }
 
-        /* KTT / landscape rapor ile aynı iskelet — hero border'lara yakalanmasın */
+        /* KTT landscape iskeleti — hero tablo hücrelerine yakalanmasın */
         table.layout { width: 100%; border-collapse: collapse; }
         table.layout > tbody > tr > td,
         table.layout > tr > td { border: none; padding: 0; vertical-align: top; }
 
-        .header-table { width: 100%; border-collapse: collapse; }
-        .header-logo-cell { width: 1%; padding: 0; vertical-align: middle; white-space: nowrap; }
-        .header-text-cell { width: 1%; padding: 0 0 0 8px; vertical-align: middle; text-align: left; white-space: nowrap; }
-        .header-right { text-align: right; vertical-align: bottom; padding: 0 0 0 16px; white-space: nowrap; }
-        .brand-logo-wrap { width: 36px; height: 36px; line-height: 0; }
-        .brand-logo { display: block; width: 36px; height: 36px; object-fit: contain; }
-        .brand-name { font-size: 13px; font-weight: 600; color: #183F78; line-height: 1.15; text-align: left; }
-        .brand-sub { margin-top: 3px; font-size: 7px; font-weight: 500; letter-spacing: 0.45px; color: #98A4B5; text-transform: uppercase; text-align: left; }
-        .doc-title { font-size: 6.5px; font-weight: 600; letter-spacing: 0.5px; color: #8B98AA; text-transform: uppercase; text-align: right; }
-
         .gap16 { height: 16px; font-size: 0; line-height: 0; }
 
         /*
-          Üretim WeasyPrint: overflow+radius+gradient birleşince hero kayboluyor;
-          background-color + background-image birlikte 3 banda bölünüyor.
-          KTT hiyerarşisini koruyup yalnızca güvenli boyama kullanıyoruz:
-          ayrı tablo + düz lacivert + (destekleyen motorlarda) radius.
+          KTT ile aynı gradient; WeasyPrint tuzakları:
+          overflow:hidden + radius → hap gibi küçülür
+          background-color + gradient → 3 banda bölünür
+          radius doğrudan td'de → sağda koyu daire
+          Blok div + width:100% + yalnız gradient.
         */
-        table.hero-shell {
+        .hero {
             width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
             border-radius: 14px;
-        }
-        table.hero-shell td.hero-paint {
-            background-color: #1A4FA8;
+            background: linear-gradient(128deg, #1A4FA8 0%, #2B6FD4 42%, #173B73 100%);
             color: #FFFFFF;
             padding: 16px 18px;
-            border: none;
-            border-radius: 14px;
-            vertical-align: middle;
-        }
-        table.hero-inner {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        table.hero-inner td {
-            border: none;
-            padding: 0;
-            vertical-align: middle;
-            background: transparent;
-        }
-        td.hero-copy { text-align: left; }
-        td.hero-deco-cell {
-            width: 96px;
-            text-align: right;
-            padding-left: 12px;
-        }
-        .hero-tag {
-            font-size: 6.5px;
-            font-weight: 600;
-            letter-spacing: 0.6px;
-            text-transform: uppercase;
-            color: #B7C9E6;
         }
         .hero-title {
-            margin-top: 8px;
             font-size: 20px;
             font-weight: 700;
             line-height: 1.2;
             letter-spacing: -0.25px;
             color: #FFFFFF;
-        }
-        .hero-meta {
-            margin-top: 8px;
-            font-size: 7px;
-            font-weight: 400;
-            line-height: 1.45;
-            color: #C5D3E8;
         }
 
         h2 {
@@ -223,57 +176,9 @@
 <table class="layout">
     <tr>
         <td colspan="3">
-            <table class="header-table" cellpadding="0" cellspacing="0">
-                <tr>
-                    <td class="header-logo-cell">
-                        <div class="brand-logo-wrap">
-                            <img class="brand-logo" width="36" height="36" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="{{ panel_short|default:'CS' }}">
-                        </div>
-                    </td>
-                    <td class="header-text-cell">
-                        <div class="brand-name">{{ panel_org|default:"Çinili Saray Proje" }}</div>
-                        <div class="brand-sub">{{ panel_module_label|default:"Eğitim Modülü" }}</div>
-                    </td>
-                    <td class="header-right">
-                        <div class="doc-title">Dershane Programı</div>
-                    </td>
-                </tr>
-            </table>
-        </td>
-    </tr>
-
-    <tr><td colspan="3" class="gap16"></td></tr>
-
-    <tr>
-        <td colspan="3">
-            <table class="hero-shell" cellpadding="0" cellspacing="0" width="100%">
-                <tr>
-                    <td class="hero-paint" bgcolor="#1A4FA8" style="background-color:#1A4FA8; color:#FFFFFF; padding:16px 18px;">
-                        <table class="hero-inner" cellpadding="0" cellspacing="0" width="100%">
-                            <tr>
-                                <td class="hero-copy">
-                                    <div class="hero-tag" style="color:#B7C9E6;">Dershane Programı</div>
-                                    <div class="hero-title" style="color:#FFFFFF;">{{ mod_baslik|default:"Haftalık Dershane Programı" }}</div>
-                                    <div class="hero-meta" style="color:#C5D3E8;">
-                                        {% if tum_gunler %}Tüm günler · Tüm sınıflar{% elif gun_adi %}{{ gun_adi }}{% endif %}
-                                        {% if program.baslangic_tarihi and program.bitis_tarihi %} · {{ program.baslangic_tarihi|date:"d.m.Y" }} — {{ program.bitis_tarihi|date:"d.m.Y" }}{% endif %}
-                                        {% if filtre.sinif %} · {{ filtre.sinif }}. Sınıf{% endif %}
-                                        {% if filtre.etut_grubu and gorunum.gruplar %} · {{ gorunum.gruplar.0.etiket }}{% endif %}
-                                        {% if filtre.ogretmen %} · {{ filtre.ogretmen }}{% endif %}
-                                    </div>
-                                </td>
-                                <td class="hero-deco-cell" width="96" align="right" valign="middle">
-                                    <svg width="88" height="52" viewBox="0 0 120 72" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                        <rect x="18" y="10" width="72" height="52" rx="8" fill="#FFFFFF" fill-opacity="0.18"/>
-                                        <rect x="28" y="22" width="52" height="4" rx="2" fill="#FFFFFF" fill-opacity="0.28"/>
-                                        <rect x="38" y="32" width="32" height="4" rx="2" fill="#FFFFFF" fill-opacity="0.22"/>
-                                    </svg>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
+            <div class="hero">
+                <div class="hero-title">{{ mod_baslik|default:"Haftalık Dershane Programı" }}</div>
+            </div>
         </td>
     </tr>
 
