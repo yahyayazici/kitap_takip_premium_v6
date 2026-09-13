@@ -735,6 +735,13 @@ def tum_haftalik_pdf_baglami(
     for gun in range(7):
         if not program.saat_bloklari.filter(gun=gun).exists():
             continue
+        has_ders = (
+            program.ders_atamalari.filter(saat_bloku__gun=gun)
+            .filter(Q(ders_id__isnull=False) | (~Q(ders_adi="") & ~Q(ders_adi="—")))
+            .exists()
+        )
+        if not has_ders:
+            continue
         gun_ctx = panel_baglami(user, program=program, gun=gun, filtre={})
         gun_panelleri.append(
             {

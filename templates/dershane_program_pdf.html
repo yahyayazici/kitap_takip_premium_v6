@@ -30,7 +30,10 @@
             font-style: normal;
         }
 
-        @page { size: A4 landscape; margin: 9mm 11mm; }
+        @page {
+            size: {% if tum_gunler %}A4 portrait{% else %}A4 landscape{% endif %};
+            margin: {% if tum_gunler %}8mm 8mm{% else %}9mm 11mm{% endif %};
+        }
         * { box-sizing: border-box; }
         body {
             font-family: "Poppins", sans-serif;
