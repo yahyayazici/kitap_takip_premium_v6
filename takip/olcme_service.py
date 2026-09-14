@@ -535,6 +535,11 @@ def talebe_cevaplari_kaydet(
     if dogru + yanlis + bos != sinav.soru_sayisi:
         return None
 
+    onceki = KttSonucu.objects.filter(ktt=sinav, talebe=talebe).first()
+    onceki_d = int(onceki.dogru or 0) if onceki else 0
+    onceki_y = int(onceki.yanlis or 0) if onceki else 0
+    onceki_b = int(onceki.bos or 0) if onceki else 0
+
     sonuc, _ = KttSonucu.objects.update_or_create(
         ktt=sinav,
         talebe=talebe,
@@ -546,9 +551,21 @@ def talebe_cevaplari_kaydet(
         },
     )
     from takip.ktt_akilli_service import ktt_sonuc_sonrasi_isle
+    from takip.soru_takip_service import ktt_sonucu_soru_takibe_yansit
 
     ktt_sonuc_sonrasi_isle(sonuc)
     olcme_sonuc_sonrasi_konu_eksikleri(sonuc)
+    ktt_sonucu_soru_takibe_yansit(
+        user=kullanici,
+        ktt=sinav,
+        talebe=talebe,
+        dogru=dogru,
+        yanlis=yanlis,
+        bos=bos,
+        onceki_dogru=onceki_d,
+        onceki_yanlis=onceki_y,
+        onceki_bos=onceki_b,
+    )
     return sonuc
 
 

@@ -599,6 +599,17 @@ def deneme_sonuclari_aktar(
 
     atlanan = sum(1 for s in onizleme.satirlar if not s.talebe_id)
 
+    from takip.soru_takip_service import deneme_sonucu_soru_takibe_yansit
+
+    eski_sonuclar = list(
+        DenemeSonucu.objects.filter(deneme=deneme).prefetch_related(
+            "brans_satirlari", "talebe"
+        )
+    )
+    for eski in eski_sonuclar:
+        deneme_sonucu_soru_takibe_yansit(
+            user=user, deneme=deneme, sonuc=eski, silindi=True
+        )
     DenemeSonucu.objects.filter(deneme=deneme).delete()
     kayit_sayisi = 0
 
@@ -637,8 +648,6 @@ def deneme_sonuclari_aktar(
                 bos=int(veri.get("bos", 0)),
                 net=_ondalik(str(veri.get("net", "0"))),
             )
-
-        from takip.soru_takip_service import deneme_sonucu_soru_takibe_yansit
 
         deneme_sonucu_soru_takibe_yansit(user=user, deneme=deneme, sonuc=sonuc)
 

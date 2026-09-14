@@ -29,6 +29,8 @@ from takip.soru_takip_service import (
     rapor_filtre_dict,
     rapor_istatistik,
     rapor_kayitlari,
+    rapor_ders_ozeti,
+    rapor_talebe_satirlari,
     rapor_pdf_baglami,
     soru_takip_dersleri,
     yetkili_soru_kayitlari,
@@ -174,22 +176,21 @@ def soru_takip_rapor(request):
     filtre = rapor_filtre_dict(request)
     kayitlar, baslangic, bitis, donem_baslik = rapor_kayitlari(request.user, filtre)
     export_tail = _rapor_export_tail(request)
+    ders_id = filtre.get("ders") or None
 
     return render(
         request,
         "soru_takip_rapor.html",
         {
-            "kayitlar": kayitlar[:200],
+            "ders_ozeti": rapor_ders_ozeti(kayitlar, ders_id=ders_id),
+            "talebe_satirlari": rapor_talebe_satirlari(kayitlar, ders_id=ders_id),
             "talebeler": yetkili_talebeler(request.user).order_by("ad_soyad"),
             "dersler": soru_takip_dersleri(),
             "filtre": filtre,
             "donem_baslik": donem_baslik,
             "baslangic": baslangic,
             "bitis": bitis,
-            "istatistik": rapor_istatistik(
-                kayitlar,
-                ders_id=filtre.get("ders") or None,
-            ),
+            "istatistik": rapor_istatistik(kayitlar, ders_id=ders_id),
             "pdf_yetki": can(request.user, "soru_takip", "export_pdf"),
             "excel_yetki": can(request.user, "soru_takip", "export_excel"),
             "export_tail": export_tail,

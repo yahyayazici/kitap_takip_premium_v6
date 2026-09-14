@@ -222,36 +222,48 @@ DONEM_ETIKETLERI = {
 }
 
 
-def rapor_donemi_coz(filtre: dict[str, str]) -> tuple[date, date, str]:
-    referans = _parse_rapor_tarih(filtre.get("referans")) or localdate()
-    donem = filtre.get("donem") or "aylik"
-
-    if donem == "ozel":
-        bas = _parse_rapor_tarih(filtre.get("baslangic"))
-        bit = _parse_rapor_tarih(filtre.get("bitis"))
-        if bas and bit:
-            if bas > bit:
-                bas, bit = bit, bas
-            return bas, bit, DONEM_ETIKETLERI["ozel"]
-        if bas:
-            return bas, localdate(), DONEM_ETIKETLERI["ozel"]
-        if bit:
-            return bit.replace(day=1), bit, DONEM_ETIKETLERI["ozel"]
-
+def _donem_araligi(donem: str, merkez: date) -> tuple[date, date, str]:
     if donem == "gunluk":
-        return referans, referans, DONEM_ETIKETLERI["gunluk"]
+        return merkez, merkez, DONEM_ETIKETLERI["gunluk"]
     if donem == "haftalik":
-        return referans - timedelta(days=6), referans, DONEM_ETIKETLERI["haftalik"]
+        return merkez - timedelta(days=6), merkez, DONEM_ETIKETLERI["haftalik"]
     if donem == "yillik":
         return (
-            date(referans.year, 1, 1),
-            date(referans.year, 12, 31),
+            date(merkez.year, 1, 1),
+            date(merkez.year, 12, 31),
             DONEM_ETIKETLERI["yillik"],
         )
-
-    baslangic = referans.replace(day=1)
-    bitis = referans.replace(day=monthrange(referans.year, referans.month)[1])
+    if donem == "ozel":
+        return merkez.replace(day=1), merkez, DONEM_ETIKETLERI["ozel"]
+    baslangic = merkez.replace(day=1)
+    bitis = merkez.replace(day=monthrange(merkez.year, merkez.month)[1])
     return baslangic, bitis, DONEM_ETIKETLERI["aylik"]
+
+
+def rapor_donemi_coz(filtre: dict[str, str]) -> tuple[date, date, str]:
+    bugun = localdate()
+    donem = filtre.get("donem") or "aylik"
+    bas = _parse_rapor_tarih(filtre.get("baslangic"))
+    bit = _parse_rapor_tarih(filtre.get("bitis"))
+    if bas and bit and bas > bit:
+        bas, bit = bit, bas
+
+    # Tarih aralığı gönderildiyse Filtrele onu kullanır (referans tarih yok).
+    if bas and bit:
+        etiket = DONEM_ETIKETLERI.get(donem, DONEM_ETIKETLERI["ozel"])
+        if donem in {"gunluk", "haftalik", "aylik", "yillik"}:
+            preset_bas, preset_bit, preset_etiket = _donem_araligi(donem, bugun)
+            if (bas, bit) == (preset_bas, preset_bit):
+                return preset_bas, preset_bit, preset_etiket
+            etiket = DONEM_ETIKETLERI["ozel"]
+        return bas, bit, etiket
+    if bas:
+        return bas, bugun if bugun >= bas else bas, DONEM_ETIKETLERI["ozel"]
+    if bit:
+        return bit.replace(day=1), bit, DONEM_ETIKETLERI["ozel"]
+
+    merkez = _parse_rapor_tarih(filtre.get("referans")) or bugun
+    return _donem_araligi(donem, merkez)
 
 
 def rapor_kayitlari(
@@ -375,6 +387,8 @@ def rapor_talebe_satirlari(
         .annotate(
             toplam_soru=Sum("toplam_soru"),
             dogru=Sum("dogru"),
+            yanlis=Sum("yanlis"),
+            bos=Sum("bos"),
             net=Sum("net"),
         )
         .order_by("kayit__talebe__ad_soyad")
@@ -395,6 +409,9 @@ def rapor_talebe_satirlari(
                 "ad_soyad": item["kayit__talebe__ad_soyad"],
                 "sinif_goster": sinif_goster,
                 "toplam_soru": toplam,
+                "dogru": dogru,
+                "yanlis": int(item["yanlis"] or 0),
+                "bos": int(item["bos"] or 0),
                 "toplam_net": Decimal(item["net"] or 0).quantize(Decimal("0.01")),
                 "basari_orani": basari,
                 "gun_sayisi": kayitlar.filter(
@@ -660,11 +677,13 @@ def deneme_sonucu_soru_takibe_yansit(
     user: User,
     deneme,
     sonuc,
+    silindi: bool = False,
 ) -> None:
     """
     Deneme branş sonuçlarını sınav tarihindeki günlük soru takibine ekler.
 
-    KTT ile aynı mantık: aynı günün ilgili ders satırına D/Y/B eklenir.
+    Aynı deneme yeniden yüklenirse önce silindi=True ile eski katkı düşülür;
+    mevcut günlük kayıtlar silinmez, yalnızca bu denemenin D/Y/B'si düzeltilir.
     """
     from takip.deneme_service import DENEME_BRANS_DERS_MAP, DENEME_DETAY_BRANSLAR
 
@@ -681,10 +700,13 @@ def deneme_sonucu_soru_takibe_yansit(
 
     not_ek = f"Deneme: {deneme.ad}"
     mevcut_not = (kayit.gunluk_not or "").strip()
-    if not_ek not in mevcut_not:
+    if not silindi and not_ek not in mevcut_not:
         kayit.gunluk_not = f"{mevcut_not}\n{not_ek}".strip() if mevcut_not else not_ek
-    kayit.kaydeden = user
-    kayit.save(update_fields=["gunluk_not", "kaydeden", "guncellenme"])
+        kayit.kaydeden = user
+        kayit.save(update_fields=["gunluk_not", "kaydeden", "guncellenme"])
+    else:
+        kayit.kaydeden = user
+        kayit.save(update_fields=["kaydeden", "guncellenme"])
 
     brans_map = {b.brans: b for b in sonuc.brans_satirlari.all()}
 
@@ -704,19 +726,26 @@ def deneme_sonucu_soru_takibe_yansit(
         dogru = int(brans_satir.dogru or 0)
         yanlis = int(brans_satir.yanlis or 0)
         bos = int(brans_satir.bos or 0)
-        toplam = dogru + yanlis + bos
-        if toplam <= 0:
-            continue
 
         satir = GunlukSoruDersSatiri.objects.filter(kayit=kayit, ders=ders).first()
         cur_d = int(satir.dogru or 0) if satir else 0
         cur_y = int(satir.yanlis or 0) if satir else 0
         cur_b = int(satir.bos or 0) if satir else 0
 
-        yeni_d = cur_d + dogru
-        yeni_y = cur_y + yanlis
-        yeni_b = cur_b + bos
+        if silindi:
+            yeni_d = max(0, cur_d - dogru)
+            yeni_y = max(0, cur_y - yanlis)
+            yeni_b = max(0, cur_b - bos)
+        else:
+            yeni_d = cur_d + dogru
+            yeni_y = cur_y + yanlis
+            yeni_b = cur_b + bos
         yeni_toplam = yeni_d + yeni_y + yeni_b
+
+        if yeni_toplam <= 0:
+            if satir:
+                satir.delete()
+            continue
 
         GunlukSoruDersSatiri.objects.update_or_create(
             kayit=kayit,

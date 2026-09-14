@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Soru Takip Rapor · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/soru-takip-premium.css' %}?v=nizam2">
+<link rel="stylesheet" href="{% static 'css/soru-takip-premium.css' %}?v=nizam3">
 {% endblock %}
 {% block content %}
 <div class="library-page st-report-page">
@@ -10,7 +10,7 @@
         <div>
             <p class="kicker">GÜNLÜK SORU TAKİP</p>
             <h1>Rapor</h1>
-            <p class="muted">{{ donem_baslik }} · PDF veya Excel olarak indirin.</p>
+            <p class="muted">{{ donem_baslik }} · {{ baslangic|date:"d.m.Y" }} – {{ bitis|date:"d.m.Y" }}</p>
         </div>
         <div class="result-header-actions">
             <a href="{% url 'soru_takip_panel' %}" class="result-back-button">Soru Takip</a>
@@ -21,27 +21,27 @@
         <article class="metric-card tone-blue">
             <span>TOPLAM SORU</span>
             <strong>{{ istatistik.toplam_soru }}</strong>
-            <small>Seçili dönem</small>
+            <small>Seçili aralık</small>
         </article>
         <article class="metric-card tone-green">
-            <span>TOPLAM NET</span>
-            <strong>{{ istatistik.toplam_net }}</strong>
-            <small>Net puan</small>
+            <span>DOĞRU</span>
+            <strong>{{ istatistik.dogru }}</strong>
+            <small>{{ istatistik.yanlis }} yanlış · {{ istatistik.bos }} boş</small>
         </article>
         <article class="metric-card tone-purple">
             <span>BAŞARI</span>
             <strong>%{{ istatistik.basari_orani }}</strong>
-            <small>Doğru oranı</small>
+            <small>{{ istatistik.toplam_net }} net</small>
         </article>
         <article class="metric-card tone-amber">
-            <span>KAYIT</span>
-            <strong>{{ istatistik.kayit_sayisi }}</strong>
-            <small>{{ istatistik.talebe_sayisi }} talebe</small>
+            <span>TALEBE</span>
+            <strong>{{ istatistik.talebe_sayisi }}</strong>
+            <small>{{ istatistik.kayit_sayisi }} günlük kayıt</small>
         </article>
     </section>
 
     <section class="library-panel st-report-filter">
-        <form method="get" class="st-report-form">
+        <form method="get" class="st-report-form" id="st-rapor-form">
             <label>
                 Dönem
                 <select name="donem" class="input" id="st-donem">
@@ -51,10 +51,6 @@
                     <option value="yillik" {% if filtre.donem == "yillik" %}selected{% endif %}>Yıllık</option>
                     <option value="ozel" {% if filtre.donem == "ozel" %}selected{% endif %}>Özel aralık</option>
                 </select>
-            </label>
-            <label class="st-ref-field">
-                Referans tarih
-                <input type="date" name="referans" value="{{ filtre.referans|default:bitis|date:'Y-m-d' }}" class="input">
             </label>
             <label>
                 Talebe
@@ -76,11 +72,11 @@
             </label>
             <label class="st-range-field">
                 Başlangıç
-                <input type="date" name="baslangic" value="{{ filtre.baslangic|default:baslangic|date:'Y-m-d' }}" class="input">
+                <input type="date" name="baslangic" id="st-baslangic" value="{% if filtre.baslangic %}{{ filtre.baslangic }}{% else %}{{ baslangic|date:'Y-m-d' }}{% endif %}" class="input">
             </label>
             <label class="st-range-field">
                 Bitiş
-                <input type="date" name="bitis" value="{{ filtre.bitis|default:bitis|date:'Y-m-d' }}" class="input">
+                <input type="date" name="bitis" id="st-bitis" value="{% if filtre.bitis %}{{ filtre.bitis }}{% else %}{{ bitis|date:'Y-m-d' }}{% endif %}" class="input">
             </label>
             <div class="st-report-actions">
                 <button type="submit" class="primary-btn">Filtrele</button>
@@ -97,7 +93,7 @@
     <section class="library-panel">
         <div class="card-heading library-panel-head">
             <div>
-                <p class="card-kicker">KAYIT LİSTESİ</p>
+                <p class="card-kicker">DERS ÖZETİ</p>
                 <h2>{{ baslangic|date:"d.m.Y" }} – {{ bitis|date:"d.m.Y" }}</h2>
             </div>
         </div>
@@ -105,32 +101,121 @@
             <table class="report-data-table">
                 <thead>
                     <tr>
-                        <th>Tarih</th>
-                        <th>Talebe</th>
-                        <th>Sınıf</th>
+                        <th>Ders</th>
                         <th>Toplam Soru</th>
+                        <th>Doğru</th>
+                        <th>Yanlış</th>
+                        <th>Boş</th>
                         <th>Net</th>
                         <th>Başarı</th>
-                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for kayit in kayitlar %}
+                    {% for satir in ders_ozeti %}
                     <tr>
-                        <td>{{ kayit.tarih|date:"d.m.Y" }}</td>
-                        <td><strong>{{ kayit.talebe.ad_soyad }}</strong></td>
-                        <td>{{ kayit.talebe.sinif_sube|default:kayit.talebe.sinif|default:"—" }}</td>
-                        <td class="num-col">{{ kayit.toplam_soru }}</td>
-                        <td class="num-col">{{ kayit.toplam_net }}</td>
-                        <td class="num-col">%{{ kayit.basari_orani }}</td>
-                        <td><a href="{% url 'soru_takip_detay' kayit.pk %}" class="ghost-btn">Detay</a></td>
+                        <td><strong>{{ satir.ders }}</strong></td>
+                        <td class="num-col">{{ satir.toplam_soru }}</td>
+                        <td class="num-col">{{ satir.dogru }}</td>
+                        <td class="num-col">{{ satir.yanlis }}</td>
+                        <td class="num-col">{{ satir.bos }}</td>
+                        <td class="num-col">{{ satir.net }}</td>
+                        <td class="num-col">%{{ satir.basari_orani }}</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="7" class="report-empty">Kayıt bulunamadı.</td></tr>
+                    <tr><td colspan="7" class="report-empty">Bu tarih aralığında kayıt yok.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </section>
+
+    {% if talebe_satirlari and talebe_satirlari|length > 1 %}
+    <section class="library-panel">
+        <div class="card-heading library-panel-head">
+            <div>
+                <p class="card-kicker">TALEBE ÖZETİ</p>
+                <h2>Seçili aralık toplamı</h2>
+            </div>
+        </div>
+        <div class="responsive-table">
+            <table class="report-data-table">
+                <thead>
+                    <tr>
+                        <th>Talebe</th>
+                        <th>Sınıf</th>
+                        <th>Toplam Soru</th>
+                        <th>Doğru</th>
+                        <th>Yanlış</th>
+                        <th>Boş</th>
+                        <th>Net</th>
+                        <th>Başarı</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for satir in talebe_satirlari %}
+                    <tr>
+                        <td><strong>{{ satir.ad_soyad }}</strong></td>
+                        <td>{{ satir.sinif_goster }}</td>
+                        <td class="num-col">{{ satir.toplam_soru }}</td>
+                        <td class="num-col">{{ satir.dogru }}</td>
+                        <td class="num-col">{{ satir.yanlis }}</td>
+                        <td class="num-col">{{ satir.bos }}</td>
+                        <td class="num-col">{{ satir.toplam_net }}</td>
+                        <td class="num-col">%{{ satir.basari_orani }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
 </div>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+    var donem = document.getElementById("st-donem");
+    var bas = document.getElementById("st-baslangic");
+    var bit = document.getElementById("st-bitis");
+    if (!donem || !bas || !bit) return;
+
+    function pad(n) { return String(n).padStart(2, "0"); }
+    function iso(d) {
+        return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+    }
+    function applyDonem(kind) {
+        var t = new Date();
+        t.setHours(0, 0, 0, 0);
+        var a = new Date(t);
+        var b = new Date(t);
+        if (kind === "gunluk") {
+            a = b = t;
+        } else if (kind === "haftalik") {
+            a = new Date(t);
+            a.setDate(a.getDate() - 6);
+            b = t;
+        } else if (kind === "yillik") {
+            a = new Date(t.getFullYear(), 0, 1);
+            b = new Date(t.getFullYear(), 11, 31);
+        } else if (kind === "aylik") {
+            a = new Date(t.getFullYear(), t.getMonth(), 1);
+            b = new Date(t.getFullYear(), t.getMonth() + 1, 0);
+        } else {
+            return;
+        }
+        bas.value = iso(a);
+        bit.value = iso(b);
+    }
+    donem.addEventListener("change", function () {
+        applyDonem(donem.value);
+    });
+    function markOzel() {
+        if (donem.value !== "ozel") {
+            donem.value = "ozel";
+        }
+    }
+    bas.addEventListener("change", markOzel);
+    bit.addEventListener("change", markOzel);
+})();
+</script>
 {% endblock %}
