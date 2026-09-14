@@ -21,19 +21,19 @@
             color: #FFFFFF;
         }
         td.st-banner-logo {
-            width: 58px;
-            padding: 8px 0 8px 14px;
+            width: 62px;
+            padding: 10px 0 10px 16px;
             vertical-align: middle;
         }
         td.st-banner-logo img {
             display: block;
-            width: 40px;
-            height: 40px;
-            max-width: 40px;
-            max-height: 40px;
+            width: 44px;
+            height: 44px;
+            max-width: 44px;
+            max-height: 44px;
         }
         td.st-banner-text {
-            padding: 8px 16px 8px 8px;
+            padding: 10px 18px 10px 8px;
             vertical-align: middle;
             text-align: left;
         }
@@ -58,9 +58,15 @@
             border-spacing: 8px 0;
         }
         .stat-cell {
-            overflow: visible;
+            overflow: hidden;
+            border-left-width: 4px;
+            border-left-style: solid;
         }
-        .stat-accent, .stat-deco { display: none; }
+        .stat-cell.tone-blue { border-left-color: #2B6FD4; }
+        .stat-cell.tone-green { border-left-color: #1AA477; }
+        .stat-cell.tone-orange { border-left-color: #EE8A24; }
+        .stat-cell.tone-purple { border-left-color: #7657E8; }
+        .stat-deco { display: none; }
     </style>
 </head>
 <body>
@@ -68,12 +74,12 @@
 <table class="layout">
     <tr>
         <td colspan="3">
-            <table class="st-banner" width="100%" cellpadding="0" cellspacing="0" bgcolor="#1A4FA8">
+            <table class="st-banner" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
-                    <td class="st-banner-logo" width="58" bgcolor="#1A4FA8" valign="middle">
-                        <img width="40" height="40" style="width:40px;height:40px;" src="{% static 'images/cinili-saray-logo-white-sm.png' %}" alt="">
+                    <td class="st-banner-logo" width="62" valign="middle">
+                        <img width="44" height="44" style="width:44px;height:44px;" src="{% static 'images/cinili-saray-logo-white.png' %}" alt="">
                     </td>
-                    <td class="st-banner-text" bgcolor="#1A4FA8" valign="middle">
+                    <td class="st-banner-text" valign="middle">
                         <div class="st-banner-title" style="color:#FFFFFF;">Soru Takip Raporu</div>
                         {% if talebe %}
                         <div class="st-banner-meta" style="color:#FFFFFF;">{{ talebe.ad_soyad }}</div>
@@ -120,21 +126,25 @@
             <table class="stats-table" cellpadding="0">
                 <tr>
                     <td width="25%" class="stat-cell tone-blue">
+                        <div class="stat-accent"></div>
                         <div class="stat-label">Toplam Soru</div>
                         <div class="stat-metric">{{ istatistik.toplam_soru }}</div>
                         <div class="stat-sub">{{ istatistik.kayit_sayisi }} kayıt günü</div>
                     </td>
                     <td width="25%" class="stat-cell tone-green">
+                        <div class="stat-accent"></div>
                         <div class="stat-label">Doğru</div>
                         <div class="stat-metric">{{ istatistik.dogru }}</div>
                         <div class="stat-sub">Yanlış {{ istatistik.yanlis }} / Boş {{ istatistik.bos }}</div>
                     </td>
                     <td width="25%" class="stat-cell tone-orange">
+                        <div class="stat-accent"></div>
                         <div class="stat-label">Toplam Net</div>
                         <div class="stat-metric">{{ istatistik.toplam_net }}</div>
                         <div class="stat-sub">D - Y/4</div>
                     </td>
                     <td width="25%" class="stat-cell tone-purple">
+                        <div class="stat-accent"></div>
                         <div class="stat-label">Başarı</div>
                         <div class="stat-metric">%{{ istatistik.basari_orani }}</div>
                         <div class="stat-sub">Doğru / toplam soru</div>
