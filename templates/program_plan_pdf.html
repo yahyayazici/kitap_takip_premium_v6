@@ -15,35 +15,40 @@
             src: url("{% static 'fonts/Poppins-Medium.ttf' %}") format("truetype");
             font-weight: 500;
         }
-        @font-face {
-            font-family: "Poppins";
-            src: url("{% static 'fonts/Poppins-SemiBold.ttf' %}") format("truetype");
-            font-weight: 600;
-        }
 
-        @page { size: {{ pdf_sayfa.size_css|default:"A4 portrait" }}; margin: 10mm 12mm; }
+        @page { size: {{ pdf_sayfa.size_css|default:"A4 portrait" }}; margin: 12mm 14mm; }
         * { box-sizing: border-box; }
         body {
             margin: 0;
             font-family: "Poppins", sans-serif;
-            color: #1c2a3d;
+            font-size: 10px;
+            color: #546173;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
 
-        .head { margin-bottom: 8px; }
-        .head h1 {
+        table.head {
+            width: 100%;
+            border-collapse: collapse;
+            border-bottom: 1px solid #d8e3f0;
+            margin-bottom: 10px;
+        }
+        table.head td {
+            border: none;
+            padding: 0 0 8px;
+            vertical-align: bottom;
+        }
+        table.head h1 {
             margin: 0;
-            font-size: 18px;
-            font-weight: 600;
+            font-size: 16px;
+            font-weight: 500;
             color: #10213d;
-            letter-spacing: -0.25px;
         }
-        .head p {
-            margin: 3px 0 0;
-            font-size: 9px;
-            color: #718097;
+        table.head .sub {
+            margin-top: 4px;
+            font-size: 8px;
         }
+        .meta { text-align: right; font-size: 8px; line-height: 1.45; }
 
         table.program {
             width: 100%;
@@ -52,63 +57,95 @@
         }
         table.program th,
         table.program td {
-            border: 1px solid #d5deea;
-            padding: 0 12px;
+            border: 1px solid #e3eaf3;
+            padding: 0;
+            text-align: left;
             vertical-align: middle;
         }
         table.program th {
-            background: #173b80;
-            color: #ffffff;
-            font-weight: 600;
-            font-size: 10px;
+            background: #f3f7fc;
+            color: #173b80;
+            font-weight: 500;
+            font-size: 7.5px;
             letter-spacing: 0.08em;
             text-transform: uppercase;
-            height: 11mm;
         }
         table.program th.saat,
-        table.program td.saat { width: 36%; text-align: center; }
-        table.program td.saat {
-            font-size: 14px;
-            font-weight: 600;
-            color: #173b80;
-            font-variant-numeric: tabular-nums;
-            background: #f4f7fb;
-        }
-        table.program td.faaliyet {
-            font-size: 14px;
+        table.program td.saat { width: 32%; }
+        .cell { display: block; padding: 0 10px; }
+        th .cell { height: 8mm; line-height: 8mm; }
+        td.saat .cell {
+            font-size: 12px;
             font-weight: 500;
-            color: #14213d;
+            color: #10213d;
+            font-variant-numeric: tabular-nums;
+        }
+        td.faaliyet .cell {
+            font-size: 12px;
+            font-weight: 400;
+            color: #10213d;
         }
         {% if satirlar %}
-        {% widthratio 255 satirlar|length 1 as satir_mm %}
-        table.program tbody td { height: {{ satir_mm|default:12 }}mm; }
+        {% widthratio 228 satirlar|length 1 as satir_mm %}
+        td .cell {
+            height: {{ satir_mm|default:12 }}mm;
+            line-height: {{ satir_mm|default:12 }}mm;
+        }
         {% endif %}
-        .empty { color: #8b98aa; font-style: italic; padding: 12px; }
+        .empty { color: #94a3b8; font-style: italic; padding: 10px; }
+
+        table.foot {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        table.foot td {
+            border: none;
+            padding: 0;
+            font-size: 7px;
+            color: #718097;
+        }
+        table.foot td.right { text-align: right; }
     </style>
 </head>
 <body>
-    <div class="head">
-        <h1>{{ program.ad }}</h1>
-        <p>{{ program.tarih_araligi_goster }}</p>
-    </div>
+    <table class="head">
+        <tr>
+            <td>
+                <h1>{{ program.ad }}</h1>
+                <div class="sub">{{ program.tarih_araligi_goster }}{% if program.aciklama %} · {{ program.aciklama }}{% endif %}</div>
+            </td>
+            <td class="meta">
+                <div>{{ panel_org|default:"Çinili Saray Proje" }}</div>
+                <div>Günlük Program Planı</div>
+            </td>
+        </tr>
+    </table>
 
     <table class="program">
         <thead>
             <tr>
-                <th class="saat">Saat</th>
-                <th>Faaliyet</th>
+                <th class="saat"><div class="cell">Saat</div></th>
+                <th><div class="cell">Faaliyet</div></th>
             </tr>
         </thead>
         <tbody>
             {% for satir in satirlar %}
             <tr>
-                <td class="saat">{{ satir.baslangic_saati|time:"H:i" }} – {{ satir.bitis_saati|time:"H:i" }}</td>
-                <td class="faaliyet">{{ satir.faaliyet_adi }}</td>
+                <td class="saat"><div class="cell">{{ satir.baslangic_saati|time:"H:i" }} – {{ satir.bitis_saati|time:"H:i" }}</div></td>
+                <td class="faaliyet"><div class="cell">{{ satir.faaliyet_adi }}</div></td>
             </tr>
             {% empty %}
             <tr><td colspan="2" class="empty">Program satırı tanımlanmamış.</td></tr>
             {% endfor %}
         </tbody>
+    </table>
+
+    <table class="foot">
+        <tr>
+            <td>{{ satirlar|length }} faaliyet{% if toplam_dakika %} · Toplam {{ toplam_dakika }} dk{% endif %}</td>
+            <td class="right">{{ panel_name|default:panel_org|default:"Çinili Saray Proje" }}</td>
+        </tr>
     </table>
 </body>
 </html>
