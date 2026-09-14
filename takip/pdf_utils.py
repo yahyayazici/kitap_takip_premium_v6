@@ -12,6 +12,8 @@ import os
 import platform
 import re
 import tempfile
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FuturesTimeoutError
 from io import BytesIO
 from pathlib import Path
 from urllib.parse import unquote, urlparse
@@ -24,8 +26,12 @@ logger = logging.getLogger(__name__)
 
 _weasyprint_html = None
 _weasyprint_checked = False
+_weasyprint_disabled = False
 _reportlab_fonts_ready = False
 _pdf_turkish_font_path: Path | None = None
+
+_WEASYPRINT_TIMEOUT_S = 20
+_XHTML2PDF_TIMEOUT_S = 25
 
 _XHTML2PDF_UNSUPPORTED_AT_RULES = (
     "@bottom-left",
@@ -172,6 +178,14 @@ def _sanitize_html_for_xhtml2pdf(html_string: str) -> str:
     sanitized = sanitized.replace("width:calc(100% + 8px);", "width:100%;")
     sanitized = sanitized.replace("width: calc(100% + 20px);", "width: 100%;")
     sanitized = sanitized.replace("width:calc(100% + 20px);", "width:100%;")
+
+    # SVG (gradient/medal/bar) xhtml2pdf'de negatif hücre genişliği veya takılma yapar
+    sanitized = re.sub(
+        r"<svg\b[^>]*>.*?</svg>",
+        "",
+        sanitized,
+        flags=re.DOTALL | re.IGNORECASE,
+    )
 
     return _rewrite_static_urls_to_file(sanitized)
 
@@ -358,7 +372,10 @@ def _configure_weasyprint_library_path() -> None:
 
 def get_weasyprint_html():
     """WeasyPrint HTML sınıfını lazy-load eder; yoksa None döner."""
-    global _weasyprint_html, _weasyprint_checked
+    global _weasyprint_html, _weasyprint_checked, _weasyprint_disabled
+
+    if _weasyprint_disabled:
+        return None
 
     if _weasyprint_checked:
         return _weasyprint_html
@@ -381,6 +398,47 @@ def get_weasyprint_html():
     return _weasyprint_html
 
 
+def _run_with_timeout(fn, timeout_s: float, *args, **kwargs):
+    """PDF motorunu sınırlı sürede çalıştır; takılırsa TimeoutError."""
+    pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="pdf-engine")
+    fut = pool.submit(fn, *args, **kwargs)
+    try:
+        result = fut.result(timeout=timeout_s)
+    except FuturesTimeoutError as exc:
+        pool.shutdown(wait=False, cancel_futures=True)
+        raise TimeoutError(f"PDF motoru {timeout_s:.0f}s aştı") from exc
+    pool.shutdown(wait=False, cancel_futures=True)
+    return result
+
+
+def _weasyprint_write(html_cls, local_html: str, local_base: str) -> bytes:
+    try:
+        document = html_cls(
+            string=local_html,
+            base_url=local_base,
+            url_fetcher=_weasyprint_url_fetcher,
+        )
+    except TypeError:
+        document = html_cls(string=local_html, base_url=local_base)
+    return document.write_pdf()
+
+
+def _xhtml2pdf_write(html_string: str) -> bytes:
+    from xhtml2pdf import pisa
+
+    _ensure_xhtml2pdf_windows_tmp_patch()
+    buffer = BytesIO()
+    result = pisa.CreatePDF(
+        _prepare_html_for_xhtml2pdf(html_string),
+        dest=buffer,
+        encoding="utf-8",
+        link_callback=_xhtml2pdf_link_callback,
+    )
+    if result.err:
+        raise RuntimeError(f"xhtml2pdf hata kodu: {result.err}")
+    return buffer.getvalue()
+
+
 def html_to_pdf(html_string: str, base_url: str = "/") -> bytes | None:
     """
     HTML metninden PDF üretir.
@@ -389,6 +447,7 @@ def html_to_pdf(html_string: str, base_url: str = "/") -> bytes | None:
     base_url HTTP olsa bile yerel dosya tabanı kullanılır; aksi halde Render'da
     worker kendini bekleyerek (static fetch) kilitlenebilir.
     """
+    global _weasyprint_disabled
     del base_url  # bilinçli: ağ self-fetch engeli
     html_cls = get_weasyprint_html()
     local_html = _rewrite_static_urls_to_file(html_string)
@@ -396,48 +455,36 @@ def html_to_pdf(html_string: str, base_url: str = "/") -> bytes | None:
 
     if html_cls is not None:
         try:
-            try:
-                document = html_cls(
-                    string=local_html,
-                    base_url=local_base,
-                    url_fetcher=_weasyprint_url_fetcher,
-                )
-            except TypeError:
-                document = html_cls(string=local_html, base_url=local_base)
-            return document.write_pdf()
+            return _run_with_timeout(
+                _weasyprint_write,
+                _WEASYPRINT_TIMEOUT_S,
+                html_cls,
+                local_html,
+                local_base,
+            )
+        except TimeoutError as exc:
+            _weasyprint_disabled = True
+            logger.warning("WeasyPrint zaman aşımı, xhtml2pdf deneniyor: %s", exc)
         except Exception as exc:
             logger.warning("WeasyPrint PDF üretimi başarısız, xhtml2pdf deneniyor: %s", exc)
 
     try:
-        from xhtml2pdf import pisa
+        return _run_with_timeout(
+            _xhtml2pdf_write,
+            _XHTML2PDF_TIMEOUT_S,
+            html_string,
+        )
     except ImportError:
         logger.error("xhtml2pdf yüklü değil; HTML tabanlı PDF üretilemedi.")
         return None
-
-    _ensure_xhtml2pdf_windows_tmp_patch()
-
-    buffer = BytesIO()
-    try:
-        result = pisa.CreatePDF(
-            _prepare_html_for_xhtml2pdf(html_string),
-            dest=buffer,
-            encoding="utf-8",
-            link_callback=_xhtml2pdf_link_callback,
-        )
     except Exception:
         logger.exception("xhtml2pdf PDF üretimi başarısız.")
         return None
 
-    if result.err:
-        logger.error("xhtml2pdf hata kodu: %s", result.err)
-        return None
-
-    return buffer.getvalue()
-
 
 def pdf_engine_status() -> str:
     """Kullanılabilir PDF motorunu döndürür (log/diagnostic için)."""
-    if get_weasyprint_html() is not None:
+    if not _weasyprint_disabled and get_weasyprint_html() is not None:
         return "weasyprint"
 
     try:
