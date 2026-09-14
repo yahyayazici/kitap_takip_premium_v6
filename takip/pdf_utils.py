@@ -156,32 +156,43 @@ def _local_pdf_base_url() -> str:
     return Path(settings.BASE_DIR).resolve().as_uri() + "/"
 
 
-def _weasyprint_url_fetcher(url: str, timeout=10, ssl_context=None, **kwargs):
-    """file://, data: ve yerel static dosyalarına izin ver — http(s) self-fetch engellenir."""
-    from weasyprint import default_url_fetcher
+def _build_weasyprint_url_fetcher():
+    """WeasyPrint 68+ URLFetcher örneği — fonksiyon fetcher `_fail_on_errors` ister."""
+    try:
+        from weasyprint.urls import URLFetcher
+    except ImportError:
+        from weasyprint import default_url_fetcher
 
-    if url.startswith("data:"):
-        return default_url_fetcher(
-            url, timeout=timeout, ssl_context=ssl_context, **kwargs
-        )
-
-    resolved = _resolve_static_uri(url)
-    if resolved is not None:
-        return default_url_fetcher(
-            resolved.resolve().as_uri(),
-            timeout=timeout,
-            ssl_context=ssl_context,
-            **kwargs,
-        )
-
-    if url.startswith("file:"):
-        path = _path_from_file_uri(url)
-        if path.is_file():
+        def _legacy(url, timeout=10, ssl_context=None, **kwargs):
+            resolved = _resolve_static_uri(url)
+            if resolved is not None:
+                url = resolved.resolve().as_uri()
+            elif not (url.startswith("file:") or url.startswith("data:")):
+                raise ValueError(f"PDF ağ erişimi engellendi: {url}")
             return default_url_fetcher(
                 url, timeout=timeout, ssl_context=ssl_context, **kwargs
             )
 
-    raise ValueError(f"PDF ağ erişimi engellendi: {url}")
+        _legacy._fail_on_errors = False  # type: ignore[attr-defined]
+        return _legacy
+
+    class LocalStaticFetcher(URLFetcher):
+        def __init__(self):
+            super().__init__(
+                allowed_protocols=("file", "data"),
+                allow_redirects=False,
+                fail_on_errors=False,
+            )
+
+        def fetch(self, url, headers=None):
+            resolved = _resolve_static_uri(url)
+            if resolved is not None:
+                url = resolved.resolve().as_uri()
+            elif not (url.startswith("file:") or url.startswith("data:")):
+                raise ValueError(f"PDF ağ erişimi engellendi: {url}")
+            return super().fetch(url, headers)
+
+    return LocalStaticFetcher()
 
 
 def _sanitize_html_for_xhtml2pdf(html_string: str) -> str:
@@ -481,14 +492,11 @@ def _run_with_timeout(fn, timeout_s: float, *args, **kwargs):
 
 
 def _weasyprint_write(html_cls, local_html: str, local_base: str) -> bytes:
-    try:
-        document = html_cls(
-            string=local_html,
-            base_url=local_base,
-            url_fetcher=_weasyprint_url_fetcher,
-        )
-    except TypeError:
-        document = html_cls(string=local_html, base_url=local_base)
+    document = html_cls(
+        string=local_html,
+        base_url=local_base,
+        url_fetcher=_build_weasyprint_url_fetcher(),
+    )
     return document.write_pdf()
 
 
