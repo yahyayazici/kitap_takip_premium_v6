@@ -58,7 +58,9 @@
             border-spacing: 8px 0;
         }
         .stat-cell {
-            overflow: hidden;
+            overflow: visible;
+            box-shadow: none;
+            border-radius: 12px;
             border-left-width: 4px;
             border-left-style: solid;
         }
@@ -66,7 +68,15 @@
         .stat-cell.tone-green { border-left-color: #1AA477; }
         .stat-cell.tone-orange { border-left-color: #EE8A24; }
         .stat-cell.tone-purple { border-left-color: #7657E8; }
-        .stat-deco { display: none; }
+        .stat-accent,
+        .stat-deco,
+        .table-panel-accent {
+            display: none;
+        }
+        .table-panel,
+        .meta-panel {
+            box-shadow: none;
+        }
     </style>
 </head>
 <body>
@@ -126,25 +136,21 @@
             <table class="stats-table" cellpadding="0">
                 <tr>
                     <td width="25%" class="stat-cell tone-blue">
-                        <div class="stat-accent"></div>
                         <div class="stat-label">Toplam Soru</div>
                         <div class="stat-metric">{{ istatistik.toplam_soru }}</div>
                         <div class="stat-sub">{{ istatistik.kayit_sayisi }} kayıt günü</div>
                     </td>
                     <td width="25%" class="stat-cell tone-green">
-                        <div class="stat-accent"></div>
                         <div class="stat-label">Doğru</div>
                         <div class="stat-metric">{{ istatistik.dogru }}</div>
                         <div class="stat-sub">Yanlış {{ istatistik.yanlis }} / Boş {{ istatistik.bos }}</div>
                     </td>
                     <td width="25%" class="stat-cell tone-orange">
-                        <div class="stat-accent"></div>
                         <div class="stat-label">Toplam Net</div>
                         <div class="stat-metric">{{ istatistik.toplam_net }}</div>
                         <div class="stat-sub">D - Y/4</div>
                     </td>
                     <td width="25%" class="stat-cell tone-purple">
-                        <div class="stat-accent"></div>
                         <div class="stat-label">Başarı</div>
                         <div class="stat-metric">%{{ istatistik.basari_orani }}</div>
                         <div class="stat-sub">Doğru / toplam soru</div>
