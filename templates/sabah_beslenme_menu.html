@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Sabah Beslenmesi · Menü · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/sabah-beslenme-premium.css' %}?v=sb1">
+{% endblock %}
+
+{% block content %}
+<div class="sb-page">
+<header class="page-head patterned-page-head">
+    <div>
+        <p class="kicker">GÖREV MODÜLÜ</p>
+        <h1>Günlük menü</h1>
+        <p class="muted">Tarih, ürün, birim fiyat ve sipariş son saatini tanımlayın.</p>
+    </div>
+</header>
+
+{% include "includes/sabah_beslenme_nav.html" %}
+
+<form method="post" class="sb-form">
+    {% csrf_token %}
+    <label>Tarih
+        <input type="date" name="tarih" value="{{ tarih|date:'Y-m-d' }}" required>
+    </label>
+    <label>Beslenme ürünü
+        <input type="text" name="urun" list="sb-urunler" value="{{ menu.urun|default:'' }}" required maxlength="80" placeholder="Simit, poğaça, açma…">
+        <datalist id="sb-urunler">
+            {% for u in sb_urun_onerileri %}<option value="{{ u }}">{% endfor %}
+        </datalist>
+    </label>
+    <label>Birim fiyat (₺)
+        <input type="number" name="birim_fiyat" min="0" step="0.01" value="{{ menu.birim_fiyat|default:'' }}" required>
+    </label>
+    <label>Sipariş son saati
+        <input type="time" name="siparis_son_saati" value="{% if menu %}{{ menu.siparis_son_saati|time:'H:i' }}{% else %}07:30{% endif %}" required>
+    </label>
+    <label>Sipariş durumu
+        <select name="durum">
+            <option value="acik"{% if not menu or menu.durum == 'acik' %} selected{% endif %}>Açık</option>
+            <option value="kapali"{% if menu and menu.durum == 'kapali' %} selected{% endif %}>Kapalı</option>
+        </select>
+    </label>
+    <div class="sb-form-actions">
+        <button type="submit" class="primary-btn">Kaydet</button>
+    </div>
+</form>
+
+<section class="cs-table-wrap sb-table-wrap">
+    <h2 class="sb-h2">Son menüler</h2>
+    <table class="sb-table">
+        <thead><tr><th>Tarih</th><th>Ürün</th><th>Fiyat</th><th>Son saat</th><th>Durum</th></tr></thead>
+        <tbody>
+            {% for m in son_menuler %}
+            <tr>
+                <td><a href="?tarih={{ m.tarih|date:'Y-m-d' }}">{{ m.tarih|date:"d.m.Y" }}</a></td>
+                <td>{{ m.urun }}</td>
+                <td>{{ m.birim_fiyat }} ₺</td>
+                <td>{{ m.siparis_son_saati|time:"H:i" }}</td>
+                <td>{{ m.get_durum_display }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">Kayıt yok.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+</div>
+{% endblock %}

@@ -17,6 +17,11 @@ OGRETMEN_ODEME_ACTIONS: tuple[tuple[str, str], ...] = STANDARD_ACTIONS + (
     ("view_financial", "Finansal Görüntüle"),
 )
 
+SABAH_BESLENME_ACTIONS: tuple[tuple[str, str], ...] = STANDARD_ACTIONS + (
+    ("satis", "Satış / teslim"),
+    ("borc_kapat", "Borç kapat"),
+)
+
 ILETISIM_ACTIONS: tuple[tuple[str, str], ...] = STANDARD_ACTIONS + (
     ("share", "Paylaş"),
     ("manage_templates", "Şablon Yönet"),
@@ -74,6 +79,7 @@ MODUL_KATALOGU: tuple[ModulTanim, ...] = (
     ModulTanim("imam_muezzin", "İmam & Müezzin", 50),
     ModulTanim("temizlik", "Temizlik", 60),
     ModulTanim("yemekcilik", "Yemekçilik", 70),
+    ModulTanim("sabah_beslenmesi", "Sabah Beslenmesi", 72, islemler=SABAH_BESLENME_ACTIONS),
     ModulTanim("raporlar", "Raporlar", 80),
     ModulTanim("rbac", "Rol & Yetki Yönetimi", 900),
     ModulTanim("sistem_ayarlari", "Sistem Ayarları", 910),
@@ -117,6 +123,7 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
             "imam_muezzin",
             "temizlik",
             "yemekcilik",
+            "sabah_beslenmesi",
             "raporlar",
             "rbac",
             "sistem_ayarlari",
@@ -156,6 +163,7 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
             "imam_muezzin",
             "temizlik",
             "yemekcilik",
+            "sabah_beslenmesi",
             "raporlar",
         }
     ),
@@ -193,6 +201,7 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
             "imam_muezzin",
             "temizlik",
             "yemekcilik",
+            "sabah_beslenmesi",
             "raporlar",
         }
     ),
@@ -224,6 +233,7 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
             "imam_muezzin",
             "temizlik",
             "yemekcilik",
+            "sabah_beslenmesi",
             "raporlar",
         }
     ),
@@ -271,10 +281,13 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
             "imam_muezzin",
             "temizlik",
             "yemekcilik",
+            "sabah_beslenmesi",
             "raporlar",
         }
     ),
-    "muhasebeci": frozenset({"raporlar", "ogretmen_odeme", "aidat", "mezun", "asistan"}),
+    "muhasebeci": frozenset(
+        {"raporlar", "ogretmen_odeme", "aidat", "mezun", "asistan", "sabah_beslenmesi"}
+    ),
     "nehari_mesul": frozenset(
         {
             "asistan",
@@ -283,6 +296,7 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
             "imam_muezzin",
             "temizlik",
             "yemekcilik",
+            "sabah_beslenmesi",
         }
     ),
     "mahal_sorumlusu": frozenset(
@@ -293,6 +307,7 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
             "imam_muezzin",
             "temizlik",
             "yemekcilik",
+            "sabah_beslenmesi",
         }
     ),
 }

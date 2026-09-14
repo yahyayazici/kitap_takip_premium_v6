@@ -21,6 +21,7 @@
             <button type="button" class="fn-btn" onclick="document.getElementById('fn-yeni-kayit').scrollIntoView({behavior:'smooth'})">+ Tek Kayıt</button>
             {% endif %}
             <a href="{% url 'finans_raporlar' %}" class="fn-btn">Raporlar</a>
+            <a href="{% url 'sabah_beslenme_borclar' %}" class="fn-btn">Sabah beslenmesi borçları</a>
             {% if yonetebilir %}
             <a href="{% url 'finans_politikalar' %}" class="fn-btn">Finans Ayarları</a>
             {% endif %}
@@ -74,6 +75,16 @@
         <div class="fn-kpi-spark"><span style="height:40%"></span><span style="height:65%"></span><span style="height:50%"></span></div>
     </article>
 </div>
+
+{% if sb_acik_borc %}
+<section class="fn-card" style="margin-bottom:1.25rem">
+    <div class="fn-section-head">
+        <h2>Sabah Beslenmesi — açık borçlar</h2>
+        <a href="{% url 'sabah_beslenme_borclar' %}" class="fn-btn fn-btn-sm">Listeye git</a>
+    </div>
+    <p class="fn-sub" style="margin:0">{{ sb_acik_borc.adet }} açık kayıt · {{ sb_acik_borc.tutar_etiket }}</p>
+</section>
+{% endif %}
 
 <div class="fn-main-grid">
     <section>

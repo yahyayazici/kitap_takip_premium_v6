@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Sabah Beslenmesi · Rapor · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/sabah-beslenme-premium.css' %}?v=sb1">
+{% endblock %}
+
+{% block content %}
+<div class="sb-page">
+<header class="page-head patterned-page-head">
+    <div>
+        <p class="kicker">GÖREV MODÜLÜ</p>
+        <h1>Sabah Beslenmesi raporu</h1>
+        <p class="muted">Sipariş, teslim ve ödeme kayıtları ayrı tutulur.</p>
+    </div>
+</header>
+
+{% include "includes/sabah_beslenme_nav.html" %}
+
+<form method="get" class="sb-filters">
+    <label>Başlangıç <input type="date" name="bas" value="{{ bas|date:'Y-m-d' }}"></label>
+    <label>Bitiş <input type="date" name="bitis" value="{{ bitis|date:'Y-m-d' }}"></label>
+    <button type="submit" class="ghost-btn">Göster</button>
+</form>
+
+<section class="sb-ozet">
+    <article><strong>{{ toplam_adet }}</strong><span>Toplam adet</span></article>
+    <article><strong>{{ teslim_adet }}</strong><span>Teslim / satış</span></article>
+    <article><strong>{{ pesin }} ₺</strong><span>Peşin</span></article>
+    <article><strong>{{ borc }} ₺</strong><span>Borca yazılan</span></article>
+</section>
+
+<div class="cs-table-wrap sb-table-wrap">
+<table class="sb-table">
+    <thead>
+        <tr>
+            <th>Tarih</th>
+            <th>Talebe</th>
+            <th>Etüt</th>
+            <th>Ürün</th>
+            <th>Adet</th>
+            <th>Tutar</th>
+            <th>Teslim</th>
+            <th>Ödeme</th>
+            <th>Borç</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for s in siparisler %}
+        <tr class="{% if s.teslim_edildi %}is-sold{% endif %}">
+            <td>{{ s.menu.tarih|date:"d.m.Y" }}</td>
+            <td>{{ s.talebe.ad_soyad }}</td>
+            <td>{{ s.etut_hocasi.ad_soyad|default:"—" }}</td>
+            <td>{{ s.menu.urun }}</td>
+            <td>{{ s.adet }}</td>
+            <td>{{ s.tutar }} ₺</td>
+            <td>{% if s.teslim_edildi %}{{ s.teslim_saati|time:"H:i" }}{% else %}Bekliyor{% endif %}</td>
+            <td>{{ s.get_odeme_turu_display }}</td>
+            <td>{% if s.borc_acik %}Açık{% elif s.borc_kapatildi %}Kapandı{% else %}—{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9">Kayıt yok.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+</div>
+{% endblock %}

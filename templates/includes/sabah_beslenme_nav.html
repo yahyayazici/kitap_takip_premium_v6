@@ -1,0 +1,17 @@
+<nav class="sb-subnav" aria-label="Sabah Beslenmesi">
+    {% if sb_siparis_yetki %}
+    <a href="{% url 'sabah_beslenme_siparis' %}?tarih={{ tarih|date:'Y-m-d' }}" class="sb-subnav-link{% if sb_nav_aktif == 'siparis' %} is-on{% endif %}">Sipariş</a>
+    {% endif %}
+    {% if sb_satis_yetki or sb_menu_yetki or sb_borc_yetki %}
+    <a href="{% url 'sabah_beslenme_satis' %}?tarih={{ tarih|date:'Y-m-d' }}" class="sb-subnav-link{% if sb_nav_aktif == 'satis' %} is-on{% endif %}">Satış</a>
+    {% endif %}
+    {% if sb_menu_yetki %}
+    <a href="{% url 'sabah_beslenme_menu' %}?tarih={{ tarih|date:'Y-m-d' }}" class="sb-subnav-link{% if sb_nav_aktif == 'menu' %} is-on{% endif %}">Günlük menü</a>
+    {% endif %}
+    {% if sb_borc_yetki or sb_satis_yetki %}
+    <a href="{% url 'sabah_beslenme_borclar' %}" class="sb-subnav-link{% if sb_nav_aktif == 'borclar' %} is-on{% endif %}">Borçlar</a>
+    {% endif %}
+    {% if sb_rapor_yetki %}
+    <a href="{% url 'sabah_beslenme_rapor' %}" class="sb-subnav-link{% if sb_nav_aktif == 'rapor' %} is-on{% endif %}">Rapor</a>
+    {% endif %}
+</nav>

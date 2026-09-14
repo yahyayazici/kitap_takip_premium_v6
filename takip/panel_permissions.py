@@ -88,6 +88,18 @@ TEMIZLIK_MODULU_ROLLER = frozenset(
     }
 )
 YEMEKCI_MODULU_ROLLER = TEMIZLIK_MODULU_ROLLER
+SABAH_BESLENME_ROLLER = frozenset(
+    {
+        ROL_IDARECI,
+        ROL_IC_MESUL,
+        ROL_EGITIM_MESUL,
+        ROL_ETUT_MESUL,
+        ROL_SINIF_MESUL,
+        ROL_NEHARI_MESUL,
+        ROL_MAHAL_SORUMLU,
+        ROL_MUHASEBECI,
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -201,6 +213,21 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         url_name="yemekcilik_panel",
         roller=YEMEKCI_MODULU_ROLLER,
         active_names=("yemekcilik_panel", "yemekcilik_pdf"),
+        nav_group="Görevler",
+    ),
+    PanelNavItem(
+        key="sabah_beslenmesi",
+        label="Sabah Beslenmesi",
+        url_name="sabah_beslenme_landing",
+        roller=SABAH_BESLENME_ROLLER,
+        active_names=(
+            "sabah_beslenme_landing",
+            "sabah_beslenme_siparis",
+            "sabah_beslenme_satis",
+            "sabah_beslenme_menu",
+            "sabah_beslenme_rapor",
+            "sabah_beslenme_borclar",
+        ),
         nav_group="Görevler",
     ),
     PanelNavItem(
@@ -687,6 +714,13 @@ def yemekcilik_modulu_erisimi_var(user: User) -> bool:
     return modul_erisimi_var(user, "yemekcilik")
 
 
+def sabah_beslenmesi_modulu_erisimi_var(user: User) -> bool:
+    if not PANEL_MODULES.get("sabah_beslenmesi", {}).get("enabled", False):
+        return False
+
+    return modul_erisimi_var(user, "sabah_beslenmesi")
+
+
 def egitim_modulu_erisimi_var(user: User) -> bool:
     return modul_erisimi_var(user, "egitim_kitap")
 
@@ -855,6 +889,10 @@ def panel_nav_items(user: User) -> list[PanelNavItem]:
             "yemekcilik", {}
         ).get("enabled", False):
             continue
+        if item.key == "sabah_beslenmesi" and not PANEL_MODULES.get(
+            "sabah_beslenmesi", {}
+        ).get("enabled", False):
+            continue
         if item.key == "olcme" and not olcme_modulu_erisimi_var(user):
             continue
         if item.key == "olcme_optik" and not olcme_modulu_erisimi_var(user):
@@ -900,6 +938,8 @@ def panel_nav_items(user: User) -> list[PanelNavItem]:
         if item.key == "veli_randevu" and not veli_randevu_modulu_erisimi_var(user):
             continue
         if item.key == "temizlik" and not temizlik_paneli_gorebilir(user):
+            continue
+        if item.key == "sabah_beslenmesi" and not sabah_beslenmesi_modulu_erisimi_var(user):
             continue
         if item.key == "disiplin" and not disiplin_modulu_erisimi_var(user):
             continue

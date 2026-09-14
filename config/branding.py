@@ -100,6 +100,11 @@ PANEL_MODULES = {
         "enabled": True,
         "nav_group": "Görevler",
     },
+    "sabah_beslenmesi": {
+        "label": "Sabah Beslenmesi",
+        "enabled": True,
+        "nav_group": "Görevler",
+    },
     "gelisim_dosyasi": {
         "label": "Gelişim Dosyası",
         "enabled": True,

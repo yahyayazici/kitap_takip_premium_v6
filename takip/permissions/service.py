@@ -193,6 +193,27 @@ def _legacy_islem_izin(rol_slug: str | None, modul_kod: str, islem_kod: str) -> 
     if islem_kod == "view_financial":
         return rol_slug in LEGACY_IDARE_ROLLER or rol_slug == "muhasebeci"
 
+    if islem_kod == "satis":
+        if modul_kod == "sabah_beslenmesi":
+            return rol_slug in {
+                "idareci",
+                "ic_mesul",
+                "egitim_mesul",
+                "nehari_mesul",
+                "mahal_sorumlusu",
+            }
+        return False
+
+    if islem_kod == "borc_kapat":
+        if modul_kod == "sabah_beslenmesi":
+            return rol_slug in {
+                "idareci",
+                "ic_mesul",
+                "egitim_mesul",
+                "muhasebeci",
+            }
+        return False
+
     if islem_kod == "delete":
         return rol_slug in LEGACY_IDARE_ROLLER
 

@@ -2300,6 +2300,12 @@ from takip.ziyaret_arac_models import (  # noqa: E402,F401
     ZiyaretProgramAdimi,
 )
 
+from takip.sabah_beslenme_models import (  # noqa: E402,F401
+    SabahBeslenmeGunlukMenu,
+    SabahBeslenmeIslemLog,
+    SabahBeslenmeSiparis,
+)
+
 from takip.iletisim_models import (  # noqa: E402,F401
     IletisimEki,
     IletisimKurumAyar,

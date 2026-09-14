@@ -135,6 +135,7 @@ def seed_roller(moduller: dict[str, YetkiModul]) -> dict[str, Rol]:
                     "etut_plani",
                     "dini_ders_takip",
                     "yazili_takip",
+                    "sabah_beslenmesi",
                 }:
                     if modul_kod == "deneme":
                         izin = islem.kod == "view"
@@ -186,6 +187,8 @@ def seed_roller(moduller: dict[str, YetkiModul]) -> dict[str, Rol]:
                             "export_pdf",
                             "export_excel",
                         }
+                    elif modul_kod == "sabah_beslenmesi":
+                        izin = islem.kod in {"view", "create", "edit"}
                     else:
                         izin = islem.kod in {"view", "create", "edit", "export_pdf"}
 
@@ -206,6 +209,18 @@ def seed_roller(moduller: dict[str, YetkiModul]) -> dict[str, Rol]:
                         "asistan",
                     }:
                         izin = islem.kod in {"view", "export_pdf"}
+
+                elif slug in {"nehari_mesul", "mahal_sorumlusu"} and modul_kod == "sabah_beslenmesi":
+                    izin = islem.kod in {
+                        "view",
+                        "create",
+                        "edit",
+                        "satis",
+                        "export_pdf",
+                    }
+
+                elif slug == "muhasebeci" and modul_kod == "sabah_beslenmesi":
+                    izin = islem.kod in {"view", "borc_kapat", "export_pdf"}
 
                 RolIslemYetki.objects.update_or_create(
                     rol=rol,

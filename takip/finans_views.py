@@ -55,6 +55,8 @@ from takip.finans_service import (
 from takip.models import Talebe
 from takip.permissions.decorators import require_permission
 from takip.permissions.service import can
+from takip.sabah_beslenme_models import SabahBeslenmeSiparis
+from takip.sabah_beslenme_service import acik_borc_ozet, borc_kapatabilir
 from takip.wave0_models import EgitimYili
 
 
@@ -195,6 +197,8 @@ def finans_panel(request):
             "yeni_form": yeni_form if yonetebilir else None,
             "dosyasiz_talebeler": dosyasiz,
             "kapsam_etiket": kapsam,
+            "sb_acik_borc": acik_borc_ozet(request.user),
+            "sb_borc_kapatabilir": borc_kapatabilir(request.user),
         },
     )
 
@@ -288,6 +292,16 @@ def finans_ogrenci(request, pk):
             "yonetebilir": yonetebilir,
             "tahsilat_girebilir": tahsilat_girebilir,
             "indirimler": indirimler,
+            "sb_borclar": list(
+                SabahBeslenmeSiparis.objects.filter(
+                    talebe=talebe,
+                    teslim_edildi=True,
+                    borc_kaydi_olustu=True,
+                )
+                .select_related("menu")
+                .order_by("-menu__tarih", "-id")[:20]
+            ),
+            "sb_borc_kapatabilir": borc_kapatabilir(request.user),
         },
     )
 

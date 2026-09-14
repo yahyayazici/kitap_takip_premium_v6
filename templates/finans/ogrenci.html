@@ -194,5 +194,38 @@
     </ul>
 </section>
 
+{% if sb_borclar %}
+<section class="fn-card" style="margin-top:1.25rem">
+    <div class="fn-section-head">
+        <h3>Sabah Beslenmesi borçları</h3>
+        <a href="{% url 'sabah_beslenme_borclar' %}" class="fn-btn fn-btn-sm">Tüm liste</a>
+    </div>
+    <div class="fn-table-wrap">
+        <table class="fn-table">
+            <thead>
+                <tr>
+                    <th>Tarih</th>
+                    <th>Ürün</th>
+                    <th>Adet</th>
+                    <th>Tutar</th>
+                    <th>Durum</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in sb_borclar %}
+                <tr>
+                    <td>{{ s.menu.tarih|date:"d.m.Y" }}</td>
+                    <td>{{ s.menu.urun }}</td>
+                    <td>{{ s.adet }}</td>
+                    <td>{{ s.borc_tutari }} ₺</td>
+                    <td>{% if s.borc_kapatildi %}Kapandı{% else %}Açık{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+
 </div>
 {% endblock %}

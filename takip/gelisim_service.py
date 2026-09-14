@@ -95,7 +95,10 @@ def gelisim_gorunum(user: User, talebe: Talebe | None = None) -> dict[str, bool]
         or can(user, "namaz_yoklama", "view")
         or can(user, "gunluk_takip", "view"),
         "dini": idare or can(user, "dini_ders_takip", "view"),
-        "gorevler": idare or can(user, "temizlik", "view") or can(user, "yemekcilik", "view"),
+        "gorevler": idare
+        or can(user, "temizlik", "view")
+        or can(user, "yemekcilik", "view")
+        or can(user, "sabah_beslenmesi", "view"),
         "notlar": idare or can(user, "gelisim_dosyasi", "view"),
         "not_ekle": idare or can(user, "gelisim_dosyasi", "create"),
         "dosyalar": idare or can(user, "gelisim_dosyasi", "view"),

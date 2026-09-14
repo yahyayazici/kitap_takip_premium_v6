@@ -282,6 +282,18 @@ YONETIM_NAV_GROUPS: tuple[YonetimNavGroup, ...] = (
                     "yemek_ogun_duzenle",
                 ),
             ),
+            YonetimNavItem(
+                label="Sabah Beslenmesi",
+                url_name="sabah_beslenme_landing",
+                active_names=(
+                    "sabah_beslenme_landing",
+                    "sabah_beslenme_siparis",
+                    "sabah_beslenme_satis",
+                    "sabah_beslenme_menu",
+                    "sabah_beslenme_rapor",
+                    "sabah_beslenme_borclar",
+                ),
+            ),
         ),
     ),
     YonetimNavGroup(

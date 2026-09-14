@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Sabah Beslenmesi · Sipariş · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/sabah-beslenme-premium.css' %}?v=sb1">
+{% endblock %}
+
+{% block content %}
+<div class="sb-page" data-sb-siparis data-tarih="{{ tarih|date:'Y-m-d' }}" data-api="{% url 'sabah_beslenme_api_siparis' %}">
+{% csrf_token %}
+
+<header class="page-head patterned-page-head">
+    <div>
+        <p class="kicker">GÖREV MODÜLÜ</p>
+        <h1>Sabah Beslenmesi</h1>
+        <p class="muted">Yalnızca size zimmetli talebelerin siparişini girin. Kayıt satış ekranına anında düşer.</p>
+    </div>
+    <div class="page-head-actions">
+        <a class="ghost-btn" href="?tarih={{ onceki }}">Önceki gün</a>
+        <input type="date" class="sb-date" value="{{ tarih|date:'Y-m-d' }}" data-sb-date>
+        <a class="ghost-btn" href="?tarih={{ sonraki }}">Sonraki gün</a>
+    </div>
+</header>
+
+{% include "includes/sabah_beslenme_nav.html" %}
+
+{% if not menu %}
+<section class="sb-empty">
+    <p>Bu tarih için menü tanımlanmamış.</p>
+    {% if menu_yonet %}
+    <a class="primary-btn" href="{% url 'sabah_beslenme_menu' %}?tarih={{ tarih|date:'Y-m-d' }}">Menü tanımla</a>
+    {% endif %}
+</section>
+{% else %}
+<section class="sb-menu-banner">
+    <strong>{{ menu.urun }}</strong>
+    <span>{{ menu.birim_fiyat }} ₺</span>
+    <span>Son saat {{ menu.siparis_son_saati|time:"H:i" }}</span>
+    <span class="sb-pill{% if pencere_acik %} is-open{% endif %}">{% if pencere_acik %}Açık{% else %}Kapalı{% endif %}</span>
+</section>
+
+<div class="cs-table-wrap sb-table-wrap">
+<table class="sb-table">
+    <thead>
+        <tr>
+            <th>Talebe</th>
+            <th>Sınıf</th>
+            <th>Sipariş</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for satir in satirlar %}
+        <tr data-talebe="{{ satir.talebe.pk }}" data-adet="{{ satir.adet|default:'' }}">
+            <td>
+                <strong>{{ satir.talebe.ad_soyad }}</strong>
+            </td>
+            <td>{{ satir.sinif }}</td>
+            <td>
+                <div class="sb-qty" role="group" aria-label="Adet">
+                    <button type="button" class="sb-qty-btn{% if satir.adet == 0 %} is-on{% endif %}" data-qty="0"{% if not pencere_acik and not menu_yonet %} disabled{% endif %}>İstemiyor</button>
+                    <button type="button" class="sb-qty-btn{% if satir.adet == 1 %} is-on{% endif %}" data-qty="1"{% if not pencere_acik and not menu_yonet %} disabled{% endif %}>1 adet</button>
+                    <button type="button" class="sb-qty-btn{% if satir.adet == 2 %} is-on{% endif %}" data-qty="2"{% if not pencere_acik and not menu_yonet %} disabled{% endif %}>2 adet</button>
+                    <button type="button" class="sb-qty-btn{% if satir.adet and satir.adet > 2 %} is-on{% endif %}" data-qty="ozel"{% if not pencere_acik and not menu_yonet %} disabled{% endif %}>Özel</button>
+                    <input type="number" min="3" max="20" inputmode="numeric" class="sb-qty-input{% if satir.adet and satir.adet > 2 %} is-on{% endif %}" value="{% if satir.adet and satir.adet > 2 %}{{ satir.adet }}{% endif %}" placeholder="Adet" aria-label="Özel adet"{% if not pencere_acik and not menu_yonet %} disabled{% endif %}>
+                </div>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3">Zimmetli talebe bulunamadı.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/sabah-beslenme.js' %}?v=sb1"></script>
+{% endblock %}

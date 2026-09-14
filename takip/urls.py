@@ -34,6 +34,7 @@ from . import asistan_views
 from . import ai_views
 from . import dershane_program_views
 from . import yemekci_views
+from . import sabah_beslenme_views
 from . import sinav_basvuru_views
 from . import veli_anketi_views
 from . import ziyaret_arac_views
@@ -198,6 +199,61 @@ urlpatterns = [
         "yemekcilik/api/gorevli/",
         yemekci_views.yemekcilik_api_gorevli,
         name="yemekcilik_api_gorevli",
+    ),
+    path(
+        "sabah-beslenmesi/",
+        sabah_beslenme_views.sabah_beslenme_landing,
+        name="sabah_beslenme_landing",
+    ),
+    path(
+        "sabah-beslenmesi/siparis/",
+        sabah_beslenme_views.sabah_beslenme_siparis,
+        name="sabah_beslenme_siparis",
+    ),
+    path(
+        "sabah-beslenmesi/satis/",
+        sabah_beslenme_views.sabah_beslenme_satis,
+        name="sabah_beslenme_satis",
+    ),
+    path(
+        "sabah-beslenmesi/menu/",
+        sabah_beslenme_views.sabah_beslenme_menu,
+        name="sabah_beslenme_menu",
+    ),
+    path(
+        "sabah-beslenmesi/rapor/",
+        sabah_beslenme_views.sabah_beslenme_rapor,
+        name="sabah_beslenme_rapor",
+    ),
+    path(
+        "sabah-beslenmesi/borclar/",
+        sabah_beslenme_views.sabah_beslenme_borclar,
+        name="sabah_beslenme_borclar",
+    ),
+    path(
+        "sabah-beslenmesi/api/siparis/",
+        sabah_beslenme_views.sabah_beslenme_api_siparis,
+        name="sabah_beslenme_api_siparis",
+    ),
+    path(
+        "sabah-beslenmesi/api/teslim/<int:pk>/",
+        sabah_beslenme_views.sabah_beslenme_api_teslim,
+        name="sabah_beslenme_api_teslim",
+    ),
+    path(
+        "sabah-beslenmesi/api/odeme/<int:pk>/",
+        sabah_beslenme_views.sabah_beslenme_api_odeme,
+        name="sabah_beslenme_api_odeme",
+    ),
+    path(
+        "sabah-beslenmesi/api/borc-kapat/<int:pk>/",
+        sabah_beslenme_views.sabah_beslenme_api_borc_kapat,
+        name="sabah_beslenme_api_borc_kapat",
+    ),
+    path(
+        "sabah-beslenmesi/api/satis-verisi/",
+        sabah_beslenme_views.sabah_beslenme_api_satis_verisi,
+        name="sabah_beslenme_api_satis_verisi",
     ),
 
     path("talebeler/", views.talebe_listesi, name="talebe_listesi"),

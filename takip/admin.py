@@ -1046,3 +1046,40 @@ class OlcumTalebeCevapAdmin(admin.ModelAdmin):
     list_display = ("sinav", "talebe", "soru", "secilen", "dogru_mu", "kitapcik")
     list_filter = ("dogru_mu", "secilen", "kitapcik")
     raw_id_fields = ("sinav", "talebe", "soru")
+
+
+from takip.sabah_beslenme_models import (  # noqa: E402
+    SabahBeslenmeGunlukMenu,
+    SabahBeslenmeIslemLog,
+    SabahBeslenmeSiparis,
+)
+
+
+@admin.register(SabahBeslenmeGunlukMenu)
+class SabahBeslenmeGunlukMenuAdmin(admin.ModelAdmin):
+    list_display = ("tarih", "urun", "birim_fiyat", "siparis_son_saati", "durum")
+    list_filter = ("durum",)
+    date_hierarchy = "tarih"
+
+
+@admin.register(SabahBeslenmeSiparis)
+class SabahBeslenmeSiparisAdmin(admin.ModelAdmin):
+    list_display = (
+        "talebe",
+        "menu",
+        "adet",
+        "odeme_turu",
+        "teslim_edildi",
+        "borc_kaydi_olustu",
+        "borc_kapatildi",
+    )
+    list_filter = ("teslim_edildi", "odeme_turu", "borc_kaydi_olustu", "borc_kapatildi")
+    search_fields = ("talebe__ad_soyad",)
+    raw_id_fields = ("talebe", "menu", "etut_hocasi")
+
+
+@admin.register(SabahBeslenmeIslemLog)
+class SabahBeslenmeIslemLogAdmin(admin.ModelAdmin):
+    list_display = ("siparis", "islem", "yapan", "zaman")
+    list_filter = ("islem",)
+    raw_id_fields = ("siparis", "yapan")

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Sabah Beslenmesi · Borçlar · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/sabah-beslenme-premium.css' %}?v=sb1">
+{% endblock %}
+
+{% block content %}
+<div class="sb-page" data-sb-borc data-kapat-tpl="{% url 'sabah_beslenme_api_borc_kapat' 0 %}">
+{% csrf_token %}
+<header class="page-head patterned-page-head">
+    <div>
+        <p class="kicker">FİNANS</p>
+        <h1>Sabah Beslenmesi borçları</h1>
+        <p class="muted">Teslim edilip borca yazılan tutarlar. Tahsil edilince kapatın. Aidat dosyasına karışmaz.</p>
+    </div>
+</header>
+
+{% include "includes/sabah_beslenme_nav.html" %}
+
+<section class="sb-ozet">
+    <article><strong>{{ ozet.adet }}</strong><span>Açık borç</span></article>
+    <article><strong>{{ ozet.tutar_etiket }}</strong><span>Toplam</span></article>
+</section>
+
+<form method="get" class="sb-filters">
+    <label class="sb-search">
+        <input type="search" name="q" value="{{ q }}" placeholder="Talebe adı">
+    </label>
+    <button type="submit" class="ghost-btn">Ara</button>
+</form>
+
+<div class="cs-table-wrap sb-table-wrap">
+<table class="sb-table">
+    <thead>
+        <tr>
+            <th>Tarih</th>
+            <th>Talebe</th>
+            <th>Etüt / Sınıf</th>
+            <th>Ürün</th>
+            <th>Adet</th>
+            <th>Tutar</th>
+            <th>Teslim</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for s in siparisler %}
+        <tr data-id="{{ s.pk }}">
+            <td>{{ s.menu.tarih|date:"d.m.Y" }}</td>
+            <td>{{ s.talebe.ad_soyad }}</td>
+            <td>{{ s.etut_hocasi.ad_soyad|default:"—" }} · {{ s.talebe.sinif_sube|default:s.talebe.sinif }}</td>
+            <td>{{ s.menu.urun }}</td>
+            <td>{{ s.adet }}</td>
+            <td>{{ s.borc_tutari }} ₺</td>
+            <td>{% if s.teslim_saati %}{{ s.teslim_saati|date:"d.m H:i" }}{% endif %}{% if s.teslim_eden %} · {{ s.teslim_eden.get_full_name|default:s.teslim_eden.username }}{% endif %}</td>
+            <td>
+                {% if kapatabilir %}
+                <button type="button" class="primary-btn sb-kapat" data-kapat>Borcu kapat</button>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8">Açık borç yok.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/sabah-beslenme.js' %}?v=sb1"></script>
+{% endblock %}
