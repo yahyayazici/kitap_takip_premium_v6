@@ -96,11 +96,11 @@
             const open = nav.classList.toggle('open');
             toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
             if (open) {
-                toggleArmedUntil = Date.now() + 450;
+                toggleArmedUntil = Date.now() + 80;
                 nav.classList.add('cs-nav-arming');
                 window.setTimeout(function () {
                     nav.classList.remove('cs-nav-arming');
-                }, 450);
+                }, 80);
             } else {
                 closeDropdowns();
             }

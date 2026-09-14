@@ -2,8 +2,30 @@
 
 from __future__ import annotations
 
+import time
+
 from django.conf import settings
 from django.http import HttpResponsePermanentRedirect
+
+_SESSION_SLIDE_SECONDS = 6 * 60 * 60
+
+
+class SlideSessionMiddleware:
+    """Oturumu her tıklamada yazmak yerine birkaç saatte bir kaydır."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        session = getattr(request, "session", None)
+        if not session or not session.session_key:
+            return response
+        last = int(session.get("_slide_at") or 0)
+        now = int(time.time())
+        if now - last >= _SESSION_SLIDE_SECONDS:
+            session["_slide_at"] = now
+        return response
 
 
 class CanonicalHostMiddleware:

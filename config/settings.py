@@ -83,9 +83,11 @@ INSTALLED_APPS += [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "django.middleware.gzip.GZipMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "config.middleware.CanonicalHostMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "config.middleware.SlideSessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -185,10 +187,18 @@ LOGOUT_REDIRECT_URL = "login"
 CSRF_FAILURE_VIEW = "takip.pwa_views.csrf_failure"
 CSRF_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_SAMESITE = "Lax"
-# Mobil / ana ekran: oturum cookie'si kalıcı kalsın; kullanımda süre yenilensin.
+# Mobil / ana ekran: oturum cookie'si kalıcı kalsın; süre birkaç saatte bir kayar.
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 60  # 60 gün
-SESSION_SAVE_EVERY_REQUEST = True
+SESSION_SAVE_EVERY_REQUEST = False
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "cinili-panel",
+        "TIMEOUT": 30,
+    }
+}
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

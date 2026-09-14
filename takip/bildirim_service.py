@@ -9,10 +9,22 @@ from urllib.parse import urljoin
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, User
+from django.core.cache import cache
 from django.core.mail import send_mail
 from django.db.models import Q, QuerySet
 from django.urls import reverse
 from django.utils.timezone import localdate
+
+_UNREAD_CACHE_SECONDS = 20
+
+
+def _unread_cache_key(user) -> str:
+    return f"bildirim:unread:{getattr(user, 'pk', None)}"
+
+
+def _unread_cache_drop(user) -> None:
+    if user and getattr(user, "pk", None):
+        cache.delete(_unread_cache_key(user))
 
 from takip.bildirim_models import Bildirim
 
@@ -46,7 +58,13 @@ def aktif_bildirimler_qs(
 def okunmamis_sayisi(user: AbstractBaseUser | User | None) -> int:
     if not user or not getattr(user, "is_authenticated", False):
         return 0
-    return aktif_bildirimler_qs(user).filter(okundu=False).count()
+    key = _unread_cache_key(user)
+    cached = cache.get(key)
+    if cached is not None:
+        return int(cached)
+    sayi = aktif_bildirimler_qs(user).filter(okundu=False).count()
+    cache.set(key, sayi, _UNREAD_CACHE_SECONDS)
+    return sayi
 
 
 def bildirim_listesi(
@@ -115,6 +133,7 @@ def bildirim_gonder(
             )
             return mevcut
 
+    _unread_cache_drop(alici)
     kayit = Bildirim.objects.create(
         alici=alici,
         baslik=(baslik or "Bildirim")[:200],
@@ -188,6 +207,7 @@ def bildirim_okundu(user, bildirim_id: int) -> bool:
     if not b:
         return False
     b.okundu_isaretle()
+    _unread_cache_drop(user)
     return True
 
 
@@ -197,6 +217,7 @@ def tumunu_okundu(user) -> int:
     from django.utils.timezone import now
 
     qs.update(okundu=True, okunma_zamani=now())
+    _unread_cache_drop(user)
     return n
 
 
