@@ -6,18 +6,29 @@
     <title>{% if talebe %}{{ talebe.ad_soyad }} · {% endif %}Soru Takip Raporu</title>
     <style>
         {% include "includes/pdf_rapor_landscape_css.html" %}
-        /* WeasyPrint: overflow + radius + gradient hap gibi küçülür */
-        .hero {
+        /*
+          Canlıda WeasyPrint yoksa xhtml2pdf gradienti boyamaz;
+          beyaz logo/yazı kaybolur. Tablo + bgcolor her motorda durur.
+          CSS'te background-color yok (WeasyPrint gradienti 3 banda böler).
+        */
+        table.hero {
             overflow: visible;
             width: 100%;
+            border-collapse: collapse;
+            border-radius: 14px;
+            background: linear-gradient(128deg, #1A4FA8 0%, #2B6FD4 42%, #173B73 100%);
+            color: #FFFFFF;
+        }
+        td.hero-cell {
             padding: 14px 18px;
+            vertical-align: middle;
         }
         .hero-brand { width: auto; border-collapse: collapse; }
         .hero-logo-cell { width: 1%; padding: 0; vertical-align: middle; white-space: nowrap; }
         .hero-title-cell { padding: 0 0 0 12px; vertical-align: middle; text-align: left; }
         .hero-logo { display: block; width: 42px; height: 42px; }
-        .hero-title { margin-top: 0; font-size: 20px; }
-        .hero-meta { margin-top: 3px; }
+        .hero-title { margin-top: 0; font-size: 20px; color: #FFFFFF; }
+        .hero-meta { margin-top: 3px; color: #FFFFFF; }
     </style>
 </head>
 <body>
@@ -25,21 +36,25 @@
 <table class="layout">
     <tr>
         <td colspan="3">
-            <div class="hero">
-                <table class="hero-brand" cellpadding="0" cellspacing="0">
-                    <tr>
-                        <td class="hero-logo-cell">
-                            <img class="hero-logo" src="{% static 'images/cinili-saray-logo-white.png' %}" alt="">
-                        </td>
-                        <td class="hero-title-cell">
-                            <div class="hero-title">Soru Takip Raporu</div>
-                            {% if talebe %}
-                            <div class="hero-meta">{{ talebe.ad_soyad }}</div>
-                            {% endif %}
-                        </td>
-                    </tr>
-                </table>
-            </div>
+            <table class="hero" width="100%" cellpadding="0" cellspacing="0" bgcolor="#1A4FA8">
+                <tr>
+                    <td class="hero-cell" bgcolor="#1A4FA8">
+                        <table class="hero-brand" cellpadding="0" cellspacing="0" align="left">
+                            <tr>
+                                <td class="hero-logo-cell">
+                                    <img class="hero-logo" width="42" height="42" src="{% static 'images/cinili-saray-logo-white.png' %}" alt="">
+                                </td>
+                                <td class="hero-title-cell">
+                                    <div class="hero-title" style="color:#FFFFFF;">Soru Takip Raporu</div>
+                                    {% if talebe %}
+                                    <div class="hero-meta" style="color:#FFFFFF;">{{ talebe.ad_soyad }}</div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
         </td>
     </tr>
 
