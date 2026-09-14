@@ -230,7 +230,7 @@ def soru_takip_pdf(request):
     donem = filtre.get("donem") or "rapor"
     return make_pdf_response(
         pdf_verisi,
-        f"soru-takip-{dosya}-{donem}-{localdate():%Y%m%d}.pdf",
+        f"soru-takip-{dosya}-{donem}-{now():%Y%m%d-%H%M%S}.pdf",
     )
 
 
