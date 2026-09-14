@@ -15,149 +15,100 @@
             src: url("{% static 'fonts/Poppins-Medium.ttf' %}") format("truetype");
             font-weight: 500;
         }
-        @page { size: {{ pdf_sayfa.size_css|default:"A4 portrait" }}; margin: 12mm 14mm; }
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-SemiBold.ttf' %}") format("truetype");
+            font-weight: 600;
+        }
+
+        @page { size: {{ pdf_sayfa.size_css|default:"A4 portrait" }}; margin: 10mm 12mm; }
         * { box-sizing: border-box; }
         body {
             margin: 0;
             font-family: "Poppins", sans-serif;
-            font-size: 9px;
-            color: #546173;
+            color: #1c2a3d;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
-        .head {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            border-bottom: 1px solid #d8e3f0;
-            padding-bottom: 8px;
-            margin-bottom: 12px;
-        }
+
+        .head { margin-bottom: 8px; }
         .head h1 {
             margin: 0;
-            font-size: 16px;
-            font-weight: 500;
+            font-size: 18px;
+            font-weight: 600;
             color: #10213d;
+            letter-spacing: -0.25px;
         }
-        .head p { margin: 4px 0 0; font-size: 8px; }
-        .meta { text-align: right; font-size: 8px; }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #e3eaf3;
-            padding: 5px 7px;
-            text-align: left;
-            vertical-align: top;
-        }
-        th {
-            background: #f3f7fc;
-            color: #173b80;
-            font-weight: 500;
-            font-size: 7px;
-            letter-spacing: .08em;
-            text-transform: uppercase;
-        }
-        td strong { color: #10213d; font-weight: 500; }
-        .passive { color: #94a3b8; }
-        .ozet {
-            margin-top: 14px;
-            padding-top: 10px;
-            border-top: 1px solid #d8e3f0;
-        }
-        .ozet h2 {
-            margin: 0 0 6px;
-            font-size: 11px;
-            font-weight: 500;
-            color: #10213d;
-        }
-        .ozet-ai {
-            margin: 0 0 10px;
-            font-size: 8.5px;
-            line-height: 1.45;
-            color: #334155;
-        }
-        .ozet-grid {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .ozet-grid th, .ozet-grid td {
-            padding: 4px 6px;
-            font-size: 8px;
-        }
-        .foot {
-            margin-top: 10px;
-            font-size: 7px;
+        .head p {
+            margin: 3px 0 0;
+            font-size: 9px;
             color: #718097;
-            display: flex;
-            justify-content: space-between;
         }
+
+        table.program {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        table.program th,
+        table.program td {
+            border: 1px solid #d5deea;
+            padding: 0 12px;
+            vertical-align: middle;
+        }
+        table.program th {
+            background: #173b80;
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 10px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            height: 11mm;
+        }
+        table.program th.saat,
+        table.program td.saat { width: 36%; text-align: center; }
+        table.program td.saat {
+            font-size: 14px;
+            font-weight: 600;
+            color: #173b80;
+            font-variant-numeric: tabular-nums;
+            background: #f4f7fb;
+        }
+        table.program td.faaliyet {
+            font-size: 14px;
+            font-weight: 500;
+            color: #14213d;
+        }
+        {% if satirlar %}
+        {% widthratio 255 satirlar|length 1 as satir_mm %}
+        table.program tbody td { height: {{ satir_mm|default:12 }}mm; }
+        {% endif %}
+        .empty { color: #8b98aa; font-style: italic; padding: 12px; }
     </style>
 </head>
 <body>
     <div class="head">
-        <div>
-            <h1>{{ program.ad }}</h1>
-            <p>{{ program.tarih_araligi_goster }}{% if program.aciklama %} · {{ program.aciklama }}{% endif %}</p>
-        </div>
-        <div class="meta">
-            <div>{{ panel_org }}</div>
-            <div>Günlük Program Planı</div>
-        </div>
+        <h1>{{ program.ad }}</h1>
+        <p>{{ program.tarih_araligi_goster }}</p>
     </div>
 
-    <table>
+    <table class="program">
         <thead>
             <tr>
-                <th style="width:22%">Saat</th>
-                <th style="width:14%">Süre</th>
-                <th style="width:16%">Tür</th>
-                <th style="width:48%">Faaliyet</th>
+                <th class="saat">Saat</th>
+                <th>Faaliyet</th>
             </tr>
         </thead>
         <tbody>
             {% for satir in satirlar %}
             <tr>
-                <td><strong>{{ satir.baslangic_saati|time:"H:i" }} – {{ satir.bitis_saati|time:"H:i" }}</strong></td>
-                <td>{{ satir.sure_goster }}</td>
-                <td>{{ satir.tur_etiket }}</td>
-                <td>{{ satir.faaliyet_adi }}</td>
+                <td class="saat">{{ satir.baslangic_saati|time:"H:i" }} – {{ satir.bitis_saati|time:"H:i" }}</td>
+                <td class="faaliyet">{{ satir.faaliyet_adi }}</td>
             </tr>
             {% empty %}
-            <tr><td colspan="4">Program satırı tanımlanmamış.</td></tr>
+            <tr><td colspan="2" class="empty">Program satırı tanımlanmamış.</td></tr>
             {% endfor %}
         </tbody>
     </table>
-
-    {% if sure_ozet %}
-    <div class="ozet">
-        <h2>Tür dağılımı (günlük)</h2>
-        <p class="ozet-ai">{{ sure_ozet.ai_ozet }}</p>
-        <table class="ozet-grid">
-            <thead>
-                <tr>
-                    <th>Tür</th>
-                    <th>Süre</th>
-                    <th>Pay</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in sure_ozet.satirlar %}
-                <tr>
-                    <td>{{ s.ad }}</td>
-                    <td>{{ s.etiket }}</td>
-                    <td>%{{ s.yuzde }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-
-    <div class="foot">
-        <span>{{ satirlar|length }} faaliyet · Toplam {{ toplam_dakika }} dk</span>
-        <span>{{ panel_name }}</span>
-    </div>
 </body>
 </html>
