@@ -28,8 +28,18 @@ _weasyprint_html = None
 _weasyprint_checked = False
 _weasyprint_disabled = False
 _last_pdf_engine = "none"
+_last_pdf_error = ""
 _reportlab_fonts_ready = False
 _pdf_turkish_font_path: Path | None = None
+
+
+def _require_weasyprint() -> bool:
+    return os.environ.get("PDF_REQUIRE_WEASYPRINT", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
 
 _XHTML2PDF_TIMEOUT_S = 25
 _WEASYPRINT_MISSING_LIB_MARKERS = (
@@ -86,30 +96,31 @@ def _resolve_static_uri(uri: str) -> Path | None:
         return None
 
     raw = unquote(uri.strip())
+    path_part = ""
     if raw.startswith("file:"):
         path = _path_from_file_uri(raw)
-        return path if path.is_file() else None
-
-    # Zaten mutlak dosya yolu olabilir
-    as_path = Path(raw)
-    if as_path.is_file():
-        return as_path
-
-    parsed = urlparse(raw)
-    path_part = parsed.path if parsed.scheme else raw
-    path_part = path_part.replace("\\", "/")
-
-    # file:// URI içindeki /static/ yanlışlıkla yeniden yakalanmasın
-    if ":" in path_part and path_part.index(":") < 3:
-        return None
-
-    marker = "/static/"
-    idx = path_part.find(marker)
-    if idx >= 0:
-        relative = path_part[idx + len(marker) :]
-    elif path_part.startswith("static/"):
-        relative = path_part[len("static/") :]
+        if path.is_file():
+            return path
+        path_part = path.as_posix()
     else:
+        as_path = Path(raw)
+        if as_path.is_file():
+            return as_path
+        parsed = urlparse(raw)
+        path_part = parsed.path if parsed.scheme else raw
+        path_part = path_part.replace("\\", "/")
+        if ":" in path_part and path_part.index(":") < 3:
+            return None
+
+    relative = ""
+    for marker in ("/staticfiles/", "/static/"):
+        idx = path_part.find(marker)
+        if idx >= 0:
+            relative = path_part[idx + len(marker) :]
+            break
+    if not relative and path_part.startswith("static/"):
+        relative = path_part[len("static/") :]
+    if not relative:
         return None
 
     relative = relative.lstrip("/")
@@ -135,7 +146,7 @@ def _rewrite_static_urls_to_file(html_string: str) -> str:
         return path.resolve().as_uri()
 
     return re.sub(
-        r"(?<![A-Za-z0-9:])(?:https?://[^\"'\s]+)?/static/[^\s\"')]+",
+        r"(?<![A-Za-z0-9:])(?:https?://[^\"'\s]+)?/?static/[^\s\"')]+",
         _to_file_uri,
         html_string,
     )
@@ -146,13 +157,30 @@ def _local_pdf_base_url() -> str:
 
 
 def _weasyprint_url_fetcher(url: str, timeout=10, ssl_context=None, **kwargs):
-    """file:// ve data: kaynaklarına izin ver — http(s) self-fetch engellenir."""
+    """file://, data: ve yerel static dosyalarına izin ver — http(s) self-fetch engellenir."""
     from weasyprint import default_url_fetcher
 
-    if url.startswith("file:") or url.startswith("data:"):
+    if url.startswith("data:"):
         return default_url_fetcher(
             url, timeout=timeout, ssl_context=ssl_context, **kwargs
         )
+
+    resolved = _resolve_static_uri(url)
+    if resolved is not None:
+        return default_url_fetcher(
+            resolved.resolve().as_uri(),
+            timeout=timeout,
+            ssl_context=ssl_context,
+            **kwargs,
+        )
+
+    if url.startswith("file:"):
+        path = _path_from_file_uri(url)
+        if path.is_file():
+            return default_url_fetcher(
+                url, timeout=timeout, ssl_context=ssl_context, **kwargs
+            )
+
     raise ValueError(f"PDF ağ erişimi engellendi: {url}")
 
 
@@ -496,11 +524,12 @@ def html_to_pdf(html_string: str, base_url: str = "/") -> bytes | None:
     base_url HTTP olsa bile yerel dosya tabanı kullanılır; aksi halde Render'da
     worker kendini bekleyerek (static fetch) kilitlenebilir.
     """
-    global _weasyprint_disabled, _last_pdf_engine
+    global _weasyprint_disabled, _last_pdf_engine, _last_pdf_error
     del base_url  # bilinçli: ağ self-fetch engeli
     html_cls = get_weasyprint_html()
     local_html = _rewrite_static_urls_to_file(html_string)
     local_base = _local_pdf_base_url()
+    _last_pdf_error = ""
 
     if html_cls is not None:
         try:
@@ -508,17 +537,17 @@ def html_to_pdf(html_string: str, base_url: str = "/") -> bytes | None:
             _last_pdf_engine = "weasyprint"
             return pdf_bytes
         except Exception as exc:
+            _last_pdf_error = f"{type(exc).__name__}: {exc}"
             if _is_weasyprint_native_error(exc):
                 _weasyprint_disabled = True
-                logger.warning(
-                    "WeasyPrint native kütüphane yok (Pango/Cairo), xhtml2pdf deneniyor: %s",
-                    exc,
+                logger.exception(
+                    "WeasyPrint native kütüphane yok (Pango/Cairo), xhtml2pdf deneniyor"
                 )
             else:
-                logger.warning(
-                    "WeasyPrint PDF üretimi başarısız, xhtml2pdf deneniyor: %s",
-                    exc,
-                )
+                logger.exception("WeasyPrint PDF üretimi başarısız, xhtml2pdf deneniyor")
+            if _require_weasyprint():
+                _last_pdf_engine = "none"
+                return None
 
     try:
         pdf_bytes = _run_with_timeout(
@@ -554,6 +583,22 @@ def pdf_engine_status() -> str:
 def last_pdf_engine() -> str:
     """Son html_to_pdf çağrısının gerçekten kullandığı motor."""
     return _last_pdf_engine
+
+
+def last_pdf_error() -> str:
+    return _last_pdf_error
+
+
+def probe_weasyprint() -> tuple[bool, str]:
+    """WeasyPrint'in gerçekten PDF üretebildiğini dener (Pango/Cairo dahil)."""
+    html_cls = get_weasyprint_html()
+    if html_cls is None:
+        return False, "WeasyPrint import edilemedi"
+    try:
+        html_cls(string="<html><body><p>ok</p></body></html>").write_pdf()
+        return True, "ok"
+    except Exception as exc:
+        return False, f"{type(exc).__name__}: {exc}"
 
 
 def _safe_download_filename(
@@ -652,6 +697,9 @@ def coz_pdf_sayfa(kaynak=None, *, default: str = PDF_SAYFA_VARSAYILAN) -> dict:
 
 
 def pdf_error_response(message: str, status: int = 500) -> HttpResponse:
+    extra = last_pdf_error()
+    if extra:
+        message = f"{message}\n{extra}"
     logger.error("PDF istemciye hata döndürüldü: %s", message)
     return HttpResponse(
         message,

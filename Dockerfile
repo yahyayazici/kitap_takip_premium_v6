@@ -3,7 +3,8 @@ FROM python:3.12.7-slim-bookworm
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    DJANGO_SETTINGS_MODULE=config.settings
+    DJANGO_SETTINGS_MODULE=config.settings \
+    PDF_REQUIRE_WEASYPRINT=1
 
 # WeasyPrint (KTT / soru takip PDF) Pango + Cairo ister; native Python imajında yok.
 RUN apt-get update && apt-get install -y --no-install-recommends \

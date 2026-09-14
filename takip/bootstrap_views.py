@@ -21,7 +21,21 @@ logger = logging.getLogger(__name__)
 
 @require_GET
 def health_check(request):
-    return HttpResponse("ok", content_type="text/plain")
+    if request.GET.get("diag") != "pdf":
+        return HttpResponse("ok", content_type="text/plain")
+
+    from takip.pdf_utils import last_pdf_error, pdf_engine_status, probe_weasyprint
+
+    ok, msg = probe_weasyprint()
+    lines = [
+        f"engine={pdf_engine_status()}",
+        f"weasyprint={'ok' if ok else 'fail'}",
+        f"detail={msg}",
+    ]
+    err = last_pdf_error()
+    if err:
+        lines.append(f"last_error={err}")
+    return HttpResponse("\n".join(lines) + "\n", content_type="text/plain; charset=utf-8")
 
 
 def _bootstrap_key_ok(request) -> bool:
