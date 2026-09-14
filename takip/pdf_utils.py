@@ -170,6 +170,8 @@ def _sanitize_html_for_xhtml2pdf(html_string: str) -> str:
     # xhtml2pdf calc() desteklemez
     sanitized = sanitized.replace("width: calc(100% + 8px);", "width: 100%;")
     sanitized = sanitized.replace("width:calc(100% + 8px);", "width:100%;")
+    sanitized = sanitized.replace("width: calc(100% + 20px);", "width: 100%;")
+    sanitized = sanitized.replace("width:calc(100% + 20px);", "width:100%;")
 
     return _rewrite_static_urls_to_file(sanitized)
 
