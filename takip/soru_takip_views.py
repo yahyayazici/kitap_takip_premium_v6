@@ -12,10 +12,16 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.utils.text import slugify
-from django.utils.timezone import localdate
+from django.utils.timezone import localdate, now
 
 from takip.models import GunlukSoruKaydi, Talebe
-from takip.pdf_utils import html_to_pdf, make_pdf_response, pdf_engine_status, pdf_error_response
+from takip.pdf_utils import (
+    coz_pdf_sayfa,
+    html_to_pdf,
+    make_pdf_response,
+    pdf_engine_status,
+    pdf_error_response,
+)
 from takip.permissions.decorators import require_permission
 from takip.permissions.scope import yetkili_talebeler
 from takip.permissions.service import can
@@ -203,7 +209,8 @@ def soru_takip_rapor(request):
 def soru_takip_pdf(request):
     filtre = rapor_filtre_dict(request)
     baglam = rapor_pdf_baglami(request.user, filtre, limit=300)
-    baglam["olusturma_tarihi"] = localdate()
+    baglam["olusturma_tarihi"] = now()
+    baglam["pdf_sayfa"] = coz_pdf_sayfa(request)
 
     html = render_to_string(
         "soru_takip_rapor_pdf.html",
