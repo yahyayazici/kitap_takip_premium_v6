@@ -87,7 +87,21 @@ cp .env.example .env
 python manage.py runserver
 ```
 
-## 8. İlk admin
+## 8. KTT / soru takip PDF (WeasyPrint)
+
+Eski “Tam Sayılarda Problemler” PDF’i **WeasyPrint 69** ile üretilir (madalya, KPI ikonları, başarı çubuğu, tek A4 sayfa). Canlıda Pango/Cairo yoksa motor **xhtml2pdf**’e düşer; tasarım bozulur.
+
+Dockerfile Pango + Cairo kurar. Mevcut servis native Python ise Dashboard’da runtime’ı **Docker** yapın:
+
+1. Render → `kitap-takip-premium-v6` → **Settings** → **Build** → **Source** → **Edit**
+2. Runtime: **Docker**
+3. Deploy
+
+Blueprint kullanıyorsanız `render.yaml` zaten `runtime: docker`.
+
+PDF indirmede yanıt başlığı `X-PDF-Engine: weasyprint` olmalı. Acrobat’ta **Üretici: WeasyPrint**.
+
+## 9. İlk admin
 
 Render Shell:
 

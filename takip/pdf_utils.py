@@ -27,11 +27,20 @@ logger = logging.getLogger(__name__)
 _weasyprint_html = None
 _weasyprint_checked = False
 _weasyprint_disabled = False
+_last_pdf_engine = "none"
 _reportlab_fonts_ready = False
 _pdf_turkish_font_path: Path | None = None
 
-_WEASYPRINT_TIMEOUT_S = 20
 _XHTML2PDF_TIMEOUT_S = 25
+_WEASYPRINT_MISSING_LIB_MARKERS = (
+    "pango",
+    "cairo",
+    "gobject",
+    "harfbuzz",
+    "gdk_pixbuf",
+    "cannot load library",
+    "no library called",
+)
 
 _XHTML2PDF_UNSUPPORTED_AT_RULES = (
     "@bottom-left",
@@ -324,6 +333,38 @@ def _configure_weasyprint_library_path() -> None:
             break
         return
 
+    if system == "Linux":
+        lib_dirs: list[str] = []
+        base = Path(getattr(settings, "BASE_DIR", Path.cwd()))
+        candidates = [
+            base / "vendor" / "pdf-libs" / "usr" / "lib" / "x86_64-linux-gnu",
+            base / "vendor" / "pdf-libs" / "usr" / "lib" / "aarch64-linux-gnu",
+            Path("/usr/lib/x86_64-linux-gnu"),
+            Path("/usr/lib/aarch64-linux-gnu"),
+            Path("/usr/local/lib"),
+            Path("/usr/lib"),
+        ]
+        for lib_dir in candidates:
+            if not lib_dir.is_dir():
+                continue
+            if not any(lib_dir.glob("libpango-1.0.so*")) and not any(
+                lib_dir.glob("libgobject-2.0.so*")
+            ):
+                continue
+            resolved = str(lib_dir.resolve())
+            if resolved not in lib_dirs:
+                lib_dirs.append(resolved)
+
+        if lib_dirs:
+            current = os.environ.get("LD_LIBRARY_PATH", "")
+            merged = lib_dirs + [p for p in current.split(":") if p and p not in lib_dirs]
+            os.environ["LD_LIBRARY_PATH"] = ":".join(merged)
+
+        font_conf = base / "vendor" / "pdf-libs" / "etc" / "fonts"
+        if font_conf.is_dir() and not os.environ.get("FONTCONFIG_PATH"):
+            os.environ["FONTCONFIG_PATH"] = str(font_conf)
+        return
+
     if system != "Windows":
         return
 
@@ -439,15 +480,23 @@ def _xhtml2pdf_write(html_string: str) -> bytes:
     return buffer.getvalue()
 
 
+def _is_weasyprint_native_error(exc: BaseException) -> bool:
+    text = str(exc).lower()
+    return any(marker in text for marker in _WEASYPRINT_MISSING_LIB_MARKERS)
+
+
 def html_to_pdf(html_string: str, base_url: str = "/") -> bytes | None:
     """
     HTML metninden PDF üretir.
     Önce WeasyPrint, başarısız olursa xhtml2pdf dener.
 
+    WeasyPrint (Cairo/Pango) istek iş parçacığında çalışır; ayrı thread
+    zaman aşımı native kütüphaneyi kilitler ve tasarımı yedek motora düşürür.
+
     base_url HTTP olsa bile yerel dosya tabanı kullanılır; aksi halde Render'da
     worker kendini bekleyerek (static fetch) kilitlenebilir.
     """
-    global _weasyprint_disabled
+    global _weasyprint_disabled, _last_pdf_engine
     del base_url  # bilinçli: ağ self-fetch engeli
     html_cls = get_weasyprint_html()
     local_html = _rewrite_static_urls_to_file(html_string)
@@ -455,30 +504,37 @@ def html_to_pdf(html_string: str, base_url: str = "/") -> bytes | None:
 
     if html_cls is not None:
         try:
-            return _run_with_timeout(
-                _weasyprint_write,
-                _WEASYPRINT_TIMEOUT_S,
-                html_cls,
-                local_html,
-                local_base,
-            )
-        except TimeoutError as exc:
-            _weasyprint_disabled = True
-            logger.warning("WeasyPrint zaman aşımı, xhtml2pdf deneniyor: %s", exc)
+            pdf_bytes = _weasyprint_write(html_cls, local_html, local_base)
+            _last_pdf_engine = "weasyprint"
+            return pdf_bytes
         except Exception as exc:
-            logger.warning("WeasyPrint PDF üretimi başarısız, xhtml2pdf deneniyor: %s", exc)
+            if _is_weasyprint_native_error(exc):
+                _weasyprint_disabled = True
+                logger.warning(
+                    "WeasyPrint native kütüphane yok (Pango/Cairo), xhtml2pdf deneniyor: %s",
+                    exc,
+                )
+            else:
+                logger.warning(
+                    "WeasyPrint PDF üretimi başarısız, xhtml2pdf deneniyor: %s",
+                    exc,
+                )
 
     try:
-        return _run_with_timeout(
+        pdf_bytes = _run_with_timeout(
             _xhtml2pdf_write,
             _XHTML2PDF_TIMEOUT_S,
             html_string,
         )
+        _last_pdf_engine = "xhtml2pdf"
+        return pdf_bytes
     except ImportError:
         logger.error("xhtml2pdf yüklü değil; HTML tabanlı PDF üretilemedi.")
+        _last_pdf_engine = "none"
         return None
     except Exception:
         logger.exception("xhtml2pdf PDF üretimi başarısız.")
+        _last_pdf_engine = "none"
         return None
 
 
@@ -493,6 +549,11 @@ def pdf_engine_status() -> str:
         return "none"
 
     return "xhtml2pdf"
+
+
+def last_pdf_engine() -> str:
+    """Son html_to_pdf çağrısının gerçekten kullandığı motor."""
+    return _last_pdf_engine
 
 
 def _safe_download_filename(
@@ -516,6 +577,7 @@ def make_pdf_response(pdf_bytes: bytes, filename: str) -> HttpResponse:
     )
     response["X-Content-Type-Options"] = "nosniff"
     response["Cache-Control"] = "no-store"
+    response["X-PDF-Engine"] = last_pdf_engine() or pdf_engine_status()
     return response
 
 

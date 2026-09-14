@@ -1,10 +1,10 @@
 services:
   - type: web
     name: cinili-saray-proje
-    runtime: python
+    runtime: docker
     plan: starter
-    buildCommand: "./build.sh"
-    startCommand: "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 60 --preload"
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /health/
     envVars:
       - key: PYTHON_VERSION

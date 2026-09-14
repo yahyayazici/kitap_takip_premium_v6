@@ -1,14 +1,6 @@
-#!/usr/bin/env bash
-set -o errexit
+#!/bin/bash
+set -euo pipefail
 
-# Native Python runtime: Pango/Cairo .deb'lerini vendor/pdf-libs altına açmayı dene.
-# Docker imajında apt zaten kurulu olduğu için bu adım no-op / yedek.
-if [ -f scripts/vendor_weasyprint_libs.sh ]; then
-  bash scripts/vendor_weasyprint_libs.sh || true
-fi
-
-pip install -r requirements.txt
-python manage.py collectstatic --no-input
 python manage.py migrate --no-input
 python manage.py seed_ktt_konu_havuzu
 python manage.py backfill_ktt_konu_eslestirme
@@ -22,3 +14,10 @@ fi
 if [ "${RUN_SEED_WAVE0:-}" = "true" ]; then
   python manage.py seed_wave0
 fi
+
+# cairo/pango gunicorn --preload ile fork sonrası bozulabiliyor
+exec gunicorn config.wsgi:application \
+  --bind "0.0.0.0:${PORT:-8000}" \
+  --workers 2 \
+  --threads 2 \
+  --timeout 90
