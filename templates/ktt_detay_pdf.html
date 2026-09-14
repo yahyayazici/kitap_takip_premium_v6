@@ -382,6 +382,25 @@
             font-size: 8px;
         }
 
+        .pdf-karne.ktt-detay-pdf .pdf-sheet,
+        .pdf-karne.ktt-detay-pdf .table-panel,
+        .pdf-karne.ktt-detay-pdf .results-wrap,
+        .pdf-karne.ktt-detay-pdf table.results {
+            page-break-inside: auto;
+            height: auto;
+        }
+        .pdf-karne.ktt-detay-pdf .basari-track-tbl {
+            width: 100%;
+            border-collapse: collapse;
+            height: 7px;
+        }
+        .pdf-karne.ktt-detay-pdf .basari-track-tbl td {
+            height: 7px;
+            font-size: 0;
+            line-height: 0;
+            padding: 0;
+            border: 0;
+        }
         .pdf-karne.ktt-detay-pdf .footer-table { margin-top: 6px; }
         .pdf-karne.ktt-detay-pdf .footer-table td { padding-top: 4px; font-size: 7px; color: #9aa6b7; }
     </style>
@@ -389,9 +408,6 @@
 <body class="pdf-karne ktt-detay-pdf {{ sonuclar|length|pdf_density_class }}">
 
 <div class="pdf-sheet">
-<table class="layout">
-    <tr>
-        <td>
             <table class="ktt-mast" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                     <td class="ktt-mast-logo" width="56" valign="middle">
@@ -407,15 +423,11 @@
                     </td>
                 </tr>
             </table>
-        </td>
-    </tr>
 
-    <tr><td class="gap6"></td></tr>
-    <tr><td><div class="ktt-rule">&nbsp;</div></td></tr>
-    <tr><td class="gap6"></td></tr>
+    <div class="gap6"></div>
+    <div class="ktt-rule">&nbsp;</div>
+    <div class="gap6"></div>
 
-    <tr>
-        <td>
             <table class="ktt-kpi" cellpadding="0" cellspacing="0">
                 <tr>
                     <td class="ktt-kpi-cell tone-navy" width="25%">
@@ -519,13 +531,9 @@
                     </td>
                 </tr>
             </table>
-        </td>
-    </tr>
 
-    <tr><td class="gap8"></td></tr>
+    <div class="gap8"></div>
 
-    <tr>
-        <td>
             <div class="table-panel">
                 <div class="table-panel-accent"></div>
                 <div class="table-panel-head">
@@ -549,25 +557,20 @@
                     {% endif %}
                 </div>
             </div>
-        </td>
-    </tr>
 
     {% if analiz_goster %}
-    <tr><td class="gap8"></td></tr>
+    <div class="gap8"></div>
+    <table class="layout" width="100%" cellpadding="0" cellspacing="0">
     {% include "includes/ktt_analiz_pdf.html" %}
+    </table>
     {% endif %}
 
-    <tr>
-        <td>
             <table class="footer-table" cellpadding="0" cellspacing="0">
                 <tr>
                     <td class="footer-left">{{ panel_org }} · {{ olusturma_tarihi|date:"d.m.Y H:i" }}</td>
                     <td class="footer-right">{{ panel_footer }}</td>
                 </tr>
             </table>
-        </td>
-    </tr>
-</table>
 </div>
 
 </body>
