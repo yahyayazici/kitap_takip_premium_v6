@@ -43,7 +43,6 @@ from .imam_muezzin_yonetim_service import (
     havuz_toplu_sil,
     havuz_yeniden_dagit,
     liste_olustur,
-    ornek_havuz_yukle,
     pdf_baglami,
 )
 from .temizlik_service import bugunun_atamalari, otomatik_dagit as temizlik_dagit
@@ -1408,19 +1407,26 @@ def imam_gorev_panel(request, pk):
             liste.bitis_tarihi = bitis
             liste.ad = f"İmam Müezzin — {baslangic.strftime('%m.%Y')}"
             liste.save(update_fields=["baslangic_tarihi", "bitis_tarihi", "ad", "guncellenme"])
-            imam_s, muezzin_s = ornek_havuz_yukle(liste)
-            adet = otomatik_dagit(liste)
-            messages.success(
-                request,
-                f"Listeler hazırlandı: {imam_s} imam, {muezzin_s} müezzin (çakışmasız). "
-                f"{adet} güne sırayla atama yapıldı.",
-            )
+            adet = liste_olustur(liste)
+            imam_s = liste.havuz_kayitlari.filter(rol=ImamMuezzinHavuzKaydi.Rol.IMAM).count()
+            muezzin_s = liste.havuz_kayitlari.filter(rol=ImamMuezzinHavuzKaydi.Rol.MUEZZIN).count()
+            if adet == 0:
+                messages.warning(
+                    request,
+                    "Atama yapılamadı. İmam ve müezzin listelerine en az birer öğrenci ekleyin.",
+                )
+            else:
+                messages.success(
+                    request,
+                    f"Elle seçilen listeler korundu ({imam_s} imam, {muezzin_s} müezzin). "
+                    f"Önceki dönemde görev alanlar yeni rapora alınmadı. {adet} güne atama yapıldı.",
+                )
         elif action == "gecen_ayi":
             if gecen_ayi_kopyala(liste):
-                adet = havuz_yeniden_dagit(liste)
-                msg = "Geçen ayın havuz listesi kopyalandı."
+                adet = liste_olustur(liste)
+                msg = "Geçen ayın listesi kopyalandı; önceki dönemde görev alanlar çıkarıldı."
                 if adet:
-                    msg += f" {adet} günlük atama güncellendi."
+                    msg += f" {adet} güne atama yapıldı."
                 messages.success(request, msg)
             else:
                 messages.warning(request, "Kopyalanacak önceki ay listesi bulunamadı.")

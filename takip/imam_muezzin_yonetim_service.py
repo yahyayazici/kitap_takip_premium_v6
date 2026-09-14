@@ -9,7 +9,12 @@ from django.utils.timezone import localdate
 
 from takip.models import ImamMuezzinAtama, ImamMuezzinHavuzKaydi, ImamMuezzinListesi, Talebe
 
-from .imam_muezzin_service import calisma_gunleri, otomatik_dagit, talebe_havuzunu_al
+from .imam_muezzin_service import (
+    calisma_gunleri,
+    onceki_gorev_ids,
+    otomatik_dagit,
+    talebe_havuzunu_al,
+)
 
 AY_ADLARI = (
     "",
@@ -70,15 +75,30 @@ def havuz_listesi(liste: ImamMuezzinListesi, rol: str) -> list[dict]:
 
 
 def ornek_havuz_yukle(liste: ImamMuezzinListesi) -> tuple[int, int]:
-    """Öğrencileri imam/müezzin listelerine çakışmasız böler (tek kişi tek rol)."""
+    """Boş havuzu doldurur; daha önce görev alanları yeni listeye koymaz."""
     havuz_temizle(liste)
     tum = talebe_havuzunu_al(liste)
     if not tum:
         return 0, 0
 
+    once = liste.baslangic_tarihi
+    imam_onceki = onceki_gorev_ids(rol=ImamMuezzinHavuzKaydi.Rol.IMAM, once=once)
+    muezzin_onceki = onceki_gorev_ids(
+        rol=ImamMuezzinHavuzKaydi.Rol.MUEZZIN, once=once
+    )
+    adaylar = [
+        t
+        for t in tum
+        if t.pk not in imam_onceki and t.pk not in muezzin_onceki
+    ]
+    if not adaylar:
+        adaylar = [t for t in tum if t.pk not in imam_onceki or t.pk not in muezzin_onceki]
+    if not adaylar:
+        return 0, 0
+
     imam_kayitlar = []
     muezzin_kayitlar = []
-    for i, talebe in enumerate(tum):
+    for i, talebe in enumerate(adaylar):
         if i % 2 == 0:
             imam_kayitlar.append(
                 ImamMuezzinHavuzKaydi(
@@ -247,11 +267,26 @@ def gecen_ayi_kopyala(liste: ImamMuezzinListesi) -> bool:
     return True
 
 
+def havuzdan_onceki_yapanlari_cikar(liste: ImamMuezzinListesi) -> int:
+    """Yeni dönemden önce görev almışları mevcut imam/müezzin listesinden çıkarır."""
+    silinen = 0
+    for rol in (ImamMuezzinHavuzKaydi.Rol.IMAM, ImamMuezzinHavuzKaydi.Rol.MUEZZIN):
+        ids = onceki_gorev_ids(rol=rol, once=liste.baslangic_tarihi)
+        if not ids:
+            continue
+        adet, _ = liste.havuz_kayitlari.filter(rol=rol, talebe_id__in=ids).delete()
+        silinen += adet
+    return silinen
+
+
 def liste_olustur(liste: ImamMuezzinListesi, *, ornek_yenile: bool = False) -> int:
-    if ornek_yenile or not liste.havuz_kayitlari.exists():
+    """Elle seçilen havuzu korur; yalnızca boşsa örnek doldurur, sonra günlere atar."""
+    if ornek_yenile:
+        ornek_havuz_yukle(liste)
+    elif not liste.havuz_kayitlari.exists():
         ornek_havuz_yukle(liste)
     else:
-        havuzlari_hazirla(liste)
+        havuzdan_onceki_yapanlari_cikar(liste)
     return otomatik_dagit(liste)
 
 

@@ -69,12 +69,35 @@ def _rol_havuzu(liste: ImamMuezzinListesi, rol: str) -> list[Talebe]:
     return [k.talebe for k in kayitlar if k.talebe_id and k.talebe.aktif]
 
 
+def onceki_gorev_ids(*, rol: str, once: date) -> set[int]:
+    """Bu tarihten önce imam/müezzin olarak görev almış talebe id'leri."""
+    qs = ImamMuezzinAtama.objects.filter(tarih__lt=once)
+    if rol == ImamMuezzinHavuzKaydi.Rol.IMAM:
+        return set(qs.exclude(imam_id=None).values_list("imam_id", flat=True))
+    return set(qs.exclude(muezzin_id=None).values_list("muezzin_id", flat=True))
+
+
+def _onceki_sonra_sirala(havuz: list[Talebe], onceki_ids: set[int]) -> list[Talebe]:
+    yeni = [t for t in havuz if t.pk not in onceki_ids]
+    eski = [t for t in havuz if t.pk in onceki_ids]
+    return yeni + eski
+
+
 def otomatik_dagit(liste: ImamMuezzinListesi) -> int:
     imam_havuz = _rol_havuzu(liste, ImamMuezzinHavuzKaydi.Rol.IMAM)
     muezzin_havuz = _rol_havuzu(liste, ImamMuezzinHavuzKaydi.Rol.MUEZZIN)
 
     if not imam_havuz or not muezzin_havuz:
         return 0
+
+    once = liste.baslangic_tarihi
+    imam_havuz = _onceki_sonra_sirala(
+        imam_havuz, onceki_gorev_ids(rol=ImamMuezzinHavuzKaydi.Rol.IMAM, once=once)
+    )
+    muezzin_havuz = _onceki_sonra_sirala(
+        muezzin_havuz,
+        onceki_gorev_ids(rol=ImamMuezzinHavuzKaydi.Rol.MUEZZIN, once=once),
+    )
 
     gunler = calisma_gunleri(liste)
     liste.atamalar.all().delete()
