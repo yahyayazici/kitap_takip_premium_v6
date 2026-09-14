@@ -14,7 +14,10 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
-        path = Path(__file__).resolve().parents[1] / "data" / "ktt_konu_havuzu.json"
+        # commands/ → management/ → takip/data/ktt_konu_havuzu.json
+        path = Path(__file__).resolve().parents[2] / "data" / "ktt_konu_havuzu.json"
+        if not path.is_file():
+            raise FileNotFoundError(f"KTT konu havuzu bulunamadı: {path}")
         veri = json.loads(path.read_text(encoding="utf-8"))
         olusturulan = 0
         for blok in veri:
