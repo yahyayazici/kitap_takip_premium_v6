@@ -3,7 +3,7 @@
 {% block title %}Haftalık Not Girişi · Öğretmen Paneli{% endblock %}
 {% block extra_css %}
 {% if analitik_mod %}
-<link rel="stylesheet" href="{% static 'css/analitik-okuma.css' %}?v=ao7">
+<link rel="stylesheet" href="{% static 'css/analitik-okuma.css' %}?v=ao8">
 {% endif %}
 {% endblock %}
 
@@ -241,19 +241,19 @@ document.querySelectorAll('.og-veli-mesaj-kart').forEach(function(kart) {
                         </td>
                         <td data-label="Kavram Öğretimi" class="ao-star-cell">
                             <input type="hidden" name="kavram_{{ ogrenci.id }}" value="{{ ogrenci.kavram_puani }}" data-ao-kavram>
-                            <div class="ao-stars" data-ao-stars {% if ogrenci.yok %}aria-disabled="true"{% endif %}>
-                                <button type="button" class="ao-star" data-star="1" aria-label="1 yıldız">★</button>
-                                <button type="button" class="ao-star" data-star="2" aria-label="2 yıldız">★</button>
-                                <button type="button" class="ao-star" data-star="3" aria-label="3 yıldız">★</button>
-                                <button type="button" class="ao-star" data-star="4" aria-label="4 yıldız">★</button>
-                                <button type="button" class="ao-star" data-star="5" aria-label="5 yıldız">★</button>
-                                <button type="button" class="ao-star" data-star="6" aria-label="6 yıldız">★</button>
-                                <button type="button" class="ao-star" data-star="7" aria-label="7 yıldız">★</button>
-                                <button type="button" class="ao-star" data-star="8" aria-label="8 yıldız">★</button>
-                                <button type="button" class="ao-star" data-star="9" aria-label="9 yıldız">★</button>
-                                <button type="button" class="ao-star" data-star="10" aria-label="10 yıldız">★</button>
-                                <span class="ao-star-score" data-ao-score>{% if ogrenci.kavram_puani %}{{ ogrenci.kavram_puani }}/10{% else %}—/10{% endif %}</span>
+                            <div class="ao-stars" data-ao-stars role="group" aria-label="Kavram öğretimi"{% if ogrenci.yok %} aria-disabled="true"{% endif %}>
+                                <span class="ao-star" data-star="1" role="button" tabindex="0" aria-label="1 yıldız">★</span>
+                                <span class="ao-star" data-star="2" role="button" tabindex="0" aria-label="2 yıldız">★</span>
+                                <span class="ao-star" data-star="3" role="button" tabindex="0" aria-label="3 yıldız">★</span>
+                                <span class="ao-star" data-star="4" role="button" tabindex="0" aria-label="4 yıldız">★</span>
+                                <span class="ao-star" data-star="5" role="button" tabindex="0" aria-label="5 yıldız">★</span>
+                                <span class="ao-star" data-star="6" role="button" tabindex="0" aria-label="6 yıldız">★</span>
+                                <span class="ao-star" data-star="7" role="button" tabindex="0" aria-label="7 yıldız">★</span>
+                                <span class="ao-star" data-star="8" role="button" tabindex="0" aria-label="8 yıldız">★</span>
+                                <span class="ao-star" data-star="9" role="button" tabindex="0" aria-label="9 yıldız">★</span>
+                                <span class="ao-star" data-star="10" role="button" tabindex="0" aria-label="10 yıldız">★</span>
                             </div>
+                            <span class="ao-star-score" data-ao-score>{% if ogrenci.kavram_puani %}{{ ogrenci.kavram_puani }}/10{% else %}—/10{% endif %}</span>
                             {% if ogrenci.kavram_ort_etiket %}
                             <small class="ao-avg">Genel ortalama: {{ ogrenci.kavram_ort_etiket }}</small>
                             {% endif %}
@@ -342,7 +342,7 @@ document.querySelectorAll('.og-veli-mesaj-kart').forEach(function(kart) {
     </fieldset>
 </form>
 {% if analitik_mod %}
-<script src="{% static 'js/analitik-okuma.js' %}?v=ao7"></script>
+<script src="{% static 'js/analitik-okuma.js' %}?v=ao8"></script>
 {% endif %}
 {% endif %}
 {% else %}

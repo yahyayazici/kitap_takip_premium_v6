@@ -9,9 +9,9 @@
             var v = parseInt(btn.getAttribute("data-star"), 10);
             btn.classList.toggle("is-on", v <= n && n > 0);
         });
-        var score = root.querySelector("[data-ao-score]");
-        if (score) score.textContent = n ? n + "/10" : "—/10";
         var row = root.closest("[data-ao-row]") || root;
+        var score = row.querySelector("[data-ao-score]");
+        if (score) score.textContent = n ? n + "/10" : "—/10";
         var hidden = row.querySelector("[data-ao-kavram]");
         if (hidden) hidden.value = n ? String(n) : "";
     }
@@ -64,6 +64,15 @@
         });
 
         form.addEventListener("keydown", function (ev) {
+            var star = ev.target.closest("[data-star]");
+            if (star && (ev.key === "Enter" || ev.key === " ")) {
+                var wrap = star.closest("[data-ao-stars]");
+                var row = star.closest("[data-ao-row]");
+                if (!wrap || !row || row.classList.contains("is-absent")) return;
+                ev.preventDefault();
+                paintStars(wrap, star.getAttribute("data-star"));
+                return;
+            }
             if (ev.key !== "Enter") return;
             var input = ev.target.closest("input");
             if (!input) return;
