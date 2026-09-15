@@ -3,7 +3,7 @@
 {% block title %}Haftalık Not Girişi · Öğretmen Paneli{% endblock %}
 {% block extra_css %}
 {% if analitik_mod %}
-<link rel="stylesheet" href="{% static 'css/analitik-okuma.css' %}?v=ao1">
+<link rel="stylesheet" href="{% static 'css/analitik-okuma.css' %}?v=ao2">
 {% endif %}
 {% endblock %}
 
@@ -146,7 +146,7 @@ document.querySelectorAll('.og-veli-mesaj-kart').forEach(function(kart) {
     </section>
     {% endif %}
 
-    <section class="og-ders-card">
+    <section class="og-ders-card{% if analitik_mod %} ao-ders-card{% endif %}">
         <header class="og-section-head">
             <div>
                 <p class="dash-eyebrow">Not girişi</p>
@@ -170,16 +170,17 @@ document.querySelectorAll('.og-veli-mesaj-kart').forEach(function(kart) {
             </ul>
         </div>
         {% endif %}
+        <div class="ao-panel">
         <div class="ao-meta-grid">
-            <div>
+            <div class="ao-tone-date">
                 <span class="ao-meta-label">Ders tarihi</span>
                 <strong>{{ bugun|date:"d.m.Y" }}</strong>
             </div>
-            <div>
+            <div class="ao-tone-week">
                 <span class="ao-meta-label">Eğitim haftası</span>
                 <strong>{{ hafta_no }}. Hafta · {{ hafta_baslangic|date:"d.m.Y" }} – {{ hafta_bitis|date:"d.m.Y" }}</strong>
             </div>
-            <div>
+            <div class="ao-tone-class">
                 <span class="ao-meta-label">Sınıf</span>
                 <strong>{{ secili_sinif.etiket }}</strong>
             </div>
@@ -196,17 +197,19 @@ document.querySelectorAll('.og-veli-mesaj-kart').forEach(function(kart) {
                     {% endfor %}
                 </div>
             </fieldset>
-            <label class="ao-kavram-label" for="haftanin_kavrami">Haftanın kavramı</label>
-            <input type="text" id="haftanin_kavrami" name="haftanin_kavrami" list="ao-kavram-onerileri"
-                   value="{{ haftanin_kavrami }}" placeholder="Örn: Mukayese" autocomplete="off">
-            <datalist id="ao-kavram-onerileri">
-                {% for k in kavram_onerileri %}
-                <option value="{{ k }}"></option>
-                {% endfor %}
-            </datalist>
+            <div class="ao-kavram-row">
+                <label class="ao-kavram-label" for="haftanin_kavrami">Haftanın kavramı</label>
+                <input type="text" id="haftanin_kavrami" name="haftanin_kavrami" list="ao-kavram-onerileri"
+                       value="{{ haftanin_kavrami }}" placeholder="Örn: Mukayese" autocomplete="off">
+                <datalist id="ao-kavram-onerileri">
+                    {% for k in kavram_onerileri %}
+                    <option value="{{ k }}"></option>
+                    {% endfor %}
+                </datalist>
+            </div>
         </div>
 
-        <div class="og-table-wrap">
+        <div class="og-table-wrap ao-table-wrap">
             <table class="og-grade-table og-haftalik-table ao-table">
                 <thead>
                     <tr>
@@ -270,6 +273,7 @@ document.querySelectorAll('.og-veli-mesaj-kart').forEach(function(kart) {
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
         </div>
         {% else %}
         <div class="og-konu-row">
@@ -343,7 +347,7 @@ document.querySelectorAll('.og-veli-mesaj-kart').forEach(function(kart) {
     </fieldset>
 </form>
 {% if analitik_mod %}
-<script src="{% static 'js/analitik-okuma.js' %}?v=ao1"></script>
+<script src="{% static 'js/analitik-okuma.js' %}?v=ao2"></script>
 {% endif %}
 {% endif %}
 {% else %}
