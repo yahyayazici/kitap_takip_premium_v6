@@ -127,14 +127,23 @@ class SabahBeslenmeTests(TestCase):
             1,
         )
 
-    def test_teslim_edilmeyen_borc_yazilmaz(self):
+    def test_borc_ayarla_bekleyen_siparisi_teslim_eder(self):
         siparis = siparis_kaydet(
             self.etut_user, menu=self.menu, talebe_id=self.talebe.pk, adet=1
         )
         odeme_turu_ayarla(self.satis_user, siparis.pk, "borc")
         siparis.refresh_from_db()
-        self.assertFalse(siparis.teslim_edildi)
-        self.assertFalse(siparis.borc_kaydi_olustu)
+        self.assertTrue(siparis.teslim_edildi)
+        self.assertTrue(siparis.borc_kaydi_olustu)
+        self.assertEqual(siparis.odeme_turu, "borc")
+        self.assertEqual(siparis.teslim_eden, self.satis_user)
+
+    def test_sifir_adet_borc_yazilmaz(self):
+        siparis = siparis_kaydet(
+            self.etut_user, menu=self.menu, talebe_id=self.talebe.pk, adet=0
+        )
+        with self.assertRaises(SabahBeslenmeHata):
+            odeme_turu_ayarla(self.satis_user, siparis.pk, "borc")
 
     def test_sifir_adet_satis_olmaz(self):
         siparis = siparis_kaydet(
@@ -224,6 +233,8 @@ class SabahBeslenmeTests(TestCase):
         self.assertContains(res, "Henüz kutucuğa basılmayan sipariş")
         self.assertContains(res, reverse("sabah_beslenme_api_teslim_kaydet"))
         self.assertContains(res, reverse("sabah_beslenme_api_odeme_kaydet"))
+        self.assertContains(res, "data-odeme-api")
+        self.assertContains(res, "data-pay")
 
     def test_satis_teslim_ve_odeme_govde_ile_kaydeder(self):
         siparis = siparis_kaydet(
@@ -246,6 +257,7 @@ class SabahBeslenmeTests(TestCase):
         self.assertTrue(teslim.json()["ok"])
         siparis.refresh_from_db()
         self.assertTrue(siparis.teslim_edildi)
+        self.assertTrue(siparis.borc_kaydi_olustu)
         self.assertEqual(siparis.odeme_turu, "borc")
 
     def test_ajax_csrf_hatasi_json_doner(self):

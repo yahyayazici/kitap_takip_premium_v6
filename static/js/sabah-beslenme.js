@@ -173,14 +173,14 @@
             "<td>" + s.etut + "<br><small>" + s.sinif + "</small></td>" +
             "<td>" + s.adet + "</td>" +
             '<td class="sb-tutar">' + s.tutar_etiket + "</td>" +
-            '<td><button type="button" class="sb-pay-btn' + (borcOn ? " is-on" : "") + '" data-pay="borc" aria-pressed="' + (borcOn ? "true" : "false") + '"' + disabledPay + ">Borç</button></td>" +
+            '<td class="sb-borc-cell"><button type="button" class="sb-pay-btn' + (borcOn ? " is-on" : "") + '" data-pay="borc" aria-pressed="' + (borcOn ? "true" : "false") + '"' + disabledPay + ">Borç</button></td>" +
             '<td class="sb-tick-col"><button type="button" class="sb-tick' + (s.teslim_edildi ? " is-done" : "") + '" data-tick' + disabledTick + ' aria-pressed="' + (s.teslim_edildi ? "true" : "false") + '" aria-label="Teslim / satış"><span class="sb-tick-icon" aria-hidden="true"></span></button></td>';
     }
 
     function initSatis(root) {
         var pollUrl = root.getAttribute("data-poll");
-        var teslimUrl = root.getAttribute("data-teslim");
-        var odemeUrl = root.getAttribute("data-odeme");
+        var teslimUrl = root.getAttribute("data-teslim-api") || root.getAttribute("data-teslim");
+        var odemeUrl = root.getAttribute("data-odeme-api") || root.getAttribute("data-odeme");
         var tarih = root.getAttribute("data-tarih");
         var canSatis = root.getAttribute("data-satis") === "1";
         var tbody = root.querySelector("[data-sb-rows]");
@@ -247,8 +247,6 @@
         }
 
         root.addEventListener("click", function (ev) {
-            var tick = ev.target.closest("[data-tick]");
-            var pay = ev.target.closest("[data-pay]");
             var chip = ev.target.closest("[data-filter]");
             if (chip) {
                 filter = chip.getAttribute("data-filter");
@@ -258,23 +256,35 @@
                 applyFilters();
                 return;
             }
+
+            var pay = ev.target.closest("[data-pay], .sb-borc-cell");
+            var tick = ev.target.closest("[data-tick]");
             var row = ev.target.closest("tr[data-id]");
             if (!row || !canSatis) return;
             var id = row.getAttribute("data-id");
             if (busy.has(id)) return;
 
-            if (tick) {
-                var teslim = row.getAttribute("data-teslim") === "1";
-                if (teslim && !window.confirm("Teslim / satışı geri alalım mı?")) return;
+            if (pay) {
+                ev.preventDefault();
+                var btn = row.querySelector("[data-pay]");
+                if (!btn || btn.disabled) return;
+                if (!odemeUrl || odemeUrl === "pesin" || odemeUrl === "borc") {
+                    window.alert("Ödeme adresi bulunamadı. Sayfayı yenileyin.");
+                    return;
+                }
                 busy.add(id);
-                tick.classList.add("is-busy");
-                postJson(teslimUrl, { siparis_id: Number(id), undo: teslim ? "1" : "0" })
+                var nextPay = row.getAttribute("data-odeme") === "borc" ? "pesin" : "borc";
+                row.setAttribute("data-odeme", nextPay);
+                btn.classList.toggle("is-on", nextPay === "borc");
+                btn.setAttribute("aria-pressed", nextPay === "borc" ? "true" : "false");
+                postJson(odemeUrl, { siparis_id: Number(id), odeme_turu: nextPay })
                     .then(function (data) {
                         applyOzet(root, data.ozet);
                         if (data.siparis) paintRow(row, data.siparis, canSatis);
                     })
                     .catch(function (err) {
                         window.alert(err.message);
+                        refresh();
                     })
                     .finally(function () {
                         busy.delete(id);
@@ -283,10 +293,12 @@
                 return;
             }
 
-            if (pay) {
+            if (tick) {
+                var teslim = row.getAttribute("data-teslim") === "1";
+                if (teslim && !window.confirm("Teslim / satışı geri alalım mı?")) return;
                 busy.add(id);
-                var nextPay = row.getAttribute("data-odeme") === "borc" ? "pesin" : "borc";
-                postJson(odemeUrl, { siparis_id: Number(id), odeme_turu: nextPay })
+                tick.classList.add("is-busy");
+                postJson(teslimUrl, { siparis_id: Number(id), undo: teslim ? "1" : "0" })
                     .then(function (data) {
                         applyOzet(root, data.ozet);
                         if (data.siparis) paintRow(row, data.siparis, canSatis);

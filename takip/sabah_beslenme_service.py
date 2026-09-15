@@ -436,10 +436,25 @@ def odeme_turu_ayarla(user: User, siparis_id: int, odeme_turu: str) -> SabahBesl
         if siparis.borc_kapatildi and odeme_turu == SabahBeslenmeSiparis.OdemeTuru.PESIN:
             return siparis
 
+        auto_teslim = False
+        if odeme_turu == SabahBeslenmeSiparis.OdemeTuru.BORC and not siparis.teslim_edildi:
+            if siparis.adet <= 0:
+                raise SabahBeslenmeHata("Teslim edilmeyen / sıfır adetli sipariş satışa dönüşmez.")
+            siparis.teslim_edildi = True
+            siparis.teslim_saati = timezone.now()
+            siparis.teslim_eden = user
+            auto_teslim = True
         siparis.odeme_turu = odeme_turu
         if siparis.teslim_edildi:
             _borc_uygula(siparis)
         siparis.save()
+        if auto_teslim:
+            _log(
+                siparis,
+                SabahBeslenmeIslemLog.Islem.TESLIM,
+                user,
+                detay=f"{siparis.odeme_turu} tutar={siparis.tutar}",
+            )
         _log(siparis, SabahBeslenmeIslemLog.Islem.ODEME, user, detay=odeme_turu)
     return siparis
 

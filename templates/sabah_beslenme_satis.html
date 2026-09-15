@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Sabah Beslenmesi · Satış · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/sabah-beslenme-premium.css' %}?v=sb8">
+<link rel="stylesheet" href="{% static 'css/sabah-beslenme-premium.css' %}?v=sb9">
 {% endblock %}
 
 {% block content %}
@@ -11,8 +11,8 @@
     data-sb-satis
     data-tarih="{{ tarih|date:'Y-m-d' }}"
     data-poll="{% url 'sabah_beslenme_api_satis_verisi' %}"
-    data-teslim="{% url 'sabah_beslenme_api_teslim_kaydet' %}"
-    data-odeme="{% url 'sabah_beslenme_api_odeme_kaydet' %}"
+    data-teslim-api="{% url 'sabah_beslenme_api_teslim_kaydet' %}"
+    data-odeme-api="{% url 'sabah_beslenme_api_odeme_kaydet' %}"
     data-satis="{{ satis_yapabilir|yesno:'1,0' }}"
 >
 {% csrf_token %}
@@ -21,7 +21,7 @@
     <div>
         <p class="kicker">GÖREV MODÜLÜ</p>
         <h1>Sabah Beslenmesi — Satış</h1>
-        <p class="muted">{% if menu %}{{ menu.urun }} · {{ menu.birim_fiyat }} ₺ · {% endif %}Kutucuk peşin teslimdir. Borca yazmak için Borç’a basın.</p>
+        <p class="muted">{% if menu %}{{ menu.urun }} · {{ menu.birim_fiyat }} ₺ · {% endif %}Kutucuk peşin teslimdir. Borç’a basınca teslim borç yazılır.</p>
     </div>
     <div class="page-head-actions">
         <a class="ghost-btn" href="?tarih={{ onceki }}">Önceki gün</a>
@@ -120,7 +120,7 @@
             <td>{{ s.etut_hocasi.ad_soyad|default:"—" }}<br><small>{{ s.talebe.sinif_sube|default:s.talebe.sinif }}</small></td>
             <td>{{ s.adet }}</td>
             <td class="sb-tutar">{{ s.tutar }} ₺</td>
-            <td>
+            <td class="sb-borc-cell">
                 <button
                     type="button"
                     class="sb-pay-btn{% if s.odeme_turu == 'borc' %} is-on{% endif %}"
@@ -146,5 +146,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/sabah-beslenme.js' %}?v=sb8"></script>
+<script src="{% static 'js/sabah-beslenme.js' %}?v=sb9"></script>
 {% endblock %}
