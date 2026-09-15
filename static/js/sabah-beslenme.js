@@ -2,21 +2,35 @@
     "use strict";
 
     function csrfToken() {
+        var scoped = document.querySelector(
+            "[data-sb-siparis] [name=csrfmiddlewaretoken], [data-sb-satis] [name=csrfmiddlewaretoken], [data-sb-borc] [name=csrfmiddlewaretoken]"
+        );
+        if (scoped && scoped.value) return scoped.value;
         var el = document.querySelector("[name=csrfmiddlewaretoken]");
-        return el ? el.value : "";
+        if (el && el.value) return el.value;
+        var match = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/);
+        return match ? decodeURIComponent(match[1]) : "";
     }
 
     function postJson(url, body) {
         return fetch(url, {
             method: "POST",
+            credentials: "same-origin",
             headers: {
                 "Content-Type": "application/json",
+                Accept: "application/json",
                 "X-CSRFToken": csrfToken(),
                 "X-Requested-With": "XMLHttpRequest",
             },
             body: JSON.stringify(body || {}),
         }).then(function (res) {
-            return res.json().then(function (data) {
+            return res.text().then(function (text) {
+                var data = {};
+                try {
+                    data = text ? JSON.parse(text) : {};
+                } catch (err) {
+                    throw new Error("Kayıt alınamadı. Sayfayı yenileyip tekrar deneyin.");
+                }
                 if (!res.ok || !data.ok) {
                     throw new Error(data.hata || "İşlem başarısız.");
                 }
@@ -167,8 +181,8 @@
 
     function initSatis(root) {
         var pollUrl = root.getAttribute("data-poll");
-        var teslimTpl = root.getAttribute("data-teslim-tpl");
-        var odemeTpl = root.getAttribute("data-odeme-tpl");
+        var teslimUrl = root.getAttribute("data-teslim");
+        var odemeUrl = root.getAttribute("data-odeme");
         var tarih = root.getAttribute("data-tarih");
         var canSatis = root.getAttribute("data-satis") === "1";
         var tbody = root.querySelector("[data-sb-rows]");
@@ -176,10 +190,6 @@
         var filter = "tumu";
         var q = "";
         var etut = "";
-
-        function urlFor(tpl, id) {
-            return tpl.replace("/0/", "/" + id + "/");
-        }
 
         function applyFilters() {
             if (!tbody) return;
@@ -260,7 +270,7 @@
                 if (teslim && !window.confirm("Teslim / satışı geri alalım mı?")) return;
                 busy.add(id);
                 tick.classList.add("is-busy");
-                postJson(urlFor(teslimTpl, id), { undo: teslim ? "1" : "0" })
+                postJson(teslimUrl, { siparis_id: Number(id), undo: teslim ? "1" : "0" })
                     .then(function (data) {
                         applyOzet(root, data.ozet);
                         if (data.siparis) paintRow(row, data.siparis, canSatis);
@@ -277,7 +287,7 @@
 
             if (pay) {
                 busy.add(id);
-                postJson(urlFor(odemeTpl, id), { odeme_turu: pay.getAttribute("data-pay") })
+                postJson(odemeUrl, { siparis_id: Number(id), odeme_turu: pay.getAttribute("data-pay") })
                     .then(function (data) {
                         applyOzet(root, data.ozet);
                         if (data.siparis) paintRow(row, data.siparis, canSatis);
@@ -311,7 +321,7 @@
     }
 
     function initBorc(root) {
-        var tpl = root.getAttribute("data-kapat-tpl");
+        var kapatUrl = root.getAttribute("data-kapat");
         root.addEventListener("click", function (ev) {
             var btn = ev.target.closest("[data-kapat]");
             if (!btn) return;
@@ -319,7 +329,7 @@
             if (!row) return;
             if (!window.confirm("Bu borcu tahsil edildi olarak kapatalım mı?")) return;
             btn.disabled = true;
-            postJson(tpl.replace("/0/", "/" + row.getAttribute("data-id") + "/"), {})
+            postJson(kapatUrl, { siparis_id: Number(row.getAttribute("data-id")) })
                 .then(function () {
                     row.remove();
                 })

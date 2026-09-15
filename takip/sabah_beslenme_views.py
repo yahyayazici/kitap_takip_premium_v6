@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from datetime import date, time, timedelta
 from decimal import Decimal, InvalidOperation
 
@@ -43,6 +44,7 @@ from takip.sabah_beslenme_service import (
 
 MODUL = "sabah_beslenmesi"
 URUN_ONERILERI = ("Simit", "Poğaça", "Açma", "Peynirli poğaça", "Çikolatalı poğaça")
+logger = logging.getLogger(__name__)
 
 
 def _parse_date(raw: str | None, default: date | None = None) -> date:
@@ -82,8 +84,21 @@ def _json_body(request) -> dict:
     return {}
 
 
-def _json_hata(exc: Exception, status: int = 400):
+def _json_hata(exc: Exception | str, status: int = 400):
     return JsonResponse({"ok": False, "hata": str(exc)}, status=status)
+
+
+def _siparis_pk(payload, pk: int | None = None) -> int | None:
+    if pk:
+        return pk
+    raw = payload.get("siparis_id") if payload else None
+    if raw in (None, ""):
+        raw = payload.get("pk") if payload else None
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return None
+    return value if value > 0 else None
 
 
 def _nav(request, aktif: str) -> dict:
@@ -278,45 +293,70 @@ def sabah_beslenme_api_siparis(request):
         return _json_hata("Adet veya talebe bilgisi geçersiz.")
     except SabahBeslenmeHata as exc:
         return _json_hata(exc)
+    except Exception:
+        logger.exception("sabah beslenme sipariş api")
+        return _json_hata("Sipariş kaydedilemedi. Sayfayı yenileyip tekrar deneyin.", 500)
     return JsonResponse(_cevap_paketi(request.user, menu, siparis))
 
 
-@login_required
 @require_POST
-def sabah_beslenme_api_teslim(request, pk: int):
+def sabah_beslenme_api_teslim(request, pk: int | None = None):
+    if not request.user.is_authenticated:
+        return _json_hata("Oturum kapandı. Sayfayı yenileyin.", 401)
     if not satis_yapabilir(request.user):
         return _json_hata("Satış yetkiniz yok.", 403)
     payload = _json_body(request) or request.POST
+    siparis_id = _siparis_pk(payload, pk)
+    if not siparis_id:
+        return _json_hata("Sipariş bulunamadı.")
     geri = str(payload.get("undo") or payload.get("geri") or "").lower() in {"1", "true", "evet"}
     try:
-        siparis = teslim_geri_al(request.user, pk) if geri else teslim_et(request.user, pk)
+        siparis = teslim_geri_al(request.user, siparis_id) if geri else teslim_et(request.user, siparis_id)
     except SabahBeslenmeHata as exc:
         return _json_hata(exc)
+    except Exception:
+        logger.exception("sabah beslenme teslim api")
+        return _json_hata("Teslim kaydedilemedi. Sayfayı yenileyip tekrar deneyin.", 500)
     return JsonResponse(_cevap_paketi(request.user, siparis.menu, siparis))
 
 
-@login_required
 @require_POST
-def sabah_beslenme_api_odeme(request, pk: int):
+def sabah_beslenme_api_odeme(request, pk: int | None = None):
+    if not request.user.is_authenticated:
+        return _json_hata("Oturum kapandı. Sayfayı yenileyin.", 401)
     if not satis_yapabilir(request.user):
         return _json_hata("Ödeme tercihi yetkiniz yok.", 403)
     payload = _json_body(request) or request.POST
+    siparis_id = _siparis_pk(payload, pk)
+    if not siparis_id:
+        return _json_hata("Sipariş bulunamadı.")
     try:
-        siparis = odeme_turu_ayarla(request.user, pk, str(payload.get("odeme_turu") or ""))
+        siparis = odeme_turu_ayarla(request.user, siparis_id, str(payload.get("odeme_turu") or ""))
     except SabahBeslenmeHata as exc:
         return _json_hata(exc)
+    except Exception:
+        logger.exception("sabah beslenme ödeme api")
+        return _json_hata("Ödeme tercihi kaydedilemedi. Sayfayı yenileyip tekrar deneyin.", 500)
     return JsonResponse(_cevap_paketi(request.user, siparis.menu, siparis))
 
 
-@login_required
 @require_POST
-def sabah_beslenme_api_borc_kapat(request, pk: int):
+def sabah_beslenme_api_borc_kapat(request, pk: int | None = None):
+    if not request.user.is_authenticated:
+        return _json_hata("Oturum kapandı. Sayfayı yenileyin.", 401)
     if not borc_kapatabilir(request.user):
         return _json_hata("Borç kapatma yetkiniz yok.", 403)
+    payload = _json_body(request) or request.POST
+    siparis_id = _siparis_pk(payload, pk)
+    if not siparis_id:
+        return _json_hata("Sipariş bulunamadı.")
     try:
-        siparis = borc_kapat(request.user, pk)
+        siparis = borc_kapat(request.user, siparis_id)
     except SabahBeslenmeHata as exc:
         return _json_hata(exc)
+    except Exception:
+        logger.exception("sabah beslenme borç kapat api")
+        return _json_hata("Borç kapatılamadı. Sayfayı yenileyip tekrar deneyin.", 500)
     return JsonResponse({"ok": True, "siparis": siparis_json(siparis), "ozet": acik_borc_ozet(request.user)})
 
 

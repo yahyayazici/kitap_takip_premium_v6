@@ -219,7 +219,50 @@ class SabahBeslenmeTests(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertContains(res, "Ahmet Yıldız")
         self.assertContains(res, "data-tick")
-        self.assertContains(res, "Peşin")
+        self.assertContains(res, "Teslim bekleyen")
+        self.assertContains(res, "Henüz kutucuğa basılmayan sipariş")
+        self.assertContains(res, reverse("sabah_beslenme_api_teslim_kaydet"))
+        self.assertContains(res, reverse("sabah_beslenme_api_odeme_kaydet"))
+
+    def test_satis_teslim_ve_odeme_govde_ile_kaydeder(self):
+        siparis = siparis_kaydet(
+            self.etut_user, menu=self.menu, talebe_id=self.talebe.pk, adet=1
+        )
+        self.client.force_login(self.satis_user)
+        odeme = self.client.post(
+            reverse("sabah_beslenme_api_odeme_kaydet"),
+            data={"siparis_id": siparis.pk, "odeme_turu": "borc"},
+            content_type="application/json",
+        )
+        self.assertEqual(odeme.status_code, 200)
+        self.assertTrue(odeme.json()["ok"])
+        teslim = self.client.post(
+            reverse("sabah_beslenme_api_teslim_kaydet"),
+            data={"siparis_id": siparis.pk, "undo": "0"},
+            content_type="application/json",
+        )
+        self.assertEqual(teslim.status_code, 200)
+        self.assertTrue(teslim.json()["ok"])
+        siparis.refresh_from_db()
+        self.assertTrue(siparis.teslim_edildi)
+        self.assertEqual(siparis.odeme_turu, "borc")
+
+    def test_ajax_csrf_hatasi_json_doner(self):
+        from django.test import RequestFactory
+
+        from takip.pwa_views import csrf_failure
+
+        request = RequestFactory().post(
+            "/sabah-beslenmesi/api/teslim/",
+            data=b'{"siparis_id":1}',
+            content_type="application/json",
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+            HTTP_ACCEPT="application/json",
+        )
+        res = csrf_failure(request, reason="token missing")
+        self.assertEqual(res.status_code, 403)
+        self.assertIn("application/json", res["Content-Type"])
+        self.assertIn("yenileyip", res.content.decode())
 
     def test_etut_landing_siparise_gider(self):
         self.client.force_login(self.etut_user)

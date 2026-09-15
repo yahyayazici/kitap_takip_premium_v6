@@ -68,9 +68,11 @@
 .sb-menu-banner {
     background: var(--cs-surface);
     border: 1px solid var(--sb-line);
+    border-top: 3px solid var(--cs-primary);
     border-radius: var(--sb-radius);
     padding: var(--cs-space-4) var(--cs-space-5);
     font-size: 0.95rem;
+    box-shadow: var(--cs-shadow-xs);
 }
 
 .sb-pill {
@@ -92,16 +94,50 @@
     flex: 1 1 140px;
     background: var(--cs-surface);
     border: 1px solid var(--sb-line);
+    border-top: 3px solid var(--cs-accent-soft);
     border-radius: var(--sb-radius);
     padding: var(--cs-space-4);
     min-height: 76px;
+    box-shadow: var(--cs-shadow-xs);
+}
+
+.sb-ozet article.sb-tone-info {
+    border-top-color: var(--cs-accent-soft);
+}
+.sb-ozet article.sb-tone-ok {
+    border-top-color: var(--cs-success);
+}
+.sb-ozet article.sb-tone-wait {
+    border-top-color: var(--cs-warning);
+}
+.sb-ozet article.sb-tone-navy {
+    border-top-color: var(--cs-primary);
+}
+.sb-ozet article.sb-tone-debt {
+    border-top-color: var(--cs-danger);
 }
 
 .sb-ozet strong {
     display: block;
     font-size: 1.35rem;
     letter-spacing: -0.03em;
-    color: var(--sb-navy);
+    color: var(--cs-accent);
+}
+
+.sb-ozet article.sb-tone-info strong {
+    color: var(--cs-accent);
+}
+.sb-ozet article.sb-tone-ok strong {
+    color: var(--cs-success);
+}
+.sb-ozet article.sb-tone-wait strong {
+    color: var(--cs-warning);
+}
+.sb-ozet article.sb-tone-navy strong {
+    color: var(--cs-primary);
+}
+.sb-ozet article.sb-tone-debt strong {
+    color: var(--cs-danger);
 }
 
 .sb-ozet span {
@@ -110,6 +146,15 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
+}
+
+.sb-ozet small {
+    display: block;
+    margin-top: 0.2rem;
+    color: var(--sb-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.3;
 }
 
 .sb-chips {
@@ -136,10 +181,21 @@
 }
 
 .sb-chip.is-on,
-.sb-qty-btn.is-on,
-.sb-pay-btn.is-on {
+.sb-qty-btn.is-on {
     background: var(--cs-primary);
     border-color: var(--cs-primary);
+    color: var(--cs-text-inverse);
+}
+
+.sb-pay-btn.is-on[data-pay="pesin"] {
+    background: var(--cs-success);
+    border-color: var(--cs-success);
+    color: var(--cs-text-inverse);
+}
+
+.sb-pay-btn.is-on[data-pay="borc"] {
+    background: var(--cs-warning);
+    border-color: var(--cs-warning);
     color: var(--cs-text-inverse);
 }
 
@@ -180,7 +236,9 @@
     overflow-x: auto;
     background: var(--cs-surface);
     border: 1px solid var(--sb-line);
+    border-top: 3px solid var(--cs-primary);
     border-radius: var(--sb-radius);
+    box-shadow: var(--cs-shadow-xs);
 }
 
 .sb-siparis-wrap,

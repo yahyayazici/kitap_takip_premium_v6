@@ -162,6 +162,17 @@ def pwa_baslat(request):
 
 def csrf_failure(request, reason=""):
     """PWA / mobil geri yüklemede POST tekrarı → girişe yönlendir."""
+    content_type = request.content_type or ""
+    accept = request.headers.get("Accept") or ""
+    xhr = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    if xhr or "application/json" in content_type or "application/json" in accept:
+        return JsonResponse(
+            {
+                "ok": False,
+                "hata": "Oturum doğrulaması düştü. Sayfayı yenileyip tekrar deneyin.",
+            },
+            status=403,
+        )
     if request.method == "POST":
         return redirect(f"{reverse('login')}?source=pwa&csrf=1")
     return redirect(reverse("login"))

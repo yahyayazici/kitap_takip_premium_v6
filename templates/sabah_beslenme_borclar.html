@@ -2,11 +2,11 @@
 {% load static %}
 {% block title %}Sabah Beslenmesi · Borçlar · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/sabah-beslenme-premium.css' %}?v=sb1">
+<link rel="stylesheet" href="{% static 'css/sabah-beslenme-premium.css' %}?v=sb6">
 {% endblock %}
 
 {% block content %}
-<div class="sb-page" data-sb-borc data-kapat-tpl="{% url 'sabah_beslenme_api_borc_kapat' 0 %}">
+<div class="sb-page" data-sb-borc data-kapat="{% url 'sabah_beslenme_api_borc_kapat_kaydet' %}">
 {% csrf_token %}
 <header class="page-head patterned-page-head">
     <div>
@@ -19,8 +19,8 @@
 {% include "includes/sabah_beslenme_nav.html" %}
 
 <section class="sb-ozet">
-    <article><strong>{{ ozet.adet }}</strong><span>Açık borç</span></article>
-    <article><strong>{{ ozet.tutar_etiket }}</strong><span>Toplam</span></article>
+    <article class="sb-tone-debt"><strong>{{ ozet.adet }}</strong><span>Açık borç</span></article>
+    <article class="sb-tone-navy"><strong>{{ ozet.tutar_etiket }}</strong><span>Toplam</span></article>
 </section>
 
 <form method="get" class="sb-filters">
@@ -70,5 +70,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/sabah-beslenme.js' %}?v=sb1"></script>
+<script src="{% static 'js/sabah-beslenme.js' %}?v=sb5"></script>
 {% endblock %}

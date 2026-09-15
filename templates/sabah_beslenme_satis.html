@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Sabah Beslenmesi · Satış · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/sabah-beslenme-premium.css' %}?v=sb4">
+<link rel="stylesheet" href="{% static 'css/sabah-beslenme-premium.css' %}?v=sb6">
 {% endblock %}
 
 {% block content %}
@@ -11,8 +11,8 @@
     data-sb-satis
     data-tarih="{{ tarih|date:'Y-m-d' }}"
     data-poll="{% url 'sabah_beslenme_api_satis_verisi' %}"
-    data-teslim-tpl="{% url 'sabah_beslenme_api_teslim' 0 %}"
-    data-odeme-tpl="{% url 'sabah_beslenme_api_odeme' 0 %}"
+    data-teslim="{% url 'sabah_beslenme_api_teslim_kaydet' %}"
+    data-odeme="{% url 'sabah_beslenme_api_odeme_kaydet' %}"
     data-satis="{{ satis_yapabilir|yesno:'1,0' }}"
 >
 {% csrf_token %}
@@ -21,7 +21,7 @@
     <div>
         <p class="kicker">GÖREV MODÜLÜ</p>
         <h1>Sabah Beslenmesi — Satış</h1>
-        <p class="muted">{% if menu %}{{ menu.urun }} · {{ menu.birim_fiyat }} ₺{% else %}Bugün menü yok.{% endif %} Tik: teslim ve satış. İkinci basış geri alır.</p>
+        <p class="muted">{% if menu %}{{ menu.urun }} · {{ menu.birim_fiyat }} ₺ · {% endif %}Peşin veya borç seçin, kutucuk teslimi kaydeder.</p>
     </div>
     <div class="page-head-actions">
         <a class="ghost-btn" href="?tarih={{ onceki }}">Önceki gün</a>
@@ -42,18 +42,36 @@
 {% else %}
 
 <section class="sb-ozet" data-sb-ozet aria-live="polite">
-    <article><strong data-ozet="toplam_siparis_adedi">{{ ozet.toplam_siparis_adedi }}</strong><span>Toplam sipariş adedi</span></article>
-    <article><strong data-ozet="satisi_yapilan">{{ ozet.satisi_yapilan }}</strong><span>Satışı yapılan</span></article>
-    <article><strong data-ozet="bekleyen">{{ ozet.bekleyen }}</strong><span>Bekleyen</span></article>
-    <article><strong data-ozet="pesin_tahsil">{{ ozet.pesin_tahsil }} ₺</strong><span>Peşin tahsil</span></article>
-    <article><strong data-ozet="borca_yazilan">{{ ozet.borca_yazilan }} ₺</strong><span>Borca yazılan</span></article>
+    <article class="sb-tone-info">
+        <strong data-ozet="toplam_siparis_adedi">{{ ozet.toplam_siparis_adedi }}</strong>
+        <span>Toplam adet</span>
+        <small>Sipariş edilen ürün</small>
+    </article>
+    <article class="sb-tone-ok">
+        <strong data-ozet="satisi_yapilan">{{ ozet.satisi_yapilan }}</strong>
+        <span>Teslim edilen</span>
+        <small>Kutucuğu işaretlenen sipariş</small>
+    </article>
+    <article class="sb-tone-wait">
+        <strong data-ozet="bekleyen">{{ ozet.bekleyen }}</strong>
+        <span>Teslim bekleyen</span>
+        <small>Henüz kutucuğa basılmayan sipariş</small>
+    </article>
+    <article class="sb-tone-navy">
+        <strong data-ozet="pesin_tahsil">{{ ozet.pesin_tahsil }} ₺</strong>
+        <span>Peşin tahsil</span>
+    </article>
+    <article class="sb-tone-debt">
+        <strong data-ozet="borca_yazilan">{{ ozet.borca_yazilan }} ₺</strong>
+        <span>Borca yazılan</span>
+    </article>
 </section>
 
 <div class="sb-filters">
     <div class="sb-chips" role="tablist" aria-label="Durum filtresi">
         <button type="button" class="sb-chip is-on" data-filter="tumu">Tümü</button>
-        <button type="button" class="sb-chip" data-filter="bekleyen">Bekleyenler</button>
-        <button type="button" class="sb-chip" data-filter="satilan">Satışı yapılanlar</button>
+        <button type="button" class="sb-chip" data-filter="bekleyen">Teslim bekleyenler</button>
+        <button type="button" class="sb-chip" data-filter="satilan">Teslim edilenler</button>
         <button type="button" class="sb-chip" data-filter="borclu">Borçlular</button>
     </div>
     <label class="sb-search">
@@ -125,5 +143,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/sabah-beslenme.js' %}?v=sb4"></script>
+<script src="{% static 'js/sabah-beslenme.js' %}?v=sb5"></script>
 {% endblock %}

@@ -236,14 +236,29 @@ urlpatterns = [
         name="sabah_beslenme_api_siparis",
     ),
     path(
+        "sabah-beslenmesi/api/teslim/",
+        sabah_beslenme_views.sabah_beslenme_api_teslim,
+        name="sabah_beslenme_api_teslim_kaydet",
+    ),
+    path(
         "sabah-beslenmesi/api/teslim/<int:pk>/",
         sabah_beslenme_views.sabah_beslenme_api_teslim,
         name="sabah_beslenme_api_teslim",
     ),
     path(
+        "sabah-beslenmesi/api/odeme/",
+        sabah_beslenme_views.sabah_beslenme_api_odeme,
+        name="sabah_beslenme_api_odeme_kaydet",
+    ),
+    path(
         "sabah-beslenmesi/api/odeme/<int:pk>/",
         sabah_beslenme_views.sabah_beslenme_api_odeme,
         name="sabah_beslenme_api_odeme",
+    ),
+    path(
+        "sabah-beslenmesi/api/borc-kapat/",
+        sabah_beslenme_views.sabah_beslenme_api_borc_kapat,
+        name="sabah_beslenme_api_borc_kapat_kaydet",
     ),
     path(
         "sabah-beslenmesi/api/borc-kapat/<int:pk>/",
