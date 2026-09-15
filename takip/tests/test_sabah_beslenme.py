@@ -178,11 +178,13 @@ class SabahBeslenmeTests(TestCase):
         self.menu.refresh_from_db()
         self.assertEqual(self.menu.urun, "Poğaça")
 
-    def test_siparis_penceresi_kapali_etut_degistiremez(self):
+    def test_siparis_penceresi_kapali_etut_teslime_kadar_girebilir(self):
         self.menu.durum = SabahBeslenmeGunlukMenu.Durum.KAPALI
         self.menu.save(update_fields=["durum"])
-        with self.assertRaises(SabahBeslenmeHata):
-            siparis_kaydet(self.etut_user, menu=self.menu, talebe_id=self.talebe.pk, adet=1)
+        siparis = siparis_kaydet(
+            self.etut_user, menu=self.menu, talebe_id=self.talebe.pk, adet=1
+        )
+        self.assertEqual(siparis.adet, 1)
 
     def test_satis_ajax_idempotent(self):
         siparis = siparis_kaydet(

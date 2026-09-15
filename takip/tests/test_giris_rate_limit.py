@@ -61,12 +61,9 @@ class GirisRateLimitTests(TestCase):
             LOGIN_URL,
             {"username": "ratelimit-test", "password": "DogruSifre!2026"},
         )
-        # Not: login.html şablonu her form hatasında sabit/genel bir mesaj
-        # gösteriyor (bkz. templates/registration/login.html) — bu sprintte
-        # tasarıma dokunulmadığından mesaj metni değil, asıl güvenlik
-        # özelliği (doğru şifreyle bile giriş yapılamaması) doğrulanıyor.
         self.assertEqual(response.status_code, 200)
         self.assertNotIn("_auth_user_id", self.client.session)
+        self.assertContains(response, "Çok fazla başarısız giriş denemesi")
 
     def test_basarili_giris_sonrasi_sayac_sifirlanir_kalici_kilit_yok(self):
         for _ in range(MAX_DENEME - 1):

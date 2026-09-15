@@ -267,10 +267,6 @@ def siparis_kaydet(user: User, *, menu: SabahBeslenmeGunlukMenu, talebe_id: int,
     if not talebe:
         raise SabahBeslenmeHata("Bu talebe için sipariş giremezsiniz.")
 
-    gec_pencere = not siparis_penceresi_acik(menu)
-    if gec_pencere and not menu_yonetebilir(user):
-        raise SabahBeslenmeHata("Sipariş penceresi kapalı. Kayıt değiştirilemez.")
-
     hoca = talebe.etut_hocasi
     kaydeden_hoca = etut_hocasi_for_user(user)
     etut = hoca or kaydeden_hoca

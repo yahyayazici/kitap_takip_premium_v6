@@ -40,61 +40,86 @@
         });
     }
 
+    function parseAdet(raw) {
+        if (raw === "" || raw === null || typeof raw === "undefined") return 0;
+        var n = parseInt(String(raw), 10);
+        if (isNaN(n) || n < 0) return 0;
+        if (n > 20) return 20;
+        return n;
+    }
+
     function initSiparis(root) {
         var api = root.getAttribute("data-api");
         var tarih = root.getAttribute("data-tarih");
         var busy = new Set();
+        var timers = {};
+        var pending = {};
 
-        function kaydet(row, adet) {
+        function kaydet(row, adet, input) {
             var talebeId = row.getAttribute("data-talebe");
-            var key = talebeId;
-            if (busy.has(key)) return;
-            busy.add(key);
+            if (!talebeId) return;
+            if (busy.has(talebeId)) {
+                pending[talebeId] = adet;
+                return;
+            }
+            busy.add(talebeId);
             row.classList.add("is-busy");
             postJson(api, { tarih: tarih, talebe_id: Number(talebeId), adet: adet })
                 .then(function () {
-                    row.setAttribute("data-adet", String(adet));
-                    row.querySelectorAll(".sb-qty-btn").forEach(function (btn) {
-                        var qty = btn.getAttribute("data-qty");
-                        var on = qty === "ozel" ? adet > 2 : Number(qty) === adet;
-                        btn.classList.toggle("is-on", on);
-                    });
-                    var input = row.querySelector(".sb-qty-input");
-                    if (input) {
-                        input.classList.toggle("is-on", adet > 2);
-                        if (adet > 2) input.value = String(adet);
-                    }
+                    row.setAttribute("data-saved", String(adet));
+                    if (input && adet === 0) input.value = "";
+                    else if (input) input.value = String(adet);
                 })
                 .catch(function (err) {
                     window.alert(err.message);
                 })
                 .finally(function () {
-                    busy.delete(key);
+                    busy.delete(talebeId);
                     row.classList.remove("is-busy");
+                    if (Object.prototype.hasOwnProperty.call(pending, talebeId)) {
+                        var next = pending[talebeId];
+                        delete pending[talebeId];
+                        kaydet(row, next, input);
+                    }
                 });
         }
 
-        root.addEventListener("click", function (ev) {
-            var btn = ev.target.closest(".sb-qty-btn");
-            if (!btn) return;
-            var row = btn.closest("tr");
-            var qty = btn.getAttribute("data-qty");
-            if (qty === "ozel") {
-                var input = row.querySelector(".sb-qty-input");
-                input.classList.add("is-on");
-                input.focus();
-                return;
-            }
-            kaydet(row, Number(qty));
-        });
+        function fromInput(input) {
+            var row = input.closest("tr");
+            if (!row) return;
+            var adet = parseAdet(input.value);
+            var prev = row.getAttribute("data-saved");
+            if (adet === 0 && (prev === null || prev === "")) return;
+            if (prev !== null && prev !== "" && String(adet) === prev) return;
+            kaydet(row, adet, input);
+        }
 
         root.addEventListener("change", function (ev) {
-            var input = ev.target.closest(".sb-qty-input");
+            var input = ev.target.closest(".sb-adet-input");
             if (!input) return;
-            var adet = parseInt(input.value, 10);
-            if (!adet || adet < 3) return;
-            kaydet(input.closest("tr"), adet);
+            fromInput(input);
         });
+
+        root.addEventListener("input", function (ev) {
+            var input = ev.target.closest(".sb-adet-input");
+            if (!input) return;
+            var row = input.closest("tr");
+            var key = row && row.getAttribute("data-talebe");
+            if (!key) return;
+            window.clearTimeout(timers[key]);
+            timers[key] = window.setTimeout(function () {
+                fromInput(input);
+            }, 350);
+        });
+
+        root.addEventListener("blur", function (ev) {
+            var input = ev.target.closest && ev.target.closest(".sb-adet-input");
+            if (!input) return;
+            var row = input.closest("tr");
+            var key = row && row.getAttribute("data-talebe");
+            if (key) window.clearTimeout(timers[key]);
+            fromInput(input);
+        }, true);
     }
 
     function paintRow(tr, s, canSatis) {

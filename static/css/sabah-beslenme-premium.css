@@ -150,9 +150,17 @@
     border-radius: var(--sb-radius);
 }
 
+.sb-siparis-wrap,
+.sb-satis-wrap {
+    overflow-x: clip;
+}
+
 .sb-table {
     width: 100%;
     border-collapse: collapse;
+}
+
+.sb-table:not(.sb-siparis-table):not(.sb-satis-table) {
     min-width: 720px;
 }
 
@@ -183,19 +191,31 @@
     margin-top: 0.15rem;
 }
 
-.sb-qty {
+.sb-siparis-table .sb-name {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--cs-space-2);
-    align-items: center;
+    flex-direction: column;
+    gap: 0.1rem;
 }
 
-.sb-qty-input {
-    width: 5.5rem;
-    display: none;
+.sb-siparis-table .sb-class {
+    color: var(--sb-muted);
+    font-size: 0.8rem;
+    font-weight: 650;
 }
 
-.sb-qty-input.is-on { display: inline-block; }
+.sb-qty-cell {
+    width: 4.25rem;
+    text-align: right;
+}
+
+.sb-adet-input {
+    width: 3.75rem;
+    min-height: var(--cs-touch-min);
+    text-align: center;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 0 0.2rem;
+}
 
 .sb-pay {
     display: inline-flex;
@@ -310,7 +330,99 @@
 
 @media (max-width: 900px) {
     .sb-form { grid-template-columns: 1fr; }
-    .sb-table { min-width: 640px; }
+
+    .sb-page .page-head .muted { display: none; }
+
+    .sb-siparis-wrap,
+    .sb-satis-wrap {
+        overflow: visible;
+        border: 0;
+        background: transparent;
+        border-radius: 0;
+    }
+
+    .sb-siparis-table thead,
+    .sb-satis-table thead {
+        display: none;
+    }
+
+    .sb-siparis-table,
+    .sb-siparis-table tbody,
+    .sb-satis-table,
+    .sb-satis-table tbody {
+        display: block;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .sb-siparis-table tr {
+        display: grid;
+        grid-template-columns: 1fr 4.25rem;
+        grid-template-areas: "name qty";
+        gap: var(--cs-space-3);
+        align-items: center;
+        width: 100%;
+        margin-bottom: var(--cs-space-2);
+        padding: var(--cs-space-3) var(--cs-space-4);
+        background: var(--cs-surface);
+        border: 1px solid var(--sb-line);
+        border-radius: var(--sb-radius);
+    }
+
+    .sb-siparis-table td {
+        border: 0;
+        padding: 0;
+        width: auto;
+    }
+
+    .sb-siparis-table .sb-name { grid-area: name; overflow-wrap: anywhere; }
+    .sb-siparis-table tr:not([data-talebe]) {
+        display: block;
+        padding: var(--cs-space-4);
+    }
+    .sb-siparis-table .sb-qty-cell {
+        grid-area: qty;
+        width: auto;
+        text-align: right;
+    }
+
+    .sb-satis-table tr[data-id] {
+        display: grid;
+        grid-template-columns: 1fr auto auto 56px;
+        grid-template-areas:
+            "name name name tick"
+            "etut adet tutar tick"
+            "pay pay pay pay";
+        gap: var(--cs-space-2) var(--cs-space-3);
+        align-items: center;
+        width: 100%;
+        margin-bottom: var(--cs-space-3);
+        padding: var(--cs-space-4);
+        background: var(--cs-surface);
+        border: 1px solid var(--sb-line);
+        border-radius: var(--sb-radius);
+    }
+
+    .sb-satis-table td {
+        border: 0;
+        padding: 0;
+        width: auto;
+    }
+
+    .sb-satis-table td:nth-child(1) { grid-area: name; }
+    .sb-satis-table td:nth-child(2) { grid-area: etut; font-size: 0.85rem; color: var(--sb-muted); }
+    .sb-satis-table td:nth-child(3) { grid-area: adet; font-weight: 700; }
+    .sb-satis-table td:nth-child(4) { grid-area: tutar; font-weight: 700; }
+    .sb-satis-table td:nth-child(5) { grid-area: pay; }
+    .sb-satis-table td:nth-child(6) { grid-area: tick; }
+
+    .sb-pay {
+        width: 100%;
+        display: flex;
+    }
+    .sb-pay-btn { flex: 1; min-width: 0; }
+
+    .sb-tick-col { width: auto; }
 }
 
 @media (max-width: 640px) {
@@ -319,10 +431,23 @@
         height: 56px;
         min-width: 56px;
     }
-    .page-head-actions {
+    .sb-page .page-head-actions {
         width: 100%;
         display: flex;
         flex-wrap: wrap;
         gap: var(--cs-space-2);
     }
+    .sb-page .page-head-actions .ghost-btn,
+    .sb-page .page-head-actions .sb-date {
+        flex: 1 1 calc(50% - var(--cs-space-2));
+        min-width: 0;
+        justify-content: center;
+        text-align: center;
+    }
+    .sb-ozet article {
+        flex: 1 1 calc(50% - var(--cs-space-3));
+        min-height: 64px;
+        padding: var(--cs-space-3);
+    }
+    .sb-ozet strong { font-size: 1.1rem; }
 }

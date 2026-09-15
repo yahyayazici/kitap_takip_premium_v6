@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Sabah Beslenmesi · Sipariş · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/sabah-beslenme-premium.css' %}?v=sb1">
+<link rel="stylesheet" href="{% static 'css/sabah-beslenme-premium.css' %}?v=sb3">
 {% endblock %}
 
 {% block content %}
@@ -39,34 +39,38 @@
     <span class="sb-pill{% if pencere_acik %} is-open{% endif %}">{% if pencere_acik %}Açık{% else %}Kapalı{% endif %}</span>
 </section>
 
-<div class="cs-table-wrap sb-table-wrap">
-<table class="sb-table">
+<div class="sb-table-wrap sb-siparis-wrap">
+<table class="sb-table sb-siparis-table">
     <thead>
         <tr>
             <th>Talebe</th>
-            <th>Sınıf</th>
-            <th>Sipariş</th>
+            <th>Adet</th>
         </tr>
     </thead>
     <tbody>
         {% for satir in satirlar %}
-        <tr data-talebe="{{ satir.talebe.pk }}" data-adet="{{ satir.adet|default:'' }}">
-            <td>
+        <tr data-talebe="{{ satir.talebe.pk }}" data-saved="{% if satir.siparis %}{{ satir.adet }}{% endif %}">
+            <td class="sb-name">
                 <strong>{{ satir.talebe.ad_soyad }}</strong>
+                <span class="sb-class">{{ satir.sinif }}</span>
             </td>
-            <td>{{ satir.sinif }}</td>
-            <td>
-                <div class="sb-qty" role="group" aria-label="Adet">
-                    <button type="button" class="sb-qty-btn{% if satir.adet == 0 %} is-on{% endif %}" data-qty="0"{% if not pencere_acik and not menu_yonet %} disabled{% endif %}>İstemiyor</button>
-                    <button type="button" class="sb-qty-btn{% if satir.adet == 1 %} is-on{% endif %}" data-qty="1"{% if not pencere_acik and not menu_yonet %} disabled{% endif %}>1 adet</button>
-                    <button type="button" class="sb-qty-btn{% if satir.adet == 2 %} is-on{% endif %}" data-qty="2"{% if not pencere_acik and not menu_yonet %} disabled{% endif %}>2 adet</button>
-                    <button type="button" class="sb-qty-btn{% if satir.adet and satir.adet > 2 %} is-on{% endif %}" data-qty="ozel"{% if not pencere_acik and not menu_yonet %} disabled{% endif %}>Özel</button>
-                    <input type="number" min="3" max="20" inputmode="numeric" class="sb-qty-input{% if satir.adet and satir.adet > 2 %} is-on{% endif %}" value="{% if satir.adet and satir.adet > 2 %}{{ satir.adet }}{% endif %}" placeholder="Adet" aria-label="Özel adet"{% if not pencere_acik and not menu_yonet %} disabled{% endif %}>
-                </div>
+            <td class="sb-qty-cell">
+                <input
+                    type="number"
+                    inputmode="numeric"
+                    pattern="[0-9]*"
+                    min="0"
+                    max="20"
+                    step="1"
+                    class="sb-adet-input"
+                    aria-label="{{ satir.talebe.ad_soyad }} adet"
+                    placeholder=""
+                    value="{% if satir.siparis %}{{ satir.adet }}{% endif %}"
+                >
             </td>
         </tr>
         {% empty %}
-        <tr><td colspan="3">Zimmetli talebe bulunamadı.</td></tr>
+        <tr><td colspan="2">Zimmetli talebe bulunamadı.</td></tr>
         {% endfor %}
     </tbody>
 </table>
@@ -76,5 +80,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/sabah-beslenme.js' %}?v=sb1"></script>
+<script src="{% static 'js/sabah-beslenme.js' %}?v=sb3"></script>
 {% endblock %}
