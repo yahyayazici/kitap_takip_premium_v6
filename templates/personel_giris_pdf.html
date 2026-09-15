@@ -7,137 +7,286 @@
     <style>
         {% include "includes/pdf_kart_belge_css.html" %}
 
-        /* 2. görsel: klasik kart — kompakt sayfa */
         @page {
-            size: 148mm 200mm;
-            margin: 10mm 12mm;
+            size: A4 portrait;
+            margin: 0;
         }
 
         html, body {
             width: auto;
             height: auto;
-            background: #eef2f7;
+            margin: 0;
+            padding: 0;
+            background: #e8edf4;
+            color: #0f203c;
         }
 
-        .kart-wrap {
-            border-radius: 20px;
+        .hero {
+            width: 100%;
+            border-collapse: collapse;
+            background: #071b3a;
         }
 
-        .kart-head {
+        .hero-bar {
+            width: 10px;
+            background: #2f6ff3;
+        }
+
+        .hero-inner {
+            padding: 28px 36px 52px 28px;
+            background: #071b3a;
+            background-image: linear-gradient(118deg, transparent 58%, rgba(47, 111, 243, 0.16) 58.4%, transparent 78%);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: #1b3a68;
+            color: #d7e4f8;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+        }
+
+        .hero-title {
+            margin: 18px 0 10px;
+            max-width: 280px;
+            font-size: 28px;
+            font-weight: 600;
+            line-height: 1.15;
+            letter-spacing: -0.5px;
+            color: #ffffff;
+        }
+
+        .hero-meta {
+            margin: 0;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 1.3px;
+            text-transform: uppercase;
+            color: #8aa0c0;
+        }
+
+        .sheet-wrap {
+            padding: 0 22px 0;
+            margin-top: -28px;
+        }
+
+        .sheet {
+            width: 100%;
+            border-collapse: collapse;
+            background: #ffffff;
+            border-radius: 22px;
+            overflow: hidden;
+        }
+
+        .sheet td.pad {
+            padding: 28px 26px 22px;
+        }
+
+        .who {
+            margin: 0 0 4px;
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: -0.4px;
+            color: #0f203c;
+            line-height: 1.2;
+        }
+
+        .role {
+            margin: 0 0 22px;
+            font-size: 13px;
+            font-weight: 400;
+            color: #708097;
+        }
+
+        .field {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0 0 14px;
+            background: #eef3fb;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .field-body {
+            padding: 14px 16px 14px 16px;
+            background: #eef3fb;
+            border-left: 5px solid #2f6ff3;
+        }
+
+        .field-label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1.1px;
+            text-transform: uppercase;
+            color: #15427f;
+        }
+
+        .field-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #0f203c;
+            letter-spacing: -0.2px;
+            word-break: break-all;
+        }
+
+        .field-value.mono {
+            font-family: "Courier New", Courier, monospace;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+
+        .field-value.url {
+            font-size: 15px;
+            font-weight: 600;
+            color: #0f203c;
+        }
+
+        .hint {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 6px;
+            background: #eef3fb;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .hint-ico {
+            width: 28px;
+            padding: 10px 0 10px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #ffffff;
+            vertical-align: middle;
+        }
+
+        .hint-dot {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            line-height: 18px;
             text-align: center;
-            padding: 24px 26px 18px;
-            border-top-left-radius: 19px;
-            border-top-right-radius: 19px;
+            border-radius: 50%;
+            background: #2f6ff3;
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 700;
         }
 
-        .kart-brand {
-            font-size: 19px;
-            letter-spacing: -0.3pt;
+        .hint-text {
+            padding: 10px 16px 10px 8px;
+            font-size: 12px;
+            color: #465668;
+            vertical-align: middle;
         }
 
-        .kart-sub {
-            margin-top: 7px;
-            letter-spacing: 1.2pt;
+        .foot {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 18px;
+            padding: 0 28px 22px;
         }
 
-        .kart-body {
-            padding: 24px 26px 22px;
-            text-align: left;
+        .foot-wrap {
+            padding: 16px 28px 24px;
         }
 
-        .kart-name {
-            font-size: 26px;
-            letter-spacing: -0.4pt;
+        .foot-bar {
+            width: 28px;
+            border-top: 3px solid #2f6ff3;
+            padding-top: 10px;
         }
 
-        .kart-role {
-            margin: 0 0 18px;
+        .foot-copy {
+            padding-top: 8px;
+            padding-left: 8px;
+            font-size: 11px;
+            color: #708097;
         }
 
-        .info-table {
-            text-align: left;
-        }
-
-        .info-box td {
-            text-align: left;
-            padding: 14px 16px;
-        }
-
-        .info-label {
-            letter-spacing: 0.8pt;
-        }
-
-        .info-value.mono {
-            letter-spacing: 0.5pt;
-        }
-
-        .kart-note {
-            text-align: left;
-            margin-top: 16px;
-            padding-top: 14px;
-        }
-
-        .kart-foot td {
-            padding: 12px 22px 14px;
+        .foot-date {
+            padding-top: 10px;
+            text-align: right;
+            font-size: 11px;
+            color: #708097;
+            white-space: nowrap;
         }
     </style>
 </head>
 <body>
-<table class="kart-wrap" cellpadding="0" cellspacing="0">
+<table class="hero" cellpadding="0" cellspacing="0">
     <tr>
-        <td class="kart-head">
-            <div class="kart-brand">{{ panel_org }}</div>
-            <div class="kart-sub">{{ belge_baslik|default:"Giriş Bilgileri" }}</div>
-        </td>
-    </tr>
-    <tr>
-        <td class="kart-body">
-            <h1 class="kart-name">{{ ad_soyad }}</h1>
-            <p class="kart-role">{{ rol_etiket }}</p>
-
-            <table class="info-table" cellpadding="0" cellspacing="0">
-                <tr>
-                    <td class="info-cell">
-                        <table class="info-box" cellpadding="0" cellspacing="0"><tr><td>
-                            <span class="info-label">Kullanıcı adı</span>
-                            <div class="info-value mono">{{ kullanici_adi }}</div>
-                        </td></tr></table>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="info-cell">
-                        <table class="info-box" cellpadding="0" cellspacing="0"><tr><td>
-                            <span class="info-label">Şifre</span>
-                            <div class="info-value mono">{{ sifre }}</div>
-                        </td></tr></table>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="info-cell">
-                        <table class="info-box soft" cellpadding="0" cellspacing="0"><tr><td>
-                            <span class="info-label">Panel giriş adresi</span>
-                            <div class="url-inner">{{ panel_giris_url }}</div>
-                        </td></tr></table>
-                    </td>
-                </tr>
-            </table>
-
-            <p class="kart-note">
-                Bu belge yalnızca size özeldir. Giriş bilgilerinizi kimseyle paylaşmayın.
-                İlk girişten sonra şifrenizi değiştirmeniz önerilir.
+        <td class="hero-bar">&nbsp;</td>
+        <td class="hero-inner">
+            <div class="badge">Kişiye özel belge</div>
+            <div class="hero-title">{{ belge_baslik|default:"Giriş Bilgileri" }}</div>
+            <p class="hero-meta">
+                {{ panel_org }}
+                /
+                {% if tarih.month >= 9 %}{{ tarih.year }}–{{ tarih.year|add:1 }}{% else %}{{ tarih.year|add:-1 }}–{{ tarih.year }}{% endif %}
             </p>
         </td>
     </tr>
-    <tr>
-        <td>
-            <table class="kart-foot" cellpadding="0" cellspacing="0">
-                <tr>
-                    <td class="left">{{ panel_short }}</td>
-                    <td class="right">{{ tarih|date:"d.m.Y" }}</td>
-                </tr>
-            </table>
-        </td>
-    </tr>
 </table>
+
+<div class="sheet-wrap">
+    <table class="sheet" cellpadding="0" cellspacing="0">
+        <tr>
+            <td class="pad">
+                <h1 class="who">{{ ad_soyad }}</h1>
+                <p class="role">{{ rol_etiket }}</p>
+
+                <table class="field" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td class="field-body">
+                            <span class="field-label">Kullanıcı adı</span>
+                            <div class="field-value mono">{{ kullanici_adi }}</div>
+                        </td>
+                    </tr>
+                </table>
+
+                <table class="field" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td class="field-body">
+                            <span class="field-label">Geçici şifre</span>
+                            <div class="field-value mono">{{ sifre }}</div>
+                        </td>
+                    </tr>
+                </table>
+
+                <table class="field" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td class="field-body">
+                            <span class="field-label">Panel giriş adresi</span>
+                            <div class="field-value url">{{ panel_giris_url|cut:"https://"|cut:"http://" }}</div>
+                        </td>
+                    </tr>
+                </table>
+
+                <table class="hint" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td class="hint-ico"><span class="hint-dot">i</span></td>
+                        <td class="hint-text">İlk girişten sonra şifrenizi değiştirmeniz önerilir.</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div class="foot-wrap">
+    <table class="foot" cellpadding="0" cellspacing="0">
+        <tr>
+            <td class="foot-bar">&nbsp;</td>
+            <td class="foot-copy">Bu belge yalnızca alıcısına özeldir. Bilgilerinizi paylaşmayınız.</td>
+            <td class="foot-date">{{ tarih|date:"d.m.Y" }}</td>
+        </tr>
+    </table>
+</div>
 </body>
 </html>

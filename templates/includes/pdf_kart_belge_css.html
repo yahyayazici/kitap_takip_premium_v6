@@ -1,5 +1,5 @@
 {% load static %}
-{# Ortak kart belge stilleri — personel giriş PDF görünümü (xhtml2pdf uyumlu) #}
+{# Ortak kart belge stilleri — Çinili Saray token paleti, xhtml2pdf + WeasyPrint #}
 @font-face {
     font-family: "Poppins";
     src: url("{% static 'fonts/Poppins-Regular.ttf' %}") format("truetype");
@@ -27,8 +27,8 @@ body {
     margin: 0;
     padding: 0;
     font-family: "Poppins", Arial, sans-serif;
-    color: #334155;
-    background: #f8fafc;
+    color: #0f203c;
+    background: #eef1f6;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
 }
@@ -37,37 +37,51 @@ body {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    border: 1px solid #dbe4f0;
-    border-radius: 22px;
+    border: 1px solid #d2dce8;
+    border-radius: 18px;
     overflow: hidden;
     background: #ffffff;
 }
 
 .kart-head {
-    background-color: #1d4ed8;
-    background: linear-gradient(135deg, #173b80 0%, #2563eb 100%);
-    color: #ffffff;
-    padding: 26px 30px 20px;
+    background: #15427f;
+    color: #f0f4fc;
+    padding: 22px 28px 18px;
+}
+
+.kart-head.is-plain {
+    background: #ffffff;
+    color: #15427f;
+    border-bottom: 1px solid #d2dce8;
 }
 
 .kart-brand {
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 600;
     line-height: 1.2;
-    color: #ffffff;
+    letter-spacing: -0.3px;
+    color: #f0f4fc;
+}
+
+.kart-head.is-plain .kart-brand {
+    color: #15427f;
 }
 
 .kart-sub {
     margin-top: 6px;
-    font-size: 10px;
+    font-size: 9.5px;
     font-weight: 500;
-    letter-spacing: 1.2px;
+    letter-spacing: 1.4px;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.78);
+    color: rgba(240, 244, 252, 0.72);
+}
+
+.kart-head.is-plain .kart-sub {
+    color: #8491a3;
 }
 
 .kart-body {
-    padding: 26px 30px 28px;
+    padding: 26px 28px 24px;
     background: #ffffff;
 }
 
@@ -75,21 +89,22 @@ body {
     margin: 0 0 4px;
     font-size: 24px;
     font-weight: 600;
-    color: #0f172a;
+    color: #0f203c;
     line-height: 1.2;
+    letter-spacing: -0.4px;
 }
 
 .kart-role {
     margin: 0 0 20px;
     font-size: 13px;
     font-weight: 400;
-    color: #64748b;
+    color: #546173;
 }
 
 .info-table {
     width: 100%;
     border-collapse: separate;
-    border-spacing: 0 12px;
+    border-spacing: 0 10px;
 }
 
 .info-cell {
@@ -99,66 +114,87 @@ body {
 .info-box {
     width: 100%;
     border-collapse: collapse;
-    border: 1px solid #bfdbfe;
-    border-radius: 14px;
-    background: #eff6ff;
+    border: 1px solid #d2dce8;
+    border-radius: 12px;
+    background: #ffffff;
 }
 
 .info-box td {
-    padding: 14px 16px;
+    padding: 13px 16px;
 }
 
 .info-box.soft {
-    border-color: #e2e8f0;
-    background: #f8fbff;
+    border-color: #d2dce8;
+    background: #ffffff;
+}
+
+.info-stack {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #d2dce8;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.info-stack td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #e8eef4;
+    background: #ffffff;
+    text-align: left;
+}
+
+.info-stack tr:last-child td {
+    border-bottom: none;
 }
 
 .info-label {
     display: block;
-    margin-bottom: 6px;
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.8px;
+    margin-bottom: 5px;
+    font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: 1.1px;
     text-transform: uppercase;
-    color: #64748b;
+    color: #8491a3;
 }
 
 .info-value {
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 600;
-    color: #10213d;
+    color: #0f203c;
     word-break: break-all;
 }
 
 .info-value.mono {
     font-family: "Courier New", Courier, monospace;
-    letter-spacing: 0.5px;
+    font-weight: 500;
+    letter-spacing: 0.4px;
 }
 
+.info-value.url,
 .url-inner {
-    margin-top: 2px;
-    padding: 12px 14px;
-    border-radius: 12px;
-    background: #f1f5f9;
-    font-size: 12px;
+    margin-top: 0;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    font-size: 13px;
     font-weight: 500;
-    color: #475569;
+    color: #1f5a9e;
     word-break: break-all;
-    line-height: 1.5;
+    line-height: 1.45;
 }
 
 .section-block {
     margin-top: 14px;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
+    border: 1px solid #d2dce8;
+    border-radius: 12px;
     overflow: hidden;
     background: #ffffff;
 }
 
 .section-head {
-    background-color: #1d4ed8;
-    background: linear-gradient(135deg, #173b80 0%, #2563eb 100%);
-    color: #ffffff;
+    background: #15427f;
+    color: #f0f4fc;
     padding: 10px 14px;
     font-size: 11px;
     font-weight: 600;
@@ -169,7 +205,7 @@ body {
 .section-empty {
     padding: 12px 14px;
     font-size: 12px;
-    color: #94a3b8;
+    color: #8491a3;
 }
 
 .data-table {
@@ -178,22 +214,22 @@ body {
 }
 
 .data-table thead th {
-    background: #f8fbff;
-    color: #64748b;
+    background: #ffffff;
+    color: #546173;
     font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.6px;
+    font-weight: 500;
+    letter-spacing: 0.8px;
     text-transform: uppercase;
     text-align: left;
     padding: 9px 12px;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid #d2dce8;
 }
 
 .data-table tbody td {
     padding: 10px 12px;
     font-size: 13px;
-    color: #0f172a;
-    border-bottom: 1px solid #eef2f7;
+    color: #0f203c;
+    border-bottom: 1px solid #e8eef4;
     vertical-align: middle;
 }
 
@@ -203,35 +239,35 @@ body {
 
 .pill {
     display: inline-block;
-    background: #eff6ff;
-    color: #1d4ed8;
-    border: 1px solid #bfdbfe;
-    font-weight: 600;
+    background: #ffffff;
+    color: #15427f;
+    border: 1px solid #d2dce8;
+    font-weight: 500;
     font-size: 11px;
     padding: 3px 8px;
     border-radius: 999px;
 }
 
 .kart-note {
-    margin-top: 20px;
-    padding-top: 16px;
-    border-top: 1px solid #e2e8f0;
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid #d2dce8;
     font-size: 11px;
     line-height: 1.55;
-    color: #64748b;
+    color: #546173;
 }
 
 .kart-foot {
     width: 100%;
     border-collapse: collapse;
-    border-top: 1px solid #eef2f7;
+    border-top: 1px solid #d2dce8;
     background: #ffffff;
 }
 
 .kart-foot td {
-    padding: 14px 30px 16px;
+    padding: 12px 28px 14px;
     font-size: 9px;
-    color: #94a3b8;
+    color: #8491a3;
 }
 
 .kart-foot .left { text-align: left; }
