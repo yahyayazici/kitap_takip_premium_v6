@@ -2009,6 +2009,8 @@ def ogretmen_degerlendirme_rapor(request):
     from django.template.loader import render_to_string
 
     from config.branding import panel_branding_context
+    from takip.analitik_okuma import AnalitikAlan, AnalitikKayitDurumu
+    from takip.analitik_okuma_service import analitik_oturum_ozetleri
     from takip.ogretmen_not_service import (
         admin_degerlendirme_qs,
         ogretmen_haftalik_takip_ozeti,
@@ -2030,6 +2032,22 @@ def ogretmen_degerlendirme_rapor(request):
     sinif_id = _int_or_none(request.GET.get("sinif"))
     talebe_id = _int_or_none(request.GET.get("talebe"))
     hoca_id = _int_or_none(request.GET.get("hoca"))
+    analitik_alan = (request.GET.get("analitik_alan") or "").strip()
+    kayit_durumu = (request.GET.get("durum") or "").strip()
+    tarih_bas = None
+    tarih_bit = None
+    for key, attr in (("tarih_bas", "tarih_bas"), ("tarih_bit", "tarih_bit")):
+        raw_t = (request.GET.get(key) or "").strip()
+        if not raw_t:
+            continue
+        try:
+            gun = datetime.strptime(raw_t, "%Y-%m-%d").date()
+        except ValueError:
+            continue
+        if key == "tarih_bas":
+            tarih_bas = gun
+        else:
+            tarih_bit = gun
 
     hafta_raw = (request.GET.get("hafta") or "").strip()
     hafta_baslangic = None
@@ -2074,7 +2092,22 @@ def ogretmen_degerlendirme_rapor(request):
     if hoca_id:
         h = next((x for x in hocalar if x.id == hoca_id), None)
         filtre_parcalari.append(f"Öğretmen: {h.ad_soyad}" if h else "Öğretmen filtreli")
+    if analitik_alan:
+        filtre_parcalari.append(f"Alan: {dict(AnalitikAlan.choices).get(analitik_alan, analitik_alan)}")
+    if kayit_durumu:
+        filtre_parcalari.append(f"Durum: {dict(AnalitikKayitDurumu.choices).get(kayit_durumu, kayit_durumu)}")
     filtre_ozet = " · ".join(filtre_parcalari)
+
+    ao_hafta = None if (tarih_bas or tarih_bit) else hafta_baslangic
+    analitik_oturumlar = analitik_oturum_ozetleri(
+        hafta_baslangic=ao_hafta,
+        tarih_bas=tarih_bas,
+        tarih_bit=tarih_bit,
+        hoca_id=hoca_id,
+        sinif_id=sinif_id,
+        alan=analitik_alan,
+        durum=kayit_durumu,
+    )
 
     if request.GET.get("format") == "pdf":
         html_metni = render_to_string(
@@ -2106,6 +2139,13 @@ def ogretmen_degerlendirme_rapor(request):
             "secili_talebe_id": talebe_id,
             "secili_hoca_id": hoca_id,
             "secili_hafta": hafta_baslangic.isoformat(),
+            "secili_analitik_alan": analitik_alan,
+            "secili_durum": kayit_durumu,
+            "tarih_bas": tarih_bas.isoformat() if tarih_bas else "",
+            "tarih_bit": tarih_bit.isoformat() if tarih_bit else "",
+            "analitik_alanlar": AnalitikAlan.choices,
+            "kayit_durumlari": AnalitikKayitDurumu.choices,
+            "analitik_oturumlar": analitik_oturumlar,
             "hafta_baslangic": hafta_baslangic,
             "hafta_bitis": hafta_bitis,
             "takip": takip,

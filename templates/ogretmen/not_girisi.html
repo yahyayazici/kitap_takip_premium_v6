@@ -1,5 +1,11 @@
 {% extends "ogretmen/base.html" %}
+{% load static %}
 {% block title %}Haftalık Not Girişi · Öğretmen Paneli{% endblock %}
+{% block extra_css %}
+{% if analitik_mod %}
+<link rel="stylesheet" href="{% static 'css/analitik-okuma.css' %}?v=ao1">
+{% endif %}
+{% endblock %}
 
 {% block content %}
 <div class="dash-home ogretmen-dash">
@@ -102,11 +108,12 @@ document.querySelectorAll('.og-veli-mesaj-kart').forEach(function(kart) {
 </section>
 {% endif %}
 
-<form method="post" class="ogretmen-not-form">
+<form method="post" class="ogretmen-not-form{% if analitik_mod %} ao-form{% endif %}" {% if analitik_mod %}data-ao-form data-dirty-warn{% endif %}>
     {% csrf_token %}
     <input type="hidden" name="ders_id" value="{{ secili_ders.id }}">
     <fieldset {% if not hafta_yazilabilir %}disabled{% endif %} style="border:0;margin:0;padding:0;min-inline-size:0;">
 
+    {% if not analitik_mod %}
     <section class="og-yoklama-card">
         <header class="og-section-head og-section-head-warn">
             <div>
@@ -137,6 +144,7 @@ document.querySelectorAll('.og-veli-mesaj-kart').forEach(function(kart) {
             {% endfor %}
         </div>
     </section>
+    {% endif %}
 
     <section class="og-ders-card">
         <header class="og-section-head">
@@ -144,8 +152,126 @@ document.querySelectorAll('.og-veli-mesaj-kart').forEach(function(kart) {
                 <p class="dash-eyebrow">Not girişi</p>
                 <h2>{{ secili_ders.ad }}</h2>
             </div>
+            {% if analitik_mod %}
+            <span class="ao-durum-pill {% if kayit_tamamlandi %}is-done{% else %}is-draft{% endif %}">
+                {% if kayit_tamamlandi %}Tamamlandı{% else %}Taslak{% endif %}
+            </span>
+            {% endif %}
         </header>
 
+        {% if analitik_mod %}
+        {% if form_hatalari %}
+        <div class="ao-hata-ozet" role="alert">
+            <strong>Eksik veya geçersiz alanlar</strong>
+            <ul>
+                {% for h in form_hatalari %}
+                <li>{{ h }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        <div class="ao-meta-grid">
+            <div>
+                <span class="ao-meta-label">Ders tarihi</span>
+                <strong>{{ bugun|date:"d.m.Y" }}</strong>
+            </div>
+            <div>
+                <span class="ao-meta-label">Eğitim haftası</span>
+                <strong>{{ hafta_no }}. Hafta · {{ hafta_baslangic|date:"d.m.Y" }} – {{ hafta_bitis|date:"d.m.Y" }}</strong>
+            </div>
+            <div>
+                <span class="ao-meta-label">Sınıf</span>
+                <strong>{{ secili_sinif.etiket }}</strong>
+            </div>
+        </div>
+        <div class="ao-session-fields">
+            <fieldset class="ao-alan-secim">
+                <legend>Bu hafta işlenen Analitik Okuma alanı</legend>
+                <div class="ao-alan-list">
+                    {% for kod, etiket in analitik_alanlar %}
+                    <label class="ao-alan-item">
+                        <input type="radio" name="analitik_alan" value="{{ kod }}" {% if analitik_alan == kod %}checked{% endif %}>
+                        <span>{{ etiket }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </fieldset>
+            <label class="ao-kavram-label" for="haftanin_kavrami">Haftanın kavramı</label>
+            <input type="text" id="haftanin_kavrami" name="haftanin_kavrami" list="ao-kavram-onerileri"
+                   value="{{ haftanin_kavrami }}" placeholder="Örn: Mukayese" autocomplete="off">
+            <datalist id="ao-kavram-onerileri">
+                {% for k in kavram_onerileri %}
+                <option value="{{ k }}"></option>
+                {% endfor %}
+            </datalist>
+        </div>
+
+        <div class="og-table-wrap">
+            <table class="og-grade-table og-haftalik-table ao-table">
+                <thead>
+                    <tr>
+                        <th>Talebe</th>
+                        <th>Gelmedi</th>
+                        <th>Analitik Okuma Puanı</th>
+                        <th>Kavram Öğretimi</th>
+                        <th>Değerlendirme Notu</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ogrenci in ogrenciler %}
+                    <tr class="{% if ogrenci.yok %}is-absent{% endif %}{% if ogrenci.hata %} is-missing{% endif %}" data-ao-row>
+                        <td class="og-ogrenci-ad" data-label="Talebe">
+                            <span class="og-ogrenci-cell">
+                                {% if ogrenci.foto_url %}
+                                <img src="{{ ogrenci.foto_url }}" alt="" class="talebe-foto talebe-foto-sm">
+                                {% else %}
+                                <span class="talebe-foto talebe-foto-fallback talebe-foto-sm">{{ ogrenci.bas_harf }}</span>
+                                {% endif %}
+                                <span>{{ ogrenci.ad_soyad|upper }}</span>
+                            </span>
+                        </td>
+                        <td data-label="Gelmedi">
+                            <label class="ao-gelmedi">
+                                <input type="checkbox" name="yok_talebe" value="{{ ogrenci.id }}" data-ao-absent {% if ogrenci.yok %}checked{% endif %}>
+                                <span>Gelmedi</span>
+                            </label>
+                        </td>
+                        <td data-label="Analitik Okuma Puanı">
+                            <input type="number" inputmode="numeric" name="katilim_{{ ogrenci.id }}" min="0" max="100" step="1"
+                                   value="{{ ogrenci.analitik_puan }}" placeholder="0–100" data-ao-puan {% if ogrenci.yok %}disabled{% endif %}>
+                            <small class="ao-hint">/100</small>
+                        </td>
+                        <td data-label="Kavram Öğretimi" class="ao-star-cell">
+                            <div class="ao-stars" data-ao-stars {% if ogrenci.yok %}aria-disabled="true"{% endif %}>
+                                <input type="hidden" name="kavram_{{ ogrenci.id }}" value="{{ ogrenci.kavram_puani }}" data-ao-kavram>
+                                <button type="button" class="ao-star" data-star="1" aria-label="1 yıldız">★</button>
+                                <button type="button" class="ao-star" data-star="2" aria-label="2 yıldız">★</button>
+                                <button type="button" class="ao-star" data-star="3" aria-label="3 yıldız">★</button>
+                                <button type="button" class="ao-star" data-star="4" aria-label="4 yıldız">★</button>
+                                <button type="button" class="ao-star" data-star="5" aria-label="5 yıldız">★</button>
+                                <button type="button" class="ao-star" data-star="6" aria-label="6 yıldız">★</button>
+                                <button type="button" class="ao-star" data-star="7" aria-label="7 yıldız">★</button>
+                                <button type="button" class="ao-star" data-star="8" aria-label="8 yıldız">★</button>
+                                <button type="button" class="ao-star" data-star="9" aria-label="9 yıldız">★</button>
+                                <button type="button" class="ao-star" data-star="10" aria-label="10 yıldız">★</button>
+                                <span class="ao-star-score" data-ao-score>{% if ogrenci.kavram_puani %}{{ ogrenci.kavram_puani }}/10{% else %}—/10{% endif %}</span>
+                            </div>
+                            {% if ogrenci.kavram_ort_etiket %}
+                            <small class="ao-avg">Genel ortalama: {{ ogrenci.kavram_ort_etiket }}</small>
+                            {% endif %}
+                        </td>
+                        <td data-label="Değerlendirme Notu">
+                            <input type="text" name="aciklama_{{ ogrenci.id }}" value="{{ ogrenci.aciklama }}"
+                                   placeholder="Kısa kişisel değerlendirme..." data-ao-note {% if ogrenci.yok %}disabled{% endif %}>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5">Bu sınıfta öğrenci yok.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
         <div class="og-konu-row">
             <label for="islenen_konu">Bu Hafta İşlenen Konu</label>
             <input type="text" id="islenen_konu" name="islenen_konu" value="{{ islenen_konu }}"
@@ -195,9 +321,16 @@ document.querySelectorAll('.og-veli-mesaj-kart').forEach(function(kart) {
                 </tbody>
             </table>
         </div>
+        {% endif %}
     </section>
 
     <div class="ogretmen-form-actions">
+        {% if analitik_mod %}
+        <button type="submit" name="kayit_modu" value="taslak" class="ghost-btn og-save-all" {% if not hafta_yazilabilir %}disabled{% endif %}>Taslak Kaydet</button>
+        <button type="submit" name="kayit_modu" value="tamamla" class="ogretmen-save-btn og-save-all" {% if not hafta_yazilabilir %}disabled{% endif %}>
+            {% if hafta_yazilabilir %}Değerlendirmeyi Tamamla{% else %}Hafta kapandı — kayıt yapılamaz{% endif %}
+        </button>
+        {% else %}
         <button type="submit" class="ogretmen-save-btn og-save-all" {% if not hafta_yazilabilir %}disabled{% endif %}>
             {% if hafta_yazilabilir %}
             Tüm Sınıf Notlarını ve Yoklamayı Kaydet
@@ -205,9 +338,13 @@ document.querySelectorAll('.og-veli-mesaj-kart').forEach(function(kart) {
             Hafta kapandı — kayıt yapılamaz
             {% endif %}
         </button>
+        {% endif %}
     </div>
     </fieldset>
 </form>
+{% if analitik_mod %}
+<script src="{% static 'js/analitik-okuma.js' %}?v=ao1"></script>
+{% endif %}
 {% endif %}
 {% else %}
 <div class="ogretmen-empty-select">

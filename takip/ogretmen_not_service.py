@@ -9,6 +9,19 @@ from decimal import Decimal, InvalidOperation
 from django.db.models import QuerySet
 from django.utils.timezone import localdate
 
+from takip.analitik_okuma import (
+    GELMEDI_NOTU,
+    AnalitikAlan,
+    AnalitikKayitDurumu,
+    bir_ondalik,
+    ders_analitik_okuma_mi,
+    yildiz_metni,
+)
+from takip.analitik_okuma_service import (
+    kavram_onerileri,
+    kavram_ortalamasi,
+    kavram_ortalamasi_etiket,
+)
 from takip.talebe_foto_util import talebe_foto_meta
 from takip.models import Ders, EtutHocasi, SinifSube, Talebe
 from takip.ogretmen_not_models import (
@@ -64,6 +77,34 @@ def _parse_puan(raw: str) -> Decimal | None:
     return puan
 
 
+def _parse_tam_puan(raw: str) -> int | None:
+    raw = (raw or "").strip()
+    if not raw:
+        return None
+    if "." in raw or "," in raw:
+        raise ValueError("tam")
+    try:
+        puan = int(raw)
+    except (TypeError, ValueError):
+        raise ValueError("geçersiz")
+    if puan < 0 or puan > 100:
+        raise ValueError("aralık")
+    return puan
+
+
+def _parse_kavram(raw: str) -> int | None:
+    raw = (raw or "").strip()
+    if not raw:
+        return None
+    try:
+        puan = int(raw)
+    except (TypeError, ValueError):
+        raise ValueError("geçersiz")
+    if puan < 1 or puan > 10:
+        raise ValueError("aralık")
+    return puan
+
+
 def ogretmen_not_girisi_verisi(
     hoca: EtutHocasi,
     *,
@@ -93,6 +134,10 @@ def ogretmen_not_girisi_verisi(
     ogrenci_satirlari = []
     yok_ids: set[int] = set()
     islenen_konu = ""
+    analitik_mod = ders_analitik_okuma_mi(secili_ders)
+    analitik_alan = ""
+    haftanin_kavrami = ""
+    kayit_durumu = AnalitikKayitDurumu.TASLAK if analitik_mod else AnalitikKayitDurumu.TAMAMLANDI
 
     if secili and secili_ders:
         sinif = SinifSube.objects.filter(pk=secili.id).first()
@@ -122,10 +167,19 @@ def ogretmen_not_girisi_verisi(
                 hafta_baslangic=baslangic,
             ).first()
             islenen_konu = konu_kaydi.konu if konu_kaydi else ""
+            if konu_kaydi:
+                analitik_alan = konu_kaydi.analitik_alan or ""
+                haftanin_kavrami = konu_kaydi.haftanin_kavrami or ""
+                kayit_durumu = konu_kaydi.durum
 
             for ogrenci in ogrenciler:
                 not_kaydi = mevcut_notlar.get(ogrenci.id)
                 meta = talebe_foto_meta(ogrenci)
+                kavram = not_kaydi.kavram_puani if not_kaydi else None
+                analitik_puan = ""
+                if not_kaydi and not_kaydi.puan is not None:
+                    analitik_puan = str(int(not_kaydi.puan)) if not_kaydi.puan == int(not_kaydi.puan) else str(not_kaydi.puan)
+                kavram_ort = kavram_ortalamasi(ogrenci, ders=secili_ders) if analitik_mod else None
                 ogrenci_satirlari.append(
                     {
                         "id": ogrenci.id,
@@ -137,6 +191,12 @@ def ogretmen_not_girisi_verisi(
                         "disiplin": not_kaydi.disiplin if not_kaydi and not_kaydi.disiplin is not None else "",
                         "aciklama": not_kaydi.aciklama if not_kaydi else "",
                         "yok": ogrenci.id in yok_ids,
+                        "analitik_puan": analitik_puan,
+                        "kavram_puani": kavram if kavram is not None else "",
+                        "kavram_yildiz": yildiz_metni(kavram) if kavram else yildiz_metni(None),
+                        "kavram_ort": kavram_ort,
+                        "kavram_ort_etiket": kavram_ortalamasi_etiket(ogrenci, ders=secili_ders) if analitik_mod else None,
+                        "hata": False,
                     }
                 )
 
@@ -154,6 +214,178 @@ def ogretmen_not_girisi_verisi(
         "bugun": tarih,
         "hafta_yazilabilir": yazilabilir,
         "hafta_kapanis_saat": HAFTA_KAPANIS_SAAT,
+        "analitik_mod": analitik_mod,
+        "analitik_alan": analitik_alan,
+        "analitik_alanlar": AnalitikAlan.choices,
+        "haftanin_kavrami": haftanin_kavrami,
+        "kavram_onerileri": kavram_onerileri() if analitik_mod else [],
+        "kayit_durumu": kayit_durumu,
+        "kayit_tamamlandi": kayit_durumu == AnalitikKayitDurumu.TAMAMLANDI,
+        "hata_talebe_ids": [],
+        "form_hatalari": [],
+    }
+
+
+def _yoklama_uygula(hoca, ogrenci, tarih, yok: bool) -> None:
+    if yok:
+        OgretmenSinifYoklama.objects.update_or_create(
+            talebe=ogrenci,
+            etut_hocasi=hoca,
+            tarih=tarih,
+            defaults={"yok": True},
+        )
+        return
+    OgretmenSinifYoklama.objects.filter(
+        talebe=ogrenci,
+        etut_hocasi=hoca,
+        tarih=tarih,
+    ).delete()
+
+
+def analitik_post_overlay(ctx: dict, post_data, hata_ids: set[int]) -> dict:
+    ctx["analitik_alan"] = (post_data.get("analitik_alan") or "").strip()
+    ctx["haftanin_kavrami"] = (post_data.get("haftanin_kavrami") or "").strip()
+    yok = {int(x) for x in post_data.getlist("yok_talebe") if str(x).isdigit()}
+    for satir in ctx.get("ogrenciler") or []:
+        oid = satir["id"]
+        prefix = str(oid)
+        satir["yok"] = oid in yok
+        satir["analitik_puan"] = post_data.get(f"katilim_{prefix}", satir.get("analitik_puan") or "")
+        satir["kavram_puani"] = post_data.get(f"kavram_{prefix}", satir.get("kavram_puani") or "")
+        satir["aciklama"] = post_data.get(f"aciklama_{prefix}", satir.get("aciklama") or "")
+        satir["hata"] = oid in hata_ids
+    ctx["hata_talebe_ids"] = list(hata_ids)
+    return ctx
+
+
+def _kaydet_analitik(
+    hoca: EtutHocasi,
+    sinif: SinifSube,
+    ders: Ders,
+    ogrenciler: list[Talebe],
+    post_data,
+    *,
+    tarih,
+    hafta_baslangic,
+    hafta_no,
+) -> tuple[list[str], dict | None]:
+    tamamla = (post_data.get("kayit_modu") or "").strip() == "tamamla"
+    alan = (post_data.get("analitik_alan") or "").strip()
+    kavram = (post_data.get("haftanin_kavrami") or "").strip()
+    hatalar: list[str] = []
+    hata_ids: set[int] = set()
+    isaretlenen_yok = {
+        int(x) for x in post_data.getlist("yok_talebe") if str(x).isdigit()
+    }
+
+    if alan and alan not in AnalitikAlan.values:
+        hatalar.append("Analitik Okuma alanı geçersiz.")
+        alan = ""
+    if tamamla:
+        if not alan:
+            hatalar.append("Analitik Okuma ana başlığı seçilmelidir.")
+        if not kavram:
+            hatalar.append("Haftanın kavramı girilmelidir.")
+
+    hazirlanan: list[dict] = []
+    for ogrenci in ogrenciler:
+        prefix = str(ogrenci.id)
+        yok = ogrenci.id in isaretlenen_yok
+        try:
+            puan = _parse_tam_puan(post_data.get(f"katilim_{prefix}", ""))
+        except ValueError as exc:
+            hata_ids.add(ogrenci.id)
+            if str(exc) == "tam":
+                hatalar.append(f"{ogrenci.ad_soyad}: Analitik Okuma puanı tam sayı olmalıdır.")
+            elif str(exc) == "aralık":
+                hatalar.append(f"{ogrenci.ad_soyad} için Analitik Okuma puanı 0–100 arasında olmalıdır.")
+            else:
+                hatalar.append(f"{ogrenci.ad_soyad}: Geçerli Analitik Okuma puanı girin.")
+            puan = None
+        try:
+            kavram_puani = _parse_kavram(post_data.get(f"kavram_{prefix}", ""))
+        except ValueError as exc:
+            hata_ids.add(ogrenci.id)
+            if str(exc) == "aralık":
+                hatalar.append(
+                    f"{ogrenci.ad_soyad} için Kavram Öğretimi değerlendirmesi 1–10 arasında olmalıdır."
+                )
+            else:
+                hatalar.append(f"{ogrenci.ad_soyad}: Geçerli Kavram Öğretimi puanı girin.")
+            kavram_puani = None
+
+        aciklama = (post_data.get(f"aciklama_{prefix}") or "").strip()
+        if yok:
+            puan = None
+            kavram_puani = None
+            if tamamla or not aciklama:
+                aciklama = GELMEDI_NOTU
+        elif tamamla:
+            if puan is None:
+                hata_ids.add(ogrenci.id)
+                hatalar.append(f"{ogrenci.ad_soyad} için Analitik Okuma puanı girilmedi.")
+            if kavram_puani is None:
+                hata_ids.add(ogrenci.id)
+                hatalar.append(f"{ogrenci.ad_soyad} için Kavram Öğretimi değerlendirmesi girilmedi.")
+
+        hazirlanan.append(
+            {
+                "ogrenci": ogrenci,
+                "puan": None if puan is None else Decimal(puan),
+                "kavram_puani": kavram_puani,
+                "aciklama": aciklama,
+                "yok": yok,
+            }
+        )
+
+    if hatalar:
+        return hatalar, {"hata_talebe_ids": hata_ids, "analitik": True}
+
+    durum = (
+        AnalitikKayitDurumu.TAMAMLANDI if tamamla else AnalitikKayitDurumu.TASLAK
+    )
+    konu_etiket = AnalitikAlan(alan).label if alan else ""
+    OgretmenHaftalikKonu.objects.update_or_create(
+        sinif_sube=sinif,
+        etut_hocasi=hoca,
+        ders=ders,
+        hafta_baslangic=hafta_baslangic,
+        defaults={
+            "konu": konu_etiket,
+            "analitik_alan": alan,
+            "haftanin_kavrami": kavram,
+            "durum": durum,
+        },
+    )
+
+    veliye = tamamla
+    for satir in hazirlanan:
+        ogrenci = satir["ogrenci"]
+        _yoklama_uygula(hoca, ogrenci, tarih, satir["yok"])
+        puan = satir["puan"]
+        OgretmenSinavNotu.objects.update_or_create(
+            talebe_id=ogrenci.id,
+            etut_hocasi=hoca,
+            ders=ders,
+            hafta_baslangic=hafta_baslangic,
+            defaults={
+                "katilim": puan,
+                "takip": puan,
+                "disiplin": puan,
+                "aciklama": satir["aciklama"],
+                "kavram_puani": satir["kavram_puani"],
+                "veliye_goster": veliye,
+                "tarih": hafta_baslangic,
+            },
+        )
+
+    return [], {
+        "kayitlar": hazirlanan,
+        "ders": ders,
+        "hafta_baslangic": hafta_baslangic,
+        "hafta_no": hafta_no,
+        "tamamlandi": tamamla,
+        "analitik": True,
     }
 
 
@@ -176,6 +408,8 @@ def ogretmen_not_kaydet(
     sinif = SinifSube.objects.filter(pk=sinif_id).first()
     if not sinif:
         return ["Sınıf bulunamadı."], None
+    if not hoca.sorumlu_sinif_subeler.filter(pk=sinif.pk, aktif=True).exists():
+        return ["Bu sınıf için yetkiniz yok."], None
 
     try:
         ders_id = int(post_data.get("ders_id") or 0)
@@ -189,6 +423,18 @@ def ogretmen_not_kaydet(
     ogrenciler = ogretmen_sinif_ogrencileri(hoca, sinif)
     if not ogrenciler:
         return ["Bu sınıfta kayıtlı öğrenci yok."], None
+
+    if ders_analitik_okuma_mi(ders):
+        return _kaydet_analitik(
+            hoca,
+            sinif,
+            ders,
+            ogrenciler,
+            post_data,
+            tarih=tarih,
+            hafta_baslangic=hafta_baslangic,
+            hafta_no=hafta_no,
+        )
 
     isaretlenen_yok = {
         int(x)
@@ -244,24 +490,17 @@ def ogretmen_not_kaydet(
         etut_hocasi=hoca,
         ders=ders,
         hafta_baslangic=hafta_baslangic,
-        defaults={"konu": konu},
+        defaults={
+            "konu": konu,
+            "analitik_alan": "",
+            "haftanin_kavrami": "",
+            "durum": AnalitikKayitDurumu.TAMAMLANDI,
+        },
     )
 
     for satir in hazirlanan:
         ogrenci = satir["ogrenci"]
-        if satir["yok"]:
-            OgretmenSinifYoklama.objects.update_or_create(
-                talebe=ogrenci,
-                etut_hocasi=hoca,
-                tarih=tarih,
-                defaults={"yok": True},
-            )
-        else:
-            OgretmenSinifYoklama.objects.filter(
-                talebe=ogrenci,
-                etut_hocasi=hoca,
-                tarih=tarih,
-            ).delete()
+        _yoklama_uygula(hoca, ogrenci, tarih, satir["yok"])
 
         OgretmenSinavNotu.objects.update_or_create(
             talebe_id=ogrenci.id,
@@ -273,6 +512,7 @@ def ogretmen_not_kaydet(
                 "takip": satir["takip"],
                 "disiplin": satir["disiplin"],
                 "aciklama": satir["aciklama"],
+                "kavram_puani": None,
                 "veliye_goster": True,
                 "tarih": hafta_baslangic,
             },
@@ -459,24 +699,43 @@ def talebe_haftalik_karne_verisi(
         qs = qs.filter(veliye_goster=True)
     notlar = list(qs.order_by("ders__ad", "etut_hocasi__ad_soyad"))
 
-    konu_map: dict[tuple[int, int], str] = {}
+    konu_map: dict[tuple[int, int], OgretmenHaftalikKonu] = {}
     if talebe.sinif_sube_id:
         for k in OgretmenHaftalikKonu.objects.filter(
             sinif_sube_id=talebe.sinif_sube_id,
             hafta_baslangic=baslangic,
         ):
-            konu_map[(k.etut_hocasi_id, k.ders_id)] = (k.konu or "").strip()
+            konu_map[(k.etut_hocasi_id, k.ders_id)] = k
+
+    from takip.analitik_okuma_service import kavram_ortalamasi as _kavram_ort
+
+    kavram_ort = _kavram_ort(talebe)
 
     satirlar = []
     for n in notlar:
+        konu_kaydi = konu_map.get((n.etut_hocasi_id, n.ders_id))
+        analitik = ders_analitik_okuma_mi(n.ders)
+        gelmedi = analitik and n.puan is None
         satirlar.append(
             {
                 "ogretmen": n.etut_hocasi.ad_soyad,
                 "ders": n.ders.ad if n.ders_id else "—",
-                "konu": konu_map.get((n.etut_hocasi_id, n.ders_id), "") or "—",
+                "konu": (konu_kaydi.konu if konu_kaydi else "") or "—",
                 "puan": n.puan,
                 "degerlendirme": (n.aciklama or "").strip() or "—",
                 "not": n,
+                "analitik": analitik,
+                "gelmedi": gelmedi,
+                "analitik_alan": (
+                    konu_kaydi.get_analitik_alan_display()
+                    if konu_kaydi and konu_kaydi.analitik_alan
+                    else ""
+                ),
+                "haftanin_kavrami": (konu_kaydi.haftanin_kavrami if konu_kaydi else "") or "",
+                "kavram_puani": n.kavram_puani,
+                "kavram_yildiz": yildiz_metni(n.kavram_puani) if n.kavram_puani else "",
+                "kavram_ort": kavram_ort if analitik else None,
+                "kavram_ort_etiket": bir_ondalik(kavram_ort) if analitik and kavram_ort is not None else None,
             }
         )
 

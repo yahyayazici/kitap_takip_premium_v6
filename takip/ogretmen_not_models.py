@@ -5,6 +5,9 @@ from __future__ import annotations
 from decimal import Decimal
 
 from django.db import models
+from django.db.models import Q
+
+from takip.analitik_okuma import AnalitikAlan, AnalitikKayitDurumu
 
 
 class OgretmenSinavNotu(models.Model):
@@ -61,6 +64,12 @@ class OgretmenSinavNotu(models.Model):
         verbose_name="Ağırlıklı puan",
     )
     aciklama = models.TextField(blank=True, verbose_name="Değerlendirme notu")
+    kavram_puani = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Kavram Öğretimi",
+        help_text="Yalnızca Analitik Okuma. 1–10 yıldız.",
+    )
     veliye_goster = models.BooleanField(default=True, verbose_name="Veliye göster")
     olusturulma = models.DateTimeField(auto_now_add=True)
     guncellenme = models.DateTimeField(auto_now=True)
@@ -77,7 +86,12 @@ class OgretmenSinavNotu(models.Model):
             models.UniqueConstraint(
                 fields=("talebe", "etut_hocasi", "ders", "hafta_baslangic"),
                 name="benzersiz_ogretmen_haftalik_not",
-            )
+            ),
+            models.CheckConstraint(
+                condition=Q(kavram_puani__isnull=True)
+                | Q(kavram_puani__gte=1, kavram_puani__lte=10),
+                name="ogretmen_sinav_notu_kavram_1_10",
+            ),
         ]
 
     def __str__(self):
@@ -104,6 +118,13 @@ class OgretmenSinavNotu(models.Model):
         self.puan = self.agirlikli_puan(self.katilim, self.takip, self.disiplin)
         if self.hafta_baslangic and not self.tarih:
             self.tarih = self.hafta_baslangic
+        update_fields = kwargs.get("update_fields")
+        if update_fields is not None:
+            alanlar = set(update_fields)
+            alanlar.add("puan")
+            if self.tarih:
+                alanlar.add("tarih")
+            kwargs["update_fields"] = alanlar
         super().save(*args, **kwargs)
 
     def get_tur_display(self) -> str:
@@ -131,6 +152,23 @@ class OgretmenHaftalikKonu(models.Model):
     )
     hafta_baslangic = models.DateField(verbose_name="Hafta başlangıcı")
     konu = models.CharField(max_length=300, blank=True, verbose_name="İşlenen konu")
+    analitik_alan = models.CharField(
+        max_length=32,
+        blank=True,
+        choices=AnalitikAlan.choices,
+        verbose_name="Analitik Okuma alanı",
+    )
+    haftanin_kavrami = models.CharField(
+        max_length=120,
+        blank=True,
+        verbose_name="Haftanın kavramı",
+    )
+    durum = models.CharField(
+        max_length=16,
+        choices=AnalitikKayitDurumu.choices,
+        default=AnalitikKayitDurumu.TAMAMLANDI,
+        verbose_name="Kayıt durumu",
+    )
     olusturulma = models.DateTimeField(auto_now_add=True)
     guncellenme = models.DateTimeField(auto_now=True)
 
@@ -141,7 +179,12 @@ class OgretmenHaftalikKonu(models.Model):
             models.UniqueConstraint(
                 fields=("sinif_sube", "etut_hocasi", "ders", "hafta_baslangic"),
                 name="benzersiz_ogretmen_haftalik_konu",
-            )
+            ),
+            models.CheckConstraint(
+                condition=Q(analitik_alan="")
+                | Q(analitik_alan__in=AnalitikAlan.values),
+                name="ogretmen_haftalik_konu_analitik_alan",
+            ),
         ]
 
     def __str__(self):

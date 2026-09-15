@@ -281,6 +281,14 @@ class Brans(models.Model):
 
 class Ders(models.Model):
     ad = models.CharField(max_length=120, verbose_name="Ders adı")
+    kod = models.CharField(
+        max_length=64,
+        unique=True,
+        null=True,
+        blank=True,
+        verbose_name="Ders kodu",
+        help_text="Sistem içi sabit kimlik. Analitik Okuma için: analitik_okuma",
+    )
     brans = models.ForeignKey(
         Brans,
         on_delete=models.SET_NULL,

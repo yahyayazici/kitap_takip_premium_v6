@@ -430,6 +430,8 @@ def talebe_soru_detay(talebe: Talebe, gun: int = 14) -> dict:
 
 
 def talebe_haftalik_notlar(talebe: Talebe, hafta_baslangic: date | None = None) -> dict:
+    from takip.analitik_okuma import bir_ondalik, ders_analitik_okuma_mi, yildiz_metni
+    from takip.analitik_okuma_service import kavram_ortalamasi
     from takip.ogretmen_not_models import OgretmenHaftalikKonu
 
     aktif = _hafta_pazartesi()
@@ -443,15 +445,25 @@ def talebe_haftalik_notlar(talebe: Talebe, hafta_baslangic: date | None = None) 
         .select_related("ders", "etut_hocasi")
         .order_by("ders__ad")
     )
-    konu_map: dict[tuple[int, int], str] = {}
+    konu_map: dict[tuple[int, int], OgretmenHaftalikKonu] = {}
     if talebe.sinif_sube_id:
         for k in OgretmenHaftalikKonu.objects.filter(
             sinif_sube_id=talebe.sinif_sube_id,
             hafta_baslangic=secili,
         ):
-            konu_map[(k.etut_hocasi_id, k.ders_id)] = (k.konu or "").strip()
+            konu_map[(k.etut_hocasi_id, k.ders_id)] = k
+    kavram_ort = kavram_ortalamasi(talebe)
     for n in notlar:
-        n.haftalik_konu = konu_map.get((n.etut_hocasi_id, n.ders_id), "") or "—"
+        konu = konu_map.get((n.etut_hocasi_id, n.ders_id))
+        n.haftalik_konu = (konu.konu if konu else "") or "—"
+        n.analitik_mod = ders_analitik_okuma_mi(n.ders)
+        n.gelmedi = bool(n.analitik_mod and n.puan is None)
+        n.analitik_alan_etiket = (
+            konu.get_analitik_alan_display() if konu and konu.analitik_alan else ""
+        )
+        n.haftanin_kavrami = (konu.haftanin_kavrami if konu else "") or ""
+        n.kavram_yildiz = yildiz_metni(n.kavram_puani) if n.kavram_puani else ""
+        n.kavram_ort_etiket = bir_ondalik(kavram_ort) if n.analitik_mod and kavram_ort is not None else None
 
     arsiv_haftalar = list(
         OgretmenSinavNotu.objects.filter(talebe=talebe, veliye_goster=True)

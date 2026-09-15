@@ -1,5 +1,9 @@
 {% extends "veli/base.html" %}
+{% load static %}
 {% block title %}Ders Notları · {{ talebe.ad_soyad }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/analitik-okuma.css' %}?v=ao1">
+{% endblock %}
 {% block content %}
 <div class="dash-home veli-dash veli-wow">
 {% include "veli/includes/talebe_layout_head.html" %}
@@ -54,9 +58,32 @@
                         <span class="og-empty-note">{{ n.ders.ad }} öğretmeni</span>
                     </td>
                     <td>{{ n.haftalik_konu }}</td>
-                    <td><strong>{{ n.puan|default:"—" }}</strong></td>
+                    <td><strong>{% if n.gelmedi %}Derse katılmadı{% else %}{{ n.puan|default:"—" }}{% endif %}</strong></td>
                     <td>{{ n.aciklama|default:"—" }}</td>
                 </tr>
+                {% if n.analitik_mod %}
+                <tr>
+                    <td colspan="4">
+                        <article class="ao-karne">
+                            <h3>Analitik Okuma</h3>
+                            <dl>
+                                <dt>Bu Haftanın Çalışma Alanı</dt>
+                                <dd>{{ n.analitik_alan_etiket|default:"—" }}</dd>
+                                <dt>Haftalık Başarı Puanı</dt>
+                                <dd>{% if n.gelmedi %}Derse katılmadı{% elif n.puan is not None %}{{ n.puan }}/100{% else %}—{% endif %}</dd>
+                                <dt>Haftanın Kavramı</dt>
+                                <dd>{{ n.haftanin_kavrami|default:"—" }}</dd>
+                                <dt>Kavram Öğretimi</dt>
+                                <dd>{% if n.gelmedi %}Derse katılmadı{% elif n.kavram_puani %}{{ n.kavram_yildiz }} {{ n.kavram_puani }}/10{% else %}—{% endif %}</dd>
+                                <dt>Kavram Öğretimi Genel Ortalaması</dt>
+                                <dd>{% if n.kavram_ort_etiket %}{{ n.kavram_ort_etiket }}/10{% else %}—{% endif %}</dd>
+                                <dt>Öğretmen Değerlendirmesi</dt>
+                                <dd>{{ n.aciklama|default:"—" }}</dd>
+                            </dl>
+                        </article>
+                    </td>
+                </tr>
+                {% endif %}
                 {% empty %}
                 <tr><td colspan="4" class="og-empty-note">Bu haftaya ait not kaydı yok.</td></tr>
                 {% endfor %}

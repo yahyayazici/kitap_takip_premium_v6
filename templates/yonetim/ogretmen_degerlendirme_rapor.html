@@ -46,6 +46,32 @@
             </select>
         </div>
         <div>
+            <label for="tarih_bas">Tarih başlangıç</label>
+            <input class="cs-input" type="date" id="tarih_bas" name="tarih_bas" value="{{ tarih_bas }}">
+        </div>
+        <div>
+            <label for="tarih_bit">Tarih bitiş</label>
+            <input class="cs-input" type="date" id="tarih_bit" name="tarih_bit" value="{{ tarih_bit }}">
+        </div>
+        <div>
+            <label for="analitik_alan">Analitik Okuma alanı</label>
+            <select id="analitik_alan" name="analitik_alan" class="cs-input">
+                <option value="">Tümü</option>
+                {% for kod, etiket in analitik_alanlar %}
+                <option value="{{ kod }}" {% if secili_analitik_alan == kod %}selected{% endif %}>{{ etiket }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="durum">Kayıt durumu</label>
+            <select id="durum" name="durum" class="cs-input">
+                <option value="">Tümü</option>
+                {% for kod, etiket in kayit_durumlari %}
+                <option value="{{ kod }}" {% if secili_durum == kod %}selected{% endif %}>{{ etiket }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
             <button type="submit" class="primary-btn">Filtrele</button>
         </div>
     </form>
@@ -98,6 +124,82 @@
                     </tr>
                     {% empty %}
                     <tr><td colspan="7" class="report-empty">Aktif öğretmen yok.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="dash-panel" style="margin-bottom:16px;">
+        <div class="dash-panel-head">
+            <div>
+                <p class="dash-eyebrow">ANALİTİK OKUMA</p>
+                <h2>{{ analitik_oturumlar|length }} oturum</h2>
+                <p class="muted">Hafta, sınıf, öğretmen, alan, kavram ve sınıf ortalamaları.</p>
+            </div>
+        </div>
+        <div class="responsive-table">
+            <table class="yonetim-table">
+                <thead>
+                    <tr>
+                        <th>Hafta</th>
+                        <th>Tarih</th>
+                        <th>Sınıf</th>
+                        <th>Öğretmen</th>
+                        <th>Alan</th>
+                        <th>Kavram</th>
+                        <th>Değerlendirilen</th>
+                        <th>Gelmeyen</th>
+                        <th>Puan ort.</th>
+                        <th>Kavram ort.</th>
+                        <th>Durum</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in analitik_oturumlar %}
+                    <tr>
+                        <td>{{ o.hafta_baslangic|date:"d.m.Y" }}</td>
+                        <td>{{ o.ders_tarihi|date:"d.m.Y" }}</td>
+                        <td>{{ o.sinif }}</td>
+                        <td>{{ o.ogretmen.ad_soyad }}</td>
+                        <td>{{ o.alan }}</td>
+                        <td>{{ o.kavram }}</td>
+                        <td class="num-col">{{ o.degerlendirilen }}</td>
+                        <td class="num-col">{{ o.gelmeyen }}</td>
+                        <td>{% if o.puan_ort is not None %}{{ o.puan_ort }}{% else %}—{% endif %}</td>
+                        <td>{% if o.kavram_ort %}{{ o.kavram_ort }}{% else %}—{% endif %}</td>
+                        <td>{{ o.durum }}</td>
+                    </tr>
+                    {% if o.notlar %}
+                    <tr>
+                        <td colspan="11">
+                            <div class="responsive-table">
+                                <table class="yonetim-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Talebe</th>
+                                            <th>Puan</th>
+                                            <th>Kavram</th>
+                                            <th>Not</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for n in o.notlar %}
+                                        <tr>
+                                            <td>{{ n.talebe.ad_soyad }}</td>
+                                            <td>{% if n.puan is not None %}{{ n.puan }}{% else %}Derse katılmadı{% endif %}</td>
+                                            <td>{% if n.kavram_puani %}{{ n.kavram_puani }}/10{% else %}—{% endif %}</td>
+                                            <td>{{ n.aciklama|default:"—" }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% empty %}
+                    <tr><td colspan="11" class="report-empty">Bu filtrede Analitik Okuma oturumu yok.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>

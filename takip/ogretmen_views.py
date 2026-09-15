@@ -13,6 +13,7 @@ from config.branding import panel_branding_context
 
 from takip.models import Talebe
 from takip.ogretmen_not_service import (
+    analitik_post_overlay,
     hoca_degerlendirme_paneli,
     ogretmen_not_girisi_verisi,
     ogretmen_not_kaydet,
@@ -82,12 +83,31 @@ def ogretmen_not_girisi(request, sinif_id: int | None = None):
 
     if request.method == "POST" and sinif_id:
         hatalar, meta = ogretmen_not_kaydet(hoca, sinif_id, request.POST)
+        ders_id = request.POST.get("ders_id")
         if hatalar:
             for h in hatalar:
                 messages.error(request, h)
+            if meta and meta.get("analitik"):
+                try:
+                    ders_pk = int(ders_id) if ders_id else None
+                except (TypeError, ValueError):
+                    ders_pk = None
+                ctx = ogretmen_not_girisi_verisi(hoca, sinif_id=sinif_id, ders_id=ders_pk)
+                ctx = analitik_post_overlay(
+                    ctx, request.POST, set(meta.get("hata_talebe_ids") or [])
+                )
+                ctx["form_hatalari"] = hatalar
+                ctx["veli_mesaj_taslaklari"] = None
+                return render(request, "ogretmen/not_girisi.html", ctx)
         else:
-            messages.success(request, "Sınıf notları ve yoklama kaydedildi.")
-            if meta:
+            if meta and meta.get("analitik"):
+                if meta.get("tamamlandi"):
+                    messages.success(request, "Analitik Okuma değerlendirmesi tamamlandı.")
+                else:
+                    messages.success(request, "Analitik Okuma değerlendirmesi taslak olarak kaydedildi.")
+            else:
+                messages.success(request, "Sınıf notları ve yoklama kaydedildi.")
+            if meta and not meta.get("analitik"):
                 try:
                     from takip.ai_bildirim_service import ogretmen_not_sonrasi_veli_bildirimleri
 
@@ -109,7 +129,6 @@ def ogretmen_not_girisi(request, sinif_id: int | None = None):
                 except Exception:
                     pass
         url = reverse("ogretmen_not_girisi_sinif", kwargs={"sinif_id": sinif_id})
-        ders_id = request.POST.get("ders_id")
         if ders_id:
             url = f"{url}?ders={ders_id}"
         return redirect(url)

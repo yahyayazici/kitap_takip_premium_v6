@@ -74,10 +74,16 @@ class BransForm(forms.ModelForm):
 class DersForm(forms.ModelForm):
     class Meta:
         model = Ders
-        fields = ["ad", "brans", "sira", "aktif"]
+        fields = ["ad", "kod", "brans", "sira", "aktif"]
         widgets = {
             "ad": forms.TextInput(
                 attrs={"class": "cs-input", "placeholder": "Örn. Matematik"}
+            ),
+            "kod": forms.TextInput(
+                attrs={
+                    "class": "cs-input",
+                    "placeholder": "Örn. analitik_okuma (opsiyonel)",
+                }
             ),
             "brans": forms.Select(attrs={"class": "cs-input"}),
             "sira": forms.NumberInput(attrs={"class": "cs-input", "min": 0}),
@@ -91,6 +97,12 @@ class DersForm(forms.ModelForm):
         )
         self.fields["brans"].required = False
         self.fields["brans"].empty_label = "Branş seçin (opsiyonel)"
+        self.fields["kod"].required = False
+        self.fields["kod"].help_text = "Sistem kimliği. Analitik Okuma dersi için analitik_okuma yazın."
+
+    def clean_kod(self):
+        kod = (self.cleaned_data.get("kod") or "").strip().lower()
+        return kod or None
 
 
 class PersonelProfiliForm(forms.ModelForm):
