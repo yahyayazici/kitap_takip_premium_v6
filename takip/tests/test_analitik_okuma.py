@@ -104,7 +104,6 @@ class AnalitikOkumaDegerlendirmeTests(TestCase):
             "ders_id": ders.id,
             "kayit_modu": "tamamla",
             "analitik_alan": AnalitikAlan.CIKARIM,
-            "haftanin_kavrami": "Mukayese",
             "yok_talebe": yok_ids,
             f"katilim_{self.talebe.id}": "" if self.talebe.id in yok_ids else str(puan),
             f"kavram_{self.talebe.id}": "" if self.talebe.id in yok_ids else str(kavram),
@@ -129,7 +128,8 @@ class AnalitikOkumaDegerlendirmeTests(TestCase):
         res = self.client.get(url, {"ders": self.ao.id})
         self.assertEqual(res.status_code, 200)
         self.assertContains(res, "Kavram Öğretimi")
-        self.assertContains(res, "Haftanın kavramı")
+        self.assertContains(res, "Gelmedi")
+        self.assertNotContains(res, "Haftanın kavramı")
         self.assertContains(res, "Analitik Okuma Puanı")
         self.assertContains(res, "Çıkarım Yapma ve Derin Anlama")
 
@@ -197,7 +197,6 @@ class AnalitikOkumaDegerlendirmeTests(TestCase):
                 "ders_id": self.ao.id,
                 "kayit_modu": "tamamla",
                 "analitik_alan": AnalitikAlan.GORSEL,
-                "haftanin_kavrami": "Sembol",
                 f"katilim_{self.talebe.id}": "80",
                 f"kavram_{self.talebe.id}": "11",
                 f"aciklama_{self.talebe.id}": "Not",
@@ -245,7 +244,6 @@ class AnalitikOkumaDegerlendirmeTests(TestCase):
                     "ders_id": self.ao.id,
                     "kayit_modu": "tamamla",
                     "analitik_alan": AnalitikAlan.SOZEL,
-                    "haftanin_kavrami": "Muhakeme",
                     f"katilim_{self.talebe.id}": "80",
                     f"aciklama_{self.talebe.id}": "Not",
                     f"katilim_{self.talebe2.id}": "70",
@@ -261,7 +259,7 @@ class AnalitikOkumaDegerlendirmeTests(TestCase):
         self._tamamla(self.ao_hoca, self.ao)
         konu = OgretmenHaftalikKonu.objects.get(ders=self.ao, sinif_sube=self.sinif)
         self.assertEqual(konu.analitik_alan, AnalitikAlan.CIKARIM)
-        self.assertEqual(konu.haftanin_kavrami, "Mukayese")
+        self.assertEqual(konu.haftanin_kavrami, "")
 
     def test_alan_ortalari_ayri_hesaplanir(self, _mock):
         self._tamamla(self.ao_hoca, self.ao)
@@ -330,7 +328,7 @@ class AnalitikOkumaDegerlendirmeTests(TestCase):
         url = reverse("veli_talebe_ders_notlari", args=[self.talebe.id])
         res = self.client.get(url)
         self.assertEqual(res.status_code, 200)
-        self.assertNotContains(res, "Mukayese")
+        self.assertNotContains(res, "Haftanın kavramı")
         h, meta = self._tamamla(self.ao_hoca, self.ao)
         self.assertEqual(h, [])
         self.assertTrue(meta["tamamlandi"])
@@ -338,7 +336,6 @@ class AnalitikOkumaDegerlendirmeTests(TestCase):
         self.assertTrue(notu.veliye_goster)
         self.assertEqual(int(notu.puan), 85)
         res = self.client.get(url)
-        self.assertContains(res, "Mukayese")
         self.assertContains(res, "Çıkarım Yapma ve Derin Anlama")
         self.assertContains(res, "85")
 
@@ -386,5 +383,5 @@ class AnalitikOkumaDegerlendirmeTests(TestCase):
         self.client.force_login(admin)
         res = self.client.get(reverse("yonetim:ogretmen_degerlendirme_rapor"))
         self.assertEqual(res.status_code, 200)
-        self.assertContains(res, "Mukayese")
-        self.assertContains(res, "Analitik Okuma alanı")
+        self.assertContains(res, "Kavram ort.")
+        self.assertContains(res, "Çıkarım Yapma ve Derin Anlama")

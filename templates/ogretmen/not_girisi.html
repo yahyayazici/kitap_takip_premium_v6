@@ -3,7 +3,7 @@
 {% block title %}Haftalık Not Girişi · Öğretmen Paneli{% endblock %}
 {% block extra_css %}
 {% if analitik_mod %}
-<link rel="stylesheet" href="{% static 'css/analitik-okuma.css' %}?v=ao6">
+<link rel="stylesheet" href="{% static 'css/analitik-okuma.css' %}?v=ao7">
 {% endif %}
 {% endblock %}
 
@@ -200,16 +200,6 @@ document.querySelectorAll('.og-veli-mesaj-kart').forEach(function(kart) {
                     {% endfor %}
                 </div>
             </fieldset>
-            <div class="ao-kavram-row">
-                <label class="ao-kavram-label" for="haftanin_kavrami">Haftanın kavramı</label>
-                <input type="text" id="haftanin_kavrami" name="haftanin_kavrami" list="ao-kavram-onerileri"
-                       value="{{ haftanin_kavrami }}" placeholder="Örn: Mukayese" autocomplete="off">
-                <datalist id="ao-kavram-onerileri">
-                    {% for k in kavram_onerileri %}
-                    <option value="{{ k }}"></option>
-                    {% endfor %}
-                </datalist>
-            </div>
         </div>
 
         <div class="og-table-wrap ao-table-wrap">
@@ -243,13 +233,15 @@ document.querySelectorAll('.og-veli-mesaj-kart').forEach(function(kart) {
                             </label>
                         </td>
                         <td data-label="Analitik Okuma Puanı">
-                            <input type="number" inputmode="numeric" name="katilim_{{ ogrenci.id }}" min="0" max="100" step="1"
-                                   value="{{ ogrenci.analitik_puan }}" placeholder="0–100" data-ao-puan {% if ogrenci.yok %}disabled{% endif %}>
-                            <small class="ao-hint">/100</small>
+                            <label class="ao-puan">
+                                <input type="number" inputmode="numeric" name="katilim_{{ ogrenci.id }}" min="0" max="100" step="1"
+                                       value="{{ ogrenci.analitik_puan }}" placeholder="" data-ao-puan {% if ogrenci.yok %}disabled{% endif %}>
+                                <span class="ao-hint">/100</span>
+                            </label>
                         </td>
                         <td data-label="Kavram Öğretimi" class="ao-star-cell">
+                            <input type="hidden" name="kavram_{{ ogrenci.id }}" value="{{ ogrenci.kavram_puani }}" data-ao-kavram>
                             <div class="ao-stars" data-ao-stars {% if ogrenci.yok %}aria-disabled="true"{% endif %}>
-                                <input type="hidden" name="kavram_{{ ogrenci.id }}" value="{{ ogrenci.kavram_puani }}" data-ao-kavram>
                                 <button type="button" class="ao-star" data-star="1" aria-label="1 yıldız">★</button>
                                 <button type="button" class="ao-star" data-star="2" aria-label="2 yıldız">★</button>
                                 <button type="button" class="ao-star" data-star="3" aria-label="3 yıldız">★</button>
@@ -350,7 +342,7 @@ document.querySelectorAll('.og-veli-mesaj-kart').forEach(function(kart) {
     </fieldset>
 </form>
 {% if analitik_mod %}
-<script src="{% static 'js/analitik-okuma.js' %}?v=ao6"></script>
+<script src="{% static 'js/analitik-okuma.js' %}?v=ao7"></script>
 {% endif %}
 {% endif %}
 {% else %}

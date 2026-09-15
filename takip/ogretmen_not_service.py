@@ -18,7 +18,6 @@ from takip.analitik_okuma import (
     yildiz_metni,
 )
 from takip.analitik_okuma_service import (
-    kavram_onerileri,
     kavram_ortalamasi,
     kavram_ortalamasi_etiket,
 )
@@ -218,7 +217,6 @@ def ogretmen_not_girisi_verisi(
         "analitik_alan": analitik_alan,
         "analitik_alanlar": AnalitikAlan.choices,
         "haftanin_kavrami": haftanin_kavrami,
-        "kavram_onerileri": kavram_onerileri() if analitik_mod else [],
         "kayit_durumu": kayit_durumu,
         "kayit_tamamlandi": kayit_durumu == AnalitikKayitDurumu.TAMAMLANDI,
         "hata_talebe_ids": [],
@@ -281,11 +279,8 @@ def _kaydet_analitik(
     if alan and alan not in AnalitikAlan.values:
         hatalar.append("Analitik Okuma alanı geçersiz.")
         alan = ""
-    if tamamla:
-        if not alan:
-            hatalar.append("Analitik Okuma ana başlığı seçilmelidir.")
-        if not kavram:
-            hatalar.append("Haftanın kavramı girilmelidir.")
+    if tamamla and not alan:
+        hatalar.append("Analitik Okuma ana başlığı seçilmelidir.")
 
     hazirlanan: list[dict] = []
     for ogrenci in ogrenciler:

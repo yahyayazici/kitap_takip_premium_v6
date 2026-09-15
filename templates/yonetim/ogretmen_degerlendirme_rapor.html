@@ -135,7 +135,7 @@
             <div>
                 <p class="dash-eyebrow">ANALİTİK OKUMA</p>
                 <h2>{{ analitik_oturumlar|length }} oturum</h2>
-                <p class="muted">Hafta, sınıf, öğretmen, alan, kavram ve sınıf ortalamaları.</p>
+                <p class="muted">Hafta, sınıf, öğretmen, alan ve sınıf ortalamaları.</p>
             </div>
         </div>
         <div class="responsive-table">
@@ -147,7 +147,6 @@
                         <th>Sınıf</th>
                         <th>Öğretmen</th>
                         <th>Alan</th>
-                        <th>Kavram</th>
                         <th>Değerlendirilen</th>
                         <th>Gelmeyen</th>
                         <th>Puan ort.</th>
@@ -163,7 +162,6 @@
                         <td>{{ o.sinif }}</td>
                         <td>{{ o.ogretmen.ad_soyad }}</td>
                         <td>{{ o.alan }}</td>
-                        <td>{{ o.kavram }}</td>
                         <td class="num-col">{{ o.degerlendirilen }}</td>
                         <td class="num-col">{{ o.gelmeyen }}</td>
                         <td>{% if o.puan_ort is not None %}{{ o.puan_ort }}{% else %}—{% endif %}</td>
@@ -172,7 +170,7 @@
                     </tr>
                     {% if o.notlar %}
                     <tr>
-                        <td colspan="11">
+                        <td colspan="10">
                             <div class="responsive-table">
                                 <table class="yonetim-table">
                                     <thead>

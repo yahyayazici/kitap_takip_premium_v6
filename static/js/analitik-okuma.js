@@ -11,7 +11,8 @@
         });
         var score = root.querySelector("[data-ao-score]");
         if (score) score.textContent = n ? n + "/10" : "—/10";
-        var hidden = root.querySelector("[data-ao-kavram]");
+        var row = root.closest("[data-ao-row]") || root;
+        var hidden = row.querySelector("[data-ao-kavram]");
         if (hidden) hidden.value = n ? String(n) : "";
     }
 
@@ -38,7 +39,7 @@
         form.querySelectorAll("[data-ao-row]").forEach(function (row) {
             var stars = row.querySelector("[data-ao-stars]");
             var hidden = row.querySelector("[data-ao-kavram]");
-            if (stars && hidden) paintStars(stars, hidden.value);
+            if (stars) paintStars(stars, hidden ? hidden.value : "");
             var absent = row.querySelector("[data-ao-absent]");
             if (absent) setAbsent(row, absent.checked);
         });
