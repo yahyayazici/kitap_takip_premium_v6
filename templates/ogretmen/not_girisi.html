@@ -3,12 +3,12 @@
 {% block title %}Haftalık Not Girişi · Öğretmen Paneli{% endblock %}
 {% block extra_css %}
 {% if analitik_mod %}
-<link rel="stylesheet" href="{% static 'css/analitik-okuma.css' %}?v=ao2">
+<link rel="stylesheet" href="{% static 'css/analitik-okuma.css' %}?v=ao6">
 {% endif %}
 {% endblock %}
 
 {% block content %}
-<div class="dash-home ogretmen-dash">
+<div class="dash-home ogretmen-dash{% if analitik_mod %} ao-page{% endif %}">
 
 {% if veli_mesaj_taslaklari %}
 <section class="og-veli-mesaj-panel dash-panel">
@@ -50,11 +50,14 @@ document.querySelectorAll('.og-veli-mesaj-kart').forEach(function(kart) {
 </script>
 {% endif %}
 
-<div class="og-week-active-banner{% if not hafta_yazilabilir %} og-week-locked{% endif %}">
+<div class="og-week-active-banner{% if not hafta_yazilabilir %} og-week-locked{% endif %}{% if analitik_mod %} ao-week{% endif %}">
+    {% if analitik_mod %}
+    <span class="ao-week-num">{{ hafta_no }}</span>
+    {% endif %}
     <div>
         <p class="dash-eyebrow">{% if hafta_yazilabilir %}Aktif hafta{% else %}Hafta kapandı{% endif %}</p>
-        <strong>{{ hafta_no }}. Hafta not girişi</strong>
-        <p class="og-week-lock-note" style="margin:4px 0 0;font-size:13px;opacity:.85;">
+        <strong>{% if analitik_mod %}Haftalık not girişi{% else %}{{ hafta_no }}. Hafta not girişi{% endif %}</strong>
+        <p class="og-week-lock-note"{% if not analitik_mod %} style="margin:4px 0 0;font-size:13px;opacity:.85;"{% endif %}>
             {% if hafta_yazilabilir %}
             Kapanış: Pazar {{ hafta_kapanis_saat|stringformat:"02d" }}:00
             {% else %}
@@ -62,10 +65,10 @@ document.querySelectorAll('.og-veli-mesaj-kart').forEach(function(kart) {
             {% endif %}
         </p>
     </div>
-    <span>{{ hafta_baslangic|date:"d.m.Y" }} – {{ hafta_bitis|date:"d.m.Y" }}</span>
+    <span{% if analitik_mod %} class="ao-week-dates"{% endif %}>{{ hafta_baslangic|date:"d.m.Y" }} – {{ hafta_bitis|date:"d.m.Y" }}</span>
 </div>
 
-<section class="ogretmen-select-card dash-panel">
+<section class="ogretmen-select-card dash-panel{% if analitik_mod %} ao-sinif-card{% endif %}">
     <div class="dash-panel-head">
         <div>
             <h2>Sınıf Seçin</h2>
@@ -90,7 +93,7 @@ document.querySelectorAll('.og-veli-mesaj-kart').forEach(function(kart) {
 </div>
 {% else %}
 {% if dersler|length > 1 %}
-<section class="ogretmen-select-card dash-panel">
+<section class="ogretmen-select-card dash-panel{% if analitik_mod %} ao-sinif-card{% endif %}">
     <div class="dash-panel-head">
         <div>
             <p class="dash-eyebrow">Branş dersleri</p>
@@ -234,9 +237,9 @@ document.querySelectorAll('.og-veli-mesaj-kart').forEach(function(kart) {
                             </span>
                         </td>
                         <td data-label="Gelmedi">
-                            <label class="ao-gelmedi">
+                            <label class="ao-gelmedi" title="Gelmedi">
                                 <input type="checkbox" name="yok_talebe" value="{{ ogrenci.id }}" data-ao-absent {% if ogrenci.yok %}checked{% endif %}>
-                                <span>Gelmedi</span>
+                                <span class="ao-sr">Gelmedi</span>
                             </label>
                         </td>
                         <td data-label="Analitik Okuma Puanı">
@@ -347,7 +350,7 @@ document.querySelectorAll('.og-veli-mesaj-kart').forEach(function(kart) {
     </fieldset>
 </form>
 {% if analitik_mod %}
-<script src="{% static 'js/analitik-okuma.js' %}?v=ao2"></script>
+<script src="{% static 'js/analitik-okuma.js' %}?v=ao6"></script>
 {% endif %}
 {% endif %}
 {% else %}
