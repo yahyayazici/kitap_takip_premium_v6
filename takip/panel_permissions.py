@@ -402,6 +402,7 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         roller=frozenset({ROL_ETUT_MESUL, ROL_SINIF_MESUL}),
         active_names=(
             "etut_haftalik_karneler",
+            "etut_haftalik_karneler_pdf",
             "etut_talebe_haftalik_karne_pdf",
         ),
         nav_group="Eğitim",

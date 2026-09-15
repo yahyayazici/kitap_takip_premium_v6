@@ -60,6 +60,11 @@
 }
 
 .hk-card-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--cs-space-4);
+    flex-wrap: wrap;
     padding: var(--cs-space-4) var(--cs-space-5) var(--cs-space-3);
     border-bottom: 1px solid var(--hk-line);
 }
@@ -129,6 +134,11 @@
     color: var(--cs-text-muted);
 }
 
+.hk-zip {
+    flex: none;
+    text-decoration: none;
+}
+
 .hk-table-wrap {
     overflow-x: auto;
     padding: 0;
@@ -137,31 +147,49 @@
 
 .hk-page .hk-table {
     width: 100%;
-    min-width: 36rem;
+    min-width: 40rem;
+    border-collapse: collapse;
+    border: 1px solid var(--hk-line);
+}
+
+.hk-page .hk-table thead th,
+.hk-page .hk-table tbody td {
+    border: 1px solid var(--hk-line);
+    vertical-align: middle;
 }
 
 .hk-page .hk-table thead th {
-    background: var(--cs-surface) !important;
-    color: var(--cs-text-muted) !important;
+    background: var(--cs-surface-muted);
+    color: var(--cs-text-muted);
     font-size: var(--cs-font-label);
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    border-bottom: 1px solid var(--hk-line);
 }
 
 .hk-page .hk-table tbody td {
     background: var(--cs-surface);
     color: var(--cs-text-primary);
-    border-top: 1px solid var(--hk-line);
-    vertical-align: middle;
 }
 
+.hk-col-name,
 .hk-name {
+    text-align: left;
     font-weight: 600;
 }
 
+.hk-col-num,
+.hk-num {
+    text-align: center;
+}
+
+.hk-col-action,
+.hk-action {
+    text-align: center;
+}
+
 .hk-pdf {
+    display: inline-flex;
     min-height: var(--cs-btn-h);
     padding: 0 var(--cs-space-4);
     font-size: 0.875rem;

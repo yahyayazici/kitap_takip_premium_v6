@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Haftalık Karneler · Etüt{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/haftalik-karneler.css' %}?v=hk1">
+<link rel="stylesheet" href="{% static 'css/haftalik-karneler.css' %}?v=hk2">
 {% endblock %}
 
 {% block content %}
@@ -22,6 +22,10 @@
                 <h2>{{ hafta_baslangic|date:"d.m.Y" }} – {{ hafta_bitis|date:"d.m.Y" }}</h2>
                 <p class="hk-meta">{{ not_girilen }} / {{ talebe_sayisi }} talebede bu hafta not var</p>
             </div>
+            {% if satirlar %}
+            <a href="{% url 'etut_haftalik_karneler_pdf' %}?hafta={{ hafta_baslangic|date:'Y-m-d' }}"
+               class="primary-btn hk-zip">Tüm PDF</a>
+            {% endif %}
         </div>
 
         <nav class="hk-weeks" aria-label="Hafta seçimi">
@@ -40,21 +44,21 @@
             <table class="og-grade-table hk-table">
                 <thead>
                     <tr>
-                        <th>Talebe</th>
-                        <th>Sınıf</th>
-                        <th>Ders sayısı</th>
-                        <th>Ortalama</th>
-                        <th>Karne</th>
+                        <th class="hk-col-name">Talebe</th>
+                        <th class="hk-col-num">Sınıf</th>
+                        <th class="hk-col-num">Ders sayısı</th>
+                        <th class="hk-col-num">Ortalama</th>
+                        <th class="hk-col-action">Karne</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for s in satirlar %}
                     <tr>
                         <td class="hk-name">{{ s.talebe.ad_soyad }}</td>
-                        <td>{{ s.talebe.sinif }}{% if s.talebe.sube %}-{{ s.talebe.sube }}{% endif %}</td>
-                        <td>{{ s.not_sayisi }}</td>
-                        <td>{% if s.ortalama is not None %}{{ s.ortalama }}{% else %}—{% endif %}</td>
-                        <td>
+                        <td class="hk-num">{{ s.talebe.sinif }}{% if s.talebe.sube %}-{{ s.talebe.sube }}{% endif %}</td>
+                        <td class="hk-num">{{ s.not_sayisi }}</td>
+                        <td class="hk-num">{% if s.ortalama is not None %}{{ s.ortalama }}{% else %}—{% endif %}</td>
+                        <td class="hk-action">
                             <a href="{% url 'etut_talebe_haftalik_karne_pdf' s.talebe.id %}?hafta={{ hafta_baslangic|date:'Y-m-d' }}"
                                target="_blank" rel="noopener" class="ghost-btn hk-pdf">PDF</a>
                         </td>

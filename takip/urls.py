@@ -501,6 +501,11 @@ urlpatterns = [
         name="etut_haftalik_karneler",
     ),
     path(
+        "etut-panel/haftalik-karneler/pdf/",
+        etut_karne_views.etut_haftalik_karneler_pdf,
+        name="etut_haftalik_karneler_pdf",
+    ),
+    path(
         "etut-panel/haftalik-karneler/talebe/<int:talebe_id>/pdf/",
         etut_karne_views.etut_talebe_haftalik_karne_pdf,
         name="etut_talebe_haftalik_karne_pdf",
