@@ -1,60 +1,70 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Haftalık Karneler · Etüt{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/haftalik-karneler.css' %}?v=hk1">
+{% endblock %}
 
 {% block content %}
-<div class="dash-home">
-{% include "includes/panel_hero.html" with title="Haftalık Eğitim Karneleri" meta="Etüdünüzdeki talebelerin haftalık değerlendirme arşivi" show_date=True %}
-
-<section class="dash-panel">
-    <div class="dash-panel-head">
+<div class="hk-page">
+    <header class="page-head patterned-page-head hk-head">
         <div>
-            <p class="dash-eyebrow">{% if arsiv_modu %}Arşiv haftası{% else %}Aktif hafta{% endif %}</p>
-            <h2>{{ hafta_baslangic|date:"d.m.Y" }} – {{ hafta_bitis|date:"d.m.Y" }}</h2>
-            <p class="og-empty-note">{{ not_girilen }} / {{ talebe_sayisi }} talebede bu hafta not var</p>
+            <p class="kicker">HAFTALIK KARNELER</p>
+            <h1>Haftalık Eğitim Karneleri</h1>
+            <p class="muted">Etüdünüzdeki talebelerin haftalık değerlendirme arşivi</p>
         </div>
-        <details class="veli-week-picker">
-            <summary class="dash-text-btn" style="list-style:none;cursor:pointer;">Haftalar</summary>
-            <div class="veli-week-picker-menu">
-                <a href="{% url 'etut_haftalik_karneler' %}" class="{% if not arsiv_modu %}active{% endif %}">Aktif hafta</a>
-                {% for h in arsiv_haftalar %}
-                <a href="{% url 'etut_haftalik_karneler' %}?hafta={{ h|date:'Y-m-d' }}"
-                   class="{% if h == hafta_baslangic %}active{% endif %}">{{ h|date:"d.m.Y" }}</a>
-                {% empty %}
-                <span class="og-empty-note">Arşiv yok</span>
-                {% endfor %}
-            </div>
-        </details>
-    </div>
+    </header>
 
-    <div class="og-table-wrap" style="padding: 8px 16px 18px;">
-        <table class="og-grade-table">
-            <thead>
-                <tr>
-                    <th>Talebe</th>
-                    <th>Sınıf</th>
-                    <th>Ders sayısı</th>
-                    <th>Ortalama</th>
-                    <th>Karne</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in satirlar %}
-                <tr>
-                    <td><strong>{{ s.talebe.ad_soyad }}</strong></td>
-                    <td>{{ s.talebe.sinif }}{% if s.talebe.sube %}-{{ s.talebe.sube }}{% endif %}</td>
-                    <td>{{ s.not_sayisi }}</td>
-                    <td>{% if s.ortalama is not None %}{{ s.ortalama }}{% else %}—{% endif %}</td>
-                    <td>
-                        <a href="{% url 'etut_talebe_haftalik_karne_pdf' s.talebe.id %}?hafta={{ hafta_baslangic|date:'Y-m-d' }}"
-                           target="_blank" class="dash-text-btn">PDF</a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="5" class="og-empty-note">Etüdünüze atanmış aktif talebe yok.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</section>
+    <section class="hk-card">
+        <div class="hk-card-head">
+            <div>
+                <p class="hk-kicker">{% if arsiv_modu %}Arşiv haftası{% else %}Aktif hafta{% endif %}</p>
+                <h2>{{ hafta_baslangic|date:"d.m.Y" }} – {{ hafta_bitis|date:"d.m.Y" }}</h2>
+                <p class="hk-meta">{{ not_girilen }} / {{ talebe_sayisi }} talebede bu hafta not var</p>
+            </div>
+        </div>
+
+        <nav class="hk-weeks" aria-label="Hafta seçimi">
+            <a href="{% url 'etut_haftalik_karneler' %}" class="hk-week{% if not arsiv_modu %} is-on{% endif %}">Aktif hafta</a>
+            {% for h in arsiv_haftalar %}
+            {% if h != aktif_hafta %}
+            <a href="{% url 'etut_haftalik_karneler' %}?hafta={{ h|date:'Y-m-d' }}"
+               class="hk-week{% if h == hafta_baslangic %} is-on{% endif %}">{{ h|date:"d.m.Y" }}</a>
+            {% endif %}
+            {% empty %}
+            <span class="hk-week-empty">Arşiv yok</span>
+            {% endfor %}
+        </nav>
+
+        <div class="og-table-wrap hk-table-wrap">
+            <table class="og-grade-table hk-table">
+                <thead>
+                    <tr>
+                        <th>Talebe</th>
+                        <th>Sınıf</th>
+                        <th>Ders sayısı</th>
+                        <th>Ortalama</th>
+                        <th>Karne</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in satirlar %}
+                    <tr>
+                        <td class="hk-name">{{ s.talebe.ad_soyad }}</td>
+                        <td>{{ s.talebe.sinif }}{% if s.talebe.sube %}-{{ s.talebe.sube }}{% endif %}</td>
+                        <td>{{ s.not_sayisi }}</td>
+                        <td>{% if s.ortalama is not None %}{{ s.ortalama }}{% else %}—{% endif %}</td>
+                        <td>
+                            <a href="{% url 'etut_talebe_haftalik_karne_pdf' s.talebe.id %}?hafta={{ hafta_baslangic|date:'Y-m-d' }}"
+                               target="_blank" rel="noopener" class="ghost-btn hk-pdf">PDF</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="hk-empty">Etüdünüze atanmış aktif talebe yok.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
 </div>
 {% endblock %}

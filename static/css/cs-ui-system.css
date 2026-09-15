@@ -177,6 +177,13 @@ body.talebe-body {
     overflow-y: clip;
 }
 
+.hk-page .hk-table-wrap {
+    overflow-x: auto;
+    overflow-y: clip;
+    max-width: 100%;
+    min-width: 0;
+}
+
 /* —— Global nav touch (≥44px hit area; icon size unchanged) —— */
 #v3-menu-toggle,
 .v3-menu-toggle,
@@ -245,6 +252,57 @@ body.talebe-body {
 .ny-page > header.page-head.ny-head .ny-sub,
 .ny-page > header.patterned-page-head.ny-head .ny-sub {
     color: var(--cs-text-secondary) !important;
+}
+
+/* Haftalık karneler page-head: soft kart — dash-hero yerine kurum standardı */
+.hk-page > header.page-head.hk-head,
+.hk-page > header.patterned-page-head.hk-head {
+    overflow: hidden !important;
+    height: auto !important;
+    max-height: none !important;
+    align-items: flex-start !important;
+    padding: 22px 26px !important;
+    margin: 0 !important;
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-xl) !important;
+    background: linear-gradient(135deg, var(--cs-surface) 0%, var(--cs-background) 100%) !important;
+    background-image: linear-gradient(135deg, var(--cs-surface) 0%, var(--cs-background) 100%) !important;
+    animation: none !important;
+    box-shadow: var(--cs-shadow-sm) !important;
+    color: var(--cs-text-primary) !important;
+}
+
+.hk-page > header.page-head.hk-head::before,
+.hk-page > header.patterned-page-head.hk-head::before,
+.hk-page > header.page-head.hk-head::after,
+.hk-page > header.patterned-page-head.hk-head::after {
+    display: none !important;
+}
+
+.hk-page > header.page-head.hk-head h1,
+.hk-page > header.patterned-page-head.hk-head h1 {
+    color: var(--cs-primary-dark) !important;
+    font-size: clamp(1.25rem, 2.2vw, 1.625rem) !important;
+}
+
+.hk-page > header.page-head.hk-head .kicker,
+.hk-page > header.patterned-page-head.hk-head .kicker {
+    color: var(--cs-text-muted) !important;
+}
+
+.hk-page > header.page-head.hk-head .muted,
+.hk-page > header.patterned-page-head.hk-head .muted {
+    color: var(--cs-text-secondary) !important;
+}
+
+.hk-page .hk-table thead th {
+    background: var(--cs-surface) !important;
+    color: var(--cs-text-muted) !important;
+}
+
+.hk-page .hk-table tbody td {
+    background: var(--cs-surface) !important;
+    color: var(--cs-text-primary) !important;
 }
 
 /* —— Form: iOS zoom önleme (constitution font-size ile uyumlu) —— */

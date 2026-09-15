@@ -1,0 +1,194 @@
+/* Haftalık Eğitim Karneleri — etüt arşiv listesi */
+.hk-page {
+    --hk-line: var(--cs-border);
+    display: flex;
+    flex-direction: column;
+    gap: var(--cs-section-gap);
+    width: 100%;
+    min-width: 0;
+    padding-bottom: var(--cs-space-8);
+    overflow-x: clip;
+}
+
+.hk-page .hk-head.patterned-page-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--cs-space-4);
+    margin: 0;
+    overflow: hidden;
+    height: auto;
+    max-height: none;
+    padding: var(--cs-space-5) var(--cs-space-6);
+    border: 1px solid var(--hk-line);
+    border-radius: var(--cs-radius-xl);
+    background: linear-gradient(135deg, var(--cs-surface) 0%, var(--cs-background) 100%);
+    box-shadow: var(--cs-shadow-sm);
+    color: var(--cs-text-primary);
+    animation: none;
+}
+
+.hk-page .hk-head .kicker {
+    margin: 0 0 var(--cs-space-2);
+    font-size: var(--cs-font-label);
+    font-weight: 600;
+    letter-spacing: var(--cs-letter-kicker);
+    text-transform: uppercase;
+    color: var(--cs-text-muted);
+}
+
+.hk-page .hk-head h1 {
+    margin: 0;
+    font-size: clamp(1.25rem, 2.2vw, 1.625rem);
+    font-weight: 650;
+    letter-spacing: -0.03em;
+    color: var(--cs-primary-dark);
+}
+
+.hk-page .hk-head .muted {
+    margin: var(--cs-space-2) 0 0;
+    max-width: 52ch;
+    color: var(--cs-text-secondary);
+}
+
+.hk-card {
+    min-width: 0;
+    border: 1px solid var(--hk-line);
+    border-radius: var(--cs-radius-lg);
+    background: var(--cs-surface);
+    box-shadow: var(--cs-shadow-xs);
+}
+
+.hk-card-head {
+    padding: var(--cs-space-4) var(--cs-space-5) var(--cs-space-3);
+    border-bottom: 1px solid var(--hk-line);
+}
+
+.hk-kicker {
+    margin: 0 0 var(--cs-space-1);
+    font-size: var(--cs-font-label);
+    font-weight: 600;
+    letter-spacing: var(--cs-letter-kicker);
+    text-transform: uppercase;
+    color: var(--cs-primary);
+}
+
+.hk-card-head h2 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    color: var(--cs-text-primary);
+}
+
+.hk-meta {
+    margin: var(--cs-space-1) 0 0;
+    font-size: var(--cs-font-secondary);
+    color: var(--cs-text-muted);
+}
+
+.hk-weeks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--cs-space-2);
+    padding: var(--cs-space-3) var(--cs-space-5);
+    border-bottom: 1px solid var(--hk-line);
+}
+
+.hk-week {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--cs-touch-min);
+    padding: 0 var(--cs-space-4);
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-md);
+    background: var(--cs-surface-muted);
+    color: var(--cs-text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.hk-week:hover {
+    border-color: var(--cs-border-strong);
+    color: var(--cs-text-primary);
+    background: var(--cs-soft-blue);
+}
+
+.hk-week.is-on,
+.hk-week.is-on:hover {
+    border-color: var(--cs-primary);
+    background: var(--cs-primary);
+    color: var(--cs-text-inverse);
+}
+
+.hk-week-empty {
+    align-self: center;
+    font-size: var(--cs-font-secondary);
+    color: var(--cs-text-muted);
+}
+
+.hk-table-wrap {
+    overflow-x: auto;
+    padding: 0;
+    margin: 0;
+}
+
+.hk-page .hk-table {
+    width: 100%;
+    min-width: 36rem;
+}
+
+.hk-page .hk-table thead th {
+    background: var(--cs-surface) !important;
+    color: var(--cs-text-muted) !important;
+    font-size: var(--cs-font-label);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--hk-line);
+}
+
+.hk-page .hk-table tbody td {
+    background: var(--cs-surface);
+    color: var(--cs-text-primary);
+    border-top: 1px solid var(--hk-line);
+    vertical-align: middle;
+}
+
+.hk-name {
+    font-weight: 600;
+}
+
+.hk-pdf {
+    min-height: var(--cs-btn-h);
+    padding: 0 var(--cs-space-4);
+    font-size: 0.875rem;
+    text-decoration: none;
+}
+
+.hk-empty {
+    padding: var(--cs-space-8) var(--cs-space-4) !important;
+    text-align: center;
+    color: var(--cs-text-muted);
+}
+
+@media (max-width: 900px) {
+    .hk-page .hk-head.patterned-page-head {
+        padding: var(--cs-space-4);
+    }
+
+    .hk-card-head,
+    .hk-weeks {
+        padding-left: var(--cs-space-4);
+        padding-right: var(--cs-space-4);
+    }
+}
+
+@media (max-width: 640px) {
+    .hk-pdf {
+        min-width: 4.5rem;
+        justify-content: center;
+    }
+}
