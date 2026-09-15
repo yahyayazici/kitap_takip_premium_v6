@@ -94,6 +94,18 @@
             kaydet(row, adet, input);
         }
 
+        function applyNameFilter() {
+            var search = root.querySelector("[data-sb-name]");
+            var q = search ? (search.value || "").trim().toLowerCase() : "";
+            root.querySelectorAll("[data-talebe]").forEach(function (row) {
+                var name = row.getAttribute("data-name") || "";
+                row.hidden = !!(q && name.indexOf(q) === -1);
+            });
+            root.querySelectorAll("[data-sb-grup]").forEach(function (grup) {
+                grup.hidden = !grup.querySelector("[data-talebe]:not([hidden])");
+            });
+        }
+
         root.addEventListener("change", function (ev) {
             var input = ev.target.closest(".sb-adet-input");
             if (!input) return;
@@ -101,6 +113,10 @@
         });
 
         root.addEventListener("input", function (ev) {
+            if (ev.target.closest("[data-sb-name]")) {
+                applyNameFilter();
+                return;
+            }
             var input = ev.target.closest(".sb-adet-input");
             if (!input) return;
             var row = input.closest("tr");

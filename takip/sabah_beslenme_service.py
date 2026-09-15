@@ -11,6 +11,7 @@ from django.db import IntegrityError, transaction
 from django.db.models import QuerySet, Sum
 from django.utils import timezone
 
+from takip.models import Talebe
 from takip.permissions.scope import yetkili_talebeler
 from takip.permissions.service import can, kullanici_birincil_rol_slug
 from takip.sabah_beslenme_models import (
@@ -93,8 +94,14 @@ def _yetkili_qs(user: User):
     return yetkili_talebeler(user, aktif_only=True)
 
 
-def _talebe_yetkili(user: User, talebe) -> bool:
-    return _yetkili_qs(user).filter(pk=talebe.pk).exists()
+def siparis_talebe_qs(user: User, *, etudum: bool = False):
+    """Namaz yoklaması gibi: varsayılan bütün aktif talebeler; Etüdüm isteğe bağlı."""
+    qs = Talebe.objects.filter(aktif=True).select_related("etut_hocasi", "sinif_sube")
+    if etudum:
+        hoca = etut_hocasi_for_user(user)
+        if hoca:
+            qs = qs.filter(etut_hocasi=hoca)
+    return qs.order_by("sinif_sube__sinif", "sinif_sube__sube", "ad_soyad", "id")
 
 
 def _log(siparis: SabahBeslenmeSiparis, islem: str, user: User | None, detay: str = "") -> None:
@@ -191,28 +198,36 @@ def satis_satirlari(user: User, menu: SabahBeslenmeGunlukMenu) -> list[SabahBesl
     return list(qs)
 
 
-def etut_siparis_satirlari(user: User, menu: SabahBeslenmeGunlukMenu) -> list[dict[str, Any]]:
-    talebeler = list(
-        _yetkili_qs(user)
-        .select_related("etut_hocasi", "sinif_sube")
-        .order_by("ad_soyad")
-    )
-    mevcut = {
-        s.talebe_id: s
-        for s in menu.siparisler.filter(talebe_id__in=[t.pk for t in talebeler])
-    }
-    satirlar = []
+def etut_siparis_gruplari(
+    user: User,
+    menu: SabahBeslenmeGunlukMenu | None,
+    *,
+    etudum: bool = False,
+) -> list[dict[str, Any]]:
+    talebeler = list(siparis_talebe_qs(user, etudum=etudum))
+    mevcut = {}
+    if menu:
+        mevcut = {
+            s.talebe_id: s
+            for s in menu.siparisler.filter(talebe_id__in=[t.pk for t in talebeler])
+        }
+    gruplar: list[dict[str, Any]] = []
+    current: dict[str, Any] | None = None
     for talebe in talebeler:
+        sinif = _sinif_etiketi(talebe)
+        if current is None or current["sinif"] != sinif:
+            current = {"sinif": sinif, "satirlar": []}
+            gruplar.append(current)
         siparis = mevcut.get(talebe.pk)
-        satirlar.append(
+        current["satirlar"].append(
             {
                 "talebe": talebe,
-                "sinif": _sinif_etiketi(talebe),
+                "sinif": sinif,
                 "siparis": siparis,
                 "adet": siparis.adet if siparis else None,
             }
         )
-    return satirlar
+    return gruplar
 
 
 def menu_kaydet(
@@ -263,9 +278,13 @@ def siparis_kaydet(user: User, *, menu: SabahBeslenmeGunlukMenu, talebe_id: int,
     if adet < 0 or adet > MAX_ADET:
         raise SabahBeslenmeHata(f"Adet 0 ile {MAX_ADET} arasında olmalıdır.")
 
-    talebe = _yetkili_qs(user).filter(pk=talebe_id).select_related("etut_hocasi").first()
+    talebe = (
+        Talebe.objects.filter(pk=talebe_id, aktif=True)
+        .select_related("etut_hocasi")
+        .first()
+    )
     if not talebe:
-        raise SabahBeslenmeHata("Bu talebe için sipariş giremezsiniz.")
+        raise SabahBeslenmeHata("Talebe bulunamadı.")
 
     hoca = talebe.etut_hocasi
     kaydeden_hoca = etut_hocasi_for_user(user)

@@ -129,6 +129,10 @@
     font-weight: 650;
     color: var(--cs-text-secondary);
     cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .sb-chip.is-on,
@@ -142,6 +146,35 @@
 .sb-search { flex: 1 1 180px; }
 .sb-search input,
 .sb-search select { width: 100%; }
+
+.sb-list-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--cs-space-3);
+    align-items: center;
+}
+
+.sb-count {
+    color: var(--sb-muted);
+    font-size: 0.85rem;
+    font-weight: 650;
+    margin-left: auto;
+}
+
+.sb-grup {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cs-space-2);
+}
+
+.sb-sinif-head {
+    margin: 0;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--cs-text-muted);
+}
 
 .sb-table-wrap {
     overflow-x: auto;
@@ -443,6 +476,13 @@
         min-width: 0;
         justify-content: center;
         text-align: center;
+    }
+    .sb-list-tools {
+        gap: var(--cs-space-2);
+    }
+    .sb-count {
+        margin-left: 0;
+        width: 100%;
     }
     .sb-ozet article {
         flex: 1 1 calc(50% - var(--cs-space-3));

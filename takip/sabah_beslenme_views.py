@@ -16,13 +16,14 @@ from django.views.decorators.http import require_POST
 from takip.permissions.decorators import require_permission
 from takip.permissions.service import can
 from takip.sabah_beslenme_models import SabahBeslenmeGunlukMenu, SabahBeslenmeSiparis
+from takip.user_helpers import etut_hocasi_for_user
 from takip.sabah_beslenme_service import (
     SabahBeslenmeHata,
     acik_borc_ozet,
     acik_borc_qs,
     borc_kapat,
     borc_kapatabilir,
-    etut_siparis_satirlari,
+    etut_siparis_gruplari,
     gun_ozeti,
     menu_al,
     menu_kaydet,
@@ -123,7 +124,9 @@ def sabah_beslenme_siparis(request):
         return redirect("dashboard")
 
     tarih = _parse_date(request.GET.get("tarih"))
+    etudum = request.GET.get("etudum") == "1"
     menu = menu_al(tarih)
+    gruplar = etut_siparis_gruplari(request.user, menu, etudum=etudum) if menu else []
     ctx = _nav(request, "siparis")
     ctx.update(
         {
@@ -132,7 +135,10 @@ def sabah_beslenme_siparis(request):
             "sonraki": (tarih + timedelta(days=1)).isoformat(),
             "menu": menu,
             "pencere_acik": siparis_penceresi_acik(menu) if menu else False,
-            "satirlar": etut_siparis_satirlari(request.user, menu) if menu else [],
+            "gruplar": gruplar,
+            "talebe_sayisi": sum(len(g["satirlar"]) for g in gruplar),
+            "etudum": etudum,
+            "etut_hocasi_var": bool(etut_hocasi_for_user(request.user)),
             "menu_yonet": menu_yonetebilir(request.user),
         }
     )

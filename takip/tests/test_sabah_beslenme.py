@@ -10,6 +10,7 @@ from takip.sabah_beslenme_models import SabahBeslenmeGunlukMenu, SabahBeslenmeSi
 from takip.sabah_beslenme_service import (
     SabahBeslenmeHata,
     borc_kapat,
+    etut_siparis_gruplari,
     gun_ozeti,
     menu_kaydet,
     odeme_turu_ayarla,
@@ -70,14 +71,24 @@ class SabahBeslenmeTests(TestCase):
             durum=SabahBeslenmeGunlukMenu.Durum.ACIK,
         )
 
-    def test_etut_sadece_kendi_talebesine_siparis_girer(self):
+    def test_etut_tum_talebelere_siparis_girer(self):
         siparis = siparis_kaydet(
             self.etut_user, menu=self.menu, talebe_id=self.talebe.pk, adet=2
         )
         self.assertEqual(siparis.adet, 2)
         self.assertEqual(siparis.tutar, Decimal("25.00"))
-        with self.assertRaises(SabahBeslenmeHata):
-            siparis_kaydet(self.etut_user, menu=self.menu, talebe_id=self.diger.pk, adet=1)
+        diger = siparis_kaydet(
+            self.etut_user, menu=self.menu, talebe_id=self.diger.pk, adet=1
+        )
+        self.assertEqual(diger.adet, 1)
+
+    def test_siparis_listesi_namaz_gibi_tum_talebeleri_gosterir(self):
+        gruplar = etut_siparis_gruplari(self.etut_user, self.menu)
+        ids = {s["talebe"].pk for g in gruplar for s in g["satirlar"]}
+        self.assertEqual(ids, {self.talebe.pk, self.diger.pk})
+        etudum = etut_siparis_gruplari(self.etut_user, self.menu, etudum=True)
+        etudum_ids = {s["talebe"].pk for g in etudum for s in g["satirlar"]}
+        self.assertEqual(etudum_ids, {self.talebe.pk})
 
     def test_etut_teslim_edemez(self):
         siparis = siparis_kaydet(
@@ -216,7 +227,7 @@ class SabahBeslenmeTests(TestCase):
         self.assertEqual(res.status_code, 302)
         self.assertIn("/siparis/", res["Location"])
 
-    def test_etut_api_baska_talebe_hata(self):
+    def test_etut_api_baska_talebe_kaydeder(self):
         self.client.force_login(self.etut_user)
         url = reverse("sabah_beslenme_api_siparis")
         res = self.client.post(
@@ -224,5 +235,19 @@ class SabahBeslenmeTests(TestCase):
             data={"tarih": self.tarih.isoformat(), "talebe_id": self.diger.pk, "adet": 1},
             content_type="application/json",
         )
-        self.assertEqual(res.status_code, 400)
-        self.assertFalse(res.json()["ok"])
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(res.json()["ok"])
+        self.assertEqual(
+            SabahBeslenmeSiparis.objects.get(menu=self.menu, talebe=self.diger).adet, 1
+        )
+
+    def test_siparis_ekrani_tum_talebeleri_listeler(self):
+        self.client.force_login(self.etut_user)
+        res = self.client.get(
+            reverse("sabah_beslenme_siparis") + f"?tarih={self.tarih.isoformat()}"
+        )
+        self.assertEqual(res.status_code, 200)
+        self.assertContains(res, "Ahmet Yıldız")
+        self.assertContains(res, "Mehmet Kaya")
+        self.assertContains(res, "Tümü")
+        self.assertContains(res, "Etüdüm")

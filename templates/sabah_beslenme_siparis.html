@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Sabah Beslenmesi · Sipariş · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/sabah-beslenme-premium.css' %}?v=sb3">
+<link rel="stylesheet" href="{% static 'css/sabah-beslenme-premium.css' %}?v=sb4">
 {% endblock %}
 
 {% block content %}
@@ -13,12 +13,12 @@
     <div>
         <p class="kicker">GÖREV MODÜLÜ</p>
         <h1>Sabah Beslenmesi</h1>
-        <p class="muted">Yalnızca size zimmetli talebelerin siparişini girin. Kayıt satış ekranına anında düşer.</p>
+        <p class="muted">Bütün talebeler görünür. Adeti yazın, kayıt satış ekranına anında düşer.</p>
     </div>
     <div class="page-head-actions">
-        <a class="ghost-btn" href="?tarih={{ onceki }}">Önceki gün</a>
+        <a class="ghost-btn" href="?tarih={{ onceki }}{% if etudum %}&amp;etudum=1{% endif %}">Önceki gün</a>
         <input type="date" class="sb-date" value="{{ tarih|date:'Y-m-d' }}" data-sb-date>
-        <a class="ghost-btn" href="?tarih={{ sonraki }}">Sonraki gün</a>
+        <a class="ghost-btn" href="?tarih={{ sonraki }}{% if etudum %}&amp;etudum=1{% endif %}">Sonraki gün</a>
     </div>
 </header>
 
@@ -39,46 +39,69 @@
     <span class="sb-pill{% if pencere_acik %} is-open{% endif %}">{% if pencere_acik %}Açık{% else %}Kapalı{% endif %}</span>
 </section>
 
-<div class="sb-table-wrap sb-siparis-wrap">
-<table class="sb-table sb-siparis-table">
-    <thead>
-        <tr>
-            <th>Talebe</th>
-            <th>Adet</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for satir in satirlar %}
-        <tr data-talebe="{{ satir.talebe.pk }}" data-saved="{% if satir.siparis %}{{ satir.adet }}{% endif %}">
-            <td class="sb-name">
-                <strong>{{ satir.talebe.ad_soyad }}</strong>
-                <span class="sb-class">{{ satir.sinif }}</span>
-            </td>
-            <td class="sb-qty-cell">
-                <input
-                    type="number"
-                    inputmode="numeric"
-                    pattern="[0-9]*"
-                    min="0"
-                    max="20"
-                    step="1"
-                    class="sb-adet-input"
-                    aria-label="{{ satir.talebe.ad_soyad }} adet"
-                    placeholder=""
-                    value="{% if satir.siparis %}{{ satir.adet }}{% endif %}"
-                >
-            </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="2">Zimmetli talebe bulunamadı.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="sb-list-tools">
+    {% if etut_hocasi_var %}
+    <nav class="sb-chips" aria-label="Kapsam">
+        <a class="sb-chip{% if not etudum %} is-on{% endif %}" href="?tarih={{ tarih|date:'Y-m-d' }}">Tümü</a>
+        <a class="sb-chip{% if etudum %} is-on{% endif %}" href="?tarih={{ tarih|date:'Y-m-d' }}&amp;etudum=1">Etüdüm</a>
+    </nav>
+    {% endif %}
+    <label class="sb-search">
+        <span class="visually-hidden">Talebe ara</span>
+        <input type="search" placeholder="Talebe ara" data-sb-name autocomplete="off">
+    </label>
+    <span class="sb-count">{{ talebe_sayisi }} talebe</span>
 </div>
+
+{% for grup in gruplar %}
+<section class="sb-grup" data-sb-grup>
+    <h2 class="sb-sinif-head">{{ grup.sinif }}</h2>
+    <div class="sb-table-wrap sb-siparis-wrap">
+    <table class="sb-table sb-siparis-table">
+        {% if forloop.first %}
+        <thead>
+            <tr>
+                <th>Talebe</th>
+                <th>Adet</th>
+            </tr>
+        </thead>
+        {% endif %}
+        <tbody>
+            {% for satir in grup.satirlar %}
+            <tr data-talebe="{{ satir.talebe.pk }}" data-name="{{ satir.talebe.ad_soyad|lower }}" data-saved="{% if satir.siparis %}{{ satir.adet }}{% endif %}">
+                <td class="sb-name">
+                    <strong>{{ satir.talebe.ad_soyad }}</strong>
+                    <span class="sb-class">{{ satir.sinif }}</span>
+                </td>
+                <td class="sb-qty-cell">
+                    <input
+                        type="number"
+                        inputmode="numeric"
+                        pattern="[0-9]*"
+                        min="0"
+                        max="20"
+                        step="1"
+                        class="sb-adet-input"
+                        aria-label="{{ satir.talebe.ad_soyad }} adet"
+                        placeholder=""
+                        value="{% if satir.siparis %}{{ satir.adet }}{% endif %}"
+                    >
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</section>
+{% empty %}
+<section class="sb-empty">
+    <p>Aktif talebe bulunamadı.</p>
+</section>
+{% endfor %}
 {% endif %}
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/sabah-beslenme.js' %}?v=sb3"></script>
+<script src="{% static 'js/sabah-beslenme.js' %}?v=sb4"></script>
 {% endblock %}
