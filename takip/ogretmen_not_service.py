@@ -136,7 +136,7 @@ def ogretmen_not_girisi_verisi(
     analitik_mod = ders_analitik_okuma_mi(secili_ders)
     analitik_alan = ""
     haftanin_kavrami = ""
-    kayit_durumu = AnalitikKayitDurumu.TASLAK if analitik_mod else AnalitikKayitDurumu.TAMAMLANDI
+    kayit_durumu = None
 
     if secili and secili_ders:
         sinif = SinifSube.objects.filter(pk=secili.id).first()
@@ -219,6 +219,7 @@ def ogretmen_not_girisi_verisi(
         "haftanin_kavrami": haftanin_kavrami,
         "kayit_durumu": kayit_durumu,
         "kayit_tamamlandi": kayit_durumu == AnalitikKayitDurumu.TAMAMLANDI,
+        "kayit_var": kayit_durumu is not None,
         "hata_talebe_ids": [],
         "form_hatalari": [],
     }
