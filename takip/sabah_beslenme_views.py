@@ -312,12 +312,12 @@ def sabah_beslenme_api_teslim(request, pk: int | None = None):
     geri = str(payload.get("undo") or payload.get("geri") or "").lower() in {"1", "true", "evet"}
     try:
         siparis = teslim_geri_al(request.user, siparis_id) if geri else teslim_et(request.user, siparis_id)
+        return JsonResponse(_cevap_paketi(request.user, siparis.menu, siparis))
     except SabahBeslenmeHata as exc:
         return _json_hata(exc)
     except Exception:
         logger.exception("sabah beslenme teslim api")
         return _json_hata("Teslim kaydedilemedi. Sayfayı yenileyip tekrar deneyin.", 500)
-    return JsonResponse(_cevap_paketi(request.user, siparis.menu, siparis))
 
 
 @require_POST
@@ -332,12 +332,12 @@ def sabah_beslenme_api_odeme(request, pk: int | None = None):
         return _json_hata("Sipariş bulunamadı.")
     try:
         siparis = odeme_turu_ayarla(request.user, siparis_id, str(payload.get("odeme_turu") or ""))
+        return JsonResponse(_cevap_paketi(request.user, siparis.menu, siparis))
     except SabahBeslenmeHata as exc:
         return _json_hata(exc)
     except Exception:
         logger.exception("sabah beslenme ödeme api")
         return _json_hata("Ödeme tercihi kaydedilemedi. Sayfayı yenileyip tekrar deneyin.", 500)
-    return JsonResponse(_cevap_paketi(request.user, siparis.menu, siparis))
 
 
 @require_POST

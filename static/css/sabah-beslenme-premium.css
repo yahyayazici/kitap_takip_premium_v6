@@ -243,7 +243,7 @@
 
 .sb-siparis-wrap,
 .sb-satis-wrap {
-    overflow-x: clip;
+    overflow: hidden;
 }
 
 .sb-table {
@@ -295,17 +295,27 @@
 }
 
 .sb-qty-cell {
-    width: 4.25rem;
-    text-align: right;
+    width: 6.75rem;
+    min-width: 6.75rem;
+    text-align: center;
+    padding-right: var(--cs-space-5);
+}
+
+.sb-siparis-table th:last-child {
+    width: 6.75rem;
+    text-align: center;
+    padding-right: var(--cs-space-5);
 }
 
 .sb-adet-input {
-    width: 3.75rem;
+    width: 3.5rem;
     min-height: var(--cs-touch-min);
     text-align: center;
     font-size: 16px;
     font-weight: 700;
     padding: 0 0.2rem;
+    margin: 0 auto;
+    display: block;
 }
 
 .sb-pay {
@@ -474,7 +484,13 @@
     .sb-siparis-table .sb-qty-cell {
         grid-area: qty;
         width: auto;
+        min-width: 0;
+        padding-right: 0;
         text-align: right;
+    }
+    .sb-siparis-table .sb-adet-input {
+        display: inline-block;
+        margin: 0;
     }
 
     .sb-satis-table tr[data-id] {

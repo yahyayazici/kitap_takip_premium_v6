@@ -292,7 +292,7 @@ def siparis_kaydet(user: User, *, menu: SabahBeslenmeGunlukMenu, talebe_id: int,
 
     with transaction.atomic():
         siparis = (
-            SabahBeslenmeSiparis.objects.select_for_update()
+            SabahBeslenmeSiparis.objects.select_for_update(of=("self",))
             .filter(menu=menu, talebe=talebe)
             .first()
         )
@@ -313,7 +313,7 @@ def siparis_kaydet(user: User, *, menu: SabahBeslenmeGunlukMenu, talebe_id: int,
                     kaydeden=user,
                 )
             except IntegrityError:
-                siparis = SabahBeslenmeSiparis.objects.select_for_update().get(
+                siparis = SabahBeslenmeSiparis.objects.select_for_update(of=("self",)).get(
                     menu=menu, talebe=talebe
                 )
                 if siparis.teslim_edildi:
@@ -355,17 +355,22 @@ def _borc_uygula(siparis: SabahBeslenmeSiparis) -> None:
     siparis.borc_kapatma_saati = None
 
 
+def _kilitli_siparis(siparis_id: int) -> SabahBeslenmeSiparis | None:
+    """Postgres FOR UPDATE, nullable etüt/teslim join'ini kilitlemez."""
+    return (
+        SabahBeslenmeSiparis.objects.select_for_update(of=("self",))
+        .select_related("menu", "talebe", "etut_hocasi", "teslim_eden")
+        .filter(pk=siparis_id)
+        .first()
+    )
+
+
 def teslim_et(user: User, siparis_id: int) -> SabahBeslenmeSiparis:
     if not satis_yapabilir(user):
         raise SabahBeslenmeHata("Satış işlemi yetkiniz yok.")
 
     with transaction.atomic():
-        siparis = (
-            SabahBeslenmeSiparis.objects.select_for_update()
-            .select_related("menu", "talebe", "etut_hocasi", "teslim_eden")
-            .filter(pk=siparis_id)
-            .first()
-        )
+        siparis = _kilitli_siparis(siparis_id)
         if not siparis:
             raise SabahBeslenmeHata("Sipariş bulunamadı.")
         if siparis.adet <= 0:
@@ -392,12 +397,7 @@ def teslim_geri_al(user: User, siparis_id: int) -> SabahBeslenmeSiparis:
         raise SabahBeslenmeHata("Satış işlemi yetkiniz yok.")
 
     with transaction.atomic():
-        siparis = (
-            SabahBeslenmeSiparis.objects.select_for_update()
-            .select_related("menu", "talebe", "etut_hocasi", "teslim_eden")
-            .filter(pk=siparis_id)
-            .first()
-        )
+        siparis = _kilitli_siparis(siparis_id)
         if not siparis:
             raise SabahBeslenmeHata("Sipariş bulunamadı.")
         if not siparis.teslim_edildi:
@@ -428,12 +428,7 @@ def odeme_turu_ayarla(user: User, siparis_id: int, odeme_turu: str) -> SabahBesl
         raise SabahBeslenmeHata("Ödeme türü geçersiz.")
 
     with transaction.atomic():
-        siparis = (
-            SabahBeslenmeSiparis.objects.select_for_update()
-            .select_related("menu", "talebe", "etut_hocasi", "teslim_eden")
-            .filter(pk=siparis_id)
-            .first()
-        )
+        siparis = _kilitli_siparis(siparis_id)
         if not siparis:
             raise SabahBeslenmeHata("Sipariş bulunamadı.")
         if siparis.borc_kapatildi and odeme_turu == SabahBeslenmeSiparis.OdemeTuru.BORC:
@@ -454,12 +449,7 @@ def borc_kapat(user: User, siparis_id: int) -> SabahBeslenmeSiparis:
         raise SabahBeslenmeHata("Borç kapatma yetkiniz yok.")
 
     with transaction.atomic():
-        siparis = (
-            SabahBeslenmeSiparis.objects.select_for_update()
-            .select_related("menu", "talebe", "etut_hocasi", "teslim_eden")
-            .filter(pk=siparis_id)
-            .first()
-        )
+        siparis = _kilitli_siparis(siparis_id)
         if not siparis:
             raise SabahBeslenmeHata("Sipariş bulunamadı.")
         if not siparis.teslim_edildi or not siparis.borc_kaydi_olustu:
