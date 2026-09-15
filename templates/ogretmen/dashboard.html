@@ -10,35 +10,13 @@
 
 {% include "includes/panel_hero.html" with title="Hoş geldiniz, "|add:hoca.ad_soyad meta="Öğretmen · Kurum paneli" date_obj=bugun %}
 
-<section class="og-wow-not" aria-labelledby="og-not-title">
-    <section class="og-wow-week">
-        <div class="og-wow-week-copy">
-            <p class="og-wow-week-kicker">Not girişi</p>
-            <h2 id="og-not-title">{{ hafta_no }}. Hafta · {{ hafta_baslangic|date:"d.m.Y" }} – {{ hafta_bitis|date:"d.m.Y" }}</h2>
-            <p>Yoklama alın, haftalık notları girin; kayıtlar veli paneline anında yansır.</p>
-        </div>
-        <a href="{% url 'ogretmen_not_girisi' %}" class="og-wow-cta">Not Girişi Yap →</a>
-    </section>
-    <section class="og-wow-card og-wow-classes">
-        <header class="og-wow-card-head">
-            <div>
-                <p class="og-wow-kicker">Sınıflar</p>
-                <h2>Hızlı yoklama / not</h2>
-            </div>
-        </header>
-        <p class="og-wow-hint">Sınıfa dokunun — yoklama ve not girişine gidersiniz.</p>
-        <div class="og-wow-class-grid">
-            {% for sinif in siniflar %}
-            <a href="{% url 'ogretmen_not_girisi_sinif' sinif.id %}" class="og-wow-class-tile">
-                <span class="og-wow-class-badge">{{ sinif.etiket }}</span>
-                <strong>{{ sinif.ogrenci_sayisi }} öğrenci</strong>
-                <span>Not & yoklama →</span>
-            </a>
-            {% empty %}
-            <p class="og-wow-empty">Henüz sınıf zimmetiniz yok. Yönetim → Öğretmenler ekranından gireceğiniz sınıflar atanmalı.</p>
-            {% endfor %}
-        </div>
-    </section>
+<section class="og-wow-week" aria-labelledby="og-not-title">
+    <div class="og-wow-week-copy">
+        <p class="og-wow-week-kicker">Not girişi</p>
+        <h2 id="og-not-title">{{ hafta_no }}. Hafta · {{ hafta_baslangic|date:"d.m.Y" }} – {{ hafta_bitis|date:"d.m.Y" }}</h2>
+        <p>Yoklama alın, haftalık notları girin; kayıtlar veli paneline anında yansır.</p>
+    </div>
+    <a href="{% url 'ogretmen_not_girisi' %}" class="og-wow-cta">Not Girişi Yap →</a>
 </section>
 
 <div class="ogretmen-top-split">
@@ -81,6 +59,27 @@
         {% include "includes/duyuru_carousel.html" %}
     </div>
 </div>
+
+<section class="og-wow-card og-wow-classes">
+    <header class="og-wow-card-head">
+        <div>
+            <p class="og-wow-kicker">Sınıflar</p>
+            <h2>Hızlı yoklama / not</h2>
+        </div>
+    </header>
+    <p class="og-wow-hint">Sınıfa dokunun — yoklama ve not girişine gidersiniz.</p>
+    <div class="og-wow-class-grid">
+        {% for sinif in siniflar %}
+        <a href="{% url 'ogretmen_not_girisi_sinif' sinif.id %}" class="og-wow-class-tile">
+            <span class="og-wow-class-badge">{{ sinif.etiket }}</span>
+            <strong>{{ sinif.ogrenci_sayisi }} öğrenci</strong>
+            <span>Not & yoklama →</span>
+        </a>
+        {% empty %}
+        <p class="og-wow-empty">Henüz sınıf zimmetiniz yok. Yönetim → Öğretmenler ekranından gireceğiniz sınıflar atanmalı.</p>
+        {% endfor %}
+    </div>
+</section>
 
 {% include "includes/dash_kisayol_grid.html" %}
 
