@@ -167,15 +167,13 @@
         }
         var disabledPay = !canSatis || s.borc_kapatildi ? " disabled" : "";
         var disabledTick = !canSatis ? " disabled" : "";
+        var borcOn = s.odeme_turu === "borc";
         tr.innerHTML =
             "<td><strong>" + s.talebe + "</strong>" + meta + "</td>" +
             "<td>" + s.etut + "<br><small>" + s.sinif + "</small></td>" +
             "<td>" + s.adet + "</td>" +
             '<td class="sb-tutar">' + s.tutar_etiket + "</td>" +
-            "<td><div class=\"sb-pay\" role=\"group\" aria-label=\"Ödeme\">" +
-            '<button type="button" class="sb-pay-btn' + (s.odeme_turu === "pesin" ? " is-on" : "") + '" data-pay="pesin"' + disabledPay + ">Peşin</button>" +
-            '<button type="button" class="sb-pay-btn' + (s.odeme_turu === "borc" ? " is-on" : "") + '" data-pay="borc"' + disabledPay + ">Borç</button>" +
-            "</div></td>" +
+            '<td><button type="button" class="sb-pay-btn' + (borcOn ? " is-on" : "") + '" data-pay="borc" aria-pressed="' + (borcOn ? "true" : "false") + '"' + disabledPay + ">Borç</button></td>" +
             '<td class="sb-tick-col"><button type="button" class="sb-tick' + (s.teslim_edildi ? " is-done" : "") + '" data-tick' + disabledTick + ' aria-pressed="' + (s.teslim_edildi ? "true" : "false") + '" aria-label="Teslim / satış"><span class="sb-tick-icon" aria-hidden="true"></span></button></td>';
     }
 
@@ -287,7 +285,8 @@
 
             if (pay) {
                 busy.add(id);
-                postJson(odemeUrl, { siparis_id: Number(id), odeme_turu: pay.getAttribute("data-pay") })
+                var nextPay = row.getAttribute("data-odeme") === "borc" ? "pesin" : "borc";
+                postJson(odemeUrl, { siparis_id: Number(id), odeme_turu: nextPay })
                     .then(function (data) {
                         applyOzet(root, data.ozet);
                         if (data.siparis) paintRow(row, data.siparis, canSatis);

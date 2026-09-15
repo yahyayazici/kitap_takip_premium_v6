@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Sabah Beslenmesi · Satış · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/sabah-beslenme-premium.css' %}?v=sb7">
+<link rel="stylesheet" href="{% static 'css/sabah-beslenme-premium.css' %}?v=sb8">
 {% endblock %}
 
 {% block content %}
@@ -21,7 +21,7 @@
     <div>
         <p class="kicker">GÖREV MODÜLÜ</p>
         <h1>Sabah Beslenmesi — Satış</h1>
-        <p class="muted">{% if menu %}{{ menu.urun }} · {{ menu.birim_fiyat }} ₺ · {% endif %}Peşin veya borç seçin, kutucuk teslimi kaydeder.</p>
+        <p class="muted">{% if menu %}{{ menu.urun }} · {{ menu.birim_fiyat }} ₺ · {% endif %}Kutucuk peşin teslimdir. Borca yazmak için Borç’a basın.</p>
     </div>
     <div class="page-head-actions">
         <a class="ghost-btn" href="?tarih={{ onceki }}">Önceki gün</a>
@@ -97,7 +97,7 @@
             <th>Etüt / Sınıf</th>
             <th>Adet</th>
             <th>Tutar</th>
-            <th>Peşin / Borç</th>
+            <th>Borç</th>
             <th class="sb-tick-col">Teslim</th>
         </tr>
     </thead>
@@ -121,10 +121,13 @@
             <td>{{ s.adet }}</td>
             <td class="sb-tutar">{{ s.tutar }} ₺</td>
             <td>
-                <div class="sb-pay" role="group" aria-label="Ödeme">
-                    <button type="button" class="sb-pay-btn{% if s.odeme_turu == 'pesin' %} is-on{% endif %}" data-pay="pesin" {% if not satis_yapabilir or s.borc_kapatildi %}disabled{% endif %}>Peşin</button>
-                    <button type="button" class="sb-pay-btn{% if s.odeme_turu == 'borc' %} is-on{% endif %}" data-pay="borc" {% if not satis_yapabilir or s.borc_kapatildi %}disabled{% endif %}>Borç</button>
-                </div>
+                <button
+                    type="button"
+                    class="sb-pay-btn{% if s.odeme_turu == 'borc' %} is-on{% endif %}"
+                    data-pay="borc"
+                    aria-pressed="{% if s.odeme_turu == 'borc' %}true{% else %}false{% endif %}"
+                    {% if not satis_yapabilir or s.borc_kapatildi %}disabled{% endif %}
+                >Borç</button>
             </td>
             <td class="sb-tick-col">
                 <button type="button" class="sb-tick{% if s.teslim_edildi %} is-done{% endif %}" data-tick {% if not satis_yapabilir %}disabled{% endif %} aria-pressed="{{ s.teslim_edildi|yesno:'true,false' }}" aria-label="Teslim / satış">
@@ -143,5 +146,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/sabah-beslenme.js' %}?v=sb5"></script>
+<script src="{% static 'js/sabah-beslenme.js' %}?v=sb8"></script>
 {% endblock %}
