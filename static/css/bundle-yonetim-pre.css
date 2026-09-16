@@ -7931,6 +7931,44 @@ div.choice-chip-radio:has(> div > label > input[type="radio"]) > div:first-child
 
 
 
+/* Mobilde zil, ekranın sağ kenarında değil (avatar + çıkış onun sağında).
+   Panel zile "right: 0" ile hizalanınca sol tarafı ekran dışında kalıyordu;
+   burada zil yerine header satırına hizalayıp ekran içinde tutuyoruz. */
+
+@media (max-width: 720px) {
+
+    .v3-header-inner,
+
+    .cs-v6-inner {
+
+        position: relative;
+
+    }
+
+    .bn-bell-wrap {
+
+        position: static;
+
+    }
+
+    .bn-panel {
+
+        left: 12px;
+
+        right: 12px;
+
+        width: auto;
+
+        max-width: 360px;
+
+        margin-left: auto;
+
+    }
+
+}
+
+
+
 @keyframes bn-pop {
 
     from { opacity: 0; transform: translateY(-6px); }
