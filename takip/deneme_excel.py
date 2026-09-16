@@ -29,10 +29,22 @@ from takip.models import (
 BRANS_TANIMLARI: tuple[tuple[str, str, tuple[str, ...]], ...] = (
     ("turkce", "Türkçe", ("türkçe", "turkce")),
     ("matematik", "Matematik", ("matematik", "mat")),
-    ("fen", "Fen Bilimleri", ("fen bilimleri", "fen bilgisi", "fen", "fizik")),
-    ("sosyal", "Sosyal Bilgiler", ("sosyal bilgiler", "sosyal", "inkılap", "inkilap")),
-    ("din", "Din Kültürü", ("din kültürü", "din kulturu", "din")),
-    ("ingilizce", "İngilizce", ("ingilizce", "ingilizce", "ing")),
+    (
+        "fen",
+        "Fen Bilimleri",
+        ("fen bilimleri", "fen bilgisi", "fen bil", "fenbilimleri", "fen", "fizik"),
+    ),
+    (
+        "sosyal",
+        "Sosyal Bilgiler",
+        ("sosyal bilgiler", "sosyal", "inkılap", "inkilap", "ataturk"),
+    ),
+    ("din", "Din Kültürü", ("din kültürü", "din kulturu", "dkab", "ahlak", "din")),
+    (
+        "ingilizce",
+        "İngilizce",
+        ("ingilizce", "yabanci dil", "yabancı dil", "english", "ing"),
+    ),
 )
 
 BRANS_KODLARI = [k for k, _, _ in BRANS_TANIMLARI]
@@ -170,11 +182,16 @@ def _puanlar_grubu_mu(baslik: str) -> bool:
 
 def _baslik_brans_iceriyor(baslik: str) -> bool:
     anahtar = normalize_ad(baslik)
-    if not anahtar:
+    if not anahtar or _toplam_grubu_mu(baslik):
         return False
+    tokens = anahtar.split()
     for _, _, anahtarlar in BRANS_TANIMLARI:
-        if any(a in anahtar for a in anahtarlar):
-            return True
+        for a in anahtarlar:
+            if len(a) <= 3:
+                if any(tok == a or tok.startswith(a) for tok in tokens):
+                    return True
+            elif a in anahtar:
+                return True
     return False
 
 
@@ -182,12 +199,19 @@ def _brans_kodu(baslik: str) -> str | None:
     anahtar = normalize_ad(baslik)
     if not anahtar:
         return None
-    # "puanlar / sıralamalar" branş değil
+    # "puanlar / sıralamalar" ve "Toplam" branş değil ("mat" in "toplam" olmasın)
     if "puan" in anahtar or "siralama" in anahtar:
         return None
+    if _toplam_grubu_mu(baslik):
+        return None
+    tokens = anahtar.split()
     for kod, _, anahtarlar in BRANS_TANIMLARI:
-        if any(a in anahtar for a in anahtarlar):
-            return kod
+        for a in anahtarlar:
+            if len(a) <= 3:
+                if any(tok == a or tok.startswith(a) for tok in tokens):
+                    return kod
+            elif a in anahtar:
+                return kod
     return None
 
 
@@ -306,6 +330,27 @@ def _puan_kolonunu_sec(
     return ayni[-1]
 
 
+def _toplam_grubu_mu(baslik: str) -> bool:
+    anahtar = normalize_ad(baslik)
+    if not anahtar:
+        return False
+    if "puan" in anahtar or "sira" in anahtar:
+        return False
+    return anahtar in {"toplam", "genel"} or anahtar.startswith("toplam ")
+
+
+def _dybn_alani(anahtar: str) -> str | None:
+    if anahtar in {"dogru", "doğru", "d"}:
+        return "dogru"
+    if anahtar in {"yanlis", "yanlış", "y"}:
+        return "yanlis"
+    if anahtar in {"bos", "boş", "b"}:
+        return "bos"
+    if anahtar in {"net", "n"}:
+        return "net"
+    return None
+
+
 def _okyanus_format_mi(satirlar: list[list[str]]) -> bool:
     if len(satirlar) < 2:
         return False
@@ -338,17 +383,16 @@ def _duz_baslik_haritasi(
             harita.setdefault("toplam", {})["net"] = idx
             continue
 
-        for kod, _, anahtarlar in BRANS_TANIMLARI:
-            if any(a in anahtar for a in anahtarlar):
-                if "dogru" in anahtar or anahtar.endswith(" d"):
-                    harita["brans"].setdefault(kod, {})["dogru"] = idx
-                elif "yanlis" in anahtar or "yanlış" in baslik.lower():
-                    harita["brans"].setdefault(kod, {})["yanlis"] = idx
-                elif "bos" in anahtar or "boş" in baslik.lower():
-                    harita["brans"].setdefault(kod, {})["bos"] = idx
-                elif "net" in anahtar:
-                    harita["brans"].setdefault(kod, {})["net"] = idx
-                break
+        kod = _brans_kodu(baslik)
+        if kod:
+            if "dogru" in anahtar or anahtar.endswith(" d"):
+                harita["brans"].setdefault(kod, {})["dogru"] = idx
+            elif "yanlis" in anahtar or "yanlış" in baslik.lower():
+                harita["brans"].setdefault(kod, {})["yanlis"] = idx
+            elif "bos" in anahtar or "boş" in baslik.lower():
+                harita["brans"].setdefault(kod, {})["bos"] = idx
+            elif "net" in anahtar:
+                harita["brans"].setdefault(kod, {})["net"] = idx
 
         if "toplam" in anahtar or "genel" in anahtar:
             if "dogru" in anahtar:
@@ -392,17 +436,13 @@ def _okyanus_baslik_haritasi(
 
     for idx, baslik in enumerate(alt_norm):
         anahtar = normalize_ad(baslik)
+        alan = _dybn_alani(anahtar)
         kod = _brans_kodu(ust_grup[idx])
-        if not kod:
+        if kod and alan:
+            harita["brans"].setdefault(kod, {})[alan] = idx
             continue
-        if anahtar in {"dogru", "doğru"}:
-            harita["brans"].setdefault(kod, {})["dogru"] = idx
-        elif anahtar in {"yanlis", "yanlış"}:
-            harita["brans"].setdefault(kod, {})["yanlis"] = idx
-        elif anahtar in {"bos", "boş"}:
-            harita["brans"].setdefault(kod, {})["bos"] = idx
-        elif anahtar == "net":
-            harita["brans"].setdefault(kod, {})["net"] = idx
+        if _toplam_grubu_mu(ust_grup[idx]) and alan:
+            harita["toplam"][alan] = idx
 
     puan_idx = _puan_kolonunu_sec(ust, alt, veri_satirlari)
     if puan_idx is not None:

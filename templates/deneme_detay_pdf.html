@@ -27,31 +27,49 @@
         .pdf-karne.deneme-detay-pdf .doc-title { font-size: 7px; }
         .pdf-karne.deneme-detay-pdf .gap6 { height: 4px; }
         .pdf-karne.deneme-detay-pdf .gap8 { height: 5px; }
-        .pdf-karne.deneme-detay-pdf .hero { padding: 8px 10px; border-radius: 8px; }
-        .pdf-karne.deneme-detay-pdf .hero-title { font-size: 13px; margin-top: 3px; }
-        .pdf-karne.deneme-detay-pdf .hero-meta { font-size: 6px; margin-top: 3px; }
-        .pdf-karne.deneme-detay-pdf .stat-cell { padding: 5px 6px; border-radius: 8px; }
-        .pdf-karne.deneme-detay-pdf .stat-metric { font-size: 13px; margin-top: 2px; }
-        .pdf-karne.deneme-detay-pdf .stat-label { font-size: 5.5px; }
-        .pdf-karne.deneme-detay-pdf .stat-sub { font-size: 5.5px; }
-        .pdf-karne.deneme-detay-pdf .table-panel-head { padding: 6px 8px 0; }
-        .pdf-karne.deneme-detay-pdf .section-title { font-size: 9px; }
-        .pdf-karne.deneme-detay-pdf .table-panel-accent { background: #7c3aed; }
+        .pdf-karne.deneme-detay-pdf .hero { padding: 10px 16px; }
+        .pdf-karne.deneme-detay-pdf .hero-inner { padding-right: 58px; }
+        .pdf-karne.deneme-detay-pdf .hero-deco {
+            opacity: 0.34;
+            right: 16px;
+            width: 44px;
+            height: 44px;
+            margin-top: -22px;
+        }
+        .pdf-karne.deneme-detay-pdf .stats-table {
+            width: 100%;
+            margin-left: 0;
+            border-spacing: 6px 0;
+        }
+        .pdf-karne.deneme-detay-pdf .table-panel-head { padding: 6px 10px 0; }
         .pdf-karne.deneme-detay-pdf .results-wrap {
             column-count: 1 !important;
-            padding: 0 6px 6px;
+            padding: 4px 8px 8px;
         }
         .pdf-karne.deneme-detay-pdf table.results {
             width: 100%;
             table-layout: fixed;
         }
+        .pdf-karne.deneme-detay-pdf table.results col.col-sira { width: 9%; }
+        .pdf-karne.deneme-detay-pdf table.results col.col-ad { width: 37%; }
+        .pdf-karne.deneme-detay-pdf table.results col.col-num { width: 10.8%; }
         .pdf-karne.deneme-detay-pdf table.results thead th {
-            padding: 4px 3px;
-            font-size: 5.8px;
+            padding: 5px 2px;
+            font-size: 6.2px;
+            text-align: center;
+        }
+        .pdf-karne.deneme-detay-pdf table.results thead th.left {
+            text-align: left;
+            padding-left: 6px;
         }
         .pdf-karne.deneme-detay-pdf table.results tbody td {
-            padding: 2.5px 3px;
-            font-size: 7px;
+            padding: 3px 2px;
+            font-size: 7.2px;
+            text-align: center;
+        }
+        .pdf-karne.deneme-detay-pdf table.results tbody td.left {
+            text-align: left;
+            padding-left: 6px;
         }
         .pdf-karne.deneme-detay-pdf .student-name {
             font-size: 7.2px;
@@ -128,10 +146,10 @@
 
     <tr>
         <td class="hero">
-            <svg class="hero-deco" width="80" height="48" viewBox="0 0 120 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="18" y="10" width="72" height="52" rx="8" fill="#FFFFFF" opacity="0.85"/>
-                <rect x="28" y="22" width="52" height="4" rx="2" fill="#FFFFFF" opacity="0.55"/>
-                <rect x="28" y="32" width="42" height="4" rx="2" fill="#FFFFFF" opacity="0.45"/>
+            <svg class="hero-deco" width="44" height="44" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="11" y="9" width="26" height="32" rx="4" stroke="#FFFFFF" stroke-width="2.2"/>
+                <rect x="17" y="6" width="14" height="7" rx="2" fill="#FFFFFF"/>
+                <path d="M18 22h12M18 28h12M18 34h8" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/>
             </svg>
             <div class="hero-inner">
                         <div class="hero-tag">{{ liste.liste_kicker|default:"Deneme Sınavı" }}</div>

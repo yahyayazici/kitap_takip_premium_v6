@@ -1,5 +1,18 @@
 {% extends "yonetim/base.html" %}
 {% block title %}{{ deneme.ad }}{% endblock %}
+{% block extra_css %}
+<style>
+.yonetim-page .deneme-siralama-table thead th,
+.yonetim-page .deneme-siralama-table tbody td {
+    text-align: left;
+}
+.yonetim-page .deneme-siralama-table thead th.num-col,
+.yonetim-page .deneme-siralama-table tbody td.num-col {
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+</style>
+{% endblock %}
 {% block content %}
 <div class="yonetim-page">
     <header class="yonetim-page-head">
@@ -139,20 +152,37 @@
     <section class="yonetim-card">
         <h2>Genel Sıralama</h2>
         <div class="responsive-table">
-            <table class="yonetim-table">
+            <table class="yonetim-table deneme-siralama-table">
+                <colgroup>
+                    <col style="width:6%">
+                    <col style="width:34%">
+                    <col style="width:12%">
+                    <col style="width:12%">
+                    <col style="width:12%">
+                    <col style="width:12%">
+                    <col style="width:12%">
+                </colgroup>
                 <thead>
-                    <tr><th>#</th><th>Talebe</th><th>Doğru</th><th>Yanlış</th><th>Boş</th><th>Net</th><th>Puan</th></tr>
+                    <tr>
+                        <th class="num-col">#</th>
+                        <th>Talebe</th>
+                        <th class="num-col">Doğru</th>
+                        <th class="num-col">Yanlış</th>
+                        <th class="num-col">Boş</th>
+                        <th class="num-col">Net</th>
+                        <th class="num-col">Puan</th>
+                    </tr>
                 </thead>
                 <tbody>
                     {% for sonuc in sonuclar %}
                     <tr>
-                        <td>{{ forloop.counter }}</td>
+                        <td class="num-col">{{ forloop.counter }}</td>
                         <td>{{ sonuc.talebe.ad_soyad }}</td>
-                        <td>{{ sonuc.toplam_dogru }}</td>
-                        <td>{{ sonuc.toplam_yanlis }}</td>
-                        <td>{{ sonuc.toplam_bos }}</td>
-                        <td>{{ sonuc.toplam_net }}</td>
-                        <td>{{ sonuc.puan }}</td>
+                        <td class="num-col">{{ sonuc.toplam_dogru }}</td>
+                        <td class="num-col">{{ sonuc.toplam_yanlis }}</td>
+                        <td class="num-col">{{ sonuc.toplam_bos }}</td>
+                        <td class="num-col">{{ sonuc.toplam_net }}</td>
+                        <td class="num-col">{{ sonuc.puan }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

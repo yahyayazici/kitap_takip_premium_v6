@@ -29,12 +29,22 @@
     <section class="result-card">
         <h2 class="deneme-section-title">Genel Sıralama</h2>
         <div class="responsive-table deneme-result-table">
-            <table class="report-data-table">
+            <table class="report-data-table deneme-siralama-table">
+                <colgroup>
+                    <col style="width:6%">
+                    <col style="width:28%">
+                    <col style="width:10%">
+                    <col style="width:10%">
+                    <col style="width:10%">
+                    <col style="width:12%">
+                    <col style="width:12%">
+                    <col style="width:12%">
+                </colgroup>
                 <thead>
                     <tr>
-                        <th>#</th>
+                        <th class="num-col">#</th>
                         <th>Talebe</th>
-                        <th>Sınıf</th>
+                        <th class="num-col">Sınıf</th>
                         <th class="num-col">Doğru</th>
                         <th class="num-col">Yanlış</th>
                         <th class="num-col">Boş</th>
@@ -47,7 +57,7 @@
                     <tr class="deneme-result-row">
                         <td class="num-col" data-label="#">{{ forloop.counter }}</td>
                         <td data-label="Talebe"><strong>{{ sonuc.talebe.ad_soyad }}</strong></td>
-                        <td data-label="Sınıf">{{ sonuc.talebe.sinif_sube }}</td>
+                        <td class="num-col" data-label="Sınıf">{{ sonuc.talebe.sinif_sube }}</td>
                         <td class="num-col" data-label="Doğru">{{ sonuc.toplam_dogru }}</td>
                         <td class="num-col" data-label="Yanlış">{{ sonuc.toplam_yanlis }}</td>
                         <td class="num-col" data-label="Boş">{{ sonuc.toplam_bos }}</td>
@@ -141,6 +151,15 @@
     font-size: 1.05rem;
     font-weight: 800;
     color: #0f172a;
+}
+.deneme-siralama-table thead th,
+.deneme-siralama-table tbody td {
+    text-align: left;
+}
+.deneme-siralama-table thead th.num-col,
+.deneme-siralama-table tbody td.num-col {
+    text-align: center;
+    font-variant-numeric: tabular-nums;
 }
 .deneme-section-desc {
     margin: 0 0 16px;

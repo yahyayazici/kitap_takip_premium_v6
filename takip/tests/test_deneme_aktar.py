@@ -198,6 +198,58 @@ class DenemePuanAktarTests(TestCase):
         sonuc.refresh_from_db()
         self.assertEqual(sonuc.puan, Decimal("500.00"))
 
+    def test_okyanus_toplam_dyb_grubu_cekilir(self):
+        dosya = _xlsx(
+            [
+                ["", "Türkçe", "", "", "", "Toplam", "", "", "", "Puan"],
+                [
+                    "Ad Soyad",
+                    "Doğru",
+                    "Yanlış",
+                    "Boş",
+                    "Net",
+                    "Doğru",
+                    "Yanlış",
+                    "Boş",
+                    "Net",
+                    "",
+                ],
+                [
+                    "Mehmet Murat Gölbaşı",
+                    18,
+                    2,
+                    0,
+                    17.5,
+                    87,
+                    3,
+                    0,
+                    86.01,
+                    486.20,
+                ],
+            ]
+        )
+        onizleme = deneme_excel_onizle(dosya)
+        self.assertEqual(onizleme.satirlar[0].toplam["dogru"], 87)
+        self.assertEqual(onizleme.satirlar[0].toplam["yanlis"], 3)
+        self.assertEqual(onizleme.satirlar[0].toplam["bos"], 0)
+        self.assertEqual(onizleme.satirlar[0].toplam["net"], "86.01")
+        deneme_sonuclari_aktar(self.deneme, onizleme, self.user)
+        sonuc = DenemeSonucu.objects.get(deneme=self.deneme)
+        self.assertEqual(sonuc.toplam_dogru, 87)
+        self.assertEqual(sonuc.toplam_yanlis, 3)
+        self.assertEqual(sonuc.puan, Decimal("486.20"))
+
+    def test_yabanci_dil_ingilizce_olarak_okunur(self):
+        dosya = _xlsx(
+            [
+                ["", "Yabancı Dil", "", "", ""],
+                ["Ad Soyad", "Doğru", "Yanlış", "Boş", "Net"],
+                ["Mehmet Murat Gölbaşı", 9, 1, 0, 8.75],
+            ]
+        )
+        onizleme = deneme_excel_onizle(dosya)
+        self.assertIn("ingilizce", onizleme.satirlar[0].branslar)
+
 
 class DenemeSilVePdfTests(TestCase):
     def setUp(self):
@@ -331,3 +383,10 @@ class DenemeEtutKapsamTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "Kendi Talebe")
         self.assertNotContains(resp, "Başka Talebe")
+
+    def test_etut_listede_sadece_kendi_sonuc_sayisi(self):
+        self.client.force_login(self.etut_user)
+        resp = self.client.get(reverse("deneme_listesi"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "1 öğrenci")
+        self.assertNotContains(resp, "2 öğrenci")

@@ -5,7 +5,7 @@ from __future__ import annotations
 from decimal import Decimal, ROUND_HALF_UP
 
 from django.contrib.auth.models import User
-from django.db.models import Count, QuerySet
+from django.db.models import Count, Q, QuerySet
 
 from takip.models import DenemeSinavi, DenemeSonucu, Talebe
 from takip.permissions.scope import tum_talebe_kapsami_var, yetkili_talebeler
@@ -168,18 +168,27 @@ def yetkili_denemeler(user: User) -> QuerySet[DenemeSinavi]:
     if not can(user, "deneme", "view"):
         return DenemeSinavi.objects.none()
 
-    qs = DenemeSinavi.objects.annotate(
-        sonuc_sayisi=Count("sonuclar")
-    ).order_by("-sinav_tarihi", "-id")
-
     if user.is_superuser or tum_talebe_kapsami_var(user):
-        return qs
+        return DenemeSinavi.objects.annotate(
+            sonuc_sayisi=Count("sonuclar", distinct=True)
+        ).order_by("-sinav_tarihi", "-id")
 
     talebe_ids = yetkili_talebeler(user).values_list("id", flat=True)
-    return qs.filter(
-        durum=DenemeSinavi.Durum.AKTIF,
-        sonuclar__talebe_id__in=talebe_ids,
-    ).distinct()
+    return (
+        DenemeSinavi.objects.annotate(
+            sonuc_sayisi=Count(
+                "sonuclar",
+                filter=Q(sonuclar__talebe_id__in=talebe_ids),
+                distinct=True,
+            )
+        )
+        .filter(
+            durum=DenemeSinavi.Durum.AKTIF,
+            sonuclar__talebe_id__in=talebe_ids,
+        )
+        .distinct()
+        .order_by("-sinav_tarihi", "-id")
+    )
 
 
 def yetkili_deneme_sonuclari(user: User) -> QuerySet[DenemeSonucu]:
