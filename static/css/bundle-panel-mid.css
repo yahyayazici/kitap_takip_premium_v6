@@ -1,0 +1,3594 @@
+/* OTOMATIK ÜRETİLDİ — elle düzenlemeyin.
+   Kaynak: scripts/build_css_bundle.py.
+   Kaynak CSS dosyalarından biri değişince script'i tekrar
+   çalıştırın (build.sh collectstatic'ten önce otomatik yapar). */
+
+/* ---- css/cs-design-constitution.css ---- */
+/* ============================================================
+   ÇİNİLİ SARAY PROJE — Global UI / UX Design Constitution
+   Yalnızca görsel katman · işleyişe dokunmaz
+   ============================================================ */
+
+html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+body.v3-body,
+body.yonetim-body,
+body.ogretmen-body,
+body.veli-body,
+body.talebe-body {
+    font-family: var(--cs-font) !important;
+    font-size: var(--cs-font-body);
+    line-height: var(--cs-line-height-body);
+    color: var(--cs-text-primary);
+    background:
+        radial-gradient(120% 80% at 50% -12%, #f8fafd 0%, transparent 55%),
+        var(--cs-background) !important;
+    min-height: 100dvh;
+    overflow-x: clip;
+    padding-left: var(--cs-safe-left);
+    padding-right: var(--cs-safe-right);
+}
+
+img, svg, video, canvas {
+    max-width: 100%;
+    height: auto;
+}
+
+.v3-main .page-content,
+.cs-v6-main,
+.dashboard-page,
+.report-page,
+.library-page,
+.profile-page,
+.yonetim-page {
+    width: 100%;
+    max-width: var(--cs-content-wide);
+    margin-inline: auto;
+    box-sizing: border-box;
+}
+
+.v3-main .page-content {
+    padding:
+        calc(var(--cs-space-5) + var(--cs-safe-top))
+        var(--cs-page-gutter)
+        calc(var(--cs-space-8) + var(--cs-safe-bottom)) !important;
+}
+
+.cs-v6-main {
+    padding:
+        calc(var(--cs-space-6) + var(--cs-safe-top))
+        var(--cs-page-gutter)
+        calc(var(--cs-space-9) + var(--cs-safe-bottom)) !important;
+}
+
+.library-page,
+.report-page,
+.profile-page,
+.dashboard-page:not(.dash-home),
+.yonetim-page,
+.exam-create-page,
+.daily-page,
+.ktt-page,
+.at-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cs-density-gap) !important;
+    min-width: 0;
+}
+
+h1, .welcome-title {
+    font-size: var(--cs-font-page-title);
+    font-weight: 650;
+    letter-spacing: var(--cs-letter-tight);
+    line-height: var(--cs-line-height-tight);
+}
+
+h2, .card-heading h2 {
+    font-size: var(--cs-font-section);
+    font-weight: 600;
+    letter-spacing: -0.018em;
+}
+
+.kicker, .card-kicker, .dash-eyebrow {
+    font-size: var(--cs-font-label) !important;
+    font-weight: 600 !important;
+    letter-spacing: var(--cs-letter-kicker) !important;
+    text-transform: uppercase;
+}
+
+.welcome-panel .welcome-title,
+.dash-home .welcome-panel h1 {
+    font-size: var(--cs-font-display);
+}
+
+.v3-header-inner,
+.cs-v6-inner {
+    min-height: var(--cs-header-h) !important;
+    padding-inline: var(--cs-page-gutter) !important;
+}
+
+.v3-nav-link,
+.cs-v6-nav a {
+    min-height: var(--cs-touch-min);
+    display: inline-flex;
+    align-items: center;
+    transition: color var(--cs-transition), background var(--cs-transition);
+}
+
+.v3-user-copy strong,
+.panel-user-copy strong,
+.yonetim-user-copy strong {
+    display: block;
+    font-size: var(--cs-font-secondary);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: min(160px, 28vw);
+}
+
+.yonetim-page > .yonetim-page-head,
+.report-page > .page-head,
+.report-page > .patterned-page-head,
+.library-page > .page-head,
+.profile-page > .page-head,
+.exam-create-page > .page-head,
+.daily-page > .daily-header,
+.ktt-page > .ktt-page-head,
+.at-page > .at-page-head {
+    padding: clamp(18px, 2.8vw, 26px) clamp(20px, 3vw, 30px) !important;
+    min-height: unset !important;
+}
+
+.yonetim-page > .yonetim-page-head h1,
+.report-page > .page-head h1,
+.report-page > .patterned-page-head h1,
+.library-page > .page-head h1 {
+    font-size: clamp(1.25rem, 2.2vw, 1.625rem) !important;
+}
+
+.dash-home .welcome-panel,
+.yonetim-page > .welcome-panel.yonetim-welcome {
+    padding: clamp(24px, 4vw, 36px) !important;
+    min-height: clamp(140px, 22vw, 180px) !important;
+}
+
+.primary-btn,
+.btn-primary,
+.cs-btn-primary,
+.ghost-btn,
+.btn-ghost,
+.small-button,
+.yonetim-head-ghost,
+.cs-btn-ghost,
+.cs-btn-light {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--cs-space-2);
+    min-height: var(--cs-btn-h);
+    min-width: var(--cs-touch-min);
+    padding: 0 clamp(14px, 2vw, 20px);
+    border-radius: var(--cs-radius-md);
+    font-family: var(--cs-font);
+    font-size: var(--cs-font-secondary);
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+    box-sizing: border-box;
+    cursor: pointer;
+    transition:
+        background var(--cs-transition),
+        border-color var(--cs-transition),
+        box-shadow var(--cs-transition),
+        transform var(--cs-transition-fast);
+}
+
+.primary-btn,
+.btn-primary,
+.cs-btn-primary {
+    color: var(--cs-text-inverse);
+    border: 1px solid transparent;
+    background: linear-gradient(135deg, var(--cs-accent), var(--cs-primary-mid));
+    box-shadow: 0 8px 18px rgba(47, 111, 243, 0.16);
+}
+
+.ghost-btn,
+.btn-ghost,
+.small-button,
+.yonetim-head-ghost,
+.cs-btn-ghost,
+.cs-btn-light {
+    color: var(--cs-text-primary);
+    border: 1px solid var(--cs-border);
+    background: var(--cs-surface);
+    box-shadow: var(--cs-shadow-xs);
+}
+
+.primary-btn:hover,
+.btn-primary:hover,
+.ghost-btn:hover,
+.btn-ghost:hover {
+    transform: translateY(-1px);
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+select,
+textarea,
+.yonetim-input {
+    min-height: var(--cs-input-h);
+    border-radius: var(--cs-radius-sm);
+    font-size: max(16px, var(--cs-font-body));
+    transition: border-color var(--cs-transition), box-shadow var(--cs-transition);
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+a:focus-visible {
+    outline: none;
+    box-shadow: var(--cs-shadow-focus);
+}
+
+.dashboard-card,
+.report-table-card,
+.metric-card,
+.yonetim-table-card,
+.library-panel,
+.profile-card,
+.dash-panel,
+.veli-card {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-lg) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+    min-width: 0;
+}
+
+.report-data-table thead th,
+.yonetim-data-table thead th {
+    font-size: var(--cs-font-caption);
+    font-weight: 600;
+    letter-spacing: var(--cs-letter-kicker);
+    text-transform: uppercase;
+    color: var(--cs-label);
+}
+
+.report-data-table .num-col,
+.yonetim-data-table .num-col {
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 640px) {
+    .report-data-table.cs-mobile-ready thead,
+    .yonetim-data-table.cs-mobile-ready thead {
+        display: none;
+    }
+
+    .report-data-table.cs-mobile-ready tbody,
+    .yonetim-data-table.cs-mobile-ready tbody {
+        display: flex;
+        flex-direction: column;
+        gap: var(--cs-space-3);
+    }
+
+    .report-data-table.cs-mobile-ready tbody tr,
+    .yonetim-data-table.cs-mobile-ready tbody tr {
+        display: flex;
+        flex-direction: column;
+        gap: var(--cs-space-2);
+        padding: var(--cs-space-4);
+        border: 1px solid var(--cs-border);
+        border-radius: var(--cs-radius-md);
+        background: var(--cs-surface);
+    }
+
+    .report-data-table.cs-mobile-ready tbody td,
+    .yonetim-data-table.cs-mobile-ready tbody td {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--cs-space-3);
+        padding: 0 !important;
+        border: none !important;
+    }
+
+    .report-data-table.cs-mobile-ready tbody td::before,
+    .yonetim-data-table.cs-mobile-ready tbody td::before {
+        content: attr(data-label);
+        flex: 0 0 38%;
+        font-size: var(--cs-font-caption);
+        font-weight: 600;
+        text-transform: uppercase;
+        color: var(--cs-text-tertiary);
+    }
+
+    .report-data-table.cs-mobile-ready tbody td:first-child::before,
+    .yonetim-data-table.cs-mobile-ready tbody td:first-child::before {
+        display: none;
+    }
+
+    .report-data-table.cs-mobile-ready tbody td:first-child,
+    .yonetim-data-table.cs-mobile-ready tbody td:first-child {
+        flex-direction: column;
+        padding-bottom: var(--cs-space-2) !important;
+        border-bottom: 1px solid var(--cs-border-subtle) !important;
+    }
+
+    .yonetim-data-table.cs-mobile-ready .yonetim-action-group {
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .yonetim-data-table.cs-mobile-ready .yonetim-action-group .yonetim-action-btn,
+    .yonetim-data-table.cs-mobile-ready .yonetim-action-group button {
+        flex: 1 1 calc(50% - 4px);
+        min-height: var(--cs-touch-min);
+    }
+}
+
+.report-empty,
+.yonetim-empty-inline,
+.library-empty {
+    padding: clamp(24px, 5vw, 40px) var(--cs-space-5) !important;
+    color: var(--cs-text-tertiary) !important;
+    font-size: var(--cs-font-secondary);
+}
+
+@media (max-width: 900px) {
+    .v3-nav, .cs-v6-nav {
+        order: 3;
+        flex-basis: 100%;
+        max-height: min(60dvh, 420px);
+        overflow-y: auto;
+    }
+
+    .v3-user-copy, .panel-user-copy, .yonetim-user-copy {
+        display: none;
+    }
+
+    .page-head-actions,
+    .yonetim-page-head-actions {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .metric-grid,
+    .dashboard-main-grid,
+    .yonetim-metrics,
+    .library-grid,
+    .student-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (min-width: 2560px) {
+    .v3-main .page-content,
+    .cs-v6-main {
+        max-width: var(--cs-content-wide);
+        margin-inline: auto;
+    }
+}
+
+/* ---- css/cs-design-phase2.css ---- */
+/* ============================================================
+   ÇİNİLİ SARAY — Design Constitution Phase 2
+   9 Forms · 10 Modals · 11 Empty states · 12 Dashboard
+   13 Duyuru · 14 Filter bar
+   Yalnızca görsel — işleyişe dokunmaz
+   ============================================================ */
+
+/* —— 9. FORMS —— */
+.quick-form-page,
+.exam-create-page,
+.yonetim-form-card,
+.form-page {
+    gap: var(--cs-density-gap) !important;
+}
+
+.exam-form-grid,
+.quick-form-grid,
+.yonetim-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(14px, 2vw, 20px);
+    align-items: start;
+}
+
+.exam-field,
+.yonetim-field,
+.quick-form-card .exam-field {
+    min-width: 0;
+}
+
+.exam-field label,
+.yonetim-field > label,
+.report-filter-card label {
+    display: block;
+    margin-bottom: var(--cs-space-2);
+    font-size: var(--cs-font-secondary);
+    font-weight: 500;
+    color: var(--cs-label);
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+.exam-field-help,
+.exam-field-error,
+.yonetim-field small,
+.yonetim-field-error {
+    display: block;
+    margin-top: var(--cs-space-2);
+    font-size: var(--cs-font-caption);
+    line-height: 1.45;
+}
+
+.exam-field-error,
+.yonetim-field-error {
+    color: var(--cs-danger);
+}
+
+.exam-form-footer,
+.yonetim-form-actions,
+.quick-form-card .exam-form-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--cs-space-3);
+    margin-top: var(--cs-space-6);
+    padding-top: var(--cs-space-5);
+    border-top: 1px solid var(--cs-border-subtle);
+}
+
+.exam-form-alert,
+.yonetim-form-errors {
+    padding: var(--cs-space-4);
+    border-radius: var(--cs-radius-md);
+    border: 1px solid rgba(215, 74, 74, 0.25);
+    background: var(--cs-danger-bg);
+    color: var(--cs-danger);
+    font-size: var(--cs-font-secondary);
+}
+
+.yonetim-field ul {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr));
+    gap: var(--cs-space-2);
+}
+
+.yonetim-field li label {
+    display: flex;
+    align-items: center;
+    gap: var(--cs-space-2);
+    min-height: var(--cs-touch-min);
+    padding: var(--cs-space-2) var(--cs-space-3);
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-sm);
+    background: var(--cs-surface-muted);
+    cursor: pointer;
+    font-weight: 400;
+    transition: border-color var(--cs-transition), background var(--cs-transition);
+}
+
+.yonetim-field li label:has(input:checked) {
+    border-color: var(--cs-accent);
+    background: var(--cs-info-bg);
+}
+
+@media (max-width: 768px) {
+    .exam-form-grid,
+    .quick-form-grid,
+    .yonetim-form-grid,
+    .quick-form-layout,
+    .exam-layout {
+        grid-template-columns: 1fr !important;
+    }
+
+    .exam-process-card,
+    .quick-form-aside {
+        position: static !important;
+    }
+
+    .exam-form-footer,
+    .yonetim-form-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .exam-form-footer .primary-btn,
+    .exam-form-footer .ghost-btn,
+    .yonetim-form-actions .primary-btn,
+    .yonetim-form-actions .ghost-btn {
+        width: 100%;
+        min-height: var(--cs-touch-min);
+    }
+}
+
+/* —— 10. MODALS & DROPDOWNS —— */
+.ep-modal,
+.dp-modal-backdrop,
+.modal-overlay,
+.v3-modal,
+[data-ep-modal] {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+}
+
+.ep-modal-backdrop,
+.dp-modal-backdrop,
+.modal-overlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding:
+        calc(var(--cs-space-4) + var(--cs-safe-top))
+        calc(var(--cs-space-4) + var(--cs-safe-right))
+        calc(var(--cs-space-4) + var(--cs-safe-bottom))
+        calc(var(--cs-space-4) + var(--cs-safe-left));
+    background: rgba(7, 27, 58, 0.42);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    overflow: auto;
+    overscroll-behavior: contain;
+}
+
+.ep-modal-card,
+.dp-modal,
+.modal-dialog,
+.v3-dropdown-panel,
+.bildirim-panel {
+    width: min(100%, 520px);
+    max-height: min(85dvh, 680px);
+    margin: auto;
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-lg);
+    background: var(--cs-surface);
+    box-shadow: var(--cs-shadow-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.ep-modal-head,
+.dp-modal-head,
+.modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--cs-space-3);
+    padding: var(--cs-space-5) var(--cs-space-5) var(--cs-space-4);
+    border-bottom: 1px solid var(--cs-border-subtle);
+    background: linear-gradient(180deg, var(--cs-surface-muted), var(--cs-surface));
+}
+
+.ep-modal-form,
+.dp-modal-body,
+.modal-body {
+    padding: var(--cs-space-5);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.ep-modal-foot,
+.dp-modal-actions,
+.modal-footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--cs-space-2);
+    padding: var(--cs-space-4) var(--cs-space-5);
+    border-top: 1px solid var(--cs-border-subtle);
+    background: var(--cs-surface-muted);
+}
+
+.ep-modal-close,
+.modal-close {
+    min-width: var(--cs-touch-min);
+    min-height: var(--cs-touch-min);
+    display: grid;
+    place-items: center;
+    border: none;
+    border-radius: var(--cs-radius-sm);
+    background: transparent;
+    color: var(--cs-text-secondary);
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: background var(--cs-transition);
+}
+
+.ep-modal-close:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+@media (max-width: 640px) {
+    .ep-modal-card,
+    .dp-modal,
+    .modal-dialog {
+        width: 100%;
+        max-height: min(92dvh, 720px);
+        border-radius: var(--cs-radius-lg) var(--cs-radius-lg) 0 0;
+        align-self: flex-end;
+    }
+
+    .ep-modal-backdrop,
+    .dp-modal-backdrop {
+        align-items: flex-end;
+        padding-bottom: 0;
+    }
+
+    .ep-modal-foot,
+    .dp-modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    .ep-modal-foot .primary-btn,
+    .ep-modal-foot .ghost-btn,
+    .dp-modal-actions .primary-btn,
+    .dp-modal-actions .ghost-btn {
+        width: 100%;
+        min-height: var(--cs-touch-min);
+    }
+}
+
+/* —— 11. EMPTY STATES —— */
+.empty-state,
+.dash-empty-note,
+.yonetim-empty-inline,
+.yonetim-empty-card,
+.report-empty,
+.profile-empty,
+.library-empty,
+.duyuru-empty-state,
+.ktt-empty,
+.st-empty {
+    display: grid;
+    justify-items: center;
+    gap: var(--cs-space-3);
+    padding: clamp(28px, 6vw, 48px) var(--cs-space-5) !important;
+    text-align: center;
+    border-radius: var(--cs-radius-lg);
+    background: linear-gradient(180deg, #fbfcfe 0%, var(--cs-surface-muted) 100%);
+    border: 1px dashed var(--cs-border);
+    color: var(--cs-text-tertiary) !important;
+    font-size: var(--cs-font-secondary);
+    line-height: 1.5;
+    max-width: 100%;
+}
+
+.empty-state::before,
+.dash-empty-note::before {
+    content: "";
+    width: 48px;
+    height: 48px;
+    border-radius: var(--cs-radius-md);
+    background:
+        linear-gradient(135deg, var(--cs-soft-blue), rgba(47, 111, 243, 0.08));
+    border: 1px solid rgba(47, 111, 243, 0.12);
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Cpath d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20'/%3E%3Cpath d='M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z'/%3E%3C/svg%3E");
+    mask-size: 24px;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8'%3E%3Cpath d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20'/%3E%3Cpath d='M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z'/%3E%3C/svg%3E");
+    -webkit-mask-size: 24px;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    background-color: var(--cs-accent);
+}
+
+.empty-state strong,
+.dash-empty-note strong,
+.duyuru-empty-state strong,
+.library-empty strong {
+    font-size: var(--cs-font-card-title);
+    font-weight: 600;
+    color: var(--cs-text-primary);
+}
+
+.empty-state span,
+.dash-empty-note {
+    max-width: 36ch;
+}
+
+/* Tablo içi boş satır — dev panel olmasın */
+.report-data-table .report-empty,
+.yonetim-data-table .report-empty {
+    border: none;
+    background: transparent;
+    padding: var(--cs-space-6) var(--cs-space-4) !important;
+}
+
+.report-data-table .report-empty::before,
+.yonetim-data-table .report-empty::before {
+    display: none;
+}
+
+/* —— 12. DASHBOARD —— */
+.dash-home {
+    gap: var(--cs-section-gap) !important;
+}
+
+.dash-panel,
+.dash-panel-lined {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-lg) !important;
+    background: var(--cs-surface) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.dash-panel-head {
+    padding: clamp(16px, 2.5vw, 22px) clamp(18px, 2.8vw, 24px) clamp(12px, 2vw, 16px) !important;
+    border-bottom: 1px solid var(--cs-border-subtle);
+    background: linear-gradient(180deg, var(--cs-surface-muted), var(--cs-surface));
+}
+
+.dash-panel-head h2 {
+    margin: 4px 0 0 !important;
+    font-size: var(--cs-font-section) !important;
+    font-weight: 600 !important;
+    color: var(--cs-text-primary) !important;
+}
+
+.dash-stat-strip,
+.dash-metrik-strip,
+.metric-grid.dash-metrik-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
+    gap: var(--cs-space-3);
+}
+
+.metric-card,
+.dash-stat-card {
+    min-height: clamp(96px, 14vw, 120px) !important;
+    padding: clamp(14px, 2vw, 20px) !important;
+}
+
+.metric-card strong,
+.dash-stat-card strong {
+    font-variant-numeric: tabular-nums;
+    font-weight: 500 !important;
+}
+
+/* Kısayol kartları — rafine, gaming değil */
+.dash-shortcuts-grid {
+    gap: clamp(10px, 1.5vw, 14px) !important;
+    padding: clamp(14px, 2vw, 20px) !important;
+}
+
+.dash-shortcut-card {
+    border: 1px solid var(--cs-border-subtle) !important;
+    border-radius: var(--cs-radius-md) !important;
+    box-shadow: var(--cs-shadow-xs) !important;
+    transition:
+        transform var(--cs-transition-fast),
+        box-shadow var(--cs-transition),
+        border-color var(--cs-transition);
+}
+
+.dash-shortcut-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--cs-border-strong) !important;
+    box-shadow: var(--cs-shadow-sm) !important;
+}
+
+.dash-sc-banner {
+    border-radius: var(--cs-radius-md) var(--cs-radius-md) 0 0;
+}
+
+.dash-shortcut-card .dash-sc-label {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+/* Liste tipi kısayollar */
+.dash-shortcut {
+    min-height: var(--cs-touch-min);
+    padding: var(--cs-space-3) var(--cs-space-4) !important;
+    transition: background var(--cs-transition);
+}
+
+.dash-shortcut:hover {
+    background: var(--cs-surface-muted) !important;
+}
+
+.dash-shortcut-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--cs-radius-sm);
+}
+
+.personel-top-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.85fr);
+    gap: var(--cs-section-gap);
+    min-width: 0;
+}
+
+@media (max-width: 1024px) {
+    .personel-top-split {
+        grid-template-columns: 1fr;
+    }
+
+    .dash-shortcuts-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .dash-shortcuts-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* —— 13. DUYURU —— */
+.duyuru-carousel-shell {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-lg) !important;
+    padding: clamp(16px, 2.5vw, 24px) !important;
+    background: var(--cs-surface) !important;
+}
+
+.duyuru-carousel-head h2 {
+    font-size: var(--cs-font-section) !important;
+    font-weight: 600 !important;
+    color: var(--cs-text-primary) !important;
+}
+
+.duyuru-slide {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-md) !important;
+    background: var(--cs-surface) !important;
+    box-shadow: var(--cs-shadow-xs) !important;
+    transition: box-shadow var(--cs-transition), transform var(--cs-transition-fast);
+}
+
+.duyuru-slide:hover {
+    box-shadow: var(--cs-shadow-sm) !important;
+}
+
+.duyuru-slide-copy strong {
+    font-size: var(--cs-font-body);
+    font-weight: 600;
+    color: var(--cs-text-primary);
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.duyuru-slide-copy p {
+    font-size: var(--cs-font-secondary);
+    color: var(--cs-text-secondary);
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.duyuru-slide-tag {
+    font-size: var(--cs-font-caption);
+    font-weight: 600;
+    letter-spacing: var(--cs-letter-kicker);
+    color: var(--cs-accent);
+}
+
+@media (max-width: 640px) {
+    .duyuru-carousel-track {
+        grid-auto-columns: minmax(calc(100% - 8px), 1fr) !important;
+    }
+
+    .duyuru-slide {
+        grid-template-columns: 72px 1fr;
+        min-height: auto;
+        padding: var(--cs-space-3);
+    }
+
+    .duyuru-slide-visual {
+        height: 64px;
+        border-radius: var(--cs-radius-sm);
+    }
+}
+
+/* —— 14. FİLTRE BAR —— */
+.report-filter-card,
+.st-filter-bar,
+.ktt-filter-bar,
+.filter-bar,
+.yonetim-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--cs-space-3);
+    padding: var(--cs-space-5) !important;
+    min-width: 0;
+}
+
+.report-page .report-filter-card {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 160px), 1fr));
+    gap: var(--cs-space-3);
+    align-items: end;
+}
+
+.report-filter-card > div,
+.report-filter-card label + *,
+.st-filter-bar > * {
+    min-width: 0;
+}
+
+.search-box,
+.library-search,
+.yonetim-search {
+    flex: 1 1 min(100%, 280px);
+    min-width: 0;
+}
+
+.search-box input,
+.library-search,
+.yonetim-search .yonetim-input {
+    width: 100%;
+}
+
+@media (max-width: 640px) {
+    .report-page .report-filter-card {
+        grid-template-columns: 1fr;
+    }
+
+    .report-filter-card .primary-btn,
+    .report-filter-card .ghost-btn,
+    .yonetim-search-btn {
+        width: 100%;
+        min-height: var(--cs-touch-min);
+    }
+}
+
+/* ---- css/cs-design-phase3.css ---- */
+/* ============================================================
+   ÇİNİLİ SARAY — Design Constitution Phase 3
+   15 Takvim · 16 Akademik · 17 Kitap · 18 Finans/Rapor
+   19–22 Rol panelleri (Talebe, Veli, Öğretmen, Personel)
+   Yalnızca görsel — işleyişe dokunmaz
+   ============================================================ */
+
+/* —— 15. TAKVİM —— */
+.yct-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cs-section-gap);
+    min-width: 0;
+}
+
+.yct-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--cs-space-2);
+    padding: var(--cs-space-3) var(--cs-space-4);
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-md);
+    background: var(--cs-surface);
+    box-shadow: var(--cs-shadow-xs);
+}
+
+.yct-nav-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0 !important;
+    font-size: var(--cs-font-section) !important;
+    font-weight: 650 !important;
+    color: var(--cs-text-primary) !important;
+    text-align: center;
+}
+
+.yct-calendar-panel {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-lg) !important;
+    background: var(--cs-surface) !important;
+}
+
+.yct-grid th {
+    color: var(--cs-label) !important;
+    background: var(--cs-surface-muted) !important;
+    font-size: var(--cs-font-caption) !important;
+    letter-spacing: var(--cs-letter-kicker) !important;
+}
+
+.yct-grid td {
+    border-color: var(--cs-border-subtle) !important;
+    transition: background var(--cs-transition-fast);
+}
+
+.yct-grid td:not(.is-empty):hover {
+    background: var(--cs-info-bg) !important;
+}
+
+.yct-day-num {
+    color: var(--cs-text-secondary) !important;
+    font-variant-numeric: tabular-nums;
+}
+
+.yct-event {
+    border-radius: var(--cs-radius-xs) !important;
+    background: var(--cs-info-bg) !important;
+    border: 1px solid #dbeafe !important;
+    color: #1e40af !important;
+    font-size: var(--cs-font-caption);
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+.yct-feed-item {
+    padding: var(--cs-space-4);
+    border: 1px solid var(--cs-border-subtle);
+    border-radius: var(--cs-radius-md);
+    background: var(--cs-surface);
+}
+
+.yct-feed-item + .yct-feed-item {
+    margin-top: var(--cs-space-3);
+}
+
+.yct-feed-item h3 {
+    margin: var(--cs-space-2) 0 0;
+    font-size: var(--cs-font-body);
+    font-weight: 600;
+    color: var(--cs-text-primary);
+    line-height: 1.35;
+}
+
+.yct-feed-tag {
+    font-size: var(--cs-font-caption);
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: var(--cs-accent);
+}
+
+.personel-yct-grid--inline {
+    font-size: var(--cs-font-caption);
+}
+
+@media (max-width: 640px) {
+    /* Mobilde sıkıştırılmış grid yerine agenda (liste) öncelikli */
+    .yct-page .yct-calendar-panel {
+        display: none;
+    }
+
+    .yct-nav {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+    }
+
+    .yct-nav .dash-text-btn {
+        min-height: var(--cs-touch-min);
+        justify-content: center;
+    }
+
+    .yct-split {
+        display: flex;
+        flex-direction: column;
+        gap: var(--cs-section-gap);
+    }
+
+    .yct-feed {
+        display: flex;
+        flex-direction: column;
+        gap: var(--cs-space-3);
+        padding: var(--cs-space-4) !important;
+    }
+}
+
+@media (min-width: 641px) and (max-width: 900px) {
+    .yct-grid {
+        min-width: 0 !important;
+    }
+
+    .yct-grid td {
+        height: auto;
+        min-height: 72px;
+    }
+}
+
+/* —— 16. AKADEMİK EKRANLAR (ortak dil) —— */
+.ktt-page,
+.at-page,
+.st-page,
+.deneme-archive-page,
+.result-panel-page,
+.result-entry-page,
+.exam-page {
+    gap: var(--cs-density-gap) !important;
+    min-width: 0;
+    overflow-x: clip;
+}
+
+/* Filtre şeritleri */
+.ktt-filter-grid,
+.at-filter-grid,
+.st-filter-grid,
+.st-report-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 148px), 1fr));
+    gap: var(--cs-space-3);
+    align-items: end;
+    min-width: 0;
+}
+
+.ktt-filter-grid label,
+.at-filter-grid > label,
+.st-filter-grid label {
+    font-size: var(--cs-font-secondary) !important;
+    font-weight: 500 !important;
+    color: var(--cs-label) !important;
+}
+
+.ktt-filter-grid select,
+.ktt-filter-grid input,
+.at-filter-grid select,
+.at-filter-grid input,
+.st-filter-grid select,
+.st-filter-grid input {
+    min-height: var(--cs-input-h);
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-sm) !important;
+    font-size: max(16px, var(--cs-font-body));
+}
+
+.ktt-solid-btn,
+.at-purple-btn,
+.st-btn-primary {
+    min-height: var(--cs-btn-h);
+    border-radius: var(--cs-radius-sm) !important;
+    font-weight: 600 !important;
+    transition: transform var(--cs-transition-fast), box-shadow var(--cs-transition);
+}
+
+.ktt-solid-btn:hover,
+.at-purple-btn:hover {
+    transform: translateY(-1px);
+}
+
+/* KPI kartları — akademik */
+.ktt-kpi-row,
+.at-kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+    gap: var(--cs-space-3);
+}
+
+.ktt-kpi-card,
+.at-kpi {
+    border-radius: var(--cs-radius-md) !important;
+    min-height: clamp(80px, 12vw, 96px);
+    padding: var(--cs-space-4) var(--cs-space-5) !important;
+}
+
+.ktt-kpi-card strong,
+.at-kpi strong {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Split layout */
+.ktt-split,
+.at-split {
+    display: grid;
+    grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
+    gap: var(--cs-section-gap);
+    min-width: 0;
+}
+
+@media (max-width: 980px) {
+    .ktt-split,
+    .at-split {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Tablolar — akademik */
+.ktt-table-wrap,
+.at-table-wrap,
+.st-table-wrap,
+.fn-table-wrap {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--cs-border-subtle);
+    border-radius: var(--cs-radius-md);
+    background: var(--cs-surface);
+}
+
+.ktt-table,
+.at-table,
+.st-table,
+.fn-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ktt-table thead th,
+.at-table thead th,
+.st-table thead th,
+.fn-table th {
+    padding: 12px 14px;
+    font-size: var(--cs-font-caption);
+    font-weight: 600;
+    letter-spacing: var(--cs-letter-kicker);
+    text-transform: uppercase;
+    color: var(--cs-label);
+    background: var(--cs-surface-muted);
+    border-bottom: 1px solid var(--cs-border);
+    text-align: left;
+    white-space: nowrap;
+}
+
+.ktt-table tbody td,
+.at-table tbody td,
+.st-table tbody td,
+.fn-table td {
+    padding: 13px 14px;
+    font-size: var(--cs-font-body);
+    color: var(--cs-text-primary);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    vertical-align: middle;
+}
+
+.ktt-table tbody tr:hover td,
+.at-table tbody tr:hover td,
+.st-table tbody tr:hover td,
+.fn-table tr:hover td {
+    background: #fafcff;
+}
+
+/* Deneme performans */
+.dp-wrap {
+    gap: var(--cs-section-gap);
+}
+
+.dp-summary {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-lg) !important;
+    background: linear-gradient(180deg, #f0f6fc, var(--cs-surface)) !important;
+}
+
+.dp-meta-row {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 100px), 1fr));
+}
+
+.dp-meta-item strong {
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 640px) {
+    .ktt-filter-grid,
+    .at-filter-grid,
+    .st-filter-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .ktt-filter-submit,
+    .at-filter-actions .primary-btn,
+    .st-filter-actions button {
+        width: 100%;
+        min-height: var(--cs-touch-min);
+    }
+
+    .ktt-head-actions,
+    .at-top-actions {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ktt-head-actions .ktt-solid-btn,
+    .ktt-head-actions .ktt-outline-btn,
+    .at-top-actions a,
+    .at-top-actions button {
+        width: 100%;
+        min-height: var(--cs-touch-min);
+        justify-content: center;
+    }
+}
+
+/* Mobil kart tablo — akademik & finans */
+@media (max-width: 640px) {
+    .ktt-table.cs-mobile-ready thead,
+    .at-table.cs-mobile-ready thead,
+    .st-table.cs-mobile-ready thead,
+    .fn-table.cs-mobile-ready thead {
+        display: none;
+    }
+
+    .ktt-table.cs-mobile-ready tbody,
+    .at-table.cs-mobile-ready tbody,
+    .st-table.cs-mobile-ready tbody,
+    .fn-table.cs-mobile-ready tbody {
+        display: flex;
+        flex-direction: column;
+        gap: var(--cs-space-3);
+    }
+
+    .ktt-table.cs-mobile-ready tbody tr,
+    .at-table.cs-mobile-ready tbody tr,
+    .st-table.cs-mobile-ready tbody tr,
+    .fn-table.cs-mobile-ready tbody tr {
+        display: flex;
+        flex-direction: column;
+        gap: var(--cs-space-2);
+        padding: var(--cs-space-4);
+        border: 1px solid var(--cs-border);
+        border-radius: var(--cs-radius-md);
+        background: var(--cs-surface);
+    }
+
+    .ktt-table.cs-mobile-ready tbody td,
+    .at-table.cs-mobile-ready tbody td,
+    .st-table.cs-mobile-ready tbody td,
+    .fn-table.cs-mobile-ready tbody td {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--cs-space-3);
+        padding: 0 !important;
+        border: none !important;
+    }
+
+    .ktt-table.cs-mobile-ready tbody td::before,
+    .at-table.cs-mobile-ready tbody td::before,
+    .st-table.cs-mobile-ready tbody td::before,
+    .fn-table.cs-mobile-ready tbody td::before {
+        content: attr(data-label);
+        flex: 0 0 40%;
+        font-size: var(--cs-font-caption);
+        font-weight: 600;
+        text-transform: uppercase;
+        color: var(--cs-text-tertiary);
+    }
+
+    .ktt-table.cs-mobile-ready tbody td:first-child,
+    .at-table.cs-mobile-ready tbody td:first-child,
+    .st-table.cs-mobile-ready tbody td:first-child,
+    .fn-table.cs-mobile-ready tbody td:first-child {
+        flex-direction: column;
+        padding-bottom: var(--cs-space-2) !important;
+        border-bottom: 1px solid var(--cs-border-subtle) !important;
+    }
+
+    .ktt-table.cs-mobile-ready tbody td:first-child::before,
+    .at-table.cs-mobile-ready tbody td:first-child::before,
+    .st-table.cs-mobile-ready tbody td:first-child::before,
+    .fn-table.cs-mobile-ready tbody td:first-child::before {
+        display: none;
+    }
+
+    .ktt-table-wrap,
+    .at-table-wrap,
+    .st-table-wrap,
+    .fn-table-wrap {
+        overflow-x: visible;
+        border: none;
+        background: transparent;
+    }
+}
+
+/* —— 17. KİTAP EKRANLARI —— */
+.library-page {
+    gap: var(--cs-section-gap) !important;
+}
+
+.library-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+    gap: var(--cs-space-4);
+}
+
+.library-book-card {
+    max-width: none !important;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: transform var(--cs-transition-fast), box-shadow var(--cs-transition);
+}
+
+.library-book-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--cs-shadow-md) !important;
+}
+
+.book-visual {
+    aspect-ratio: 16 / 10;
+    min-height: 160px;
+    max-height: 200px;
+}
+
+.book-cover {
+    aspect-ratio: 3 / 4;
+    width: clamp(80px, 28%, 104px);
+    height: auto;
+}
+
+.book-card-top h3 {
+    font-size: var(--cs-font-card-title) !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.book-meta-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.book-meta-grid strong {
+    font-variant-numeric: tabular-nums;
+}
+
+.book-card-actions {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--cs-space-2);
+}
+
+.book-card-actions .book-action-btn {
+    min-height: var(--cs-touch-min);
+}
+
+.library-search {
+    width: min(100%, 360px);
+    min-height: var(--cs-input-h);
+    border-radius: var(--cs-radius-sm);
+    border: 1px solid var(--cs-border);
+}
+
+@media (max-width: 640px) {
+    .library-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .book-card-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .library-panel .card-heading.library-panel-head {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .library-search {
+        width: 100%;
+    }
+}
+
+/* —— 18. FİNANS & RAPOR —— */
+.fn-page {
+    --fn-navy: var(--cs-primary-dark);
+    --fn-blue: var(--cs-accent);
+    --fn-text: var(--cs-text-primary);
+    --fn-muted: var(--cs-text-secondary);
+    --fn-border: var(--cs-border);
+    --fn-bg: var(--cs-surface);
+    --fn-surface: var(--cs-surface-muted);
+    --fn-radius: var(--cs-radius-lg);
+    --fn-shadow: var(--cs-shadow-card);
+    gap: var(--cs-density-gap);
+}
+
+.fn-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
+    gap: var(--cs-space-3);
+}
+
+.fn-kpi {
+    min-height: clamp(96px, 14vw, 118px);
+    padding: var(--cs-space-4) !important;
+    border-radius: var(--cs-radius-md) !important;
+    border: 1px solid var(--cs-border) !important;
+    box-shadow: var(--cs-shadow-xs) !important;
+}
+
+.fn-kpi-value {
+    font-variant-numeric: tabular-nums;
+    font-size: clamp(1.1rem, 2.5vw, 1.25rem) !important;
+}
+
+.fn-card {
+    border-radius: var(--cs-radius-lg) !important;
+    border: 1px solid var(--cs-border) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+}
+
+.fn-head h1 {
+    font-size: var(--cs-font-page-title) !important;
+    color: var(--cs-text-primary) !important;
+}
+
+.fn-btn {
+    min-height: var(--cs-touch-min);
+    border-radius: var(--cs-radius-sm) !important;
+    box-sizing: border-box;
+    transition: transform var(--cs-transition-fast), box-shadow var(--cs-transition);
+}
+
+.fn-status {
+    font-size: var(--cs-font-caption);
+    font-weight: 600;
+    border-radius: var(--cs-radius-pill);
+}
+
+.report-page .metric-grid.report-metrics {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+}
+
+.report-page .metric-card strong {
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 640px) {
+    .fn-kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .fn-head-actions {
+        width: 100%;
+    }
+
+    .fn-head-actions .fn-btn {
+        flex: 1 1 calc(50% - 4px);
+        min-height: var(--cs-touch-min);
+    }
+
+    .fn-quick-actions {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 400px) {
+    .fn-kpi-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* —— 19. TALEBE PANELİ —— */
+.talebe-body {
+    background: var(--cs-background) !important;
+}
+
+.talebe-body .cs-v6-main {
+    padding-bottom: calc(var(--cs-space-9) + var(--cs-safe-bottom)) !important;
+}
+
+.talebe-konum-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 88px), 1fr));
+    gap: var(--cs-space-3);
+}
+
+.talebe-konum-card {
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-md);
+    padding: var(--cs-space-3);
+    min-height: var(--cs-touch-min);
+}
+
+.talebe-profil-dl {
+    grid-template-columns: minmax(100px, 130px) 1fr;
+    gap: var(--cs-space-2) var(--cs-space-4);
+}
+
+.talebe-field input,
+.talebe-field textarea {
+    max-width: 100%;
+    min-height: var(--cs-input-h);
+    border-radius: var(--cs-radius-sm);
+    border-color: var(--cs-border);
+}
+
+@media (max-width: 640px) {
+    .talebe-profil-dl {
+        grid-template-columns: 1fr;
+    }
+
+    .talebe-profil-dl dt {
+        margin-top: var(--cs-space-2);
+    }
+
+    .talebe-konum-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* —— 20. VELİ PANELİ —— */
+.veli-body .dash-home,
+.veli-shell {
+    gap: var(--cs-section-gap) !important;
+}
+
+.veli-subnav {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    border-radius: var(--cs-radius-md) !important;
+    border: 1px solid var(--cs-border) !important;
+    padding: var(--cs-space-2) !important;
+}
+
+.veli-subnav::-webkit-scrollbar {
+    display: none;
+}
+
+.veli-subnav a {
+    min-height: var(--cs-touch-min);
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    border-radius: var(--cs-radius-sm);
+}
+
+.veli-subnav a.active {
+    background: var(--cs-info-bg);
+    color: var(--cs-accent);
+    font-weight: 600;
+}
+
+.veli-student-card,
+.veli-card {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-lg) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+}
+
+.veli-student-card strong,
+.veli-card h2,
+.veli-card h3 {
+    word-break: break-word;
+}
+
+@media (max-width: 640px) {
+    .veli-subnav a {
+        padding: var(--cs-space-3) var(--cs-space-4);
+    }
+}
+
+/* —— 21. ÖĞRETMEN PANELİ —— */
+.ogretmen-body .cs-v6-main {
+    padding-bottom: calc(var(--cs-space-9) + var(--cs-safe-bottom)) !important;
+}
+
+.ogretmen-class-tab {
+    min-height: var(--cs-touch-min);
+    border-radius: var(--cs-radius-sm) !important;
+}
+
+.ogretmen-class-tabs {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: var(--cs-space-2);
+    padding-bottom: var(--cs-space-1);
+}
+
+.ogretmen-class-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.ogretmen-class-tab {
+    flex-shrink: 0;
+}
+
+.og-section-head,
+.og-week-active-banner {
+    border-radius: var(--cs-radius-md) var(--cs-radius-md) 0 0;
+}
+
+.ogretmen-action-bar,
+.og-yoklama-actions {
+    gap: var(--cs-space-2);
+    flex-wrap: wrap;
+}
+
+.ogretmen-action-bar .primary-btn,
+.ogretmen-action-bar .ghost-btn,
+.og-yoklama-actions button {
+    min-height: var(--cs-touch-min);
+}
+
+@media (max-width: 640px) {
+    .ogretmen-action-bar,
+    .og-yoklama-actions {
+        flex-direction: column;
+    }
+
+    .ogretmen-action-bar .primary-btn,
+    .ogretmen-action-bar .ghost-btn,
+    .og-yoklama-actions button {
+        width: 100%;
+    }
+}
+
+/* —— 22. PERSONEL / İDARECİ —— */
+.idareci-tile,
+.idareci-tile-grid a {
+    border-radius: var(--cs-radius-md) !important;
+    transition: transform var(--cs-transition-fast), box-shadow var(--cs-transition);
+}
+
+.idareci-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--cs-shadow-sm) !important;
+}
+
+.yonetim-action-group {
+    gap: var(--cs-space-2);
+    flex-wrap: nowrap;
+}
+
+@media (max-width: 640px) {
+    .idareci-tile-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* —— 23. YAZILI / SINAV GİRİŞ —— */
+.result-entry-page,
+.exam-create-page {
+    gap: var(--cs-density-gap) !important;
+}
+
+.result-summary-card,
+.result-list-card,
+.result-exam-card,
+.exam-form-card {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-lg) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+}
+
+.result-card-copy strong,
+.result-exam-card strong {
+    word-break: break-word;
+}
+
+@media (max-width: 768px) {
+    .result-entry-layout,
+    .exam-layout {
+        grid-template-columns: 1fr !important;
+    }
+
+    .result-list-header,
+    .result-entry-header {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+}
+
+/* ---- css/cs-design-phase4.css ---- */
+/* ============================================================
+   ÇİNİLİ SARAY — Design Constitution Phase 4
+   Modül token köprüsü · ortak kabuk · giriş · QA
+   Yalnızca görsel — işleyişe dokunmaz
+   ============================================================ */
+
+/* —— Modül değişkenleri → CS token köprüsü —— */
+.ep-page {
+    --ep-bg: var(--cs-background-warm);
+    --ep-surface: var(--cs-surface);
+    --ep-line: var(--cs-border);
+    --ep-navy: var(--cs-primary-dark);
+    --ep-text: var(--cs-text-primary);
+    --ep-muted: var(--cs-text-tertiary);
+    --ep-accent: var(--cs-accent);
+    --ep-radius: var(--cs-radius-lg);
+    --ep-radius-sm: var(--cs-radius-md);
+    --ep-shadow: var(--cs-shadow-card);
+}
+
+.dp-page {
+    --dp-line: var(--cs-border);
+    --dp-navy: var(--cs-primary-dark);
+    --dp-text: var(--cs-text-primary);
+    --dp-muted: var(--cs-text-tertiary);
+    --dp-accent: var(--cs-accent);
+    --dp-radius: var(--cs-radius-lg);
+    --dp-radius-sm: var(--cs-radius-md);
+    --dp-shadow: var(--cs-shadow-card);
+}
+
+.im-page {
+    --im-bg: var(--cs-background);
+    --im-card: var(--cs-surface);
+    --im-line: var(--cs-border-subtle);
+    --im-navy: var(--cs-primary-dark);
+    --im-blue: var(--cs-accent);
+    --im-muted: var(--cs-text-secondary);
+    --im-radius: var(--cs-radius-lg);
+}
+
+.tz-page {
+    --tz-bg: var(--cs-background);
+    --tz-card: var(--cs-surface);
+    --tz-line: var(--cs-border);
+    --tz-navy: var(--cs-primary-dark);
+    --tz-blue: var(--cs-accent);
+    --tz-muted: var(--cs-text-secondary);
+    --tz-radius: var(--cs-radius-lg);
+    --tz-shadow: var(--cs-shadow-card);
+}
+
+.rh-page {
+    --rh-bg: var(--cs-surface);
+    --rh-surface: var(--cs-surface-muted);
+    --rh-border: var(--cs-border-subtle);
+    --rh-navy: var(--cs-primary-dark);
+    --rh-text: var(--cs-text-primary);
+    --rh-muted: var(--cs-text-secondary);
+    --rh-radius: var(--cs-radius-md);
+    --rh-shadow: var(--cs-shadow-card);
+}
+
+.dd-page {
+    --dd-navy: var(--cs-primary-dark);
+    --dd-muted: var(--cs-text-secondary);
+    --dd-line: var(--cs-border);
+    --dd-accent: var(--cs-accent);
+}
+
+.dk-page {
+    --dk-bg: var(--cs-background-warm);
+    --dk-surface: var(--cs-surface);
+    --dk-line: var(--cs-border-subtle);
+    --dk-navy: var(--cs-primary-dark);
+    --dk-text: var(--cs-text-primary);
+    --dk-muted: var(--cs-text-secondary);
+    --dk-accent: var(--cs-accent);
+    --dk-radius: var(--cs-radius-lg);
+    --dk-shadow: var(--cs-shadow-card);
+}
+
+.mz-page {
+    --mz-navy: var(--cs-primary-dark);
+    --mz-muted: var(--cs-text-secondary);
+    --mz-line: var(--cs-border);
+    --mz-accent: var(--cs-accent);
+}
+
+.ny-page {
+    --ny-navy: var(--cs-primary-dark);
+    --ny-text: var(--cs-text-primary);
+    --ny-muted: var(--cs-text-tertiary);
+    --ny-line: var(--cs-border);
+    --ny-bg: var(--cs-background-warm);
+    --ny-surface: var(--cs-surface);
+    --ny-radius: var(--cs-radius-lg);
+    --ny-shadow: var(--cs-shadow-card);
+}
+
+.gt-etut-page {
+    --gt-line: var(--cs-border-subtle);
+    --gt-navy: var(--cs-primary-dark);
+    --gt-muted: var(--cs-text-secondary);
+}
+
+/* —— Ortak modül sayfa kabuğu —— */
+.ep-page,
+.dp-page,
+.im-page,
+.tz-page,
+.rh-page,
+.dd-page,
+.dk-page,
+.mz-page,
+.ny-page,
+.gt-etut-page,
+.cd-page,
+.program-page,
+.im-panel,
+.vz-page,
+.pazar-page,
+.rehberlik-page,
+.og-odeme-page,
+.personel-toplanti-page {
+    gap: var(--cs-section-gap) !important;
+    min-width: 0;
+    max-width: var(--cs-content-wide);
+    margin-inline: auto;
+    padding-bottom: calc(var(--cs-space-8) + var(--cs-safe-bottom));
+    box-sizing: border-box;
+}
+
+/* Modül başlıkları — tutarlı tipografi */
+.ep-head h1,
+.dp-head h1,
+.im-head h1,
+.tz-head h1,
+.rh-head h1,
+.dk-head h1,
+.mz-head h1,
+.ny-head h1,
+.gt-etut-head:not(.gt-hero) h1,
+.cd-head h1,
+.program-page-head h1 {
+    font-size: var(--cs-font-page-title) !important;
+    font-weight: 650 !important;
+    letter-spacing: var(--cs-letter-tight) !important;
+    color: var(--cs-text-primary) !important;
+    line-height: var(--cs-line-height-tight);
+    word-break: break-word;
+}
+
+.ep-eyebrow,
+.dp-eyebrow,
+.im-eyebrow,
+.tz-crumb,
+.rh-eyebrow,
+.dk-eyebrow,
+.mz-eyebrow,
+.ny-kicker,
+.cd-kicker,
+.gt-date-label {
+    font-size: var(--cs-font-label) !important;
+    font-weight: 600 !important;
+    letter-spacing: var(--cs-letter-kicker) !important;
+    text-transform: uppercase;
+    color: var(--cs-text-tertiary) !important;
+}
+
+.ep-sub,
+.dp-sub,
+.im-sub,
+.tz-sub,
+.rh-muted,
+.dk-sub,
+.mz-sub,
+.ny-desc,
+.cd-desc {
+    color: var(--cs-text-secondary) !important;
+    font-size: var(--cs-font-secondary);
+    line-height: 1.45;
+}
+
+/* —— Modül kartları —— */
+.ep-card,
+.dp-card,
+.im-card,
+.tz-card,
+.rh-card,
+.dk-card,
+.mz-card,
+.ny-card,
+.gt-etut-card,
+.cd-card,
+.program-card,
+.ep-admin-card,
+.dp-view-panel {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-lg) !important;
+    background: var(--cs-surface) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+    min-width: 0;
+}
+
+/* —— Modül butonları —— */
+.ep-btn,
+.ep-btn-sm,
+.dp-btn,
+.dp-btn-sm,
+.dk-btn,
+.dk-btn-sm,
+.im-btn,
+.im-btn-sm,
+.tz-btn,
+.tz-btn-sm,
+.dd-btn,
+.dd-tab,
+.st-btn,
+.st-btn-sm,
+.rh-btn,
+.mz-btn,
+.ny-chip,
+.cd-btn,
+.gt-btn,
+.program-btn,
+.personel-toplanti-btn {
+    min-height: var(--cs-touch-min) !important;
+    border-radius: var(--cs-radius-sm) !important;
+    font-size: var(--cs-font-secondary) !important;
+    font-weight: 500 !important;
+    box-sizing: border-box;
+    transition:
+        background var(--cs-transition),
+        border-color var(--cs-transition),
+        transform var(--cs-transition-fast),
+        box-shadow var(--cs-transition);
+}
+
+.ep-btn-primary,
+.dp-btn-primary,
+.dk-btn-primary,
+.im-btn-primary,
+.tz-btn-primary,
+.st-btn-primary,
+.rh-btn-primary {
+    background: linear-gradient(160deg, var(--cs-primary-mid), var(--cs-accent)) !important;
+    color: #fff !important;
+    border-color: transparent !important;
+}
+
+.ep-btn:hover,
+.dp-btn:hover,
+.dk-btn:hover,
+.im-btn:hover,
+.tz-btn:hover,
+.st-btn:hover,
+.rh-btn:hover {
+    transform: translateY(-1px);
+}
+
+/* —— Modül inputları —— */
+.ep-input,
+.ep-input-sm,
+.dp-input,
+.dk-input,
+.im-input,
+.tz-input,
+.dd-input,
+.st-input,
+.rh-input,
+.ms-filter-trigger {
+    min-height: var(--cs-input-h) !important;
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-sm) !important;
+    font-size: max(16px, var(--cs-font-body)) !important;
+    color: var(--cs-text-primary) !important;
+    background: var(--cs-surface) !important;
+    transition: border-color var(--cs-transition), box-shadow var(--cs-transition);
+}
+
+.ep-input:focus,
+.dp-input:focus,
+.dk-input:focus,
+.im-input:focus,
+.ms-filter-trigger:focus {
+    border-color: var(--cs-accent) !important;
+    box-shadow: var(--cs-shadow-focus) !important;
+    outline: none;
+}
+
+/* —— Chip / checkbox grid —— */
+div.choice-chip-grid,
+ul.choice-chip-grid,
+.ktt-checkbox-grid,
+.yk-checkbox-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 96px), 1fr)) !important;
+    gap: var(--cs-space-2) !important;
+}
+
+div.choice-chip-grid label,
+ul.choice-chip-grid label,
+.ktt-checkbox-grid label,
+.yk-checkbox-grid label {
+    min-height: var(--cs-touch-min) !important;
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-sm) !important;
+    background: var(--cs-surface-muted) !important;
+    font-size: var(--cs-font-secondary) !important;
+    transition: border-color var(--cs-transition), background var(--cs-transition);
+}
+
+div.choice-chip-grid label:has(input:checked),
+ul.choice-chip-grid label:has(input:checked),
+.ktt-checkbox-grid label:has(input:checked) {
+    border-color: var(--cs-accent) !important;
+    background: var(--cs-info-bg) !important;
+    color: var(--cs-navy-deep);
+    font-weight: 600;
+}
+
+/* —— Multi-select dropdown —— */
+.ms-filter-panel {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-md) !important;
+    box-shadow: var(--cs-shadow-lg) !important;
+    max-height: min(60dvh, 360px);
+    overflow: auto;
+    overscroll-behavior: contain;
+}
+
+.ms-filter-option {
+    min-height: var(--cs-touch-min);
+    padding: var(--cs-space-2) var(--cs-space-4);
+    font-size: var(--cs-font-secondary);
+}
+
+.ms-filter-option:hover,
+.ms-filter-option.is-selected {
+    background: var(--cs-info-bg);
+}
+
+/* —— Program matrisi —— */
+.dp-matrix-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--cs-border-subtle);
+    border-radius: var(--cs-radius-md);
+}
+
+.dp-matrix thead th {
+    font-size: var(--cs-font-caption);
+    font-weight: 600;
+    letter-spacing: var(--cs-letter-kicker);
+    text-transform: uppercase;
+    color: var(--cs-label);
+    background: var(--cs-surface-muted);
+}
+
+.dp-matrix tbody td {
+    font-size: var(--cs-font-secondary);
+    vertical-align: middle;
+}
+
+/* —— Modül tabloları —— */
+.ep-admin-table,
+.dk-table,
+.im-table,
+.tz-table,
+.rh-table,
+.mz-table,
+.program-table,
+.gt-etut-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ep-admin-table thead th,
+.dk-table thead th,
+.im-table thead th,
+.tz-table thead th,
+.rh-table thead th,
+.mz-table thead th,
+.program-table thead th,
+.gt-etut-table thead th {
+    padding: 12px 14px;
+    font-size: var(--cs-font-caption);
+    font-weight: 600;
+    letter-spacing: var(--cs-letter-kicker);
+    text-transform: uppercase;
+    color: var(--cs-label);
+    background: var(--cs-surface-muted);
+    border-bottom: 1px solid var(--cs-border);
+    text-align: left;
+}
+
+.ep-admin-table tbody td,
+.dk-table tbody td,
+.im-table tbody td,
+.tz-table tbody td,
+.rh-table tbody td,
+.mz-table tbody td,
+.program-table tbody td,
+.gt-etut-table tbody td {
+    padding: 12px 14px;
+    font-size: var(--cs-font-body);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    vertical-align: middle;
+}
+
+.ep-table-wrap,
+.dk-table-wrap,
+.im-table-wrap,
+.program-table-wrap {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+}
+
+/* Mobil modül tablo kart */
+@media (max-width: 640px) {
+    .ep-admin-table.cs-mobile-ready thead,
+    .dk-table.cs-mobile-ready thead,
+    .im-table.cs-mobile-ready thead,
+    .tz-table.cs-mobile-ready thead,
+    .rh-table.cs-mobile-ready thead,
+    .mz-table.cs-mobile-ready thead,
+    .program-table.cs-mobile-ready thead,
+    .gt-etut-table.cs-mobile-ready thead {
+        display: none;
+    }
+
+    .ep-admin-table.cs-mobile-ready tbody,
+    .dk-table.cs-mobile-ready tbody,
+    .im-table.cs-mobile-ready tbody,
+    .tz-table.cs-mobile-ready tbody,
+    .rh-table.cs-mobile-ready tbody,
+    .mz-table.cs-mobile-ready tbody,
+    .program-table.cs-mobile-ready tbody,
+    .gt-etut-table.cs-mobile-ready tbody {
+        display: flex;
+        flex-direction: column;
+        gap: var(--cs-space-3);
+    }
+
+    .ep-admin-table.cs-mobile-ready tbody tr,
+    .dk-table.cs-mobile-ready tbody tr,
+    .im-table.cs-mobile-ready tbody tr,
+    .tz-table.cs-mobile-ready tbody tr,
+    .rh-table.cs-mobile-ready tbody tr,
+    .mz-table.cs-mobile-ready tbody tr,
+    .program-table.cs-mobile-ready tbody tr,
+    .gt-etut-table.cs-mobile-ready tbody tr {
+        display: flex;
+        flex-direction: column;
+        gap: var(--cs-space-2);
+        padding: var(--cs-space-4);
+        border: 1px solid var(--cs-border);
+        border-radius: var(--cs-radius-md);
+        background: var(--cs-surface);
+    }
+
+    .ep-admin-table.cs-mobile-ready tbody td,
+    .dk-table.cs-mobile-ready tbody td,
+    .im-table.cs-mobile-ready tbody td,
+    .tz-table.cs-mobile-ready tbody td,
+    .rh-table.cs-mobile-ready tbody td,
+    .mz-table.cs-mobile-ready tbody td,
+    .program-table.cs-mobile-ready tbody td,
+    .gt-etut-table.cs-mobile-ready tbody td {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--cs-space-3);
+        padding: 0 !important;
+        border: none !important;
+    }
+
+    .ep-admin-table.cs-mobile-ready tbody td::before,
+    .dk-table.cs-mobile-ready tbody td::before,
+    .im-table.cs-mobile-ready tbody td::before,
+    .tz-table.cs-mobile-ready tbody td::before,
+    .rh-table.cs-mobile-ready tbody td::before,
+    .mz-table.cs-mobile-ready tbody td::before,
+    .program-table.cs-mobile-ready tbody td::before,
+    .gt-etut-table.cs-mobile-ready tbody td::before {
+        content: attr(data-label);
+        flex: 0 0 40%;
+        font-size: var(--cs-font-caption);
+        font-weight: 600;
+        text-transform: uppercase;
+        color: var(--cs-text-tertiary);
+    }
+
+    .ep-admin-table.cs-mobile-ready tbody td:first-child::before,
+    .dk-table.cs-mobile-ready tbody td:first-child::before,
+    .im-table.cs-mobile-ready tbody td:first-child::before,
+    .tz-table.cs-mobile-ready tbody td:first-child::before,
+    .rh-table.cs-mobile-ready tbody td:first-child::before,
+    .mz-table.cs-mobile-ready tbody td:first-child::before,
+    .program-table.cs-mobile-ready tbody td:first-child::before,
+    .gt-etut-table.cs-mobile-ready tbody td:first-child::before {
+        display: none;
+    }
+
+    .ep-admin-table.cs-mobile-ready tbody td:first-child,
+    .dk-table.cs-mobile-ready tbody td:first-child,
+    .im-table.cs-mobile-ready tbody td:first-child,
+    .tz-table.cs-mobile-ready tbody td:first-child,
+    .rh-table.cs-mobile-ready tbody td:first-child,
+    .mz-table.cs-mobile-ready tbody td:first-child,
+    .program-table.cs-mobile-ready tbody td:first-child,
+    .gt-etut-table.cs-mobile-ready tbody td:first-child {
+        flex-direction: column;
+        padding-bottom: var(--cs-space-2) !important;
+        border-bottom: 1px solid var(--cs-border-subtle) !important;
+    }
+
+    .ep-table-wrap,
+    .dk-table-wrap,
+    .im-table-wrap {
+        overflow-x: visible;
+        border: none;
+    }
+}
+
+/* —— Hızlı kayıt sekmeleri —— */
+.yk-tabs,
+.hizli-kayit-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--cs-space-2);
+    padding: var(--cs-space-2);
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-md);
+    background: var(--cs-surface-muted);
+}
+
+.yk-tab,
+.hizli-kayit-tab {
+    min-height: var(--cs-touch-min);
+    padding: 0 var(--cs-space-4);
+    border-radius: var(--cs-radius-sm);
+    font-size: var(--cs-font-secondary);
+    font-weight: 500;
+    transition: background var(--cs-transition), color var(--cs-transition);
+}
+
+.yk-tab.is-active,
+.hizli-kayit-tab.active {
+    background: var(--cs-surface);
+    color: var(--cs-accent);
+    box-shadow: var(--cs-shadow-xs);
+    font-weight: 600;
+}
+
+/* —— Bildirim zili —— */
+.bildirim-panel {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-lg) !important;
+    box-shadow: var(--cs-shadow-lg) !important;
+    max-width: min(calc(100vw - 24px), 380px);
+}
+
+@media (max-width: 640px) {
+    .bildirim-panel {
+        position: fixed !important;
+        left: var(--cs-space-3) !important;
+        right: var(--cs-space-3) !important;
+        top: calc(var(--cs-header-h) + var(--cs-safe-top) + 8px) !important;
+        width: auto !important;
+        max-width: none;
+    }
+}
+
+/* —— Giriş portalı (login-portal.css ile uyum) —— */
+:root {
+    --gate-blue: var(--cs-accent, #2f6ff3);
+    --gate-navy: var(--cs-primary-dark, #071b3a);
+}
+
+.gate-layout {
+    padding:
+        calc(var(--cs-space-6) + var(--cs-safe-top))
+        var(--cs-page-gutter)
+        calc(var(--cs-space-6) + var(--cs-safe-bottom));
+}
+
+.gate-form input {
+    min-height: var(--cs-input-h, 44px);
+    font-size: max(16px, 1rem);
+    border-radius: var(--cs-radius-sm, 10px);
+}
+
+.gate-form button[type="submit"] {
+    min-height: var(--cs-touch-min, 44px);
+    border-radius: var(--cs-radius-sm, 10px);
+}
+
+@media (max-width: 900px) {
+    .gate-showcase {
+        display: none;
+    }
+
+    .gate-layout {
+        grid-template-columns: 1fr !important;
+        min-height: 100dvh;
+        align-items: center;
+    }
+
+    .gate-card {
+        width: 100%;
+        max-width: min(100%, 420px);
+        margin-inline: auto;
+    }
+}
+
+/* —— Global QA: taşma & sticky —— */
+.v3-header,
+.cs-v6-header {
+    padding-top: var(--cs-safe-top);
+}
+
+.v3-main,
+.cs-v6-main {
+    min-width: 0;
+}
+
+[class*="-page"]:not(.dp-page):not(.ep-page) {
+    overflow-x: clip;
+}
+
+/* Modül head aksiyonları mobil */
+@media (max-width: 640px) {
+    .ep-head,
+    .dp-head,
+    .im-head,
+    .tz-head,
+    .rh-head,
+    .dk-head,
+    .mz-head,
+    .ny-head,
+    .dp-actions,
+    .ep-head-actions,
+    .dk-head-actions,
+    .rh-head-actions {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    .ep-btn,
+    .dp-btn,
+    .dk-btn,
+    .im-btn,
+    .tz-btn,
+    .st-btn,
+    .rh-btn,
+    .mz-btn,
+    .ny-head-actions > *,
+    .dp-actions > * {
+        width: 100%;
+        min-height: var(--cs-touch-min) !important;
+        justify-content: center;
+    }
+
+    .yk-tabs,
+    .hizli-kayit-tabs {
+        flex-direction: column;
+    }
+
+    .yk-tab,
+    .hizli-kayit-tab {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* —— Asistan widget —— */
+.asistan-fab {
+    bottom: calc(var(--cs-space-5) + var(--cs-safe-bottom)) !important;
+    right: calc(var(--cs-space-5) + var(--cs-safe-right)) !important;
+}
+
+.asistan-panel {
+    border-radius: var(--cs-radius-lg) !important;
+    box-shadow: var(--cs-shadow-lg) !important;
+    max-height: min(70dvh, 520px);
+}
+
+@media (max-width: 640px) {
+    .asistan-panel {
+        left: var(--cs-space-3) !important;
+        right: var(--cs-space-3) !important;
+        bottom: calc(var(--cs-space-5) + var(--cs-safe-bottom)) !important;
+        width: auto !important;
+    }
+}
+
+/* —— Ultrawide modül denge —— */
+@media (min-width: 1920px) {
+    .ep-page,
+    .dp-page,
+    .rh-page,
+    .dk-page {
+        max-width: var(--cs-content-wide);
+        margin-inline: auto;
+    }
+}
+
+/* ---- css/cs-design-phase5.css ---- */
+/* ============================================================
+   ÇİNİLİ SARAY — Design Constitution Phase 5
+   Kalan modüller · çakışma giderme · birleştirme
+   Yalnızca görsel — işleyişe dokunmaz
+   ============================================================ */
+
+/* —— Kalan modül token köprüsü —— */
+.vz-page {
+    --vz-line: var(--cs-border);
+    --vz-text: var(--cs-text-primary);
+    --vz-muted: var(--cs-text-secondary);
+    --vz-navy: var(--cs-primary-dark);
+    --vz-surface: var(--cs-surface);
+    --vz-soft: var(--cs-surface-muted);
+    --vz-radius: var(--cs-radius-lg);
+    --vz-shadow: var(--cs-shadow-card);
+}
+
+.pt-page {
+    --pt-navy: var(--cs-primary-dark);
+    --pt-muted: var(--cs-text-secondary);
+    --pt-line: var(--cs-border);
+    --pt-accent: var(--cs-accent);
+}
+
+.pid-page {
+    --pid-navy: var(--cs-primary-dark);
+    --pid-text: var(--cs-text-primary);
+    --pid-muted: var(--cs-text-tertiary);
+    --pid-line: var(--cs-border);
+    --pid-ok: var(--cs-success);
+    --pid-warn: var(--cs-warning);
+    --pid-bad: var(--cs-danger);
+}
+
+.cd-page {
+    --cd-navy: var(--cs-primary-dark);
+    --cd-muted: var(--cs-text-secondary);
+    --cd-line: var(--cs-border);
+}
+
+.idareci-dash {
+    --id-bg: var(--cs-background);
+    --id-card: var(--cs-surface);
+    --id-ink: var(--cs-text-primary);
+    --id-muted: var(--cs-text-secondary);
+    --id-blue: var(--cs-accent);
+    --id-radius: var(--cs-radius-xl);
+    --id-shadow: var(--cs-shadow-card);
+}
+
+.gelisim-dosyasi {
+    --gd-muted: var(--cs-text-secondary);
+    --gd-ink: var(--cs-text-primary);
+    --gd-line: var(--cs-border);
+}
+
+.oo-page,
+.oo-report-page {
+    --oo-navy: var(--cs-primary-dark);
+    --oo-muted: var(--cs-text-secondary);
+    --oo-line: var(--cs-border);
+    --oo-accent: var(--cs-accent);
+}
+
+.yk-page {
+    --yk-accent: var(--cs-accent);
+    --yk-line: var(--cs-border);
+    --yk-navy: var(--cs-navy-deep);
+}
+
+/* —— Modül sayfa kabuğu (phase 4 tamamlayıcı) —— */
+.vz-page,
+.pt-page,
+.pid-page,
+.cd-page,
+.oo-report-page,
+.yk-page {
+    gap: var(--cs-section-gap) !important;
+    min-width: 0;
+    max-width: var(--cs-content-wide);
+    margin-inline: auto;
+    padding-bottom: calc(var(--cs-space-8) + var(--cs-safe-bottom));
+    box-sizing: border-box;
+}
+
+.vz-head h1,
+.pt-head h1,
+.pid-head h1,
+.cd-head h1,
+.oo-page-head h1,
+.yk-card-head h2 {
+    font-size: var(--cs-font-page-title) !important;
+    font-weight: 650 !important;
+    letter-spacing: var(--cs-letter-tight) !important;
+    color: var(--cs-text-primary) !important;
+    word-break: break-word;
+}
+
+.vz-kicker,
+.pt-kicker,
+.pid-eyebrow,
+.cd-kicker,
+.oo-kicker {
+    font-size: var(--cs-font-label) !important;
+    font-weight: 600 !important;
+    letter-spacing: var(--cs-letter-kicker) !important;
+    text-transform: uppercase;
+    color: var(--cs-accent) !important;
+}
+
+/* —— İdareci paneli —— */
+.idareci-dash {
+    gap: var(--cs-section-gap) !important;
+    padding-bottom: calc(var(--cs-space-8) + var(--cs-safe-bottom));
+}
+
+.idareci-hero {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-xl) !important;
+    background: linear-gradient(135deg, #eef4ff 0%, var(--cs-surface) 55%, var(--cs-surface-muted) 100%) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+    padding: clamp(20px, 3vw, 28px) !important;
+}
+
+.idareci-hero-copy h1 {
+    font-size: var(--cs-font-display) !important;
+    max-width: none;
+}
+
+.idareci-tile-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+    gap: var(--cs-space-4);
+}
+
+.idareci-tile {
+    border: 1px solid var(--cs-border-subtle) !important;
+    border-radius: var(--cs-radius-lg) !important;
+    box-shadow: var(--cs-shadow-xs) !important;
+    min-height: clamp(120px, 18vw, 160px);
+    padding: var(--cs-space-5) !important;
+    transition: transform var(--cs-transition-fast), box-shadow var(--cs-transition);
+}
+
+.idareci-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--cs-shadow-sm) !important;
+}
+
+.idareci-btn {
+    min-height: var(--cs-btn-h-sm);
+    border-radius: var(--cs-radius-sm) !important;
+    font-weight: 500 !important;
+}
+
+@media (max-width: 900px) {
+    .idareci-hero {
+        grid-template-columns: 1fr !important;
+    }
+
+    .idareci-hero-actions {
+        flex-direction: column;
+    }
+
+    .idareci-hero-actions .idareci-btn,
+    .idareci-hero-actions .primary-btn {
+        width: 100%;
+        min-height: var(--cs-touch-min);
+    }
+}
+
+/* —— Vazife & toplantı —— */
+.vz-stats,
+.pt-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr));
+    gap: var(--cs-space-3);
+}
+
+.vz-stat,
+.pt-stat {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-md) !important;
+    box-shadow: var(--cs-shadow-xs) !important;
+    padding: var(--cs-space-4) !important;
+}
+
+.vz-stat strong,
+.pt-stat strong {
+    font-variant-numeric: tabular-nums;
+}
+
+.vz-card,
+.pt-card,
+.pt-detail-card {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-lg) !important;
+    background: var(--cs-surface) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+}
+
+.vz-dash-strip {
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-lg);
+    background: var(--cs-surface);
+    padding: var(--cs-space-4) var(--cs-space-5);
+    box-shadow: var(--cs-shadow-xs);
+}
+
+.vz-dash-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--cs-space-2);
+}
+
+.vz-dash-chip {
+    min-height: var(--cs-touch-min);
+    display: inline-flex;
+    align-items: center;
+    padding: var(--cs-space-2) var(--cs-space-3);
+    border-radius: var(--cs-radius-pill);
+    border: 1px solid var(--cs-border);
+    background: var(--cs-surface-muted);
+    font-size: var(--cs-font-secondary);
+    text-decoration: none;
+    color: var(--cs-text-primary);
+    transition: background var(--cs-transition), border-color var(--cs-transition);
+}
+
+.vz-dash-chip:hover {
+    background: var(--cs-info-bg);
+    border-color: #bfdbfe;
+}
+
+.vz-dash-chip.is-late {
+    border-color: rgba(220, 38, 38, 0.25);
+    background: var(--cs-danger-bg);
+}
+
+/* —— Pazar izin dönüş —— */
+.pid-table-wrap {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    border: 1px solid var(--cs-border-subtle);
+    border-radius: var(--cs-radius-md);
+}
+
+.pid-table th {
+    font-size: var(--cs-font-caption);
+    font-weight: 600;
+    letter-spacing: var(--cs-letter-kicker);
+    text-transform: uppercase;
+    color: var(--cs-label);
+    background: var(--cs-surface-muted);
+}
+
+.pid-table .pid-name {
+    font-weight: 600;
+    word-break: break-word;
+}
+
+.pid-chip,
+.pid-status {
+    font-size: var(--cs-font-caption);
+    font-weight: 600;
+    border-radius: var(--cs-radius-pill);
+}
+
+@media (max-width: 640px) {
+    .pid-table.cs-mobile-ready thead { display: none; }
+    .pid-table.cs-mobile-ready tbody {
+        display: flex;
+        flex-direction: column;
+        gap: var(--cs-space-3);
+    }
+    .pid-table.cs-mobile-ready tbody tr {
+        display: flex;
+        flex-direction: column;
+        gap: var(--cs-space-2);
+        padding: var(--cs-space-4);
+        border: 1px solid var(--cs-border);
+        border-radius: var(--cs-radius-md);
+        background: var(--cs-surface);
+    }
+    .pid-table.cs-mobile-ready tbody td {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--cs-space-3);
+        padding: 0 !important;
+        border: none !important;
+    }
+    .pid-table.cs-mobile-ready tbody td::before {
+        content: attr(data-label);
+        flex: 0 0 40%;
+        font-size: var(--cs-font-caption);
+        font-weight: 600;
+        text-transform: uppercase;
+        color: var(--cs-text-tertiary);
+    }
+    .pid-table.cs-mobile-ready tbody td:first-child::before { display: none; }
+    .pid-table.cs-mobile-ready tbody td:first-child {
+        flex-direction: column;
+        border-bottom: 1px solid var(--cs-border-subtle) !important;
+        padding-bottom: var(--cs-space-2) !important;
+    }
+    .pid-table-wrap { overflow-x: visible; border: none; }
+    .pid-head-actions { width: 100%; flex-direction: column; }
+    .pid-head-actions > * { width: 100%; min-height: var(--cs-touch-min); }
+}
+
+/* —— Cuma durum —— */
+.cd-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+    gap: var(--cs-space-4);
+}
+
+.cd-story-card {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-lg) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+    overflow: hidden;
+}
+
+@media (max-width: 640px) {
+    .cd-preview-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* —— Öğretmen ödeme —— */
+.oo-form-grid,
+.oo-report-filter {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
+    gap: var(--cs-space-3);
+    align-items: end;
+}
+
+.oo-form-grid label,
+.oo-report-filter label {
+    font-size: var(--cs-font-secondary);
+    font-weight: 500;
+    color: var(--cs-label);
+}
+
+.oo-create-form .input,
+.oo-donem-form select,
+.oo-donem-form input,
+.oo-report-filter input,
+.oo-report-filter select {
+    min-height: var(--cs-input-h) !important;
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-sm) !important;
+    font-size: max(16px, var(--cs-font-body));
+}
+
+.oo-rate-input {
+    font-variant-numeric: tabular-nums;
+}
+
+.oo-teacher-chip {
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-pill);
+    min-height: var(--cs-touch-min);
+    padding: var(--cs-space-2) var(--cs-space-4);
+}
+
+@media (max-width: 640px) {
+    .oo-form-grid,
+    .oo-report-filter {
+        grid-template-columns: 1fr !important;
+    }
+
+    .oo-report-filter .primary-btn,
+    .oo-report-filter .ghost-btn {
+        width: 100%;
+        min-height: var(--cs-touch-min);
+    }
+}
+
+/* —— Gelişim dosyası —— */
+.gelisim-dosyasi {
+    gap: var(--cs-section-gap) !important;
+}
+
+.gelisim-top-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.85fr);
+    gap: var(--cs-section-gap);
+}
+
+.gelisim-panel {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-lg) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+    background: var(--cs-surface) !important;
+    overflow: hidden;
+}
+
+.gelisim-kimlik-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+    gap: var(--cs-space-3) var(--cs-space-5);
+}
+
+.gelisim-kimlik-grid dt {
+    font-size: var(--cs-font-caption);
+    color: var(--cs-text-tertiary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.gelisim-kimlik-grid dd {
+    font-size: var(--cs-font-body);
+    color: var(--cs-text-primary);
+    word-break: break-word;
+}
+
+.gelisim-durum-badge {
+    min-height: var(--cs-btn-h-sm);
+    font-size: var(--cs-font-secondary);
+}
+
+@media (max-width: 900px) {
+    .gelisim-top-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .gelisim-kimlik-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* —— Hızlı kayıt (phase 4 tamamlayıcı) —— */
+.yk-page {
+    gap: var(--cs-section-gap) !important;
+}
+
+.yk-card {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-lg) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+    padding: var(--cs-density-card-pad) !important;
+}
+
+.yk-card-head h2 {
+    font-size: var(--cs-font-section) !important;
+}
+
+.yk-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+    gap: var(--cs-space-4);
+}
+
+.yk-giris-banner {
+    border: 1px solid #bfdbfe;
+    border-radius: var(--cs-radius-md);
+    background: var(--cs-info-bg);
+    padding: var(--cs-space-4) var(--cs-space-5);
+    font-size: var(--cs-font-secondary);
+    line-height: 1.5;
+}
+
+.yk-son-table-wrap {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    border: 1px solid var(--cs-border-subtle);
+    border-radius: var(--cs-radius-md);
+}
+
+@media (max-width: 640px) {
+    .yk-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .yk-form-actions {
+        flex-direction: column-reverse;
+    }
+
+    .yk-form-actions .primary-btn,
+    .yk-form-actions .ghost-btn {
+        width: 100%;
+        min-height: var(--cs-touch-min);
+    }
+}
+
+/* —— AI Zekası widget —— */
+.ai-zekasi-widget {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-lg) !important;
+    background: var(--cs-surface) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+}
+
+.ai-zekasi-expand,
+.ai-zekasi-btn {
+    min-height: var(--cs-btn-h-sm);
+    border-radius: var(--cs-radius-sm) !important;
+    font-size: var(--cs-font-secondary) !important;
+}
+
+.dash-ai-bottom .ai-zekasi-widget {
+    border-style: dashed !important;
+    background: var(--cs-surface-muted) !important;
+}
+
+@media (max-width: 640px) {
+    .ai-zekasi-widget-head {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ai-zekasi-actions {
+        flex-wrap: wrap;
+        width: auto;
+        align-self: flex-end;
+    }
+
+    .ai-zekasi-expand,
+    .ai-zekasi-btn {
+        flex: 1 1 auto;
+        min-height: var(--cs-touch-min);
+        justify-content: center;
+    }
+}
+
+/* —— Çakışma giderme: panel-unified vs CS —— */
+
+/* İç operasyon sayfalarında dev animated hero'yu sadeleştir */
+.ktt-page-head,
+.st-page-head,
+.rh-page-head,
+.ny-head,
+.ep-head.patterned-page-head,
+.dp-head.patterned-page-head,
+.pid-head.patterned-page-head,
+.at-page-head.patterned-page-head {
+    animation: none !important;
+    background-size: 100% 100% !important;
+    box-shadow: var(--cs-shadow-md) !important;
+    padding: clamp(18px, 2.8vw, 26px) clamp(20px, 3vw, 30px) !important;
+}
+
+/* Tekrarlayan padding — tek kaynak */
+.v3-main .page-content,
+.cs-v6-main,
+.yonetim-page {
+    padding-inline: var(--cs-page-gutter) !important;
+}
+
+/* Eski premium metrik kartları — token hizası */
+.metric-card,
+.dash-stat-card,
+.fn-kpi,
+.ktt-kpi-card {
+    border-color: var(--cs-border) !important;
+}
+
+/* Global link rengi tutarlılığı */
+.dash-text-btn,
+.yonetim-link,
+.vz-link,
+.pt-link {
+    color: var(--cs-accent) !important;
+    font-weight: 500;
+    text-decoration: none;
+    transition: opacity var(--cs-transition-fast);
+}
+
+.dash-text-btn:hover,
+.yonetim-link:hover {
+    opacity: 0.85;
+    text-decoration: underline;
+}
+
+/* Scrollbar — ince, marka uyumlu */
+.responsive-table::-webkit-scrollbar,
+.dp-matrix-scroll::-webkit-scrollbar,
+.ktt-table-wrap::-webkit-scrollbar,
+.ms-filter-panel::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+}
+
+.responsive-table::-webkit-scrollbar-thumb,
+.dp-matrix-scroll::-webkit-scrollbar-thumb,
+.ktt-table-wrap::-webkit-scrollbar-thumb {
+    background: var(--cs-border-strong);
+    border-radius: var(--cs-radius-pill);
+}
+
+/* Print — gereksiz UI gizle */
+@media print {
+    .v3-header,
+    .cs-v6-header,
+    .asistan-fab,
+    .bildirim-bell-wrap,
+    .page-head-actions,
+    .yonetim-page-head-actions {
+        display: none !important;
+    }
+
+    .v3-main .page-content,
+    .cs-v6-main {
+        padding: 0 !important;
+        max-width: 100% !important;
+    }
+
+    .report-table-card,
+    .yonetim-table-card,
+    .dash-panel {
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+    }
+}
+
+/* Reduced motion — animasyonlu hero'lar */
+@media (prefers-reduced-motion: reduce) {
+    .page-head,
+    .patterned-page-head,
+    .welcome-panel,
+    .v3-header,
+    .cs-v6-header {
+        animation: none !important;
+    }
+
+    .dash-shortcut-card:hover,
+    .idareci-tile:hover,
+    .primary-btn:hover,
+    .ghost-btn:hover {
+        transform: none !important;
+    }
+}
+
+/* ---- css/cs-design-phase6.css ---- */
+/* ============================================================
+   ÇİNİLİ SARAY — Design Constitution Phase 6
+   Son katman: modül *-premium.css sonrası CS uyumu
+   Yalnızca görsel — işleyişe dokunmaz
+   ============================================================ */
+
+/* —— Modül token köprüsü (premium CSS üzerine) —— */
+.ep-page {
+    --ep-bg: var(--cs-background-warm);
+    --ep-surface: var(--cs-surface);
+    --ep-line: var(--cs-border);
+    --ep-line-soft: var(--cs-border-subtle);
+    --ep-navy: var(--cs-primary-dark);
+    --ep-text: var(--cs-text-primary);
+    --ep-muted: var(--cs-text-tertiary);
+    --ep-accent: var(--cs-accent);
+    --ep-radius: var(--cs-radius-lg);
+    --ep-radius-sm: var(--cs-radius-md);
+    --ep-shadow: var(--cs-shadow-card);
+}
+
+.dp-page {
+    --dp-line: var(--cs-border);
+    --dp-line-soft: var(--cs-border-subtle);
+    --dp-navy: var(--cs-primary-dark);
+    --dp-text: var(--cs-text-primary);
+    --dp-muted: var(--cs-text-tertiary);
+    --dp-accent: var(--cs-accent);
+    --dp-radius: var(--cs-radius-lg);
+    --dp-radius-sm: var(--cs-radius-md);
+    --dp-shadow: var(--cs-shadow-card);
+    overflow-x: visible !important;
+}
+
+.fn-page {
+    --fn-bg: var(--cs-surface);
+    --fn-surface: var(--cs-surface-muted);
+    --fn-border: var(--cs-border);
+    --fn-navy: var(--cs-primary-dark);
+    --fn-blue: var(--cs-accent);
+    --fn-text: var(--cs-text-primary);
+    --fn-muted: var(--cs-text-secondary);
+    --fn-radius: var(--cs-radius-lg);
+    --fn-shadow: var(--cs-shadow-card);
+}
+
+.st-page {
+    --st-bg: var(--cs-surface);
+    --st-surface: var(--cs-surface-muted);
+    --st-line: var(--cs-border);
+    --st-navy: var(--cs-primary-dark);
+    --st-text: var(--cs-text-primary);
+    --st-muted: var(--cs-text-secondary);
+    --st-radius: var(--cs-radius-lg);
+    --st-shadow: var(--cs-shadow-card);
+}
+
+.rh-page {
+    --rh-bg: var(--cs-surface);
+    --rh-surface: var(--cs-surface-muted);
+    --rh-border: var(--cs-border-subtle);
+    --rh-navy: var(--cs-primary-dark);
+    --rh-text: var(--cs-text-primary);
+    --rh-muted: var(--cs-text-secondary);
+    --rh-radius: var(--cs-radius-md);
+    --rh-shadow: var(--cs-shadow-card);
+}
+
+.im-page,
+.im-panel {
+    --im-bg: var(--cs-background);
+    --im-card: var(--cs-surface);
+    --im-line: var(--cs-border-subtle);
+    --im-navy: var(--cs-primary-dark);
+    --im-blue: var(--cs-accent);
+    --im-muted: var(--cs-text-secondary);
+    --im-radius: var(--cs-radius-lg);
+}
+
+.tz-page {
+    --tz-bg: var(--cs-background);
+    --tz-card: var(--cs-surface);
+    --tz-line: var(--cs-border);
+    --tz-navy: var(--cs-primary-dark);
+    --tz-blue: var(--cs-accent);
+    --tz-muted: var(--cs-text-secondary);
+    --tz-radius: var(--cs-radius-lg);
+    --tz-shadow: var(--cs-shadow-card);
+}
+
+.dd-page {
+    --dd-navy: var(--cs-primary-dark);
+    --dd-muted: var(--cs-text-secondary);
+    --dd-line: var(--cs-border);
+    --dd-accent: var(--cs-accent);
+}
+
+.dk-page {
+    --dk-bg: var(--cs-background-warm);
+    --dk-surface: var(--cs-surface);
+    --dk-line: var(--cs-border-subtle);
+    --dk-navy: var(--cs-primary-dark);
+    --dk-text: var(--cs-text-primary);
+    --dk-muted: var(--cs-text-secondary);
+    --dk-accent: var(--cs-accent);
+    --dk-radius: var(--cs-radius-lg);
+    --dk-shadow: var(--cs-shadow-card);
+}
+
+.mz-page {
+    --mz-navy: var(--cs-primary-dark);
+    --mz-muted: var(--cs-text-secondary);
+    --mz-line: var(--cs-border);
+    --mz-accent: var(--cs-accent);
+}
+
+.yct-page {
+    --yct-navy: var(--cs-primary-dark);
+    --yct-muted: var(--cs-text-secondary);
+    --yct-line: var(--cs-border);
+    --yct-accent: var(--cs-accent);
+}
+
+/* —— Modül kart & panel —— */
+.ep-card,
+.dp-card,
+.dp-view-panel,
+.fn-card,
+.st-card,
+.st-panel,
+.rh-card,
+.rh-panel,
+.im-card,
+.tz-card,
+.dk-card,
+.mz-card,
+.cd-card,
+.vz-card,
+.pt-card,
+.pid-card,
+.yc-card,
+.oo-card {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-lg) !important;
+    background: var(--cs-surface) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+}
+
+/* —— Modül başlıkları —— */
+.ep-head h1,
+.dp-head h1,
+.fn-head h1,
+.st-page-head h1,
+.rh-page-head h1,
+.im-head h1,
+.tz-head h1,
+.dk-head h1,
+.mz-head h1,
+.cd-head h1,
+.vz-head h1,
+.pt-head h1,
+.pid-head h1,
+.yc-head h1 {
+    font-size: var(--cs-font-page-title) !important;
+    font-weight: 650 !important;
+    letter-spacing: var(--cs-letter-tight) !important;
+    color: var(--cs-text-primary) !important;
+}
+
+.ep-eyebrow,
+.fn-eyebrow,
+.st-kicker,
+.rh-eyebrow,
+.im-eyebrow,
+.tz-crumb,
+.dk-eyebrow,
+.mz-eyebrow,
+.cd-kicker,
+.vz-kicker,
+.pt-kicker {
+    font-size: var(--cs-font-label) !important;
+    font-weight: 600 !important;
+    letter-spacing: var(--cs-letter-kicker) !important;
+    text-transform: uppercase;
+    color: var(--cs-text-tertiary) !important;
+}
+
+/* Operasyon sayfalarında hero sadeleştirme */
+.ep-head.patterned-page-head,
+.dp-head.patterned-page-head,
+.fn-head.patterned-page-head,
+.st-page-head.patterned-page-head,
+.rh-page-head.patterned-page-head,
+.pid-head.patterned-page-head {
+    animation: none !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin-bottom: var(--cs-space-4) !important;
+}
+
+.dp-head {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+/* —— Modül butonları —— */
+.ep-btn,
+.ep-btn-sm,
+.dp-btn,
+.dp-btn-sm,
+.fn-btn,
+.st-btn,
+.st-btn-sm,
+.rh-btn,
+.im-btn,
+.im-btn-sm,
+.tz-btn,
+.tz-btn-sm,
+.dk-btn,
+.dk-btn-sm,
+.dd-btn,
+.mz-btn,
+.cd-btn,
+.vz-btn,
+.pt-btn,
+.pid-btn,
+.yc-btn,
+.program-btn {
+    /* Kritik aksiyon: touch min (sm alias'ı 36px'e düşürmesin) */
+    min-height: var(--cs-touch-min) !important;
+    border-radius: var(--cs-radius-sm) !important;
+    font-size: var(--cs-font-secondary) !important;
+    font-weight: 500 !important;
+    box-sizing: border-box;
+}
+
+.ep-btn-primary,
+.dp-btn-primary,
+.fn-btn-primary,
+.st-btn-primary,
+.rh-btn-primary,
+.im-btn-primary,
+.tz-btn-primary,
+.dk-btn-primary,
+.cd-btn-primary,
+.vz-btn-primary,
+.pt-btn-primary {
+    background: linear-gradient(160deg, var(--cs-primary-mid), var(--cs-accent)) !important;
+    color: #fff !important;
+    border-color: transparent !important;
+}
+
+[class*="-page"] .primary-btn,
+[class*="-page"] .ghost-btn,
+[class*="-panel"] .primary-btn,
+[class*="-panel"] .ghost-btn {
+    min-height: var(--cs-touch-min) !important;
+    border-radius: var(--cs-radius-sm) !important;
+    font-size: var(--cs-font-secondary) !important;
+    box-sizing: border-box;
+}
+
+/* —— Modül inputları —— */
+.ep-input,
+.ep-input-sm,
+.dp-input,
+.fn-input,
+.st-input,
+.rh-input,
+.im-input,
+.tz-input,
+.dk-input,
+.dd-input,
+.mz-input,
+.cd-input,
+.vz-input,
+.pt-input,
+.pid-input,
+.yc-input {
+    min-height: var(--cs-input-h) !important;
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-sm) !important;
+    font-size: max(16px, var(--cs-font-body)) !important;
+    color: var(--cs-text-primary) !important;
+    background: var(--cs-surface) !important;
+}
+
+.ep-input:focus,
+.dp-input:focus,
+.fn-input:focus,
+.st-input:focus,
+.rh-input:focus,
+.im-input:focus,
+.tz-input:focus,
+.dk-input:focus {
+    border-color: var(--cs-accent) !important;
+    box-shadow: var(--cs-shadow-focus) !important;
+    outline: none;
+}
+
+/* —— Modül tabloları —— */
+.st-table-wrap,
+.fn-table-wrap,
+.rh-table-wrap,
+.ep-table-wrap,
+.dp-matrix-scroll,
+.pid-table-wrap,
+.vz-table-wrap,
+.pt-table-wrap,
+.yc-table-wrap,
+.im-table-wrap,
+.tz-table-wrap,
+.dk-table-wrap {
+    border: 1px solid var(--cs-border-subtle);
+    border-radius: var(--cs-radius-md);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+}
+
+.st-table thead th,
+.fn-table thead th,
+.rh-table thead th,
+.ep-admin-table thead th,
+.pid-table thead th,
+.vz-table thead th,
+.pt-table thead th {
+    font-size: var(--cs-font-label) !important;
+    font-weight: 600 !important;
+    letter-spacing: var(--cs-letter-kicker) !important;
+    text-transform: uppercase;
+    color: var(--cs-text-tertiary) !important;
+    background: var(--cs-surface-muted) !important;
+    border-bottom: 1px solid var(--cs-border) !important;
+}
+
+.st-table tbody td,
+.fn-table tbody td,
+.rh-table tbody td,
+.ep-admin-table tbody td,
+.pid-table tbody td {
+    font-size: var(--cs-font-body) !important;
+    color: var(--cs-text-primary) !important;
+    border-bottom: 1px solid var(--cs-border-subtle) !important;
+    vertical-align: middle;
+}
+
+/* Mobil kart görünümü — premium tablo sarmalayıcıları */
+@media (max-width: 640px) {
+    .st-table-wrap.cs-mobile-cards .st-table tbody tr,
+    .fn-table-wrap.cs-mobile-cards .fn-table tbody tr,
+    .rh-table-wrap.cs-mobile-cards .rh-table tbody tr,
+    .ep-table-wrap.cs-mobile-cards .ep-admin-table tbody tr,
+    .pid-table-wrap.cs-mobile-cards .pid-table tbody tr,
+    .vz-table-wrap.cs-mobile-cards .vz-table tbody tr,
+    .pt-table-wrap.cs-mobile-cards .pt-table tbody tr,
+    .im-table-wrap.cs-mobile-cards .im-table tbody tr,
+    .tz-table-wrap.cs-mobile-cards .tz-table tbody tr,
+    .dk-table-wrap.cs-mobile-cards .dk-table tbody tr {
+        border: 1px solid var(--cs-border) !important;
+        border-radius: var(--cs-radius-md) !important;
+        background: var(--cs-surface) !important;
+        box-shadow: var(--cs-shadow-xs) !important;
+        padding: var(--cs-space-3) !important;
+        margin-bottom: var(--cs-space-3);
+    }
+
+    .ep-head,
+    .dp-head,
+    .fn-head,
+    .st-page-head,
+    .rh-page-head,
+    .im-head,
+    .tz-head,
+    .dk-head,
+    .vz-head,
+    .pt-head,
+    .pid-head,
+    .dp-actions,
+    .ep-head-actions,
+    .fn-head-actions,
+    .rh-head-actions,
+    .st-report-actions {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    .ep-btn,
+    .dp-btn,
+    .fn-btn,
+    .st-btn,
+    .rh-btn,
+    .im-btn,
+    .tz-btn,
+    .dk-btn,
+    .vz-btn,
+    .pt-btn,
+    .pid-btn,
+    .yc-btn,
+    .dp-actions > *,
+    .ep-head-actions > *,
+    .fn-head-actions > *,
+    .st-report-actions .primary-btn,
+    .st-report-actions .ghost-btn {
+        width: 100%;
+        min-height: var(--cs-touch-min) !important;
+        justify-content: center;
+    }
+}
+
+/* —— Yönetim premium çakışma: modül sayfalarında sol şerit kapalı —— */
+.yonetim-page .ep-page .dashboard-card::before,
+.yonetim-page .fn-page .dashboard-card::before,
+.yonetim-page .st-page .dashboard-card::before,
+.yonetim-page .dp-page .dashboard-card::before,
+.yonetim-page [class*="-page"] .report-table-card::before,
+.yonetim-page [class*="-page"] .yonetim-table-card::before {
+    display: none !important;
+}
+
+/* —— Finans KPI —— */
+.fn-kpi {
+    border-color: var(--cs-border) !important;
+    box-shadow: var(--cs-shadow-xs) !important;
+}
+
+.fn-kpi-value {
+    font-variant-numeric: tabular-nums;
+}
+
+/* —— Mezun / yemekçilik / idareci —— */
+.mezun-page,
+.yc-page {
+    gap: var(--cs-section-gap);
+    min-width: 0;
+}
+
+.idareci-dash .idareci-tile {
+    border-radius: var(--cs-radius-lg) !important;
+    border: 1px solid var(--cs-border) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+}
+
+/* —— Ultrawide denge —— */
+@media (min-width: 1920px) {
+    .ep-page,
+    .dp-page,
+    .fn-page,
+    .st-page,
+    .rh-page,
+    .dk-page,
+    .im-page,
+    .tz-page {
+        max-width: var(--cs-content-wide);
+        margin-inline: auto;
+    }
+}

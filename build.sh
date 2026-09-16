@@ -8,6 +8,7 @@ if [ -f scripts/vendor_weasyprint_libs.sh ]; then
 fi
 
 pip install -r requirements.txt
+python3 scripts/build_css_bundle.py
 python manage.py collectstatic --no-input
 python manage.py migrate --no-input
 python manage.py seed_ktt_konu_havuzu
