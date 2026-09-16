@@ -1,16 +1,25 @@
 """Deneme — personel görüntüleme."""
 
+import zipfile
+from io import BytesIO
+
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, render
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.text import slugify
 from django.utils.timezone import localdate, now
+from django.views.decorators.http import require_POST
 
 from takip.deneme_service import (
     BRANS_ETIKETLERI,
     DENEME_DETAY_BRANSLAR,
     deneme_detay_satirlari,
+    deneme_silebilir,
+    deneme_sinavini_sil,
     deneme_sonuc_ozeti,
     deneme_sonuclari,
+    eksik_deneme_puanlarini_doldur,
     yetkili_denemeler,
 )
 from takip.permissions.decorators import require_permission
@@ -18,29 +27,13 @@ from takip.permissions.service import can
 from takip.pdf_utils import (
     coz_pdf_sayfa,
     html_to_pdf,
-    make_pdf_response,
     pdf_engine_status,
     pdf_error_response,
 )
 
 
-@login_required
-@require_permission("deneme", "view")
-def deneme_listesi(request):
-    denemeler = yetkili_denemeler(request.user).filter(
-        durum="aktif",
-    )
-    context = {"denemeler": denemeler}
-    template_name = (
-        "partials/deneme_listesi_content.html"
-        if getattr(request, "htmx", False)
-        else "deneme_listesi.html"
-    )
-    return render(request, template_name, context)
-
-
 def _deneme_detay_verisi(request, deneme):
-    sonuclar = list(deneme_sonuclari(request.user, deneme))
+    sonuclar = eksik_deneme_puanlarini_doldur(deneme_sonuclari(request.user, deneme))
     detay_satirlari = deneme_detay_satirlari(sonuclar)
     return {
         "deneme": deneme,
@@ -50,7 +43,26 @@ def _deneme_detay_verisi(request, deneme):
         "detay_branslar": DENEME_DETAY_BRANSLAR,
         "detay_brans_basliklari": [BRANS_ETIKETLERI[k] for k in DENEME_DETAY_BRANSLAR],
         "ozet": deneme_sonuc_ozeti(sonuclar),
+        "sil_yetkisi": deneme_silebilir(request.user),
     }
+
+
+@login_required
+@require_permission("deneme", "view")
+def deneme_listesi(request):
+    denemeler = yetkili_denemeler(request.user).filter(
+        durum="aktif",
+    )
+    context = {
+        "denemeler": denemeler,
+        "sil_yetkisi": deneme_silebilir(request.user),
+    }
+    template_name = (
+        "partials/deneme_listesi_content.html"
+        if getattr(request, "htmx", False)
+        else "deneme_listesi.html"
+    )
+    return render(request, template_name, context)
 
 
 @login_required
@@ -174,41 +186,139 @@ def deneme_excel_indir(request, pk):
     return excel_http_yanit(icerik, f"deneme_{dosya}_{localdate():%Y%m%d}.xlsx")
 
 
+class _BransSatir:
+    __slots__ = (
+        "talebe",
+        "toplam_dogru",
+        "toplam_yanlis",
+        "toplam_bos",
+        "toplam_net",
+        "puan",
+    )
+
+    def __init__(self, talebe, dogru, yanlis, bos, net, puan):
+        self.talebe = talebe
+        self.toplam_dogru = dogru
+        self.toplam_yanlis = yanlis
+        self.toplam_bos = bos
+        self.toplam_net = net
+        self.puan = puan
+
+
+def _deneme_liste_pdf(request, veri, sonuclar, pdf_sayfa, *, kicker, baslik):
+    adet = len(sonuclar)
+    split_at = (adet + 1) // 2
+    html = render(
+        request,
+        "deneme_detay_pdf.html",
+        {
+            **veri,
+            "sonuclar": sonuclar,
+            "sonuclar_sol": sonuclar[:split_at],
+            "sonuclar_sag": sonuclar[split_at:],
+            "sonuc_split": adet > 24,
+            "split_at": split_at,
+            "ozet": deneme_sonuc_ozeti(sonuclar),
+            "liste_kicker": kicker,
+            "liste_baslik": baslik,
+            "olusturma_tarihi": now(),
+            "pdf_sayfa": pdf_sayfa,
+        },
+    ).content.decode("utf-8")
+    return html_to_pdf(html, base_url=request.build_absolute_uri("/"))
+
+
+def _brans_pdf_satirlari(sonuclar, kod):
+    satirlar = []
+    for sonuc in sonuclar:
+        brans = next((b for b in sonuc.brans_satirlari.all() if b.brans == kod), None)
+        if brans is None:
+            continue
+        satirlar.append(
+            _BransSatir(
+                sonuc.talebe,
+                int(brans.dogru or 0),
+                int(brans.yanlis or 0),
+                int(brans.bos or 0),
+                brans.net,
+                sonuc.puan,
+            )
+        )
+    satirlar.sort(
+        key=lambda s: (-float(s.toplam_net or 0), (s.talebe.ad_soyad or "").upper())
+    )
+    return satirlar
+
+
 @login_required
 @require_permission("deneme", "export_pdf")
 def deneme_detay_pdf(request, pk):
     deneme = get_object_or_404(yetkili_denemeler(request.user), pk=pk)
     veri = _deneme_detay_verisi(request, deneme)
     sonuclar = veri["sonuclar"]
-    adet = len(sonuclar)
-    split_at = (adet + 1) // 2
     pdf_sayfa = coz_pdf_sayfa(request)
-
-    html = render(
+    genel = _deneme_liste_pdf(
         request,
-        "deneme_detay_pdf.html",
-        {
-            **veri,
-            "sonuclar_sol": sonuclar[:split_at],
-            "sonuclar_sag": sonuclar[split_at:],
-            "sonuc_split": adet > 24,
-            "split_at": split_at,
-            "olusturma_tarihi": now(),
-            "pdf_sayfa": pdf_sayfa,
-        },
-    ).content.decode("utf-8")
-
-    pdf_verisi = html_to_pdf(
-        html,
-        base_url=request.build_absolute_uri("/"),
+        veri,
+        sonuclar,
+        pdf_sayfa,
+        kicker="Genel Sıralama",
+        baslik="Doğru / Yanlış / Boş / Net / Puan",
     )
-    if not pdf_verisi:
+    if not genel:
         return pdf_error_response(
             f"PDF oluşturulamadı. (Motor: {pdf_engine_status()})",
         )
 
-    dosya_adi = slugify(deneme.ad) or f"deneme_{deneme.pk}"
-    return make_pdf_response(
-        pdf_verisi,
-        f"deneme_{dosya_adi}_{pdf_sayfa['kod']}_{localdate():%Y%m%d}.pdf",
+    buffer = BytesIO()
+    yazilan = 0
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as arsiv:
+        arsiv.writestr("00-genel-siralama.pdf", genel)
+        yazilan += 1
+        sira = 1
+        for kod, etiket in BRANS_ETIKETLERI.items():
+            brans_satir = _brans_pdf_satirlari(sonuclar, kod)
+            if not brans_satir:
+                continue
+            pdf_verisi = _deneme_liste_pdf(
+                request,
+                veri,
+                brans_satir,
+                pdf_sayfa,
+                kicker=etiket,
+                baslik=f"{etiket} — D / Y / B / Net",
+            )
+            if not pdf_verisi:
+                continue
+            dosya = slugify(etiket) or kod
+            arsiv.writestr(f"{sira:02d}-{dosya}.pdf", pdf_verisi)
+            sira += 1
+            yazilan += 1
+
+    if yazilan < 1:
+        return pdf_error_response(
+            f"PDF oluşturulamadı. (Motor: {pdf_engine_status()})",
+        )
+
+    ad = slugify(deneme.ad) or f"deneme_{deneme.pk}"
+    response = HttpResponse(buffer.getvalue(), content_type="application/zip")
+    response["Content-Disposition"] = (
+        f'attachment; filename="deneme_{ad}_{pdf_sayfa["kod"]}_{localdate():%Y%m%d}.zip"'
     )
+    response["X-Content-Type-Options"] = "nosniff"
+    response["Cache-Control"] = "no-store"
+    return response
+
+
+@login_required
+@require_permission("deneme", "delete")
+@require_POST
+def deneme_sil(request, pk):
+    deneme = get_object_or_404(yetkili_denemeler(request.user), pk=pk)
+    if not deneme_silebilir(request.user):
+        messages.error(request, "Bu denemeyi silemezsiniz.")
+        return redirect("deneme_listesi")
+    ad = deneme.ad
+    deneme_sinavini_sil(request.user, deneme)
+    messages.success(request, f"«{ad}» silindi.")
+    return redirect("deneme_listesi")

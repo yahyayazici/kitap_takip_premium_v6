@@ -32,7 +32,15 @@
                         <td><strong>{{ d.ad }}</strong></td>
                         <td>{{ d.sinif_seviyesi }}</td>
                         <td><span class="deneme-katilim">{{ d.sonuc_sayisi }} öğrenci</span></td>
-                        <td><a href="{% url 'deneme_detay' d.pk %}" class="ghost-btn">Detay</a></td>
+                        <td>
+                            <a href="{% url 'deneme_detay' d.pk %}" class="ghost-btn">Detay</a>
+                            {% if sil_yetkisi %}
+                            <form method="post" action="{% url 'deneme_sil' d.pk %}" style="display:inline;" onsubmit="return confirm('«{{ d.ad|escapejs }}» silinsin mi? Sonuçlar da kalkar.');">
+                                {% csrf_token %}
+                                <button type="submit" class="ghost-btn">Sil</button>
+                            </form>
+                            {% endif %}
+                        </td>
                     </tr>
                     {% empty %}
                     <tr><td colspan="5" class="report-empty">Henüz aktif deneme yok.</td></tr>

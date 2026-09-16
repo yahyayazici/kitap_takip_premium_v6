@@ -7,17 +7,25 @@
             <h1>{{ deneme.ad }}</h1>
             <p>{{ deneme.sinav_tarihi|date:"d.m.Y" }} · {{ deneme.get_durum_display }}</p>
         </div>
-        <a href="{% url 'yonetim:deneme_listesi' %}" class="ghost-btn">Liste</a>
+        <div class="yonetim-page-head-actions">
+            <a href="{% url 'yonetim:deneme_listesi' %}" class="ghost-btn">Liste</a>
+            {% if sil_yetkisi %}
+            <form method="post" action="{% url 'yonetim:deneme_sil' deneme.pk %}" onsubmit="return confirm('«{{ deneme.ad|escapejs }}» silinsin mi? Sonuçlar da kalkar.');">
+                {% csrf_token %}
+                <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger">Denemeyi Sil</button>
+            </form>
+            {% endif %}
+        </div>
     </header>
 
-    {% if yukleyebilir and deneme.durum != 'aktif' %}
+    {% if yukleyebilir %}
     <section class="yonetim-card" style="margin-bottom:20px;">
-        <h2>Excel Yükle</h2>
-        <p>Okyanus <strong>genel sonuç raporu</strong> (.xlsx) yükleyin. Her ders için D / Y / B / Net ve puan çekilir; isimler sitedekiyle eşleştirilir. Farklıysa «şu talebe şuna benziyor, doğru mu?» diye sorulur.</p>
+        <h2>{% if deneme.durum == 'aktif' %}Excel ile güncelle{% else %}Excel Yükle{% endif %}</h2>
+        <p>Okyanus <strong>genel sonuç raporu</strong> (.xlsx) yükleyin. Her ders için D / Y / B / Net ve puan çekilir; isimler sitedekiyle eşleştirilir. Farklıysa «şu talebe şuna benziyor, doğru mu?» diye sorulur.{% if deneme.durum == 'aktif' %} Mevcut sonuçların üzerine yazılır.{% endif %}</p>
         <form method="post" enctype="multipart/form-data" style="margin-top:12px;">
             {% csrf_token %}
             <input type="file" name="excel" accept=".xlsx,.xls" class="input" required>
-            <button type="submit" class="primary-btn" style="margin-top:12px;">Yükle ve Önizle</button>
+            <button type="submit" class="primary-btn" style="margin-top:12px;">{% if deneme.durum == 'aktif' %}Yeniden yükle{% else %}Yükle ve Önizle{% endif %}</button>
         </form>
     </section>
     {% endif %}

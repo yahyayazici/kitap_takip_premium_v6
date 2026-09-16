@@ -17,6 +17,12 @@
             <a href="{% url 'deneme_excel_indir' deneme.pk %}" class="result-secondary-button">Excel İndir</a>
             {% endif %}
             <a href="{% url 'deneme_listesi' %}" class="result-back-button">Denemeler</a>
+            {% if sil_yetkisi %}
+            <form method="post" action="{% url 'deneme_sil' deneme.pk %}" onsubmit="return confirm('«{{ deneme.ad|escapejs }}» silinsin mi? Sonuçlar da kalkar.');">
+                {% csrf_token %}
+                <button type="submit" class="result-secondary-button">Sil</button>
+            </form>
+            {% endif %}
         </div>
     </header>
 

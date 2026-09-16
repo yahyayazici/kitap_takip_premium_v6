@@ -766,6 +766,11 @@ urlpatterns = [
         name="deneme_detay",
     ),
     path(
+        "denemeler/<int:pk>/sil/",
+        deneme_yonetim_views.deneme_sil,
+        name="deneme_sil",
+    ),
+    path(
         "denemeler/<int:pk>/onizleme/",
         deneme_yonetim_views.deneme_onizleme,
         name="deneme_onizleme",

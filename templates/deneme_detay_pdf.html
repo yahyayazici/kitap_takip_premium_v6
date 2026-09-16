@@ -129,8 +129,8 @@
                 <rect x="28" y="32" width="42" height="4" rx="2" fill="#FFFFFF" opacity="0.45"/>
             </svg>
             <div class="hero-inner">
-                <div class="hero-tag">Deneme Sınavı</div>
-                <div class="hero-title">{{ deneme.ad }}</div>
+                        <div class="hero-tag">{{ liste_kicker|default:"Deneme Sınavı" }}</div>
+                        <div class="hero-title">{{ deneme.ad }}</div>
                 <div class="hero-meta">
                     {{ deneme.sinif_seviyesi }}. sınıf · {{ deneme.sinav_tarihi|date:"d.m.Y" }} ·
                     {{ ozet.ogrenci_sayisi }} öğrenci
@@ -181,8 +181,8 @@
             <div class="table-panel">
                 <div class="table-panel-accent"></div>
                 <div class="table-panel-head">
-                    <div class="section-kicker">Genel Sıralama</div>
-                    <div class="section-title">Deneme Sonuç Tablosu</div>
+                    <div class="section-kicker">{{ liste_kicker|default:"Genel Sıralama" }}</div>
+                    <div class="section-title">{{ liste_baslik|default:"Deneme Sonuç Tablosu" }}</div>
                 </div>
                 <div class="results-wrap">
                     {% if sonuc_split %}

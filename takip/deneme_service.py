@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from decimal import Decimal, ROUND_HALF_UP
+
 from django.contrib.auth.models import User
 from django.db.models import Count, QuerySet
 
@@ -32,6 +34,93 @@ DENEME_BRANS_DERS_MAP: dict[str, str] = {
     for kod in DENEME_DETAY_BRANSLAR
 }
 
+LGS_KATSAYI: dict[str, Decimal] = {
+    "turkce": Decimal("4"),
+    "matematik": Decimal("4"),
+    "fen": Decimal("4"),
+    "sosyal": Decimal("1"),
+    "din": Decimal("1"),
+    "ingilizce": Decimal("1"),
+}
+
+
+def deneme_puan_branslardan(branslar: dict, sinif_seviyesi: str = "8") -> Decimal:
+    """Excel puanı yoksa LGS katsayılarıyla 100–500 (8. sınıf) / 0–500 puan."""
+    agirlikli = Decimal("0")
+    max_w = Decimal("0")
+    for kod, veri in (branslar or {}).items():
+        katsayi = LGS_KATSAYI.get(kod, Decimal("1"))
+        try:
+            net = Decimal(str(veri.get("net") or 0))
+        except Exception:
+            net = Decimal("0")
+        soru = int(veri.get("dogru") or 0) + int(veri.get("yanlis") or 0) + int(
+            veri.get("bos") or 0
+        )
+        if soru <= 0 and net <= 0:
+            continue
+        if soru <= 0:
+            continue
+        agirlikli += net * katsayi
+        max_w += Decimal(soru) * katsayi
+    if max_w <= 0:
+        return Decimal("0.00")
+    if str(sinif_seviyesi or "").strip() == "8":
+        taban, aralik = Decimal("100"), Decimal("400")
+    else:
+        taban, aralik = Decimal("0"), Decimal("500")
+    return (taban + agirlikli / max_w * aralik).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
+
+
+def deneme_puan_sonuctan(sonuc: DenemeSonucu) -> Decimal:
+    branslar = {
+        b.brans: {
+            "dogru": b.dogru,
+            "yanlis": b.yanlis,
+            "bos": b.bos,
+            "net": b.net,
+        }
+        for b in sonuc.brans_satirlari.all()
+    }
+    seviye = ""
+    deneme = getattr(sonuc, "deneme", None)
+    if deneme is not None:
+        seviye = deneme.sinif_seviyesi
+    return deneme_puan_branslardan(branslar, seviye)
+
+
+def eksik_deneme_puanlarini_doldur(sonuclar) -> list:
+    """Aktarımda puan kolonu kaçtıysa netlerden doldur ve kaydet."""
+    kayitlar = list(sonuclar)
+    guncelle = []
+    for s in kayitlar:
+        if s.puan and s.puan != Decimal("0.00"):
+            continue
+        puan = deneme_puan_sonuctan(s)
+        if puan > 0:
+            s.puan = puan
+            guncelle.append(s)
+    if guncelle:
+        DenemeSonucu.objects.bulk_update(guncelle, ["puan"])
+    return kayitlar
+
+
+def deneme_sinavini_sil(user: User, deneme: DenemeSinavi) -> None:
+    from takip.soru_takip_service import deneme_sonucu_soru_takibe_yansit
+
+    sonuclar = list(
+        DenemeSonucu.objects.filter(deneme=deneme).prefetch_related(
+            "brans_satirlari", "talebe"
+        )
+    )
+    for sonuc in sonuclar:
+        deneme_sonucu_soru_takibe_yansit(
+            user=user, deneme=deneme, sonuc=sonuc, silindi=True
+        )
+    deneme.delete()
+
 
 def deneme_detay_satirlari(sonuclar) -> list[dict]:
     """Sıralama tablosu + ders ders D/Y/B için şablon satırları."""
@@ -53,6 +142,12 @@ def deneme_detay_satirlari(sonuclar) -> list[dict]:
             )
         rows.append({"sira": sira, "sonuc": sonuc, "branslar": branslar})
     return rows
+
+
+def deneme_silebilir(user: User) -> bool:
+    if user.is_superuser:
+        return True
+    return can(user, "deneme", "delete")
 
 
 def deneme_yukleyebilir(user: User) -> bool:

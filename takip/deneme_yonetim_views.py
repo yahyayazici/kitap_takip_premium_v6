@@ -28,8 +28,11 @@ from takip.deneme_service import (
     BRANS_ETIKETLERI,
     DENEME_DETAY_BRANSLAR,
     deneme_detay_satirlari,
+    deneme_silebilir,
+    deneme_sinavini_sil,
     deneme_sonuclari,
     deneme_yukleyebilir,
+    eksik_deneme_puanlarini_doldur,
 )
 from takip.forms import DenemeSinaviForm
 from takip.models import DenemeSinavi, Talebe
@@ -65,6 +68,7 @@ def deneme_listesi(request):
         {
             "denemeler": denemeler,
             "yukleyebilir": deneme_yukleyebilir(request.user),
+            "sil_yetkisi": deneme_silebilir(request.user),
         },
     )
 
@@ -97,7 +101,7 @@ def deneme_detay(request, pk):
 
     deneme = get_object_or_404(DenemeSinavi, pk=pk)
     sonuclar = (
-        list(deneme_sonuclari(request.user, deneme))
+        eksik_deneme_puanlarini_doldur(deneme_sonuclari(request.user, deneme))
         if deneme.durum == "aktif"
         else []
     )
@@ -105,9 +109,6 @@ def deneme_detay(request, pk):
     if request.method == "POST" and request.FILES.get("excel"):
         if not deneme_yukleyebilir(request.user):
             messages.error(request, "Excel yükleme yetkiniz yok.")
-            return redirect("yonetim:deneme_detay", pk=pk)
-        if deneme.durum == DenemeSinavi.Durum.AKTIF:
-            messages.error(request, "Aktif denemeye tekrar Excel yüklenemez.")
             return redirect("yonetim:deneme_detay", pk=pk)
 
         onizleme = deneme_excel_onizle(request.FILES["excel"])
@@ -141,6 +142,7 @@ def deneme_detay(request, pk):
             "detay_branslar": DENEME_DETAY_BRANSLAR,
             "detay_brans_basliklari": [BRANS_ETIKETLERI[k] for k in DENEME_DETAY_BRANSLAR],
             "yukleyebilir": deneme_yukleyebilir(request.user),
+            "sil_yetkisi": deneme_silebilir(request.user),
             "gap_raporlari": gap_raporlari,
             "zayif_konular": zayif_konular,
             "gap_bekleyen": sum(
@@ -155,6 +157,21 @@ def deneme_detay(request, pk):
             ),
         },
     )
+
+
+@yonetici_gerekli
+def deneme_sil(request, pk):
+    if not deneme_silebilir(request.user):
+        messages.error(request, "Deneme silme yetkiniz yok.")
+        return redirect("yonetim:deneme_listesi")
+
+    deneme = get_object_or_404(DenemeSinavi, pk=pk)
+    if request.method != "POST":
+        return redirect("yonetim:deneme_detay", pk=pk)
+    ad = deneme.ad
+    deneme_sinavini_sil(request.user, deneme)
+    messages.success(request, f"«{ad}» silindi.")
+    return redirect("yonetim:deneme_listesi")
 
 
 @yonetici_gerekli

@@ -163,6 +163,37 @@ def _excel_satirlari(dosya) -> list[list[str]]:
     return satirlar
 
 
+def _puan_baslik_mi(baslik: str) -> bool:
+    """Okyanus 'Puan', 'Puanı', üst satırda tek kolon 'Puan' vb."""
+    anahtar = normalize_ad(baslik)
+    if not anahtar:
+        return False
+    if any(x in anahtar for x in ("sira", "siralama", "yuzde", "dilim", "rank")):
+        return False
+    if anahtar in {
+        "puan",
+        "puani",
+        "score",
+        "toplam puan",
+        "toplam puani",
+        "genel puan",
+        "basari puani",
+        "basari puan",
+        "lgs puani",
+        "lgs puan",
+        "ham puan",
+        "standart puan",
+    }:
+        return True
+    tokens = anahtar.split()
+    return "puan" in tokens or "puani" in tokens
+
+
+def _puanlar_grubu_mu(baslik: str) -> bool:
+    anahtar = normalize_ad(baslik)
+    return anahtar == "puanlar" or anahtar.startswith("puanlar ")
+
+
 def _brans_kodu(baslik: str) -> str | None:
     anahtar = normalize_ad(baslik)
     if not anahtar:
@@ -201,7 +232,7 @@ def _duz_baslik_haritasi(baslik_satir: list[str]) -> dict[str, Any]:
         if anahtar in {"sinif", "sınıf", "class"}:
             harita.setdefault("sinif", idx)
             continue
-        if anahtar in {"puan", "score"}:
+        if _puan_baslik_mi(baslik):
             harita.setdefault("puan", idx)
             continue
         if anahtar in {"toplam net", "genel net"}:
@@ -237,19 +268,23 @@ def _okyanus_baslik_haritasi(ust: list[str], alt: list[str]) -> dict[str, Any]:
     """Üst satır branş adları, alt satır Doğru/Yanlış/Boş/Net."""
     harita: dict[str, Any] = {"brans": {}, "toplam": {}}
 
-    for idx, baslik in enumerate(alt):
-        anahtar = normalize_ad(baslik)
-        if not anahtar:
-            continue
+    n = max(len(ust), len(alt))
+    for idx in range(n):
+        alt_b = alt[idx] if idx < len(alt) else ""
+        ust_b = ust[idx] if idx < len(ust) else ""
+        anahtar = normalize_ad(alt_b)
         if anahtar in {"ad soyad", "adsoyad", "isim", "ogrenci", "öğrenci"}:
             harita.setdefault("ad_soyad", idx)
-        elif anahtar in {"sinif", "sınıf", "class"}:
+        elif anahtar in {"sinif", "class"}:
             # İlk "Sınıf" kimlik kolonu; sıralama sütunundaki ikinciyi alma
             harita.setdefault("sinif", idx)
-        elif anahtar in {"puan", "score"}:
-            harita.setdefault("puan", idx)
         elif anahtar in {"toplam net", "genel net"}:
             harita["toplam"]["net"] = idx
+        if _puan_baslik_mi(alt_b) or _puan_baslik_mi(ust_b):
+            harita.setdefault("puan", idx)
+        elif _puanlar_grubu_mu(ust_b) and not anahtar:
+            # Birleşik üst başlık, alt hücre boş → grubun ilk kolonu puan
+            harita.setdefault("puan", idx)
 
     # Branş başlangıç kolonları (üst satırdaki dolu hücreler)
     brans_baslangic: list[tuple[int, str]] = []
@@ -581,9 +616,6 @@ def deneme_sonuclari_aktar(
     user: User,
 ) -> tuple[int, list[str]]:
     hatalar: list[str] = []
-    if deneme.durum == DenemeSinavi.Durum.AKTIF:
-        return 0, ["Bu deneme zaten aktarılmış. Sonuçlar arşivlenir, tekrar yüklenemez."]
-
     oneri_bekleyen = [
         s for s in onizleme.satirlar if s.eslesme == "oneri" and not s.talebe_id
     ]
@@ -629,6 +661,12 @@ def deneme_sonuclari_aktar(
                 "net": str(t_net),
             }
 
+        puan = _ondalik(satir.puan)
+        if puan == 0 and satir.branslar:
+            from takip.deneme_service import deneme_puan_branslardan
+
+            puan = deneme_puan_branslardan(satir.branslar, deneme.sinif_seviyesi)
+
         sonuc = DenemeSonucu.objects.create(
             deneme=deneme,
             talebe=talebe,
@@ -636,7 +674,7 @@ def deneme_sonuclari_aktar(
             toplam_yanlis=int(toplam.get("yanlis", 0)),
             toplam_bos=int(toplam.get("bos", 0)),
             toplam_net=t_net,
-            puan=_ondalik(satir.puan),
+            puan=puan,
         )
 
         for kod, veri in satir.branslar.items():
