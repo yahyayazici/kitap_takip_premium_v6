@@ -7,6 +7,8 @@ from django.views.static import serve
 from takip.bootstrap_views import bootstrap_setup, health_check
 from takip.pwa_views import (
     og_share_image,
+    push_abone_ol,
+    push_abonelik_sil,
     pwa_baslat,
     pwa_icon_180,
     pwa_icon_192,
@@ -20,6 +22,8 @@ urlpatterns = [
     path("pwa/baslat/", pwa_baslat, name="pwa_baslat"),
     path("manifest.webmanifest", web_manifest, name="web_manifest"),
     path("sw.js", service_worker, name="service_worker"),
+    path("pwa/push/abone-ol/", push_abone_ol, name="push_abone_ol"),
+    path("pwa/push/abonelik-sil/", push_abonelik_sil, name="push_abonelik_sil"),
     path("apple-touch-icon.png", pwa_icon_180, name="apple_touch_icon"),
     path("apple-touch-icon-precomposed.png", pwa_icon_180, name="apple_touch_icon_precomposed"),
     path("pwa/icon-180.png", pwa_icon_180, name="pwa_icon_180"),

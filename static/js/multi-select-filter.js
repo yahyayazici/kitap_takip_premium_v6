@@ -38,6 +38,15 @@
         panel.className = "ms-filter-panel";
         panel.hidden = true;
 
+        let searchInput = null;
+        if (select.dataset.searchable === "1") {
+            searchInput = document.createElement("input");
+            searchInput.type = "search";
+            searchInput.className = "ms-filter-search";
+            searchInput.placeholder = "Ara…";
+            panel.appendChild(searchInput);
+        }
+
         const actions = document.createElement("div");
         actions.className = "ms-filter-actions";
         actions.innerHTML =
@@ -68,9 +77,26 @@
         panel.appendChild(list);
         wrap.appendChild(panel);
 
+        if (searchInput) {
+            searchInput.addEventListener("input", function () {
+                const q = searchInput.value.trim().toLocaleLowerCase("tr");
+                list.querySelectorAll(".ms-filter-option").forEach(function (label) {
+                    const text = label.textContent.trim().toLocaleLowerCase("tr");
+                    label.hidden = q.length > 0 && text.indexOf(q) === -1;
+                });
+            });
+        }
+
         trigger.addEventListener("click", function (event) {
             event.stopPropagation();
             panel.hidden = !panel.hidden;
+            if (!panel.hidden && searchInput) {
+                searchInput.value = "";
+                list.querySelectorAll(".ms-filter-option").forEach(function (label) {
+                    label.hidden = false;
+                });
+                searchInput.focus();
+            }
         });
 
         actions.querySelector(".ms-filter-all").addEventListener("click", function () {

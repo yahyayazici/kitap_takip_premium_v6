@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models import Count, Q
 from django.http import HttpResponse, JsonResponse
@@ -29,6 +30,8 @@ from .models import (
     YemekOgun,
     Zimmet,
 )
+from .bildirim_service import bildirim_gonder_coklu
+from .push_bildirim_service import push_gonder_coklu, tum_gonderilebilir_kisiler
 from .imam_muezzin_service import bugunun_atamasi, otomatik_dagit
 from .dashboard_service import dashboard_kisayollari, dashboard_metrikleri
 from .imam_muezzin_yonetim_service import (
@@ -79,6 +82,7 @@ from .talebe_excel import (
     talebe_excel_ice_aktar,
 )
 from .yonetim_forms import (
+    BildirimGonderForm,
     CumaDurumMetniForm,
     DuyuruForm,
     HaftalikSohbetMevzuuForm,
@@ -850,6 +854,49 @@ def duyuru_sil(request, pk):
     duyuru.delete()
     messages.success(request, f"“{baslik}” duyurusu silindi.")
     return redirect("yonetim:duyuru_listesi")
+
+
+@yonetici_gerekli
+def bildirim_gonder_view(request):
+    kisiler = tum_gonderilebilir_kisiler()
+    secenekler = [(str(k["user_id"]), k["etiket"]) for k in kisiler]
+    form = BildirimGonderForm(request.POST or None, kisi_secenekleri=secenekler)
+
+    if form.is_valid():
+        secili_idler = {int(v) for v in form.cleaned_data["kisiler"]}
+        users = User.objects.filter(pk__in=secili_idler, is_active=True)
+        baslik = form.cleaned_data["baslik"]
+        mesaj = form.cleaned_data["mesaj"]
+
+        uygulama_sayisi = bildirim_gonder_coklu(
+            users,
+            baslik=baslik,
+            mesaj=mesaj,
+            olusturan=request.user,
+        )
+        push_sayisi = push_gonder_coklu(users, baslik=baslik, mesaj=mesaj)
+
+        messages.success(
+            request,
+            f"Bildirim {uygulama_sayisi} kişiye uygulama içinde, {push_sayisi} cihaza "
+            "push bildirimi olarak gönderildi.",
+        )
+        return redirect("yonetim:bildirim_gonder")
+
+    return render(
+        request,
+        "yonetim/form.html",
+        {
+            "form": form,
+            "sayfa_basligi": "Bildirim Gönder",
+            "sayfa_aciklama": (
+                "Seçtiğiniz kişilere hem uygulama içi bildirim hem de (ana ekrana "
+                "eklemişlerse) telefonlarına push bildirimi gider."
+            ),
+            "geri_url": "yonetim:dashboard",
+            "form_multipart": False,
+        },
+    )
 
 
 @yonetici_gerekli

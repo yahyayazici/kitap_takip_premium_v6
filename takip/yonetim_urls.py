@@ -337,6 +337,11 @@ urlpatterns = [
         name="duyuru_sil",
     ),
     path(
+        "bildirim-gonder/",
+        yonetim_views.bildirim_gonder_view,
+        name="bildirim_gonder",
+    ),
+    path(
         "iletisim/sablonlar/",
         iletisim_yonetim_views.iletisim_sablon_listesi,
         name="iletisim_sablon_listesi",

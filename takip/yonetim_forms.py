@@ -1662,3 +1662,29 @@ class TalebeExcelForm(forms.Form):
         if dosya.size > 5 * 1024 * 1024:
             raise forms.ValidationError("Dosya boyutu 5 MB'dan küçük olmalıdır.")
         return dosya
+
+
+class BildirimGonderForm(forms.Form):
+    kisiler = forms.MultipleChoiceField(
+        label="Kime gönderilsin",
+        widget=forms.SelectMultiple(
+            attrs={
+                "class": "ms-filter",
+                "data-searchable": "1",
+                "data-placeholder": "Kişi seçin",
+            }
+        ),
+    )
+    baslik = forms.CharField(
+        label="Başlık",
+        max_length=200,
+        widget=forms.TextInput(attrs={"class": "cs-input", "placeholder": "Bildirim başlığı"}),
+    )
+    mesaj = forms.CharField(
+        label="Mesaj",
+        widget=forms.Textarea(attrs={"class": "cs-input", "rows": 4, "placeholder": "Bildirim metni"}),
+    )
+
+    def __init__(self, *args, kisi_secenekleri=(), **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["kisiler"].choices = kisi_secenekleri

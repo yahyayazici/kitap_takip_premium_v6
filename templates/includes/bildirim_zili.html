@@ -12,7 +12,9 @@
 
      data-merkez-url="{% url 'bildirim_merkezi' %}"
 
-     data-csrf="{{ csrf_token }}">
+     data-csrf="{{ csrf_token }}"
+
+     {% if push_bildirim_aktif %}data-push-root data-vapid-key="{{ vapid_public_key }}" data-subscribe-url="{% url 'push_abone_ol' %}"{% endif %}>
 
     <button type="button" class="bn-bell-btn{% if bildirim_okunmamis %} has-unread{% endif %}" data-bn-toggle aria-expanded="false" aria-label="Bildirimler">
 
@@ -46,6 +48,11 @@
         <div class="bn-panel-foot">
 
             <a href="{% url 'bildirim_merkezi' %}">Tüm bildirimler</a>
+
+            {% if push_bildirim_aktif %}
+            <button type="button" class="bn-push-btn" data-push-enable hidden>🔔 Bildirimleri aç</button>
+            <span class="bn-push-blocked" data-push-blocked hidden>Bildirimler tarayıcı ayarlarından engellenmiş</span>
+            {% endif %}
 
         </div>
 

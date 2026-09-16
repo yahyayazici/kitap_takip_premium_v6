@@ -6,11 +6,12 @@ import json
 from html import escape
 
 from django.conf import settings
-from django.http import HttpResponse, JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.views.decorators.csrf import ensure_csrf_cookie
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 
 from config.branding import (
     PANEL_MOBILE_SHORT,
@@ -18,6 +19,7 @@ from config.branding import (
     PANEL_TAGLINE,
 )
 from takip.og_share_image import render_og_share_png
+from takip.push_bildirim_service import abonelik_kaydet, abonelik_sil
 
 PWA_THEME_COLOR = "#071b3a"
 PWA_VERSION = "v14"
@@ -176,3 +178,31 @@ def csrf_failure(request, reason=""):
     if request.method == "POST":
         return redirect(f"{reverse('login')}?source=pwa&csrf=1")
     return redirect(reverse("login"))
+
+
+@login_required
+@require_POST
+def push_abone_ol(request):
+    try:
+        data = json.loads(request.body or "{}")
+    except json.JSONDecodeError:
+        return HttpResponseBadRequest("geçersiz istek")
+    abonelik = abonelik_kaydet(
+        request.user,
+        data,
+        user_agent=request.META.get("HTTP_USER_AGENT", ""),
+    )
+    if not abonelik:
+        return JsonResponse({"ok": False, "hata": "eksik abonelik verisi"}, status=400)
+    return JsonResponse({"ok": True})
+
+
+@login_required
+@require_POST
+def push_abonelik_sil(request):
+    try:
+        data = json.loads(request.body or "{}")
+    except json.JSONDecodeError:
+        return HttpResponseBadRequest("geçersiz istek")
+    abonelik_sil(request.user, (data.get("endpoint") or "").strip())
+    return JsonResponse({"ok": True})

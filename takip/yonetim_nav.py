@@ -175,6 +175,11 @@ YONETIM_NAV_GROUPS: tuple[YonetimNavGroup, ...] = (
                 active_names=("duyuru_listesi", "duyuru_ekle", "duyuru_duzenle"),
             ),
             YonetimNavItem(
+                label="Bildirim Gönder",
+                url_name="yonetim:bildirim_gonder",
+                active_names=("bildirim_gonder",),
+            ),
+            YonetimNavItem(
                 label="Kısayollar",
                 url_name="yonetim:kisayol_gorsel_listesi",
                 active_names=("kisayol_gorsel_listesi",),

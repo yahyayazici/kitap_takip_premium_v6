@@ -2208,6 +2208,8 @@ from takip.personel_toplanti_models import (  # noqa: E402,F401
 
 from takip.bildirim_models import Bildirim  # noqa: E402,F401
 
+from takip.push_bildirim_models import PushAbonelik  # noqa: E402,F401
+
 from takip.yct_models import YctOlay  # noqa: E402,F401
 
 from takip.talebe_panel_models import (  # noqa: E402,F401

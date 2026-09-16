@@ -211,6 +211,12 @@ AI_PLATFORM_ENABLED = os.environ.get("AI_PLATFORM_ENABLED", "True").lower() == "
 AI_PLATFORM_MAX_TOKENS = int(os.environ.get("AI_PLATFORM_MAX_TOKENS", "2000"))
 AI_CACHE_HOURS = int(os.environ.get("AI_CACHE_HOURS", "24"))
 
+# —— Web Push (VAPID) — yönetimin elle gönderdiği push bildirimleri ——
+# Anahtarlar boşsa özellik sessizce kapalı kalır (push_bildirim_aktif() False döner).
+VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "").strip()
+VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY", "").strip()
+VAPID_CLAIM_EMAIL = os.environ.get("VAPID_CLAIM_EMAIL", "").strip()
+
 # —— Bildirim e-posta ——
 # SMTP yoksa console backend ile DEBUG'ta mail içeriği terminale yazılır.
 BILDIRIM_EMAIL_AKTIF = os.environ.get("BILDIRIM_EMAIL_AKTIF", "True").lower() == "true"
