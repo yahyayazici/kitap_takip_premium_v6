@@ -13,15 +13,22 @@
         }
 
         html, body {
-            width: auto;
-            height: auto;
+            width: 210mm;
+            height: 297mm;
             margin: 0;
             padding: 0;
+            overflow: hidden;
             background: #e8edf4;
             color: #0f203c;
         }
 
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+
         .hero {
+            flex: 0 0 auto;
             width: 100%;
             border-collapse: collapse;
             background: #071b3a;
@@ -33,7 +40,7 @@
         }
 
         .hero-inner {
-            padding: 28px 36px 52px 28px;
+            padding: 28px 36px 48px 28px;
             background: #071b3a;
             background-image: linear-gradient(118deg, transparent 58%, rgba(47, 111, 243, 0.16) 58.4%, transparent 78%);
         }
@@ -69,21 +76,20 @@
             color: #8aa0c0;
         }
 
-        .sheet-wrap {
-            padding: 0 22px 0;
-            margin-top: -28px;
-        }
-
         .sheet {
-            width: 100%;
-            border-collapse: collapse;
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            margin: -28px 22px 16px;
             background: #ffffff;
             border-radius: 22px;
             overflow: hidden;
         }
 
-        .sheet td.pad {
-            padding: 28px 26px 22px;
+        .pad {
+            flex: 1 1 auto;
+            padding: 28px 26px 18px;
         }
 
         .who {
@@ -112,7 +118,7 @@
         }
 
         .field-body {
-            padding: 14px 16px 14px 16px;
+            padding: 14px 16px;
             background: #eef3fb;
             border-left: 5px solid #2f6ff3;
         }
@@ -185,15 +191,14 @@
             vertical-align: middle;
         }
 
+        .sheet-foot {
+            flex: 0 0 auto;
+            padding: 8px 26px 20px;
+        }
+
         .foot {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 18px;
-            padding: 0 28px 22px;
-        }
-
-        .foot-wrap {
-            padding: 16px 28px 24px;
         }
 
         .foot-bar {
@@ -234,59 +239,55 @@
     </tr>
 </table>
 
-<div class="sheet-wrap">
-    <table class="sheet" cellpadding="0" cellspacing="0">
-        <tr>
-            <td class="pad">
-                <h1 class="who">{{ ad_soyad }}</h1>
-                <p class="role">{{ rol_etiket }}</p>
+<section class="sheet">
+    <div class="pad">
+        <h1 class="who">{{ ad_soyad }}</h1>
+        <p class="role">{{ rol_etiket }}</p>
 
-                <table class="field" cellpadding="0" cellspacing="0">
-                    <tr>
-                        <td class="field-body">
-                            <span class="field-label">Kullanıcı adı</span>
-                            <div class="field-value mono">{{ kullanici_adi }}</div>
-                        </td>
-                    </tr>
-                </table>
+        <table class="field" cellpadding="0" cellspacing="0">
+            <tr>
+                <td class="field-body">
+                    <span class="field-label">Kullanıcı adı</span>
+                    <div class="field-value mono">{{ kullanici_adi }}</div>
+                </td>
+            </tr>
+        </table>
 
-                <table class="field" cellpadding="0" cellspacing="0">
-                    <tr>
-                        <td class="field-body">
-                            <span class="field-label">Geçici şifre</span>
-                            <div class="field-value mono">{{ sifre }}</div>
-                        </td>
-                    </tr>
-                </table>
+        <table class="field" cellpadding="0" cellspacing="0">
+            <tr>
+                <td class="field-body">
+                    <span class="field-label">Geçici şifre</span>
+                    <div class="field-value mono">{{ sifre }}</div>
+                </td>
+            </tr>
+        </table>
 
-                <table class="field" cellpadding="0" cellspacing="0">
-                    <tr>
-                        <td class="field-body">
-                            <span class="field-label">Panel giriş adresi</span>
-                            <div class="field-value url">{{ panel_giris_url|cut:"https://"|cut:"http://" }}</div>
-                        </td>
-                    </tr>
-                </table>
+        <table class="field" cellpadding="0" cellspacing="0">
+            <tr>
+                <td class="field-body">
+                    <span class="field-label">Panel giriş adresi</span>
+                    <div class="field-value url">{{ panel_giris_url|cut:"https://"|cut:"http://" }}</div>
+                </td>
+            </tr>
+        </table>
 
-                <table class="hint" cellpadding="0" cellspacing="0">
-                    <tr>
-                        <td class="hint-ico"><span class="hint-dot">i</span></td>
-                        <td class="hint-text">İlk girişten sonra şifrenizi değiştirmeniz önerilir.</td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-</div>
+        <table class="hint" cellpadding="0" cellspacing="0">
+            <tr>
+                <td class="hint-ico"><span class="hint-dot">i</span></td>
+                <td class="hint-text">İlk girişten sonra şifrenizi değiştirmeniz önerilir.</td>
+            </tr>
+        </table>
+    </div>
 
-<div class="foot-wrap">
-    <table class="foot" cellpadding="0" cellspacing="0">
-        <tr>
-            <td class="foot-bar">&nbsp;</td>
-            <td class="foot-copy">Bu belge yalnızca alıcısına özeldir. Bilgilerinizi paylaşmayınız.</td>
-            <td class="foot-date">{{ tarih|date:"d.m.Y" }}</td>
-        </tr>
-    </table>
-</div>
+    <div class="sheet-foot">
+        <table class="foot" cellpadding="0" cellspacing="0">
+            <tr>
+                <td class="foot-bar">&nbsp;</td>
+                <td class="foot-copy">Bu belge yalnızca alıcısına özeldir. Bilgilerinizi paylaşmayınız.</td>
+                <td class="foot-date">{{ tarih|date:"d.m.Y" }}</td>
+            </tr>
+        </table>
+    </div>
+</section>
 </body>
 </html>
