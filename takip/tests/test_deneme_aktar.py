@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import zipfile
 from datetime import date
 from decimal import Decimal
 from io import BytesIO
@@ -78,7 +77,90 @@ class DenemePuanAktarTests(TestCase):
         onizleme = deneme_excel_onizle(dosya)
         self.assertEqual(onizleme.satirlar[0].puan, "388")
 
-    def test_puan_yoksa_netten_hesaplanir(self):
+    def test_ders_puani_degil_genel_puan_alinir(self):
+        dosya = _xlsx(
+            [
+                [
+                    "",
+                    "Türkçe",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "Matematik",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "Puanlar / Sıralamalar",
+                    "",
+                ],
+                [
+                    "Ad Soyad",
+                    "Doğru",
+                    "Yanlış",
+                    "Boş",
+                    "Net",
+                    "Puanı",
+                    "Doğru",
+                    "Yanlış",
+                    "Boş",
+                    "Net",
+                    "Puanı",
+                    "Puan",
+                    "Sıra",
+                ],
+                [
+                    "Mehmet Murat Gölbaşı",
+                    18,
+                    2,
+                    0,
+                    17.5,
+                    72.5,
+                    16,
+                    0,
+                    4,
+                    16,
+                    80,
+                    412.25,
+                    5,
+                ],
+            ]
+        )
+        onizleme = deneme_excel_onizle(dosya)
+        self.assertEqual(onizleme.satirlar[0].puan, "412.25")
+        self.assertEqual(onizleme.satirlar[0].branslar["turkce"]["net"], "17.50")
+        self.assertEqual(onizleme.satirlar[0].branslar["matematik"]["net"], "16.00")
+
+    def test_ham_puan_yerine_yerlestirme_puani(self):
+        dosya = _xlsx(
+            [
+                ["Ad Soyad", "Türkçe Doğru", "Türkçe Net", "Ham Puan", "Puan"],
+                ["Mehmet Murat Gölbaşı", 18, 17.5, 188.4, 412.25],
+            ]
+        )
+        onizleme = deneme_excel_onizle(dosya)
+        self.assertEqual(onizleme.satirlar[0].puan, "412.25")
+
+    def test_duz_baslikta_ders_puani_atlanir(self):
+        dosya = _xlsx(
+            [
+                [
+                    "Ad Soyad",
+                    "Türkçe Doğru",
+                    "Türkçe Net",
+                    "Türkçe Puan",
+                    "Matematik Doğru",
+                    "Matematik Net",
+                    "Puan",
+                ],
+                ["Mehmet Murat Gölbaşı", 18, 17.5, 72, 16, 16, 401.5],
+            ]
+        )
+        onizleme = deneme_excel_onizle(dosya)
+        self.assertEqual(onizleme.satirlar[0].puan, "401.5")
+
+    def test_puan_yoksa_sifir_kalir(self):
         dosya = _xlsx(
             [
                 ["", "Türkçe", "", "", ""],
@@ -89,8 +171,7 @@ class DenemePuanAktarTests(TestCase):
         onizleme = deneme_excel_onizle(dosya)
         deneme_sonuclari_aktar(self.deneme, onizleme, self.user)
         sonuc = DenemeSonucu.objects.get(deneme=self.deneme)
-        self.assertGreater(sonuc.puan, Decimal("0"))
-        self.assertEqual(sonuc.puan, Decimal("500.00"))
+        self.assertEqual(sonuc.puan, Decimal("0.00"))
 
     def test_kayitli_sifir_puan_sonradan_dolar(self):
         sonuc = DenemeSonucu.objects.create(
@@ -156,16 +237,35 @@ class DenemeSilVePdfTests(TestCase):
         self.assertEqual(resp.status_code, 302)
         self.assertFalse(DenemeSinavi.objects.filter(pk=self.deneme.pk).exists())
 
+    def test_detay_tablosunda_din_kulturu_var(self):
+        from takip.deneme_service import DENEME_DETAY_BRANSLAR, deneme_detay_satirlari
+
+        self.assertIn("din", DENEME_DETAY_BRANSLAR)
+        satirlar = deneme_detay_satirlari(
+            DenemeSonucu.objects.filter(deneme=self.deneme).prefetch_related(
+                "brans_satirlari"
+            )
+        )
+        kodlar = [b["kod"] for b in satirlar[0]["branslar"]]
+        self.assertEqual(kodlar, list(DENEME_DETAY_BRANSLAR))
+        self.assertEqual(satirlar[0]["branslar"][kodlar.index("din")]["etiket"], "Din Kültürü")
+
     @patch("takip.deneme_views.html_to_pdf", return_value=b"%PDF-1.4 fake")
-    def test_pdf_zip_genel_ve_ders_dosyalari(self, _pdf):
+    def test_pdf_tek_dosyada_genel_ve_ders_tablolari(self, mock_pdf):
+        sonuc = DenemeSonucu.objects.get(deneme=self.deneme)
+        DenemeBransSonucu.objects.create(
+            sonuc=sonuc, brans="din", dogru=8, yanlis=1, bos=1, net=Decimal("7.75")
+        )
         resp = self.client.get(reverse("deneme_detay_pdf", args=[self.deneme.pk]))
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp["Content-Type"], "application/zip")
-        with zipfile.ZipFile(BytesIO(resp.content)) as arsiv:
-            adlar = arsiv.namelist()
-        self.assertTrue(any(a.startswith("00-genel") for a in adlar))
-        self.assertTrue(any("turkce" in a or "Turkce" in a for a in adlar))
-        self.assertGreaterEqual(len(adlar), 2)
+        self.assertEqual(resp["Content-Type"], "application/pdf")
+        self.assertIn(".pdf", resp["Content-Disposition"])
+        self.assertNotIn(".zip", resp["Content-Disposition"].lower())
+        self.assertEqual(mock_pdf.call_count, 1)
+        html = mock_pdf.call_args[0][0]
+        self.assertIn("Genel Sıralama", html)
+        self.assertIn("Türkçe", html)
+        self.assertIn("Din Kültürü", html)
 
 
 class DenemeEtutKapsamTests(TestCase):

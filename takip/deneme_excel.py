@@ -163,35 +163,19 @@ def _excel_satirlari(dosya) -> list[list[str]]:
     return satirlar
 
 
-def _puan_baslik_mi(baslik: str) -> bool:
-    """Okyanus 'Puan', 'Puanı', üst satırda tek kolon 'Puan' vb."""
-    anahtar = normalize_ad(baslik)
-    if not anahtar:
-        return False
-    if any(x in anahtar for x in ("sira", "siralama", "yuzde", "dilim", "rank")):
-        return False
-    if anahtar in {
-        "puan",
-        "puani",
-        "score",
-        "toplam puan",
-        "toplam puani",
-        "genel puan",
-        "basari puani",
-        "basari puan",
-        "lgs puani",
-        "lgs puan",
-        "ham puan",
-        "standart puan",
-    }:
-        return True
-    tokens = anahtar.split()
-    return "puan" in tokens or "puani" in tokens
-
-
 def _puanlar_grubu_mu(baslik: str) -> bool:
     anahtar = normalize_ad(baslik)
     return anahtar == "puanlar" or anahtar.startswith("puanlar ")
+
+
+def _baslik_brans_iceriyor(baslik: str) -> bool:
+    anahtar = normalize_ad(baslik)
+    if not anahtar:
+        return False
+    for _, _, anahtarlar in BRANS_TANIMLARI:
+        if any(a in anahtar for a in anahtarlar):
+            return True
+    return False
 
 
 def _brans_kodu(baslik: str) -> str | None:
@@ -207,6 +191,121 @@ def _brans_kodu(baslik: str) -> str | None:
     return None
 
 
+def _ileri_doldur(satir: list[str]) -> list[str]:
+    """Birleşik üst başlığı sonraki boş hücrelere yay (Okyanus merge)."""
+    dolu: list[str] = []
+    son = ""
+    for hucre in satir:
+        if hucre:
+            son = hucre
+        dolu.append(son)
+    return dolu
+
+
+def _puan_onceligi(baslik: str) -> int:
+    """Yüksek = genel/LGS puanı. Ders puanı, sıra, ham/standart elenir veya düşer."""
+    anahtar = normalize_ad(baslik)
+    if not anahtar:
+        return 0
+    if any(x in anahtar for x in ("sira", "siralama", "yuzde", "dilim", "rank")):
+        return 0
+    if _baslik_brans_iceriyor(baslik):
+        return 0
+    if any(x in anahtar for x in ("yerlestirme", "lgs")):
+        return 100
+    if anahtar in {
+        "toplam puan",
+        "toplam puani",
+        "genel puan",
+        "genel puani",
+        "basari puani",
+        "basari puan",
+    }:
+        return 90
+    if anahtar in {"puan", "puani", "score"}:
+        return 80
+    if "ham" in anahtar.split() or "standart" in anahtar.split():
+        return 20
+    tokens = anahtar.split()
+    if "puan" in tokens or "puani" in tokens:
+        return 50
+    return 0
+
+
+def _kolon_puan_onceligi(ust_b: str, alt_b: str, ust_grup: str) -> int:
+    if _brans_kodu(ust_grup):
+        return 0
+    if _puanlar_grubu_mu(ust_b) and not normalize_ad(alt_b):
+        return 80
+    birlesik = f"{ust_b} {alt_b}".strip()
+    return max(
+        _puan_onceligi(alt_b),
+        _puan_onceligi(ust_b),
+        _puan_onceligi(birlesik),
+    )
+
+
+def _puan_kolonunu_sec(
+    ust: list[str],
+    alt: list[str],
+    veri_satirlari: list[list[str]] | None = None,
+) -> int | None:
+    """Ders/ham puanını değil, genel yerleştirme puanı kolonunu seç."""
+    n = max(len(ust), len(alt))
+    if n == 0:
+        return None
+    ust_norm = list(ust) + [""] * (n - len(ust))
+    alt_norm = list(alt) + [""] * (n - len(alt))
+    ust_grup = _ileri_doldur(ust_norm)
+
+    adaylar: list[tuple[int, int]] = []
+    for idx in range(n):
+        oncelik = _kolon_puan_onceligi(ust_norm[idx], alt_norm[idx], ust_grup[idx])
+        if oncelik > 0:
+            adaylar.append((oncelik, idx))
+    if not adaylar:
+        # Genel kolon yoksa (tek "Puanı" ders grubunun sonunda) yine de al
+        for idx in range(n):
+            oncelik = max(
+                _puan_onceligi(alt_norm[idx]),
+                _puan_onceligi(ust_norm[idx]),
+            )
+            if oncelik > 0:
+                adaylar.append((oncelik, idx))
+    if not adaylar:
+        return None
+
+    en_iyi = max(p for p, _ in adaylar)
+    ayni = [idx for p, idx in adaylar if p == en_iyi]
+    if len(ayni) == 1 or not veri_satirlari:
+        return ayni[-1]
+
+    def _ornek_medyan(idx: int) -> Decimal | None:
+        degerler = []
+        for satir in veri_satirlari[:20]:
+            ham = _satir_deger(satir, idx)
+            if not ham:
+                continue
+            sayi = _ondalik(ham)
+            if sayi > 0:
+                degerler.append(sayi)
+            if len(degerler) >= 8:
+                break
+        if len(degerler) < 2:
+            return None
+        degerler.sort()
+        return degerler[len(degerler) // 2]
+
+    lgs_aralik = [
+        idx
+        for idx in ayni
+        if (med := _ornek_medyan(idx)) is not None and Decimal("90") <= med <= Decimal("500")
+    ]
+    if lgs_aralik:
+        return lgs_aralik[-1]
+    return ayni[-1]
+
+
 def _okyanus_format_mi(satirlar: list[list[str]]) -> bool:
     if len(satirlar) < 2:
         return False
@@ -220,7 +319,10 @@ def _okyanus_format_mi(satirlar: list[list[str]]) -> bool:
     return ad_altta and brans_ustte
 
 
-def _duz_baslik_haritasi(baslik_satir: list[str]) -> dict[str, Any]:
+def _duz_baslik_haritasi(
+    baslik_satir: list[str],
+    veri_satirlari: list[list[str]] | None = None,
+) -> dict[str, Any]:
     harita: dict[str, Any] = {"brans": {}}
     for idx, baslik in enumerate(baslik_satir):
         anahtar = normalize_ad(baslik)
@@ -231,9 +333,6 @@ def _duz_baslik_haritasi(baslik_satir: list[str]) -> dict[str, Any]:
             continue
         if anahtar in {"sinif", "sınıf", "class"}:
             harita.setdefault("sinif", idx)
-            continue
-        if _puan_baslik_mi(baslik):
-            harita.setdefault("puan", idx)
             continue
         if anahtar in {"toplam net", "genel net"}:
             harita.setdefault("toplam", {})["net"] = idx
@@ -261,17 +360,27 @@ def _duz_baslik_haritasi(baslik_satir: list[str]) -> dict[str, Any]:
             elif "net" in anahtar:
                 harita.setdefault("toplam", {})["net"] = idx
 
+    puan_idx = _puan_kolonunu_sec(baslik_satir, baslik_satir, veri_satirlari)
+    if puan_idx is not None:
+        harita["puan"] = puan_idx
     return harita
 
 
-def _okyanus_baslik_haritasi(ust: list[str], alt: list[str]) -> dict[str, Any]:
+def _okyanus_baslik_haritasi(
+    ust: list[str],
+    alt: list[str],
+    veri_satirlari: list[list[str]] | None = None,
+) -> dict[str, Any]:
     """Üst satır branş adları, alt satır Doğru/Yanlış/Boş/Net."""
     harita: dict[str, Any] = {"brans": {}, "toplam": {}}
 
     n = max(len(ust), len(alt))
+    ust_norm = list(ust) + [""] * (n - len(ust))
+    alt_norm = list(alt) + [""] * (n - len(alt))
+    ust_grup = _ileri_doldur(ust_norm)
+
     for idx in range(n):
-        alt_b = alt[idx] if idx < len(alt) else ""
-        ust_b = ust[idx] if idx < len(ust) else ""
+        alt_b = alt_norm[idx]
         anahtar = normalize_ad(alt_b)
         if anahtar in {"ad soyad", "adsoyad", "isim", "ogrenci", "öğrenci"}:
             harita.setdefault("ad_soyad", idx)
@@ -280,41 +389,10 @@ def _okyanus_baslik_haritasi(ust: list[str], alt: list[str]) -> dict[str, Any]:
             harita.setdefault("sinif", idx)
         elif anahtar in {"toplam net", "genel net"}:
             harita["toplam"]["net"] = idx
-        if _puan_baslik_mi(alt_b) or _puan_baslik_mi(ust_b):
-            harita.setdefault("puan", idx)
-        elif _puanlar_grubu_mu(ust_b) and not anahtar:
-            # Birleşik üst başlık, alt hücre boş → grubun ilk kolonu puan
-            harita.setdefault("puan", idx)
 
-    # Branş başlangıç kolonları (üst satırdaki dolu hücreler)
-    brans_baslangic: list[tuple[int, str]] = []
-    for idx, baslik in enumerate(ust):
-        kod = _brans_kodu(baslik)
-        if kod:
-            brans_baslangic.append((idx, kod))
-    brans_baslangic.sort(key=lambda x: x[0])
-
-    def _kolon_bransi(col: int) -> str | None:
-        aday = None
-        for start, kod in brans_baslangic:
-            if start <= col:
-                aday = kod
-            else:
-                break
-        # Puan / toplam net kolonlarından sonra branş yok
-        puan_idx = harita.get("puan")
-        toplam_net_idx = harita.get("toplam", {}).get("net")
-        sinir = None
-        for v in (puan_idx, toplam_net_idx):
-            if v is not None and (sinir is None or v < sinir):
-                sinir = v
-        if sinir is not None and col >= sinir:
-            return None
-        return aday
-
-    for idx, baslik in enumerate(alt):
+    for idx, baslik in enumerate(alt_norm):
         anahtar = normalize_ad(baslik)
-        kod = _kolon_bransi(idx)
+        kod = _brans_kodu(ust_grup[idx])
         if not kod:
             continue
         if anahtar in {"dogru", "doğru"}:
@@ -326,6 +404,9 @@ def _okyanus_baslik_haritasi(ust: list[str], alt: list[str]) -> dict[str, Any]:
         elif anahtar == "net":
             harita["brans"].setdefault(kod, {})["net"] = idx
 
+    puan_idx = _puan_kolonunu_sec(ust, alt, veri_satirlari)
+    if puan_idx is not None:
+        harita["puan"] = puan_idx
     return harita
 
 
@@ -550,13 +631,13 @@ def deneme_excel_onizle(dosya) -> DenemeImportOnizleme:
         return onizleme
 
     if _okyanus_format_mi(satirlar):
-        harita = _okyanus_baslik_haritasi(satirlar[0], satirlar[1])
         veri_satirlari = satirlar[2:]
+        harita = _okyanus_baslik_haritasi(satirlar[0], satirlar[1], veri_satirlari)
         baslangic_no = 3
         onizleme.format = "okyanus"
     else:
-        harita = _duz_baslik_haritasi(satirlar[0])
         veri_satirlari = satirlar[1:]
+        harita = _duz_baslik_haritasi(satirlar[0], veri_satirlari)
         baslangic_no = 2
         onizleme.format = "duz"
 
@@ -662,10 +743,6 @@ def deneme_sonuclari_aktar(
             }
 
         puan = _ondalik(satir.puan)
-        if puan == 0 and satir.branslar:
-            from takip.deneme_service import deneme_puan_branslardan
-
-            puan = deneme_puan_branslardan(satir.branslar, deneme.sinif_seviyesi)
 
         sonuc = DenemeSonucu.objects.create(
             deneme=deneme,

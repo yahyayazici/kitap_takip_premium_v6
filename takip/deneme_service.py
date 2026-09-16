@@ -20,18 +20,21 @@ BRANS_ETIKETLERI = {
     "ingilizce": "İngilizce",
 }
 
-# Deneme detay ekranı ve günlük soru takip eşlemesi (Din hariç 5 ders)
+# Deneme detay tablosu — LGS 6 ders (Din dahil)
 DENEME_DETAY_BRANSLAR: tuple[str, ...] = (
     "turkce",
     "matematik",
     "fen",
     "sosyal",
+    "din",
     "ingilizce",
 )
 
+# Günlük soru takip eşlemesi: din ayrı modülde tutulduğu için yansımaz
 DENEME_BRANS_DERS_MAP: dict[str, str] = {
     kod: BRANS_ETIKETLERI[kod]
     for kod in DENEME_DETAY_BRANSLAR
+    if kod != "din"
 }
 
 LGS_KATSAYI: dict[str, Decimal] = {

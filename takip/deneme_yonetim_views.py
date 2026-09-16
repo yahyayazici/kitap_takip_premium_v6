@@ -32,7 +32,6 @@ from takip.deneme_service import (
     deneme_sinavini_sil,
     deneme_sonuclari,
     deneme_yukleyebilir,
-    eksik_deneme_puanlarini_doldur,
 )
 from takip.forms import DenemeSinaviForm
 from takip.models import DenemeSinavi, Talebe
@@ -101,7 +100,7 @@ def deneme_detay(request, pk):
 
     deneme = get_object_or_404(DenemeSinavi, pk=pk)
     sonuclar = (
-        eksik_deneme_puanlarini_doldur(deneme_sonuclari(request.user, deneme))
+        list(deneme_sonuclari(request.user, deneme))
         if deneme.durum == "aktif"
         else []
     )

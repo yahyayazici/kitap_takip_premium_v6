@@ -1,11 +1,7 @@
 """Deneme — personel görüntüleme."""
 
-import zipfile
-from io import BytesIO
-
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.text import slugify
 from django.utils.timezone import localdate, now
@@ -19,7 +15,6 @@ from takip.deneme_service import (
     deneme_sinavini_sil,
     deneme_sonuc_ozeti,
     deneme_sonuclari,
-    eksik_deneme_puanlarini_doldur,
     yetkili_denemeler,
 )
 from takip.permissions.decorators import require_permission
@@ -27,13 +22,14 @@ from takip.permissions.service import can
 from takip.pdf_utils import (
     coz_pdf_sayfa,
     html_to_pdf,
+    make_pdf_response,
     pdf_engine_status,
     pdf_error_response,
 )
 
 
 def _deneme_detay_verisi(request, deneme):
-    sonuclar = eksik_deneme_puanlarini_doldur(deneme_sonuclari(request.user, deneme))
+    sonuclar = deneme_sonuclari(request.user, deneme)
     detay_satirlari = deneme_detay_satirlari(sonuclar)
     return {
         "deneme": deneme,
@@ -205,27 +201,19 @@ class _BransSatir:
         self.puan = puan
 
 
-def _deneme_liste_pdf(request, veri, sonuclar, pdf_sayfa, *, kicker, baslik):
+def _deneme_liste_ctx(sonuclar, *, kicker, baslik):
     adet = len(sonuclar)
     split_at = (adet + 1) // 2
-    html = render(
-        request,
-        "deneme_detay_pdf.html",
-        {
-            **veri,
-            "sonuclar": sonuclar,
-            "sonuclar_sol": sonuclar[:split_at],
-            "sonuclar_sag": sonuclar[split_at:],
-            "sonuc_split": adet > 24,
-            "split_at": split_at,
-            "ozet": deneme_sonuc_ozeti(sonuclar),
-            "liste_kicker": kicker,
-            "liste_baslik": baslik,
-            "olusturma_tarihi": now(),
-            "pdf_sayfa": pdf_sayfa,
-        },
-    ).content.decode("utf-8")
-    return html_to_pdf(html, base_url=request.build_absolute_uri("/"))
+    return {
+        "sonuclar": sonuclar,
+        "sonuclar_sol": sonuclar[:split_at],
+        "sonuclar_sag": sonuclar[split_at:],
+        "sonuc_split": adet > 24,
+        "split_at": split_at,
+        "ozet": deneme_sonuc_ozeti(sonuclar),
+        "liste_kicker": kicker,
+        "liste_baslik": baslik,
+    }
 
 
 def _brans_pdf_satirlari(sonuclar, kod):
@@ -257,57 +245,45 @@ def deneme_detay_pdf(request, pk):
     veri = _deneme_detay_verisi(request, deneme)
     sonuclar = veri["sonuclar"]
     pdf_sayfa = coz_pdf_sayfa(request)
-    genel = _deneme_liste_pdf(
-        request,
-        veri,
-        sonuclar,
-        pdf_sayfa,
-        kicker="Genel Sıralama",
-        baslik="Doğru / Yanlış / Boş / Net / Puan",
-    )
-    if not genel:
-        return pdf_error_response(
-            f"PDF oluşturulamadı. (Motor: {pdf_engine_status()})",
+    listeler = [
+        _deneme_liste_ctx(
+            sonuclar,
+            kicker="Genel Sıralama",
+            baslik="Doğru / Yanlış / Boş / Net / Puan",
         )
-
-    buffer = BytesIO()
-    yazilan = 0
-    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as arsiv:
-        arsiv.writestr("00-genel-siralama.pdf", genel)
-        yazilan += 1
-        sira = 1
-        for kod, etiket in BRANS_ETIKETLERI.items():
-            brans_satir = _brans_pdf_satirlari(sonuclar, kod)
-            if not brans_satir:
-                continue
-            pdf_verisi = _deneme_liste_pdf(
-                request,
-                veri,
+    ]
+    for kod, etiket in BRANS_ETIKETLERI.items():
+        brans_satir = _brans_pdf_satirlari(sonuclar, kod)
+        if not brans_satir:
+            continue
+        listeler.append(
+            _deneme_liste_ctx(
                 brans_satir,
-                pdf_sayfa,
                 kicker=etiket,
                 baslik=f"{etiket} — D / Y / B / Net",
             )
-            if not pdf_verisi:
-                continue
-            dosya = slugify(etiket) or kod
-            arsiv.writestr(f"{sira:02d}-{dosya}.pdf", pdf_verisi)
-            sira += 1
-            yazilan += 1
+        )
 
-    if yazilan < 1:
+    html = render(
+        request,
+        "deneme_detay_pdf.html",
+        {
+            **veri,
+            "listeler": listeler,
+            "olusturma_tarihi": now(),
+            "pdf_sayfa": pdf_sayfa,
+        },
+    ).content.decode("utf-8")
+    pdf_verisi = html_to_pdf(html, base_url=request.build_absolute_uri("/"))
+    if not pdf_verisi:
         return pdf_error_response(
             f"PDF oluşturulamadı. (Motor: {pdf_engine_status()})",
         )
-
     ad = slugify(deneme.ad) or f"deneme_{deneme.pk}"
-    response = HttpResponse(buffer.getvalue(), content_type="application/zip")
-    response["Content-Disposition"] = (
-        f'attachment; filename="deneme_{ad}_{pdf_sayfa["kod"]}_{localdate():%Y%m%d}.zip"'
+    return make_pdf_response(
+        pdf_verisi,
+        f"deneme_{ad}_{pdf_sayfa['kod']}_{localdate():%Y%m%d}.pdf",
     )
-    response["X-Content-Type-Options"] = "nosniff"
-    response["Cache-Control"] = "no-store"
-    return response
 
 
 @login_required
