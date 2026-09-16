@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+from collections import Counter
 from datetime import date, datetime, time
 from io import StringIO
 from typing import Any
@@ -914,29 +915,88 @@ def _haftalik_grid(
     }
 
 
-def _pdf_grid_baglami(
+def _gun_kartlari_from_grid(grid: dict[str, Any], *, orta_key: str) -> list[dict[str, Any]]:
+    """Haftalık grid'i giriş kartı gün bloklarına çevirir; boş ve birleşik satırlar düşer."""
+    kartlar: list[dict[str, Any]] = []
+    gunler = grid.get("gunler") or []
+    for idx, gun in enumerate(gunler):
+        satirlar: list[dict[str, str]] = []
+        for row in grid.get("satirlar") or []:
+            hucreler = row.get("hucreler") or []
+            if idx >= len(hucreler):
+                continue
+            hucre = hucreler[idx]
+            if hucre.get("bos") or hucre.get("birlestirilmis"):
+                continue
+            for kayit in hucre.get("kayitlar") or []:
+                satirlar.append(
+                    {
+                        "saat": row.get("saat") or "",
+                        "orta": (kayit.get(orta_key) or "").strip(),
+                        "ders": (kayit.get("ders") or "").strip(),
+                    }
+                )
+        if satirlar:
+            kartlar.append({"ad": gun["ad"], "satirlar": satirlar})
+    return kartlar
+
+
+def _ders_rolu(kartlar: list[dict[str, Any]]) -> str:
+    dersler = [
+        satir["ders"]
+        for gun in kartlar
+        for satir in gun.get("satirlar") or []
+        if satir.get("ders")
+    ]
+    if not dersler:
+        return "Öğretmen"
+    top = Counter(dersler).most_common(1)[0][0]
+    if "öğretmen" in top.casefold():
+        return top
+    return f"{top} Öğretmeni"
+
+
+def _bireysel_pdf_baglami(
     user: User,
     program: DershaneProgrami,
     *,
     mod: str,
-    mod_baslik: str,
-    hero_alt: str,
-    paneller: list[dict[str, Any]],
+    kisi: str,
+    rol: str,
+    orta_etiket: str,
+    bolumler: list[dict[str, Any]],
     filtre: dict[str, str] | None = None,
 ) -> dict[str, Any]:
+    gun_sayisi = len(
+        {gun["ad"] for bolum in bolumler for gun in bolum.get("gun_kartlari") or []}
+    )
+    bos_notu = ""
+    if 0 < gun_sayisi < 7:
+        bos_notu = "Diğer günlerde dersi bulunmamaktadır."
+    kisi_etiket = {
+        "ogretmen": "Öğretmen",
+        "sinif": "Sınıf",
+        "etut": "Etüt grubu",
+    }.get(mod, "")
     return {
         "program": program,
         "mod": mod,
-        "mod_baslik": mod_baslik,
-        "hero_alt": hero_alt,
+        "mod_baslik": "Ders Programı",
+        "hero_alt": program.tarih_araligi_goster,
+        "bireysel": True,
+        "kisi": kisi,
+        "kisi_etiket": kisi_etiket,
+        "rol": rol,
+        "orta_etiket": orta_etiket,
+        "bolumler": bolumler,
+        "bos_notu": bos_notu,
         "tum_gunler": False,
-        "sayfa_yatay": True,
         "gun_panelleri": [],
         "gun_adi": None,
         "filtre": filtre or {},
         "gruplar": [],
         "matris": [],
-        "gorunum": {"tip": "haftalik_grid", "paneller": paneller},
+        "gorunum": {"tip": "bireysel", "bolumler": bolumler},
         "panel_name": getattr(user, "get_full_name", lambda: "")() or "",
     }
 
@@ -950,25 +1010,22 @@ def sinif_haftalik_pdf_baglami(
     gruplar = list(
         program.etut_gruplari.filter(sinif_seviye=sinif).order_by("sira", "id")
     )
-    paneller: list[dict[str, Any]] = []
+    bolumler: list[dict[str, Any]] = []
     for grup in gruplar:
-        grid = _haftalik_grid(program, grup=grup)
-        if not grid["gunler"]:
-            continue
-        paneller.append(
-            {
-                "baslik": grup.etiket,
-                "hucre_alt": "ogretmen",
-                **grid,
-            }
+        kartlar = _gun_kartlari_from_grid(
+            _haftalik_grid(program, grup=grup), orta_key="ogretmen"
         )
-    return _pdf_grid_baglami(
+        if not kartlar:
+            continue
+        bolumler.append({"baslik": grup.etiket, "gun_kartlari": kartlar})
+    return _bireysel_pdf_baglami(
         user,
         program,
         mod="sinif",
-        mod_baslik="Sınıf Programı",
-        hero_alt=_pdf_hero_alt(program, f"{sinif}. Sınıf", "Haftalık"),
-        paneller=paneller,
+        kisi=f"{sinif}. Sınıf" if sinif else "Sınıf",
+        rol="Haftalık ders programı",
+        orta_etiket="Öğretmen",
+        bolumler=bolumler,
         filtre={"sinif": sinif},
     )
 
@@ -979,26 +1036,21 @@ def etut_haftalik_pdf_baglami(
     etut_grubu_id: int | str,
 ) -> dict[str, Any]:
     grup = program.etut_gruplari.filter(pk=etut_grubu_id).first()
-    paneller: list[dict[str, Any]] = []
-    etiket = ""
+    kartlar: list[dict[str, Any]] = []
+    etiket = grup.etiket if grup else "Etüt"
     if grup:
-        etiket = grup.etiket
-        grid = _haftalik_grid(program, grup=grup)
-        if grid["gunler"]:
-            paneller.append(
-                {
-                    "baslik": grup.etiket,
-                    "hucre_alt": "ogretmen",
-                    **grid,
-                }
-            )
-    return _pdf_grid_baglami(
+        kartlar = _gun_kartlari_from_grid(
+            _haftalik_grid(program, grup=grup), orta_key="ogretmen"
+        )
+    bolumler = [{"baslik": "", "gun_kartlari": kartlar}] if kartlar else []
+    return _bireysel_pdf_baglami(
         user,
         program,
         mod="etut",
-        mod_baslik="Etüt Programı",
-        hero_alt=_pdf_hero_alt(program, etiket or "Etüt", "Haftalık"),
-        paneller=paneller,
+        kisi=etiket,
+        rol="Etüt grubu programı",
+        orta_etiket="Öğretmen",
+        bolumler=bolumler,
         filtre={"etut_grubu": str(etut_grubu_id)},
     )
 
@@ -1009,23 +1061,18 @@ def ogretmen_haftalik_pdf_baglami(
     ogretmen: str,
 ) -> dict[str, Any]:
     ogretmen = (ogretmen or "").strip()
-    grid = _haftalik_grid(program, ogretmen=ogretmen)
-    paneller = []
-    if grid["gunler"]:
-        paneller.append(
-            {
-                "baslik": ogretmen,
-                "hucre_alt": "grup",
-                **grid,
-            }
-        )
-    return _pdf_grid_baglami(
+    kartlar = _gun_kartlari_from_grid(
+        _haftalik_grid(program, ogretmen=ogretmen), orta_key="grup"
+    )
+    bolumler = [{"baslik": "", "gun_kartlari": kartlar}] if kartlar else []
+    return _bireysel_pdf_baglami(
         user,
         program,
         mod="ogretmen",
-        mod_baslik="Öğretmen Programı",
-        hero_alt=_pdf_hero_alt(program, ogretmen, "Haftalık"),
-        paneller=paneller,
+        kisi=ogretmen,
+        rol=_ders_rolu(kartlar),
+        orta_etiket="Sınıf",
+        bolumler=bolumler,
         filtre={"ogretmen": ogretmen},
     )
 

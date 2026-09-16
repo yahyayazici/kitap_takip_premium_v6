@@ -107,54 +107,51 @@ class DershaneProgramPdfTests(TestCase):
 
     def test_ogretmen_pdf_sadece_kendi_gun_saatini_alir(self):
         ctx = ogretmen_haftalik_pdf_baglami(self.user, self.program, "Ali Yılmaz")
-        panel = ctx["gorunum"]["paneller"][0]
-        gun_adlari = [g["ad"] for g in panel["gunler"]]
-        self.assertEqual(gun_adlari, ["Pazartesi"])
-        dersler = [k["ders"] for satir in panel["satirlar"] for h in satir["hucreler"] for k in h["kayitlar"]]
+        self.assertTrue(ctx["bireysel"])
+        kartlar = ctx["bolumler"][0]["gun_kartlari"]
+        self.assertEqual([g["ad"] for g in kartlar], ["Pazartesi"])
+        dersler = [s["ders"] for g in kartlar for s in g["satirlar"]]
         self.assertIn("Matematik", dersler)
         self.assertIn("Türkçe", dersler)
         self.assertNotIn("Fen Bilimleri", dersler)
+        self.assertEqual(ctx["rol"], "Matematik Öğretmeni")
 
         veli = ogretmen_haftalik_pdf_baglami(self.user, self.program, "Veli Demir")
-        veli_gun = [g["ad"] for g in veli["gorunum"]["paneller"][0]["gunler"]]
+        veli_gun = [g["ad"] for g in veli["bolumler"][0]["gun_kartlari"]]
         self.assertEqual(veli_gun, ["Cumartesi"])
+        self.assertIn("bulunmamaktadır", veli["bos_notu"])
 
     def test_sinif_pdf_yalniz_o_sinifin_etutlerini_alir(self):
         ctx = sinif_haftalik_pdf_baglami(self.user, self.program, "5")
-        paneller = ctx["gorunum"]["paneller"]
-        self.assertEqual([p["baslik"] for p in paneller], ["5. Sınıf Etüt-A"])
-        gunler = [g["ad"] for g in paneller[0]["gunler"]]
+        self.assertEqual([p["baslik"] for p in ctx["bolumler"]], ["5. Sınıf Etüt-A"])
+        gunler = [g["ad"] for g in ctx["bolumler"][0]["gun_kartlari"]]
         self.assertEqual(gunler, ["Pazartesi", "Cumartesi"])
-        dersler = [
-            k["ders"]
-            for satir in paneller[0]["satirlar"]
-            for h in satir["hucreler"]
-            for k in h["kayitlar"]
-        ]
+        dersler = [s["ders"] for g in ctx["bolumler"][0]["gun_kartlari"] for s in g["satirlar"]]
         self.assertIn("Matematik", dersler)
         self.assertIn("Fen Bilimleri", dersler)
         self.assertNotIn("Türkçe", dersler)
 
     def test_etut_pdf_yalniz_o_grubun_derslerini_alir(self):
         ctx = etut_haftalik_pdf_baglami(self.user, self.program, self.g5.pk)
-        panel = ctx["gorunum"]["paneller"][0]
-        self.assertEqual(panel["baslik"], "5. Sınıf Etüt-A")
+        self.assertEqual(ctx["kisi"], "5. Sınıf Etüt-A")
         dersler = [
-            k["ders"]
-            for satir in panel["satirlar"]
-            for h in satir["hucreler"]
-            for k in h["kayitlar"]
+            s["ders"]
+            for g in ctx["bolumler"][0]["gun_kartlari"]
+            for s in g["satirlar"]
         ]
         self.assertEqual(sorted(dersler), ["Fen Bilimleri", "Matematik"])
 
-    def test_haftalik_grid_html_gun_sutunu_yazar(self):
+    def test_bireysel_html_giris_karti_duzeninde(self):
         ctx = ogretmen_haftalik_pdf_baglami(self.user, self.program, "Ali Yılmaz")
-        html = render_to_string("dershane_program_pdf.html", ctx)
+        html = render_to_string("dershane_program_bireysel_pdf.html", ctx)
+        self.assertIn("Kişiye özel belge", html)
+        self.assertIn("who-name", html)
+        self.assertIn("Ali Yılmaz", html)
         self.assertIn("Pazartesi", html)
         self.assertIn("Matematik", html)
         self.assertIn("5. Sınıf Etüt-A", html)
         self.assertNotIn("Cumartesi", html)
-        self.assertNotIn("is-haftalik", html)
+        self.assertNotIn("program-table", html)
 
     @patch("takip.dershane_program_views.pdf_engine_status", return_value="weasyprint")
     @patch("takip.dershane_program_views.html_to_pdf", return_value=b"%PDF-1.4 fake")

@@ -322,11 +322,12 @@ def dershane_program_goruntule(request, mod):
 
 
 def _dershane_pdf_bytes(request, context) -> bytes | None:
-    html = render_to_string(
-        "dershane_program_pdf.html",
-        context,
-        request=request,
+    sablon = (
+        "dershane_program_bireysel_pdf.html"
+        if context.get("bireysel")
+        else "dershane_program_pdf.html"
     )
+    html = render_to_string(sablon, context, request=request)
     return html_to_pdf(html, base_url=request.build_absolute_uri("/"))
 
 
