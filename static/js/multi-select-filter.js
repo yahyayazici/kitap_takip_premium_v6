@@ -54,17 +54,32 @@
             '<button type="button" class="ms-filter-clear">Temizle</button>';
         panel.appendChild(actions);
 
+        const roleShortcuts = select.dataset.roleShortcuts === "1";
+        const roles = [];
+        let rolesRow = null;
+        if (roleShortcuts) {
+            rolesRow = document.createElement("div");
+            rolesRow.className = "ms-filter-roles";
+            panel.appendChild(rolesRow);
+        }
+
         const list = document.createElement("div");
         list.className = "ms-filter-list";
 
         Array.from(select.options).forEach(function (opt) {
             if (!opt.value) return;
+            const rol = opt.dataset.rol || "";
+            if (roleShortcuts && rol && roles.indexOf(rol) === -1) {
+                roles.push(rol);
+            }
             const label = document.createElement("label");
             label.className = "ms-filter-option";
+            if (rol) label.dataset.rol = rol;
             const cb = document.createElement("input");
             cb.type = "checkbox";
             cb.value = opt.value;
             cb.checked = opt.selected;
+            if (rol) cb.dataset.rol = rol;
             cb.addEventListener("change", function () {
                 opt.selected = cb.checked;
                 updateLabel(wrap, select, placeholder);
@@ -73,6 +88,34 @@
             label.appendChild(document.createTextNode(" " + opt.textContent.trim()));
             list.appendChild(label);
         });
+
+        if (rolesRow) {
+            roles.forEach(function (rol) {
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "ms-filter-role-btn";
+                btn.textContent = rol;
+                btn.addEventListener("click", function () {
+                    const boxes = Array.from(
+                        list.querySelectorAll("input[type='checkbox']")
+                    ).filter(function (cb) {
+                        return cb.dataset.rol === rol;
+                    });
+                    const hepsiSecili = boxes.every(function (cb) {
+                        return cb.checked;
+                    });
+                    boxes.forEach(function (cb) {
+                        cb.checked = !hepsiSecili;
+                        const opt = Array.from(select.options).find(function (o) {
+                            return o.value === cb.value;
+                        });
+                        if (opt) opt.selected = cb.checked;
+                    });
+                    updateLabel(wrap, select, placeholder);
+                });
+                rolesRow.appendChild(btn);
+            });
+        }
 
         panel.appendChild(list);
         wrap.appendChild(panel);

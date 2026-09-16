@@ -860,7 +860,12 @@ def duyuru_sil(request, pk):
 def bildirim_gonder_view(request):
     kisiler = tum_gonderilebilir_kisiler()
     secenekler = [(str(k["user_id"]), k["etiket"]) for k in kisiler]
-    form = BildirimGonderForm(request.POST or None, kisi_secenekleri=secenekler)
+    rol_map = {str(k["user_id"]): k["rol"] for k in kisiler}
+    form = BildirimGonderForm(
+        request.POST or None,
+        kisi_secenekleri=secenekler,
+        rol_map=rol_map,
+    )
 
     if form.is_valid():
         secili_idler = {int(v) for v in form.cleaned_data["kisiler"]}

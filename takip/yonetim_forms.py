@@ -1664,13 +1664,30 @@ class TalebeExcelForm(forms.Form):
         return dosya
 
 
+class RolluSelectMultiple(forms.SelectMultiple):
+    """Her <option>'a data-rol ekler — JS tarafında "Tüm Öğretmenler" gibi
+    rol kısayol butonları bu attribute'a bakarak toplu seçim yapar."""
+
+    def __init__(self, *args, rol_map=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.rol_map = rol_map or {}
+
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option = super().create_option(name, value, label, selected, index, subindex, attrs)
+        rol = self.rol_map.get(str(value))
+        if rol:
+            option["attrs"]["data-rol"] = rol
+        return option
+
+
 class BildirimGonderForm(forms.Form):
     kisiler = forms.MultipleChoiceField(
         label="Kime gönderilsin",
-        widget=forms.SelectMultiple(
+        widget=RolluSelectMultiple(
             attrs={
                 "class": "ms-filter",
                 "data-searchable": "1",
+                "data-role-shortcuts": "1",
                 "data-placeholder": "Kişi seçin",
             }
         ),
@@ -1685,6 +1702,7 @@ class BildirimGonderForm(forms.Form):
         widget=forms.Textarea(attrs={"class": "cs-input", "rows": 4, "placeholder": "Bildirim metni"}),
     )
 
-    def __init__(self, *args, kisi_secenekleri=(), **kwargs):
+    def __init__(self, *args, kisi_secenekleri=(), rol_map=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["kisiler"].choices = kisi_secenekleri
+        self.fields["kisiler"].widget.rol_map = rol_map or {}
