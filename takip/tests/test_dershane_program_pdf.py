@@ -12,6 +12,8 @@ from django.template.loader import render_to_string
 from django.test import TestCase
 from django.urls import reverse
 
+from pypdf import PdfReader
+
 from takip.dershane_program_models import (
     DershaneDersAtamasi,
     DershaneEtutGrubu,
@@ -25,6 +27,7 @@ from takip.dershane_program_service import (
     sinif_haftalik_pdf_baglami,
     tum_haftalik_pdf_baglami,
 )
+from takip.pdf_utils import html_to_pdf
 
 
 class DershaneProgramPdfTests(TestCase):
@@ -152,6 +155,121 @@ class DershaneProgramPdfTests(TestCase):
         self.assertIn("5. Sınıf Etüt-A", html)
         self.assertNotIn("Cumartesi", html)
         self.assertNotIn("program-table", html)
+
+    def test_sinif_html_iki_etut_yan_yana(self):
+        g5b = DershaneEtutGrubu.objects.create(
+            program=self.program,
+            etiket="5. Sınıf Etüt-B",
+            sinif_seviye="5",
+            sira=2,
+        )
+        DershaneDersAtamasi.objects.create(
+            program=self.program,
+            saat_bloku=self.pzt,
+            etut_grubu=g5b,
+            ders_adi="Türkçe",
+            ogretmen_adi="Ayşe Kaya",
+        )
+        ctx = sinif_haftalik_pdf_baglami(self.user, self.program, "5")
+        self.assertEqual(len(ctx["bolum_satirlari"]), 1)
+        self.assertEqual(len(ctx["bolum_satirlari"][0]), 2)
+        html = render_to_string("dershane_program_bireysel_pdf.html", ctx)
+        self.assertIn("is-sinif", html)
+        self.assertIn("bolum-grid", html)
+        self.assertIn("5. Sınıf Etüt-A", html)
+        self.assertIn("5. Sınıf Etüt-B", html)
+
+    def test_sinif_pdf_yogun_program_tek_sayfa(self):
+        g5b = DershaneEtutGrubu.objects.create(
+            program=self.program,
+            etiket="5. Sınıf Etüt-B",
+            sinif_seviye="5",
+            sira=2,
+        )
+        cuma_saatler = [
+            (time(21, 40), time(22, 20)),
+            (time(22, 20), time(23, 0)),
+            (time(23, 0), time(23, 40)),
+            (time(23, 40), time(0, 20)),
+        ]
+        cmt_saatler = [
+            (time(8, 30), time(9, 10)),
+            (time(9, 20), time(10, 0)),
+            (time(10, 10), time(10, 50)),
+            (time(11, 0), time(11, 40)),
+            (time(11, 50), time(12, 30)),
+        ]
+        dersler = [
+            ("Türkçe", "Hacı Bayram İnalcığıl"),
+            ("Türkçe", "Hacı Bayram İnalcığıl"),
+            ("İngilizce", "Yusuf Yılmaz"),
+            ("İngilizce", "Yusuf Yılmaz"),
+            ("Matematik", "Ahmet Kurnaz Bayte"),
+            ("Matematik", "Ahmet Kurnaz Bayte"),
+            ("Fen Bilimleri", "Burhan Kocaman"),
+            ("Fen Bilimleri", "Burhan Kocaman"),
+            ("Sosyal Bilgiler", "Hasan Yaprak"),
+        ]
+        DershaneDersAtamasi.objects.create(
+            program=self.program,
+            saat_bloku=self.pzt,
+            etut_grubu=g5b,
+            ders_adi="Atatürk Okuma",
+            ogretmen_adi="Hacı Bayram İnalcığıl",
+        )
+        for sira, (bas, bit) in enumerate(cuma_saatler, start=2):
+            ders, ogretmen = dersler[sira - 2]
+            blok = DershaneSaatBloku.objects.create(
+                program=self.program,
+                gun=4,
+                baslangic_saati=bas,
+                bitis_saati=bit,
+                tur=DershaneSaatBloku.Tur.DERS,
+                aciklama="Ders",
+                sira=sira,
+            )
+            for grup in (self.g5, g5b):
+                DershaneDersAtamasi.objects.create(
+                    program=self.program,
+                    saat_bloku=blok,
+                    etut_grubu=grup,
+                    ders_adi=ders,
+                    ogretmen_adi=ogretmen,
+                )
+        for sira, (bas, bit) in enumerate(cmt_saatler, start=2):
+            ders, ogretmen = dersler[sira + 2]
+            if (bas, bit) == (time(10, 10), time(10, 50)):
+                DershaneDersAtamasi.objects.create(
+                    program=self.program,
+                    saat_bloku=self.cmt,
+                    etut_grubu=g5b,
+                    ders_adi=ders,
+                    ogretmen_adi=ogretmen,
+                )
+                continue
+            blok = DershaneSaatBloku.objects.create(
+                program=self.program,
+                gun=5,
+                baslangic_saati=bas,
+                bitis_saati=bit,
+                tur=DershaneSaatBloku.Tur.DERS,
+                aciklama="Ders",
+                sira=sira,
+            )
+            for grup in (self.g5, g5b):
+                DershaneDersAtamasi.objects.create(
+                    program=self.program,
+                    saat_bloku=blok,
+                    etut_grubu=grup,
+                    ders_adi=ders,
+                    ogretmen_adi=ogretmen,
+                )
+        ctx = sinif_haftalik_pdf_baglami(self.user, self.program, "5")
+        html = render_to_string("dershane_program_bireysel_pdf.html", ctx)
+        pdf = html_to_pdf(html, base_url="file:///tmp/")
+        self.assertTrue(pdf)
+        sayfa = len(PdfReader(BytesIO(pdf)).pages)
+        self.assertEqual(sayfa, 1)
 
     @patch("takip.dershane_program_views.pdf_engine_status", return_value="weasyprint")
     @patch("takip.dershane_program_views.html_to_pdf", return_value=b"%PDF-1.4 fake")

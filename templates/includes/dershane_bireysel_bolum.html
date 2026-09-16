@@ -1,0 +1,30 @@
+{% if bolum.baslik %}<div class="bolum">{{ bolum.baslik }}</div>{% endif %}
+{% for gun in bolum.gun_kartlari %}
+<table class="day{% if forloop.counter|divisibleby:2 %} is-alt{% endif %}" cellpadding="0" cellspacing="0">
+    <tr>
+        <td class="day-rail">{{ gun.ad }}</td>
+        <td class="day-body">
+            {% for satir in gun.satirlar %}
+            <table class="slot" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="slot-col">
+                        <span class="slot-label">Saat</span>
+                        <div class="slot-val">{{ satir.saat }}</div>
+                    </td>
+                    <td class="slot-col">
+                        <span class="slot-label">{{ orta_etiket }}</span>
+                        <div class="slot-val">{{ satir.orta|default:"—" }}</div>
+                    </td>
+                    <td class="slot-col">
+                        <span class="slot-label">Ders</span>
+                        <div class="slot-val">{{ satir.ders }}</div>
+                    </td>
+                </tr>
+            </table>
+            {% endfor %}
+        </td>
+    </tr>
+</table>
+{% empty %}
+<p class="empty">Bu kapsamda ders yok.</p>
+{% endfor %}

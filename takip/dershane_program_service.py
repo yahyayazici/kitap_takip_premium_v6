@@ -978,6 +978,11 @@ def _bireysel_pdf_baglami(
         "sinif": "Sınıf",
         "etut": "Etüt grubu",
     }.get(mod, "")
+    bolum_satirlari: list[list[dict[str, Any]]] | None = None
+    if mod == "sinif" and len(bolumler) > 1:
+        bolum_satirlari = [
+            bolumler[i : i + 2] for i in range(0, len(bolumler), 2)
+        ]
     return {
         "program": program,
         "mod": mod,
@@ -989,6 +994,7 @@ def _bireysel_pdf_baglami(
         "rol": rol,
         "orta_etiket": orta_etiket,
         "bolumler": bolumler,
+        "bolum_satirlari": bolum_satirlari,
         "bos_notu": bos_notu,
         "tum_gunler": False,
         "gun_panelleri": [],

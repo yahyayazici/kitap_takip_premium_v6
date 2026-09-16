@@ -262,9 +262,59 @@
             font-size: 11px;
             color: #708097;
         }
+
+        .bolum-grid {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 8px 0;
+        }
+        .bolum-cell {
+            width: 50%;
+            vertical-align: top;
+        }
+
+        body.is-sinif .hero-inner { padding: 14px 24px 32px 20px; }
+        body.is-sinif .badge { padding: 4px 10px; font-size: 8px; }
+        body.is-sinif .hero-title { margin: 8px 0 6px; font-size: 20px; }
+        body.is-sinif .hero-meta { font-size: 9px; letter-spacing: 1px; }
+        body.is-sinif .sheet { margin: -20px 12px 8px; border-radius: 16px; }
+        body.is-sinif .pad { padding: 12px 12px 8px; }
+        body.is-sinif .who { margin: 0 0 8px; }
+        body.is-sinif .who-avatar { width: 52px; padding: 8px 0 8px 10px; border-radius: 12px 0 0 12px; }
+        body.is-sinif .who-initial {
+            width: 32px;
+            height: 32px;
+            line-height: 32px;
+            font-size: 14px;
+        }
+        body.is-sinif .who-meta { padding: 8px 12px 8px 8px; border-radius: 0 12px 12px 0; }
+        body.is-sinif .who-kicker { font-size: 8px; margin-bottom: 1px; letter-spacing: 1.2px; }
+        body.is-sinif .who-name { font-size: 15px; margin: 0 0 2px; }
+        body.is-sinif .who-role { font-size: 10px; }
+        body.is-sinif .bolum { margin: 0 0 5px; font-size: 9.5px; }
+        body.is-sinif .day { margin: 0 0 5px; page-break-inside: auto; }
+        body.is-sinif .day-rail {
+            width: 52px;
+            font-size: 8.5px;
+            letter-spacing: 0.6px;
+            padding: 6px 4px;
+            border-radius: 10px 0 0 10px;
+        }
+        body.is-sinif .day-body { padding: 3px; border-radius: 0 10px 10px 0; }
+        body.is-sinif .slot { margin: 0 0 2px; }
+        body.is-sinif .slot-col { padding: 3px 5px; border-left-width: 3px; }
+        body.is-sinif .slot-label { font-size: 6.5px; margin-bottom: 0; letter-spacing: 0.6px; }
+        body.is-sinif .slot-val { font-size: 9px; line-height: 1.2; }
+        body.is-sinif .hint { margin-top: 4px; }
+        body.is-sinif .hint-ico { width: 22px; padding: 6px 0 6px 10px; }
+        body.is-sinif .hint-dot { width: 14px; height: 14px; line-height: 14px; font-size: 9px; }
+        body.is-sinif .hint-text { padding: 6px 10px 6px 6px; font-size: 10px; }
+        body.is-sinif .foot { margin-top: 4px; }
+        body.is-sinif .foot-copy { font-size: 9px; padding-top: 6px; }
+        body.is-sinif .foot-bar { padding-top: 6px; }
     </style>
 </head>
-<body>
+<body class="{% if mod == 'sinif' %}is-sinif{% endif %}">
 <table class="hero" cellpadding="0" cellspacing="0">
     <tr>
         <td class="hero-bar">&nbsp;</td>
@@ -291,40 +341,24 @@
             </tr>
         </table>
 
-        {% for bolum in bolumler %}
-            {% if bolum.baslik %}<div class="bolum">{{ bolum.baslik }}</div>{% endif %}
-            {% for gun in bolum.gun_kartlari %}
-            <table class="day{% if forloop.counter|divisibleby:2 %} is-alt{% endif %}" cellpadding="0" cellspacing="0">
-                <tr>
-                    <td class="day-rail">{{ gun.ad }}</td>
-                    <td class="day-body">
-                        {% for satir in gun.satirlar %}
-                        <table class="slot" cellpadding="0" cellspacing="0">
-                            <tr>
-                                <td class="slot-col">
-                                    <span class="slot-label">Saat</span>
-                                    <div class="slot-val">{{ satir.saat }}</div>
-                                </td>
-                                <td class="slot-col">
-                                    <span class="slot-label">{{ orta_etiket }}</span>
-                                    <div class="slot-val">{{ satir.orta|default:"—" }}</div>
-                                </td>
-                                <td class="slot-col">
-                                    <span class="slot-label">Ders</span>
-                                    <div class="slot-val">{{ satir.ders }}</div>
-                                </td>
-                            </tr>
-                        </table>
-                        {% endfor %}
-                    </td>
-                </tr>
-            </table>
+        {% if bolum_satirlari %}
+        <table class="bolum-grid" cellpadding="0" cellspacing="0">
+            {% for satir in bolum_satirlari %}
+            <tr>
+                {% for bolum in satir %}
+                <td class="bolum-cell">{% include "includes/dershane_bireysel_bolum.html" %}</td>
+                {% endfor %}
+                {% if satir|length == 1 %}<td class="bolum-cell">&nbsp;</td>{% endif %}
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+            {% for bolum in bolumler %}
+                {% include "includes/dershane_bireysel_bolum.html" %}
             {% empty %}
             <p class="empty">Bu kapsamda ders yok.</p>
             {% endfor %}
-        {% empty %}
-        <p class="empty">Bu kapsamda ders yok.</p>
-        {% endfor %}
+        {% endif %}
 
         {% if bos_notu %}
         <table class="hint" cellpadding="0" cellspacing="0">
