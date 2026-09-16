@@ -1,6 +1,11 @@
 {% extends "yonetim/base.html" %}
+{% load static %}
 
 {% block title %}{{ sayfa_basligi }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/talebe-kayit-form.css' %}?v=tk1">
+{% endblock %}
 
 {% block content %}
 
@@ -13,8 +18,8 @@
     <a href="{% url geri_url %}" class="ghost-btn">Listeye Dön</a>
 </header>
 
-<section class="dashboard-card yonetim-form-card">
-    <form method="post" class="yonetim-form-layout" enctype="multipart/form-data" id="talebe-kayit-form">
+<section class="dashboard-card yonetim-form-card talebe-kayit-card">
+    <form method="post" class="yonetim-form-layout talebe-kayit-form" enctype="multipart/form-data" id="talebe-kayit-form">
         {% csrf_token %}
 
         {% if form.non_field_errors %}
@@ -35,12 +40,12 @@
                 {% for field in form %}
                 {% if field.name in alan_adlari %}
                 {% with w=field.field.widget %}
-                <div class="yonetim-field{% if w.input_type == 'checkbox' and w.allow_multiple_selected %} yonetim-field-checkbox-grid{% elif field.field.widget.attrs.rows %} yonetim-field-wide{% endif %}">
+                <div class="yonetim-field{% if w.input_type == 'checkbox' and w.allow_multiple_selected %} yonetim-field-checkbox-grid{% elif w.input_type == 'radio' %} yonetim-field-radio-grid{% elif field.field.widget.attrs.rows %} yonetim-field-wide{% endif %}">
                     {% if w.input_type == 'checkbox' and not w.allow_multiple_selected %}
                     <label class="yonetim-check-label">{{ field }} {{ field.label }}</label>
                     {% else %}
                     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    <div class="yonetim-field-control{% if w.input_type == 'checkbox' and w.allow_multiple_selected %} choice-chip-wrap{% endif %}">{{ field }}</div>
+                    <div class="yonetim-field-control{% if w.input_type == 'checkbox' and w.allow_multiple_selected %} choice-chip-wrap{% elif w.input_type == 'radio' %} choice-chip-wrap--radio{% endif %}">{{ field }}</div>
                     {% endif %}
                     {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
                     {% for error in field.errors %}<span class="yonetim-field-error">{{ error }}</span>{% endfor %}

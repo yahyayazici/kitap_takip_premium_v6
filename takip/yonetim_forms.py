@@ -35,6 +35,16 @@ from .tc_util import pasif_talebe_tc_temizle, tc_dogrula, talebe_tc_cakisma_var_
 from .wave0_models import KullaniciRol, Rol
 
 
+def _ad_soyad_parcala(ad_soyad: str) -> tuple[str, str]:
+    """Son kelime soyad, kalanı ad — kimlik alanları boş kayıtlarda form doldurmak için."""
+    parcalar = (ad_soyad or "").strip().split()
+    if not parcalar:
+        return "", ""
+    if len(parcalar) == 1:
+        return parcalar[0], ""
+    return " ".join(parcalar[:-1]), parcalar[-1]
+
+
 class SinifSubeForm(forms.ModelForm):
     class Meta:
         model = SinifSube
@@ -506,6 +516,14 @@ class TalebeForm(forms.ModelForm):
 
         super().__init__(*args, **kwargs)
 
+        if self.instance.pk and not self.is_bound:
+            kimlik_ad = (self.initial.get("kimlik_adi") or "").strip()
+            kimlik_soyad = (self.initial.get("kimlik_soyadi") or "").strip()
+            if not kimlik_ad and not kimlik_soyad:
+                kimlik_ad, kimlik_soyad = _ad_soyad_parcala(self.instance.ad_soyad)
+                self.initial["kimlik_adi"] = kimlik_ad
+                self.initial["kimlik_soyadi"] = kimlik_soyad
+
         self.fields["dogum_tarihi"].input_formats = ["%Y-%m-%d", "%d.%m.%Y", "%d/%m/%Y"]
         self.fields["sinif_sube"].queryset = (
             SinifSube.objects.filter(aktif=True).order_by("sinif", "sube")
@@ -769,6 +787,14 @@ class TalebeProfilTamamlaForm(forms.ModelForm):
         from takip.turkiye_il_ilce import il_secenekleri, ilce_secenekleri
 
         super().__init__(*args, **kwargs)
+
+        if self.instance.pk and not self.is_bound:
+            kimlik_ad = (self.initial.get("kimlik_adi") or "").strip()
+            kimlik_soyad = (self.initial.get("kimlik_soyadi") or "").strip()
+            if not kimlik_ad and not kimlik_soyad:
+                kimlik_ad, kimlik_soyad = _ad_soyad_parcala(self.instance.ad_soyad)
+                self.initial["kimlik_adi"] = kimlik_ad
+                self.initial["kimlik_soyadi"] = kimlik_soyad
 
         self.fields["dogum_tarihi"].input_formats = ["%Y-%m-%d", "%d.%m.%Y", "%d/%m/%Y"]
         self.fields["dogum_tarihi"].required = False

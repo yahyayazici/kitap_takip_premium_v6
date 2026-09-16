@@ -606,3 +606,59 @@ body.talebe-body .ghost-btn {
     font-weight: 400 !important;
     line-height: 1 !important;
 }
+
+/* display:flex, [hidden] attribute'unu eziyordu — 0 seçili çubuğu görünmesin */
+.yonetim-toplu-bar[hidden] {
+    display: none !important;
+}
+
+.yonetim-page .yonetim-data-table th.yonetim-center-col:nth-child(2),
+.yonetim-page .yonetim-data-table td.num-col.yonetim-center-col {
+    width: 72px;
+    max-width: 96px;
+    white-space: nowrap;
+}
+
+.yonetim-page .talebe-kayit-card {
+    padding: var(--cs-space-5) var(--cs-space-6) !important;
+}
+
+.talebe-kayit-form .yonetim-form-section {
+    margin: 0 0 var(--cs-space-4);
+    padding: 0 0 var(--cs-space-4);
+    border-bottom: 1px solid var(--cs-border);
+}
+
+.talebe-kayit-form .yonetim-form-section:has(+ .yonetim-form-actions) {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.talebe-kayit-form .yonetim-form-section-title {
+    margin: 0 0 var(--cs-space-3) !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--cs-primary) !important;
+    line-height: 1.3 !important;
+}
+
+.talebe-kayit-form .yonetim-form-grid {
+    gap: var(--cs-space-3) var(--cs-space-4);
+}
+
+.talebe-kayit-form .yonetim-form-grid .yonetim-field:has(input[type="file"]) {
+    grid-column: auto;
+}
+
+@media (max-width: 900px) {
+    .yonetim-page .talebe-kayit-card {
+        padding: var(--cs-space-4) !important;
+    }
+
+    .talebe-kayit-form .yonetim-form-grid .yonetim-field:has(input[type="file"]) {
+        grid-column: 1 / -1;
+    }
+}
