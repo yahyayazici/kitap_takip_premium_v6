@@ -722,6 +722,9 @@ def gorunum_baglami(
             **{k: v for k, v in filtre.items() if v},
         }
     )
+    ctx["export_zip_qs"] = urlencode(
+        {"program": program.pk, "mod": "ogretmen", "zip": "1"}
+    )
     return ctx
 
 
@@ -757,7 +760,9 @@ def tum_haftalik_pdf_baglami(
         "program": program,
         "mod": "genel",
         "mod_baslik": "Haftalık Dershane Programı",
+        "hero_alt": _pdf_hero_alt(program, "Dersi olan günler"),
         "tum_gunler": True,
+        "sayfa_yatay": True,
         "gun_panelleri": gun_panelleri,
         "gun_adi": None,
         "filtre": {},
@@ -766,6 +771,263 @@ def tum_haftalik_pdf_baglami(
         "gorunum": {"tip": "tum_gunler"},
         "panel_name": getattr(user, "get_full_name", lambda: "")() or "",
     }
+
+
+def _pdf_hero_alt(program: DershaneProgrami, *parcalar: str) -> str:
+    parca = [p for p in parcalar if p]
+    if program.tarih_araligi_goster:
+        parca.append(program.tarih_araligi_goster)
+    return " · ".join(parca)
+
+
+def _atama_dolu(atama: DershaneDersAtamasi | None) -> bool:
+    if not atama:
+        return False
+    ders = (atama.gorunen_ders or "").strip()
+    return bool(ders) and ders != "—"
+
+
+def _ogretmen_adi_eslesir(atama: DershaneDersAtamasi, ogretmen: str) -> bool:
+    ad = (atama.gorunen_ogretmen or "").strip()
+    hedef = (ogretmen or "").strip()
+    if not ad or ad == "—" or not hedef:
+        return False
+    return ad.casefold() == hedef.casefold()
+
+
+def program_ogretmen_adlari(program: DershaneProgrami) -> list[str]:
+    """Programda dersi olan öğretmen adları (görünen ad)."""
+    adlar: list[str] = []
+    seen: set[str] = set()
+    for atama in program.ders_atamalari.select_related("ders", "ogretmen"):
+        if not _atama_dolu(atama):
+            continue
+        ad = (atama.gorunen_ogretmen or "").strip()
+        if not ad or ad == "—":
+            continue
+        key = ad.casefold()
+        if key not in seen:
+            seen.add(key)
+            adlar.append(ad)
+    adlar.sort(key=str.casefold)
+    return adlar
+
+
+def _haftalik_grid(
+    program: DershaneProgrami,
+    *,
+    grup: DershaneEtutGrubu | None = None,
+    ogretmen: str = "",
+) -> dict[str, Any]:
+    """Saat × gün tablosu; yalnızca dersi olan günler sütun olur."""
+    ogretmen = (ogretmen or "").strip()
+    atama_qs = program.ders_atamalari.select_related(
+        "ders", "ogretmen", "etut_grubu", "saat_bloku"
+    )
+    if grup is not None:
+        atama_qs = atama_qs.filter(etut_grubu=grup)
+
+    atamalar = [a for a in atama_qs if _atama_dolu(a)]
+    if ogretmen:
+        atamalar = [a for a in atamalar if _ogretmen_adi_eslesir(a, ogretmen)]
+
+    dolu_gunler = sorted({a.saat_bloku.gun for a in atamalar})
+    if not dolu_gunler:
+        return {"gunler": [], "satirlar": []}
+
+    bloklar = list(
+        program.saat_bloklari.filter(gun__in=dolu_gunler).order_by(
+            "sira", "baslangic_saati", "id"
+        )
+    )
+    saat_sirasi: list[str] = []
+    saat_set: set[str] = set()
+    gun_blok: dict[tuple[int, str], DershaneSaatBloku] = {}
+    for blok in bloklar:
+        anahtar = blok.saat_goster
+        gun_blok[(blok.gun, anahtar)] = blok
+        if anahtar not in saat_set:
+            saat_set.add(anahtar)
+            saat_sirasi.append(anahtar)
+
+    atama_map: dict[tuple[int, int], list[DershaneDersAtamasi]] = {}
+    for atama in atamalar:
+        atama_map.setdefault((atama.saat_bloku.gun, atama.saat_bloku_id), []).append(
+            atama
+        )
+
+    satirlar: list[dict[str, Any]] = []
+    for saat in saat_sirasi:
+        hucreler: list[dict[str, Any]] = []
+        satir_dolu = False
+        for gun in dolu_gunler:
+            blok = gun_blok.get((gun, saat))
+            if not blok:
+                hucreler.append({"bos": True, "birlestirilmis": False, "kayitlar": []})
+                continue
+            if not blok.ders_atamasi_gerektirir:
+                metin = (blok.aciklama or blok.get_tur_display() or "").strip()
+                if blok.tur == DershaneSaatBloku.Tur.NAMAZ:
+                    metin = metin.upper()
+                hucreler.append(
+                    {
+                        "bos": False,
+                        "birlestirilmis": True,
+                        "metin": metin,
+                        "tur": blok.tur,
+                        "kayitlar": [],
+                    }
+                )
+                satir_dolu = True
+                continue
+            kayitlar = []
+            for atama in atama_map.get((gun, blok.pk), []):
+                kayitlar.append(
+                    {
+                        "ders": atama.gorunen_ders,
+                        "ogretmen": atama.gorunen_ogretmen,
+                        "grup": atama.etut_grubu.etiket if atama.etut_grubu_id else "",
+                        "renk": ders_renk(atama.gorunen_ders),
+                    }
+                )
+            hucreler.append(
+                {
+                    "bos": not kayitlar,
+                    "birlestirilmis": False,
+                    "kayitlar": kayitlar,
+                    "ders": kayitlar[0]["ders"] if kayitlar else "",
+                    "ogretmen": kayitlar[0]["ogretmen"] if kayitlar else "",
+                    "grup": kayitlar[0]["grup"] if kayitlar else "",
+                }
+            )
+            if kayitlar:
+                satir_dolu = True
+        if satir_dolu:
+            satirlar.append({"saat": saat, "hucreler": hucreler})
+
+    return {
+        "gunler": [
+            {"gun": gun, "ad": GUN_ADLARI[gun], "kisa": GUN_KISA[gun]}
+            for gun in dolu_gunler
+        ],
+        "satirlar": satirlar,
+    }
+
+
+def _pdf_grid_baglami(
+    user: User,
+    program: DershaneProgrami,
+    *,
+    mod: str,
+    mod_baslik: str,
+    hero_alt: str,
+    paneller: list[dict[str, Any]],
+    filtre: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    return {
+        "program": program,
+        "mod": mod,
+        "mod_baslik": mod_baslik,
+        "hero_alt": hero_alt,
+        "tum_gunler": False,
+        "sayfa_yatay": True,
+        "gun_panelleri": [],
+        "gun_adi": None,
+        "filtre": filtre or {},
+        "gruplar": [],
+        "matris": [],
+        "gorunum": {"tip": "haftalik_grid", "paneller": paneller},
+        "panel_name": getattr(user, "get_full_name", lambda: "")() or "",
+    }
+
+
+def sinif_haftalik_pdf_baglami(
+    user: User,
+    program: DershaneProgrami,
+    sinif: str,
+) -> dict[str, Any]:
+    sinif = str(sinif or "").strip()
+    gruplar = list(
+        program.etut_gruplari.filter(sinif_seviye=sinif).order_by("sira", "id")
+    )
+    paneller: list[dict[str, Any]] = []
+    for grup in gruplar:
+        grid = _haftalik_grid(program, grup=grup)
+        if not grid["gunler"]:
+            continue
+        paneller.append(
+            {
+                "baslik": grup.etiket,
+                "hucre_alt": "ogretmen",
+                **grid,
+            }
+        )
+    return _pdf_grid_baglami(
+        user,
+        program,
+        mod="sinif",
+        mod_baslik="Sınıf Programı",
+        hero_alt=_pdf_hero_alt(program, f"{sinif}. Sınıf", "Haftalık"),
+        paneller=paneller,
+        filtre={"sinif": sinif},
+    )
+
+
+def etut_haftalik_pdf_baglami(
+    user: User,
+    program: DershaneProgrami,
+    etut_grubu_id: int | str,
+) -> dict[str, Any]:
+    grup = program.etut_gruplari.filter(pk=etut_grubu_id).first()
+    paneller: list[dict[str, Any]] = []
+    etiket = ""
+    if grup:
+        etiket = grup.etiket
+        grid = _haftalik_grid(program, grup=grup)
+        if grid["gunler"]:
+            paneller.append(
+                {
+                    "baslik": grup.etiket,
+                    "hucre_alt": "ogretmen",
+                    **grid,
+                }
+            )
+    return _pdf_grid_baglami(
+        user,
+        program,
+        mod="etut",
+        mod_baslik="Etüt Programı",
+        hero_alt=_pdf_hero_alt(program, etiket or "Etüt", "Haftalık"),
+        paneller=paneller,
+        filtre={"etut_grubu": str(etut_grubu_id)},
+    )
+
+
+def ogretmen_haftalik_pdf_baglami(
+    user: User,
+    program: DershaneProgrami,
+    ogretmen: str,
+) -> dict[str, Any]:
+    ogretmen = (ogretmen or "").strip()
+    grid = _haftalik_grid(program, ogretmen=ogretmen)
+    paneller = []
+    if grid["gunler"]:
+        paneller.append(
+            {
+                "baslik": ogretmen,
+                "hucre_alt": "grup",
+                **grid,
+            }
+        )
+    return _pdf_grid_baglami(
+        user,
+        program,
+        mod="ogretmen",
+        mod_baslik="Öğretmen Programı",
+        hero_alt=_pdf_hero_alt(program, ogretmen, "Haftalık"),
+        paneller=paneller,
+        filtre={"ogretmen": ogretmen},
+    )
 
 
 def _gorunum_sinif(ctx: dict[str, Any]) -> dict[str, Any]:

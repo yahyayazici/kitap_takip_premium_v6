@@ -31,8 +31,8 @@
         }
 
         @page {
-            size: {% if tum_gunler %}A4 portrait{% else %}A4 landscape{% endif %};
-            margin: {% if tum_gunler %}8mm 8mm{% else %}9mm 11mm{% endif %};
+            size: A4 landscape;
+            margin: 8mm 9mm;
         }
         * { box-sizing: border-box; }
         body {
@@ -52,10 +52,7 @@
         table.layout > tbody > tr > td,
         table.layout > tr > td { border: none; padding: 0; vertical-align: top; }
 
-        .gap16 { height: 16px; font-size: 0; line-height: 0; }
-        body.is-haftalik .gap16 { height: 8px; }
-        body.is-haftalik .hero { padding: 12px 16px; }
-        body.is-haftalik .hero-title { font-size: 16px; }
+        .pdf-body { width: 100%; }
 
         /*
           KTT ile aynı gradient; WeasyPrint tuzakları:
@@ -69,28 +66,29 @@
             border-radius: 14px;
             background: linear-gradient(128deg, #1A4FA8 0%, #2B6FD4 42%, #173B73 100%);
             color: #FFFFFF;
-            padding: 16px 18px;
+            padding: 14px 18px;
         }
         .hero-title {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
             line-height: 1.2;
             letter-spacing: -0.25px;
             color: #FFFFFF;
         }
+        .hero-sub {
+            margin-top: 4px;
+            font-size: 9px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.86);
+        }
 
         h2 {
-            margin: 12px 0 6px;
+            margin: 0 0 6px;
             font-size: 11px;
             font-weight: 600;
             color: #17243a;
             page-break-after: avoid;
         }
-        body.is-haftalik h2 {
-            margin: 8px 0 4px;
-            font-size: 10px;
-        }
-        body.is-haftalik .gun-panel:first-of-type h2 { margin-top: 0; }
         table.program-table {
             width: 100%;
             border-collapse: collapse;
@@ -102,33 +100,35 @@
             border: 1px solid #eef2f6;
             padding: 0;
             text-align: left;
-            vertical-align: middle;
+            vertical-align: top;
+            overflow: hidden;
         }
         table.program-table th {
             background: #f8fafc;
             color: #183f78;
-            font-size: 7px;
+            font-size: 7.5px;
             font-weight: 600;
-            letter-spacing: 0.35px;
+            letter-spacing: 0.2px;
             text-transform: uppercase;
             text-align: center;
-            padding: 6px 5px;
+            padding: 6px 4px;
             border-bottom: 1.5px solid #dfe6f0;
+            word-break: break-word;
         }
         table.program-table td.saat,
         table.program-table th.saat {
-            width: 58px;
+            width: 62px;
             background: #f7f9fc;
         }
         table.program-table th.saat { color: #183f78; }
         .cell-box {
             box-sizing: border-box;
-            min-height: 28px;
-            padding: 6px 7px;
+            min-height: 26px;
+            padding: 5px 6px;
             border-left: 3px solid transparent;
         }
         .cell-box-saat {
-            padding: 6px 6px;
+            padding: 5px 4px;
             text-align: center;
             border-left: none;
         }
@@ -136,23 +136,26 @@
             display: block;
             font-variant-numeric: tabular-nums;
         }
-        .saat-bas { color: #183f78; font-weight: 700; font-size: 8.5px; }
-        .saat-bit { margin-top: 2px; color: #7e93b3; font-weight: 500; font-size: 7.5px; }
+        .saat-bas { color: #183f78; font-weight: 700; font-size: 8px; }
+        .saat-bit { margin-top: 1px; color: #7e93b3; font-weight: 500; font-size: 7px; }
         .ders {
             font-weight: 600;
             color: #17243a;
             display: block;
-            font-size: 8.5px;
+            font-size: 8px;
+            line-height: 1.25;
+            word-break: break-word;
         }
         .ogretmen {
             color: #68778f;
-            font-size: 7.5px;
+            font-size: 7px;
             font-weight: 400;
             display: block;
-            margin-top: 2px;
+            margin-top: 1px;
+            word-break: break-word;
         }
         .ogretmen-slot {
-            padding: 2px 4px 2px 7px;
+            padding: 1px 2px 1px 5px;
             border-radius: 3px;
         }
         .ogretmen-slot + .ogretmen-slot { margin-top: 3px; }
@@ -162,36 +165,24 @@
             text-align: center;
             color: #183f78;
             letter-spacing: 0.35px;
-            font-size: 8.5px;
-            padding: 7px 6px;
+            font-size: 8px;
+            padding: 6px 5px;
         }
         .merged-yemek { background: #fff7ed; color: #9a3412; }
         .merged-namaz { background: #ecfdf5; color: #065f46; }
         .empty { color: #9aa5b5; font-style: italic; }
         td.empty { padding: 8px; text-align: left; }
-        .panel { margin-bottom: 12px; page-break-inside: avoid; }
-        .gun-panel { margin-bottom: 10px; page-break-before: auto; }
-        body.is-haftalik .gun-panel { margin-bottom: 8px; }
-        body.is-haftalik .cell-box {
-            min-height: 0;
-            padding: 3px 4px;
-        }
-        body.is-haftalik .cell-box-saat { padding: 3px 3px; }
-        body.is-haftalik .saat-bas,
-        body.is-haftalik .saat-bit {
-            display: inline;
-            font-size: 6.5px;
+        .panel { margin-bottom: 14px; page-break-inside: avoid; }
+        .gun-panel { margin-bottom: 0; }
+        .gun-panel + .gun-panel {
+            page-break-before: always;
+            break-before: page;
             margin-top: 0;
         }
-        body.is-haftalik .saat-bit::before { content: "–"; }
-        body.is-haftalik .ders { font-size: 7px; }
-        body.is-haftalik .ogretmen { font-size: 6px; margin-top: 0; }
-        body.is-haftalik .merged { padding: 3px 4px; font-size: 7px; }
-        body.is-haftalik table.program-table th { padding: 3px 2px; }
-        body.is-haftalik .doc-foot { margin-top: 8px; padding-top: 5px; }
+        .grid-panel { margin-bottom: 16px; page-break-inside: avoid; }
         .doc-foot {
-            margin-top: 12px;
-            padding-top: 8px;
+            margin-top: 10px;
+            padding-top: 6px;
             border-top: 1px solid #e7ebf1;
             color: #9aa6b7;
             font-size: 6.5px;
@@ -200,22 +191,68 @@
         }
     </style>
 </head>
-<body{% if tum_gunler %} class="is-haftalik"{% endif %}>
+<body>
 <table class="layout">
     <tr>
         <td colspan="3">
             <div class="hero">
-                <div class="hero-title">Dershane Programı</div>
+                <div class="hero-title">{{ mod_baslik|default:"Dershane Programı" }}</div>
+                {% if hero_alt %}<div class="hero-sub">{{ hero_alt }}</div>{% endif %}
             </div>
         </td>
     </tr>
 
     <tr><td colspan="3" class="gap16"></td></tr>
+</table>
 
-    <tr>
-        <td colspan="3">
+<div class="pdf-body">
+    {% if gorunum.tip == "haftalik_grid" %}
+        {% for panel in gorunum.paneller %}
+        <div class="grid-panel">
+            <h2>{{ panel.baslik }}</h2>
+            <table class="program-table">
+                <thead>
+                    <tr>
+                        <th class="saat">Saat</th>
+                        {% for gun in panel.gunler %}
+                        <th>{{ gun.ad }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for satir in panel.satirlar %}
+                    <tr>
+                        <td class="saat"><div class="cell-box cell-box-saat"><span class="saat-bas">{{ satir.saat|saat_bas }}</span><span class="saat-bit">{{ satir.saat|saat_bit }}</span></div></td>
+                        {% for hucre in satir.hucreler %}
+                        {% if hucre.birlestirilmis %}
+                        <td class="merged {% if hucre.tur == 'yemek' %}merged-yemek{% elif hucre.tur == 'namaz' %}merged-namaz{% endif %}">{{ hucre.metin }}</td>
+                        {% else %}
+                        <td>
+                            <div class="cell-box" {% if not hucre.bos %}style="border-left: 3px solid {{ hucre.ders|ders_aksan }};"{% endif %}>
+                            {% if not hucre.bos %}
+                                {% for k in hucre.kayitlar %}
+                                <div class="ogretmen-slot" {% if not forloop.first %}style="border-left: 3px solid {{ k.ders|ders_aksan }};"{% endif %}>
+                                    <span class="ders">{{ k.ders }}</span>
+                                    <span class="ogretmen">{% if panel.hucre_alt == "grup" %}{{ k.grup }}{% else %}{{ k.ogretmen }}{% endif %}</span>
+                                </div>
+                                {% endfor %}
+                            {% endif %}
+                            </div>
+                        </td>
+                        {% endif %}
+                        {% endfor %}
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="{{ panel.gunler|length|add:1 }}" class="empty">Bu kapsamda ders yok.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% empty %}
+        <p class="empty">Bu kapsamda ders satırı bulunamadı.</p>
+        {% endfor %}
 
-    {% if tum_gunler and gun_panelleri %}
+    {% elif tum_gunler and gun_panelleri %}
         {% for panel in gun_panelleri %}
         <div class="gun-panel">
             <h2>{{ panel.gun_adi }}</h2>
@@ -452,8 +489,6 @@
     {% endif %}
 
         <p class="doc-foot">{{ panel_org|default:"Çinili Saray Proje" }}</p>
-        </td>
-    </tr>
-</table>
+</div>
 </body>
 </html>

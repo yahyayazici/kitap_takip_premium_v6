@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import io
 import json
+import zipfile
 from datetime import time
 
 from django.contrib import messages
@@ -11,6 +13,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils.text import slugify
 from django.views.decorators.http import require_GET, require_POST
 
 from takip.dershane_program_models import DershaneProgramSablon, DershaneProgramSurum
@@ -21,15 +24,19 @@ from takip.dershane_program_service import (
     atama_sil,
     atama_surukle,
     dershane_program_duzenleyebilir,
+    etut_haftalik_pdf_baglami,
     excel_yanit,
     gun_atamalarini_temizle,
     gun_kopyala,
+    ogretmen_haftalik_pdf_baglami,
     panel_baglami,
+    program_ogretmen_adlari,
     sablon_kaydet,
     sablon_yukle,
     saat_bloku_kaydet,
     saat_bloku_sil,
     saat_bloku_sirala,
+    sinif_haftalik_pdf_baglami,
     surum_geri_yukle,
     surum_olustur,
     varsayilan_program_olustur,
@@ -314,6 +321,42 @@ def dershane_program_goruntule(request, mod):
     return render(request, "dershane_program_goruntule.html", context)
 
 
+def _dershane_pdf_bytes(request, context) -> bytes | None:
+    html = render_to_string(
+        "dershane_program_pdf.html",
+        context,
+        request=request,
+    )
+    return html_to_pdf(html, base_url=request.build_absolute_uri("/"))
+
+
+def _ogretmen_pdf_zip(request, program):
+    adlar = program_ogretmen_adlari(program)
+    if not adlar:
+        return pdf_error_response("Atanmış öğretmen yok.")
+    buffer = io.BytesIO()
+    yazilan = 0
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as arsiv:
+        for sira, ad in enumerate(adlar, start=1):
+            context = ogretmen_haftalik_pdf_baglami(request.user, program, ad)
+            pdf = _dershane_pdf_bytes(request, context)
+            if not pdf:
+                continue
+            slug = slugify(ad) or f"ogretmen-{sira}"
+            arsiv.writestr(f"{sira:02d}-{slug}.pdf", pdf)
+            yazilan += 1
+    if not yazilan:
+        return pdf_error_response(
+            f"PDF oluşturulamadı. (Motor: {pdf_engine_status()})"
+        )
+    dosya = f"dershane_{program.pk}_ogretmenler.zip"
+    response = HttpResponse(buffer.getvalue(), content_type="application/zip")
+    response["Content-Disposition"] = f'attachment; filename="{dosya}"'
+    response["X-Content-Type-Options"] = "nosniff"
+    response["Cache-Control"] = "no-store"
+    return response
+
+
 @login_required
 @require_GET
 @require_permission("dershane_programi", "view")
@@ -323,41 +366,74 @@ def dershane_program_pdf(request):
     program = _program_al(request.user, request)
     gun_param = (request.GET.get("gun") or "").strip().lower()
     tum = request.GET.get("tum") == "1" or gun_param in {"all", "hepsi", "tum"}
+    mod = (request.GET.get("mod") or "genel").strip().lower()
+    if mod not in {"genel", "sinif", "etut", "ogretmen"}:
+        mod = "genel"
+    filtre = _filtre_al(request)
+    zip_istenen = request.GET.get("zip") == "1"
 
     if pdf_engine_status() == "none":
         return pdf_error_response(
             f"PDF motoru bulunamadı. (Motor: {pdf_engine_status()})"
         )
 
+    if zip_istenen or (mod == "ogretmen" and not filtre.get("ogretmen") and not tum):
+        return _ogretmen_pdf_zip(request, program)
+
     if tum:
         context = tum_haftalik_pdf_baglami(request.user, program=program)
         dosya = f"dershane_{program.pk}_haftalik_tum.pdf"
+    elif mod == "ogretmen":
+        context = ogretmen_haftalik_pdf_baglami(
+            request.user, program, filtre["ogretmen"]
+        )
+        slug = slugify(filtre["ogretmen"]) or "ogretmen"
+        dosya = f"dershane_{program.pk}_ogretmen_{slug}.pdf"
+    elif mod == "sinif":
+        sinif = filtre.get("sinif") or ""
+        if not sinif:
+            siniflar = sorted(
+                {
+                    g.sinif_seviye
+                    for g in program.etut_gruplari.all()
+                    if g.sinif_seviye
+                },
+                key=lambda x: int(x) if str(x).isdigit() else x,
+            )
+            sinif = str(siniflar[0]) if siniflar else ""
+        context = sinif_haftalik_pdf_baglami(request.user, program, sinif)
+        dosya = f"dershane_{program.pk}_sinif_{sinif or 'hepsi'}.pdf"
+    elif mod == "etut":
+        etut_id = filtre.get("etut_grubu") or ""
+        if not etut_id:
+            ilk = program.etut_gruplari.order_by("sira", "id").first()
+            etut_id = str(ilk.pk) if ilk else ""
+        context = etut_haftalik_pdf_baglami(request.user, program, etut_id)
+        dosya = f"dershane_{program.pk}_etut_{etut_id or 'grup'}.pdf"
     else:
         gun = _gun_al(request)
-        mod = (request.GET.get("mod") or "genel").strip().lower()
-        if mod not in {"genel", "sinif", "etut", "ogretmen"}:
-            mod = "genel"
-        filtre = _filtre_al(request)
         context = gorunum_baglami(
             request.user,
             program=program,
             gun=gun,
-            mod=mod,
+            mod="genel",
             filtre=filtre,
         )
-        parcalar = [f"dershane_{program.pk}", mod, f"gun{gun}"]
-        if filtre.get("etut_grubu"):
-            parcalar.append(f"etut{filtre['etut_grubu']}")
-        elif filtre.get("sinif"):
+        context["sayfa_yatay"] = True
+        context["hero_alt"] = " · ".join(
+            p
+            for p in (
+                context.get("gun_adi"),
+                program.tarih_araligi_goster,
+            )
+            if p
+        )
+        parcalar = [f"dershane_{program.pk}", "gun", str(gun)]
+        if filtre.get("sinif"):
             parcalar.append(f"sinif{filtre['sinif']}")
         dosya = "_".join(parcalar) + ".pdf"
 
-    html = render_to_string(
-        "dershane_program_pdf.html",
-        context,
-        request=request,
-    )
-    pdf = html_to_pdf(html, base_url=request.build_absolute_uri("/"))
+    pdf = _dershane_pdf_bytes(request, context)
     if not pdf:
         return pdf_error_response(
             f"PDF oluşturulamadı. (Motor: {pdf_engine_status()})"

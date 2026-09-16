@@ -14,7 +14,10 @@
         <p class="dp-sub">{{ program.ad }} · {{ gun_adi }}{% if program.tarih_araligi_goster %} · {{ program.tarih_araligi_goster }}{% endif %}</p>
     </div>
     <div class="dp-actions">
-        <a href="{% url 'dershane_program_pdf' %}?{{ export_qs }}" class="dp-btn dp-btn-primary" target="_blank" rel="noopener">PDF</a>
+        <a href="{% url 'dershane_program_pdf' %}?{{ export_qs }}" class="dp-btn dp-btn-primary" target="_blank" rel="noopener">{% if mod == "ogretmen" and not filtre.ogretmen %}Toplu PDF{% else %}PDF{% endif %}</a>
+        {% if mod == "ogretmen" and filtre.ogretmen %}
+        <a href="{% url 'dershane_program_pdf' %}?{{ export_zip_qs }}" class="dp-btn dp-btn-ghost">Toplu PDF</a>
+        {% endif %}
         <a href="{% url 'dershane_program_excel' %}?{{ export_qs }}" class="dp-btn dp-btn-ghost">Excel</a>
         <a href="{% url 'dershane_program_pdf' %}?program={{ program.pk }}&tum=1" class="dp-btn dp-btn-ghost" target="_blank" rel="noopener">Tüm PDF</a>
         <a href="{% url 'dershane_program_excel' %}?program={{ program.pk }}&tum=1" class="dp-btn dp-btn-ghost">Tüm Excel</a>
@@ -44,10 +47,10 @@
         <div>
             <h2>{{ gun_adi }}</h2>
             <p class="dp-toolbar-sub">
-                {% if mod == "sinif" %}Sınıf seçerek o sınıfın etüt gruplarını görün.
-                {% elif mod == "etut" %}Etüt grubu seçerek günlük akışı görün.
-                {% elif mod == "ogretmen" %}Öğretmen sütunlarında kim hangi derste görünür.
-                {% else %}Tüm sınıflar ve etüt grupları tek matriste.{% endif %}
+                {% if mod == "sinif" %}PDF, bu sınıfın dersi olan gün ve saatlerini çıkarır.
+                {% elif mod == "etut" %}PDF, bu etüt grubunun dersi olan gün ve saatlerini çıkarır.
+                {% elif mod == "ogretmen" %}PDF, seçilen öğretmenin gün ve saatlerini çıkarır. Toplu PDF tüm öğretmenleri zip olarak indirir.
+                {% else %}PDF bu günü, Tüm PDF dersi olan bütün günleri çıkarır.{% endif %}
             </p>
         </div>
     </div>
