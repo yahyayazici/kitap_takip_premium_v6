@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Sabah Beslenmesi · Sipariş · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/sabah-beslenme-premium.css' %}?v=sb8">
+<link rel="stylesheet" href="{% static 'css/sabah-beslenme-premium.css' %}?v=sb9">
 {% endblock %}
 
 {% block content %}
@@ -38,6 +38,7 @@
     <span>Son saat {{ menu.siparis_son_saati|time:"H:i" }}</span>
     <span class="sb-pill{% if pencere_acik %} is-open{% endif %}">{% if pencere_acik %}Açık{% else %}Kapalı{% endif %}</span>
 </section>
+<p class="sb-inline-error" data-sb-error hidden></p>
 
 <div class="sb-list-tools">
     {% if etut_hocasi_var %}
@@ -68,7 +69,7 @@
         {% endif %}
         <tbody>
             {% for satir in grup.satirlar %}
-            <tr data-talebe="{{ satir.talebe.pk }}" data-name="{{ satir.talebe.ad_soyad|lower }}" data-saved="{% if satir.siparis %}{{ satir.adet }}{% endif %}">
+            <tr data-talebe="{{ satir.talebe.pk }}" data-name="{{ satir.talebe.ad_soyad|lower }}" data-saved="{% if satir.siparis %}{{ satir.adet }}{% endif %}"{% if satir.siparis and satir.siparis.teslim_edildi %} data-teslim="1"{% endif %}>
                 <td class="sb-name">
                     <strong>{{ satir.talebe.ad_soyad }}</strong>
                     <span class="sb-class">{{ satir.sinif }}</span>
@@ -85,7 +86,11 @@
                         aria-label="{{ satir.talebe.ad_soyad }} adet"
                         placeholder=""
                         value="{% if satir.siparis %}{{ satir.adet }}{% endif %}"
+                        {% if satir.siparis and satir.siparis.teslim_edildi %}readonly{% endif %}
                     >
+                    {% if satir.siparis and satir.siparis.teslim_edildi %}
+                    <span class="sb-sold-hint">Satıldı</span>
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}
@@ -103,5 +108,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/sabah-beslenme.js' %}?v=sb5"></script>
+<script src="{% static 'js/sabah-beslenme.js' %}?v=sb10"></script>
 {% endblock %}

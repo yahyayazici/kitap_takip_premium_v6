@@ -307,3 +307,37 @@ class SabahBeslenmeTests(TestCase):
         self.assertContains(res, "Mehmet Kaya")
         self.assertContains(res, "Tümü")
         self.assertContains(res, "Etüdüm")
+
+    def test_teslim_edilmis_siparis_api_degistirilmez(self):
+        siparis = siparis_kaydet(
+            self.etut_user, menu=self.menu, talebe_id=self.talebe.pk, adet=2
+        )
+        teslim_et(self.satis_user, siparis.pk)
+        self.client.force_login(self.etut_user)
+        res = self.client.post(
+            reverse("sabah_beslenme_api_siparis"),
+            data={"tarih": self.tarih.isoformat(), "talebe_id": self.talebe.pk, "adet": 1},
+            content_type="application/json",
+        )
+        self.assertEqual(res.status_code, 400)
+        body = res.json()
+        self.assertFalse(body["ok"])
+        self.assertIn("Teslim", body["hata"])
+        siparis.refresh_from_db()
+        self.assertEqual(siparis.adet, 2)
+
+    def test_siparis_ekrani_teslim_satirini_kilitler(self):
+        siparis = siparis_kaydet(
+            self.etut_user, menu=self.menu, talebe_id=self.talebe.pk, adet=1
+        )
+        teslim_et(self.satis_user, siparis.pk)
+        self.client.force_login(self.etut_user)
+        res = self.client.get(
+            reverse("sabah_beslenme_siparis") + f"?tarih={self.tarih.isoformat()}"
+        )
+        self.assertEqual(res.status_code, 200)
+        self.assertContains(res, 'data-teslim="1"')
+        self.assertContains(res, "Satıldı")
+        self.assertContains(res, "readonly")
+        self.assertContains(res, "data-sb-error")
+        self.assertContains(res, "sabah-beslenme.js?v=sb10")

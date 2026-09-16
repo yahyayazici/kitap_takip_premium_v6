@@ -62,12 +62,41 @@
         return n;
     }
 
+    function siparisHatasiGoster(root, message) {
+        var box = root.querySelector("[data-sb-error]");
+        if (!box) {
+            box = document.createElement("p");
+            box.className = "sb-inline-error";
+            box.setAttribute("data-sb-error", "");
+            box.setAttribute("role", "alert");
+            var banner = root.querySelector(".sb-menu-banner");
+            if (banner && banner.parentNode) {
+                banner.parentNode.insertBefore(box, banner.nextSibling);
+            } else {
+                root.insertBefore(box, root.firstChild);
+            }
+        }
+        box.textContent = message;
+        box.removeAttribute("hidden");
+        box.hidden = false;
+        window.clearTimeout(siparisHatasiGoster._t);
+        siparisHatasiGoster._t = window.setTimeout(function () {
+            box.hidden = true;
+        }, 7000);
+    }
+
     function initSiparis(root) {
         var api = root.getAttribute("data-api");
         var tarih = root.getAttribute("data-tarih");
         var busy = new Set();
         var timers = {};
         var pending = {};
+
+        function restore(row, input) {
+            if (!input) return;
+            var saved = row.getAttribute("data-saved");
+            input.value = saved === null || saved === "" ? "" : saved;
+        }
 
         function kaydet(row, adet, input) {
             var talebeId = row.getAttribute("data-talebe");
@@ -83,28 +112,40 @@
                     row.setAttribute("data-saved", String(adet));
                     if (input && adet === 0) input.value = "";
                     else if (input) input.value = String(adet);
+                    var box = root.querySelector("[data-sb-error]");
+                    if (box) {
+                        box.hidden = true;
+                        box.setAttribute("hidden", "");
+                    }
                 })
                 .catch(function (err) {
-                    window.alert(err.message);
+                    delete pending[talebeId];
+                    restore(row, input);
+                    siparisHatasiGoster(root, err.message);
                 })
                 .finally(function () {
                     busy.delete(talebeId);
                     row.classList.remove("is-busy");
-                    if (Object.prototype.hasOwnProperty.call(pending, talebeId)) {
-                        var next = pending[talebeId];
-                        delete pending[talebeId];
-                        kaydet(row, next, input);
-                    }
+                    if (!Object.prototype.hasOwnProperty.call(pending, talebeId)) return;
+                    var next = pending[talebeId];
+                    delete pending[talebeId];
+                    var saved = row.getAttribute("data-saved");
+                    if (saved !== null && saved !== "" && String(next) === saved) return;
+                    if (next === 0 && (saved === null || saved === "")) return;
+                    kaydet(row, next, input);
                 });
         }
 
-        function fromInput(input) {
+        function fromInput(input, opts) {
+            opts = opts || {};
             var row = input.closest("tr");
-            if (!row) return;
+            if (!row || row.getAttribute("data-teslim") === "1") return;
             var adet = parseAdet(input.value);
             var prev = row.getAttribute("data-saved");
-            if (adet === 0 && (prev === null || prev === "")) return;
-            if (prev !== null && prev !== "" && String(adet) === prev) return;
+            var hadPrev = prev !== null && prev !== "";
+            if (adet === 0 && !hadPrev) return;
+            if (hadPrev && String(adet) === prev) return;
+            if (!opts.commit && adet === 0) return;
             kaydet(row, adet, input);
         }
 
@@ -120,10 +161,21 @@
             });
         }
 
+        root.addEventListener("click", function (ev) {
+            var cell = ev.target.closest(".sb-qty-cell");
+            if (!cell) return;
+            var row = cell.closest("tr[data-teslim='1']");
+            if (!row) return;
+            siparisHatasiGoster(root, "Teslim edilmiş sipariş değiştirilemez. Önce satışı geri alın.");
+        });
+
         root.addEventListener("change", function (ev) {
             var input = ev.target.closest(".sb-adet-input");
             if (!input) return;
-            fromInput(input);
+            var row = input.closest("tr");
+            var key = row && row.getAttribute("data-talebe");
+            if (key) window.clearTimeout(timers[key]);
+            fromInput(input, { commit: true });
         });
 
         root.addEventListener("input", function (ev) {
@@ -138,7 +190,7 @@
             if (!key) return;
             window.clearTimeout(timers[key]);
             timers[key] = window.setTimeout(function () {
-                fromInput(input);
+                fromInput(input, { commit: false });
             }, 350);
         });
 
@@ -148,7 +200,7 @@
             var row = input.closest("tr");
             var key = row && row.getAttribute("data-talebe");
             if (key) window.clearTimeout(timers[key]);
-            fromInput(input);
+            fromInput(input, { commit: true });
         }, true);
     }
 
