@@ -104,6 +104,7 @@ def bildirim_gonder(
     kaynak_model: str = "",
     kaynak_id: int | None = None,
     email: bool | None = None,
+    push: bool = True,
     dedupe: bool = True,
 ) -> Bildirim | None:
     """Tek kullanıcıya uygulama içi (+ isteğe bağlı e-posta) bildirim."""
@@ -149,6 +150,9 @@ def bildirim_gonder(
     gonder_email = email if email is not None else email_kanali_aktif()
     if gonder_email:
         _email_gonder(kayit)
+
+    if push:
+        _push_gonder(kayit)
 
     return kayit
 
@@ -219,6 +223,23 @@ def tumunu_okundu(user) -> int:
     qs.update(okundu=True, okunma_zamani=now())
     _unread_cache_drop(user)
     return n
+
+
+def _push_gonder(bildirim: Bildirim) -> bool:
+    from .push_bildirim_service import push_bildirim_aktif, push_gonder
+
+    if not push_bildirim_aktif():
+        return False
+    try:
+        return push_gonder(
+            bildirim.alici,
+            baslik=bildirim.baslik,
+            mesaj=bildirim.mesaj or "",
+            url=bildirim.link or "/panel/",
+        ) > 0
+    except Exception:
+        logger.exception("Bildirim push gönderilemedi id=%s", bildirim.pk)
+        return False
 
 
 def _email_gonder(bildirim: Bildirim) -> bool:

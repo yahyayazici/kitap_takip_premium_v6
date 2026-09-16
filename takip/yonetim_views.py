@@ -878,6 +878,7 @@ def bildirim_gonder_view(request):
             baslik=baslik,
             mesaj=mesaj,
             olusturan=request.user,
+            push=False,
         )
         push_sayisi = push_gonder_coklu(users, baslik=baslik, mesaj=mesaj)
 
