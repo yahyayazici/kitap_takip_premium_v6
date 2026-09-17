@@ -25,25 +25,28 @@ alt alan adının kökündedir.
 
 ### 2.1 DNS ve Render
 
-1. Namecheap → `cinilisarayproje.com` → **Advanced DNS** → yeni kayıt:
+`render.yaml` (Blueprint) şunları kendisi tanımlar:
 
-   | Tür | Host | Değer |
-   |-----|------|-------|
-   | CNAME | `ekran` | `kitap-takip-premium-v6.onrender.com` |
+* `ekran.cinilisarayproje.com` özel alan adı,
+* `EKRAN_HOST` ve `EKRAN_MEDIA_ROOT` ortam değişkenleri,
+* `/var/ekran-medya` yoluna bağlanan 10 GB kalıcı disk.
 
-2. Render → servis → **Settings → Custom Domains → Add Custom Domain** →
-   `ekran.cinilisarayproje.com`. Render sertifikayı otomatik verir.
+Blueprint senkronu çalıştığında Render bunları uygular; disk oluşturma
+onayı panelden istenebilir.
 
-3. Render → **Environment**:
+**Elle yapılması gereken tek adım DNS'tir** — alan adı kaydı Render'ın
+dışındadır. Namecheap → `cinilisarayproje.com` → **Advanced DNS**:
 
-   | Değişken | Değer |
-   |----------|-------|
-   | `EKRAN_HOST` | `ekran.cinilisarayproje.com` |
+| Tür | Host | Değer | TTL |
+|-----|------|-------|-----|
+| CNAME | `ekran` | `kitap-takip-premium-v6.onrender.com` | Automatic |
 
-   `render.yaml` bunu Blueprint ile zaten ayarlar.
+Kayıt girildikten sonra Render → **Settings → Custom Domains** ekranında
+`ekran.cinilisarayproje.com` satırı **Verified** olmalı; sertifika otomatik
+gelir. Yayılma 5–30 dakika sürebilir.
 
-`EKRAN_HOST` boş bırakılırsa varsayılan yine `ekran.cinilisarayproje.com`'dur;
-bu host `ALLOWED_HOSTS` ve `CSRF_TRUSTED_ORIGINS` listelerine otomatik eklenir.
+Blueprint kullanılmıyorsa aynı üç şey panelden elle yapılır: Custom Domains'e
+alan adı, Environment'a iki değişken, Disks'e `ekran-medya` diski.
 
 ### 2.2 Deploy
 

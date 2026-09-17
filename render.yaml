@@ -6,6 +6,12 @@ services:
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /health/
+    # Özel alan adları. MEVCUT İKİSİ DE burada yazılı olmalı: Render bu listeyi
+    # olduğu gibi uygular, eksik bırakılan bir alan adı servisten düşebilir.
+    domains:
+      - cinilisarayproje.com
+      - www.cinilisarayproje.com
+      - ekran.cinilisarayproje.com
     envVars:
       - key: PYTHON_VERSION
         value: "3.12.7"
