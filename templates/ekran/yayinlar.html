@@ -1,0 +1,74 @@
+{% extends "ekran/base.html" %}
+{% block title %}Yayınlar · Dijital Duyuru Ekranı{% endblock %}
+
+{% block content %}
+<div class="ekp-sayfa-basi">
+    <div>
+        <h1>Yayınlar</h1>
+        <p>Hangi oynatma listesinin, hangi ekranlarda, hangi gün ve saatlerde çalışacağını belirleyin.</p>
+    </div>
+</div>
+
+<div class="ekp-iki-sutun">
+    <div class="ekp-kart">
+        <div class="ekp-kart-basi"><h2>Yayın planları</h2></div>
+        {% if planlar %}
+        <div class="ekp-tablo-sarmal">
+            <table class="ekp-tablo">
+                <thead><tr><th>Yayın</th><th>Liste</th><th>Hedef</th><th>Zaman</th><th>Öncelik</th><th>Durum</th></tr></thead>
+                <tbody>
+                {% for plan in planlar %}
+                <tr>
+                    <td><a href="{% url 'ekran:yayin_detay' plan.pk %}"><strong>{{ plan.ad }}</strong></a></td>
+                    <td class="ekp-yumusak">{{ plan.liste.ad }}</td>
+                    <td class="ekp-kucuk ekp-yumusak">
+                        {% if plan.tum_ekranlar %}Tüm ekranlar
+                        {% else %}
+                            {% for hedef in plan.hedefler.all %}{{ hedef }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}
+                        {% endif %}
+                    </td>
+                    <td class="ekp-kucuk ekp-yumusak">
+                        {{ plan.gun_etiketleri }}<br>
+                        {% if plan.baslangic_saat or plan.bitis_saat %}
+                            {{ plan.baslangic_saat|time:"H:i"|default:"00:00" }}–{{ plan.bitis_saat|time:"H:i"|default:"23:59" }}
+                        {% else %}Tüm gün{% endif %}
+                        {% if plan.baslangic_tarih or plan.bitis_tarih %}
+                            <br>{{ plan.baslangic_tarih|date:"d.m.Y"|default:"" }} – {{ plan.bitis_tarih|date:"d.m.Y"|default:"süresiz" }}
+                        {% endif %}
+                    </td>
+                    <td class="ekp-sayi">{{ plan.oncelik }}</td>
+                    <td>
+                        <span class="ekp-rozet ekp-rozet-{{ plan.durum }}">{{ plan.get_durum_display }}</span>
+                        {% if plan.durum == "yayinda" and not plan.aktif_paket %}
+                        <br><span class="ekp-rozet ekp-rozet-uyari">Yayınlanmadı</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="ekp-bos">
+            <h3>Henüz yayın planı yok</h3>
+            <p>Bir oynatma listesi seçip hedef ekranları ve zaman aralığını belirleyerek ilk planınızı oluşturun.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if yetki_plan %}
+    <div class="ekp-kart">
+        <div class="ekp-kart-basi"><h2>Yeni yayın planı</h2></div>
+        <form method="post" class="ekp-form">
+            {% csrf_token %}
+            {% include "ekran/_form_alanlari.html" %}
+            <button type="submit" class="ekp-dugme ekp-dugme-ana">Taslak olarak kaydet</button>
+            <small class="ekp-yardim">
+                Kaydetmek yayını ekranlara göndermez. Planı kaydettikten sonra detay sayfasından
+                “Yayınla” demeniz gerekir.
+            </small>
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

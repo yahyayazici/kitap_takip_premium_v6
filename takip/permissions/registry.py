@@ -27,6 +27,16 @@ ILETISIM_ACTIONS: tuple[tuple[str, str], ...] = STANDARD_ACTIONS + (
     ("manage_templates", "Şablon Yönet"),
 )
 
+EKRAN_ACTIONS: tuple[tuple[str, str], ...] = STANDARD_ACTIONS + (
+    ("upload_media", "Medya Yükle"),
+    ("manage_template", "Şablon Yönet"),
+    ("schedule", "Yayın Planla"),
+    ("publish", "Yayına Al"),
+    ("emergency", "Acil Duyuru Gönder"),
+    ("manage_device", "Cihaz Yönet"),
+    ("view_history", "Geçmiş Yayınlar"),
+)
+
 OLCME_ACTIONS: tuple[tuple[str, str], ...] = STANDARD_ACTIONS + (
     ("zimmetle", "Soru Zimmetle"),
     ("yayinla", "Yayınla"),
@@ -81,6 +91,7 @@ MODUL_KATALOGU: tuple[ModulTanim, ...] = (
     ModulTanim("yemekcilik", "Yemekçilik", 70),
     ModulTanim("sabah_beslenmesi", "Sabah Beslenmesi", 72, islemler=SABAH_BESLENME_ACTIONS),
     ModulTanim("raporlar", "Raporlar", 80),
+    ModulTanim("ekran", "Dijital Duyuru Ekranı", 75, islemler=EKRAN_ACTIONS),
     ModulTanim("rbac", "Rol & Yetki Yönetimi", 900),
     ModulTanim("sistem_ayarlari", "Sistem Ayarları", 910),
 )
@@ -120,6 +131,7 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
             "program",
             "dershane_programi",
             "duyuru",
+            "ekran",
             "imam_muezzin",
             "temizlik",
             "yemekcilik",
@@ -160,6 +172,7 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
             "program",
             "dershane_programi",
             "duyuru",
+            "ekran",
             "imam_muezzin",
             "temizlik",
             "yemekcilik",
@@ -198,6 +211,7 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
             "program",
             "dershane_programi",
             "duyuru",
+            "ekran",
             "imam_muezzin",
             "temizlik",
             "yemekcilik",

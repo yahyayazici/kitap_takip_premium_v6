@@ -1,0 +1,111 @@
+{% extends "ekran/base.html" %}
+{% load ekran_etiketleri %}
+{% block title %}Tasarımlar · Dijital Duyuru Ekranı{% endblock %}
+
+{% block content %}
+<div class="ekp-sayfa-basi">
+    <div>
+        <h1>Tasarımlar</h1>
+        <p>Ekranlarda gösterilecek düzenler. Bir tasarım birden çok sahne içerebilir.</p>
+    </div>
+</div>
+
+<div class="ekp-iki-sutun">
+    <div class="ekp-kart">
+        <form method="get" class="ekp-form-satir" style="margin-bottom:16px;">
+            <div class="ekp-alan">
+                <label for="q">Ara</label>
+                <input type="search" id="q" name="q" value="{{ arama }}" placeholder="Tasarım adı">
+            </div>
+            <div class="ekp-alan">
+                <label for="durum">Durum</label>
+                <select id="durum" name="durum">
+                    <option value="">Tümü</option>
+                    {% for deger, etiket in durum_secenekleri %}
+                    <option value="{{ deger }}" {% if durum == deger %}selected{% endif %}>{{ etiket }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="ekp-alan" style="align-self:end;">
+                <button type="submit" class="ekp-dugme">Filtrele</button>
+            </div>
+        </form>
+
+        {% if sayfa.object_list %}
+        <div class="ekp-tablo-sarmal">
+            <table class="ekp-tablo">
+                <thead>
+                <tr><th>Tasarım</th><th>Sahne</th><th>Durum</th><th>Son düzenleme</th><th></th></tr>
+                </thead>
+                <tbody>
+                {% for proje in sayfa.object_list %}
+                <tr>
+                    <td>
+                        <a href="{% url 'ekran:studyo' proje.pk %}"><strong>{{ proje.ad }}</strong></a>
+                        {% if proje.aciklama %}<br><span class="ekp-yumusak ekp-kucuk">{{ proje.aciklama }}</span>{% endif %}
+                    </td>
+                    <td class="ekp-sayi">{{ proje.sahne_sayisi }}</td>
+                    <td>
+                        <span class="ekp-rozet ekp-rozet-{{ proje.durum }}">{{ proje.get_durum_display }}</span>
+                        {% if proje.kaydedilmemis_degisiklik %}<br><span class="ekp-rozet ekp-rozet-uyari">Yayınlanmamış değişiklik</span>{% endif %}
+                    </td>
+                    <td class="ekp-yumusak ekp-kucuk">
+                        {{ proje.guncellenme|date:"d.m.Y H:i" }}
+                        {% if proje.son_duzenleyen %}<br>{{ proje.son_duzenleyen|kisi_adi }}{% endif %}
+                    </td>
+                    <td class="ekp-sag">
+                        <a href="{% url 'ekran:tasarim_onizleme' proje.pk %}" class="ekp-dugme ekp-dugme-kucuk" target="_blank" rel="noopener">Ön izle</a>
+                        {% if yetki_duzenle %}
+                        <form method="post" action="{% url 'ekran:tasarim_kopyala' proje.pk %}" class="ekp-satir-ici">
+                            {% csrf_token %}<button type="submit" class="ekp-dugme ekp-dugme-kucuk">Kopyala</button>
+                        </form>
+                        {% endif %}
+                        {% if yetki_sil %}
+                        <form method="post" action="{% url 'ekran:tasarim_sil' proje.pk %}" class="ekp-satir-ici">
+                            {% csrf_token %}
+                            <button type="submit" class="ekp-dugme ekp-dugme-kucuk ekp-dugme-tehlike"
+                                    data-onay="“{{ proje.ad }}” ve tüm sahneleri silinecek. Bu işlem geri alınamaz. Onaylıyor musunuz?">Sil</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if sayfa.has_other_pages %}
+        <div class="ekp-sayfalama">
+            {% if sayfa.has_previous %}<a class="ekp-dugme ekp-dugme-kucuk" href="?sayfa={{ sayfa.previous_page_number }}&q={{ arama }}&durum={{ durum }}">← Önceki</a>{% endif %}
+            <span class="ekp-yumusak">{{ sayfa.number }} / {{ sayfa.paginator.num_pages }}</span>
+            {% if sayfa.has_next %}<a class="ekp-dugme ekp-dugme-kucuk" href="?sayfa={{ sayfa.next_page_number }}&q={{ arama }}&durum={{ durum }}">Sonraki →</a>{% endif %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="ekp-bos">
+            <h3>{% if arama or durum %}Aramanıza uyan tasarım bulunamadı{% else %}Henüz tasarım yok{% endif %}</h3>
+            <p>{% if arama or durum %}Farklı bir arama deneyin ya da filtreleri temizleyin.{% else %}Sağdaki formu doldurarak ilk ekran tasarımınızı oluşturun. Boş bir tuvalle başlayabilir, sonra hazır şablonlardan birini uygulayabilirsiniz.{% endif %}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if yetki_duzenle %}
+    <div class="ekp-kart">
+        <div class="ekp-kart-basi"><h2>Yeni tasarım</h2></div>
+        <form method="post" action="{% url 'ekran:tasarim_olustur' %}" class="ekp-form">
+            {% csrf_token %}
+            {% for alan in form %}
+            <div class="ekp-alan">
+                <label for="{{ alan.id_for_label }}">{{ alan.label }}</label>
+                {{ alan }}
+                {% if alan.help_text %}<small class="ekp-yardim">{{ alan.help_text }}</small>{% endif %}
+                {% for hata in alan.errors %}<p class="ekp-hata">{{ hata }}</p>{% endfor %}
+            </div>
+            {% endfor %}
+            <button type="submit" class="ekp-dugme ekp-dugme-ana">Oluştur ve tasarlamaya başla</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

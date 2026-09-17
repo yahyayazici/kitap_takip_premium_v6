@@ -1,0 +1,140 @@
+{% extends "ekran/base.html" %}
+{% load ekran_etiketleri %}
+{% block title %}Medya Kütüphanesi · Dijital Duyuru Ekranı{% endblock %}
+
+{% block content %}
+<div class="ekp-sayfa-basi">
+    <div>
+        <h1>Medya Kütüphanesi</h1>
+        <p>Ekranlarda kullanılan tüm PDF, görsel ve videolar. Aynı dosya ikinci kez yüklenmez.</p>
+    </div>
+</div>
+
+<div class="ekp-iki-sutun">
+    <div class="ekp-kart">
+        <form method="get" class="ekp-form-satir" style="margin-bottom:18px;">
+            <div class="ekp-alan">
+                <label for="q">Ara</label>
+                <input type="search" id="q" name="q" value="{{ arama }}" placeholder="Dosya adı">
+            </div>
+            <div class="ekp-alan">
+                <label for="tur">Tür</label>
+                <select id="tur" name="tur">
+                    <option value="">Tümü</option>
+                    {% for deger, etiket in tur_secenekleri %}
+                    <option value="{{ deger }}" {% if tur == deger %}selected{% endif %}>{{ etiket }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="ekp-alan">
+                <label for="klasor">Klasör</label>
+                <select id="klasor" name="klasor">
+                    <option value="">Tümü</option>
+                    {% for k in klasorler %}
+                    <option value="{{ k.pk }}" {% if secili_klasor == k.pk|stringformat:"s" %}selected{% endif %}>{{ k.ad }} ({{ k.medya_sayisi }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="ekp-alan" style="align-self:end;"><button type="submit" class="ekp-dugme">Filtrele</button></div>
+        </form>
+
+        {% if sayfa.object_list %}
+        <div class="ekp-medya-izgara">
+            {% for medya in sayfa.object_list %}
+            <div class="ekp-medya-kart">
+                <div class="ekp-medya-onizleme">
+                    {% if medya.onizleme_url %}
+                    <img src="{{ medya.onizleme_url }}" alt="" loading="lazy">
+                    {% else %}
+                    <span class="ekp-yumusak">{{ medya.get_tur_display }}</span>
+                    {% endif %}
+                </div>
+                <div class="ekp-medya-govde">
+                    <p class="ekp-medya-ad" title="{{ medya.ad }}">{{ medya.ad }}</p>
+                    <p class="ekp-medya-bilgi">
+                        {{ medya.get_tur_display }} · {{ medya.boyut_okunabilir }}
+                        {% if medya.sayfa_sayisi %} · {{ medya.sayfa_sayisi }} sayfa{% endif %}
+                        <br>{{ medya.olusturulma|date:"d.m.Y" }}
+                        {% if medya.yukleyen %} · {{ medya.yukleyen|kisi_adi }}{% endif %}
+                    </p>
+                    {% if medya.islem_durumu == "hata" %}
+                    <p class="ekp-hata ekp-kucuk">{{ medya.islem_notu }}</p>
+                    {% endif %}
+
+                    <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
+                        <a href="{{ medya.dosya.url }}" class="ekp-dugme ekp-dugme-kucuk" target="_blank" rel="noopener">Aç</a>
+                        {% if yetki_sil %}
+                        <form method="post" action="{% url 'ekran:medya_sil' medya.pk %}" class="ekp-satir-ici">
+                            {% csrf_token %}
+                            <button type="submit" class="ekp-dugme ekp-dugme-kucuk ekp-dugme-tehlike"
+                                    data-onay="“{{ medya.ad }}” silinecek. Bu işlem geri alınamaz.">Sil</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if sayfa.has_other_pages %}
+        <div class="ekp-sayfalama">
+            {% if sayfa.has_previous %}<a class="ekp-dugme ekp-dugme-kucuk" href="?sayfa={{ sayfa.previous_page_number }}&q={{ arama }}&tur={{ tur }}&klasor={{ secili_klasor }}">← Önceki</a>{% endif %}
+            <span class="ekp-yumusak">{{ sayfa.number }} / {{ sayfa.paginator.num_pages }}</span>
+            {% if sayfa.has_next %}<a class="ekp-dugme ekp-dugme-kucuk" href="?sayfa={{ sayfa.next_page_number }}&q={{ arama }}&tur={{ tur }}&klasor={{ secili_klasor }}">Sonraki →</a>{% endif %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="ekp-bos">
+            <h3>{% if arama or tur or secili_klasor %}Aramanıza uyan dosya yok{% else %}Kütüphane boş{% endif %}</h3>
+            <p>Dosyalar tasarım stüdyosundan da yüklenebilir. PNG, JPG, WEBP, PDF, MP4 ve WEBM desteklenir.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div>
+        {% if yetki_medya %}
+        <div class="ekp-kart">
+            <div class="ekp-kart-basi"><h2>Dosya yükle</h2></div>
+            <form method="post" action="{% url 'ekran:medya_yukle' %}" enctype="multipart/form-data" class="ekp-form"
+                  data-ekp-medya-form>
+                {% csrf_token %}
+                <div class="ekp-alan">
+                    <label for="dosya">Dosya</label>
+                    <input type="file" id="dosya" name="dosya" required
+                           accept=".png,.jpg,.jpeg,.webp,.pdf,.mp4,.webm,.m4v">
+                    <small class="ekp-yardim">
+                        Görsel en fazla 20 MB, PDF 80 MB, video 400 MB olabilir.
+                        PDF yüklendiğinde sayfaları otomatik olarak görsele çevrilir.
+                    </small>
+                </div>
+                <div class="ekp-alan">
+                    <label for="ad">Görünecek ad</label>
+                    <input type="text" id="ad" name="ad" maxlength="200" placeholder="Boş bırakılırsa dosya adı kullanılır">
+                </div>
+                <div class="ekp-alan">
+                    <label for="klasor-sec">Klasör</label>
+                    <select id="klasor-sec" name="klasor">
+                        <option value="">Klasörsüz</option>
+                        {% for k in klasorler %}<option value="{{ k.pk }}">{{ k.ad }}</option>{% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="ekp-dugme ekp-dugme-ana">Yükle</button>
+            </form>
+        </div>
+
+        <div class="ekp-kart">
+            <div class="ekp-kart-basi"><h2>Klasör ekle</h2></div>
+            <form method="post" action="{% url 'ekran:klasor_ekle' %}" class="ekp-form">
+                {% csrf_token %}
+                <div class="ekp-alan">
+                    <label for="klasor-ad">Klasör adı</label>
+                    <input type="text" id="klasor-ad" name="ad" maxlength="120" required placeholder="Örn. Sınav Afişleri">
+                </div>
+                <button type="submit" class="ekp-dugme">Oluştur</button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

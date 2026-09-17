@@ -1,0 +1,143 @@
+{% load static %}<!doctype html>
+<html lang="tr" class="ek-kok">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>{{ proje.ad }} · Ön izleme</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="{% static 'ekran/css/viewer.css' %}?v={{ varlik_surumu }}">
+    <style>
+        /* Ön izleme televizyon değil — imleç görünsün ve bilgi çubuğu olsun. */
+        .ek-govde { cursor: default; }
+        .ek-onizleme-bar {
+            position: fixed;
+            left: 0; right: 0; bottom: 0;
+            z-index: 9800;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 10px 18px;
+            background: rgba(7, 27, 58, 0.86);
+            backdrop-filter: blur(6px);
+            font-size: 13px;
+            color: #dce6f7;
+            transition: opacity 200ms ease;
+        }
+        .ek-onizleme-bar:hover { opacity: 1; }
+        .ek-onizleme-bar button, .ek-onizleme-bar a {
+            height: 30px;
+            padding: 0 12px;
+            border: 1px solid rgba(255,255,255,0.22);
+            border-radius: 8px;
+            background: transparent;
+            color: inherit;
+            font: inherit;
+            font-size: 12.5px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .ek-onizleme-bar button:hover, .ek-onizleme-bar a:hover { background: rgba(255,255,255,0.12); }
+        .ek-onizleme-sag { display: flex; gap: 8px; align-items: center; }
+    </style>
+</head>
+<body class="ek-govde">
+
+<div class="ek-yuzey">
+    <div id="ek-sahne-katmani"></div>
+    <div id="ek-durum-katmani" hidden></div>
+    <div id="ek-acil-katmani" hidden></div>
+</div>
+
+<div class="ek-onizleme-bar">
+    <span><strong>{{ proje.ad }}</strong> · televizyon ön izlemesi</span>
+    <span class="ek-onizleme-sag">
+        <span id="ek-onizleme-sahne"></span>
+        <button type="button" id="ek-onceki">← Önceki</button>
+        <button type="button" id="ek-sonraki">Sonraki →</button>
+        <button type="button" id="ek-tamekran">Tam ekran</button>
+        <a href="{% url 'ekran:studyo' proje.pk %}">Stüdyoya dön</a>
+    </span>
+</div>
+
+{{ paket|json_script:"ek-paket" }}
+<script>window.EKRAN_LOGO_URL = "{% static 'images/cinili-saray-logo-white.png' %}";
+window.EKRAN_QR_URL = "{% url 'ekran_qr' %}";</script>
+<script src="{% static 'ekran/js/engine.js' %}?v={{ varlik_surumu }}"></script>
+<script>
+/* Ön izleme oynatıcısı: viewer.js'in ağ katmanı olmadan, aynı render
+   motoruyla sahneleri sırayla gösterir. */
+(function () {
+    'use strict';
+    var paket = JSON.parse(document.getElementById('ek-paket').textContent);
+    var katman = document.getElementById('ek-sahne-katmani');
+    var durumKatmani = document.getElementById('ek-durum-katmani');
+    var sahneEtiket = document.getElementById('ek-onizleme-sahne');
+
+    var indeks = 0;
+    var aktif = null;
+    var zaman = null;
+
+    function bosGoster() {
+        durumKatmani.hidden = false;
+        durumKatmani.innerHTML = '';
+        var kart = document.createElement('div');
+        kart.className = 'ek-durum-kart';
+        var h = document.createElement('h1');
+        h.textContent = 'Bu tasarımda henüz öğe yok';
+        var p = document.createElement('p');
+        p.textContent = 'Stüdyoya dönüp soldaki listeden bir öğe ekleyin.';
+        kart.appendChild(h);
+        kart.appendChild(p);
+        durumKatmani.appendChild(kart);
+    }
+
+    function olcekle() {
+        if (!aktif) { return; }
+        var sahne = paket.sahneler[indeks];
+        window.EkranMotoru.olcekle(katman, aktif.dugum, (sahne && sahne.tuval) || { g: 1920, y: 1080 });
+    }
+
+    function oynat(yeniIndeks) {
+        if (!paket.sahneler || !paket.sahneler.length) { bosGoster(); return; }
+        if (zaman) { clearTimeout(zaman); zaman = null; }
+        if (aktif) { aktif.durdur(); aktif = null; }
+        katman.innerHTML = '';
+
+        indeks = ((yeniIndeks % paket.sahneler.length) + paket.sahneler.length) % paket.sahneler.length;
+        var sahne = paket.sahneler[indeks];
+
+        aktif = window.EkranMotoru.sahneCiz(katman, sahne, {
+            saatFarki: 0,
+            videoBitince: function () { if (sahne.sure_tipi === 'video_bitene') { oynat(indeks + 1); } }
+        });
+        olcekle();
+        aktif.dugum.classList.add('ek-gecis-' + (sahne.gecis || 'soldur'));
+        requestAnimationFrame(function () { aktif.dugum.classList.add('ek-gorunur'); });
+
+        sahneEtiket.textContent = (indeks + 1) + ' / ' + paket.sahneler.length + ' · ' + (sahne.ad || '');
+
+        var sure = aktif.sure();
+        if (sure > 0 && paket.sahneler.length > 1) {
+            zaman = setTimeout(function () { oynat(indeks + 1); }, sure * 1000);
+        }
+    }
+
+    document.getElementById('ek-onceki').addEventListener('click', function () { oynat(indeks - 1); });
+    document.getElementById('ek-sonraki').addEventListener('click', function () { oynat(indeks + 1); });
+    document.getElementById('ek-tamekran').addEventListener('click', function () {
+        if (document.fullscreenElement) { document.exitFullscreen(); }
+        else { document.documentElement.requestFullscreen(); }
+    });
+    window.addEventListener('resize', olcekle);
+
+    oynat(0);
+}());
+</script>
+</body>
+</html>

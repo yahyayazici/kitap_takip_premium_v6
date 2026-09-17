@@ -1,0 +1,50 @@
+{% load static %}<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Giriş · Dijital Duyuru Ekranı</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap">
+    <link rel="stylesheet" href="{% static 'css/cs-design-tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'ekran/css/panel.css' %}?v={{ varlik_surumu }}">
+    <style>
+        .ek-giris-yuzey {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background:
+                radial-gradient(circle 620px at 12% 18%, rgba(42,108,184,0.16), transparent 70%),
+                linear-gradient(140deg, #0b1a33 0%, #0f203c 58%, #15427f 100%);
+        }
+        .ek-giris-kart {
+            width: min(420px, 100%);
+            background: var(--cs-surface);
+            border-radius: var(--cs-radius-xl);
+            box-shadow: var(--cs-shadow-lg);
+            padding: clamp(28px, 4vw, 40px);
+        }
+        .ek-giris-logo { height: 42px; margin-bottom: 22px; }
+        .ek-giris-kart h1 { margin: 0 0 6px; font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em; }
+        .ek-giris-kart > p { margin: 0 0 24px; color: var(--cs-text-secondary); font-size: 13px; }
+    </style>
+</head>
+<body class="ekp-govde">
+<div class="ek-giris-yuzey">
+    <div class="ek-giris-kart">
+        <img class="ek-giris-logo" src="{% static 'images/cinili-saray-logo.png' %}" alt=""
+             onerror="this.style.display='none'">
+        <h1>Dijital Duyuru Ekranı</h1>
+        <p>Yönetim paneline girmek için kurum hesabınızı kullanın.</p>
+
+        <form method="post" class="ekp-form">
+            {% csrf_token %}
+            {% include "ekran/_form_alanlari.html" %}
+            <button type="submit" class="ekp-dugme ekp-dugme-ana">Giriş yap</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

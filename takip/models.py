@@ -2315,3 +2315,27 @@ from takip.iletisim_models import (  # noqa: E402,F401
     IletisimPaketi,
     IletisimSablon,
 )
+
+from takip.ekran_models import (  # noqa: E402,F401
+    EkranAcilDuyuru,
+    EkranCihaz,
+    EkranCihazOlayi,
+    EkranIslemKaydi,
+    EkranKonumu,
+    EkranMedya,
+    EkranMedyaKlasoru,
+    EkranMedyaSayfasi,
+    EkranOge,
+    EkranOgeGrubu,
+    EkranOgeKaynagi,
+    EkranOynatmaListesi,
+    EkranOynatmaOgesi,
+    EkranOynatmaRaporu,
+    EkranProje,
+    EkranProjeSurumu,
+    EkranSablon,
+    EkranSahne,
+    EkranYayinHedefi,
+    EkranYayinPaketi,
+    EkranYayinPlani,
+)

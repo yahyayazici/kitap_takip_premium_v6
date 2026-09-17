@@ -1,0 +1,147 @@
+{% extends "ekran/base.html" %}
+{% load ekran_etiketleri %}
+{% block title %}{{ plan.ad }} · Yayın{% endblock %}
+
+{% block content %}
+<div class="ekp-sayfa-basi">
+    <div>
+        <h1>{{ plan.ad }}</h1>
+        <p>
+            {{ plan.liste.ad }} ·
+            <span class="ekp-rozet ekp-rozet-{{ plan.durum }}">{{ plan.get_durum_display }}</span>
+        </p>
+    </div>
+    <div class="ekp-eylemler">
+        <a href="{% url 'ekran:yayin_listesi' %}" class="ekp-dugme">← Yayınlar</a>
+        {% if yetki_yayin %}
+        <form method="post" action="{% url 'ekran:yayin_yayinla' plan.pk %}" class="ekp-satir-ici">
+            {% csrf_token %}
+            <button type="submit" class="ekp-dugme ekp-dugme-ana"
+                    data-onay="“{{ plan.ad }}” {{ hedef_cihazlar|length }} ekrana gönderilecek. Onaylıyor musunuz?">
+                {% if plan.aktif_paket %}Güncelle ve yayınla{% else %}Yayınla{% endif %}
+            </button>
+        </form>
+        {% if plan.durum == "yayinda" %}
+        <form method="post" action="{% url 'ekran:yayin_durdur' plan.pk %}" class="ekp-satir-ici">
+            {% csrf_token %}
+            <button type="submit" class="ekp-dugme ekp-dugme-tehlike"
+                    data-onay="Yayın durdurulacak; hedef ekranlar başka bir plana ya da bekleme ekranına dönecek. Onaylıyor musunuz?">
+                Yayını durdur
+            </button>
+        </form>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<div class="ekp-iki-sutun">
+    <div>
+        <div class="ekp-kart">
+            <div class="ekp-kart-basi"><h2>Bu yayının sahneleri</h2></div>
+            {% if sahneler %}
+            <div class="ekp-tablo-sarmal">
+                <table class="ekp-tablo">
+                    <thead><tr><th>#</th><th>Sahne</th><th>Tasarım</th><th>Süre</th></tr></thead>
+                    <tbody>
+                    {% for oge in sahneler %}
+                    <tr>
+                        <td class="ekp-sayi">{{ forloop.counter }}</td>
+                        <td>{{ oge.sahne.ad }}</td>
+                        <td><a href="{% url 'ekran:studyo' oge.sahne.proje.pk %}?sahne={{ oge.sahne.pk }}">{{ oge.sahne.proje.ad }}</a></td>
+                        <td class="ekp-kucuk ekp-yumusak">
+                            {% if oge.sure_sn %}{{ oge.sure_sn }} sn{% else %}{{ oge.sahne.get_sure_tipi_display }}{% if oge.sahne.sure_tipi == "saniye" %} ({{ oge.sahne.sure_sn }} sn){% endif %}{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <p class="ekp-yardim" style="margin-top:12px;">
+                Tasarımlarda yaptığınız değişiklikler ekranlara <strong>otomatik gitmez</strong>.
+                Değişiklik sonrası yeniden “Yayınla” demelisiniz; o ana kadar ekranlar mevcut yayını oynatmaya devam eder.
+            </p>
+            {% else %}
+            <div class="ekp-bos">
+                <h3>Oynatma listesi boş</h3>
+                <p>Bu yayın çıkamaz. Önce <a href="{% url 'ekran:liste_detay' plan.liste.pk %}">{{ plan.liste.ad }}</a> listesine sahne ekleyin.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="ekp-kart">
+            <div class="ekp-kart-basi"><h2>Hedef ekranlar ({{ hedef_cihazlar|length }})</h2></div>
+            {% if hedef_cihazlar %}
+            <div class="ekp-tablo-sarmal">
+                <table class="ekp-tablo">
+                    <thead><tr><th>Ekran</th><th>Konum</th><th>Durum</th><th>Son alınan yayın</th></tr></thead>
+                    <tbody>
+                    {% for cihaz in hedef_cihazlar %}
+                    <tr>
+                        <td><a href="{% url 'ekran:cihaz_detay' cihaz.pk %}">{{ cihaz.gorunen_ad }}</a></td>
+                        <td class="ekp-yumusak">{{ cihaz.konum.ad|default:"—" }}</td>
+                        <td><span class="ekp-rozet {% if cihaz.cevrimici_mi %}ekp-rozet-cevrimici{% else %}ekp-rozet-cevrimdisi{% endif %}">{% if cihaz.cevrimici_mi %}Çevrim içi{% else %}Çevrim dışı{% endif %}</span></td>
+                        <td class="ekp-kucuk ekp-yumusak">{{ cihaz.son_basarili_guncelleme|date:"d.m.Y H:i"|default:"—" }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="ekp-yumusak ekp-kucuk">Bu plana uyan aktif ekran yok. Hedefleri kontrol edin.</p>
+            {% endif %}
+        </div>
+
+        {% if cakismalar %}
+        <div class="ekp-kart" style="border-left:3px solid var(--cs-warning);">
+            <div class="ekp-kart-basi"><h2>Zaman çakışması</h2></div>
+            <p class="ekp-yumusak ekp-kucuk">
+                Aşağıdaki ekranlarda şu an bu planla aynı anda geçerli başka yayınlar var.
+                Sistem en yüksek öncelikli olanı oynatır.
+            </p>
+            <ul class="ekp-kucuk" style="padding-left:18px;line-height:1.7;">
+                {% for c in cakismalar %}
+                <li><strong>{{ c.cihaz.gorunen_ad }}</strong>:
+                    {% for p in c.rakipler %}{{ p.ad }} (öncelik {{ p.oncelik }}){% if not forloop.last %}, {% endif %}{% endfor %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+
+    <div>
+        {% if yetki_plan %}
+        <div class="ekp-kart">
+            <div class="ekp-kart-basi"><h2>Plan ayarları</h2></div>
+            <form method="post" class="ekp-form">
+                {% csrf_token %}
+                {% include "ekran/_form_alanlari.html" %}
+                <button type="submit" class="ekp-dugme">Kaydet</button>
+            </form>
+        </div>
+        {% endif %}
+
+        <div class="ekp-kart">
+            <div class="ekp-kart-basi"><h2>Yayın geçmişi</h2></div>
+            {% if paketler %}
+            <div style="display:grid;gap:10px;">
+                {% for paket in paketler %}
+                <div style="display:grid;gap:2px;">
+                    <strong class="ekp-kucuk">
+                        {{ paket.olusturulma|date:"d.m.Y H:i" }}
+                        {% if plan.aktif_paket_id == paket.pk %}<span class="ekp-rozet ekp-rozet-yayinda">Yayında</span>{% endif %}
+                    </strong>
+                    <span class="ekp-yumusak ekp-kucuk">
+                        {{ paket.varlik_sayisi }} dosya ·
+                        {{ paket.yayinlayan|kisi_adi:"—" }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="ekp-yumusak ekp-kucuk">Bu plan henüz hiç yayınlanmadı.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

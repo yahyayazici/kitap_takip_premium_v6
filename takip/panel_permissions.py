@@ -585,6 +585,14 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         nav_group="Kurum",
     ),
     PanelNavItem(
+        key="ekran",
+        label="Duyuru Ekranı",
+        url_name="ekran:dashboard",
+        roller=TUM_PERSONEL_ROLLER,
+        active_names=(),
+        nav_group="Kurum",
+    ),
+    PanelNavItem(
         key="yonetim",
         label="Yönetim",
         url_name="yonetim:dashboard",
@@ -735,6 +743,11 @@ def ktt_modulu_erisimi_var(user: User) -> bool:
         return False
 
     return modul_erisimi_var(user, "ktt")
+
+
+def ekran_modulu_erisimi_var(user: User) -> bool:
+    """Dijital Duyuru Ekranı modülünü görebilir mi?"""
+    return modul_erisimi_var(user, "ekran")
 
 
 def olcme_modulu_erisimi_var(user: User) -> bool:
@@ -893,6 +906,8 @@ def panel_nav_items(user: User) -> list[PanelNavItem]:
         if item.key == "sabah_beslenmesi" and not PANEL_MODULES.get(
             "sabah_beslenmesi", {}
         ).get("enabled", False):
+            continue
+        if item.key == "ekran" and not ekran_modulu_erisimi_var(user):
             continue
         if item.key == "olcme" and not olcme_modulu_erisimi_var(user):
             continue

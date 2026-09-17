@@ -1,0 +1,62 @@
+{% extends "ekran/base.html" %}
+{% block title %}Oynatma Listeleri · Dijital Duyuru Ekranı{% endblock %}
+
+{% block content %}
+<div class="ekp-sayfa-basi">
+    <div>
+        <h1>Oynatma Listeleri</h1>
+        <p>Sahneleri sıraya dizerek gün boyu dönecek yayın akışları oluşturun.</p>
+    </div>
+</div>
+
+<div class="ekp-iki-sutun">
+    <div class="ekp-kart">
+        <div class="ekp-kart-basi"><h2>Listeler</h2></div>
+        {% if listeler %}
+        <div class="ekp-tablo-sarmal">
+            <table class="ekp-tablo">
+                <thead><tr><th>Liste</th><th>Sahne</th><th>Yayın planı</th><th>Durum</th><th></th></tr></thead>
+                <tbody>
+                {% for liste in listeler %}
+                <tr>
+                    <td>
+                        <a href="{% url 'ekran:liste_detay' liste.pk %}"><strong>{{ liste.ad }}</strong></a>
+                        {% if liste.aciklama %}<br><span class="ekp-yumusak ekp-kucuk">{{ liste.aciklama }}</span>{% endif %}
+                    </td>
+                    <td class="ekp-sayi">{{ liste.oge_sayisi }}</td>
+                    <td class="ekp-sayi">{{ liste.plan_sayisi }}</td>
+                    <td>{% if liste.aktif %}<span class="ekp-rozet ekp-rozet-yayinda">Aktif</span>{% else %}<span class="ekp-rozet">Pasif</span>{% endif %}</td>
+                    <td class="ekp-sag">
+                        {% if yetki_sil %}
+                        <form method="post" action="{% url 'ekran:liste_sil' liste.pk %}" class="ekp-satir-ici">
+                            {% csrf_token %}
+                            <button type="submit" class="ekp-dugme ekp-dugme-kucuk ekp-dugme-tehlike"
+                                    data-onay="“{{ liste.ad }}” silinecek. Onaylıyor musunuz?">Sil</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="ekp-bos">
+            <h3>Henüz oynatma listesi yok</h3>
+            <p>Örneğin “Normal Gün Yayını”, “Sınav Haftası” veya “Veli Toplantısı” gibi listeler oluşturup içine sahneleri dizebilirsiniz.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if yetki_duzenle %}
+    <div class="ekp-kart">
+        <div class="ekp-kart-basi"><h2>Yeni liste</h2></div>
+        <form method="post" class="ekp-form">
+            {% csrf_token %}
+            {% include "ekran/_form_alanlari.html" %}
+            <button type="submit" class="ekp-dugme ekp-dugme-ana">Oluştur</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

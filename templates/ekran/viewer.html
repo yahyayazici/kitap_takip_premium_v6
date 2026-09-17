@@ -1,0 +1,34 @@
+{% load static %}<!doctype html>
+<html lang="tr" class="ek-kok">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Çinili Saray Proje · Ekran</title>
+
+    {# Televizyon günlerce açık kalır: ekran koruyucuyu engellemeye çalış. #}
+    <meta name="theme-color" content="#0f203c">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="{% static 'ekran/css/viewer.css' %}?v={{ varlik_surumu }}">
+</head>
+<body class="ek-govde">
+
+<div class="ek-yuzey">
+    <div id="ek-sahne-katmani"></div>
+    <div id="ek-durum-katmani" hidden></div>
+    <div id="ek-acil-katmani" hidden></div>
+    <div id="ek-rozet" aria-hidden="true"></div>
+</div>
+
+<script>
+    window.EKRAN_LOGO_URL = "{% static 'images/cinili-saray-logo-white.png' %}";
+    window.EKRAN_QR_URL = "{% url 'ekran_qr' %}";
+    window.EKRAN_YOKLAMA_SN = {{ yoklama_sn }};
+</script>
+<script src="{% static 'ekran/js/engine.js' %}?v={{ varlik_surumu }}"></script>
+<script src="{% static 'ekran/js/viewer.js' %}?v={{ varlik_surumu }}"></script>
+</body>
+</html>

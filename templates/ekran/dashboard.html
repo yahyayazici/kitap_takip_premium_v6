@@ -1,0 +1,150 @@
+{% extends "ekran/base.html" %}
+{% load ekran_etiketleri %}
+{% block title %}Genel Bakış · Dijital Duyuru Ekranı{% endblock %}
+
+{% block content %}
+<div class="ekp-sayfa-basi">
+    <div>
+        <h1>Genel Bakış</h1>
+        <p>Kurumdaki ekranların durumu ve yayındaki içerikler.</p>
+    </div>
+    <div class="ekp-eylemler">
+        {% if yetki_duzenle %}<a href="{% url 'ekran:tasarim_listesi' %}" class="ekp-dugme ekp-dugme-ana">Yeni tasarım</a>{% endif %}
+        {% if yetki_acil %}<a href="{% url 'ekran:acil_listesi' %}" class="ekp-dugme ekp-dugme-tehlike">Acil duyuru</a>{% endif %}
+    </div>
+</div>
+
+{% if acil_duyuru %}
+<div class="ekp-kart" style="border-left:3px solid var(--cs-danger);margin-bottom:16px;">
+    <div class="ekp-kart-basi">
+        <h2>Şu anda acil duyuru yayında: {{ acil_duyuru.baslik }}</h2>
+        {% if yetki_acil %}
+        <form method="post" action="{% url 'ekran:acil_kapat' acil_duyuru.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="ekp-dugme ekp-dugme-tehlike ekp-dugme-kucuk"
+                    data-onay="Acil duyuru kapatılacak ve ekranlar normal yayına dönecek. Onaylıyor musunuz?">
+                Duyuruyu kapat
+            </button>
+        </form>
+        {% endif %}
+    </div>
+    <p class="ekp-yumusak ekp-kucuk">
+        {{ acil_duyuru.baslatan|kisi_adi:"—" }} tarafından
+        {{ acil_duyuru.baslangic|date:"d.m.Y H:i" }}'de başlatıldı.
+    </p>
+</div>
+{% endif %}
+
+<div class="ekp-olcum">
+    <div class="ekp-olcum-kart">
+        <div class="ekp-olcum-etiket">Çevrim içi ekran</div>
+        <div class="ekp-olcum-deger">{{ cevrimici_sayisi }}</div>
+        <div class="ekp-olcum-alt">Toplam {{ cihaz_sayisi }} ekran kayıtlı</div>
+    </div>
+    <div class="ekp-olcum-kart">
+        <div class="ekp-olcum-etiket">Çevrim dışı</div>
+        <div class="ekp-olcum-deger">{{ cevrimdisi_sayisi }}</div>
+        <div class="ekp-olcum-alt">{% if cevrimdisi_sayisi %}Son yayını oynatmaya devam ediyor{% else %}Hepsi bağlı{% endif %}</div>
+    </div>
+    <div class="ekp-olcum-kart">
+        <div class="ekp-olcum-etiket">Eşleştirme bekleyen</div>
+        <div class="ekp-olcum-deger">{{ bekleyen_cihaz }}</div>
+        <div class="ekp-olcum-alt"><a href="{% url 'ekran:cihaz_listesi' %}">Ekranları yönet</a></div>
+    </div>
+    <div class="ekp-olcum-kart">
+        <div class="ekp-olcum-etiket">Medya dosyası</div>
+        <div class="ekp-olcum-deger">{{ medya_sayisi }}</div>
+        <div class="ekp-olcum-alt"><a href="{% url 'ekran:medya_kutuphanesi' %}">Kütüphaneye git</a></div>
+    </div>
+</div>
+
+<div class="ekp-iki-sutun">
+    <div>
+        <div class="ekp-kart">
+            <div class="ekp-kart-basi">
+                <h2>Yayındaki planlar</h2>
+                <a href="{% url 'ekran:yayin_listesi' %}" class="ekp-dugme ekp-dugme-kucuk">Tümü</a>
+            </div>
+            {% if aktif_yayinlar %}
+            <div class="ekp-tablo-sarmal">
+                <table class="ekp-tablo">
+                    <thead><tr><th>Yayın</th><th>Liste</th><th>Günler</th><th>Saat</th><th>Öncelik</th></tr></thead>
+                    <tbody>
+                    {% for plan in aktif_yayinlar %}
+                    <tr>
+                        <td><a href="{% url 'ekran:yayin_detay' plan.pk %}">{{ plan.ad }}</a></td>
+                        <td class="ekp-yumusak">{{ plan.liste.ad }}</td>
+                        <td class="ekp-yumusak ekp-kucuk">{{ plan.gun_etiketleri }}</td>
+                        <td class="ekp-yumusak ekp-sayi">
+                            {% if plan.baslangic_saat or plan.bitis_saat %}
+                                {{ plan.baslangic_saat|time:"H:i"|default:"00:00" }}–{{ plan.bitis_saat|time:"H:i"|default:"23:59" }}
+                            {% else %}Tüm gün{% endif %}
+                        </td>
+                        <td class="ekp-sayi">{{ plan.oncelik }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="ekp-bos">
+                <h3>Henüz yayın planı yok</h3>
+                <p>Bir tasarım hazırlayıp oynatma listesine ekleyin, sonra yayın planı oluşturun.</p>
+                <a href="{% url 'ekran:yayin_listesi' %}" class="ekp-dugme ekp-dugme-ana">Yayın planı oluştur</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="ekp-kart">
+            <div class="ekp-kart-basi">
+                <h2>Son düzenlenen tasarımlar</h2>
+                <a href="{% url 'ekran:tasarim_listesi' %}" class="ekp-dugme ekp-dugme-kucuk">Tümü</a>
+            </div>
+            {% if son_tasarimlar %}
+            <div class="ekp-tablo-sarmal">
+                <table class="ekp-tablo">
+                    <thead><tr><th>Tasarım</th><th>Durum</th><th>Son düzenleme</th></tr></thead>
+                    <tbody>
+                    {% for proje in son_tasarimlar %}
+                    <tr>
+                        <td><a href="{% url 'ekran:studyo' proje.pk %}">{{ proje.ad }}</a></td>
+                        <td>
+                            <span class="ekp-rozet ekp-rozet-{{ proje.durum }}">{{ proje.get_durum_display }}</span>
+                            {% if proje.kaydedilmemis_degisiklik %}<span class="ekp-rozet ekp-rozet-uyari">Yayınlanmamış değişiklik</span>{% endif %}
+                        </td>
+                        <td class="ekp-yumusak ekp-kucuk">{{ proje.guncellenme|date:"d.m.Y H:i" }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="ekp-bos">
+                <h3>Henüz tasarım yok</h3>
+                <p>İlk ekran tasarımınızı oluşturarak başlayın. Hazır şablonlardan birini seçip özgürce değiştirebilirsiniz.</p>
+                <a href="{% url 'ekran:tasarim_listesi' %}" class="ekp-dugme ekp-dugme-ana">Tasarım oluştur</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="ekp-kart">
+        <div class="ekp-kart-basi"><h2>Son cihaz olayları</h2></div>
+        {% if son_olaylar %}
+        <div style="display:grid;gap:12px;">
+            {% for olay in son_olaylar %}
+            <div style="display:grid;gap:2px;">
+                <strong style="font-size:12.5px;">{{ olay.cihaz.gorunen_ad }}</strong>
+                <span class="ekp-yumusak ekp-kucuk">
+                    {{ olay.get_tur_display }} · {{ olay.zaman|date:"d.m H:i" }}
+                    {% if olay.mesaj %}<br>{{ olay.mesaj }}{% endif %}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="ekp-yumusak ekp-kucuk">Henüz cihaz olayı yok.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -55,6 +55,16 @@ class PanelLoginView(auth_views.LoginView):
         return super().form_invalid(form)
 
     def get_success_url(self):
+        # Kullanıcı korumalı bir adrese tıklayıp giriş ekranına düştüyse
+        # (``?next=...``) girişten sonra ORAYA dönmeli. Bu kontrol olmadan
+        # herkes rolünün varsayılan panosuna gidiyordu; örneğin /ekran/
+        # bağlantısına tıklayan biri giriş yapınca normal panelde kalıyordu.
+        # ``get_redirect_url()`` Django'nun kendi güvenli kontrolüdür: yalnız
+        # aynı host'taki adresleri kabul eder, açık yönlendirmeye izin vermez.
+        yonlendirme = self.get_redirect_url()
+        if yonlendirme:
+            return yonlendirme
+
         user = self.request.user
         if kullanici_veli_mi(user):
             return reverse("veli_dashboard")

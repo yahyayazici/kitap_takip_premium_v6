@@ -1,0 +1,67 @@
+{% load static %}{% load ekran_etiketleri %}<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>{% block title %}Dijital Duyuru Ekranı · {{ panel_short }}{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap">
+    <link rel="stylesheet" href="{% static 'css/cs-design-tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'ekran/css/panel.css' %}?v={{ varlik_surumu }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="ekp-govde{% block govde_sinif %}{% endblock %}">
+
+<header class="ekp-header">
+    <div class="ekp-header-ic">
+        <a href="{% url 'ekran:dashboard' %}" class="ekp-marka">
+            <img src="{% static 'images/cinili-saray-logo-white.png' %}" alt="">
+            <span>
+                <strong>{{ panel_short|default:"Çinili Saray Proje" }}</strong>
+                <small>Dijital Duyuru Ekranı</small>
+            </span>
+        </a>
+
+        {% comment %}
+        Menü kasıtlı olarak iki başlıkla sınırlı: kullanıcı panoyu hazırlar ve
+        ekranlara gönderir. Oynatma listesi / yayın planı / medya kütüphanesi /
+        geçmiş ekranları duruyor ama günlük kullanımda gerekmediği için buraya
+        konmadı.
+        {% endcomment %}
+        <nav class="ekp-nav">
+            <a href="{% url 'ekran:dashboard' %}" class="ekp-nav-link{% if aktif_bolum == 'pano' %} ekp-aktif{% endif %}">Pano</a>
+            <a href="{% url 'ekran:cihaz_listesi' %}" class="ekp-nav-link{% if aktif_bolum == 'cihazlar' %} ekp-aktif{% endif %}">
+                Ekranlar{% if bekleyen_ekran %} <span class="ekp-nav-sayac">{{ bekleyen_ekran }}</span>{% endif %}
+            </a>
+            {% if yetki_acil %}
+            <a href="{% url 'ekran:acil_listesi' %}" class="ekp-nav-link ekp-nav-acil{% if aktif_bolum == 'acil' %} ekp-aktif{% endif %}">Acil Duyuru</a>
+            {% endif %}
+        </nav>
+
+        <div class="ekp-kullanici">
+            <span class="ekp-avatar">{{ request.user.get_full_name|default:request.user.username|slice:":1"|upper }}</span>
+            <span class="ekp-kullanici-ad">{{ request.user|kisi_adi }}</span>
+        </div>
+    </div>
+</header>
+
+{% if messages %}
+<div class="ekp-bildirimler" data-ekp-bildirim>
+    {% for message in messages %}
+    <div class="ekp-bildirim ekp-bildirim-{{ message.tags|default:'info' }}" role="status">
+        <span>{{ message }}</span>
+        <button type="button" class="ekp-bildirim-kapat" aria-label="Kapat">×</button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<main class="ekp-ana{% block ana_sinif %}{% endblock %}">
+    {% block content %}{% endblock %}
+</main>
+
+<script src="{% static 'ekran/js/panel.js' %}?v={{ varlik_surumu }}" defer></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

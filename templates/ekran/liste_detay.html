@@ -1,0 +1,97 @@
+{% extends "ekran/base.html" %}
+{% block title %}{{ liste.ad }} · Oynatma Listesi{% endblock %}
+
+{% block content %}
+<div class="ekp-sayfa-basi">
+    <div>
+        <h1>{{ liste.ad }}</h1>
+        <p>Sahneler yukarıdan aşağı sırayla oynar{% if liste.donguye_al %}, liste bitince başa döner{% endif %}.</p>
+    </div>
+    <div class="ekp-eylemler"><a href="{% url 'ekran:liste_listesi' %}" class="ekp-dugme">← Listeler</a></div>
+</div>
+
+<div class="ekp-iki-sutun">
+    <div class="ekp-kart">
+        <div class="ekp-kart-basi"><h2>Yayın akışı</h2></div>
+        {% if ogeler %}
+        <div class="ekp-tablo-sarmal">
+            <table class="ekp-tablo">
+                <thead><tr><th>#</th><th>Sahne</th><th>Tasarım</th><th>Süre</th><th></th></tr></thead>
+                <tbody>
+                {% for oge in ogeler %}
+                <tr>
+                    <td class="ekp-sayi">{{ forloop.counter }}</td>
+                    <td><strong>{{ oge.sahne.ad }}</strong></td>
+                    <td><a href="{% url 'ekran:studyo' oge.sahne.proje.pk %}?sahne={{ oge.sahne.pk }}">{{ oge.sahne.proje.ad }}</a></td>
+                    <td>
+                        {% if yetki_duzenle %}
+                        <form method="post" style="display:flex;gap:6px;align-items:center;">
+                            {% csrf_token %}
+                            <input type="hidden" name="eylem" value="sure">
+                            <input type="hidden" name="oge" value="{{ oge.pk }}">
+                            <input type="number" name="sure" value="{{ oge.sure_sn }}" min="0" max="86400"
+                                   style="width:82px;min-height:32px;" class="ekp-girdi">
+                            <button type="submit" class="ekp-dugme ekp-dugme-kucuk">Kaydet</button>
+                        </form>
+                        <small class="ekp-yardim">0 = sahnenin kendi süresi ({{ oge.sahne.get_sure_tipi_display|lower }})</small>
+                        {% else %}
+                        <span class="ekp-sayi">{{ oge.sure_sn|default:"—" }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="ekp-sag">
+                        {% if yetki_duzenle %}
+                        <form method="post" class="ekp-satir-ici">
+                            {% csrf_token %}
+                            <input type="hidden" name="eylem" value="oge_sil">
+                            <input type="hidden" name="oge" value="{{ oge.pk }}">
+                            <button type="submit" class="ekp-dugme ekp-dugme-kucuk ekp-dugme-tehlike">Çıkar</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="ekp-bos">
+            <h3>Liste boş</h3>
+            <p>Sağdaki listeden sahne ekleyerek yayın akışını oluşturun. En az bir sahne olmadan bu liste yayınlanamaz.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div>
+        {% if yetki_duzenle %}
+        <div class="ekp-kart">
+            <div class="ekp-kart-basi"><h2>Sahne ekle</h2></div>
+            <form method="post" class="ekp-form">
+                {% csrf_token %}
+                <input type="hidden" name="eylem" value="sahne_ekle">
+                <div class="ekp-alan">
+                    <label for="sahne">Sahne</label>
+                    <select id="sahne" name="sahne" required>
+                        {% for sahne in eklenebilir %}
+                        <option value="{{ sahne.pk }}">{{ sahne.proje.ad }} — {{ sahne.ad }}</option>
+                        {% empty %}
+                        <option value="" disabled>Önce bir tasarım oluşturun</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="ekp-dugme ekp-dugme-ana" {% if not eklenebilir %}disabled{% endif %}>Listeye ekle</button>
+            </form>
+        </div>
+
+        <div class="ekp-kart">
+            <div class="ekp-kart-basi"><h2>Liste ayarları</h2></div>
+            <form method="post" class="ekp-form">
+                {% csrf_token %}
+                <input type="hidden" name="eylem" value="bilgi">
+                {% include "ekran/_form_alanlari.html" %}
+                <button type="submit" class="ekp-dugme">Kaydet</button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

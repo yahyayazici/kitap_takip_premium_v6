@@ -1,0 +1,23 @@
+{% comment %}
+Ortak form alanı çizici. Onay kutuları ve çoklu seçim listeleri etiket
+konumu bakımından farklı davrandığı için ayrı ele alınır.
+{% endcomment %}
+{% for alan in form %}
+    {% if alan.field.widget.input_type == "checkbox" %}
+    <div class="ekp-alan">
+        <label class="ekp-onay">{{ alan }} <span>{{ alan.label }}</span></label>
+        {% if alan.help_text %}<small class="ekp-yardim">{{ alan.help_text }}</small>{% endif %}
+        {% for hata in alan.errors %}<p class="ekp-hata">{{ hata }}</p>{% endfor %}
+    </div>
+    {% else %}
+    <div class="ekp-alan">
+        <label for="{{ alan.id_for_label }}">{{ alan.label }}</label>
+        {{ alan }}
+        {% if alan.help_text %}<small class="ekp-yardim">{{ alan.help_text }}</small>{% endif %}
+        {% for hata in alan.errors %}<p class="ekp-hata">{{ hata }}</p>{% endfor %}
+    </div>
+    {% endif %}
+{% endfor %}
+{% if form.non_field_errors %}
+    {% for hata in form.non_field_errors %}<p class="ekp-hata">{{ hata }}</p>{% endfor %}
+{% endif %}

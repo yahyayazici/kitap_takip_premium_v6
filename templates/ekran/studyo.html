@@ -1,0 +1,153 @@
+{% extends "ekran/base.html" %}
+{% load static %}
+
+{% block title %}{{ proje.ad }} · Tasarım Stüdyosu{% endblock %}
+{% block govde_sinif %} ekp-studyo-govde{% endblock %}
+{% block ana_sinif %} ekp-ana-genis{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'ekran/css/viewer.css' %}?v={{ varlik_surumu }}">
+<link rel="stylesheet" href="{% static 'ekran/css/studyo.css' %}?v={{ varlik_surumu }}">
+{% endblock %}
+
+{% block content %}
+<form style="display:none">{% csrf_token %}</form>
+
+<p class="ek-dar-uyari">
+    Tasarım stüdyosu geniş ekran için hazırlandı. Bu ekranda öğeleri görebilir ve
+    ayarlarını değiştirebilirsiniz; sürükleyerek yerleştirmek için masaüstü kullanın.
+</p>
+
+<div id="ek-studyo" class="ek-studyo">
+
+    {# —— Sol: öğe kataloğu —— #}
+    <aside class="ek-yan">
+        <h4 class="ek-yan-baslik">Öğe ekle</h4>
+        <div id="ek-oge-katalog"></div>
+
+        {% if sablonlar %}
+        <h4 class="ek-yan-baslik">Hazır şablonlar</h4>
+        <div class="ek-katalog-izgara">
+            {% for sablon in sablonlar %}
+            <form method="post" action="{% url 'ekran:sablon_uygula' sablon.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="sahne" value="{{ secili_sahne.pk }}">
+                <input type="hidden" name="donus" value="studyo">
+                <button type="submit" class="ek-katalog-dugme" style="width:100%"
+                        {% if not yetki_duzenle %}disabled{% endif %}
+                        data-onay="“{{ sablon.ad }}” şablonu bu sahnedeki öğelerin yerine geçecek. Devam edilsin mi?">
+                    <span class="ek-katalog-ad">{{ sablon.ad }}</span>
+                </button>
+            </form>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if yetki_sablon %}
+        <h4 class="ek-yan-baslik">Bu sahneyi şablon yap</h4>
+        <form method="post" action="{% url 'ekran:sablon_kaydet' secili_sahne.pk %}" class="ekp-form">
+            {% csrf_token %}
+            <input type="text" name="ad" class="ek-ozellik-girdi" placeholder="Şablon adı" maxlength="160" required>
+            <button type="submit" class="ek-ozellik-dugme">Şablon olarak kaydet</button>
+        </form>
+        {% endif %}
+    </aside>
+
+    {# —— Orta: araç çubuğu + tuval + sahne şeridi —— #}
+    <section class="ek-orta">
+        <div class="ek-arac">
+            <a href="{% url 'ekran:tasarim_listesi' %}" class="ek-arac-dugme">← Tasarımlar</a>
+            <strong style="font-size:13px;">{{ proje.ad }}</strong>
+
+            <span class="ek-arac-ayirac"></span>
+
+            <button type="button" id="ek-geri-al" class="ek-arac-dugme" title="Geri al (Ctrl+Z)">↶</button>
+            <button type="button" id="ek-ileri-al" class="ek-arac-dugme" title="İleri al (Ctrl+Shift+Z)">↷</button>
+            <button type="button" id="ek-cogalt" class="ek-arac-dugme" title="Çoğalt (Ctrl+D)">Çoğalt</button>
+            <button type="button" id="ek-sil" class="ek-arac-dugme" title="Sil (Delete)">Sil</button>
+
+            <span class="ek-arac-ayirac"></span>
+
+            <label class="ekp-kucuk" for="ek-zoom-secim">Yakınlaştırma</label>
+            <select id="ek-zoom-secim" class="ek-arac-dugme">
+                <option value="sigdir">Ekrana sığdır</option>
+                <option value="0.5">%50</option>
+                <option value="0.75">%75</option>
+                <option value="1">%100</option>
+                <option value="sabit" hidden>Özel</option>
+            </select>
+            <span id="ek-zoom-etiket" class="ek-zoom-etiket">100%</span>
+
+            <span class="ek-arac-bosluk"></span>
+
+            <span id="ek-durum-metni" class="ek-durum-metni">Kaydedildi</span>
+            <button type="button" id="ek-onizle" class="ek-arac-dugme">Televizyon ön izlemesi</button>
+            {% if yetki_duzenle %}
+            <button type="button" id="ek-kaydet" class="ek-arac-dugme ek-arac-dugme-ana">Kaydet</button>
+            {% endif %}
+        </div>
+
+        <div id="ek-tuval-alan" class="ek-tuval-alan">
+            <div class="ek-tuval-kutu">
+                <div id="ek-tuval-sahne"></div>
+                <div id="ek-kilavuzlar"></div>
+                <div id="ek-kaplama"></div>
+            </div>
+            <div id="ek-yukleme-serit" class="ek-serit ek-serit-bilgi" hidden></div>
+            <div id="ek-uyari-serit" class="ek-serit ek-serit-uyari" hidden></div>
+            <div id="ek-birak-katmani" class="ek-birak-katmani" hidden>
+                <div class="ek-birak-kart">
+                    <strong>Bırak, tahtaya eklensin</strong>
+                    <span>Video, afiş, görsel ya da PDF sunum</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="ek-sahne-serit">
+            {% for sahne in sahneler %}
+            <a href="?sahne={{ sahne.pk }}"
+               class="ek-sahne-sekme{% if sahne.pk == secili_sahne.pk %} ek-sahne-sekme-aktif{% endif %}"
+               data-sahne-sekme="{{ sahne.pk }}">{{ sahne.ad }}</a>
+            {% endfor %}
+
+            {% if yetki_duzenle %}
+            <form method="post" action="{% url 'ekran:sahne_ekle' proje.pk %}" class="ekp-satir-ici">
+                {% csrf_token %}
+                <button type="submit" class="ek-sahne-sekme">+ Sahne ekle</button>
+            </form>
+            {% endif %}
+
+            {% if yetki_sil and sahneler|length > 1 %}
+            <form method="post" action="{% url 'ekran:sahne_sil' secili_sahne.pk %}" class="ekp-satir-ici">
+                {% csrf_token %}
+                <button type="submit" class="ek-sahne-sekme"
+                        data-onay="“{{ secili_sahne.ad }}” sahnesi silinecek. Bu işlem geri alınamaz.">
+                    Sahneyi sil
+                </button>
+            </form>
+            {% endif %}
+
+            <span class="ek-arac-bosluk"></span>
+            <a href="{% url 'ekran:surum_listesi' proje.pk %}" class="ek-sahne-sekme">Sürüm geçmişi</a>
+        </div>
+    </section>
+
+    {# —— Sağ: özellik + katman —— #}
+    <aside class="ek-yan ek-yan-sag">
+        <div id="ek-ozellik-panel" class="ek-ozellik-sarmal"></div>
+        <div class="ek-katman-sarmal">
+            <h4 class="ek-yan-baslik">Katmanlar</h4>
+            <div id="ek-katman-liste"></div>
+        </div>
+    </aside>
+</div>
+
+{% include "ekran/_medya_secici.html" %}
+
+{{ baslangic|json_script:"ek-baslangic" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'ekran/js/engine.js' %}?v={{ varlik_surumu }}"></script>
+<script src="{% static 'ekran/js/studyo.js' %}?v={{ varlik_surumu }}"></script>
+{% endblock %}

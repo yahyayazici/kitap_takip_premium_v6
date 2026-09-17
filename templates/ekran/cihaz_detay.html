@@ -1,0 +1,112 @@
+{% extends "ekran/base.html" %}
+{% load ekran_etiketleri %}
+{% block title %}{{ cihaz.gorunen_ad }} · Ekranlar{% endblock %}
+
+{% block content %}
+<div class="ekp-sayfa-basi">
+    <div>
+        <h1>{{ cihaz.gorunen_ad }}</h1>
+        <p>
+            {{ cihaz.konum.ad|default:"Konum atanmamış" }} ·
+            {% if cihaz.cevrimici_mi %}Çevrim içi{% else %}Çevrim dışı{% endif %}
+        </p>
+    </div>
+    <div class="ekp-eylemler">
+        <a href="{% url 'ekran:cihaz_listesi' %}" class="ekp-dugme">← Ekranlar</a>
+        {% if yetki_cihaz %}
+        <form method="post" action="{% url 'ekran:cihaz_yenile' cihaz.pk %}" class="ekp-satir-ici">
+            {% csrf_token %}<button type="submit" class="ekp-dugme">Ekranı yeniden yükle</button>
+        </form>
+        <form method="post" action="{% url 'ekran:cihaz_sil' cihaz.pk %}" class="ekp-satir-ici">
+            {% csrf_token %}
+            <button type="submit" class="ekp-dugme ekp-dugme-tehlike"
+                    data-onay="“{{ cihaz.gorunen_ad }}” kaydı silinecek. Televizyon yeniden eşleştirilmesi gerekecek. Onaylıyor musunuz?">
+                Kaydı sil
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="ekp-iki-sutun">
+    <div>
+        <div class="ekp-kart">
+            <div class="ekp-kart-basi"><h2>Durum</h2></div>
+            <div class="ekp-tablo-sarmal">
+                <table class="ekp-tablo">
+                    <tbody>
+                    <tr><th>Bağlantı</th><td><span class="ekp-rozet {% if cihaz.cevrimici_mi %}ekp-rozet-cevrimici{% else %}ekp-rozet-cevrimdisi{% endif %}">{% if cihaz.cevrimici_mi %}Çevrim içi{% else %}Çevrim dışı{% endif %}</span></td></tr>
+                    <tr><th>Son bağlantı</th><td>{{ cihaz.son_baglanti|date:"d.m.Y H:i:s"|default:"—" }}</td></tr>
+                    <tr><th>Son içerik güncellemesi</th><td>{{ cihaz.son_basarili_guncelleme|date:"d.m.Y H:i"|default:"—" }}</td></tr>
+                    <tr><th>Yayındaki plan</th><td>{% if aktif_plan %}<a href="{% url 'ekran:yayin_detay' aktif_plan.pk %}">{{ aktif_plan.ad }}</a>{% else %}<span class="ekp-yumusak">Planlanmış yayın yok</span>{% endif %}</td></tr>
+                    <tr><th>Çözünürlük</th><td>{% if cihaz.cozunurluk_genislik %}{{ cihaz.cozunurluk_genislik }} × {{ cihaz.cozunurluk_yukseklik }} ({{ cihaz.get_yonelim_display }}){% else %}—{% endif %}</td></tr>
+                    <tr><th>Uygulama sürümü</th><td>{{ cihaz.uygulama_surumu|default:"—" }}</td></tr>
+                    <tr><th>Tarayıcı</th><td class="ekp-kucuk ekp-yumusak">{{ cihaz.tarayici|default:"—" }}</td></tr>
+                    <tr><th>Son IP</th><td>{{ cihaz.son_ip|default:"—" }}</td></tr>
+                    <tr><th>Eşleştiren</th><td>{{ cihaz.eslestiren|kisi_adi:"—" }} {% if cihaz.eslestirme_zamani %}· {{ cihaz.eslestirme_zamani|date:"d.m.Y H:i" }}{% endif %}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            {% if cakisan_planlar %}
+            <p class="ekp-hata ekp-kucuk" style="margin-top:14px;">
+                Bu ekrana aynı anda birden fazla yayın denk geliyor:
+                {% for p in cakisan_planlar %}{{ p.ad }} (öncelik {{ p.oncelik }}){% if not forloop.last %}, {% endif %}{% endfor %}.
+                En yüksek öncelikli olan yayınlanır; karışıklığı önlemek için saat aralıklarını düzenleyin.
+            </p>
+            {% endif %}
+        </div>
+
+        <div class="ekp-kart">
+            <div class="ekp-kart-basi"><h2>Olay geçmişi</h2></div>
+            {% if olaylar %}
+            <div class="ekp-tablo-sarmal">
+                <table class="ekp-tablo">
+                    <thead><tr><th>Zaman</th><th>Olay</th><th>Açıklama</th></tr></thead>
+                    <tbody>
+                    {% for olay in olaylar %}
+                    <tr>
+                        <td class="ekp-kucuk ekp-yumusak">{{ olay.zaman|date:"d.m.Y H:i:s" }}</td>
+                        <td>{{ olay.get_tur_display }}</td>
+                        <td class="ekp-kucuk ekp-yumusak">{{ olay.mesaj|default:"—" }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="ekp-yumusak ekp-kucuk">Henüz olay kaydı yok.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div>
+        {% if yetki_cihaz %}
+        <div class="ekp-kart">
+            <div class="ekp-kart-basi"><h2>Ekran bilgileri</h2></div>
+            <form method="post" class="ekp-form">
+                {% csrf_token %}
+                {% include "ekran/_form_alanlari.html" %}
+                <button type="submit" class="ekp-dugme ekp-dugme-ana">Kaydet</button>
+            </form>
+        </div>
+        {% endif %}
+
+        <div class="ekp-kart">
+            <div class="ekp-kart-basi"><h2>Yayın raporları</h2></div>
+            {% if raporlar %}
+            <div style="display:grid;gap:10px;">
+                {% for rapor in raporlar %}
+                <div style="display:grid;gap:2px;">
+                    <strong class="ekp-kucuk">{{ rapor.get_sonuc_display }}{% if rapor.paket %} · {{ rapor.paket.plan.ad }}{% endif %}</strong>
+                    <span class="ekp-yumusak ekp-kucuk">{{ rapor.zaman|date:"d.m.Y H:i" }}{% if rapor.mesaj %} · {{ rapor.mesaj }}{% endif %}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="ekp-yumusak ekp-kucuk">Henüz rapor yok.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

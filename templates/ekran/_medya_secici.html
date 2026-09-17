@@ -1,0 +1,25 @@
+{% comment %}
+Medya seçici — üst menüde bir "kütüphane" sekmesi yok; yalnız bir öğeye
+dosya seçilirken açılır. İçinden yeni dosya da yüklenebilir.
+{% endcomment %}
+<div id="ek-medya-katman" class="ek-medya-katman" hidden>
+    <div class="ek-medya-pencere" role="dialog" aria-modal="true" aria-label="Dosya seç">
+        <div class="ek-medya-basi">
+            <h2>Dosya seç</h2>
+            <input type="search" id="ek-medya-arama" class="ek-ozellik-girdi" placeholder="Daha önce yüklenenlerde ara…">
+            <button type="button" class="ek-arac-dugme" data-medya-kapat>Kapat</button>
+        </div>
+        <div class="ek-medya-govde">
+            <div id="ek-medya-izgara" class="ek-medya-izgara"></div>
+        </div>
+        <div class="ek-medya-alt">
+            {% if yetki_medya %}
+            <label class="ek-dosya-etiket">
+                Bilgisayardan yükle
+                <input type="file" id="ek-medya-dosya" accept=".png,.jpg,.jpeg,.webp,.pdf,.mp4,.webm,.m4v">
+            </label>
+            {% endif %}
+            <span id="ek-medya-durum"></span>
+        </div>
+    </div>
+</div>

@@ -4,6 +4,7 @@ from django.conf.urls.static import static
 from django.urls import include, path, re_path
 from django.views.static import serve
 
+from takip import ekran_viewer_views
 from takip.bootstrap_views import bootstrap_setup, health_check
 from takip.pwa_views import (
     og_share_image,
@@ -33,7 +34,22 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("bootstrap-setup/", bootstrap_setup, name="bootstrap_setup"),
     path("yonetim/", include("takip.yonetim_urls")),
+    # Dijital Duyuru Ekranı — ekran.<domain> alt alan adında da /yonetim/
+    # altında aynı görünümlere bağlanır (bkz. config.ekran_urls).
+    path("ekran/", include("takip.ekran_urls")),
+    # Stüdyo ön izlemesi ve televizyon aynı QR ucunu kullanır; adı iki
+    # urlconf'ta da "ekran_qr" olduğu için şablon tek {% url %} ile çalışır.
+    path("ekran-qr/", ekran_viewer_views.qr_kodu, name="ekran_qr"),
     path("", include("takip.urls")),
+]
+
+# Ekran modülünün medyası ayrı kökte durur (kalıcı disk); onu da servis et.
+urlpatterns += [
+    re_path(
+        r"^ekran-medya/(?P<path>.*)$",
+        ekran_viewer_views.ekran_medyasi,
+        name="ekran_medyasi",
+    ),
 ]
 
 if settings.DEBUG:

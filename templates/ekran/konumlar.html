@@ -1,0 +1,60 @@
+{% extends "ekran/base.html" %}
+{% block title %}Kat ve Konumlar · Dijital Duyuru Ekranı{% endblock %}
+
+{% block content %}
+<div class="ekp-sayfa-basi">
+    <div>
+        <h1>Kat ve Konumlar</h1>
+        <p>Yayınları kat bazında hedefleyebilmek için ekranların bulunduğu yerleri tanımlayın.</p>
+    </div>
+    <div class="ekp-eylemler"><a href="{% url 'ekran:cihaz_listesi' %}" class="ekp-dugme">← Ekranlar</a></div>
+</div>
+
+<div class="ekp-iki-sutun">
+    <div class="ekp-kart">
+        <div class="ekp-kart-basi"><h2>Tanımlı konumlar</h2></div>
+        {% if konumlar %}
+        <div class="ekp-tablo-sarmal">
+            <table class="ekp-tablo">
+                <thead><tr><th>Konum</th><th>Açıklama</th><th>Ekran</th><th>Durum</th><th></th></tr></thead>
+                <tbody>
+                {% for konum in konumlar %}
+                <tr>
+                    <td><strong>{{ konum.ad }}</strong></td>
+                    <td class="ekp-yumusak ekp-kucuk">{{ konum.aciklama|default:"—" }}</td>
+                    <td class="ekp-sayi">{{ konum.cihaz_sayisi }}</td>
+                    <td>{% if konum.aktif %}<span class="ekp-rozet ekp-rozet-yayinda">Aktif</span>{% else %}<span class="ekp-rozet">Pasif</span>{% endif %}</td>
+                    <td class="ekp-sag">
+                        {% if yetki_cihaz %}
+                        <form method="post" action="{% url 'ekran:konum_sil' konum.pk %}" class="ekp-satir-ici">
+                            {% csrf_token %}
+                            <button type="submit" class="ekp-dugme ekp-dugme-kucuk ekp-dugme-tehlike"
+                                    data-onay="“{{ konum.ad }}” silinecek. Onaylıyor musunuz?">Sil</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="ekp-bos">
+            <h3>Henüz konum yok</h3>
+            <p>Örneğin “Giriş Katı”, “1. Kat Koridor”, “Yemekhane” gibi konumlar ekleyin. Sonra her ekranı bir konuma bağlayabilirsiniz.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if yetki_cihaz %}
+    <div class="ekp-kart">
+        <div class="ekp-kart-basi"><h2>Konum ekle</h2></div>
+        <form method="post" class="ekp-form">
+            {% csrf_token %}
+            {% include "ekran/_form_alanlari.html" %}
+            <button type="submit" class="ekp-dugme ekp-dugme-ana">Ekle</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

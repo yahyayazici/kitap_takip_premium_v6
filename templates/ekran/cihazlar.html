@@ -1,0 +1,109 @@
+{% extends "ekran/base.html" %}
+{% block title %}Ekranlar · Dijital Duyuru Ekranı{% endblock %}
+
+{% block content %}
+<div class="ekp-sayfa-basi">
+    <div>
+        <h1>Ekranlar</h1>
+        <p>Kurumdaki televizyonlar. Yeni bir ekran açıldığında üzerinde bir kod gösterilir; o kodu buraya girin.</p>
+    </div>
+    <div class="ekp-eylemler">
+        <a href="{% url 'ekran:konum_listesi' %}" class="ekp-dugme">Kat / konum yönetimi</a>
+    </div>
+</div>
+
+<div class="ekp-iki-sutun">
+    <div class="ekp-kart" data-ekp-cihaz-durum="{% url 'ekran:cihaz_durum_api' %}">
+        <div class="ekp-kart-basi"><h2>Kayıtlı ekranlar</h2></div>
+
+        {% if satirlar %}
+        <div class="ekp-tablo-sarmal">
+            <table class="ekp-tablo">
+                <thead>
+                <tr><th>Ekran</th><th>Konum</th><th>Durum</th><th>Son bağlantı</th><th>Yayındaki plan</th><th></th></tr>
+                </thead>
+                <tbody>
+                {% for satir in satirlar %}
+                <tr data-cihaz-id="{{ satir.cihaz.pk }}">
+                    <td>
+                        <a href="{% url 'ekran:cihaz_detay' satir.cihaz.pk %}"><strong>{{ satir.cihaz.gorunen_ad }}</strong></a>
+                        {% if satir.cihaz.cozunurluk_genislik %}
+                        <br><span class="ekp-yumusak ekp-kucuk">{{ satir.cihaz.cozunurluk_genislik }}×{{ satir.cihaz.cozunurluk_yukseklik }} · {{ satir.cihaz.get_yonelim_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="ekp-yumusak">{{ satir.cihaz.konum.ad|default:"—" }}</td>
+                    <td>
+                        <span class="ekp-rozet {% if satir.cihaz.cevrimici_mi %}ekp-rozet-cevrimici{% else %}ekp-rozet-cevrimdisi{% endif %}"
+                              data-cihaz-rozet>{% if satir.cihaz.cevrimici_mi %}Çevrim içi{% else %}Çevrim dışı{% endif %}</span>
+                        {% if satir.cihaz.durum == "pasif" %}<br><span class="ekp-rozet">Pasif</span>{% endif %}
+                    </td>
+                    <td class="ekp-yumusak ekp-kucuk" data-cihaz-zaman>
+                        {{ satir.cihaz.son_baglanti|date:"d.m.Y H:i"|default:"—" }}
+                    </td>
+                    <td>
+                        {% if satir.plan %}
+                        <a href="{% url 'ekran:yayin_detay' satir.plan.pk %}">{{ satir.plan.ad }}</a>
+                        {% if satir.cakisan %}
+                        <br><span class="ekp-rozet ekp-rozet-uyari" title="{% for p in satir.cakisan %}{{ p.ad }}{% if not forloop.last %}, {% endif %}{% endfor %}">
+                            {{ satir.cakisan|length }} yayın çakışıyor
+                        </span>
+                        {% endif %}
+                        {% else %}
+                        <span class="ekp-yumusak ekp-kucuk">Planlanmış yayın yok</span>
+                        {% endif %}
+                    </td>
+                    <td class="ekp-sag">
+                        {% if yetki_cihaz %}
+                        <form method="post" action="{% url 'ekran:cihaz_yenile' satir.cihaz.pk %}" class="ekp-satir-ici">
+                            {% csrf_token %}<button type="submit" class="ekp-dugme ekp-dugme-kucuk">Yenile</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="ekp-bos">
+            <h3>Henüz eşleştirilmiş ekran yok</h3>
+            <p>
+                Televizyonda <strong>ekran.cinilisarayproje.com</strong> adresini açın.
+                Ekranda altı haneli bir kod belirecek; o kodu sağdaki forma girin.
+            </p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div>
+        {% if yetki_cihaz %}
+        <div class="ekp-kart">
+            <div class="ekp-kart-basi"><h2>Ekran eşleştir</h2></div>
+            {% if bekleyenler %}
+            <p class="ekp-yumusak ekp-kucuk" style="margin-top:-8px;margin-bottom:12px;">
+                Şu anda {{ bekleyenler|length }} ekran eşleştirme bekliyor.
+            </p>
+            {% endif %}
+            <form method="post" action="{% url 'ekran:cihaz_eslestir' %}" class="ekp-form">
+                {% csrf_token %}
+                {% include "ekran/_form_alanlari.html" with form=eslestirme_formu %}
+                <button type="submit" class="ekp-dugme ekp-dugme-ana">Eşleştir</button>
+            </form>
+            <p class="ekp-yardim" style="margin-top:12px;">
+                Kodun süresi 15 dakikadır. Süre dolarsa televizyon birkaç saniye içinde yeni bir kod gösterir.
+            </p>
+        </div>
+        {% endif %}
+
+        <div class="ekp-kart">
+            <div class="ekp-kart-basi"><h2>Yeni ekran nasıl bağlanır?</h2></div>
+            <ol class="ekp-yumusak ekp-kucuk" style="padding-left:18px;line-height:1.7;margin:0;">
+                <li>Televizyonun tarayıcısında <strong>ekran.cinilisarayproje.com</strong> adresini açın.</li>
+                <li>Sayfayı tam ekran yapın.</li>
+                <li>Ekranda görünen kodu yandaki forma girin, ekrana bir ad ve kat verin.</li>
+                <li>Ekran birkaç saniye içinde yayına geçer.</li>
+            </ol>
+        </div>
+    </div>
+</div>
+{% endblock %}

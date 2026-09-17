@@ -1,0 +1,61 @@
+{% extends "ekran/base.html" %}
+{% load ekran_etiketleri %}
+{% block title %}{{ proje.ad }} · Sürüm Geçmişi{% endblock %}
+
+{% block content %}
+<div class="ekp-sayfa-basi">
+    <div>
+        <h1>Sürüm geçmişi</h1>
+        <p>{{ proje.ad }} — her yayınlamada tasarımın o anki hâli saklanır.</p>
+    </div>
+    <div class="ekp-eylemler"><a href="{% url 'ekran:studyo' proje.pk %}" class="ekp-dugme">← Stüdyoya dön</a></div>
+</div>
+
+<div class="ekp-kart">
+    {% if surumler %}
+    <div class="ekp-tablo-sarmal">
+        <table class="ekp-tablo">
+            <thead><tr><th>Sürüm</th><th>Tarih</th><th>Düzenleyen</th><th>Not</th><th>Durum</th><th></th></tr></thead>
+            <tbody>
+            {% for surum in surumler %}
+            <tr>
+                <td class="ekp-sayi"><strong>v{{ surum.surum_no }}</strong></td>
+                <td class="ekp-kucuk ekp-yumusak">{{ surum.olusturulma|date:"d.m.Y H:i" }}</td>
+                <td>{{ surum.olusturan|kisi_adi:"—" }}</td>
+                <td class="ekp-kucuk ekp-yumusak">{{ surum.not_metni|default:"—" }}</td>
+                <td>
+                    {% if proje.yayindaki_surum_id == surum.pk %}
+                    <span class="ekp-rozet ekp-rozet-yayinda">Yayındaki sürüm</span>
+                    {% elif surum.yayinlandi_mi %}
+                    <span class="ekp-rozet">Yayınlanmış</span>
+                    {% else %}
+                    <span class="ekp-rozet ekp-rozet-taslak">Taslak</span>
+                    {% endif %}
+                </td>
+                <td class="ekp-sag">
+                    {% if yetki_duzenle %}
+                    <form method="post" action="{% url 'ekran:surum_geri_yukle' surum.pk %}" class="ekp-satir-ici">
+                        {% csrf_token %}
+                        <button type="submit" class="ekp-dugme ekp-dugme-kucuk"
+                                data-onay="v{{ surum.surum_no }} taslağa geri yüklenecek ve şu anki taslak kaybolacak. Yayındaki ekranlar etkilenmez. Onaylıyor musunuz?">
+                            Geri yükle
+                        </button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p class="ekp-yardim" style="margin-top:14px;">
+        Geri yükleme yalnız taslağı değiştirir. Ekranlara gitmesi için ilgili yayını yeniden yayınlamalısınız.
+    </p>
+    {% else %}
+    <div class="ekp-bos">
+        <h3>Henüz sürüm yok</h3>
+        <p>Tasarım ilk kez yayınlandığında sürümü otomatik olarak saklanır.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

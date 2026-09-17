@@ -1,0 +1,45 @@
+{% extends "ekran/base.html" %}
+{% block title %}Şablonlar · Dijital Duyuru Ekranı{% endblock %}
+
+{% block content %}
+<div class="ekp-sayfa-basi">
+    <div>
+        <h1>Şablonlar</h1>
+        <p>Sık kullanılan ekran düzenleri. Bir şablon uyguladıktan sonra her şeyi özgürce değiştirebilirsiniz.</p>
+    </div>
+    <div class="ekp-eylemler"><a href="{% url 'ekran:tasarim_listesi' %}" class="ekp-dugme">Tasarımlar</a></div>
+</div>
+
+<div class="ekp-kart">
+    {% if sablonlar %}
+    <div class="ekp-izgara">
+        {% for sablon in sablonlar %}
+        <div class="ekp-medya-kart">
+            <div class="ekp-medya-onizleme">
+                {% if sablon.onizleme %}<img src="{{ sablon.onizleme.url }}" alt="">{% else %}<span class="ekp-yumusak ekp-kucuk">{{ sablon.kategori|default:"Şablon" }}</span>{% endif %}
+            </div>
+            <div class="ekp-medya-govde">
+                <p class="ekp-medya-ad">{{ sablon.ad }}</p>
+                <p class="ekp-medya-bilgi">{{ sablon.aciklama }}</p>
+                {% if yetki_sablon and not sablon.yerlesik_mi %}
+                <form method="post" action="{% url 'ekran:sablon_sil' sablon.pk %}" style="margin-top:10px;">
+                    {% csrf_token %}
+                    <button type="submit" class="ekp-dugme ekp-dugme-kucuk ekp-dugme-tehlike"
+                            data-onay="“{{ sablon.ad }}” şablonu silinecek. Onaylıyor musunuz?">Sil</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <p class="ekp-yardim" style="margin-top:16px;">
+        Şablonlar tasarım stüdyosunun sol sütunundan uygulanır.
+    </p>
+    {% else %}
+    <div class="ekp-bos">
+        <h3>Şablon yok</h3>
+        <p>Stüdyoda hazırladığınız bir sahneyi “Şablon olarak kaydet” ile buraya ekleyebilirsiniz.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

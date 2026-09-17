@@ -1,0 +1,96 @@
+{% extends "ekran/base.html" %}
+{% load ekran_etiketleri %}
+{% block title %}Acil Duyuru · Dijital Duyuru Ekranı{% endblock %}
+
+{% block content %}
+<div class="ekp-sayfa-basi">
+    <div>
+        <h1>Acil Duyuru</h1>
+        <p>Acil duyuru, seçilen ekranlardaki mevcut yayının üzerine çıkar. Kapatıldığında ekranlar normal yayına döner.</p>
+    </div>
+</div>
+
+{% if yayinda %}
+<div class="ekp-kart" style="border-left:3px solid var(--cs-danger);margin-bottom:16px;">
+    <div class="ekp-kart-basi"><h2>Şu anda yayında</h2></div>
+    {% for duyuru in yayinda %}
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid var(--cs-border-subtle);">
+        <div>
+            <strong>{{ duyuru.baslik }}</strong>
+            <br><span class="ekp-yumusak ekp-kucuk">
+                {{ duyuru.baslangic|date:"d.m.Y H:i" }} ·
+                {{ duyuru.baslatan|kisi_adi:"—" }} ·
+                {% if duyuru.tum_ekranlar %}Tüm ekranlar{% else %}{% for k in duyuru.konumlar.all %}{{ k.ad }}{% if not forloop.last %}, {% endif %}{% endfor %}{% for c in duyuru.cihazlar.all %}{% if duyuru.konumlar.all %}, {% endif %}{{ c.gorunen_ad }}{% endfor %}{% endif %}
+            </span>
+        </div>
+        {% if yetki_acil %}
+        <form method="post" action="{% url 'ekran:acil_kapat' duyuru.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="ekp-dugme ekp-dugme-tehlike"
+                    data-onay="“{{ duyuru.baslik }}” kapatılacak ve ekranlar normal yayına dönecek. Onaylıyor musunuz?">
+                Kapat
+            </button>
+        </form>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="ekp-iki-sutun">
+    <div class="ekp-kart">
+        <div class="ekp-kart-basi"><h2>Geçmiş duyurular</h2></div>
+        {% if duyurular %}
+        <div class="ekp-tablo-sarmal">
+            <table class="ekp-tablo">
+                <thead><tr><th>Duyuru</th><th>Hedef</th><th>Başlangıç</th><th>Kapatma</th><th>Durum</th></tr></thead>
+                <tbody>
+                {% for duyuru in duyurular %}
+                <tr>
+                    <td>
+                        <strong>{{ duyuru.baslik }}</strong>
+                        {% if duyuru.mesaj %}<br><span class="ekp-yumusak ekp-kucuk">{{ duyuru.mesaj|truncatechars:90 }}</span>{% endif %}
+                    </td>
+                    <td class="ekp-kucuk ekp-yumusak">
+                        {% if duyuru.tum_ekranlar %}Tüm ekranlar
+                        {% else %}{% for k in duyuru.konumlar.all %}{{ k.ad }}{% if not forloop.last %}, {% endif %}{% endfor %}{% for c in duyuru.cihazlar.all %}{% if duyuru.konumlar.all %}, {% endif %}{{ c.gorunen_ad }}{% endfor %}{% endif %}
+                    </td>
+                    <td class="ekp-kucuk ekp-yumusak">
+                        {{ duyuru.baslangic|date:"d.m.Y H:i" }}<br>
+                        {{ duyuru.baslatan|kisi_adi:"—" }}
+                    </td>
+                    <td class="ekp-kucuk ekp-yumusak">
+                        {% if duyuru.kapatma_zamani %}{{ duyuru.kapatma_zamani|date:"d.m.Y H:i" }}<br>{{ duyuru.kapatan|kisi_adi:"—" }}{% else %}—{% endif %}
+                    </td>
+                    <td>
+                        {% if duyuru.yayinda_mi %}<span class="ekp-rozet ekp-rozet-durduruldu">Yayında</span>
+                        {% else %}<span class="ekp-rozet">Kapalı</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="ekp-bos">
+            <h3>Henüz acil duyuru gönderilmedi</h3>
+            <p>Acil durumlarda sağdaki formu kullanarak tüm ekranlara tek seferde duyuru geçebilirsiniz.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if yetki_acil %}
+    <div class="ekp-kart" style="border-left:3px solid var(--cs-danger);">
+        <div class="ekp-kart-basi"><h2>Acil duyuru gönder</h2></div>
+        <form method="post" class="ekp-form">
+            {% csrf_token %}
+            {% include "ekran/_form_alanlari.html" %}
+            <button type="submit" class="ekp-dugme ekp-dugme-tehlike"
+                    data-onay="Bu duyuru seçilen ekranlardaki yayının üzerine hemen çıkacak. Onaylıyor musunuz?">
+                Duyuruyu başlat
+            </button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

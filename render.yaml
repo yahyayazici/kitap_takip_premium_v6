@@ -33,10 +33,23 @@ services:
         value: "cinilisarayproje.com,www.cinilisarayproje.com"
       - key: CANONICAL_HOST
         value: "cinilisarayproje.com"
+      # Dijital Duyuru Ekranı alt alan adı — Render Custom Domains'e de eklenmeli
+      - key: EKRAN_HOST
+        value: "ekran.cinilisarayproje.com"
+      # Ekran modülünün PDF/görsel/videoları aşağıdaki kalıcı diske yazılır;
+      # böylece her deploy'da silinmezler.
+      - key: EKRAN_MEDIA_ROOT
+        value: "/var/ekran-medya"
       - key: DATABASE_URL
         fromDatabase:
           name: kitap-takip-db
           property: connectionString
+    # Kalıcı disk — televizyonlara gönderilen medya burada durur.
+    # Disk bağlı bir servis tek örnekle çalışır (Starter planında zaten öyle).
+    disk:
+      name: ekran-medya
+      mountPath: /var/ekran-medya
+      sizeGB: 10
 
 databases:
   - name: kitap-takip-db

@@ -54,6 +54,32 @@ CANONICAL_HOST = os.environ.get("CANONICAL_HOST", "").strip().lower()
 if not CANONICAL_HOST and not DEBUG:
     CANONICAL_HOST = "cinilisarayproje.com"
 
+# —— Dijital Duyuru Ekranı alt alan adı ——
+# Bu host'tan gelen istekler config.ekran_urls yapılandırmasına yönlendirilir
+# (bkz. config.middleware.EkranHostMiddleware). Ana panel etkilenmez.
+# Oturum çerezi host'a özgüdür; alt alan adında ayrı giriş yapılır — mevcut
+# kullanıcıların oturumları bu değişiklikten etkilenmez.
+EKRAN_HOST = os.environ.get("EKRAN_HOST", "ekran.cinilisarayproje.com").strip().lower()
+EKRAN_EK_HOSTLAR = [
+    h.strip().lower()
+    for h in os.environ.get("EKRAN_EK_HOSTLAR", "ekran.localhost,ekran.127.0.0.1").split(",")
+    if h.strip()
+]
+EKRAN_HOSTLARI = frozenset([EKRAN_HOST, *EKRAN_EK_HOSTLAR]) - {""}
+
+for _ekran_host in EKRAN_HOSTLARI:
+    if _ekran_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_ekran_host)
+    _ekran_origin = f"https://{_ekran_host}"
+    if _ekran_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(_ekran_origin)
+if DEBUG:
+    for _ekran_host in EKRAN_HOSTLARI:
+        for _port in ("8000", "8001"):
+            _yerel = f"http://{_ekran_host}:{_port}"
+            if _yerel not in CSRF_TRUSTED_ORIGINS:
+                CSRF_TRUSTED_ORIGINS.append(_yerel)
+
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
@@ -86,6 +112,7 @@ MIDDLEWARE = [
     "django.middleware.gzip.GZipMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "config.middleware.CanonicalHostMiddleware",
+    "config.middleware.EkranHostMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "config.middleware.SlideSessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -160,6 +187,13 @@ MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 if os.environ.get("MEDIA_ROOT"):
     MEDIA_ROOT = Path(os.environ["MEDIA_ROOT"])
+
+# —— Dijital Duyuru Ekranı medya deposu ——
+# Ekran modülünün PDF/görsel/videoları HER ZAMAN dosya sisteminde durur
+# (canlıda Render kalıcı diski). Gerekçe: takip/ekran_storage.py.
+# Canlıda EKRAN_MEDIA_ROOT, diskin bağlandığı yola ayarlanır.
+EKRAN_MEDIA_ROOT = Path(os.environ.get("EKRAN_MEDIA_ROOT", "") or (MEDIA_ROOT / "ekran-medya"))
+EKRAN_MEDIA_URL = "/ekran-medya/"
 
 _default_file_storage = "django.core.files.storage.FileSystemStorage"
 if CLOUDINARY_URL:

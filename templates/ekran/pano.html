@@ -1,0 +1,224 @@
+{% extends "ekran/base.html" %}
+{% load static %}
+
+{% block title %}Pano · Dijital Duyuru Ekranı{% endblock %}
+{% block govde_sinif %} ekp-studyo-govde{% endblock %}
+{% block ana_sinif %} ekp-ana-genis{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'ekran/css/viewer.css' %}?v={{ varlik_surumu }}">
+<link rel="stylesheet" href="{% static 'ekran/css/studyo.css' %}?v={{ varlik_surumu }}">
+{% endblock %}
+
+{% block content %}
+<form style="display:none">{% csrf_token %}</form>
+
+<p class="ek-dar-uyari">
+    Pano geniş ekran için hazırlandı. Burada içerikleri görebilir ve ayarlarını
+    değiştirebilirsin; sürükleyerek yerleştirmek için masaüstü kullan.
+</p>
+
+<div id="ek-studyo" class="ek-studyo">
+
+    {# —— Sol: içerik ekle —— #}
+    <aside class="ek-yan">
+        <h4 class="ek-yan-baslik">İçerik ekle</h4>
+        <p class="ek-yan-ipucu">Dosyayı doğrudan tahtaya sürükleyip bırakabilirsin.</p>
+        <div id="ek-oge-katalog"></div>
+
+        <h4 class="ek-yan-baslik">Hazır taslaklar</h4>
+        <div class="ek-katalog-izgara">
+            {% for sablon in sablonlar %}
+            <form method="post" action="{% url 'ekran:sablon_uygula' sablon.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="sahne" value="{{ sahne.pk }}">
+                <button type="submit" class="ek-katalog-dugme" style="width:100%"
+                        {% if not yetki_duzenle %}disabled{% endif %}
+                        title="{{ sablon.aciklama }}"
+                        data-onay="“{{ sablon.ad }}” taslağı tahtadakilerin yerine geçecek. Devam edilsin mi?">
+                    <span class="ek-katalog-ad">{{ sablon.ad }}</span>
+                </button>
+            </form>
+            {% endfor %}
+        </div>
+    </aside>
+
+    {# —— Orta: araç çubuğu + tahta —— #}
+    <section class="ek-orta">
+        <div class="ek-arac">
+            <strong style="font-size:13px;">{{ proje.ad }}</strong>
+
+            <span class="ek-arac-ayirac"></span>
+            <button type="button" id="ek-geri-al" class="ek-arac-dugme" title="Geri al (Ctrl+Z)">↶</button>
+            <button type="button" id="ek-ileri-al" class="ek-arac-dugme" title="İleri al (Ctrl+Shift+Z)">↷</button>
+            <button type="button" id="ek-cogalt" class="ek-arac-dugme" title="Çoğalt (Ctrl+D)">Çoğalt</button>
+            <button type="button" id="ek-sil" class="ek-arac-dugme" title="Sil (Delete)">Sil</button>
+
+            <span class="ek-arac-ayirac"></span>
+            <select id="ek-zoom-secim" class="ek-arac-dugme" aria-label="Yakınlaştırma">
+                <option value="sigdir">Ekrana sığdır</option>
+                <option value="0.5">%50</option>
+                <option value="0.75">%75</option>
+                <option value="1">%100</option>
+                <option value="sabit" hidden>Özel</option>
+            </select>
+            <span id="ek-zoom-etiket" class="ek-zoom-etiket">100%</span>
+
+            <span class="ek-arac-bosluk"></span>
+
+            <span id="ek-durum-metni" class="ek-durum-metni">Kaydedildi</span>
+            <button type="button" id="ek-onizle" class="ek-arac-dugme">Televizyonda gör</button>
+            {% if yetki_duzenle %}<button type="button" id="ek-kaydet" class="ek-arac-dugme">Kaydet</button>{% endif %}
+            {% if yetki_yayin %}
+            <button type="button" id="ek-gonder-ac" class="ek-arac-dugme ek-arac-dugme-ana">Ekranlara gönder</button>
+            {% endif %}
+        </div>
+
+        {% if yayin.yayinda %}
+        <div class="ek-yayin-serit{% if not yayin.guncel %} ek-yayin-serit-eski{% endif %}">
+            {% if yayin.guncel %}
+                Bu pano {{ yayin.ekranlar|length }} ekranda yayında.
+            {% else %}
+                Pano yayına gönderildikten sonra değişti — ekranlarda hâlâ eski hâli duruyor.
+                Yeni hâlin gitmesi için <strong>Ekranlara gönder</strong> demelisin.
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div id="ek-tuval-alan" class="ek-tuval-alan">
+            <div class="ek-tuval-kutu">
+                <div id="ek-tuval-sahne"></div>
+                <div id="ek-kilavuzlar"></div>
+                <div id="ek-kaplama"></div>
+            </div>
+            <div id="ek-yukleme-serit" class="ek-serit ek-serit-bilgi" hidden></div>
+            <div id="ek-uyari-serit" class="ek-serit ek-serit-uyari" hidden></div>
+            <div id="ek-birak-katmani" class="ek-birak-katmani" hidden>
+                <div class="ek-birak-kart">
+                    <strong>Bırak, tahtaya eklensin</strong>
+                    <span>Video, afiş, görsel ya da PDF sunum</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# —— Sağ: seçili öğenin ayarları + katmanlar —— #}
+    <aside class="ek-yan ek-yan-sag">
+        <div id="ek-ozellik-panel" class="ek-ozellik-sarmal"></div>
+        <div class="ek-katman-sarmal">
+            <h4 class="ek-yan-baslik">Tahtadakiler</h4>
+            <div id="ek-katman-liste"></div>
+        </div>
+    </aside>
+</div>
+
+{# —— Boş tahtada taslak seçici —— #}
+{% if bos_mu and yetki_duzenle %}
+<div id="ek-baslangic-katmani" class="ek-medya-katman">
+    <div class="ek-medya-pencere ek-baslangic-pencere" role="dialog" aria-modal="true" aria-label="Taslak seç">
+        <div class="ek-medya-basi">
+            <h2>Neyle başlayalım?</h2>
+            <button type="button" class="ek-arac-dugme" data-baslangic-kapat>Boş başla</button>
+        </div>
+        <div class="ek-medya-govde">
+            <div class="ek-baslangic-izgara">
+                {% for sablon in sablonlar %}
+                <form method="post" action="{% url 'ekran:sablon_uygula' sablon.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="sahne" value="{{ sahne.pk }}">
+                    <button type="submit" class="ek-baslangic-kart">
+                        <span class="ek-baslangic-sema ek-sema-{{ sablon.anahtar }}" aria-hidden="true"></span>
+                        <strong>{{ sablon.ad }}</strong>
+                        <small>{{ sablon.aciklama }}</small>
+                    </button>
+                </form>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{# —— Ekranlara gönder —— #}
+{% if yetki_yayin %}
+<div id="ek-gonder-katmani" class="ek-medya-katman" hidden>
+    <div class="ek-medya-pencere ek-gonder-pencere" role="dialog" aria-modal="true" aria-label="Ekranlara gönder">
+        <div class="ek-medya-basi">
+            <h2>Ekranlara gönder</h2>
+            <button type="button" class="ek-arac-dugme" data-gonder-kapat>Vazgeç</button>
+        </div>
+
+        <form method="post" action="{% url 'ekran:pano_gonder' proje.pk %}" id="ek-gonder-form">
+            {% csrf_token %}
+            <div class="ek-medya-govde">
+                {% if cihazlar %}
+                <label class="ek-gonder-secim">
+                    <input type="radio" name="hedef" value="tum" checked>
+                    <span><strong>Tüm ekranlar</strong><small>{{ cihazlar|length }} televizyon</small></span>
+                </label>
+
+                <label class="ek-gonder-secim">
+                    <input type="radio" name="hedef" value="secili">
+                    <span><strong>Seçtiğim ekranlar</strong><small>Aşağıdan işaretle</small></span>
+                </label>
+
+                <div class="ek-gonder-liste">
+                    {% for cihaz in cihazlar %}
+                    <label class="ek-gonder-cihaz">
+                        <input type="checkbox" name="cihaz" value="{{ cihaz.pk }}">
+                        <span>
+                            {{ cihaz.gorunen_ad }}
+                            <small>{{ cihaz.konum.ad|default:"konum atanmamış" }} ·
+                                {% if cihaz.cevrimici_mi %}çevrim içi{% else %}çevrim dışı{% endif %}</small>
+                        </span>
+                    </label>
+                    {% endfor %}
+                </div>
+
+                {% if konumlar %}
+                <details class="ek-gonder-kat">
+                    <summary>Kat seçerek gönder</summary>
+                    <div class="ek-gonder-liste">
+                        {% for konum in konumlar %}
+                        <label class="ek-gonder-cihaz">
+                            <input type="checkbox" name="konum" value="{{ konum.pk }}">
+                            <span>{{ konum.ad }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </details>
+                {% endif %}
+
+                {% else %}
+                <div class="ekp-bos">
+                    <h3>Henüz bağlı televizyon yok</h3>
+                    <p>
+                        Televizyonda <strong>ekran.cinilisarayproje.com</strong> adresini aç.
+                        Ekranda çıkan kodu <a href="{% url 'ekran:cihaz_listesi' %}">Ekranlar</a>
+                        sayfasına gir; sonra buradan gönderebilirsin.
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if cihazlar %}
+            <div class="ek-medya-alt">
+                <button type="submit" class="ek-arac-dugme ek-arac-dugme-ana">Gönder</button>
+                <span class="ekp-kucuk ekp-yumusak">Televizyonlar en geç bir dakika içinde güncellenir.</span>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+{% endif %}
+
+{% include "ekran/_medya_secici.html" %}
+
+{{ baslangic|json_script:"ek-baslangic" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'ekran/js/engine.js' %}?v={{ varlik_surumu }}"></script>
+<script src="{% static 'ekran/js/studyo.js' %}?v={{ varlik_surumu }}"></script>
+<script src="{% static 'ekran/js/pano.js' %}?v={{ varlik_surumu }}"></script>
+{% endblock %}
