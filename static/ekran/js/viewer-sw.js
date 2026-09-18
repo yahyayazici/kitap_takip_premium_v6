@@ -97,7 +97,35 @@ self.addEventListener('fetch', function (olay) {
         return;
     }
 
-    // Kabuk: önbellekten hemen ver, arkada tazele.
+    /* Sayfanın kendisi (gezinme isteği): ÖNCE AĞ, olmazsa önbellek.
+       Sebebi: HTML, yüklenecek CSS/JS sürümünü taşır. Önbellekten verilirse
+       yeni bir sürüm yayınlandığında televizyon eski dosyaları istemeye
+       devam eder ve ancak ikinci açılışta güncellenir. Ağ yoksa önbellek
+       devreye girer; çevrim dışı davranış korunur. */
+    var gezinme = istek.mode === 'navigate'
+        || (istek.destination === 'document')
+        || (istek.headers.get('accept') || '').indexOf('text/html') >= 0;
+
+    if (gezinme) {
+        olay.respondWith(
+            fetch(istek).then(function (ag) {
+                if (ag && ag.status === 200) {
+                    var kopya = ag.clone();
+                    caches.open(KABUK_ONBELLEK).then(function (onbellek) {
+                        onbellek.put(istek, kopya);
+                    });
+                }
+                return ag;
+            }).catch(function () {
+                return caches.match(istek).then(function (onbellekYaniti) {
+                    return onbellekYaniti || caches.match(TEMEL);
+                });
+            })
+        );
+        return;
+    }
+
+    // CSS/JS gibi sürümlü dosyalar: önbellekten hemen ver, arkada tazele.
     olay.respondWith(
         caches.match(istek).then(function (onbellekYaniti) {
             var agSozu = fetch(istek).then(function (ag) {

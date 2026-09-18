@@ -244,7 +244,17 @@ html.ek-kok, .ek-govde { height: 100%; }
 
 .ek-logo img, .ek-qr img { width: 100%; height: 100%; display: block; }
 
-/* —— Durum ekranları —— */
+/* —— Durum ekranları (eşleştirme kodu, bekleme) —— */
+/*
+   Ölçülerin TAMAMI ekran oranına (vw/vh) bağlı; hiçbir yerde sabit piksel
+   ya da clamp() minimumu yok. Sebebi: akıllı televizyon tarayıcıları
+   çoğu zaman kendini dar bir tuval gibi tanıtıp (ör. 520 px) sayfayı
+   ekrana büyütüyor. Sabit bir "en az 120 px" böyle bir tuvalde ekranın
+   dörtte birini kaplar. Oransal birimlerde ise görüntü her tuvalde aynı.
+
+   Ayrıca televizyonların bir kısmı görüntünün kenarlarını kırpar
+   (overscan); bu yüzden içerik kenarlara dayanmıyor.
+*/
 
 #ek-durum-katmani {
     position: absolute;
@@ -252,12 +262,18 @@ html.ek-kok, .ek-govde { height: 100%; }
     right: 0;
     bottom: 0;
     left: 0;
-    inset: 0;
+    display: -webkit-box;
+    display: -webkit-flex;
     display: flex;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
     align-items: center;
+    -webkit-box-pack: center;
+    -webkit-justify-content: center;
     justify-content: center;
+    background: #0f203c;
     background:
-        radial-gradient(circle 700px at 15% 15%, rgba(42, 108, 184, 0.22), transparent 70%),
+        radial-gradient(circle 60vw at 15% 15%, rgba(42, 108, 184, 0.22), transparent 70%),
         linear-gradient(140deg, #0b1a33 0%, #0f203c 60%, #15427f 100%);
 }
 
@@ -265,49 +281,56 @@ html.ek-kok, .ek-govde { height: 100%; }
 
 .ek-durum-kart {
     text-align: center;
-    max-width: 62vw;
-    padding: 0 4vw;
+    width: 86%;
+    max-width: 86%;
+    /* Overscan payı: kenarları kırpan televizyonlarda içerik kaybolmasın. */
+    padding: 4vh 4vw;
+    box-sizing: border-box;
 }
 
 .ek-durum-logo {
-    width: clamp(120px, 12vw, 220px);
-    margin-bottom: clamp(24px, 3vw, 48px);
+    width: 11vh;
+    height: auto;
+    margin: 0 auto 3vh;
+    display: block;
     opacity: 0.95;
 }
 
 .ek-durum-kart h1 {
-    margin: 0 0 clamp(12px, 1.4vw, 20px);
-    font-size: clamp(2rem, 3.4vw, 3.4rem);
+    margin: 0 0 1.4vh;
+    font-size: 5.2vh;
     font-weight: 600;
     letter-spacing: -0.02em;
+    line-height: 1.15;
 }
 
 .ek-durum-kart p {
     margin: 0;
-    font-size: clamp(1rem, 1.5vw, 1.6rem);
+    font-size: 2.6vh;
     font-weight: 300;
     color: #a9c2e8;
     color: var(--ek-metin-yumusak);
-    line-height: 1.5;
+    line-height: 1.45;
 }
 
 .ek-durum-kod {
-    margin: clamp(28px, 3.5vw, 56px) auto 0;
+    margin: 4vh auto 0;
     display: inline-block;
-    padding: clamp(16px, 1.8vw, 28px) clamp(32px, 4vw, 64px);
-    border: 2px solid rgba(255, 255, 255, 0.24);
-    border-radius: 18px;
+    padding: 2.4vh 4vw;
+    border: 0.3vh solid rgba(255, 255, 255, 0.24);
+    border-radius: 2vh;
     background: rgba(255, 255, 255, 0.06);
-    font-size: clamp(3rem, 7vw, 7rem);
+    font-size: 13vh;
     font-weight: 600;
-    letter-spacing: 0.22em;
-    text-indent: 0.22em;
+    letter-spacing: 0.18em;
+    text-indent: 0.18em;
+    line-height: 1.1;
     font-variant-numeric: tabular-nums;
 }
 
 .ek-durum-ipucu {
-    margin-top: clamp(20px, 2.4vw, 34px) !important;
-    font-size: clamp(0.85rem, 1.1vw, 1.15rem) !important;
+    margin-top: 3vh !important;
+    font-size: 2vh !important;
     opacity: 0.75;
 }
 
@@ -338,15 +361,19 @@ html.ek-kok, .ek-govde { height: 100%; }
     to { opacity: 1; }
 }
 
+/* Acil duyuru da oransal birimlerle: dar tuvalli televizyon
+   tarayıcılarında sabit punto ekranı taşırıyordu. */
 .ek-acil-kart {
     text-align: center;
-    max-width: 72vw;
-    padding: 0 4vw;
+    width: 86%;
+    max-width: 86%;
+    padding: 4vh 4vw;
+    box-sizing: border-box;
 }
 
 .ek-acil-kart h1 {
-    margin: 0 0 clamp(16px, 1.8vw, 28px);
-    font-size: clamp(2.6rem, 5.6vw, 6rem);
+    margin: 0 0 2.4vh;
+    font-size: 9vh;
     font-weight: 600;
     letter-spacing: -0.02em;
     line-height: 1.08;
@@ -354,16 +381,16 @@ html.ek-kok, .ek-govde { height: 100%; }
 
 .ek-acil-kart p {
     margin: 0;
-    font-size: clamp(1.2rem, 2.2vw, 2.4rem);
+    font-size: 3.4vh;
     font-weight: 300;
     line-height: 1.45;
 }
 
 .ek-acil-gorsel, .ek-acil-video {
     max-width: 62vw;
-    max-height: 46vh;
-    margin-bottom: clamp(20px, 2.4vw, 40px);
-    border-radius: 16px;
+    max-height: 40vh;
+    margin-bottom: 3vh;
+    border-radius: 1.6vh;
     object-fit: contain;
 }
 

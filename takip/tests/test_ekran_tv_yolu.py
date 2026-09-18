@@ -146,3 +146,78 @@ class EskiTarayiciUyumuTests(TestCase):
                 oncesi.startswith(ozellik + ":"),
                 f"{ozellik}: var(...) için düz değer yedeği yok",
             )
+
+
+class EkranOlcuUyumuTests(TestCase):
+    """Televizyon ekranındaki yazılar tuval genişliğinden bağımsız durmalı.
+
+    Akıllı TV tarayıcıları çoğu zaman kendini dar bir tuval gibi tanıtıp
+    (ör. 520 px) sayfayı ekrana büyütüyor. Sabit piksel ölçüleri böyle bir
+    tuvalde devleşiyor: eşleştirme kodu ekrana sığmıyor, logo ekranın
+    yarısını kaplıyordu.
+    """
+
+    def _viewer_css(self):
+        from pathlib import Path as P
+
+        from django.conf import settings
+
+        return (P(settings.BASE_DIR) / "static/ekran/css/viewer.css").read_text("utf-8")
+
+    def test_durum_ekraninda_sabit_olcu_yok(self):
+        import re
+
+        css = self._viewer_css()
+        bolum = css[css.index("/* —— Durum ekranları"):css.index("/* —— Acil duyuru")]
+
+        # font-size / width / padding gibi ölçüler oransal olmalı.
+        for eslesme in re.finditer(r"(font-size|width|height):\s*([^;]+);", bolum):
+            ozellik, deger = eslesme.group(1), eslesme.group(2).strip()
+            if deger in ("auto", "100%", "86%"):
+                continue
+            self.assertFalse(
+                re.search(r"\b\d+(\.\d+)?px\b", deger),
+                f"durum ekranında sabit piksel: {ozellik}: {deger}",
+            )
+            self.assertNotIn("clamp(", deger, f"durum ekranında clamp: {ozellik}: {deger}")
+
+    def test_acil_duyuruda_sabit_olcu_yok(self):
+        import re
+
+        css = self._viewer_css()
+        bolum = css[css.index(".ek-acil-kart {"):css.index("/* —— Bağlantı rozeti")]
+        for eslesme in re.finditer(r"font-size:\s*([^;]+);", bolum):
+            self.assertNotIn("clamp(", eslesme.group(1))
+            self.assertFalse(re.search(r"\b\d+(\.\d+)?px\b", eslesme.group(1)))
+
+
+class ServiceWorkerTazelikTests(TestCase):
+    """Yeni sürüm yayınlandığında televizyon eski sayfada kalmamalı."""
+
+    def test_sayfa_icin_once_ag_stratejisi(self):
+        from pathlib import Path as P
+
+        from django.conf import settings
+
+        sw = (P(settings.BASE_DIR) / "static/ekran/js/viewer-sw.js").read_text("utf-8")
+
+        # HTML, hangi CSS/JS sürümünün yükleneceğini taşır. Önbellekten
+        # verilirse televizyon yeni sürümü ancak ikinci açılışta alır.
+        self.assertIn("istek.mode === 'navigate'", sw)
+        gezinme = sw[sw.index("if (gezinme)"):]
+        self.assertLess(
+            gezinme.index("fetch(istek)"),
+            gezinme.index("caches.match(istek)"),
+            "gezinme isteğinde önce ağ denenmeli",
+        )
+
+    def test_cevrimdisi_yedegi_korunuyor(self):
+        """Ağ yoksa yine de önbellekten sayfa gelmeli."""
+        from pathlib import Path as P
+
+        from django.conf import settings
+
+        sw = (P(settings.BASE_DIR) / "static/ekran/js/viewer-sw.js").read_text("utf-8")
+        gezinme = sw[sw.index("if (gezinme)"):sw.index("// CSS/JS gibi")]
+        self.assertIn("catch", gezinme)
+        self.assertIn("caches.match(TEMEL)", gezinme)
