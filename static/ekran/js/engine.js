@@ -314,14 +314,42 @@
 
         var icerik = oge.icerik || {};
         var kaynak = oge.kaynak || {};
+        var sessiz = icerik.sessiz !== false;
+        var otomatik = icerik.otomatik_baslat !== false;
+
         var video = document.createElement('video');
+
+        /* ÖNEMLİ: bu değerler JavaScript özelliği olarak değil, HTML
+           ÖZNİTELİĞİ olarak ve KAYNAK ATANMADAN ÖNCE verilmeli.
+           Eski WebKit tabanlı televizyon tarayıcıları otomatik oynatma
+           iznini yükleme başlarken özniteliklere bakarak verir; sonradan
+           atanan özellik geç kalır. Bu eksikken video ilk karede donup
+           kalıyordu — ekranda "fotoğraf" gibi görünüyordu. */
+        if (sessiz) { video.setAttribute('muted', ''); }
+        video.setAttribute('playsinline', '');
+        video.setAttribute('webkit-playsinline', '');
+        if (icerik.dongu !== false) { video.setAttribute('loop', ''); }
+        if (otomatik) { video.setAttribute('autoplay', ''); }
+        video.setAttribute('preload', 'auto');
+
+        // Modern tarayıcılar için özellikleri de ayarla.
+        video.muted = sessiz;
+        video.defaultMuted = sessiz;
         video.playsInline = true;
-        video.muted = icerik.sessiz !== false;   // otomatik oynatma için şart
         video.loop = icerik.dongu !== false;
-        video.preload = 'auto';
+        video.autoplay = otomatik;
         video.controls = false;
+
         nesneUydur(video, icerik.sigdir);
-        if (kaynak.url) { video.src = kaynak.url; }
+        if (kaynak.url) {
+            // src'yi <source> ile vermek, tür bilgisini de taşır; bazı TV
+            // tarayıcıları tür olmadan oynatmayı hiç denemiyor.
+            var kaynakDugum = document.createElement('source');
+            kaynakDugum.setAttribute('src', kaynak.url);
+            kaynakDugum.setAttribute('type', kaynak.mime || 'video/mp4');
+            video.appendChild(kaynakDugum);
+            video.src = kaynak.url;
+        }
         kutu.appendChild(video);
 
         var bitisZamani = null;
@@ -345,19 +373,48 @@
                 baslangicaAl();
                 video.addEventListener('loadedmetadata', baslangicaAl);
                 video.addEventListener('timeupdate', zamanDinle);
-                if (icerik.otomatik_baslat !== false) {
-                    var sozu = video.play();
-                    if (sozu && sozu.catch) {
-                        sozu.catch(function () {
-                            /* Tarayıcı otomatik oynatmayı engelledi.
-                               Sesi kapatıp bir kez daha denenir; yine
-                               olmazsa sahne ilk karede kalır — ekranda
-                               teknik hata metni ASLA gösterilmez. */
-                            video.muted = true;
-                            video.play().catch(function () { });
-                        });
+
+                /* Video oynamazsa ekranda teknik hata GÖSTERİLMEZ (ilk kare
+                   durur), ama sorun yönetim paneline bildirilir. Aksi hâlde
+                   koridordaki ekran sessizce donuyor ve kimse sebebini
+                   öğrenemiyor. */
+                function sorunBildir(sebep) {
+                    if (ortam && ortam.videoSorunu) {
+                        ortam.videoSorunu(sebep, (kaynak.ad || oge.ad || 'video'));
                     }
                 }
+
+                video.addEventListener('error', function () {
+                    var kod = (video.error && video.error.code) || 0;
+                    sorunBildir(kod === 4
+                        ? 'Bu televizyon videonun biçimini açamıyor (kodek desteklenmiyor)'
+                        : 'Video yüklenemedi (hata kodu ' + kod + ')');
+                });
+
+                if (otomatik) {
+                    var sozu = video.play();
+                    if (sozu && sozu['catch']) {
+                        sozu['catch'](function () {
+                            // Sesi kapatıp bir kez daha dene.
+                            video.muted = true;
+                            var ikinci = video.play();
+                            if (ikinci && ikinci['catch']) {
+                                ikinci['catch'](function () {
+                                    sorunBildir('Televizyon otomatik oynatmaya izin vermedi');
+                                });
+                            }
+                        });
+                    }
+
+                    // play() sözü desteklenmeyen eski tarayıcılarda da
+                    // takılmayı yakalayabilmek için ilerlemeyi yokla.
+                    bitisZamani = setTimeout(function () {
+                        if (video.currentTime === 0 && !video.ended) {
+                            sorunBildir('Video 8 saniyede başlamadı');
+                        }
+                    }, 8000);
+                }
+
                 if (ortam && ortam.videoBitince) {
                     video.addEventListener('ended', ortam.videoBitince);
                 }

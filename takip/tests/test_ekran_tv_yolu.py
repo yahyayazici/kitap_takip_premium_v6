@@ -221,3 +221,60 @@ class ServiceWorkerTazelikTests(TestCase):
         gezinme = sw[sw.index("if (gezinme)"):sw.index("// CSS/JS gibi")]
         self.assertIn("catch", gezinme)
         self.assertIn("caches.match(TEMEL)", gezinme)
+
+
+class VideoOynatmaUyumuTests(TestCase):
+    """Video televizyonda ilk karede donup kalmamalı.
+
+    Eski WebKit tabanlı TV tarayıcıları otomatik oynatma iznini, yükleme
+    başlarken HTML ÖZNİTELİKLERİNE bakarak verir. Değerler sonradan
+    JavaScript özelliği olarak atanırsa geç kalır ve video başlamaz —
+    ekranda donmuş bir kare, yani "fotoğraf" görünür.
+    """
+
+    def _engine(self):
+        from pathlib import Path as P
+
+        from django.conf import settings
+
+        return (P(settings.BASE_DIR) / "static/ekran/js/engine.js").read_text("utf-8")
+
+    def test_video_oznitelikleri_kaynaktan_once_veriliyor(self):
+        kaynak = self._engine()
+        bolum = kaynak[kaynak.index("ciziciler.video = function"):]
+        bolum = bolum[:bolum.index("return {")]
+
+        for oznitelik in ("'muted'", "'playsinline'", "'autoplay'"):
+            self.assertIn(
+                f"setAttribute({oznitelik}",
+                bolum,
+                f"{oznitelik} HTML özniteliği olarak verilmeli",
+            )
+
+        # Öznitelikler kaynak atanmadan ÖNCE gelmeli.
+        self.assertLess(
+            bolum.index("setAttribute('muted'"),
+            bolum.index("video.src = kaynak.url"),
+            "muted, src'den önce verilmeli",
+        )
+
+    def test_video_turu_source_ile_bildiriliyor(self):
+        """Bazı TV tarayıcıları tür bilgisi olmadan oynatmayı denemiyor."""
+        bolum = self._engine()
+        self.assertIn("createElement('source')", bolum)
+        self.assertIn("setAttribute('type'", bolum)
+
+    def test_oynatilamayan_video_panele_bildiriliyor(self):
+        """Ekranda teknik hata gösterilmez ama yönetim panelinde görünür."""
+        kaynak = self._engine()
+        self.assertIn("videoSorunu", kaynak)
+        self.assertIn("kodek desteklenmiyor", kaynak)
+        self.assertIn("otomatik oynatmaya izin vermedi", kaynak)
+
+        from pathlib import Path as P
+
+        from django.conf import settings
+
+        viewer = (P(settings.BASE_DIR) / "static/ekran/js/viewer.js").read_text("utf-8")
+        self.assertIn("videoSorunu:", viewer)
+        self.assertIn("hataBildir", viewer)

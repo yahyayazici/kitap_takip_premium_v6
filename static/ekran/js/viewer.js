@@ -263,10 +263,19 @@
         var sahne = paket.sahneler[indeks];
         var oncekiSahne = durum.aktifSahne;
 
+        var bildirilenSorunlar = {};
         var ortam = {
             saatFarki: durum.saatFarki,
             videoBitince: function () {
                 if (sahne.sure_tipi === 'video_bitene') { sonrakiSahne(); }
+            },
+            /* Video oynamazsa yönetim paneline bildir. Aynı sorun döngüde
+               tekrar tekrar gönderilmesin diye bir kez bildirilir. */
+            videoSorunu: function (sebep, dosyaAdi) {
+                var anahtar = sebep + '|' + dosyaAdi;
+                if (bildirilenSorunlar[anahtar]) { return; }
+                bildirilenSorunlar[anahtar] = true;
+                hataBildir('“' + dosyaAdi + '” oynatılamadı: ' + sebep);
             }
         };
 
