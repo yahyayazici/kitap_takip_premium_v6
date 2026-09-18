@@ -23,7 +23,7 @@ from takip.ekran_service import YOKLAMA_ARALIGI_SN
 #   * service worker aynı adresleri ön belleğe alır (ikisi eşleşmezse
 #     ön yükleme boşa giderdi),
 #   * televizyonlardaki eski önbellek temizlenir.
-VARLIK_SURUMU = "e8"
+VARLIK_SURUMU = "e9"
 
 # Service worker önbellek adı; sürümle birlikte değişir.
 ONBELLEK_SURUMU = f"ekran-{VARLIK_SURUMU}"
@@ -59,6 +59,18 @@ def viewer(request):
             "temel_yol": temel_yol(request),
         },
     )
+
+
+@never_cache
+@xframe_options_exempt
+def tani(request):
+    """Televizyon tarayıcısının neyi desteklediğini gösteren teşhis sayfası.
+
+    Akıllı televizyon tarayıcıları çok eski olabiliyor ve konsollarına
+    erişilemiyor. Bu sayfa hiçbir modern özelliğe dayanmaz; ekranda
+    okunup fotoğraflanabilir.
+    """
+    return render(request, "ekran/tani.html")
 
 
 @never_cache

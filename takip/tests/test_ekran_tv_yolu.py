@@ -80,3 +80,69 @@ class AltAlanAdiYoluTests(TestCase):
         yanit = self.client.get("/sw.js")
         self.assertEqual(yanit["Service-Worker-Allowed"], "/")
         self.assertIn("self.EKRAN_TEMEL = '/';", yanit.content.decode())
+
+
+class EskiTarayiciUyumuTests(TestCase):
+    """Akıllı televizyon tarayıcıları çok eski olabiliyor.
+
+    Konsollarına erişilemediği için bir çökme ekranda sessiz mavi bir
+    hiçlik olarak görünür. Bu testler, sayfanın eski tarayıcıda da
+    ayakta kalmasını sağlayan mekanizmaları korur.
+    """
+
+    def test_tani_sayfasi_acilir(self):
+        yanit = self.client.get("/tv/tani/")
+        self.assertEqual(yanit.status_code, 200)
+        govde = yanit.content.decode()
+
+        # Teşhis sayfasının KENDİ stilleri modern CSS'e dayanmamalı; sayfa
+        # en eski tarayıcıda da okunabilmeli. (Metin içinde geçen "var(--x)"
+        # bir destek sınaması, stil değil — bu yüzden yalnız <style> bloğuna
+        # bakılıyor.)
+        import re
+
+        stil = govde[govde.index("<style>"):govde.index("</style>")]
+        stil = re.sub(r"/\*.*?\*/", "", stil, flags=re.S)  # yorumlar sayılmaz
+        for modern in ("var(--", "inset:", "aspect-ratio", "place-items", "gap:"):
+            self.assertNotIn(modern, stil, f"teşhis sayfasında modern CSS: {modern}")
+        for beklenen in ("fetch()", "localStorage", "MP4 oynatma", "JavaScript ÇALIŞMIYOR"):
+            self.assertIn(beklenen, govde)
+
+    def test_televizyon_sayfasi_hata_kancasi_tasir(self):
+        """JavaScript çökerse ekranda okunur bir mesaj çıkmalı."""
+        govde = self.client.get("/tv/").content.decode()
+        self.assertIn("window.onerror", govde)
+        self.assertIn("Ekran başlatılamadı", govde)
+        self.assertIn("tani/", govde)
+
+    def test_viewer_js_fetch_yoksa_yedek_kullanir(self):
+        from pathlib import Path
+
+        from django.conf import settings
+
+        kaynak = (Path(settings.BASE_DIR) / "static/ekran/js/viewer.js").read_text("utf-8")
+        self.assertIn("XMLHttpRequest", kaynak, "fetch yedeği yok")
+        self.assertIn("typeof window.fetch === 'function'", kaynak)
+        self.assertIn("BasitSoz", kaynak, "Promise yedeği yok")
+
+        # Eski tarayıcıların anlamadığı sözdizimi sızmamalı.
+        for yasak in ("=>", "`", "const ", "let "):
+            self.assertNotIn(yasak, kaynak, f"eski tarayıcıda çalışmaz: {yasak!r}")
+
+    def test_viewer_css_ozel_degisken_icin_yedek_renk_tasir(self):
+        """var() desteklemeyen tarayıcıda renkler kaybolmamalı."""
+        import re
+        from pathlib import Path
+
+        from django.conf import settings
+
+        kaynak = (Path(settings.BASE_DIR) / "static/ekran/css/viewer.css").read_text("utf-8")
+        govde = kaynak[kaynak.index("}", kaynak.index(":root")):]  # :root bloğunu atla
+
+        for eslesme in re.finditer(r"^(\s*)([a-z-]+): var\((--[a-z-]+)\);$", govde, re.M):
+            bosluk, ozellik = eslesme.group(1), eslesme.group(2)
+            oncesi = govde[:eslesme.start()].rstrip().split("\n")[-1].strip()
+            self.assertTrue(
+                oncesi.startswith(ozellik + ":"),
+                f"{ozellik}: var(...) için düz değer yedeği yok",
+            )

@@ -8,6 +8,7 @@ urlpatterns = [
     path("", ekran_viewer_views.viewer, name="ekran_viewer"),
     path("sw.js", ekran_viewer_views.service_worker, name="ekran_service_worker"),
     path("offline/", ekran_viewer_views.offline, name="ekran_offline"),
+    path("tani/", ekran_viewer_views.tani, name="ekran_tani"),
     path("ekran-qr/", ekran_viewer_views.qr_kodu, name="ekran_qr"),
     path("api/cihaz/kayit/", ekran_api_views.cihaz_kayit, name="ekran_api_kayit"),
     path("api/cihaz/kod/", ekran_api_views.eslestirme_kodu_yenile, name="ekran_api_kod"),

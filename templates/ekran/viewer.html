@@ -24,6 +24,27 @@
 </div>
 
 <script>
+/* Televizyon ekranı asla sessizce boş kalmamalı. JavaScript çökerse
+   kullanıcı mavi bir hiçlik görür ve neyin yanlış olduğunu anlayamaz;
+   aşağıdaki kanca hatayı ekrana okunur biçimde yazar.
+   Bilerek en eski sözdizimi kullanılmıştır. */
+window.onerror = function (mesaj, kaynak, satir) {
+    try {
+        var k = document.getElementById('ek-durum-katmani');
+        if (!k) { return false; }
+        k.removeAttribute('hidden');
+        k.innerHTML =
+            '<div class="ek-durum-kart">' +
+            '<h1>Ekran başlatılamadı</h1>' +
+            '<p>Bu televizyonun tarayıcısı sayfayı çalıştıramadı.</p>' +
+            '<p style="font-size:0.7em;opacity:0.7;margin-top:18px">' +
+            String(mesaj) + '<br>(' + String(kaynak).split('/').pop() + ':' + satir + ')</p>' +
+            '<p style="font-size:0.7em;opacity:0.7">Tanı sayfası: ' +
+            location.host + '{{ temel_yol }}tani/</p></div>';
+    } catch (e) { /* hata gösterirken de hata olmasın */ }
+    return false;
+};
+
     window.EKRAN_TEMEL = "{{ temel_yol }}";
     window.EKRAN_LOGO_URL = "{% static 'images/cinili-saray-logo-white.png' %}";
     window.EKRAN_QR_URL = "{% url 'ekran_qr' %}";

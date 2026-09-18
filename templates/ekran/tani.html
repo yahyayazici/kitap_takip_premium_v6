@@ -1,0 +1,76 @@
+{% load static %}<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ekran Tanı</title>
+<style>
+/* Kasıtlı olarak ESKİ CSS: özel değişken, flex gap, inset, aspect-ratio YOK.
+   Bu sayfa en eski televizyon tarayıcısında bile okunabilmeli. */
+body { margin:0; padding:20px; background:#0f203c; color:#ffffff;
+       font-family:Arial, Helvetica, sans-serif; font-size:22px; line-height:1.5; }
+h1 { font-size:34px; margin:0 0 6px; }
+p.alt { margin:0 0 20px; color:#a9c2e8; font-size:18px; }
+table { border-collapse:collapse; width:100%; font-size:20px; }
+td { padding:8px 10px; border-bottom:1px solid #2a3f63; }
+td.ad { color:#a9c2e8; width:55%; }
+.ok { color:#5ee0a8; font-weight:bold; }
+.yok { color:#ff8a80; font-weight:bold; }
+#ua { margin-top:20px; font-size:15px; color:#7f95bb; word-wrap:break-word; }
+#jsyok { background:#b3261e; padding:14px; border-radius:8px; font-size:24px; }
+</style>
+</head>
+<body>
+
+<h1>Ekran Tanı</h1>
+<p class="alt">Bu sayfa televizyonun tarayıcısının neleri desteklediğini gösterir.</p>
+
+<div id="jsyok">JavaScript ÇALIŞMIYOR — sorun bu.</div>
+
+<table id="sonuc"></table>
+<div id="ua"></div>
+
+<script>
+/* Bilerek en eski sözdizimi: var, function, string birleştirme. */
+(function () {
+    var kutu = document.getElementById('jsyok');
+    if (kutu && kutu.parentNode) { kutu.parentNode.removeChild(kutu); }
+
+    var testler = [
+        ['JavaScript çalışıyor', true],
+        ['fetch()  — sunucuyla konuşma', typeof window.fetch === 'function'],
+        ['Promise', typeof window.Promise === 'function'],
+        ['XMLHttpRequest (yedek yol)', typeof window.XMLHttpRequest === 'function'],
+        ['localStorage — son yayını saklama', (function(){ try { window.localStorage.setItem('t','1'); window.localStorage.removeItem('t'); return true; } catch(e){ return false; } })()],
+        ['CSS özel değişken  var(--x)', (function(){ try { return window.CSS && CSS.supports && CSS.supports('color','var(--x)'); } catch(e){ return false; } })()],
+        ['CSS object-fit — görsel oturtma', (function(){ try { return CSS.supports('object-fit','contain'); } catch(e){ return false; } })()],
+        ['CSS transform — ölçekleme', (function(){ var d=document.createElement('div'); return 'transform' in d.style || 'webkitTransform' in d.style; })()],
+        ['requestAnimationFrame', typeof window.requestAnimationFrame === 'function'],
+        ['Service Worker — çevrim dışı', 'serviceWorker' in navigator],
+        ['video elementi', !!document.createElement('video').canPlayType],
+        ['MP4 oynatma', (function(){ var v=document.createElement('video'); return !!(v.canPlayType && v.canPlayType('video/mp4')); })()],
+        ['classList', 'classList' in document.createElement('div')],
+        ['Element.remove()', typeof document.createElement('div').remove === 'function'],
+        ['Element.closest()', typeof document.createElement('div').closest === 'function'],
+        ['NodeList.forEach', typeof document.querySelectorAll('body').forEach === 'function'],
+        ['Array.isArray', typeof Array.isArray === 'function'],
+        ['JSON', typeof window.JSON === 'object']
+    ];
+
+    var tablo = document.getElementById('sonuc');
+    var satirlar = '';
+    for (var i = 0; i < testler.length; i++) {
+        var ad = testler[i][0];
+        var var_mi = !!testler[i][1];
+        satirlar += '<tr><td class="ad">' + ad + '</td><td class="' +
+            (var_mi ? 'ok">VAR' : 'yok">YOK') + '</td></tr>';
+    }
+    tablo.innerHTML = satirlar;
+
+    document.getElementById('ua').innerHTML =
+        'Ekran: ' + (window.screen ? screen.width + '&times;' + screen.height : '?') +
+        '<br>Tarayıcı: ' + navigator.userAgent;
+}());
+</script>
+</body>
+</html>

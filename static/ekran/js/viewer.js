@@ -72,6 +72,84 @@
         try { return JSON.parse(ham); } catch (e) { return null; }
     }
 
+    // ——— Eski televizyon tarayıcıları için yedekler ————————————
+    // Akıllı TV tarayıcılarının bir kısmı 2015 öncesi WebKit/Opera
+    // sürümleri; fetch() ve Promise bulunmayabiliyor. Bunlar yoksa sayfa
+    // sessizce boş kalırdı. Aşağıdaki iki yedek, XMLHttpRequest üzerinden
+    // aynı işi görür.
+
+    function BasitSoz(calistir) {
+        var durum = 'bekliyor', deger, basarili = [], basarisiz = [];
+        function coz(d) {
+            if (durum !== 'bekliyor') { return; }
+            durum = 'oldu'; deger = d;
+            for (var i = 0; i < basarili.length; i++) { basarili[i](deger); }
+        }
+        function reddet(h) {
+            if (durum !== 'bekliyor') { return; }
+            durum = 'olmadi'; deger = h;
+            for (var i = 0; i < basarisiz.length; i++) { basarisiz[i](deger); }
+        }
+        this.then = function (tamam, hata) {
+            var sonraki = new BasitSoz(function () {});
+            function sar(islev, iletici) {
+                return function (d) {
+                    if (typeof islev !== 'function') { iletici(d); return; }
+                    var sonuc;
+                    try { sonuc = islev(d); } catch (e) { sonraki.__reddet(e); return; }
+                    if (sonuc && typeof sonuc.then === 'function') {
+                        sonuc.then(sonraki.__coz, sonraki.__reddet);
+                    } else {
+                        sonraki.__coz(sonuc);
+                    }
+                };
+            }
+            var t = sar(tamam, function (d) { sonraki.__coz(d); });
+            var h = sar(hata, function (d) { sonraki.__reddet(d); });
+            if (durum === 'oldu') { setTimeout(function () { t(deger); }, 0); }
+            else if (durum === 'olmadi') { setTimeout(function () { h(deger); }, 0); }
+            else { basarili.push(t); basarisiz.push(h); }
+            return sonraki;
+        };
+        this['catch'] = function (hata) { return this.then(null, hata); };
+        this.__coz = coz;
+        this.__reddet = reddet;
+        calistir(coz, reddet);
+    }
+
+    var Soz = (typeof window.Promise === 'function') ? window.Promise : BasitSoz;
+
+    /** fetch() yoksa XMLHttpRequest ile aynı sözleşmeyi taklit eder. */
+    function agIstegi(yol, secenekler) {
+        if (typeof window.fetch === 'function') {
+            return window.fetch(yol, secenekler);
+        }
+        return new Soz(function (coz, reddet) {
+            var xhr = new XMLHttpRequest();
+            xhr.open(secenekler.method || 'GET', yol, true);
+            var basliklar = secenekler.headers || {};
+            for (var ad in basliklar) {
+                if (Object.prototype.hasOwnProperty.call(basliklar, ad)) {
+                    try { xhr.setRequestHeader(ad, basliklar[ad]); } catch (e) { /* yoksay */ }
+                }
+            }
+            xhr.onload = function () {
+                coz({
+                    status: xhr.status,
+                    json: function () {
+                        var govde = xhr.responseText;
+                        return new Soz(function (c, r) {
+                            try { c(JSON.parse(govde)); } catch (e) { r(e); }
+                        });
+                    }
+                });
+            };
+            xhr.onerror = function () { reddet(new Error('ag hatasi')); };
+            xhr.ontimeout = function () { reddet(new Error('zaman asimi')); };
+            try { xhr.send(secenekler.body || null); } catch (e) { reddet(e); }
+        });
+    }
+
     // ——— Ağ ——————————————————————————————————————————————————
 
     function istek(yol, secenekler) {
@@ -80,7 +158,7 @@
         if (durum.anahtar) { basliklar['X-Ekran-Anahtar'] = durum.anahtar; }
         if (secenekler.body) { basliklar['Content-Type'] = 'application/json'; }
 
-        return fetch(yol, {
+        return agIstegi(yol, {
             method: secenekler.method || 'GET',
             headers: basliklar,
             body: secenekler.body ? JSON.stringify(secenekler.body) : undefined,
