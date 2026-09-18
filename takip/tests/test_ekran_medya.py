@@ -189,3 +189,25 @@ class EkranMedyaTests(TestCase):
         self.assertEqual(medya.sayfalar.count(), 2)
         for sayfa in medya.sayfalar.all():
             self.assertTrue(Path(sayfa.gorsel.path).exists())
+
+
+class VideoBoyutSiniriTests(TestCase):
+    """Video boyut sınırı sunucu kapasitesiyle uyumlu kalmalı.
+
+    Sunucu yalnızca 4 eşzamanlı isteğe bakabiliyor (gunicorn 2 worker × 2
+    thread — bkz. start.sh). Django, dosyayı view çalışmadan önce tamamen
+    okur; çok büyük bir video yavaş bir bağlantıdan yüklenirken worker'ı
+    dakikalarca işgal eder ve site aynı anda gelen diğer isteklere cevap
+    veremez hâle gelir (2026-09-18'de yaşandı). Bu test, sınırın ileride
+    fark edilmeden tekrar yükseltilmesini engeller.
+    """
+
+    def test_video_siniri_makul_kaliyor(self):
+        from takip.ekran_media_service import MAKS_VIDEO_BAYT
+
+        self.assertLessEqual(
+            MAKS_VIDEO_BAYT,
+            150 * 1024 * 1024,
+            "video sınırı yükseltildi — sunucu kapasitesini (gunicorn "
+            "2 worker × 2 thread) tekrar kontrol etmeden büyütme",
+        )

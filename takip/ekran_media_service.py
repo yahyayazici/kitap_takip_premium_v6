@@ -27,7 +27,15 @@ logger = logging.getLogger(__name__)
 # —— Sınırlar ——
 MAKS_GORSEL_BAYT = 20 * 1024 * 1024        # 20 MB
 MAKS_PDF_BAYT = 80 * 1024 * 1024           # 80 MB
-MAKS_VIDEO_BAYT = 400 * 1024 * 1024        # 400 MB
+# 400 MB'a kadar teknik olarak kabul edilebilirdi, ama sunucu yalnızca
+# 4 eşzamanlı isteğe bakabiliyor (gunicorn 2 worker × 2 thread — bkz.
+# start.sh). Django, dosyayı view çalışmadan ÖNCE tamamen okur; büyük bir
+# video yavaş bir bağlantıdan yüklenirken o worker'ı DAKİKALARCA işgal
+# eder ve aynı anda gelen diğer tüm istekler (site açma, panel, API)
+# zaman aşımına uğrar — 2026-09-18'de tam bu yaşandı. 150 MB, ortalama
+# bir tanıtım videosunu (1-2 dakika, 1080p, sıkıştırılmış) hâlâ
+# karşılarken bu riski sınırlıyor.
+MAKS_VIDEO_BAYT = 150 * 1024 * 1024        # 150 MB
 MAKS_PDF_SAYFA = 120
 
 # PDF sayfaları bu genişlikte PNG'ye çevrilir. 1600 px, 1920 tuvalde tam
@@ -120,7 +128,7 @@ def dosya_turunu_belirle(dosya: UploadedFile) -> tuple[str, str, str]:
         sinir, sinir_adi = MAKS_PDF_BAYT, "80 MB"
     elif uzanti in VIDEO_UZANTILAR:
         medya_turu = EkranMedya.Tur.VIDEO
-        sinir, sinir_adi = MAKS_VIDEO_BAYT, "400 MB"
+        sinir, sinir_adi = MAKS_VIDEO_BAYT, "150 MB"
     else:
         raise MedyaHatasi(
             f"“.{uzanti}” dosyaları desteklenmiyor. "
