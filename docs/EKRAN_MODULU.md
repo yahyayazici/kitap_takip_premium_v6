@@ -12,8 +12,9 @@ alt alan adının kökündedir.
 |-------|-------|--------|
 | Pano (ana site) | `cinilisarayproje.com/ekran/` | Kurum hesabı |
 | Pano (alt alan adı) | `ekran.cinilisarayproje.com/yonetim/` | Kurum hesabı (ayrı giriş) |
-| Televizyon görüntüleyici | `ekran.cinilisarayproje.com/` | Cihaz anahtarı (giriş yok) |
-| Cihaz API'si | `ekran.cinilisarayproje.com/api/cihaz/…` | `X-Ekran-Anahtar` başlığı |
+| Televizyon görüntüleyici | `cinilisarayproje.com/tv/` | Cihaz anahtarı (giriş yok) |
+| Televizyon (alt alan adı, isteğe bağlı) | `ekran.cinilisarayproje.com/` | Cihaz anahtarı (giriş yok) |
+| Cihaz API'si | görüntüleyicinin kökü + `api/cihaz/…` | `X-Ekran-Anahtar` başlığı |
 
 > Oturum çerezi host'a özgüdür. Alt alan adında panele girmek isteyen kullanıcı
 > orada bir kez daha giriş yapar. `SESSION_COOKIE_DOMAIN` **değiştirilmedi**;
@@ -23,30 +24,32 @@ alt alan adının kökündedir.
 
 ## 2. Canlıya alma adımları
 
-### 2.1 DNS ve Render
+### 2.1 Alan adı — alt alan adı isteğe bağlıdır
 
-`render.yaml` (Blueprint) şunları kendisi tanımlar:
+Televizyon sayfası **iki adreste birden** çalışır:
 
-* `ekran.cinilisarayproje.com` özel alan adı,
-* `EKRAN_HOST` ve `EKRAN_MEDIA_ROOT` ortam değişkenleri,
-* `/var/ekran-medya` yoluna bağlanan 10 GB kalıcı disk.
+| Adres | Gereken kurulum |
+|-------|-----------------|
+| `cinilisarayproje.com/tv/` | **Hiçbir şey.** Ana site ile aynı alan adı. |
+| `ekran.cinilisarayproje.com/` | DNS kaydı + Render'da özel alan adı |
 
-Blueprint senkronu çalıştığında Render bunları uygular; disk oluşturma
-onayı panelden istenebilir.
+Sayfa kökünü kendisi bulur (`window.EKRAN_TEMEL`); cihaz API adresleri ve
+service worker kapsamı buna göre kurulur. Bu yüzden alt alan adıyla
+uğraşmak istemeyen kurum doğrudan `/tv/` adresini kullanabilir.
 
-**Elle yapılması gereken tek adım DNS'tir** — alan adı kaydı Render'ın
-dışındadır. Namecheap → `cinilisarayproje.com` → **Advanced DNS**:
+**Alt alan adı isteniyorsa** iki adım gerekir:
 
-| Tür | Host | Değer | TTL |
-|-----|------|-------|-----|
-| CNAME | `ekran` | `kitap-takip-premium-v6.onrender.com` | Automatic |
+1. Namecheap → `cinilisarayproje.com` → **Advanced DNS** → yeni kayıt:
 
-Kayıt girildikten sonra Render → **Settings → Custom Domains** ekranında
-`ekran.cinilisarayproje.com` satırı **Verified** olmalı; sertifika otomatik
-gelir. Yayılma 5–30 dakika sürebilir.
+   | Tür | Host | Değer | TTL |
+   |-----|------|-------|-----|
+   | CNAME | `ekran` | `kitap-takip-premium-v6.onrender.com` | Automatic |
 
-Blueprint kullanılmıyorsa aynı üç şey panelden elle yapılır: Custom Domains'e
-alan adı, Environment'a iki değişken, Disks'e `ekran-medya` diski.
+2. Render → servis → **Settings → Custom Domains → Add Custom Domain** →
+   `ekran.cinilisarayproje.com`. Sertifika otomatik gelir.
+
+`EKRAN_HOST` ortam değişkeni yalnız alt alan adı kullanılıyorsa gerekir;
+`/tv/` için gerekmez.
 
 ### 2.2 Deploy
 
@@ -97,7 +100,8 @@ hiç başlamayabilir.
 
 ## 3. Yeni televizyon bağlama
 
-1. Televizyonun tarayıcısında `ekran.cinilisarayproje.com` açılır, tam ekran yapılır.
+1. Televizyonun tarayıcısında `cinilisarayproje.com/tv/` açılır, tam ekran yapılır.
+   (Alt alan adı kurulduysa `ekran.cinilisarayproje.com` de olur.)
 2. Ekranda altı haneli bir kod belirir (15 dakika geçerli, tek kullanımlık).
 3. Yönetim panelinde **Ekranlar → Ekran eşleştir**: kod, ekran adı ve kat girilir.
 4. Ekran birkaç saniye içinde yayına geçer.

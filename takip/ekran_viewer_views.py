@@ -23,10 +23,26 @@ from takip.ekran_service import YOKLAMA_ARALIGI_SN
 #   * service worker aynı adresleri ön belleğe alır (ikisi eşleşmezse
 #     ön yükleme boşa giderdi),
 #   * televizyonlardaki eski önbellek temizlenir.
-VARLIK_SURUMU = "e7"
+VARLIK_SURUMU = "e8"
 
 # Service worker önbellek adı; sürümle birlikte değişir.
 ONBELLEK_SURUMU = f"ekran-{VARLIK_SURUMU}"
+
+
+def temel_yol(request) -> str:
+    """Görüntüleyicinin kökü — sonunda eğik çizgiyle.
+
+    Sayfa iki yerde birden yayınlanır:
+      * ``ekran.<domain>/``      → ``/``
+      * ``<domain>/tv/``         → ``/tv/``
+
+    Cihaz API adresleri ve service worker kapsamı bu köke göre kurulur.
+    ``reverse`` isteğin aktif urlconf'una baktığı için doğru olanı üretir.
+    """
+    from django.urls import reverse
+
+    kok = reverse("ekran_viewer")
+    return kok if kok.endswith("/") else kok + "/"
 
 
 @never_cache
@@ -40,6 +56,7 @@ def viewer(request):
             "yoklama_sn": YOKLAMA_ARALIGI_SN,
             "onbellek_surumu": ONBELLEK_SURUMU,
             "varlik_surumu": VARLIK_SURUMU,
+            "temel_yol": temel_yol(request),
         },
     )
 
@@ -47,7 +64,11 @@ def viewer(request):
 @never_cache
 def offline(request):
     """Ağ yokken ve önbellekte yayın yokken gösterilen kurumsal bekleme ekranı."""
-    return render(request, "ekran/offline.html", {"varlik_surumu": VARLIK_SURUMU})
+    return render(
+        request,
+        "ekran/offline.html",
+        {"varlik_surumu": VARLIK_SURUMU, "temel_yol": temel_yol(request)},
+    )
 
 
 @never_cache
@@ -62,10 +83,12 @@ def service_worker(request):
         # anahtarı sorgu dizesini de içerir.
         return f"{static_url(yol)}?v={VARLIK_SURUMU}"
 
+    kok = temel_yol(request)
     icerik = (
         f"self.EKRAN_SURUM = '{ONBELLEK_SURUMU}';\n"
+        f"self.EKRAN_TEMEL = '{kok}';\n"
         f"self.EKRAN_KABUK = [\n"
-        f"  '/',\n"
+        f"  '{kok}',\n"
         f"  '{damgali('ekran/css/viewer.css')}',\n"
         f"  '{damgali('ekran/js/engine.js')}',\n"
         f"  '{damgali('ekran/js/viewer.js')}',\n"
@@ -74,7 +97,7 @@ def service_worker(request):
         f"importScripts('{static_url('ekran/js/viewer-sw.js')}');\n"
     )
     yanit = HttpResponse(icerik, content_type="application/javascript; charset=utf-8")
-    yanit["Service-Worker-Allowed"] = "/"
+    yanit["Service-Worker-Allowed"] = kok
     yanit["Cache-Control"] = "no-cache, no-store, must-revalidate"
     return yanit
 

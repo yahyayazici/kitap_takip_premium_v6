@@ -17,9 +17,11 @@
 'use strict';
 
 var SURUM = self.EKRAN_SURUM || 'ekran-v1';
+// Görüntüleyicinin kökü: alt alan adında "/", ana sitede "/tv/".
+var TEMEL = self.EKRAN_TEMEL || '/';
 var KABUK_ONBELLEK = SURUM + '-kabuk';
 var MEDYA_ONBELLEK = SURUM + '-medya';
-var KABUK = self.EKRAN_KABUK || ['/'];
+var KABUK = self.EKRAN_KABUK || [TEMEL];
 
 // Televizyonda sınırsız disk yok; en eski medya kayıtları atılır.
 var MEDYA_SINIRI = 220;
@@ -45,12 +47,15 @@ self.addEventListener('activate', function (olay) {
 });
 
 function medyaMi(istek) {
-    var url = new URL(istek.url);
-    return url.pathname.indexOf('/media/') === 0 || url.pathname.indexOf('/static/ekran/') === 0;
+    // Ekran medyası kendi kalıcı diskinde, /ekran-medya/ altında durur.
+    var yol = new URL(istek.url).pathname;
+    return yol.indexOf('/ekran-medya/') === 0
+        || yol.indexOf('/media/') === 0
+        || yol.indexOf('/static/ekran/') === 0;
 }
 
 function apiMi(istek) {
-    return new URL(istek.url).pathname.indexOf('/api/') === 0;
+    return new URL(istek.url).pathname.indexOf(TEMEL + 'api/') === 0;
 }
 
 function onbellegiBudama(adi, sinir) {
@@ -104,7 +109,7 @@ self.addEventListener('fetch', function (olay) {
                 }
                 return ag;
             }).catch(function () {
-                return onbellekYaniti || caches.match('/');
+                return onbellekYaniti || caches.match(TEMEL);
             });
             return onbellekYaniti || agSozu;
         })

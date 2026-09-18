@@ -17,6 +17,16 @@
     'use strict';
 
     var SURUM = '1.0.0';
+
+    /* Görüntüleyici iki yerde birden yayınlanıyor:
+         ekran.<domain>/        → TEMEL = "/"
+         <domain>/tv/           → TEMEL = "/tv/"
+       Adresler bu köke göre kurulur; sabit "/api/..." yazılırsa ikinci
+       durumda ana sitenin köküne istek gider ve cihaz hiç bağlanamaz. */
+    var TEMEL = (window.EKRAN_TEMEL || '/');
+    if (TEMEL.charAt(TEMEL.length - 1) !== '/') { TEMEL += '/'; }
+
+    function yol(parca) { return TEMEL + parca; }
     var ANAHTAR_DEPO = 'ekran.cihaz.anahtari';
     var YAYIN_DEPO = 'ekran.son.yayin';
     var VARSAYILAN_YOKLAMA = 10;
@@ -308,7 +318,7 @@
     // ——— Yayın alma ————————————————————————————————————————————
 
     function yayiniCek() {
-        return istek('/api/cihaz/yayin/').then(function (sonuc) {
+        return istek(yol('api/cihaz/yayin/')).then(function (sonuc) {
             if (sonuc.durum !== 200 || !sonuc.veri) { return false; }
             var paket = sonuc.veri;
 
@@ -325,7 +335,7 @@
                 sahneOynat(0);
             }
 
-            istek('/api/cihaz/rapor/', {
+            istek(yol('api/cihaz/rapor/'), {
                 method: 'POST',
                 body: {
                     damga: paket.damga,
@@ -339,7 +349,7 @@
     }
 
     function hataBildir(mesaj) {
-        istek('/api/cihaz/rapor/', {
+        istek(yol('api/cihaz/rapor/'), {
             method: 'POST',
             body: { damga: durum.damga || '', sonuc: 'hata', mesaj: String(mesaj).slice(0, 380) }
         }).catch(function () { });
@@ -364,7 +374,7 @@
     }
 
     function yokla() {
-        istek('/api/cihaz/yoklama/', { method: 'POST', body: cihazBilgisi() })
+        istek(yol('api/cihaz/yoklama/'), { method: 'POST', body: cihazBilgisi() })
             .then(function (sonuc) {
                 var veri = sonuc.veri || {};
 
@@ -448,7 +458,7 @@
     // ——— Kayıt ————————————————————————————————————————————————
 
     function kaydol() {
-        return istek('/api/cihaz/kayit/', { method: 'POST', body: cihazBilgisi() })
+        return istek(yol('api/cihaz/kayit/'), { method: 'POST', body: cihazBilgisi() })
             .then(function (sonuc) {
                 var veri = sonuc.veri || {};
                 if (sonuc.durum === 429) {
@@ -520,7 +530,7 @@
         });
 
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function () { });
+            navigator.serviceWorker.register(yol('sw.js'), { scope: TEMEL }).catch(function () { });
         }
     }
 
