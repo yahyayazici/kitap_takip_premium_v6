@@ -158,6 +158,26 @@ Menüde yok ama adresleri çalışır ve yetkiye bağlıdır:
 | Medya kütüphanesi | `/ekran/medya/` |
 | Geçmiş ve işlem kayıtları | `/ekran/gecmis/` |
 
+## 4.1 Video biçimi
+
+Desteklenen: **MP4, MOV, WEBM** (görsel: PNG/JPG/WEBP, belge: PDF).
+
+`.mov` kabul edilir ve `video/mp4` olarak servis edilir — içindeki akış
+H.264 ise tarayıcılar sorunsuz oynatır.
+
+**HEVC (H.265) reddedilir.** iPhone ve yeni Mac'ler videoyu varsayılan
+olarak bu kodekle kaydeder; televizyon tarayıcılarının çoğu ve Chrome'un
+birçok sürümü oynatamaz. Kabul edilseydi dosya sorunsuz yüklenir, sonra
+ekranda siyah kare olarak dururdu. Kodek, dosyanın kendi `stsd` etiketinden
+okunur (`avc1` → H.264, `hvc1`/`hev1` → HEVC).
+
+Kullanıcıya yükleme anında çözüm söylenir:
+
+* **Mac:** QuickTime Player → Dosya → Dışa Aktar → 1080p
+* **Komut satırı:** `avconvert --source girdi.mov --output cikti.m4v --preset PresetAppleM4V1080pHD`
+  (macOS'ta yerleşik, ek kurulum gerekmez)
+* **iPhone'da kalıcı çözüm:** Ayarlar → Kamera → Biçimler → "En Uyumlu"
+
 ## 5. Acil duyuru
 
 **Acil Duyuru** sayfasından tek işlemle tüm ekranların, seçilen katların ya da

@@ -36,12 +36,17 @@ PDF_SAYFA_GENISLIK = 1600
 ONIZLEME_GENISLIK = 480
 
 GORSEL_UZANTILAR = {"png", "jpg", "jpeg", "webp"}
-VIDEO_UZANTILAR = {"mp4", "webm", "m4v"}
+# .mov: Mac ve iPhone'un varsayılan biçimi. İçindeki kodek H.264 ise
+# tarayıcılar MP4 gibi oynatır; HEVC ise oynatamaz (bkz. video_kodegi).
+VIDEO_UZANTILAR = {"mp4", "webm", "m4v", "mov"}
 PDF_UZANTILAR = {"pdf"}
 
 VIDEO_MIME = {
     "mp4": "video/mp4",
     "m4v": "video/mp4",
+    # .mov, video/quicktime yerine video/mp4 olarak servis edilir: aynı
+    # H.264 akışını taşır ve tarayıcılar bu MIME ile sorunsuz oynatır.
+    "mov": "video/mp4",
     "webm": "video/webm",
 }
 
@@ -91,8 +96,10 @@ _UZANTI_ICERIK = {
     "jpeg": {"jpeg"},
     "webp": {"webp"},
     "pdf": {"pdf"},
+    # MP4 ve MOV aynı ISO taban biçimini paylaşır ("ftyp" imzası).
     "mp4": {"mp4"},
     "m4v": {"mp4"},
+    "mov": {"mp4"},
     "webm": {"webm"},
 }
 
@@ -117,7 +124,8 @@ def dosya_turunu_belirle(dosya: UploadedFile) -> tuple[str, str, str]:
     else:
         raise MedyaHatasi(
             f"“.{uzanti}” dosyaları desteklenmiyor. "
-            "Görsel için PNG/JPG/WEBP, belge için PDF, video için MP4 veya WEBM kullanın."
+            "Görsel için PNG, JPG veya WEBP; belge için PDF; "
+            "video için MP4, MOV veya WEBM kullanın."
         )
 
     if dosya.size > sinir:
@@ -141,6 +149,42 @@ def dosya_turunu_belirle(dosya: UploadedFile) -> tuple[str, str, str]:
         mime = f"image/{'jpeg' if gercek == 'jpeg' else gercek}"
 
     return medya_turu, uzanti, mime
+
+
+def video_kodegi(dosya: UploadedFile) -> str:
+    """Videonun görüntü kodeğini dosyanın kendisinden okur.
+
+    Neden gerekli: iPhone ve yeni Mac'ler videoyu varsayılan olarak HEVC
+    (H.265) kaydeder. Bu kodek televizyon tarayıcılarının çoğunda ve
+    Chrome'un birçok sürümünde oynatılamaz — dosya sorunsuz yüklenir, sonra
+    televizyonda siyah kare olarak durur. Sorunu yükleme anında yakalamak,
+    kurum koridorundaki ekranın sessizce bozulmasından iyidir.
+
+    ISO taban biçiminde (MP4/MOV) kodek, ``stsd`` kutusundaki dört harflik
+    etikettir: ``avc1`` H.264, ``hvc1``/``hev1`` HEVC. Bu etiketleri dosya
+    içinde arıyoruz; ``moov`` kutusu bazı dosyalarda sonda olduğu için tüm
+    dosya taranır (zaten özet için de baştan sona okunuyor).
+
+    Döndürür: "h264", "hevc" ya da "bilinmiyor".
+    """
+    dosya.seek(0)
+    bulunan = "bilinmiyor"
+    onceki = b""
+    try:
+        while True:
+            parca = dosya.read(1024 * 1024)
+            if not parca:
+                break
+            # Etiket parça sınırına denk gelirse kaçmasın diye örtüşme.
+            tampon = onceki + parca
+            if b"avc1" in tampon:
+                return "h264"
+            if b"hvc1" in tampon or b"hev1" in tampon:
+                bulunan = "hevc"
+            onceki = tampon[-8:]
+    finally:
+        dosya.seek(0)
+    return bulunan
 
 
 def dosya_ozeti(dosya: UploadedFile) -> str:
@@ -364,6 +408,15 @@ def medya_yukle(
         pdf_sayfalarini_uret(medya)
 
     else:  # video
+        if video_kodegi(dosya) == "hevc":
+            raise MedyaHatasi(
+                "Bu video HEVC (H.265) biçiminde kaydedilmiş; televizyon "
+                "tarayıcıları bu biçimi oynatamaz, ekranda siyah kalır.\n"
+                "Mac'te çözüm: videoyu QuickTime Player ile açın → "
+                "Dosya → Dışa Aktar → 1080p seçin. Çıkan dosyayı yükleyin.\n"
+                "iPhone'da kalıcı çözüm: Ayarlar → Kamera → Biçimler → "
+                "“En Uyumlu”."
+            )
         medya.sure_sn = max(0.0, float(video_sure_sn or 0))
         medya.dosya.save(f"{ozet[:16]}.{uzanti}", dosya, save=False)
         medya.save()

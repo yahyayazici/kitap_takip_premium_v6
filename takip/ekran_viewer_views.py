@@ -23,7 +23,7 @@ from takip.ekran_service import YOKLAMA_ARALIGI_SN
 #   * service worker aynı adresleri ön belleğe alır (ikisi eşleşmezse
 #     ön yükleme boşa giderdi),
 #   * televizyonlardaki eski önbellek temizlenir.
-VARLIK_SURUMU = "e10"
+VARLIK_SURUMU = "e11"
 
 # Service worker önbellek adı; sürümle birlikte değişir.
 ONBELLEK_SURUMU = f"ekran-{VARLIK_SURUMU}"

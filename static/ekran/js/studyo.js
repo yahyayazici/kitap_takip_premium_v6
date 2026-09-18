@@ -1996,7 +1996,7 @@
     function dosyaDiyaloguAc(tur, geriCagri) {
         var girdi = document.createElement('input');
         girdi.type = 'file';
-        girdi.accept = tur === 'video' ? '.mp4,.webm,.m4v'
+        girdi.accept = tur === 'video' ? '.mp4,.mov,.webm,.m4v'
             : (tur === 'pdf' ? '.pdf' : '.png,.jpg,.jpeg,.webp');
         girdi.addEventListener('change', function () {
             var dosya = girdi.files && girdi.files[0];
