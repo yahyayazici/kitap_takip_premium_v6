@@ -3618,6 +3618,31 @@ body.veli-body {
     box-sizing: border-box;
 }
 
+/* —— Navy hero altındaki ilk içerik bloğuna boşluk ——
+   Hero'nun kendi margin-bottom'ı aşağıda kasıtlı olarak 0'a sabitleniyor
+   (flex/gap ile dizilen sayfalarda çift boşluk oluşmasın diye). Ama
+   page-content çoğu sayfada düz blok akışında (display:block, gap yok);
+   bu sayfalarda hero'dan sonraki ilk kart hiç boşluksuz kalıp başlık
+   kutusuna birebir yapışıyordu (66 şablonu etkileyen site geneli bir
+   kusurdu — 2026-09-19'da fark edildi). Hero'nun kendi kuralını
+   DEĞİŞTİRMEK yerine (gap'li sayfaları bozma riski), yalnızca hemen
+   ardından gelen kardeş öğeye üst boşluk ekliyoruz. */
+.page-head + *,
+.patterned-page-head + *,
+.yonetim-page-head + *,
+.welcome-panel + *,
+.at-page-head + *,
+.ktt-page-head + *,
+.result-page-header + *,
+.result-entry-header + *,
+.daily-header + *,
+.exam-page-head + *,
+.page-hero + *,
+.ogretmen-page-head + *,
+.ny-head + * {
+    margin-top: 22px;
+}
+
 /* —— Navy hero: tüm sayfa başlıkları —— */
 .page-head,
 .patterned-page-head,
