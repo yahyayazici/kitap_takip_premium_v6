@@ -27,6 +27,7 @@ from takip.ogretmen_odeme_service import (
     rapor_istatistik,
     rapor_ozet_satirlari,
     yetkili_odeme_donemleri,
+    yetkili_odeme_donemleri_liste_icin,
     yetkili_odeme_ogretmenleri,
     yetkili_odeme_siniflari,
 )
@@ -106,7 +107,10 @@ def ogretmen_odeme_listesi(request):
             }
         )
 
-    donemler = yetkili_odeme_donemleri(request.user).order_by("-baslangic", "-id")[:100]
+    # Tam yetkili roller (admin/idare/muhasebe) geçmiş dönemleri de görür;
+    # etüt/sınıf mesulü gibi sınırlı roller yalnız o an açık olan aktif
+    # pencereyi görür — arşiv bu ekranda gösterilmez (bkz. servis notu).
+    donemler = yetkili_odeme_donemleri_liste_icin(request.user).order_by("-baslangic", "-id")[:100]
     ctx = {
         "donemler": donemler,
         "olustur_form": olustur_form,

@@ -66,7 +66,7 @@
     {% else %}
     <p class="muted">Aktif bir dönem penceresi olmadığı için tablo açılamıyor — yöneticinin tarih aralığı belirlemesi gerekiyor.</p>
     {% endif %}
-    <form method="post" class="oo-create-form">
+    <form method="post" class="oo-create-form" id="oo-ogretmen-sec-form">
         {% csrf_token %}
         <input type="hidden" name="islem" value="olustur">
         {% if olustur_form.non_field_errors %}
@@ -79,6 +79,19 @@
             <button type="submit" class="primary-btn" {% if not aktif_pencere %}disabled{% endif %}>Tabloyu Aç</button>
         </div>
     </form>
+    <script>
+        // Öğretmen seçilince tablo ekstra bir tıklama beklemeden açılsın —
+        // butonu görme engelli/yavaş bağlantı için yedek olarak bırakıyoruz.
+        (function () {
+            var form = document.getElementById("oo-ogretmen-sec-form");
+            if (!form) { return; }
+            var secim = form.querySelector("select[name='etut_hocasi']");
+            if (!secim) { return; }
+            secim.addEventListener("change", function () {
+                if (secim.value) { form.submit(); }
+            });
+        })();
+    </script>
 </section>
 {% endif %}
 

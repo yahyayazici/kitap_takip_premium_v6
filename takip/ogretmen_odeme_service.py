@@ -165,6 +165,31 @@ def yetkili_odeme_donemleri(user: User) -> QuerySet[OgretmenOdemeDonemi]:
     return qs.filter(kosul).distinct()
 
 
+def yetkili_odeme_donemleri_liste_icin(user: User) -> QuerySet[OgretmenOdemeDonemi]:
+    """Ödeme listesi ekranında GÖSTERİLECEK dönemler.
+
+    Tam kapsamlı roller (admin/idare/muhasebe) geçmiş dönemleri de görür —
+    raporlama için buna ihtiyaçları var. Etüt/sınıf mesulü gibi sınırlı
+    roller İÇİN arşiv gösterilmez: yalnızca yöneticinin o an açtığı aktif
+    pencereyle (başlangıç/bitiş) birebir eşleşen dönem(ler) listelenir.
+    Aktif pencere kapanıp yeni bir tarih aralığı açıldığında eski dönem
+    otomatik olarak bu listeden düşer; veritabanından silinmez, yalnızca
+    mesul ekranında görünmez olur (raporlarda ve doğrudan bağlantıyla
+    erişimde hâlâ mevcuttur).
+    """
+    if odeme_tam_kapsam_var(user):
+        return yetkili_odeme_donemleri(user)
+
+    pencere = aktif_donem_penceresi()
+    if pencere is None:
+        return yetkili_odeme_donemleri(user).none()
+
+    return yetkili_odeme_donemleri(user).filter(
+        baslangic=pencere.baslangic,
+        bitis=pencere.bitis,
+    )
+
+
 @transaction.atomic
 def donem_olustur(
     *,
