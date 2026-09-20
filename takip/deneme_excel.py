@@ -473,7 +473,10 @@ def _okyanus_baslik_haritasi(
     for idx in range(n):
         if _brans_kodu(ust_grup[idx]):
             continue
-        birlesik = f"{ust_norm[idx]} {alt_norm[idx]}".strip()
+        # Birleşik başlık için ileri-doldurulmuş üst satır (ust_grup)
+        # kullanılır; aksi halde "Sıralamalar" grubundaki ilk sütun
+        # dışındakiler (Şube/Kurum/Genel) yakalanamaz (üst hücreleri boş).
+        birlesik = f"{ust_grup[idx]} {alt_norm[idx]}".strip()
         if birlesik and _dis_siralama_basligi_mi(birlesik):
             dis_siralama.append((idx, birlesik))
     harita["dis_siralama"] = dis_siralama
