@@ -250,6 +250,20 @@ class DenemePuanAktarTests(TestCase):
         onizleme = deneme_excel_onizle(dosya)
         self.assertIn("ingilizce", onizleme.satirlar[0].branslar)
 
+    def test_yonetim_deneme_ekle_formu_hizali(self):
+        self.client.force_login(self.user)
+        resp = self.client.get(reverse("yonetim:deneme_ekle"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'class="yonetim-form-grid"')
+        self.assertContains(resp, 'name="ad"')
+        self.assertContains(resp, 'name="sinav_tarihi"')
+        self.assertContains(resp, 'name="sinif_seviyesi"')
+        self.assertContains(resp, 'name="aciklama"')
+        self.assertContains(resp, 'class="primary-btn"')
+        html = resp.content.decode()
+        self.assertIn("deneme-form-page", html)
+        self.assertNotIn("{{ form.as_p }}", html)
+
 
 class DenemeSilVePdfTests(TestCase):
     def setUp(self):

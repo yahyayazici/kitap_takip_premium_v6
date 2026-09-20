@@ -1,17 +1,165 @@
 {% extends "yonetim/base.html" %}
 {% block title %}{{ baslik }}{% endblock %}
+{% block extra_css %}
+<style>
+.deneme-form-page .yonetim-form-layout {
+    max-width: none;
+}
+.deneme-form-page .yonetim-form-card {
+    padding: var(--cs-space-5) !important;
+}
+.deneme-form-page .yonetim-form-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: var(--cs-space-4) !important;
+    align-items: stretch;
+}
+.deneme-form-page .yonetim-field {
+    position: relative;
+    display: flex !important;
+    flex-direction: column;
+    gap: var(--cs-space-2);
+    min-width: 0;
+    margin: 0;
+    padding: 14px 16px 14px 20px;
+    background: var(--cs-surface);
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-md);
+    box-shadow: var(--cs-shadow-xs);
+}
+.deneme-form-page .yonetim-field::before {
+    content: "";
+    position: absolute;
+    top: 12px;
+    bottom: 12px;
+    left: 0;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--cs-primary);
+}
+.deneme-form-page .yonetim-field > label {
+    display: block;
+    margin: 0 0 2px;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: var(--cs-label) !important;
+}
+.deneme-form-page .yonetim-field small {
+    display: block;
+    margin: 0;
+    font-size: 12px !important;
+    color: var(--cs-text-muted) !important;
+    line-height: 1.4;
+}
+.deneme-form-page .yonetim-field-control input,
+.deneme-form-page .yonetim-field-control select:not([multiple]),
+.deneme-form-page .yonetim-field-control textarea,
+.deneme-form-page .yonetim-field-control .input {
+    display: block;
+    width: 100% !important;
+    min-height: var(--cs-input-h) !important;
+    height: var(--cs-input-h) !important;
+    padding: 10px 14px !important;
+    font-size: 15px !important;
+    color: var(--cs-text-primary) !important;
+    background: var(--cs-surface-muted) !important;
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-sm) !important;
+    box-shadow: none !important;
+    box-sizing: border-box;
+}
+.deneme-form-page .yonetim-field-control textarea {
+    height: auto !important;
+    min-height: 88px !important;
+}
+.deneme-form-page .yonetim-field-control input:focus,
+.deneme-form-page .yonetim-field-control select:focus,
+.deneme-form-page .yonetim-field-control textarea:focus {
+    outline: none;
+    transform: none !important;
+    background: var(--cs-surface) !important;
+    border-color: var(--cs-accent) !important;
+    box-shadow: var(--cs-shadow-focus) !important;
+}
+.deneme-form-page .yonetim-form-grid .yonetim-field:has(select[multiple]),
+.deneme-form-page .yonetim-form-grid .yonetim-field:has(textarea) {
+    grid-column: 1 / -1;
+}
+.deneme-form-page .yonetim-field-control select[multiple] {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+    gap: var(--cs-space-2);
+    width: 100%;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    appearance: none;
+    background: transparent !important;
+    background-image: none !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+.deneme-form-page .yonetim-field-control select[multiple] option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--cs-touch-min);
+    padding: 8px 10px;
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-sm);
+    background: var(--cs-surface);
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+}
+.deneme-form-page .yonetim-field-control select[multiple] option:checked {
+    color: var(--cs-primary-dark);
+    border-color: var(--cs-accent);
+    background: var(--cs-info-bg) linear-gradient(0deg, var(--cs-info-bg), var(--cs-info-bg));
+}
+@media (max-width: 900px) {
+    .deneme-form-page .yonetim-form-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
+{% endblock %}
 {% block content %}
-<div class="yonetim-page">
-    <header class="yonetim-page-head">
+<div class="deneme-form-page">
+<header class="page-head patterned-page-head yonetim-page-head">
+    <div>
+        <p class="kicker">DENEME</p>
         <h1>{{ baslik }}</h1>
-        <a href="{% url 'yonetim:deneme_listesi' %}" class="ghost-btn">Geri</a>
-    </header>
-    <section class="yonetim-card">
-        <form method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
+    </div>
+    <div class="yonetim-page-head-actions">
+        <a href="{% url 'yonetim:deneme_listesi' %}" class="ghost-btn yonetim-head-ghost">Geri</a>
+    </div>
+</header>
+
+<section class="dashboard-card yonetim-form-card yonetim-card">
+    <form method="post" class="yonetim-form-layout">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+        <div class="yonetim-form-errors">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <div class="yonetim-form-grid">
+            {% include "yonetim/includes/form_fields.html" %}
+        </div>
+        <div class="yonetim-form-actions">
             <button type="submit" class="primary-btn">Kaydet</button>
-        </form>
-    </section>
+        </div>
+    </form>
+</section>
 </div>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+    document.querySelectorAll(".deneme-form-page select[multiple], .yonetim-card form select[multiple]").forEach(function (el) {
+        var n = el.options.length;
+        if (n) el.size = n;
+    });
+})();
+</script>
 {% endblock %}
