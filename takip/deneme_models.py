@@ -176,7 +176,7 @@ class DenemeSonucu(models.Model):
                 name="deneme_talebe_tek_sonuc",
             )
         ]
-        ordering = ["-toplam_net", "talebe__ad_soyad"]
+        ordering = ["-puan", "-toplam_net", "talebe__ad_soyad"]
 
     def __str__(self):
         return f"{self.talebe.ad_soyad} — {self.deneme.ad}"

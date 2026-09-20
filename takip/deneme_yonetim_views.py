@@ -15,6 +15,8 @@ from decimal import Decimal
 from takip.deneme_excel import (
     deneme_excel_onizle,
     deneme_sonuclari_aktar,
+    dosya_hash_hesapla,
+    excel_zaten_yuklendi_mi,
     session_key,
     DenemeImportOnizleme,
 )
@@ -110,12 +112,25 @@ def deneme_detay(request, pk):
             messages.error(request, "Excel yükleme yetkiniz yok.")
             return redirect("yonetim:deneme_detay", pk=pk)
 
-        onizleme = deneme_excel_onizle(request.FILES["excel"])
+        dosya = request.FILES["excel"]
+        dosya_hash = dosya_hash_hesapla(dosya)
+        onizleme = deneme_excel_onizle(dosya)
         if onizleme.hatalar and not onizleme.satirlar:
             from takip.messages_util import hatalari_ozetle
 
             hatalari_ozetle(request, onizleme.hatalar, tek_baslik="Excel hatalı")
             return redirect("yonetim:deneme_detay", pk=pk)
+
+        onizleme.dosya_hash = dosya_hash
+        onizleme.dosya_adi = dosya.name or ""
+        tekrar = excel_zaten_yuklendi_mi(deneme, dosya_hash)
+        if tekrar:
+            onizleme.tekrar_yukleme_uyarisi = (
+                f"«{tekrar.dosya_adi or 'Bu dosya'}» {tekrar.olusturulma:%d.%m.%Y %H:%M} "
+                "tarihinde bu denemeye zaten yüklenmiş görünüyor — yine de "
+                "devam edebilirsiniz."
+            )
+            messages.warning(request, onizleme.tekrar_yukleme_uyarisi)
 
         _onizleme_kaydet(request, pk, onizleme)
         return redirect("yonetim:deneme_onizleme", pk=pk)
@@ -355,7 +370,13 @@ def deneme_onizleme(request, pk):
             return redirect("yonetim:deneme_onizleme", pk=pk)
 
         if aksiyon == "aktar":
-            adet, hatalar = deneme_sonuclari_aktar(deneme, onizleme, request.user)
+            adet, hatalar = deneme_sonuclari_aktar(
+                deneme,
+                onizleme,
+                request.user,
+                dosya_hash=onizleme.dosya_hash,
+                dosya_adi=onizleme.dosya_adi,
+            )
             if hatalar and not adet:
                 from takip.messages_util import hatalari_ozetle
 

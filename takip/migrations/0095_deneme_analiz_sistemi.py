@@ -142,6 +142,14 @@ class Migration(migrations.Migration):
                 name="deneme_sira_no_benzersiz",
             ),
         ),
+        migrations.AlterModelOptions(
+            name="denemesonucu",
+            options={
+                "ordering": ["-puan", "-toplam_net", "talebe__ad_soyad"],
+                "verbose_name": "Deneme sonucu",
+                "verbose_name_plural": "Deneme sonuçları",
+            },
+        ),
         migrations.AddField(
             model_name="denemesonucu",
             name="sinif_sirasi",
