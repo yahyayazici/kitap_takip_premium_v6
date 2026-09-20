@@ -1,0 +1,204 @@
+/* Deneme gelişimi kartı — trend, gelişim grafiği, soru çözüm korelasyonu */
+
+.dg-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 18px;
+}
+
+.dg-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.dg-head h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #173b80;
+}
+
+.dg-trend-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.dg-trend-yukseliste { background: #ecfdf5; color: #15803d; }
+.dg-trend-duseste { background: #fef2f2; color: #b91c1c; }
+.dg-trend-dalgali { background: #fff7ed; color: #b45309; }
+.dg-trend-stabil { background: #f1f5f9; color: #475569; }
+.dg-trend-yetersiz { background: #f1f5f9; color: #64748b; }
+
+.dg-metrik-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 8px;
+}
+
+.dg-metrik {
+    text-align: center;
+    padding: 8px 6px;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+
+.dg-metrik span {
+    display: block;
+    font-size: 11px;
+    color: #64748b;
+}
+
+.dg-metrik strong {
+    font-size: 15px;
+    color: #0f172a;
+}
+
+.dg-metrik strong.pos { color: #15803d; }
+.dg-metrik strong.neg { color: #b91c1c; }
+
+.dg-chart-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    min-height: 120px;
+    padding-top: 8px;
+    overflow-x: auto;
+}
+
+.dg-chart-bar {
+    flex: 1;
+    min-width: 34px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.dg-chart-bar strong {
+    font-size: 11px;
+    color: #173b80;
+}
+
+.dg-chart-bar .bar {
+    width: 100%;
+    max-width: 34px;
+    min-height: 4px;
+    border-radius: 6px 6px 0 0;
+    background: linear-gradient(180deg, #3b82f6, #1d4ed8);
+}
+
+.dg-chart-bar small {
+    font-size: 10px;
+    color: #64748b;
+    text-align: center;
+}
+
+.dg-bireysel-toggle {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    color: #334155;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.dg-bireysel-row {
+    display: none;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 0 0;
+}
+
+.dg-bireysel-row.is-open {
+    display: flex;
+}
+
+.dg-bireysel-chip {
+    display: inline-flex;
+    flex-direction: column;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: #fdf4ff;
+    border: 1px solid #f0abfc;
+    font-size: 11px;
+    color: #86198f;
+}
+
+.dg-bireysel-chip strong {
+    font-size: 13px;
+}
+
+.dg-brans-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.dg-brans-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 13px;
+    flex-wrap: wrap;
+}
+
+.dg-brans-row .dg-brans-etiket {
+    min-width: 70px;
+    font-weight: 700;
+    color: #173b80;
+}
+
+.dg-brans-net-seri {
+    color: #334155;
+}
+
+.dg-calisma-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.dg-calisma-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    font-size: 13px;
+}
+
+.dg-calisma-item .dg-dot {
+    flex: 0 0 auto;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-top: 4px;
+}
+
+.dg-calisma-item.durum-olumlu .dg-dot { background: #22c55e; }
+.dg-calisma-item.durum-uyari .dg-dot { background: #ef4444; }
+.dg-calisma-item.durum-notr .dg-dot { background: #94a3b8; }
+
+.dg-empty {
+    padding: 16px;
+    text-align: center;
+    color: #64748b;
+    font-size: 13px;
+}

@@ -1,0 +1,101 @@
+{% load static %}
+{% if deneme_gelisim and deneme_gelisim.grup_seri %}
+<link rel="stylesheet" href="{% static 'css/deneme-gelisim.css' %}">
+<div class="profile-card dg-wrap" data-dg-root>
+    <div class="dg-head">
+        <h3>📈 Deneme Gelişimi</h3>
+        {% with trend=deneme_gelisim.trend %}
+        <span class="dg-trend-badge dg-trend-{{ trend.kod }}">{{ trend.etiket }}</span>
+        {% endwith %}
+    </div>
+    <p style="margin:0;color:#64748b;font-size:12px;">{{ deneme_gelisim.trend.aciklama }}</p>
+
+    {% if deneme_gelisim.metrikler %}
+    {% with m=deneme_gelisim.metrikler %}
+    <div class="dg-metrik-row">
+        <div class="dg-metrik"><span>İlk puan</span><strong>{{ m.ilk_puan }}</strong></div>
+        <div class="dg-metrik"><span>Son puan</span><strong>{{ m.son_puan }}</strong></div>
+        <div class="dg-metrik"><span>Genel değişim</span><strong class="{% if m.genel_degisim > 0 %}pos{% elif m.genel_degisim < 0 %}neg{% endif %}">{% if m.genel_degisim > 0 %}+{% endif %}{{ m.genel_degisim }}</strong></div>
+        {% if m.son2_degisim is not None %}
+        <div class="dg-metrik"><span>Son 2 deneme</span><strong class="{% if m.son2_degisim > 0 %}pos{% elif m.son2_degisim < 0 %}neg{% endif %}">{% if m.son2_degisim > 0 %}+{% endif %}{{ m.son2_degisim }}</strong></div>
+        {% endif %}
+        {% if m.son3_degisim is not None %}
+        <div class="dg-metrik"><span>Son 3 deneme</span><strong class="{% if m.son3_degisim > 0 %}pos{% elif m.son3_degisim < 0 %}neg{% endif %}">{% if m.son3_degisim > 0 %}+{% endif %}{{ m.son3_degisim }}</strong></div>
+        {% endif %}
+    </div>
+    {% endwith %}
+    {% endif %}
+
+    <div>
+        <div class="dg-chart-bars">
+            {% for nokta in deneme_gelisim.grup_seri %}
+            <div class="dg-chart-bar" title="{{ nokta.ad }}">
+                <strong>{{ nokta.puan }}</strong>
+                <div class="bar" style="height:{{ nokta.puan_yuzde }}%;"></div>
+                <small>{% if nokta.sira_no %}{{ nokta.sira_no }}. D{% else %}{{ nokta.tarih|date:"d.m" }}{% endif %}</small>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if deneme_gelisim.bireysel_denemeler %}
+        <button type="button" class="dg-bireysel-toggle" data-dg-bireysel-toggle aria-expanded="false">
+            Bireysel denemeleri göster/gizle
+        </button>
+        <div class="dg-bireysel-row" data-dg-bireysel-panel>
+            {% for b in deneme_gelisim.bireysel_denemeler %}
+            <div class="dg-bireysel-chip">
+                <span>{{ b.etiket }} · {{ b.tarih|date:"d.m.Y" }}</span>
+                <strong>{{ b.puan }} puan · {{ b.net }} net</strong>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    {% if deneme_gelisim.brans_gelisimi %}
+    <div class="dg-brans-list">
+        {% for b in deneme_gelisim.brans_gelisimi %}
+        <div class="dg-brans-row">
+            <span class="dg-brans-etiket">{{ b.etiket }}</span>
+            <span class="dg-brans-net-seri">
+                {% for n in b.netler %}{% if n is not None %}{{ n }}{% else %}—{% endif %}{% if not forloop.last %} → {% endif %}{% endfor %}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if deneme_gelisim.calisma_karsilik %}
+    <div>
+        <p style="margin:0 0 6px;font-size:12px;font-weight:700;color:#173b80;">Soru çözümü ↔ deneme performansı</p>
+        <div class="dg-calisma-list">
+            {% for c in deneme_gelisim.calisma_karsilik %}
+            <div class="dg-calisma-item durum-{{ c.durum }}">
+                <span class="dg-dot" aria-hidden="true"></span>
+                <span>
+                    <strong>{{ c.etiket }}:</strong> son 30 gün {{ c.son_30_gun_soru }} soru ·
+                    net değişim {% if c.net_degisim > 0 %}+{% endif %}{{ c.net_degisim }} —
+                    {{ c.yorum }}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+<script src="{% static 'js/deneme-gelisim.js' %}" defer></script>
+{% elif deneme_gelisim and deneme_gelisim.bireysel_denemeler %}
+<link rel="stylesheet" href="{% static 'css/deneme-gelisim.css' %}">
+<div class="profile-card dg-wrap">
+    <div class="dg-head"><h3>📈 Deneme Gelişimi</h3></div>
+    <p class="dg-empty">Grup denemesi yok; aşağıda sadece bireysel denemeler listeleniyor.</p>
+    <div class="dg-bireysel-row is-open">
+        {% for b in deneme_gelisim.bireysel_denemeler %}
+        <div class="dg-bireysel-chip">
+            <span>{{ b.etiket }} · {{ b.tarih|date:"d.m.Y" }}</span>
+            <strong>{{ b.puan }} puan · {{ b.net }} net</strong>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
