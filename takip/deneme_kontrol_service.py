@@ -280,10 +280,14 @@ def sinif_grup_analizi(sinif: SinifSube) -> dict:
     }
 
 
-def sinif_deneme_kontrol_verisi(hoca: EtutHocasi, sinif: SinifSube) -> dict:
-    """Deneme Kontrol Merkezi ekranı için tek çağrı — üst özet + üç sıralama + grup analizi."""
+def sinif_kontrol_verisi_hesapla(ogrenciler: list[Talebe], sinif: SinifSube) -> dict:
+    """Üst özet + üç sıralama + grup analizi — verilen öğrenci listesi üzerinden.
+
+    Etüt hocası ekranı (hoca'ya sorumlu öğrenciler) ve yönetici özeti
+    (sınıftaki tüm öğrenciler) aynı hesaplamayı kullanır; kapsam
+    (hangi öğrenciler) çağıran tarafından belirlenir.
+    """
     esik = _oncelik_esik()
-    ogrenciler = ogretmen_sinif_ogrencileri(hoca, sinif)
     satirlar = [_ogrenci_satiri(t, esik) for t in ogrenciler]
 
     yukselen = sum(1 for s in satirlar if s.durum_ok == "yukseliyor")
@@ -334,6 +338,12 @@ def sinif_deneme_kontrol_verisi(hoca: EtutHocasi, sinif: SinifSube) -> dict:
         "oncelikli_takip": oncelikli_takip,
         "grup_analizi": sinif_grup_analizi(sinif),
     }
+
+
+def sinif_deneme_kontrol_verisi(hoca: EtutHocasi, sinif: SinifSube) -> dict:
+    """Etüt hocası ekranı — hocanın sorumlu olduğu öğrencilerle sınırlı."""
+    ogrenciler = ogretmen_sinif_ogrencileri(hoca, sinif)
+    return sinif_kontrol_verisi_hesapla(ogrenciler, sinif)
 
 
 def satirlari_sirala(satirlar: list[OgrenciDenemeSatiri], sirala: str) -> list[OgrenciDenemeSatiri]:

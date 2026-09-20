@@ -496,3 +496,20 @@ def deneme_excel_export(request):
         genislikler=[8, 28, 12, 12, 12],
     )
     return excel_http_yanit(icerik, f"deneme_{deneme.pk}_siralama.xlsx")
+
+
+@yonetici_gerekli
+def deneme_yonetici_ozeti(request):
+    if not can(request.user, "deneme", "view"):
+        messages.error(request, "Deneme modülüne erişim yok.")
+        return redirect("yonetim:dashboard")
+
+    from takip.deneme_yonetim_ozet_service import yonetici_deneme_ozeti
+
+    sinif_seviyesi = (request.GET.get("sinif_seviyesi") or "").strip()
+    ozet = yonetici_deneme_ozeti(sinif_seviyesi)
+    return render(
+        request,
+        "yonetim/deneme_yonetici_ozeti.html",
+        {"ozet": ozet, "sinif_seviyesi": sinif_seviyesi},
+    )
