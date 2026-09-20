@@ -60,9 +60,13 @@ def deneme_listesi(request):
         messages.error(request, "Deneme modülüne erişim yok.")
         return redirect("yonetim:dashboard")
 
-    denemeler = DenemeSinavi.objects.annotate(
+    from takip.deneme_service import deneme_arsiv_filtre_secenekleri, deneme_arsiv_filtrele
+
+    denemeler = DenemeSinavi.objects.select_related("egitim_yili").annotate(
         sonuc_sayisi=Count("sonuclar"),
     ).order_by("-sinav_tarihi", "-id")
+    denemeler, filtre = deneme_arsiv_filtrele(denemeler, request.GET)
+
     return render(
         request,
         "yonetim/deneme_listesi.html",
@@ -70,6 +74,8 @@ def deneme_listesi(request):
             "denemeler": denemeler,
             "yukleyebilir": deneme_yukleyebilir(request.user),
             "sil_yetkisi": deneme_silebilir(request.user),
+            "filtre": filtre,
+            **deneme_arsiv_filtre_secenekleri(),
         },
     )
 
@@ -84,7 +90,12 @@ def deneme_ekle(request):
     if form.is_valid():
         deneme = form.save(commit=False)
         deneme.olusturan = request.user
+        if deneme.tur == DenemeSinavi.Tur.GRUP and not deneme.sira_no:
+            from takip.deneme_service import sira_no_ata
+
+            deneme.sira_no = sira_no_ata(deneme.egitim_yili, deneme.sinif_seviyesi)
         deneme.save()
+        form.save_m2m()
         messages.success(request, "Deneme oluşturuldu. Excel yükleyebilirsiniz.")
         return redirect("yonetim:deneme_detay", pk=deneme.pk)
 
@@ -120,6 +131,17 @@ def deneme_detay(request, pk):
 
             hatalari_ozetle(request, onizleme.hatalar, tek_baslik="Excel hatalı")
             return redirect("yonetim:deneme_detay", pk=pk)
+
+        dosya.seek(0)
+        deneme.excel_dosyasi = dosya
+        if not deneme.toplam_soru:
+            ilk_dolu = next((s for s in onizleme.satirlar if s.branslar), None)
+            if ilk_dolu:
+                deneme.toplam_soru = sum(
+                    int(v.get("dogru", 0)) + int(v.get("yanlis", 0)) + int(v.get("bos", 0))
+                    for v in ilk_dolu.branslar.values()
+                )
+        deneme.save(update_fields=["excel_dosyasi", "toplam_soru"])
 
         onizleme.dosya_hash = dosya_hash
         onizleme.dosya_adi = dosya.name or ""

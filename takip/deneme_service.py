@@ -212,6 +212,57 @@ def sira_no_ata(
     return (mevcut or 0) + 1
 
 
+def deneme_arsiv_filtrele(qs: QuerySet[DenemeSinavi], get_params) -> tuple[QuerySet[DenemeSinavi], dict]:
+    """Deneme arşivi filtreleri: eğitim yılı, sınıf seviyesi, sınıf, tür, yayın, tarih.
+
+    ``get_params`` bir request.GET (QueryDict) benzeri nesne olmalı. Hem
+    personel hem yönetim deneme listesi ekranlarında aynı mantığı kullanır.
+    """
+    egitim_yili_id = (get_params.get("egitim_yili") or "").strip()
+    sinif_seviyesi = (get_params.get("sinif_seviyesi") or "").strip()
+    sinif_sube_id = (get_params.get("sinif_sube") or "").strip()
+    tur = (get_params.get("tur") or "").strip()
+    yayin = (get_params.get("yayin") or "").strip()
+    baslangic = (get_params.get("baslangic") or "").strip()
+    bitis = (get_params.get("bitis") or "").strip()
+
+    if egitim_yili_id:
+        qs = qs.filter(egitim_yili_id=egitim_yili_id)
+    if sinif_seviyesi:
+        qs = qs.filter(sinif_seviyesi=sinif_seviyesi)
+    if sinif_sube_id:
+        qs = qs.filter(hedef_sinif_subeler__id=sinif_sube_id)
+    if tur:
+        qs = qs.filter(tur=tur)
+    if yayin:
+        qs = qs.filter(yayin__icontains=yayin)
+    if baslangic:
+        qs = qs.filter(sinav_tarihi__gte=baslangic)
+    if bitis:
+        qs = qs.filter(sinav_tarihi__lte=bitis)
+
+    filtre = {
+        "egitim_yili": egitim_yili_id,
+        "sinif_seviyesi": sinif_seviyesi,
+        "sinif_sube": sinif_sube_id,
+        "tur": tur,
+        "yayin": yayin,
+        "baslangic": baslangic,
+        "bitis": bitis,
+    }
+    return qs.distinct(), filtre
+
+
+def deneme_arsiv_filtre_secenekleri() -> dict:
+    from takip.models import EgitimYili, SinifSube
+
+    return {
+        "egitim_yillari": EgitimYili.objects.order_by("-baslangic"),
+        "sinif_subeler": SinifSube.objects.filter(aktif=True).order_by("sinif", "sube"),
+        "tur_secenekleri": DenemeSinavi.Tur.choices,
+    }
+
+
 def deneme_sinavini_sil(user: User, deneme: DenemeSinavi) -> None:
     from takip.soru_takip_service import deneme_sonucu_soru_takibe_yansit
 

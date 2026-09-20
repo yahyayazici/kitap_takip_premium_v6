@@ -17,8 +17,14 @@
 <div class="yonetim-page">
     <header class="yonetim-page-head">
         <div>
-            <h1>{{ deneme.ad }}</h1>
-            <p>{{ deneme.sinav_tarihi|date:"d.m.Y" }} · {{ deneme.get_durum_display }}</p>
+            <h1>{% if deneme.sira_no %}{{ deneme.sira_no }}. Deneme — {% endif %}{{ deneme.ad }}</h1>
+            <p>
+                {{ deneme.sinav_tarihi|date:"d.m.Y" }} · {{ deneme.get_durum_display }} ·
+                {{ deneme.get_tur_display }}
+                {% if deneme.yayin %} · {{ deneme.yayin }}{% endif %}
+                {% if deneme.egitim_yili %} · {{ deneme.egitim_yili.ad }}{% endif %}
+                {% if deneme.tur == "bireysel" and deneme.bireysel_talebe %} · {{ deneme.bireysel_talebe.ad_soyad }}{% endif %}
+            </p>
         </div>
         <div class="yonetim-page-head-actions">
             <a href="{% url 'yonetim:deneme_listesi' %}" class="ghost-btn">Liste</a>
@@ -150,39 +156,40 @@
     {% endif %}
 
     <section class="yonetim-card">
-        <h2>Genel Sıralama</h2>
+        <h2>{% if deneme.tur == "bireysel" %}Bireysel Sonuç{% else %}Genel Sıralama (Puan bazlı){% endif %}</h2>
         <div class="responsive-table">
             <table class="yonetim-table deneme-siralama-table">
-                <colgroup>
-                    <col style="width:6%">
-                    <col style="width:34%">
-                    <col style="width:12%">
-                    <col style="width:12%">
-                    <col style="width:12%">
-                    <col style="width:12%">
-                    <col style="width:12%">
-                </colgroup>
                 <thead>
                     <tr>
-                        <th class="num-col">#</th>
+                        <th class="num-col">Kurum sırası</th>
                         <th>Talebe</th>
                         <th class="num-col">Doğru</th>
                         <th class="num-col">Yanlış</th>
                         <th class="num-col">Boş</th>
                         <th class="num-col">Net</th>
                         <th class="num-col">Puan</th>
+                        {% if deneme.tur != "bireysel" %}
+                        <th class="num-col">Sınıf sırası</th>
+                        {% endif %}
+                        <th>Harici sıralama</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for sonuc in sonuclar %}
                     <tr>
-                        <td class="num-col">{{ forloop.counter }}</td>
+                        <td class="num-col">
+                            {% if sonuc.kurum_sirasi %}{{ sonuc.kurum_sirasi }} / {{ sonuc.kurum_toplam }}{% else %}{{ forloop.counter }}{% endif %}
+                        </td>
                         <td>{{ sonuc.talebe.ad_soyad }}</td>
                         <td class="num-col">{{ sonuc.toplam_dogru }}</td>
                         <td class="num-col">{{ sonuc.toplam_yanlis }}</td>
                         <td class="num-col">{{ sonuc.toplam_bos }}</td>
                         <td class="num-col">{{ sonuc.toplam_net }}</td>
                         <td class="num-col">{{ sonuc.puan }}</td>
+                        {% if deneme.tur != "bireysel" %}
+                        <td class="num-col">{% if sonuc.sinif_sirasi %}{{ sonuc.sinif_sirasi }} / {{ sonuc.sinif_toplam }}{% else %}—{% endif %}</td>
+                        {% endif %}
+                        <td class="muted">{{ sonuc.dis_siralama_metni|default:"—" }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

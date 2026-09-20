@@ -357,13 +357,78 @@ class DenemeSinaviForm(StyledModelForm):
         from takip.models import DenemeSinavi
 
         model = DenemeSinavi
-        fields = ["ad", "sinav_tarihi", "sinif_seviyesi", "aciklama"]
+        fields = [
+            "ad",
+            "yayin",
+            "tur",
+            "sinav_tarihi",
+            "sinif_seviyesi",
+            "egitim_yili",
+            "sira_no",
+            "hedef_sinif_subeler",
+            "bireysel_talebe",
+            "aciklama",
+        ]
         widgets = {
             "sinav_tarihi": forms.DateInput(
                 attrs={"class": "input", "type": "date"}
             ),
             "aciklama": forms.Textarea(attrs={"rows": 3}),
+            "sira_no": forms.NumberInput(attrs={"min": 1}),
         }
+        help_texts = {
+            "sira_no": "Boş bırakılırsa eğitim yılı + sınıf seviyesi içinde otomatik atanır.",
+            "yayin": "Denemenin gerçek adı/yayını (sıra numarasını belirlemez).",
+            "hedef_sinif_subeler": "Boşsa tüm sınıf seviyesi kapsanır (grup denemesi).",
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from takip.models import EgitimYili, SinifSube, Talebe
+
+        self.fields["egitim_yili"].queryset = EgitimYili.objects.order_by("-baslangic")
+        self.fields["egitim_yili"].required = False
+        self.fields["sira_no"].required = False
+        self.fields["hedef_sinif_subeler"].queryset = SinifSube.objects.filter(
+            aktif=True
+        ).order_by("sinif", "sube")
+        self.fields["hedef_sinif_subeler"].required = False
+        self.fields["bireysel_talebe"].queryset = Talebe.objects.filter(
+            aktif=True
+        ).order_by("ad_soyad")
+        self.fields["bireysel_talebe"].required = False
+
+    def clean(self):
+        from takip.models import DenemeSinavi
+        from takip.deneme_service import sira_no_ata
+
+        cleaned = super().clean()
+        tur = cleaned.get("tur") or DenemeSinavi.Tur.GRUP
+
+        if tur == DenemeSinavi.Tur.BIREYSEL:
+            if not cleaned.get("bireysel_talebe"):
+                self.add_error(
+                    "bireysel_talebe", "Bireysel deneme için öğrenci seçilmelidir."
+                )
+            cleaned["sira_no"] = None
+            cleaned["yayin"] = cleaned.get("yayin") or ""
+            return cleaned
+
+        cleaned["bireysel_talebe"] = None
+        sira_no = cleaned.get("sira_no")
+        sinif_seviyesi = cleaned.get("sinif_seviyesi")
+        egitim_yili = cleaned.get("egitim_yili")
+        if sira_no and sinif_seviyesi:
+            try:
+                sira_no_ata(
+                    egitim_yili,
+                    sinif_seviyesi,
+                    tercih=sira_no,
+                    haric_deneme_id=self.instance.pk,
+                )
+            except ValueError as exc:
+                self.add_error("sira_no", str(exc))
+        return cleaned
 
 
 class YaziliKampForm(StyledModelForm):
