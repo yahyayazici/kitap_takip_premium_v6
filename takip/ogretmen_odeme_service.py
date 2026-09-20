@@ -119,8 +119,16 @@ def yetkili_odeme_ogretmenleri(
     olusturma_icin: bool = False,
 ) -> QuerySet[EtutHocasi]:
     """
-    Etüt/sınıf mesulü: yalnızca kendi sınıflarına atanmış
-    (veya o sınıflarda saat kaydı olan) branş öğretmenleri.
+    Etüt/sınıf mesulü: yalnızca kendi sınıflarına GÜNCEL olarak atanmış
+    branş öğretmenleri.
+
+    Daha önce burada "veya o sınıflarda (herhangi bir zamanda) saat kaydı
+    olan" koşulu da vardı; bu, bir öğretmen sınıftan alındıktan sonra da
+    süresiz olarak o sınıfın öğretmen listesinde görünmesine yol açıyordu
+    (eski ders kayıtları — OgretmenOdemeDersKaydi — silinmediği için).
+    Geçmiş dönemlerin verisi/ödeme kayıtları buna dokunulmadan saklı
+    kalır; sadece bu "kime göster" filtresi artık güncel atamayı esas
+    alır.
     """
     qs = aktif_ogretmenler()
     if odeme_tam_kapsam_var(user):
@@ -130,10 +138,7 @@ def yetkili_odeme_ogretmenleri(
     if not sinif_ids:
         return qs.none()
 
-    scoped = qs.filter(
-        Q(sorumlu_sinif_subeler__in=sinif_ids)
-        | Q(odeme_donemleri__gunler__dersler__sinif_sube_id__in=sinif_ids)
-    ).distinct()
+    scoped = qs.filter(sorumlu_sinif_subeler__in=sinif_ids).distinct()
 
     # Sınıfa henüz öğretmen atanmadıysa dönem oluşturabilsin
     if olusturma_icin and not scoped.exists():
