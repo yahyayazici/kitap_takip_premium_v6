@@ -15,6 +15,8 @@ from decimal import Decimal
 from takip.deneme_excel import (
     deneme_excel_onizle,
     deneme_sonuclari_aktar,
+    dosya_hash_hesapla,
+    excel_zaten_yuklendi_mi,
     session_key,
     DenemeImportOnizleme,
 )
@@ -58,9 +60,13 @@ def deneme_listesi(request):
         messages.error(request, "Deneme modülüne erişim yok.")
         return redirect("yonetim:dashboard")
 
-    denemeler = DenemeSinavi.objects.annotate(
+    from takip.deneme_service import deneme_arsiv_filtre_secenekleri, deneme_arsiv_filtrele
+
+    denemeler = DenemeSinavi.objects.select_related("egitim_yili").annotate(
         sonuc_sayisi=Count("sonuclar"),
     ).order_by("-sinav_tarihi", "-id")
+    denemeler, filtre = deneme_arsiv_filtrele(denemeler, request.GET)
+
     return render(
         request,
         "yonetim/deneme_listesi.html",
@@ -68,6 +74,8 @@ def deneme_listesi(request):
             "denemeler": denemeler,
             "yukleyebilir": deneme_yukleyebilir(request.user),
             "sil_yetkisi": deneme_silebilir(request.user),
+            "filtre": filtre,
+            **deneme_arsiv_filtre_secenekleri(),
         },
     )
 
@@ -82,7 +90,12 @@ def deneme_ekle(request):
     if form.is_valid():
         deneme = form.save(commit=False)
         deneme.olusturan = request.user
+        if deneme.tur == DenemeSinavi.Tur.GRUP and not deneme.sira_no:
+            from takip.deneme_service import sira_no_ata
+
+            deneme.sira_no = sira_no_ata(deneme.egitim_yili, deneme.sinif_seviyesi)
         deneme.save()
+        form.save_m2m()
         messages.success(request, "Deneme oluşturuldu. Excel yükleyebilirsiniz.")
         return redirect("yonetim:deneme_detay", pk=deneme.pk)
 
@@ -110,12 +123,36 @@ def deneme_detay(request, pk):
             messages.error(request, "Excel yükleme yetkiniz yok.")
             return redirect("yonetim:deneme_detay", pk=pk)
 
-        onizleme = deneme_excel_onizle(request.FILES["excel"])
+        dosya = request.FILES["excel"]
+        dosya_hash = dosya_hash_hesapla(dosya)
+        onizleme = deneme_excel_onizle(dosya)
         if onizleme.hatalar and not onizleme.satirlar:
             from takip.messages_util import hatalari_ozetle
 
             hatalari_ozetle(request, onizleme.hatalar, tek_baslik="Excel hatalı")
             return redirect("yonetim:deneme_detay", pk=pk)
+
+        dosya.seek(0)
+        deneme.excel_dosyasi = dosya
+        if not deneme.toplam_soru:
+            ilk_dolu = next((s for s in onizleme.satirlar if s.branslar), None)
+            if ilk_dolu:
+                deneme.toplam_soru = sum(
+                    int(v.get("dogru", 0)) + int(v.get("yanlis", 0)) + int(v.get("bos", 0))
+                    for v in ilk_dolu.branslar.values()
+                )
+        deneme.save(update_fields=["excel_dosyasi", "toplam_soru"])
+
+        onizleme.dosya_hash = dosya_hash
+        onizleme.dosya_adi = dosya.name or ""
+        tekrar = excel_zaten_yuklendi_mi(deneme, dosya_hash)
+        if tekrar:
+            onizleme.tekrar_yukleme_uyarisi = (
+                f"«{tekrar.dosya_adi or 'Bu dosya'}» {tekrar.olusturulma:%d.%m.%Y %H:%M} "
+                "tarihinde bu denemeye zaten yüklenmiş görünüyor — yine de "
+                "devam edebilirsiniz."
+            )
+            messages.warning(request, onizleme.tekrar_yukleme_uyarisi)
 
         _onizleme_kaydet(request, pk, onizleme)
         return redirect("yonetim:deneme_onizleme", pk=pk)
@@ -355,7 +392,13 @@ def deneme_onizleme(request, pk):
             return redirect("yonetim:deneme_onizleme", pk=pk)
 
         if aksiyon == "aktar":
-            adet, hatalar = deneme_sonuclari_aktar(deneme, onizleme, request.user)
+            adet, hatalar = deneme_sonuclari_aktar(
+                deneme,
+                onizleme,
+                request.user,
+                dosya_hash=onizleme.dosya_hash,
+                dosya_adi=onizleme.dosya_adi,
+            )
             if hatalar and not adet:
                 from takip.messages_util import hatalari_ozetle
 
@@ -453,3 +496,20 @@ def deneme_excel_export(request):
         genislikler=[8, 28, 12, 12, 12],
     )
     return excel_http_yanit(icerik, f"deneme_{deneme.pk}_siralama.xlsx")
+
+
+@yonetici_gerekli
+def deneme_yonetici_ozeti(request):
+    if not can(request.user, "deneme", "view"):
+        messages.error(request, "Deneme modülüne erişim yok.")
+        return redirect("yonetim:dashboard")
+
+    from takip.deneme_yonetim_ozet_service import yonetici_deneme_ozeti
+
+    sinif_seviyesi = (request.GET.get("sinif_seviyesi") or "").strip()
+    ozet = yonetici_deneme_ozeti(sinif_seviyesi)
+    return render(
+        request,
+        "yonetim/deneme_yonetici_ozeti.html",
+        {"ozet": ozet, "sinif_seviyesi": sinif_seviyesi},
+    )

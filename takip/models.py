@@ -2099,6 +2099,7 @@ from takip.namaz_yoklama_models import (  # noqa: E402,F401
 from takip.deneme_models import (  # noqa: E402,F401
     DenemeBransSonucu,
     DenemeEslestirmeAlias,
+    DenemeExcelYukleme,
     DenemeGapRaporu,
     DenemeKonuSonucu,
     DenemeSinavi,

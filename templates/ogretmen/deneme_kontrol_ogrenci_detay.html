@@ -1,0 +1,23 @@
+{% extends "ogretmen/base.html" %}
+{% load static %}
+{% block title %}{{ talebe.ad_soyad }} · Deneme Kontrol{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}">
+{% endblock %}
+{% block content %}
+<div class="dash-home ogretmen-dash">
+{% include "includes/panel_hero.html" with title=talebe.ad_soyad meta=sinif.etiket|add:" · Deneme gelişimi" show_date=True %}
+
+<div style="margin-bottom:14px;">
+    <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' sinif.id %}" class="ghost-btn">← {{ sinif.etiket }} listesine dön</a>
+</div>
+
+{% include "includes/deneme_gelisim_karti.html" %}
+
+{% if not deneme_gelisim.grup_seri and not deneme_gelisim.bireysel_denemeler %}
+<div class="dk-card">
+    <p class="dk-empty">Bu öğrenci için henüz deneme sonucu bulunmuyor.</p>
+</div>
+{% endif %}
+</div>
+{% endblock %}

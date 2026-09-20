@@ -110,6 +110,159 @@ def eksik_deneme_puanlarini_doldur(sonuclar) -> list:
     return kayitlar
 
 
+def puan_sirasi_key(sonuc: DenemeSonucu) -> tuple:
+    """Merkezi puan sıralaması tie-break: puan → net → ad soyad.
+
+    Puan eşitliğinde net yüksek olan öne geçer; o da eşitse ad soyad
+    alfabetik sıralanır (deterministik, tekrar üretilebilir sıralama).
+    """
+    return (
+        -float(sonuc.puan or 0),
+        -float(sonuc.toplam_net or 0),
+        (sonuc.talebe.ad_soyad or "").upper(),
+    )
+
+
+def siralama_hesapla_ve_kaydet(deneme: DenemeSinavi) -> None:
+    """Bir grup denemesinin sınıf/seviye/kurum sırasını hesaplayıp kaydeder.
+
+    Bireysel denemeler sıralamaya girmez (fonksiyon sessizce çıkar).
+    Sınıf seviyesi/kurum sırası, bu tek DenemeSinavi kaydının kapsadığı
+    tüm sonuçlar üzerinden hesaplanır (bir DenemeSinavi tek bir sınıf
+    seviyesine ait olduğundan bu ikisi aynı popülasyonu ifade eder;
+    farklı seviyelerin aynı deneme serisinde kurum çapında birleştirilmesi
+    bu sürümde desteklenmiyor).
+    """
+    if deneme.tur != DenemeSinavi.Tur.GRUP:
+        return
+
+    sonuclar = list(
+        DenemeSonucu.objects.filter(deneme=deneme).select_related(
+            "talebe", "talebe__sinif_sube"
+        )
+    )
+    if not sonuclar:
+        return
+
+    sonuclar.sort(key=puan_sirasi_key)
+    kurum_toplam = len(sonuclar)
+
+    sinif_gruplari: dict[int | None, list[DenemeSonucu]] = {}
+    for sonuc in sonuclar:
+        sinif_gruplari.setdefault(sonuc.talebe.sinif_sube_id, []).append(sonuc)
+
+    for genel_sira, sonuc in enumerate(sonuclar, start=1):
+        sonuc.kurum_sirasi = genel_sira
+        sonuc.kurum_toplam = kurum_toplam
+        sonuc.seviye_sirasi = genel_sira
+        sonuc.seviye_toplam = kurum_toplam
+
+    for grup in sinif_gruplari.values():
+        grup.sort(key=puan_sirasi_key)
+        sinif_toplam = len(grup)
+        for sira, sonuc in enumerate(grup, start=1):
+            sonuc.sinif_sirasi = sira
+            sonuc.sinif_toplam = sinif_toplam
+
+    DenemeSonucu.objects.bulk_update(
+        sonuclar,
+        [
+            "sinif_sirasi",
+            "sinif_toplam",
+            "seviye_sirasi",
+            "seviye_toplam",
+            "kurum_sirasi",
+            "kurum_toplam",
+        ],
+    )
+
+
+def sira_no_ata(
+    egitim_yili,
+    sinif_seviyesi: str,
+    tercih: int | None = None,
+    *,
+    haric_deneme_id: int | None = None,
+) -> int:
+    """Eğitim yılı + sınıf seviyesi kapsamında bir sonraki sıra numarasını
+    döner; ``tercih`` verilirse o numaranın boş olduğunu doğrular.
+
+    Bu kontrol, DB kısıtındaki (UniqueConstraint) eğitim_yili NULL olduğunda
+    SQL'in "NULL ≠ NULL" kuralı yüzünden oluşan boşluğu da kapatır — burada
+    sıradan bir ``filter(egitim_yili=...)`` kullanıldığından NULL değerler
+    de doğru şekilde eşleşir.
+    """
+    qs = DenemeSinavi.objects.filter(
+        tur=DenemeSinavi.Tur.GRUP,
+        sinif_seviyesi=sinif_seviyesi,
+        egitim_yili=egitim_yili,
+        sira_no__isnull=False,
+    )
+    if haric_deneme_id:
+        qs = qs.exclude(pk=haric_deneme_id)
+
+    if tercih is not None:
+        if qs.filter(sira_no=tercih).exists():
+            raise ValueError(
+                f"{tercih}. sıra numarası bu eğitim yılı/seviye içinde zaten kullanılıyor."
+            )
+        return tercih
+
+    mevcut = qs.order_by("-sira_no").values_list("sira_no", flat=True).first()
+    return (mevcut or 0) + 1
+
+
+def deneme_arsiv_filtrele(qs: QuerySet[DenemeSinavi], get_params) -> tuple[QuerySet[DenemeSinavi], dict]:
+    """Deneme arşivi filtreleri: eğitim yılı, sınıf seviyesi, sınıf, tür, yayın, tarih.
+
+    ``get_params`` bir request.GET (QueryDict) benzeri nesne olmalı. Hem
+    personel hem yönetim deneme listesi ekranlarında aynı mantığı kullanır.
+    """
+    egitim_yili_id = (get_params.get("egitim_yili") or "").strip()
+    sinif_seviyesi = (get_params.get("sinif_seviyesi") or "").strip()
+    sinif_sube_id = (get_params.get("sinif_sube") or "").strip()
+    tur = (get_params.get("tur") or "").strip()
+    yayin = (get_params.get("yayin") or "").strip()
+    baslangic = (get_params.get("baslangic") or "").strip()
+    bitis = (get_params.get("bitis") or "").strip()
+
+    if egitim_yili_id:
+        qs = qs.filter(egitim_yili_id=egitim_yili_id)
+    if sinif_seviyesi:
+        qs = qs.filter(sinif_seviyesi=sinif_seviyesi)
+    if sinif_sube_id:
+        qs = qs.filter(hedef_sinif_subeler__id=sinif_sube_id)
+    if tur:
+        qs = qs.filter(tur=tur)
+    if yayin:
+        qs = qs.filter(yayin__icontains=yayin)
+    if baslangic:
+        qs = qs.filter(sinav_tarihi__gte=baslangic)
+    if bitis:
+        qs = qs.filter(sinav_tarihi__lte=bitis)
+
+    filtre = {
+        "egitim_yili": egitim_yili_id,
+        "sinif_seviyesi": sinif_seviyesi,
+        "sinif_sube": sinif_sube_id,
+        "tur": tur,
+        "yayin": yayin,
+        "baslangic": baslangic,
+        "bitis": bitis,
+    }
+    return qs.distinct(), filtre
+
+
+def deneme_arsiv_filtre_secenekleri() -> dict:
+    from takip.models import EgitimYili, SinifSube
+
+    return {
+        "egitim_yillari": EgitimYili.objects.order_by("-baslangic"),
+        "sinif_subeler": SinifSube.objects.filter(aktif=True).order_by("sinif", "sube"),
+        "tur_secenekleri": DenemeSinavi.Tur.choices,
+    }
+
+
 def deneme_sinavini_sil(user: User, deneme: DenemeSinavi) -> None:
     from takip.soru_takip_service import deneme_sonucu_soru_takibe_yansit
 
@@ -208,7 +361,7 @@ def yetkili_deneme_sonuclari(user: User) -> QuerySet[DenemeSonucu]:
 
 def deneme_sonuclari(user: User, deneme: DenemeSinavi) -> QuerySet[DenemeSonucu]:
     qs = yetkili_deneme_sonuclari(user).filter(deneme=deneme)
-    return qs.order_by("-toplam_net", "talebe__ad_soyad")
+    return qs.order_by("-puan", "-toplam_net", "talebe__ad_soyad")
 
 
 def deneme_sonuc_ozeti(sonuclar) -> dict:

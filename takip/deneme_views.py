@@ -46,12 +46,17 @@ def _deneme_detay_verisi(request, deneme):
 @login_required
 @require_permission("deneme", "view")
 def deneme_listesi(request):
+    from takip.deneme_service import deneme_arsiv_filtre_secenekleri, deneme_arsiv_filtrele
+
     denemeler = yetkili_denemeler(request.user).filter(
         durum="aktif",
     )
+    denemeler, filtre = deneme_arsiv_filtrele(denemeler, request.GET)
     context = {
         "denemeler": denemeler,
         "sil_yetkisi": deneme_silebilir(request.user),
+        "filtre": filtre,
+        **deneme_arsiv_filtre_secenekleri(),
     }
     template_name = (
         "partials/deneme_listesi_content.html"

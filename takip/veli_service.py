@@ -165,6 +165,7 @@ def talebe_veli_ozeti(talebe: Talebe, *, sinav_verisi: bool = False) -> dict:
         "ktt_sonuclari": [],
         "deneme_sonuclari": [],
         "deneme_performans": None,
+        "deneme_gelisim": None,
         "deneme_brans_etiketleri": BRANS_ETIKETLERI,
         "yazili_sonuclari": [],
         "ogretmen_notlari": [],
@@ -182,6 +183,9 @@ def talebe_veli_ozeti(talebe: Talebe, *, sinav_verisi: bool = False) -> dict:
         )
         ozet["deneme_sonuclari"] = list(talebe_deneme_sonuclari(talebe)[:10])
         ozet["deneme_performans"] = talebe_deneme_performans_ozeti(talebe)
+        from takip.deneme_gelisim_service import talebe_deneme_gelisim_paketi
+
+        ozet["deneme_gelisim"] = talebe_deneme_gelisim_paketi(talebe)
         ozet["yazili_sonuclari"] = _veli_yazili_sonuclari_guvenli(talebe)
         ozet["ogretmen_notlari"] = list(talebe_ogretmen_notlari(talebe, limit=50))
         from takip.ktt_akilli_service import veli_akademik_gelisim

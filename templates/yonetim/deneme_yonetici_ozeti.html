@@ -1,0 +1,111 @@
+{% extends "yonetim/base.html" %}
+{% load static %}
+{% block title %}Deneme Özeti{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}">
+{% endblock %}
+{% block content %}
+<div class="yonetim-page">
+    <header class="yonetim-page-head">
+        <div>
+            <p class="kicker">DENEME ÖZETİ</p>
+            <h1>Sınıflar Arası Karşılaştırma</h1>
+        </div>
+        <a href="{% url 'yonetim:deneme_listesi' %}" class="ghost-btn">Denemeler</a>
+    </header>
+
+    <form method="get" style="margin:0 0 16px;">
+        <label for="sinif_seviyesi">Sınıf seviyesi</label>
+        <select class="input" id="sinif_seviyesi" name="sinif_seviyesi" onchange="this.form.submit()" style="max-width:200px;">
+            <option value="">Tüm seviyeler</option>
+            {% for sv in ozet.sinif_seviyeleri %}
+            <option value="{{ sv }}" {% if sinif_seviyesi == sv %}selected{% endif %}>{{ sv }}. sınıflar</option>
+            {% endfor %}
+        </select>
+    </form>
+
+    {% if not ozet.sinif_satirlari %}
+    <div class="dk-card">
+        <p class="dk-empty">Henüz aktarılmış grup deneme sonucu bulunan bir sınıf yok.</p>
+    </div>
+    {% else %}
+
+    <div class="dk-stat-row" style="margin-bottom:18px;">
+        <div class="dk-stat" style="background:#f0fdf4;">
+            <span>En Çok Gelişen Sınıf</span>
+            <strong>
+                {% if ozet.en_cok_gelisen %}
+                {{ ozet.en_cok_gelisen.sinif.etiket }}
+                ({% if ozet.en_cok_gelisen.degisim > 0 %}+{% endif %}{{ ozet.en_cok_gelisen.degisim }})
+                {% else %}—{% endif %}
+            </strong>
+        </div>
+        <div class="dk-stat"><span>Toplam Yükselen</span><strong style="color:#15803d;">{{ ozet.toplam_yukselen }}</strong></div>
+        <div class="dk-stat"><span>Toplam Düşen</span><strong style="color:#b91c1c;">{{ ozet.toplam_dusen }}</strong></div>
+        <div class="dk-stat"><span>Takip Gereken</span><strong>{{ ozet.toplam_takip_gereken }}</strong></div>
+    </div>
+
+    <section class="yonetim-card">
+        <h2>Sınıf Ortalamaları</h2>
+        <div class="responsive-table">
+            <table class="yonetim-table">
+                <thead>
+                    <tr>
+                        <th>Sınıf</th>
+                        <th>Öğrenci</th>
+                        <th>Ortalama Puan</th>
+                        <th>Değişim</th>
+                        <th>Yükselen</th>
+                        <th>Düşen</th>
+                        <th>Takip Gereken</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in ozet.sinif_satirlari %}
+                    <tr>
+                        <td><strong>{{ s.sinif.etiket }}</strong></td>
+                        <td>{{ s.ogrenci_sayisi }}</td>
+                        <td>{{ s.ortalama }}</td>
+                        <td>
+                            {% if s.degisim > 0 %}<span style="color:#15803d;">↑ +{{ s.degisim }}</span>
+                            {% elif s.degisim < 0 %}<span style="color:#b91c1c;">↓ {{ s.degisim }}</span>
+                            {% else %}—{% endif %}
+                        </td>
+                        <td>{{ s.yukselen }}</td>
+                        <td>{{ s.dusen }}</td>
+                        <td>{{ s.takip_gereken }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <details class="yonetim-card">
+        <summary style="cursor:pointer;font-weight:700;color:#173b80;">Detaylar — ders bazlı ortalamalar ve deneme bazlı kurum ortalaması</summary>
+
+        {% if ozet.ders_ortalamalari %}
+        <h3 style="margin-top:16px;">Ders Bazlı Ortalamalar {% if ozet.son_deneme %}({{ ozet.son_deneme.ad }}){% endif %}</h3>
+        <div class="dk-ders-ok-row">
+            {% for d in ozet.ders_ortalamalari %}
+            <span class="dk-ders-ok-chip">{{ d.etiket }}: {{ d.ortalama_net }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if ozet.kurum_serisi %}
+        <h3 style="margin-top:20px;">Deneme Bazlı Kurum Ortalaması</h3>
+        <div class="dk-grup-chart">
+            {% for nokta in ozet.kurum_serisi %}
+            <div class="dk-grup-bar" title="{{ nokta.ad }}">
+                <strong>{{ nokta.ortalama }}</strong>
+                <div class="bar" style="height:{{ nokta.ortalama_yuzde }}%;"></div>
+                <small>{% if nokta.sira_no %}{{ nokta.sira_no }}. D{% else %}{{ nokta.tarih|date:"d.m" }}{% endif %}</small>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </details>
+    {% endif %}
+</div>
+{% endblock %}

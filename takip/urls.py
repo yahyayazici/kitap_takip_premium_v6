@@ -25,6 +25,7 @@ from . import ss_deneme_views
 from . import ktt_akilli_views
 from . import olcme_views
 from . import soru_takip_views
+from . import deneme_kontrol_views
 from . import ogretmen_views
 from . import talebe_panel_views
 from . import konu_destek_views
@@ -909,5 +910,20 @@ urlpatterns = [
         "ogretmen-panel/degerlendirmeler/talebe/<int:talebe_id>/karne-pdf/",
         ogretmen_views.ogretmen_talebe_karne_pdf,
         name="ogretmen_talebe_karne_pdf",
+    ),
+    path(
+        "ogretmen-panel/deneme/",
+        deneme_kontrol_views.deneme_kontrol_merkezi,
+        name="ogretmen_deneme_kontrol_merkezi",
+    ),
+    path(
+        "ogretmen-panel/deneme/<int:sinif_id>/",
+        deneme_kontrol_views.deneme_kontrol_merkezi,
+        name="ogretmen_deneme_kontrol_merkezi_sinif",
+    ),
+    path(
+        "ogretmen-panel/deneme/<int:sinif_id>/talebe/<int:talebe_id>/",
+        deneme_kontrol_views.deneme_kontrol_ogrenci_detay,
+        name="ogretmen_deneme_kontrol_ogrenci_detay",
     ),
 ]

@@ -12,14 +12,67 @@
             <a href="{% url 'yonetim:deneme_ekle' %}" class="primary-btn">Yeni Deneme</a>
             {% endif %}
             <a href="{% url 'yonetim:deneme_rapor' %}" class="ghost-btn">Rapor</a>
+            <a href="{% url 'yonetim:deneme_yonetici_ozeti' %}" class="ghost-btn">Yönetici Özeti</a>
         </div>
     </header>
+
+    <form method="get" class="yonetim-filter-bar" style="display:flex;flex-wrap:wrap;gap:0.75rem;margin:0 0 1rem;align-items:end;">
+        <div>
+            <label for="egitim_yili">Eğitim yılı</label>
+            <select class="cs-input" id="egitim_yili" name="egitim_yili">
+                <option value="">Tümü</option>
+                {% for y in egitim_yillari %}
+                <option value="{{ y.pk }}" {% if filtre.egitim_yili == y.pk|stringformat:"s" %}selected{% endif %}>{{ y.ad }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="sinif_seviyesi">Sınıf seviyesi</label>
+            <input class="cs-input" type="text" id="sinif_seviyesi" name="sinif_seviyesi" value="{{ filtre.sinif_seviyesi }}" placeholder="Örn. 8" style="width:6rem;">
+        </div>
+        <div>
+            <label for="sinif_sube">Sınıf</label>
+            <select class="cs-input" id="sinif_sube" name="sinif_sube">
+                <option value="">Tümü</option>
+                {% for s in sinif_subeler %}
+                <option value="{{ s.pk }}" {% if filtre.sinif_sube == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.etiket }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="tur">Deneme türü</label>
+            <select class="cs-input" id="tur" name="tur">
+                <option value="">Tümü</option>
+                {% for kod, etiket in tur_secenekleri %}
+                <option value="{{ kod }}" {% if filtre.tur == kod %}selected{% endif %}>{{ etiket }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="yayin">Yayın</label>
+            <input class="cs-input" type="text" id="yayin" name="yayin" value="{{ filtre.yayin }}" placeholder="Yayın adı">
+        </div>
+        <div>
+            <label for="baslangic">Başlangıç</label>
+            <input class="cs-input" type="date" id="baslangic" name="baslangic" value="{{ filtre.baslangic }}">
+        </div>
+        <div>
+            <label for="bitis">Bitiş</label>
+            <input class="cs-input" type="date" id="bitis" name="bitis" value="{{ filtre.bitis }}">
+        </div>
+        <button type="submit" class="primary-btn">Filtrele</button>
+        <a href="{% url 'yonetim:deneme_listesi' %}" class="ghost-btn">Temizle</a>
+    </form>
+
     <section class="yonetim-card">
         <table class="yonetim-table">
             <thead>
                 <tr>
+                    <th>Sıra</th>
                     <th>Tarih</th>
                     <th>Deneme</th>
+                    <th>Yayın</th>
+                    <th>Tür</th>
                     <th>Sınıf</th>
                     <th>Durum</th>
                     <th>Sonuç</th>
@@ -29,8 +82,11 @@
             <tbody>
                 {% for d in denemeler %}
                 <tr>
+                    <td>{% if d.sira_no %}{{ d.sira_no }}. Deneme{% else %}—{% endif %}</td>
                     <td>{{ d.sinav_tarihi|date:"d.m.Y" }}</td>
                     <td><strong>{{ d.ad }}</strong></td>
+                    <td>{{ d.yayin|default:"—" }}</td>
+                    <td>{{ d.get_tur_display }}</td>
                     <td>{{ d.sinif_seviyesi }}</td>
                     <td>{{ d.get_durum_display }}</td>
                     <td>{{ d.sonuc_sayisi }}</td>
@@ -47,7 +103,7 @@
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="6">Deneme kaydı yok.</td></tr>
+                <tr><td colspan="9">Deneme kaydı yok.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

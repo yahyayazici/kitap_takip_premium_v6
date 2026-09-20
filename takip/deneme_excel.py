@@ -195,6 +195,26 @@ def _baslik_brans_iceriyor(baslik: str) -> bool:
     return False
 
 
+def _dis_siralama_basligi_mi(baslik: str) -> bool:
+    """Yayın/Türkiye geneli sıralama-yüzdelik dilim sütunu mu?
+
+    Branş/puan sütunu değil; kurum içi sıralamayla karıştırılmaması için
+    ayrı yakalanır (bkz. DenemeImportSatir.dis_siralama).
+    """
+    anahtar = normalize_ad(baslik)
+    if not anahtar or _brans_kodu(baslik):
+        return False
+    return any(x in anahtar for x in ("siralama", "sira", "dilim", "rank"))
+
+
+def _dis_siralama_kolonlari(basliklar: list[str]) -> list[tuple[int, str]]:
+    kolonlar: list[tuple[int, str]] = []
+    for idx, baslik in enumerate(basliklar):
+        if baslik and _dis_siralama_basligi_mi(baslik):
+            kolonlar.append((idx, baslik.strip()))
+    return kolonlar
+
+
 def _brans_kodu(baslik: str) -> str | None:
     anahtar = normalize_ad(baslik)
     if not anahtar:
@@ -407,6 +427,7 @@ def _duz_baslik_haritasi(
     puan_idx = _puan_kolonunu_sec(baslik_satir, baslik_satir, veri_satirlari)
     if puan_idx is not None:
         harita["puan"] = puan_idx
+    harita["dis_siralama"] = _dis_siralama_kolonlari(baslik_satir)
     return harita
 
 
@@ -447,6 +468,18 @@ def _okyanus_baslik_haritasi(
     puan_idx = _puan_kolonunu_sec(ust, alt, veri_satirlari)
     if puan_idx is not None:
         harita["puan"] = puan_idx
+
+    dis_siralama: list[tuple[int, str]] = []
+    for idx in range(n):
+        if _brans_kodu(ust_grup[idx]):
+            continue
+        # Birleşik başlık için ileri-doldurulmuş üst satır (ust_grup)
+        # kullanılır; aksi halde "Sıralamalar" grubundaki ilk sütun
+        # dışındakiler (Şube/Kurum/Genel) yakalanamaz (üst hücreleri boş).
+        birlesik = f"{ust_grup[idx]} {alt_norm[idx]}".strip()
+        if birlesik and _dis_siralama_basligi_mi(birlesik):
+            dis_siralama.append((idx, birlesik))
+    harita["dis_siralama"] = dis_siralama
     return harita
 
 
@@ -460,6 +493,7 @@ class DenemeImportSatir:
     branslar: dict = field(default_factory=dict)
     toplam: dict = field(default_factory=dict)
     puan: str = "0"
+    dis_siralama: dict = field(default_factory=dict)
     hatalar: list[str] = field(default_factory=list)
     oneri_talebe_id: int | None = None
     oneri_ad_soyad: str = ""
@@ -477,6 +511,7 @@ class DenemeImportSatir:
             "branslar": self.branslar,
             "toplam": self.toplam,
             "puan": self.puan,
+            "dis_siralama": self.dis_siralama,
             "hatalar": self.hatalar,
             "oneri_talebe_id": self.oneri_talebe_id,
             "oneri_ad_soyad": self.oneri_ad_soyad,
@@ -496,6 +531,7 @@ class DenemeImportSatir:
             "branslar",
             "toplam",
             "puan",
+            "dis_siralama",
             "hatalar",
             "oneri_talebe_id",
             "oneri_ad_soyad",
@@ -511,6 +547,9 @@ class DenemeImportOnizleme:
     satirlar: list[DenemeImportSatir] = field(default_factory=list)
     hatalar: list[str] = field(default_factory=list)
     format: str = ""
+    dosya_hash: str = ""
+    dosya_adi: str = ""
+    tekrar_yukleme_uyarisi: str = ""
 
     @property
     def toplam_ogrenci(self) -> int:
@@ -537,6 +576,9 @@ class DenemeImportOnizleme:
             "satirlar": [s.to_dict() for s in self.satirlar],
             "hatalar": self.hatalar,
             "format": self.format,
+            "dosya_hash": self.dosya_hash,
+            "dosya_adi": self.dosya_adi,
+            "tekrar_yukleme_uyarisi": self.tekrar_yukleme_uyarisi,
         }
 
     @classmethod
@@ -545,6 +587,9 @@ class DenemeImportOnizleme:
             satirlar=[DenemeImportSatir.from_dict(s) for s in data.get("satirlar", [])],
             hatalar=data.get("hatalar", []),
             format=data.get("format", ""),
+            dosya_hash=data.get("dosya_hash", ""),
+            dosya_adi=data.get("dosya_adi", ""),
+            tekrar_yukleme_uyarisi=data.get("tekrar_yukleme_uyarisi", ""),
         )
 
 
@@ -657,6 +702,11 @@ def _satirdan_sonuclari_cek(
 
     kayit.puan = _satir_deger(satir, harita.get("puan")) or "0"
 
+    for idx, etiket in harita.get("dis_siralama", []):
+        deger = _satir_deger(satir, idx)
+        if deger:
+            kayit.dis_siralama[etiket] = deger
+
 
 def deneme_excel_onizle(dosya) -> DenemeImportOnizleme:
     onizleme = DenemeImportOnizleme()
@@ -730,11 +780,50 @@ def session_key(deneme_id: int) -> str:
     return f"deneme_import_{deneme_id}"
 
 
+def _dis_siralama_metni(dis_siralama: dict) -> str:
+    if not dis_siralama:
+        return ""
+    parcalar = [f"{etiket}: {deger}" for etiket, deger in dis_siralama.items()]
+    return " · ".join(parcalar)[:200]
+
+
+def dosya_hash_hesapla(dosya) -> str:
+    """Excel dosyasının SHA-256 özeti — aynı dosyanın tekrar yüklenmesini
+    tespit etmek için. Çağrıdan sonra dosya imleci sıfırlanır."""
+    import hashlib
+
+    dosya.seek(0)
+    hash_nesnesi = hashlib.sha256()
+    if hasattr(dosya, "chunks"):
+        for parca in dosya.chunks():
+            hash_nesnesi.update(parca)
+    else:
+        for parca in iter(lambda: dosya.read(65536), b""):
+            hash_nesnesi.update(parca)
+    dosya.seek(0)
+    return hash_nesnesi.hexdigest()
+
+
+def excel_zaten_yuklendi_mi(deneme: DenemeSinavi, dosya_hash: str):
+    from takip.models import DenemeExcelYukleme
+
+    if not dosya_hash:
+        return None
+    return (
+        DenemeExcelYukleme.objects.filter(deneme=deneme, dosya_hash=dosya_hash)
+        .order_by("-olusturulma")
+        .first()
+    )
+
+
 @transaction.atomic
 def deneme_sonuclari_aktar(
     deneme: DenemeSinavi,
     onizleme: DenemeImportOnizleme,
     user: User,
+    *,
+    dosya_hash: str = "",
+    dosya_adi: str = "",
 ) -> tuple[int, list[str]]:
     hatalar: list[str] = []
     oneri_bekleyen = [
@@ -792,6 +881,7 @@ def deneme_sonuclari_aktar(
             toplam_bos=int(toplam.get("bos", 0)),
             toplam_net=t_net,
             puan=puan,
+            dis_siralama_metni=_dis_siralama_metni(satir.dis_siralama),
         )
 
         for kod, veri in satir.branslar.items():
@@ -819,6 +909,21 @@ def deneme_sonuclari_aktar(
     deneme.save(
         update_fields=["durum", "yukleyen", "yuklenme_zamani", "guncellenme"]
     )
+
+    from takip.deneme_service import siralama_hesapla_ve_kaydet
+
+    siralama_hesapla_ve_kaydet(deneme)
+
+    if dosya_hash:
+        from takip.models import DenemeExcelYukleme
+
+        DenemeExcelYukleme.objects.create(
+            deneme=deneme,
+            dosya_hash=dosya_hash,
+            dosya_adi=dosya_adi[:255],
+            yukleyen=user,
+        )
+
     if atlanan:
         hatalar.append(
             f"{atlanan} satır eşleşmediği / atlandığı için aktarılmadı."
