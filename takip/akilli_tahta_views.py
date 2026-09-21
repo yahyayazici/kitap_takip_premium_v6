@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -24,20 +25,65 @@ from takip.permissions.decorators import require_permission
 @login_required
 @require_permission("akilli_tahta", "view")
 def liste(request):
-    if tam_yetkili(request.user):
+    tam = tam_yetkili(request.user)
+    if tam:
         dosyalar = AkilliTahtaDosya.objects.select_related("ders", "yukleyen")
     else:
         dosyalar = AkilliTahtaDosya.objects.filter(yukleyen=request.user).select_related(
             "ders", "yukleyen"
         )
-    return render(
-        request,
-        "akilli_tahta/liste.html",
-        {
-            "dosyalar": dosyalar.order_by("-olusturulma"),
-            "tam_yetkili": tam_yetkili(request.user),
-        },
-    )
+
+    sinif = request.GET.get("sinif", "").strip()
+    ders_id = request.GET.get("ders", "").strip()
+    dosya_turu = request.GET.get("dosya_turu", "").strip()
+    yukleyen_id = request.GET.get("yukleyen", "").strip()
+    baslangic = request.GET.get("baslangic", "").strip()
+    bitis = request.GET.get("bitis", "").strip()
+
+    if tam:
+        if sinif:
+            dosyalar = dosyalar.filter(hedefler__sinif_seviyesi=sinif)
+        if ders_id:
+            dosyalar = dosyalar.filter(ders_id=ders_id)
+        if dosya_turu:
+            dosyalar = dosyalar.filter(dosya_turu=dosya_turu)
+        if yukleyen_id:
+            dosyalar = dosyalar.filter(yukleyen_id=yukleyen_id)
+        if baslangic:
+            dosyalar = dosyalar.filter(olusturulma__date__gte=baslangic)
+        if bitis:
+            dosyalar = dosyalar.filter(olusturulma__date__lte=bitis)
+
+    from takip.wave0_models import Ders
+
+    baglam = {
+        "dosyalar": dosyalar.order_by("-olusturulma").distinct(),
+        "tam_yetkili": tam,
+        "sinif_secenekleri": AkilliTahtaDosya._meta.get_field("dosya_turu").choices,
+    }
+    if tam:
+        from takip.akilli_tahta_models import SinifSeviyesi
+
+        baglam.update(
+            {
+                "sinif_seviyeleri": SinifSeviyesi.choices,
+                "dersler": Ders.objects.filter(aktif=True),
+                "yukleyenler": (
+                    User.objects.filter(
+                        pk__in=AkilliTahtaDosya.objects.values_list("yukleyen_id", flat=True)
+                    )
+                ),
+                "secili": {
+                    "sinif": sinif,
+                    "ders": ders_id,
+                    "dosya_turu": dosya_turu,
+                    "yukleyen": yukleyen_id,
+                    "baslangic": baslangic,
+                    "bitis": bitis,
+                },
+            }
+        )
+    return render(request, "akilli_tahta/liste.html", baglam)
 
 
 @login_required

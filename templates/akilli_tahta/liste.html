@@ -10,9 +10,46 @@
         <p class="muted">Sınıf seviyelerine gönderilen deneme, test, çalışma kâğıdı, görsel ve videolar.</p>
     </div>
     <div class="page-head-actions">
+        {% if tam_yetkili %}
+        <a href="{% url 'akilli_tahta_yonetim:hesap_listesi' %}" class="ghost-btn">Tahta Hesapları</a>
+        {% endif %}
         <a href="{% url 'akilli_tahta:yukle' %}" class="primary-btn">Dosya Yükle</a>
     </div>
 </header>
+
+{% if tam_yetkili %}
+<section class="dashboard-card">
+    <form method="get" class="filter-row">
+        <select name="sinif" class="input">
+            <option value="">Tüm sınıflar</option>
+            {% for deger, etiket in sinif_seviyeleri %}
+            <option value="{{ deger }}" {% if secili.sinif == deger %}selected{% endif %}>{{ etiket }}</option>
+            {% endfor %}
+        </select>
+        <select name="ders" class="input">
+            <option value="">Tüm dersler</option>
+            {% for ders in dersler %}
+            <option value="{{ ders.pk }}" {% if secili.ders == ders.pk|stringformat:"s" %}selected{% endif %}>{{ ders.ad }}</option>
+            {% endfor %}
+        </select>
+        <select name="dosya_turu" class="input">
+            <option value="">Tüm dosya türleri</option>
+            {% for deger, etiket in sinif_secenekleri %}
+            <option value="{{ deger }}" {% if secili.dosya_turu == deger %}selected{% endif %}>{{ etiket }}</option>
+            {% endfor %}
+        </select>
+        <select name="yukleyen" class="input">
+            <option value="">Tüm yükleyenler</option>
+            {% for kullanici in yukleyenler %}
+            <option value="{{ kullanici.pk }}" {% if secili.yukleyen == kullanici.pk|stringformat:"s" %}selected{% endif %}>{{ kullanici.get_full_name|default:kullanici.username }}</option>
+            {% endfor %}
+        </select>
+        <input type="date" name="baslangic" class="input" value="{{ secili.baslangic }}">
+        <input type="date" name="bitis" class="input" value="{{ secili.bitis }}">
+        <button type="submit" class="primary-btn">Filtrele</button>
+    </form>
+</section>
+{% endif %}
 
 <section class="report-table-card">
     <div class="card-heading">

@@ -158,6 +158,26 @@ def dosya_yukle(
     return kayit
 
 
+def hesabin_oturumlarini_sonlandir(hesap: AkilliTahtaHesap) -> int:
+    """Bu hesabın açık tüm oturumlarını kapatır — projede önceden bir
+    "tüm oturumları kapat" mekanizması yoktu; standart Django deseniyle
+    (Session kayıtlarını decode edip ``_auth_user_id`` eşleşenleri silmek)
+    burada yazılmıştır.
+
+    Döndürür: kapatılan oturum sayısı.
+    """
+    from django.contrib.sessions.models import Session
+
+    hedef_id = str(hesap.user_id)
+    kapatilan = 0
+    for oturum in Session.objects.filter(expire_date__gte=timezone.now()).iterator():
+        veri = oturum.get_decoded()
+        if veri.get("_auth_user_id") == hedef_id:
+            oturum.delete()
+            kapatilan += 1
+    return kapatilan
+
+
 def islem_kaydet(kullanici, aksiyon: str, *, dosya=None, hesap=None, detay: str = "") -> None:
     AkilliTahtaIslemKaydi.objects.create(
         kullanici=kullanici if (kullanici and kullanici.is_authenticated) else None,

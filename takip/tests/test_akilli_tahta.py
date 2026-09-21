@@ -14,7 +14,7 @@ from django.utils import timezone
 from datetime import timedelta
 
 from takip.akilli_tahta_models import AkilliTahtaDosya, AkilliTahtaHedef, AkilliTahtaHesap
-from takip.models import EtutHocasi
+from takip.models import EtutHocasi, PersonelProfili
 
 
 def sahte_png() -> bytes:
@@ -294,4 +294,82 @@ class AkilliTahtaHesapVeGirisTests(TestCase):
     def test_tahta_hesabi_panel_listesine_giremiyor(self):
         self.client.force_login(self.tahta5_user)
         yanit = self.client.get(reverse("akilli_tahta:liste"))
+        self.assertNotEqual(yanit.status_code, 200)
+
+
+class AkilliTahtaYoneticiTests(TestCase):
+    """Senaryo 12: yönetici bütün dosyaları ve hesapları yönetebiliyor."""
+
+    def setUp(self):
+        self.idareci_user = User.objects.create_user("idareci1", password="test12345")
+        PersonelProfili.objects.create(
+            user=self.idareci_user, ad_soyad="İdareci", ana_rol=PersonelProfili.Rol.IDARECI
+        )
+
+        self.hoca_user = User.objects.create_user("hoca_admin_test", password="test12345")
+        EtutHocasi.objects.create(ad_soyad="Test Hoca", user=self.hoca_user)
+
+    def test_yonetici_baska_hocanin_dosyasini_arsivleyebiliyor(self):
+        dosya = _dosya_olustur(self.hoca_user, tum_siniflar=True)
+        self.client.force_login(self.idareci_user)
+        yanit = self.client.post(reverse("akilli_tahta:arsivle", args=[dosya.pk]))
+        self.assertEqual(yanit.status_code, 302)
+        dosya.refresh_from_db()
+        self.assertEqual(dosya.durum, AkilliTahtaDosya.Durum.ARSIVLENDI)
+
+    def test_yonetici_liste_ekraninda_tum_dosyalari_gorur(self):
+        _dosya_olustur(self.hoca_user, baslik="Hoca Dosyası", tum_siniflar=True)
+        self.client.force_login(self.idareci_user)
+        yanit = self.client.get(reverse("akilli_tahta:liste"))
+        self.assertContains(yanit, "Hoca Dosyası")
+
+    def test_hoca_liste_ekraninda_baskasinin_dosyasini_gormez(self):
+        _dosya_olustur(self.hoca_user, baslik="Hoca Dosyası", tum_siniflar=True)
+        diger_hoca = User.objects.create_user("baska_hoca", password="test12345")
+        EtutHocasi.objects.create(ad_soyad="Başka Hoca", user=diger_hoca)
+        self.client.force_login(diger_hoca)
+        yanit = self.client.get(reverse("akilli_tahta:liste"))
+        self.assertNotContains(yanit, "Hoca Dosyası")
+
+    def test_yonetici_tahta_hesabi_olusturabiliyor(self):
+        self.client.force_login(self.idareci_user)
+        yanit = self.client.post(
+            reverse("akilli_tahta_yonetim:hesap_olustur"),
+            {"username": "tahta7", "password": "GucluSifre123!", "sinif_seviyesi": "7", "aktif": "on"},
+        )
+        self.assertEqual(yanit.status_code, 302)
+        hesap = AkilliTahtaHesap.objects.get(sinif_seviyesi="7")
+        self.assertEqual(hesap.user.username, "tahta7")
+        self.assertTrue(hesap.user.check_password("GucluSifre123!"))
+
+    def test_ayni_seviye_icin_ikinci_hesap_olusturulamiyor(self):
+        user = User.objects.create_user("tahta8a", password="test12345")
+        AkilliTahtaHesap.objects.create(user=user, sinif_seviyesi="8")
+
+        self.client.force_login(self.idareci_user)
+        yanit = self.client.post(
+            reverse("akilli_tahta_yonetim:hesap_olustur"),
+            {"username": "tahta8b", "password": "GucluSifre123!", "sinif_seviyesi": "8", "aktif": "on"},
+        )
+        self.assertEqual(yanit.status_code, 200)
+        self.assertEqual(AkilliTahtaHesap.objects.filter(sinif_seviyesi="8").count(), 1)
+
+    def test_yonetici_hesabi_pasif_yapinca_oturumlar_kapaniyor(self):
+        tahta_user = User.objects.create_user("tahta_pasif", password="test12345")
+        hesap = AkilliTahtaHesap.objects.create(user=tahta_user, sinif_seviyesi="6")
+        self.client.force_login(tahta_user)
+        self.client.get(reverse("akilli_tahta_tahta:ekran"))  # oturumu oluştur
+
+        self.client.force_login(self.idareci_user)
+        self.client.post(
+            reverse("akilli_tahta_yonetim:hesap_duzenle", args=[hesap.pk]),
+            {},  # aktif kutusunu boş bırak -> pasif
+        )
+        hesap.refresh_from_db()
+        self.assertFalse(hesap.aktif)
+        self.assertFalse(User.objects.get(pk=tahta_user.pk).is_active)
+
+    def test_etut_hocasi_hesap_yonetimine_giremiyor(self):
+        self.client.force_login(self.hoca_user)
+        yanit = self.client.get(reverse("akilli_tahta_yonetim:hesap_listesi"))
         self.assertNotEqual(yanit.status_code, 200)
