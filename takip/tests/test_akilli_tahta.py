@@ -296,6 +296,31 @@ class AkilliTahtaHesapVeGirisTests(TestCase):
         yanit = self.client.get(reverse("akilli_tahta:liste"))
         self.assertNotEqual(yanit.status_code, 200)
 
+    def test_tahta_hesabi_hesap_yonetimine_giremiyor(self):
+        self.client.force_login(self.tahta5_user)
+        yanit = self.client.get(reverse("akilli_tahta_yonetim:hesap_listesi"))
+        self.assertNotEqual(yanit.status_code, 200)
+
+    def test_5a_ve_5b_subeleri_ortak_tahta_hesabini_kullanir(self):
+        """5-A ve 5-B ayrı değildir; ikisi de aynı '5. sınıflar' hesabını kullanır."""
+        from takip.models import SinifSube
+
+        sube_a = SinifSube.objects.create(sinif="5", sube="A")
+        sube_b = SinifSube.objects.create(sinif="5", sube="B")
+
+        dosya = _dosya_olustur(self.hoca_user, tum_siniflar=False)
+        AkilliTahtaHedef.objects.create(dosya=dosya, sinif_seviyesi="5")
+
+        # Şube A ve şube B öğrencilerinin sınıfı, tek bir "5" seviyesine
+        # karşılık gelir — dosyanın hedeflemesi de bu tek seviye üzerinden.
+        self.assertEqual(sube_a.sinif, sube_b.sinif)
+        self.assertTrue(dosya.hedefliyor_mu(sube_a.sinif))
+        self.assertTrue(dosya.hedefliyor_mu(sube_b.sinif))
+
+        self.client.force_login(self.tahta5_user)
+        yanit = self.client.get(reverse("akilli_tahta_tahta:ekran"))
+        self.assertContains(yanit, "Test Dosyası")
+
 
 class AkilliTahtaYoneticiTests(TestCase):
     """Senaryo 12: yönetici bütün dosyaları ve hesapları yönetebiliyor."""
