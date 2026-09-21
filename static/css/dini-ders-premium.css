@@ -1560,3 +1560,165 @@ body.dd-topic-modal-open {
         --dd-name-w: 132px;
     }
 }
+
+/* —— Personel paneli: sıkı, sade yoğunluk (KTT / Soru Takip ile aynı aile) —— */
+.dd-page.dd-list-page {
+    padding-bottom: var(--cs-space-6);
+    gap: var(--cs-space-2);
+}
+
+.dd-page.dd-list-page .dd-help {
+    padding: 0;
+    border-radius: var(--cs-radius-md);
+    border: 1px solid var(--cs-border);
+    background: var(--cs-surface);
+    box-shadow: none;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.dd-page.dd-list-page .dd-help summary {
+    display: flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    list-style-position: inside;
+}
+
+.dd-page.dd-list-page .dd-help[open] summary {
+    border-bottom: 1px solid var(--cs-border);
+}
+
+.dd-page.dd-list-page .dd-help ol {
+    margin: 8px 0 0;
+    padding: 0 12px 10px 1.35rem;
+}
+
+.dd-page.dd-list-page .dd-help-link {
+    margin: 0;
+    padding: 0 12px 10px;
+}
+
+.dd-page.dd-list-page .dd-filter-bar {
+    padding: 10px 12px;
+    border-radius: var(--cs-radius-md);
+    box-shadow: var(--cs-shadow-sm);
+}
+
+.dd-page.dd-list-page .dd-filter-grid {
+    gap: 10px 12px;
+}
+
+.dd-page.dd-list-page .dd-field label {
+    margin-bottom: 4px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.dd-page.dd-list-page .dd-field select,
+.dd-page.dd-list-page .dd-field input {
+    min-height: 36px;
+    padding: 4px 10px;
+    border-radius: var(--cs-radius-sm);
+    font-size: 13px;
+}
+
+.dd-page.dd-list-page .dd-layout {
+    gap: 10px;
+}
+
+.dd-page.dd-list-page .dd-matrix-head {
+    padding: 10px 12px;
+    gap: 8px;
+}
+
+.dd-page.dd-list-page .dd-eyebrow {
+    margin-bottom: 2px;
+    font-size: 10px;
+}
+
+.dd-page.dd-list-page .dd-matrix-head h2 {
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.dd-page.dd-list-page .dd-legend {
+    padding: 6px 12px;
+    gap: 6px 12px;
+}
+
+.dd-page.dd-list-page .dd-legend-item {
+    font-size: 0.7rem;
+}
+
+.dd-page.dd-list-page .dd-matrix-shell {
+    --dd-topic-h: 128px;
+    --dd-name-w: 196px;
+}
+
+.dd-page.dd-list-page .dd-form-foot {
+    padding: 8px 12px;
+    gap: 10px;
+}
+
+.dd-page.dd-list-page .dd-desc {
+    font-size: 12px;
+    margin: 0;
+}
+
+.dd-page.dd-list-page .dd-aside {
+    gap: 8px;
+}
+
+.dd-page.dd-list-page .dd-aside-card {
+    padding: 10px 12px;
+}
+
+.dd-page.dd-list-page .dd-stat-grid {
+    gap: 6px;
+}
+
+.dd-page.dd-list-page .dd-stat {
+    padding: 8px 10px;
+    border-radius: var(--cs-radius-md);
+}
+
+.dd-page.dd-list-page .dd-btn-sm {
+    min-height: 32px;
+    padding: 0 10px;
+    font-size: 12px;
+    border-radius: var(--cs-radius-sm);
+}
+
+@media (max-width: 900px) {
+    .dd-page.dd-list-page .dd-matrix-shell {
+        --dd-topic-h: 118px;
+    }
+
+    .dd-page.dd-list-page .dd-filter-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .dd-page.dd-list-page .dd-help summary {
+        min-height: var(--cs-touch-min);
+    }
+
+    .dd-page.dd-list-page .dd-filter-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dd-page.dd-list-page .dd-field select,
+    .dd-page.dd-list-page .dd-field input {
+        min-height: var(--cs-input-h);
+        font-size: 16px;
+    }
+
+    .dd-page.dd-list-page .dd-btn-sm {
+        min-height: var(--cs-touch-min);
+    }
+}
