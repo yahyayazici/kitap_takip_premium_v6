@@ -4,25 +4,59 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>{% block title %}Akıllı Tahta{% endblock %} · {{ panel_name }}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <style>
     :root {
-        --at-bg: #0f172a;
-        --at-panel: #1e293b;
-        --at-panel-2: #273549;
-        --at-accent: #3b82f6;
-        --at-text: #f1f5f9;
-        --at-muted: #94a3b8;
-        --at-border: #334155;
+        /* —— Renk: koyu lacivert zemin, tek net mavi vurgu —— */
+        --at-bg: #090f24;
+        --at-bg-2: #0c1330;
+        --at-surface: #101a3d;
+        --at-surface-2: #16224e;
+        --at-border: rgba(255, 255, 255, .08);
+        --at-border-strong: rgba(255, 255, 255, .16);
+        --at-text: #f6f8fd;
+        --at-text-dim: #a7b0d1;
+        --at-text-faint: #6b73a0;
+        --at-accent: #3b7bf6;
+        --at-accent-strong: #5e97ff;
+        --at-accent-soft: rgba(59, 123, 246, .14);
+        --at-accent-soft-border: rgba(59, 123, 246, .35);
+
+        /* —— Yerleşim: sayfa boyunca aynı ölçüler —— */
+        --at-gutter: clamp(22px, 4.5vw, 64px);
+        --at-max: 1360px;
+        --at-radius-lg: 18px;
+        --at-radius-md: 12px;
+        --at-radius-pill: 999px;
+        --at-shadow-card: 0 1px 0 rgba(255, 255, 255, .04) inset, 0 12px 28px -16px rgba(0, 0, 0, .55);
+        --at-shadow-card-hover: 0 1px 0 rgba(255, 255, 255, .06) inset, 0 22px 40px -18px rgba(0, 0, 0, .65), 0 0 0 1px var(--at-accent-soft-border);
     }
     * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; height: 100%; background: var(--at-bg); color: var(--at-text);
-        font-family: "Segoe UI", system-ui, -apple-system, sans-serif; }
+    html, body {
+        margin: 0; padding: 0; min-height: 100%;
+        background: var(--at-bg); color: var(--at-text);
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        -webkit-font-smoothing: antialiased;
+    }
     a { color: inherit; text-decoration: none; }
     button { font-family: inherit; cursor: pointer; }
+    ::selection { background: var(--at-accent-soft); }
+    :focus-visible { outline: 2px solid var(--at-accent-strong); outline-offset: 2px; }
+
     .at-donus {
-        position: fixed; left: 16px; bottom: 16px; z-index: 999;
-        background: var(--at-accent); color: #fff; border: none; border-radius: 999px;
-        padding: 14px 22px; font-size: 16px; font-weight: 600; box-shadow: 0 6px 20px rgba(0,0,0,.4);
+        position: fixed; left: var(--at-gutter); bottom: 20px; z-index: 999;
+        display: inline-flex; align-items: center; gap: 8px;
+        background: var(--at-surface-2); color: var(--at-text); border: 1px solid var(--at-border-strong);
+        border-radius: var(--at-radius-pill); padding: 12px 20px 12px 16px;
+        font-size: 14px; font-weight: 600; box-shadow: 0 14px 30px -10px rgba(0,0,0,.55);
+        transition: background .15s ease, transform .15s ease;
+    }
+    .at-donus:hover { background: var(--at-surface); transform: translateY(-1px); }
+
+    @media (prefers-reduced-motion: reduce) {
+        * { transition: none !important; animation: none !important; }
     }
     {% block extra_style %}{% endblock %}
 </style>
