@@ -5,9 +5,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}?v=yct-compact2">
+<link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}?v=dash-c2">
 <link rel="stylesheet" href="{% static 'css/duyuru-carousel.css' %}?v=half5">
-<link rel="stylesheet" href="{% static 'css/personel-dash-split.css' %}?v=half8">
+<link rel="stylesheet" href="{% static 'css/personel-dash-split.css' %}?v=half10">
 <link rel="stylesheet" href="{% static 'css/vazife-premium.css' %}">
 {% if etut_plani_onizleme or dershane_onizleme %}
 <link rel="stylesheet" href="{% static 'css/etut-plan-premium.css' %}">
@@ -15,7 +15,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="dashboard-page dash-home">
+<div class="dashboard-page dash-home dash-list-page">
 
 {% with hero_name=request.user.first_name|default:request.user.username|title %}
 {% include "includes/panel_hero.html" with title="Hoş geldiniz, "|add:hero_name meta=panel_rol|add:" · Kurum yönetim paneli" show_date=True %}

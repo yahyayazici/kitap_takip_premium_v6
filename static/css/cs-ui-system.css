@@ -1224,3 +1224,104 @@ body.v3-body .dd-page.dd-list-page .dd-form-foot button.dd-btn.dd-btn-primary {
         height: var(--cs-btn-h) !important;
     }
 }
+
+/* —— Personel ana sayfa: kompakt hero + sıkı paneller —— */
+.dashboard-page.dash-list-page {
+    --cs-duyuru-panel-h: clamp(220px, 26vw, 280px);
+    gap: 10px !important;
+}
+
+.dashboard-page.dash-list-page > header.dash-hero {
+    padding: 12px 16px !important;
+    min-height: 0 !important;
+    box-shadow: var(--cs-shadow-sm) !important;
+}
+
+.dashboard-page.dash-list-page .dash-hero-scene,
+.dashboard-page.dash-list-page .dash-hero::after {
+    display: none !important;
+}
+
+.dashboard-page.dash-list-page .dash-hero-copy h1 {
+    font-size: 1.22rem !important;
+    line-height: 1.2 !important;
+}
+
+.dashboard-page.dash-list-page .vz-dash-strip::before,
+.dashboard-page.dash-list-page .duyuru-carousel-shell::before,
+.dashboard-page.dash-list-page .personel-yct-card::before,
+.dashboard-page.dash-list-page .dash-metrics-shell::before,
+.dashboard-page.dash-list-page .dash-gorev-card::before,
+.dashboard-page.dash-list-page .dash-etut-day::before,
+.dashboard-page.dash-list-page .mudahale-ai-item::before,
+.dashboard-page.dash-list-page .ai-zekasi-widget::before,
+.dashboard-page.dash-list-page .dash-panel::after {
+    display: none !important;
+}
+
+.dashboard-page.dash-list-page .vz-dash-strip,
+.dashboard-page.dash-list-page .duyuru-carousel-shell,
+.dashboard-page.dash-list-page .personel-yct-card,
+.dashboard-page.dash-list-page .dash-metrics-shell,
+.dashboard-page.dash-list-page .dash-panel,
+.dashboard-page.dash-list-page .dash-gorev-card,
+.dashboard-page.dash-list-page .dash-etut-day,
+.dashboard-page.dash-list-page .mudahale-ai-item,
+.dashboard-page.dash-list-page .ai-zekasi-widget {
+    padding-left: 0 !important;
+}
+
+.dashboard-page.dash-list-page .dash-panel-head {
+    padding: 10px 14px !important;
+}
+
+.dashboard-page.dash-list-page .dash-panel-head h2,
+.dashboard-page.dash-list-page .vz-dash-strip-head h2,
+.dashboard-page.dash-list-page .personel-yct-head h2 {
+    font-size: 0.95rem !important;
+}
+
+.dashboard-page.dash-list-page .dash-stat::before {
+    display: none !important;
+}
+
+.dashboard-page.dash-list-page .dash-stat + .dash-stat::before {
+    display: block !important;
+    width: 1px !important;
+    top: 18% !important;
+    bottom: 18% !important;
+    background: var(--cs-border) !important;
+    border-radius: 0 !important;
+}
+
+.dashboard-page.dash-list-page .personel-top-split {
+    margin-top: 0 !important;
+}
+
+.dashboard-page.dash-list-page .personel-top-split > *,
+.dashboard-page.dash-list-page .personel-top-split .personel-yct-card,
+.dashboard-page.dash-list-page .personel-top-split .duyuru-carousel-shell {
+    min-height: 0 !important;
+    max-height: 280px !important;
+    height: 280px !important;
+}
+
+.dashboard-page.dash-list-page .vz-dash-strip {
+    padding: 8px 12px !important;
+    margin-top: 0 !important;
+}
+
+@media (max-width: 900px) {
+    .dashboard-page.dash-list-page .personel-top-split > *,
+    .dashboard-page.dash-list-page .personel-top-split .personel-yct-card,
+    .dashboard-page.dash-list-page .personel-top-split .duyuru-carousel-shell {
+        height: auto !important;
+        max-height: none !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .dashboard-page.dash-list-page > header.dash-hero {
+        padding: 12px 14px !important;
+    }
+}
