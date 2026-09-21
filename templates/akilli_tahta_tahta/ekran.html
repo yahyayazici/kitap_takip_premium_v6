@@ -35,6 +35,9 @@
     border-radius: 50%; background: var(--at-accent); }
 .at-tarih { margin: 0; font-size: 15px; color: var(--at-text-dim); }
 
+.at-search-col { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.at-cikis { font-size: 12.5px; color: var(--at-text-faint); }
+.at-cikis:hover { color: var(--at-text-dim); text-decoration: underline; }
 .at-search { position: relative; min-width: 300px; }
 .at-search svg {
     position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
@@ -125,6 +128,8 @@
 @media (max-width: 640px) {
     .at-header { padding: 28px var(--at-gutter) 24px; }
     .at-header-row { align-items: flex-start; }
+    .at-search-col { width: 100%; align-items: stretch; }
+    .at-cikis { align-self: flex-end; }
     .at-search { min-width: 100%; }
     .at-body { padding: 28px var(--at-gutter) 100px; }
     .at-grid { grid-template-columns: 1fr; }
@@ -144,10 +149,13 @@
             <div class="at-header-rule"></div>
             <p class="at-tarih">{% now "d F Y, l" %}</p>
         </div>
-        <form method="get" class="at-search">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-            <input type="search" name="q" value="{{ arama }}" placeholder="Dosya ara…">
-        </form>
+        <div class="at-search-col">
+            <form method="get" class="at-search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                <input type="search" name="q" value="{{ arama }}" placeholder="Dosya ara…">
+            </form>
+            <a href="{% url 'akilli_tahta_tahta:cikis' %}" class="at-cikis">Bu hesaptan çıkış yap</a>
+        </div>
     </div>
 </header>
 
