@@ -2340,3 +2340,11 @@ from takip.ekran_models import (  # noqa: E402,F401
     EkranYayinPaketi,
     EkranYayinPlani,
 )
+
+from takip.akilli_tahta_models import (  # noqa: E402,F401
+    AkilliTahtaDosya,
+    AkilliTahtaHedef,
+    AkilliTahtaHesap,
+    AkilliTahtaIslemKaydi,
+    SinifSeviyesi,
+)
