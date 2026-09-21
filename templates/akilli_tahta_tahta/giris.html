@@ -1,0 +1,45 @@
+{% extends "akilli_tahta_tahta/base.html" %}
+
+{% block title %}Akıllı Tahta Girişi{% endblock %}
+
+{% block extra_style %}
+html, body { height: 100%; display: flex; align-items: center; justify-content: center; }
+.at-giris { width: 100%; max-width: 380px; padding: 40px 32px; background: var(--at-panel);
+    border: 1px solid var(--at-border); border-radius: 18px; text-align: center; }
+.at-giris h1 { font-size: 22px; margin: 0 0 6px; }
+.at-giris p.at-alt { color: var(--at-muted); font-size: 14px; margin: 0 0 28px; }
+.at-giris label { display: block; text-align: left; font-size: 14px; color: var(--at-muted);
+    margin: 16px 0 6px; }
+.at-giris input { width: 100%; padding: 14px 16px; border-radius: 10px; border: 1px solid var(--at-border);
+    background: var(--at-panel-2); color: var(--at-text); font-size: 16px; }
+.at-giris button { width: 100%; margin-top: 24px; padding: 14px; border: none; border-radius: 10px;
+    background: var(--at-accent); color: #fff; font-size: 16px; font-weight: 600; }
+.at-giris-hata { background: #7f1d1d; color: #fecaca; border-radius: 10px; padding: 10px 14px;
+    font-size: 14px; margin-bottom: 8px; text-align: left; }
+{% endblock %}
+
+{% block content %}
+<div class="at-giris">
+    <h1>{{ panel_name }}</h1>
+    <p class="at-alt">Akıllı Tahta Girişi</p>
+
+    {% if form.non_field_errors %}
+    <div class="at-giris-hata">{{ form.non_field_errors.0 }}</div>
+    {% elif form.errors %}
+    <div class="at-giris-hata">Kullanıcı adı veya şifre hatalı.</div>
+    {% endif %}
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <label for="{{ form.username.id_for_label }}">Kullanıcı adı</label>
+        <input type="text" name="{{ form.username.html_name }}" id="{{ form.username.id_for_label }}"
+            autocomplete="username" autofocus required>
+
+        <label for="{{ form.password.id_for_label }}">Şifre</label>
+        <input type="password" name="{{ form.password.html_name }}" id="{{ form.password.id_for_label }}"
+            autocomplete="current-password" required>
+
+        <button type="submit">Giriş yap</button>
+    </form>
+</div>
+{% endblock %}
