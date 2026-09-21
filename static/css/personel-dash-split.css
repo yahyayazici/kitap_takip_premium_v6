@@ -903,24 +903,60 @@
 }
 
 .dash-list-page .personel-yct-grid td {
-    min-height: 0;
-    height: 32px;
-    padding: 2px;
+    height: auto;
+    min-height: 44px;
+    padding: 3px 3px 4px;
+    overflow: visible;
+}
+
+.dash-list-page .personel-yct-cal-wrap {
+    overflow: visible;
+    justify-content: flex-start;
 }
 
 .dash-list-page .personel-yct-cell-events {
     min-height: 0;
-    max-height: 14px;
+    max-height: none;
+    overflow: visible;
+    gap: 1px;
+    width: 100%;
+    min-width: 0;
+}
+
+.dash-list-page .personel-yct-chip {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    color: var(--cs-primary);
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: normal;
+    display: block;
     overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+    max-height: 2.4em;
 }
 
-.dash-list-page .personel-yct-cal-wrap {
-    overflow: auto;
+.dash-list-page .personel-yct-more {
+    padding: 0;
+    font-size: 10px;
+    font-weight: 650;
+    color: var(--cs-text-muted);
+    white-space: nowrap;
 }
 
-.dash-list-page .personel-plan-table-wrap {
-    max-height: 240px;
-    padding: 0 10px 10px;
+@media (max-width: 640px) {
+    .dash-list-page .personel-yct-grid td {
+        aspect-ratio: auto;
+        min-height: 40px;
+    }
+
+    .dash-list-page .personel-yct-grid {
+        transform: none;
+    }
 }
 
 .dash-list-page .personel-plan-table-wrap {
