@@ -46,8 +46,12 @@ def _post(data: dict) -> QueryDict:
 @patch("takip.ogretmen_not_service.hafta_yazilabilir_mi", return_value=True)
 class AnalitikOkumaDegerlendirmeTests(TestCase):
     def setUp(self):
-        self.brans_ao = Brans.objects.create(ad="Analitik", sira=1, aktif=True)
-        self.brans_mat = Brans.objects.create(ad="Matematik", sira=2, aktif=True)
+        self.brans_ao, _ = Brans.objects.get_or_create(
+            ad="Analitik", defaults={"sira": 1, "aktif": True}
+        )
+        self.brans_mat, _ = Brans.objects.get_or_create(
+            ad="Matematik", defaults={"sira": 2, "aktif": True}
+        )
         self.ao = Ders.objects.create(
             ad="Analitik Okuma",
             kod=ANALITIK_OKUMA_KOD,

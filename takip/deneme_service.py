@@ -30,11 +30,9 @@ DENEME_DETAY_BRANSLAR: tuple[str, ...] = (
     "ingilizce",
 )
 
-# Günlük soru takip eşlemesi: din ayrı modülde tutulduğu için yansımaz
+# Günlük soru takip eşlemesi — deneme branşları soru takipteki derslerle eşlenir
 DENEME_BRANS_DERS_MAP: dict[str, str] = {
-    kod: BRANS_ETIKETLERI[kod]
-    for kod in DENEME_DETAY_BRANSLAR
-    if kod != "din"
+    kod: BRANS_ETIKETLERI[kod] for kod in DENEME_DETAY_BRANSLAR
 }
 
 LGS_KATSAYI: dict[str, Decimal] = {
