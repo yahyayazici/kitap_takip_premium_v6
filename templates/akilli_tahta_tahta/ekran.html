@@ -3,43 +3,160 @@
 {% block title %}{{ hesap.get_sinif_seviyesi_display }} Akıllı Tahtası{% endblock %}
 
 {% block extra_style %}
-.at-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
-    gap: 12px; padding: 20px 28px; background: var(--at-panel); border-bottom: 1px solid var(--at-border); }
-.at-header h1 { margin: 0; font-size: 26px; }
-.at-header .at-kurum { color: var(--at-muted); font-size: 15px; margin: 0 0 4px; }
-.at-header .at-tarih { color: var(--at-muted); font-size: 15px; }
-.at-arama { padding: 12px 18px; border-radius: 12px; border: 1px solid var(--at-border);
-    background: var(--at-panel-2); color: var(--at-text); font-size: 16px; min-width: 260px; }
-.at-body { padding: 24px 28px 100px; }
-.at-bolum { margin-bottom: 32px; }
-.at-bolum h2 { font-size: 19px; margin: 0 0 14px; color: var(--at-text);
-    display: flex; align-items: center; gap: 8px; }
-.at-bolum h2 .at-sayi { color: var(--at-muted); font-size: 14px; font-weight: 400; }
-.at-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
-.at-kart { background: var(--at-panel); border: 1px solid var(--at-border); border-radius: 14px;
-    padding: 16px; display: flex; flex-direction: column; gap: 8px; }
-.at-kart.at-ust { border-color: var(--at-accent); }
-.at-kart-baslik { font-size: 16px; font-weight: 600; }
-.at-kart-meta { color: var(--at-muted); font-size: 13px; }
-.at-kart-ac { margin-top: auto; background: var(--at-accent); color: #fff; border: none;
-    border-radius: 10px; padding: 12px; text-align: center; font-size: 15px; font-weight: 600; }
-.at-bos { color: var(--at-muted); padding: 12px 0; }
-.at-bildirim { position: fixed; top: 16px; right: 16px; background: var(--at-accent); color: #fff;
-    padding: 12px 20px; border-radius: 10px; font-size: 14px; opacity: 0; transform: translateY(-10px);
-    transition: opacity .25s, transform .25s; z-index: 999; pointer-events: none; }
+.at-header {
+    position: relative; overflow: hidden;
+    border-bottom: 1px solid var(--at-border);
+    padding: 44px var(--at-gutter) 34px;
+}
+.at-orb {
+    position: absolute; border-radius: 50%; filter: blur(46px); pointer-events: none; z-index: 0;
+    opacity: .55;
+}
+.at-orb-1 { width: 360px; height: 360px; top: -180px; right: 6%; background: radial-gradient(circle at 35% 35%, var(--at-accent), transparent 70%); }
+.at-orb-2 { width: 260px; height: 260px; top: -60px; right: 22%; background: radial-gradient(circle at 40% 40%, var(--at-violet), transparent 70%); opacity: .35; }
+.at-orb-3 { width: 220px; height: 220px; top: 10px; left: 55%; background: radial-gradient(circle at 45% 45%, var(--at-cyan), transparent 70%); opacity: .28; }
+
+.at-header-row {
+    position: relative; z-index: 1;
+    max-width: var(--at-max); margin: 0 auto;
+    display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 24px;
+}
+.at-kurum {
+    margin: 0 0 10px; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--at-accent-strong);
+}
+.at-header h1 {
+    margin: 0 0 14px; font-size: clamp(28px, 3.4vw, 38px); font-weight: 800; letter-spacing: -.01em; line-height: 1.05;
+    color: var(--at-text);
+}
+.at-header-rule { position: relative; width: 56px; height: 3px; border-radius: 2px; margin-bottom: 14px;
+    background: linear-gradient(90deg, var(--at-accent), transparent); }
+.at-header-rule::after { content: ""; position: absolute; right: -3px; top: -1.5px; width: 6px; height: 6px;
+    border-radius: 50%; background: var(--at-accent); }
+.at-tarih { margin: 0; font-size: 15px; color: var(--at-text-dim); }
+
+.at-search-col { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.at-cikis { font-size: 12.5px; color: var(--at-text-faint); }
+.at-cikis:hover { color: var(--at-text-dim); text-decoration: underline; }
+.at-search { position: relative; min-width: 300px; }
+.at-search svg {
+    position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+    width: 18px; height: 18px; color: var(--at-text-faint); pointer-events: none;
+}
+.at-search input {
+    width: 100%; padding: 14px 16px 14px 46px; border-radius: var(--at-radius-md);
+    border: 1px solid var(--at-border-strong); background: var(--at-surface); color: var(--at-text);
+    font-family: inherit; font-size: 15px; box-shadow: var(--at-shadow-card);
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+.at-search input::placeholder { color: var(--at-text-faint); }
+.at-search input:focus {
+    outline: none; border-color: var(--at-accent);
+    box-shadow: 0 0 0 3px var(--at-accent-soft), var(--at-shadow-card);
+}
+
+.at-body { position: relative; max-width: var(--at-max); margin: 0 auto; padding: 40px var(--at-gutter) 120px; }
+.at-bolum { margin-bottom: 48px; }
+.at-bolum-head {
+    display: flex; align-items: baseline; gap: 10px; margin: 0 0 20px;
+    padding-bottom: 14px; border-bottom: 1px solid var(--at-border);
+}
+.at-bolum-head h2 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -.005em; }
+.at-sayi {
+    display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px;
+    padding: 0 7px; border-radius: var(--at-radius-pill); background: var(--at-accent-soft);
+    color: var(--at-accent-strong); font-size: 12px; font-weight: 700;
+}
+
+.at-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 18px; }
+
+.at-kart {
+    position: relative; overflow: hidden;
+    background: var(--at-surface); border: 1px solid var(--at-border); border-radius: var(--at-radius-lg);
+    padding: 22px; display: flex; flex-direction: column; gap: 14px;
+    box-shadow: var(--at-shadow-card);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.at-kart::before {
+    content: ""; position: absolute; top: 14px; right: 14px; width: 22px; height: 22px;
+    border-top: 1.5px solid var(--at-accent-soft-border); border-right: 1.5px solid var(--at-accent-soft-border);
+    border-radius: 0 6px 0 0; opacity: .8; transition: opacity .18s ease, border-color .18s ease;
+}
+.at-kart:hover { transform: translateY(-3px); box-shadow: var(--at-shadow-card-hover); border-color: var(--at-border-strong); }
+.at-kart:hover::before { border-color: var(--at-accent); opacity: 1; }
+
+.at-kart-tur { display: flex; align-items: center; gap: 8px; }
+.at-kart-tur svg { width: 17px; height: 17px; color: var(--at-accent); flex-shrink: 0; }
+.at-kart-tur-etiket { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--at-text-faint); }
+.at-pin { margin-left: auto; width: 8px; height: 8px; border-radius: 50%; background: var(--at-accent); }
+
+.at-kart-baslik { font-size: 16.5px; font-weight: 650; line-height: 1.35; letter-spacing: -.003em; color: var(--at-text); }
+
+.at-kart-footer {
+    margin-top: auto; padding-top: 14px; border-top: 1px solid var(--at-border);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.at-kart-meta { font-size: 13px; color: var(--at-text-dim); line-height: 1.4; }
+
+.at-kart-ac {
+    display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;
+    background: var(--at-accent); color: #fff; border: none; border-radius: var(--at-radius-pill);
+    padding: 9px 16px; font-size: 14px; font-weight: 650;
+    transition: background .15s ease;
+}
+.at-kart-ac svg { width: 14px; height: 14px; transition: transform .15s ease; }
+.at-kart:hover .at-kart-ac { background: var(--at-accent-strong); }
+.at-kart:hover .at-kart-ac svg { transform: translateX(2px); }
+
+.at-bos {
+    display: flex; align-items: center; gap: 14px;
+    border: 1px dashed var(--at-border-strong); border-radius: var(--at-radius-lg);
+    padding: 22px 24px; color: var(--at-text-faint); font-size: 14px; background: rgba(255,255,255,.4);
+}
+.at-bos svg { width: 22px; height: 22px; color: var(--at-text-faint); flex-shrink: 0; }
+
+.at-bildirim {
+    position: fixed; top: 24px; right: 24px; z-index: 999; pointer-events: none;
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--at-surface); color: var(--at-text); border: 1px solid var(--at-border-strong);
+    padding: 12px 18px; border-radius: var(--at-radius-md); font-size: 14px; font-weight: 600;
+    box-shadow: var(--at-shadow-card-hover);
+    opacity: 0; transform: translateY(-8px); transition: opacity .25s ease, transform .25s ease;
+}
 .at-bildirim-goster { opacity: 1; transform: translateY(0); }
+
+@media (max-width: 640px) {
+    .at-header { padding: 28px var(--at-gutter) 24px; }
+    .at-header-row { align-items: flex-start; }
+    .at-search-col { width: 100%; align-items: stretch; }
+    .at-cikis { align-self: flex-end; }
+    .at-search { min-width: 100%; }
+    .at-body { padding: 28px var(--at-gutter) 100px; }
+    .at-grid { grid-template-columns: 1fr; }
+    .at-orb-2, .at-orb-3 { display: none; }
+}
 {% endblock %}
 
 {% block content %}
 <header class="at-header">
-    <div>
-        <p class="at-kurum">{{ panel_name }}</p>
-        <h1>{{ hesap.get_sinif_seviyesi_display }} Akıllı Tahtası</h1>
-        <p class="at-tarih">{% now "d F Y, l" %}</p>
+    <div class="at-orb at-orb-1" aria-hidden="true"></div>
+    <div class="at-orb at-orb-2" aria-hidden="true"></div>
+    <div class="at-orb at-orb-3" aria-hidden="true"></div>
+    <div class="at-header-row">
+        <div>
+            <p class="at-kurum">{{ panel_name }}</p>
+            <h1>{{ hesap.get_sinif_seviyesi_display }} Akıllı Tahtası</h1>
+            <div class="at-header-rule"></div>
+            <p class="at-tarih">{% now "d F Y, l" %}</p>
+        </div>
+        <div class="at-search-col">
+            <form method="get" class="at-search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                <input type="search" name="q" value="{{ arama }}" placeholder="Dosya ara…">
+            </form>
+            <a href="{% url 'akilli_tahta_tahta:cikis' %}" class="at-cikis">Bu hesaptan çıkış yap</a>
+        </div>
     </div>
-    <form method="get">
-        <input class="at-arama" type="search" name="q" value="{{ arama }}" placeholder="Dosya ara…">
-    </form>
 </header>
 
 <div class="at-body" id="at-icerik" data-son-guncelleme="{{ son_guncelleme }}">

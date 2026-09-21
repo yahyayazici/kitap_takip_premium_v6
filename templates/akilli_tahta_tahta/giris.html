@@ -3,43 +3,197 @@
 {% block title %}Akıllı Tahta Girişi{% endblock %}
 
 {% block extra_style %}
-html, body { height: 100%; display: flex; align-items: center; justify-content: center; }
-.at-giris { width: 100%; max-width: 380px; padding: 40px 32px; background: var(--at-panel);
-    border: 1px solid var(--at-border); border-radius: 18px; text-align: center; }
-.at-giris h1 { font-size: 22px; margin: 0 0 6px; }
-.at-giris p.at-alt { color: var(--at-muted); font-size: 14px; margin: 0 0 28px; }
-.at-giris label { display: block; text-align: left; font-size: 14px; color: var(--at-muted);
-    margin: 16px 0 6px; }
-.at-giris input { width: 100%; padding: 14px 16px; border-radius: 10px; border: 1px solid var(--at-border);
-    background: var(--at-panel-2); color: var(--at-text); font-size: 16px; }
-.at-giris button { width: 100%; margin-top: 24px; padding: 14px; border: none; border-radius: 10px;
-    background: var(--at-accent); color: #fff; font-size: 16px; font-weight: 600; }
-.at-giris-hata { background: #7f1d1d; color: #fecaca; border-radius: 10px; padding: 10px 14px;
-    font-size: 14px; margin-bottom: 8px; text-align: left; }
+html, body { height: 100%; }
+
+.lg-scene {
+    position: relative; min-height: 100vh; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    padding: 48px 20px; perspective: 1400px;
+}
+
+/* —— Canlı, süzülen gradient küreler —— */
+.lg-orb { position: absolute; border-radius: 50%; filter: blur(70px); pointer-events: none; will-change: transform; }
+.lg-orb-a { width: 480px; height: 480px; top: -180px; left: -140px; opacity: .5;
+    background: radial-gradient(circle at 35% 35%, var(--at-accent), transparent 70%);
+    animation: lg-float-a 17s ease-in-out infinite; }
+.lg-orb-b { width: 420px; height: 420px; bottom: -160px; right: -120px; opacity: .38;
+    background: radial-gradient(circle at 40% 40%, var(--at-violet), transparent 70%);
+    animation: lg-float-b 21s ease-in-out infinite; }
+.lg-orb-c { width: 300px; height: 300px; top: 22%; right: 10%; opacity: .3;
+    background: radial-gradient(circle at 45% 45%, var(--at-cyan), transparent 70%);
+    animation: lg-float-c 19s ease-in-out infinite; }
+@keyframes lg-float-a { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(40px,-30px) scale(1.08); } }
+@keyframes lg-float-b { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-35px,25px) scale(1.06); } }
+@keyframes lg-float-c { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-24px,-20px) scale(1.1); } }
+
+.lg-grid {
+    position: absolute; inset: 0; pointer-events: none;
+    background-image: linear-gradient(var(--at-border) 1px, transparent 1px), linear-gradient(90deg, var(--at-border) 1px, transparent 1px);
+    background-size: 56px 56px;
+    -webkit-mask-image: radial-gradient(circle at 50% 32%, black, transparent 68%);
+    mask-image: radial-gradient(circle at 50% 32%, black, transparent 68%);
+    opacity: .5;
+}
+
+.lg-stage { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 26px; }
+
+/* —— Dönen "cam küre" — 3B illüzyon —— */
+.lg-sphere-wrap { width: 92px; height: 92px; animation: lg-drop .7s cubic-bezier(.2,1,.3,1) both; }
+.lg-sphere {
+    width: 92px; height: 92px; border-radius: 50%;
+    background: radial-gradient(circle at 32% 26%, #ffffff 0%, #cfe0ff 14%, var(--at-accent) 42%, var(--at-accent-strong) 68%, #0c1a4d 100%);
+    box-shadow: 0 22px 40px -14px rgba(47,95,224,.55), inset -10px -10px 22px rgba(0,0,0,.28), inset 7px 7px 16px rgba(255,255,255,.4);
+    animation: lg-spin 9s linear infinite;
+}
+@keyframes lg-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes lg-drop { from { opacity: 0; transform: translateY(-16px) scale(.7); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+/* —— Cam kart —— */
+.lg-card-outer { position: relative; animation: lg-rise .7s .05s cubic-bezier(.2,1,.3,1) both; }
+.lg-card-outer::before {
+    content: ""; position: absolute; inset: -1.5px; border-radius: 25.5px; z-index: -1;
+    background: conic-gradient(from 0deg, var(--at-accent), var(--at-violet), var(--at-cyan), var(--at-accent));
+    opacity: .55; filter: blur(7px); animation: lg-ring 7s linear infinite;
+}
+@keyframes lg-ring { to { transform: rotate(360deg); } }
+@keyframes lg-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+.lg-card {
+    position: relative; width: min(400px, 100%);
+    background: rgba(255, 255, 255, .74); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
+    border: 1px solid rgba(255, 255, 255, .7); border-radius: 24px;
+    padding: 40px 34px 34px; text-align: center;
+    box-shadow: 0 34px 60px -26px rgba(15,23,64,.28), inset 0 1px 0 rgba(255,255,255,.85);
+    transform-style: preserve-3d; transition: transform .15s ease-out;
+}
+
+.lg-eyebrow { margin: 0 0 6px; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--at-accent-strong); }
+.lg-card h1 { margin: 0 0 8px; font-size: 24px; font-weight: 800; letter-spacing: -.01em; color: var(--at-text); }
+.lg-sub { margin: 0 0 28px; font-size: 14px; color: var(--at-text-dim); }
+
+.lg-hata {
+    display: flex; align-items: center; gap: 8px; text-align: left;
+    background: rgba(220, 38, 38, .08); border: 1px solid rgba(220, 38, 38, .25); color: #9f1d1d;
+    border-radius: 12px; padding: 11px 14px; font-size: 13.5px; margin-bottom: 18px;
+}
+.lg-hata svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+.lg-field { position: relative; margin-bottom: 16px; text-align: left; }
+.lg-field label { display: block; font-size: 12.5px; font-weight: 700; letter-spacing: .02em; color: var(--at-text-dim); margin-bottom: 7px; }
+.lg-field svg {
+    position: absolute; left: 14px; top: 39px; width: 17px; height: 17px; color: var(--at-text-faint);
+    pointer-events: none;
+}
+.lg-field input {
+    width: 100%; padding: 13px 14px 13px 42px; border-radius: 12px;
+    border: 1px solid var(--at-border-strong); background: rgba(255, 255, 255, .85); color: var(--at-text);
+    font-family: inherit; font-size: 15px; transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.lg-field input::placeholder { color: var(--at-text-faint); }
+.lg-field input:focus { outline: none; border-color: var(--at-accent); background: #fff; box-shadow: 0 0 0 3px var(--at-accent-soft); }
+
+.lg-submit {
+    position: relative; overflow: hidden; width: 100%; margin-top: 10px; padding: 14px; border: none;
+    border-radius: 12px; color: #fff; font-family: inherit; font-size: 15px; font-weight: 700;
+    background: linear-gradient(120deg, var(--at-accent), var(--at-violet), var(--at-accent-strong));
+    background-size: 220% 220%; background-position: 0% 50%;
+    box-shadow: 0 16px 30px -12px rgba(47,95,224,.45);
+    transition: background-position .5s ease, transform .15s ease, box-shadow .15s ease;
+}
+.lg-submit:hover { background-position: 100% 50%; transform: translateY(-1px); box-shadow: 0 20px 36px -12px rgba(47,95,224,.55); }
+.lg-submit:active { transform: translateY(0); }
+.lg-submit::after {
+    content: ""; position: absolute; top: 0; left: -60%; width: 40%; height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(255,255,255,.55), transparent);
+    transform: skewX(-18deg);
+}
+.lg-submit:hover::after { animation: lg-shine .85s ease; }
+@keyframes lg-shine { from { left: -60%; } to { left: 140%; } }
+
+@media (prefers-reduced-motion: reduce) {
+    .lg-orb, .lg-sphere, .lg-card-outer::before, .lg-card-outer, .lg-sphere-wrap { animation: none !important; }
+}
+@media (max-width: 460px) {
+    .lg-orb-b, .lg-orb-c { opacity: .2; }
+    .lg-card { padding: 32px 24px 28px; }
+}
 {% endblock %}
 
 {% block content %}
-<div class="at-giris">
-    <h1>{{ panel_name }}</h1>
-    <p class="at-alt">Akıllı Tahta Girişi</p>
+<div class="lg-scene">
+    <div class="lg-orb lg-orb-a" aria-hidden="true"></div>
+    <div class="lg-orb lg-orb-b" aria-hidden="true"></div>
+    <div class="lg-orb lg-orb-c" aria-hidden="true"></div>
+    <div class="lg-grid" aria-hidden="true"></div>
 
-    {% if form.non_field_errors %}
-    <div class="at-giris-hata">{{ form.non_field_errors.0 }}</div>
-    {% elif form.errors %}
-    <div class="at-giris-hata">Kullanıcı adı veya şifre hatalı.</div>
-    {% endif %}
+    <div class="lg-stage">
+        <div class="lg-sphere-wrap" aria-hidden="true"><div class="lg-sphere"></div></div>
 
-    <form method="post" novalidate>
-        {% csrf_token %}
-        <label for="{{ form.username.id_for_label }}">Kullanıcı adı</label>
-        <input type="text" name="{{ form.username.html_name }}" id="{{ form.username.id_for_label }}"
-            autocomplete="username" autofocus required>
+        <div class="lg-card-outer">
+            <div class="lg-card" id="lg-card">
+                <p class="lg-eyebrow">{{ panel_name }}</p>
+                <h1>Akıllı Tahta Girişi</h1>
+                <p class="lg-sub">Sınıfınızın hesabıyla giriş yapın</p>
 
-        <label for="{{ form.password.id_for_label }}">Şifre</label>
-        <input type="password" name="{{ form.password.html_name }}" id="{{ form.password.id_for_label }}"
-            autocomplete="current-password" required>
+                {% if form.non_field_errors %}
+                <div class="lg-hata">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+                    <span>{{ form.non_field_errors.0 }}</span>
+                </div>
+                {% elif form.errors %}
+                <div class="lg-hata">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+                    <span>Kullanıcı adı veya şifre hatalı.</span>
+                </div>
+                {% endif %}
 
-        <button type="submit">Giriş yap</button>
-    </form>
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="lg-field">
+                        <label for="{{ form.username.id_for_label }}">Kullanıcı adı</label>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg>
+                        <input type="text" name="{{ form.username.html_name }}" id="{{ form.username.id_for_label }}"
+                            autocomplete="username" autofocus required placeholder="Kullanıcı adı">
+                    </div>
+
+                    <div class="lg-field">
+                        <label for="{{ form.password.id_for_label }}">Şifre</label>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="9.5" rx="2"/><path d="M7.5 10.5V7.8a4.5 4.5 0 0 1 9 0v2.7"/></svg>
+                        <input type="password" name="{{ form.password.html_name }}" id="{{ form.password.id_for_label }}"
+                            autocomplete="current-password" required placeholder="Şifre">
+                    </div>
+
+                    <button type="submit" class="lg-submit">Giriş yap</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_body_end %}
+<script>
+(function () {
+    var card = document.getElementById("lg-card");
+    if (!card || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    var rect = null;
+    function refresh() { rect = card.getBoundingClientRect(); }
+    refresh();
+    window.addEventListener("resize", refresh);
+
+    document.addEventListener("mousemove", function (e) {
+        if (!rect) return;
+        var cx = rect.left + rect.width / 2;
+        var cy = rect.top + rect.height / 2;
+        var dx = Math.max(-1, Math.min(1, (e.clientX - cx) / (rect.width * 1.4)));
+        var dy = Math.max(-1, Math.min(1, (e.clientY - cy) / (rect.height * 1.4)));
+        card.style.transform = "rotateY(" + (dx * 6) + "deg) rotateX(" + (-dy * 6) + "deg)";
+    });
+
+    document.addEventListener("mouseleave", function () {
+        card.style.transform = "rotateY(0deg) rotateX(0deg)";
+    });
+})();
+</script>
 {% endblock %}

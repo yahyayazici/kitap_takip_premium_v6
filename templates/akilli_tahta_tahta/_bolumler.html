@@ -1,19 +1,42 @@
 {% for baslik, liste in bolumler %}
 <section class="at-bolum">
-    <h2>{{ baslik }} <span class="at-sayi">({{ liste|length }})</span></h2>
+    <div class="at-bolum-head">
+        <h2>{{ baslik }}</h2>
+        <span class="at-sayi">{{ liste|length }}</span>
+    </div>
     {% if liste %}
     <div class="at-grid">
         {% for dosya in liste %}
-        <div class="at-kart {% if dosya.ust_sirada %}at-ust{% endif %}">
-            <div class="at-kart-baslik">{{ dosya.baslik }}</div>
-            <div class="at-kart-meta">{{ dosya.get_icerik_turu_display }} · {{ dosya.dosya_turu|upper }}{% if dosya.ders %} · {{ dosya.ders.ad }}{% endif %}</div>
-            <div class="at-kart-meta">{{ dosya.yukleyen.get_full_name|default:dosya.yukleyen.username }} · {{ dosya.olusturulma|date:"d.m.Y" }}</div>
-            <a class="at-kart-ac" href="{% url 'akilli_tahta_tahta:goruntule' dosya.pk %}">Aç</a>
+        <div class="at-kart">
+            <div class="at-kart-tur">
+                {% if dosya.dosya_turu == "pdf" %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v4h4"/><path d="M9 13h6M9 17h4"/></svg>
+                {% elif dosya.dosya_turu == "mp4" %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 9.5v5l4.5-2.5Z" fill="currentColor" stroke="none"/></svg>
+                {% else %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m6 17 4.5-4.5 3 3L18 11l0 6"/></svg>
+                {% endif %}
+                <span class="at-kart-tur-etiket">{{ dosya.get_icerik_turu_display }} · {{ dosya.dosya_turu|upper }}</span>
+                {% if dosya.ust_sirada %}<span class="at-pin" title="Üst sırada"></span>{% endif %}
+            </div>
+
+            <div class="at-kart-baslik">{{ dosya.baslik }}{% if dosya.ders %}<br><span style="color:var(--at-text-dim); font-weight:500; font-size:14px;">{{ dosya.ders.ad }}</span>{% endif %}</div>
+
+            <div class="at-kart-footer">
+                <span class="at-kart-meta">{{ dosya.yukleyen.get_full_name|default:dosya.yukleyen.username }}<br>{{ dosya.olusturulma|date:"d.m.Y" }}</span>
+                <a class="at-kart-ac" href="{% url 'akilli_tahta_tahta:goruntule' dosya.pk %}">
+                    Aç
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                </a>
+            </div>
         </div>
         {% endfor %}
     </div>
     {% else %}
-    <p class="at-bos">Bu bölümde henüz dosya yok.</p>
+    <div class="at-bos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="7.5" width="17" height="12" rx="2"/><path d="M3.5 11h5.2a1.5 1.5 0 0 1 1.34.83l.5 1a1.5 1.5 0 0 0 1.34.83h.24a1.5 1.5 0 0 0 1.34-.83l.5-1a1.5 1.5 0 0 1 1.34-.83h5.2"/><path d="M7 7.5V6a1.5 1.5 0 0 1 1.5-1.5h7A1.5 1.5 0 0 1 17 6v1.5"/></svg>
+        <span>Bu bölümde henüz dosya yok.</span>
+    </div>
     {% endif %}
 </section>
 {% endfor %}
