@@ -39,6 +39,14 @@ class AkilliTahtaHatasi(Exception):
     """Kullanıcıya olduğu gibi gösterilebilecek, anlaşılır Türkçe hata."""
 
 
+def kullanici_tahta_mi(user: User) -> bool:
+    """Aktif bir akıllı tahta hesabıyla giriş yapmış mı?"""
+    if not user.is_authenticated:
+        return False
+    hesap = getattr(user, "akilli_tahta_hesabi", None)
+    return bool(hesap and hesap.aktif)
+
+
 def tam_yetkili(user: User) -> bool:
     """İdareci/ic_mesul/egitim_mesul (ya da süper kullanıcı) — her dosyayı yönetir."""
     return can(user, "akilli_tahta", "manage_accounts")

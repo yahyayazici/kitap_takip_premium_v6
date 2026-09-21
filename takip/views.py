@@ -297,6 +297,10 @@ def _zimmet_okuma_toplami(zimmet) -> int:
 
 def home(request):
     if request.user.is_authenticated:
+        from takip.akilli_tahta_service import kullanici_tahta_mi
+
+        if kullanici_tahta_mi(request.user):
+            return redirect("akilli_tahta_tahta:ekran")
         if kullanici_veli_mi(request.user):
             return redirect("veli_dashboard")
         if kullanici_talebe_mi(request.user):
@@ -321,6 +325,12 @@ def dashboard(request):
     # durak — `redirect(...)` yerine hedef view'ı DOĞRUDAN çağırıyoruz ki
     # tarayıcı gereksiz bir ekstra HTTP round-trip (302 + yeni GET)
     # yapmasın. URL/davranış aynı, sadece bir ağ gidiş-dönüşü daha az.
+    from takip.akilli_tahta_service import kullanici_tahta_mi
+
+    if kullanici_tahta_mi(request.user):
+        from takip.akilli_tahta_tahta_views import ekran as tahta_ekran
+
+        return tahta_ekran(request)
     if kullanici_veli_mi(request.user):
         from takip.veli_views import veli_dashboard
 

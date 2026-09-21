@@ -5,6 +5,7 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 
+from takip.akilli_tahta_service import kullanici_tahta_mi
 from takip.ogretmen_service import (
     ogretmen_giris_url_adi,
     ogretmen_paneli_kullanicisi_mi,
@@ -55,6 +56,14 @@ class PanelLoginView(auth_views.LoginView):
         return super().form_invalid(form)
 
     def get_success_url(self):
+        user = self.request.user
+
+        # Akıllı tahta hesapları HER ZAMAN kendi tahta ekranına gider — bir
+        # ``?next=...`` ile başka bir panele yönlendirilmeye asla izin
+        # verilmez (URL kurcalamasıyla panele/başka ekrana sızma riski).
+        if kullanici_tahta_mi(user):
+            return reverse("akilli_tahta_tahta:ekran")
+
         # Kullanıcı korumalı bir adrese tıklayıp giriş ekranına düştüyse
         # (``?next=...``) girişten sonra ORAYA dönmeli. Bu kontrol olmadan
         # herkes rolünün varsayılan panosuna gidiyordu; örneğin /ekran/
@@ -65,7 +74,6 @@ class PanelLoginView(auth_views.LoginView):
         if yonlendirme:
             return yonlendirme
 
-        user = self.request.user
         if kullanici_veli_mi(user):
             return reverse("veli_dashboard")
         if kullanici_talebe_mi(user):

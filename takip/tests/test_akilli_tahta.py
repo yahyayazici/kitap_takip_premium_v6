@@ -11,7 +11,9 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from takip.akilli_tahta_models import AkilliTahtaDosya
+from datetime import timedelta
+
+from takip.akilli_tahta_models import AkilliTahtaDosya, AkilliTahtaHedef, AkilliTahtaHesap
 from takip.models import EtutHocasi
 
 
@@ -174,3 +176,122 @@ class AkilliTahtaYuklemeTests(TestCase):
         )
         kayit = AkilliTahtaDosya.objects.get(baslik="5. Sınıf Matematik Denemesi")
         self.assertEqual(kayit.durum, AkilliTahtaDosya.Durum.TASLAK)
+
+
+def _dosya_olustur(yukleyen, **ek):
+    veri = dict(
+        baslik="Test Dosyası",
+        dosya=SimpleUploadedFile("t.pdf", sahte_pdf(), content_type="application/pdf"),
+        dosya_turu="pdf",
+        icerik_turu=AkilliTahtaDosya.IcerikTuru.DENEME,
+        yayin_baslangic=timezone.now() - timedelta(hours=1),
+        durum=AkilliTahtaDosya.Durum.YAYINDA,
+        yukleyen=yukleyen,
+        dosya_hash="abc123",
+        dosya_boyutu=100,
+    )
+    veri.update(ek)
+    return AkilliTahtaDosya.objects.create(**veri)
+
+
+class AkilliTahtaHesapVeGirisTests(TestCase):
+    """Senaryo 3, 4, 5, 6, 7, 8, 9: hedefleme, yaşam döngüsü, giriş kısıtları."""
+
+    def setUp(self):
+        self.hoca_user = User.objects.create_user("hoca_giris", password="test12345")
+        EtutHocasi.objects.create(ad_soyad="Test Hoca", user=self.hoca_user)
+
+        self.tahta5_user = User.objects.create_user("tahta5", password="test12345")
+        self.tahta5 = AkilliTahtaHesap.objects.create(user=self.tahta5_user, sinif_seviyesi="5")
+
+        self.tahta6_user = User.objects.create_user("tahta6", password="test12345")
+        self.tahta6 = AkilliTahtaHesap.objects.create(user=self.tahta6_user, sinif_seviyesi="6")
+
+    def test_giris_yapan_tahta_hesabi_tahta_ekranina_yonlendiriliyor(self):
+        yanit = self.client.post(
+            reverse("login"),
+            {"username": "tahta5", "password": "test12345"},
+        )
+        self.assertRedirects(yanit, reverse("akilli_tahta_tahta:ekran"))
+
+    def test_5_sinif_dosyasi_5_sinif_tahtasinda_gorunuyor_6da_gorunmuyor(self):
+        dosya = _dosya_olustur(self.hoca_user, tum_siniflar=False)
+        AkilliTahtaHedef.objects.create(dosya=dosya, sinif_seviyesi="5")
+
+        self.client.force_login(self.tahta5_user)
+        yanit = self.client.get(reverse("akilli_tahta_tahta:ekran"))
+        self.assertContains(yanit, "Test Dosyası")
+
+        self.client.force_login(self.tahta6_user)
+        yanit = self.client.get(reverse("akilli_tahta_tahta:ekran"))
+        self.assertNotContains(yanit, "Test Dosyası")
+
+        # 6. sınıf hesabı, doğrudan dosya bağlantısına gitse bile göremez.
+        yanit = self.client.get(reverse("akilli_tahta_tahta:goruntule", args=[dosya.pk]))
+        self.assertEqual(yanit.status_code, 404)
+
+    def test_tum_siniflara_gonderilen_dosya_dort_hesapta_da_gorunuyor(self):
+        _dosya_olustur(self.hoca_user, baslik="Herkese Açık", tum_siniflar=True)
+
+        for seviye, user in (("5", self.tahta5_user), ("6", self.tahta6_user)):
+            self.client.force_login(user)
+            yanit = self.client.get(reverse("akilli_tahta_tahta:ekran"))
+            self.assertContains(yanit, "Herkese Açık")
+
+    def test_taslak_dosya_tahtada_gorunmuyor(self):
+        dosya = _dosya_olustur(
+            self.hoca_user, baslik="Taslak Dosya", tum_siniflar=True,
+            durum=AkilliTahtaDosya.Durum.TASLAK,
+        )
+        self.client.force_login(self.tahta5_user)
+        yanit = self.client.get(reverse("akilli_tahta_tahta:ekran"))
+        self.assertNotContains(yanit, "Taslak Dosya")
+        self.assertEqual(
+            self.client.get(reverse("akilli_tahta_tahta:goruntule", args=[dosya.pk])).status_code,
+            404,
+        )
+
+    def test_yayin_zamani_gelmeyen_dosya_gorunmuyor(self):
+        _dosya_olustur(
+            self.hoca_user, baslik="Gelecek Dosya", tum_siniflar=True,
+            yayin_baslangic=timezone.now() + timedelta(days=1),
+        )
+        self.client.force_login(self.tahta5_user)
+        yanit = self.client.get(reverse("akilli_tahta_tahta:ekran"))
+        self.assertNotContains(yanit, "Gelecek Dosya")
+
+    def test_suresi_dolmus_dosya_aktif_listede_gorunmuyor(self):
+        _dosya_olustur(
+            self.hoca_user, baslik="Eski Dosya", tum_siniflar=True,
+            yayin_baslangic=timezone.now() - timedelta(days=10),
+            yayin_bitis=timezone.now() - timedelta(days=1),
+        )
+        self.client.force_login(self.tahta5_user)
+        yanit = self.client.get(reverse("akilli_tahta_tahta:ekran"))
+        self.assertNotContains(yanit, "Eski Dosya")
+
+    def test_pasif_tahta_hesabi_giris_yapamiyor(self):
+        self.tahta5_user.is_active = False
+        self.tahta5_user.save()
+        self.tahta5.aktif = False
+        self.tahta5.save()
+
+        giris_oldu = self.client.login(username="tahta5", password="test12345")
+        self.assertFalse(giris_oldu)
+
+    def test_pasif_hesap_mevcut_oturumda_da_engelleniyor(self):
+        self.client.force_login(self.tahta5_user)
+        self.tahta5.aktif = False
+        self.tahta5.save()
+        yanit = self.client.get(reverse("akilli_tahta_tahta:ekran"))
+        self.assertRedirects(yanit, reverse("dashboard"))
+
+    def test_tahta_hesabi_yukleme_ekranina_giremiyor(self):
+        self.client.force_login(self.tahta5_user)
+        yanit = self.client.get(reverse("akilli_tahta:yukle"))
+        self.assertNotEqual(yanit.status_code, 200)
+
+    def test_tahta_hesabi_panel_listesine_giremiyor(self):
+        self.client.force_login(self.tahta5_user)
+        yanit = self.client.get(reverse("akilli_tahta:liste"))
+        self.assertNotEqual(yanit.status_code, 200)

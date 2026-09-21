@@ -4,7 +4,7 @@ from django.conf.urls.static import static
 from django.urls import include, path, re_path
 from django.views.static import serve
 
-from takip import ekran_viewer_views
+from takip import akilli_tahta_viewer_views, ekran_viewer_views
 from takip.bootstrap_views import bootstrap_setup, health_check
 from takip.pwa_views import (
     og_share_image,
@@ -38,6 +38,7 @@ urlpatterns = [
     # altında aynı görünümlere bağlanır (bkz. config.ekran_urls).
     path("ekran/", include("takip.ekran_urls")),
     path("akilli-tahta/", include("takip.akilli_tahta_urls")),
+    path("tahta/", include("takip.akilli_tahta_tahta_urls")),
     # Televizyon görüntüleyicisi ana sitede de açılsın: alt alan adı
     # (ekran.<domain>) isteğe bağlı olsun diye. Aynı görünümler, tek fark kök.
     path("tv/", include("takip.ekran_viewer_urls")),
@@ -53,6 +54,11 @@ urlpatterns += [
         r"^ekran-medya/(?P<path>.*)$",
         ekran_viewer_views.ekran_medyasi,
         name="ekran_medyasi",
+    ),
+    path(
+        "akilli-tahta-medya/<int:pk>/",
+        akilli_tahta_viewer_views.akilli_tahta_medyasi,
+        name="akilli_tahta_medyasi",
     ),
 ]
 
