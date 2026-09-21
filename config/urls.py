@@ -37,6 +37,7 @@ urlpatterns = [
     # Dijital Duyuru Ekranı — ekran.<domain> alt alan adında da /yonetim/
     # altında aynı görünümlere bağlanır (bkz. config.ekran_urls).
     path("ekran/", include("takip.ekran_urls")),
+    path("akilli-tahta/", include("takip.akilli_tahta_urls")),
     # Televizyon görüntüleyicisi ana sitede de açılsın: alt alan adı
     # (ekran.<domain>) isteğe bağlı olsun diye. Aynı görünümler, tek fark kök.
     path("tv/", include("takip.ekran_viewer_urls")),

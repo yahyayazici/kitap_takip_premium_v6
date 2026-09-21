@@ -593,6 +593,14 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         nav_group="Kurum",
     ),
     PanelNavItem(
+        key="akilli_tahta",
+        label="Akıllı Tahta Dosya Merkezi",
+        url_name="akilli_tahta:liste",
+        roller=TUM_PERSONEL_ROLLER,
+        active_names=(),
+        nav_group="Kurum",
+    ),
+    PanelNavItem(
         key="yonetim",
         label="Yönetim",
         url_name="yonetim:dashboard",
@@ -748,6 +756,11 @@ def ktt_modulu_erisimi_var(user: User) -> bool:
 def ekran_modulu_erisimi_var(user: User) -> bool:
     """Dijital Duyuru Ekranı modülünü görebilir mi?"""
     return modul_erisimi_var(user, "ekran")
+
+
+def akilli_tahta_modulu_erisimi_var(user: User) -> bool:
+    """Akıllı Tahta Dosya Merkezi modülünü görebilir mi? (tahta hesapları hariç)"""
+    return modul_erisimi_var(user, "akilli_tahta")
 
 
 def olcme_modulu_erisimi_var(user: User) -> bool:
@@ -908,6 +921,8 @@ def panel_nav_items(user: User) -> list[PanelNavItem]:
         ).get("enabled", False):
             continue
         if item.key == "ekran" and not ekran_modulu_erisimi_var(user):
+            continue
+        if item.key == "akilli_tahta" and not akilli_tahta_modulu_erisimi_var(user):
             continue
         if item.key == "olcme" and not olcme_modulu_erisimi_var(user):
             continue
