@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Akıllı Tahta Hesapları{% endblock %}
+
+{% block content %}
+<header class="page-head patterned-page-head">
+    <div>
+        <p class="kicker">AKILLI TAHTA</p>
+        <h1>Akıllı Tahta Hesapları</h1>
+        <p class="muted">Her sınıf seviyesi için tek bir kısıtlı hesap.</p>
+    </div>
+    <div class="page-head-actions">
+        <a href="{% url 'akilli_tahta:liste' %}" class="ghost-btn">Dosyalar</a>
+        <a href="{% url 'akilli_tahta_yonetim:islem_gecmisi' %}" class="ghost-btn">İşlem Geçmişi</a>
+        <a href="{% url 'akilli_tahta_yonetim:hesap_olustur' %}" class="primary-btn">Yeni Hesap</a>
+    </div>
+</header>
+
+<section class="report-table-card">
+    <div class="responsive-table">
+        <table class="report-data-table">
+            <thead>
+                <tr>
+                    <th>Sınıf Seviyesi</th>
+                    <th>Kullanıcı Adı</th>
+                    <th>Durum</th>
+                    <th>İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for hesap in hesaplar %}
+                <tr>
+                    <td>{{ hesap.get_sinif_seviyesi_display }}</td>
+                    <td>{{ hesap.user.username }}</td>
+                    <td>
+                        {% if hesap.aktif %}<span class="status-pill status-okunuyor">Aktif</span>
+                        {% else %}<span class="status-pill status-iade">Pasif</span>{% endif %}
+                    </td>
+                    <td class="yonetim-table-actions">
+                        <div class="yonetim-action-group">
+                            <a href="{% url 'akilli_tahta_yonetim:hesap_duzenle' hesap.pk %}" class="yonetim-action-btn">Düzenle</a>
+                            <a href="{% url 'akilli_tahta_yonetim:hesap_sifre_degistir' hesap.pk %}" class="yonetim-action-btn">Şifre Değiştir</a>
+                            <form method="post" action="{% url 'akilli_tahta_yonetim:hesap_oturumlari_sonlandir' hesap.pk %}" class="yonetim-inline-action" onsubmit="return confirm('Bu hesabın tüm oturumları kapatılsın mı?');">
+                                {% csrf_token %}
+                                <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger">Oturumları Kapat</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="report-empty">Henüz akıllı tahta hesabı oluşturulmadı.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

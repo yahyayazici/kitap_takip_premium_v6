@@ -214,6 +214,11 @@ def _legacy_islem_izin(rol_slug: str | None, modul_kod: str, islem_kod: str) -> 
             }
         return False
 
+    if islem_kod == "manage_accounts":
+        if modul_kod == "akilli_tahta":
+            return rol_slug in {"idareci", "ic_mesul", "egitim_mesul"}
+        return rol_slug in LEGACY_IDARE_ROLLER
+
     if islem_kod == "delete":
         return rol_slug in LEGACY_IDARE_ROLLER
 

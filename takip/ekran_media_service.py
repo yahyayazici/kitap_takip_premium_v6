@@ -11,7 +11,6 @@ SVG hiç kabul edilmez — script barındırabilen tek görsel formatıdır.
 
 from __future__ import annotations
 
-import hashlib
 import io
 import logging
 from dataclasses import dataclass
@@ -20,6 +19,7 @@ from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import UploadedFile
 from django.db import transaction
 
+from takip.dosya_guvenlik import dosya_ozeti, icerik_turu_tespit_et, ilk_baytlar
 from takip.ekran_models import EkranMedya, EkranMedyaSayfasi
 
 logger = logging.getLogger(__name__)
@@ -74,30 +74,6 @@ class YuklemeSonucu:
 # ---------------------------------------------------------------------------
 
 
-def _ilk_baytlar(dosya: UploadedFile, uzunluk: int = 32) -> bytes:
-    dosya.seek(0)
-    bas = dosya.read(uzunluk)
-    dosya.seek(0)
-    return bas
-
-
-def _icerik_turu(bas: bytes) -> str | None:
-    """Magic number'dan gerçek türü çıkarır; tanınmazsa None."""
-    if bas.startswith(b"\x89PNG\r\n\x1a\n"):
-        return "png"
-    if bas.startswith(b"\xff\xd8\xff"):
-        return "jpeg"
-    if bas[:4] == b"RIFF" and bas[8:12] == b"WEBP":
-        return "webp"
-    if bas.startswith(b"%PDF-"):
-        return "pdf"
-    if bas[4:8] == b"ftyp":
-        return "mp4"
-    if bas.startswith(b"\x1a\x45\xdf\xa3"):  # EBML → webm / mkv
-        return "webm"
-    return None
-
-
 _UZANTI_ICERIK = {
     "png": {"png"},
     "jpg": {"jpeg"},
@@ -142,7 +118,7 @@ def dosya_turunu_belirle(dosya: UploadedFile) -> tuple[str, str, str]:
             f"Bu tür için üst sınır {sinir_adi}."
         )
 
-    gercek = _icerik_turu(_ilk_baytlar(dosya))
+    gercek = icerik_turu_tespit_et(ilk_baytlar(dosya))
     if gercek is None or gercek not in _UZANTI_ICERIK[uzanti]:
         raise MedyaHatasi(
             "Dosyanın içeriği uzantısıyla uyuşmuyor. "
@@ -193,16 +169,6 @@ def video_kodegi(dosya: UploadedFile) -> str:
     finally:
         dosya.seek(0)
     return bulunan
-
-
-def dosya_ozeti(dosya: UploadedFile) -> str:
-    """Bellek şişirmeden SHA-256 — dedup anahtarı."""
-    ozet = hashlib.sha256()
-    dosya.seek(0)
-    for parca in iter(lambda: dosya.read(1024 * 1024), b""):
-        ozet.update(parca)
-    dosya.seek(0)
-    return ozet.hexdigest()
 
 
 # ---------------------------------------------------------------------------

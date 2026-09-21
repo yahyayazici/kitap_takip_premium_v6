@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Akıllı Tahta Dosya Merkezi{% endblock %}
+
+{% block content %}
+<header class="page-head patterned-page-head">
+    <div>
+        <p class="kicker">KURUM</p>
+        <h1>Akıllı Tahta Dosya Merkezi</h1>
+        <p class="muted">Sınıf seviyelerine gönderilen deneme, test, çalışma kâğıdı, görsel ve videolar.</p>
+    </div>
+    <div class="page-head-actions">
+        {% if tam_yetkili %}
+        <a href="{% url 'akilli_tahta_yonetim:hesap_listesi' %}" class="ghost-btn">Tahta Hesapları</a>
+        {% endif %}
+        <a href="{% url 'akilli_tahta:yukle' %}" class="primary-btn">Dosya Yükle</a>
+    </div>
+</header>
+
+{% if tam_yetkili %}
+<section class="dashboard-card">
+    <form method="get" class="filter-row">
+        <select name="sinif" class="input">
+            <option value="">Tüm sınıflar</option>
+            {% for deger, etiket in sinif_seviyeleri %}
+            <option value="{{ deger }}" {% if secili.sinif == deger %}selected{% endif %}>{{ etiket }}</option>
+            {% endfor %}
+        </select>
+        <select name="ders" class="input">
+            <option value="">Tüm dersler</option>
+            {% for ders in dersler %}
+            <option value="{{ ders.pk }}" {% if secili.ders == ders.pk|stringformat:"s" %}selected{% endif %}>{{ ders.ad }}</option>
+            {% endfor %}
+        </select>
+        <select name="dosya_turu" class="input">
+            <option value="">Tüm dosya türleri</option>
+            {% for deger, etiket in sinif_secenekleri %}
+            <option value="{{ deger }}" {% if secili.dosya_turu == deger %}selected{% endif %}>{{ etiket }}</option>
+            {% endfor %}
+        </select>
+        <select name="yukleyen" class="input">
+            <option value="">Tüm yükleyenler</option>
+            {% for kullanici in yukleyenler %}
+            <option value="{{ kullanici.pk }}" {% if secili.yukleyen == kullanici.pk|stringformat:"s" %}selected{% endif %}>{{ kullanici.get_full_name|default:kullanici.username }}</option>
+            {% endfor %}
+        </select>
+        <input type="date" name="baslangic" class="input" value="{{ secili.baslangic }}">
+        <input type="date" name="bitis" class="input" value="{{ secili.bitis }}">
+        <button type="submit" class="primary-btn">Filtrele</button>
+    </form>
+</section>
+{% endif %}
+
+<section class="report-table-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">{% if tam_yetkili %}TÜM DOSYALAR{% else %}KENDİ DOSYALARIM{% endif %}</p>
+            <h2>Yüklenen Dosyalar</h2>
+        </div>
+        <span class="report-record-count">{{ dosyalar|length }} dosya</span>
+    </div>
+
+    <div class="responsive-table">
+        <table class="report-data-table">
+            <thead>
+                <tr>
+                    <th>Başlık</th>
+                    <th>Tür</th>
+                    <th>Ders</th>
+                    <th>Yükleyen</th>
+                    <th>Hedef</th>
+                    <th>Durum</th>
+                    <th>Yüklenme</th>
+                    <th>İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dosya in dosyalar %}
+                <tr>
+                    <td><strong>{{ dosya.baslik }}</strong></td>
+                    <td>{{ dosya.get_icerik_turu_display }} ({{ dosya.dosya_turu|upper }})</td>
+                    <td>{{ dosya.ders|default:"—" }}</td>
+                    <td>{{ dosya.yukleyen.get_full_name|default:dosya.yukleyen.username }}</td>
+                    <td>
+                        {% if dosya.tum_siniflar %}Tüm sınıflar{% else %}
+                            {% for hedef in dosya.hedefler.all %}{{ hedef.get_sinif_seviyesi_display }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if dosya.gorunur_durum == "yayinda" %}<span class="status-pill status-okunuyor">Yayında</span>
+                        {% elif dosya.gorunur_durum == "planlanmis" %}<span class="status-pill status-yarim">Planlanmış</span>
+                        {% elif dosya.gorunur_durum == "suresi_dolmus" %}<span class="status-pill status-iade">Süresi dolmuş</span>
+                        {% elif dosya.gorunur_durum == "arsivlendi" %}<span class="status-pill status-iade">Arşivlendi</span>
+                        {% else %}<span class="status-pill">Taslak</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ dosya.olusturulma|date:"d.m.Y H:i" }}</td>
+                    <td class="yonetim-table-actions">
+                        <div class="yonetim-action-group">
+                            <a href="{% url 'akilli_tahta:duzenle' dosya.pk %}" class="yonetim-action-btn">Düzenle</a>
+                            {% if dosya.durum == "yayinda" %}
+                            <form method="post" action="{% url 'akilli_tahta:yayindan_kaldir' dosya.pk %}" class="yonetim-inline-action">
+                                {% csrf_token %}
+                                <button type="submit" class="yonetim-action-btn">Yayından Kaldır</button>
+                            </form>
+                            {% elif dosya.durum == "taslak" %}
+                            <form method="post" action="{% url 'akilli_tahta:yayina_al' dosya.pk %}" class="yonetim-inline-action">
+                                {% csrf_token %}
+                                <button type="submit" class="yonetim-action-btn">Yayına Al</button>
+                            </form>
+                            {% endif %}
+                            {% if dosya.durum != "arsivlendi" %}
+                            <form method="post" action="{% url 'akilli_tahta:arsivle' dosya.pk %}" class="yonetim-inline-action" onsubmit="return confirm('“{{ dosya.baslik|escapejs }}” arşivlensin mi?');">
+                                {% csrf_token %}
+                                <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger">Arşivle</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="report-empty">Henüz dosya yüklenmemiş.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

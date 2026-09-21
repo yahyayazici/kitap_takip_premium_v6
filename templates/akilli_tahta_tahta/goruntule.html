@@ -1,0 +1,31 @@
+{% extends "akilli_tahta_tahta/base.html" %}
+
+{% block title %}{{ dosya.baslik }}{% endblock %}
+
+{% block extra_style %}
+.at-viewer { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: #000; }
+.at-viewer iframe, .at-viewer video { width: 100%; height: 100%; border: none; }
+.at-viewer img { max-width: 100%; max-height: 100%; object-fit: contain; cursor: zoom-in;
+    transition: transform .2s ease; }
+.at-viewer img.at-zoom { cursor: zoom-out; transform: scale(1.8); }
+.at-viewer-baslik { position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+    background: rgba(15,23,42,.85); color: #fff; padding: 8px 18px; border-radius: 999px; font-size: 14px;
+    z-index: 998; max-width: 70%; text-align: center; }
+{% endblock %}
+
+{% block content %}
+<div class="at-viewer">
+    {% if dosya.dosya_turu == "pdf" %}
+    <iframe src="{% url 'akilli_tahta_medyasi' dosya.pk %}#toolbar=1&navpanes=0" title="{{ dosya.baslik }}"></iframe>
+    {% elif dosya.dosya_turu == "mp4" %}
+    <video src="{% url 'akilli_tahta_medyasi' dosya.pk %}" controls autoplay
+        {% if not dosya.indirme_izni %}controlsList="nodownload"{% endif %}></video>
+    {% else %}
+    <img id="at-gorsel" src="{% url 'akilli_tahta_medyasi' dosya.pk %}" alt="{{ dosya.baslik }}"
+        onclick="this.classList.toggle('at-zoom')">
+    {% endif %}
+</div>
+<p class="at-viewer-baslik">{{ dosya.baslik }}</p>
+<a href="{% url 'akilli_tahta_tahta:ekran' %}" class="at-donus">← Tahta Ekranına Dön</a>
+{% endblock %}
