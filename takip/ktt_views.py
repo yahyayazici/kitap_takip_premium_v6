@@ -147,7 +147,9 @@ def ktt_listesi(request):
             "ortak": grup_ortak_eksikler(hoca)[:3],
         }
 
-    sinavlar = list(yetkili_ktt_sinavlari(request.user))
+    sinavlar = list(
+        yetkili_ktt_sinavlari(request.user).order_by("-olusturulma", "-id")
+    )
     for ktt in sinavlar:
         ktt.silebilir = ktt_silebilir(request.user, ktt)
 

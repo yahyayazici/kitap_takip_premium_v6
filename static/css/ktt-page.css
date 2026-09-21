@@ -1691,3 +1691,102 @@ body.ktt-modal-open {
     }
 }
 
+/* —— KTT listesi: sıkı toolbar + filtre —— */
+.ktt-list-page {
+    padding-bottom: var(--cs-space-6, 24px);
+}
+
+.ktt-list-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px 16px;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--cs-border-subtle, rgba(0, 0, 0, 0.07));
+}
+
+.ktt-list-heading {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    min-width: 0;
+}
+
+.ktt-list-heading h2 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    color: var(--cs-text-primary, #0f203c);
+}
+
+.ktt-list-count {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cs-text-muted, #8491a3);
+    font-variant-numeric: tabular-nums;
+}
+
+.ktt-list-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.ktt-list-filters input[type="search"],
+.ktt-list-filters select {
+    min-height: var(--cs-btn-h-sm, 36px);
+    height: var(--cs-btn-h-sm, 36px);
+    border: 1px solid var(--cs-border, #d2dce8);
+    border-radius: var(--cs-radius-sm, 10px);
+    background: var(--cs-surface, #fff);
+    color: var(--cs-text-primary, #0f203c);
+    font: inherit;
+    font-size: 13px;
+    padding: 0 10px;
+    box-sizing: border-box;
+}
+
+.ktt-list-filters input[type="search"] {
+    width: 200px;
+    max-width: 100%;
+}
+
+.ktt-list-filters select {
+    min-width: 132px;
+    max-width: 180px;
+}
+
+.ktt-filter-empty {
+    margin: 18px 0 12px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cs-text-muted, #8491a3);
+}
+
+@media (max-width: 900px) {
+    .ktt-list-toolbar {
+        align-items: stretch;
+    }
+
+    .ktt-list-filters {
+        width: 100%;
+    }
+
+    .ktt-list-filters input[type="search"] {
+        flex: 1 1 100%;
+        width: 100%;
+    }
+
+    .ktt-list-filters select {
+        flex: 1 1 calc(50% - 4px);
+        max-width: none;
+        font-size: 16px;
+    }
+}
+
