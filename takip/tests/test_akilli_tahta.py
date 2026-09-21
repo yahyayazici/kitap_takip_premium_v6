@@ -428,3 +428,40 @@ class AkilliTahtaCanliGuncellemeTests(TestCase):
         self.client.force_login(self.hoca_user)
         yanit = self.client.get(reverse("akilli_tahta_tahta:durum"))
         self.assertEqual(yanit.status_code, 302)
+
+
+class AkilliTahtaOzelGirisTests(TestCase):
+    """Tahtaya özel /tahta/giris/ sayfası — kurumun genel giriş sayfasından
+    ayrı, yalnızca akıllı tahta hesaplarını kabul eder."""
+
+    def setUp(self):
+        self.tahta_user = User.objects.create_user("tahta_ozel", password="test12345")
+        self.hesap = AkilliTahtaHesap.objects.create(user=self.tahta_user, sinif_seviyesi="7")
+
+        self.hoca_user = User.objects.create_user("hoca_ozel", password="test12345")
+        EtutHocasi.objects.create(ad_soyad="Özel Hoca", user=self.hoca_user)
+
+    def test_kimliksiz_ziyaretci_board_sayfasinda_ozel_giris_sayfasina_yonlendirilir(self):
+        yanit = self.client.get(reverse("akilli_tahta_tahta:ekran"))
+        self.assertRedirects(yanit, reverse("akilli_tahta_tahta:giris"))
+
+    def test_tahta_hesabi_ozel_sayfadan_giris_yapabiliyor(self):
+        yanit = self.client.post(
+            reverse("akilli_tahta_tahta:giris"),
+            {"username": "tahta_ozel", "password": "test12345"},
+        )
+        self.assertRedirects(yanit, reverse("akilli_tahta_tahta:ekran"))
+
+    def test_baska_hesap_ozel_tahta_sayfasindan_giremiyor(self):
+        yanit = self.client.post(
+            reverse("akilli_tahta_tahta:giris"),
+            {"username": "hoca_ozel", "password": "test12345"},
+        )
+        self.assertEqual(yanit.status_code, 200)
+        self.assertFalse(self.client.session.get("_auth_user_id"))
+
+    def test_cikis_tahta_girisine_donuyor(self):
+        self.client.force_login(self.tahta_user)
+        yanit = self.client.get(reverse("akilli_tahta_tahta:cikis"))
+        self.assertRedirects(yanit, reverse("akilli_tahta_tahta:giris"))
+        self.assertFalse(self.client.session.get("_auth_user_id"))

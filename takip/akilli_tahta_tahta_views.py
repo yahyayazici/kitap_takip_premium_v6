@@ -11,18 +11,33 @@ from __future__ import annotations
 
 from functools import wraps
 
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout, views as auth_views
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from takip.akilli_tahta_models import AkilliTahtaDosya
 from takip.akilli_tahta_service import kullanici_tahta_mi, yayindaki_dosyalar
+from takip.rate_limit import (
+    basarili_giris_sifirla,
+    basarisiz_deneme_kaydet,
+    limit_asildi_mi,
+)
 
 
 def tahta_hesabi_gerekli(view_func):
+    """Kimliksiz ziyaretçiyi tahtaya özel giriş sayfasına gönderir (kurumun
+    genel ``/giris/`` sayfasını tahta cihazına asla göstermemek için);
+    başka bir hesapla giriş yapmış kullanıcıyı kendi paneline yönlendirir.
+    """
+
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect("akilli_tahta_tahta:giris")
         if not kullanici_tahta_mi(request.user):
             return redirect("dashboard")
         return view_func(request, *args, **kwargs)
@@ -31,6 +46,72 @@ def tahta_hesabi_gerekli(view_func):
 
 
 _GORSEL_TURLERI = {"jpg", "jpeg", "png", "webp"}
+
+TAHTA_RATE_LIMIT_MESAJI = (
+    "Çok fazla başarısız giriş denemesi yapıldı. Lütfen birkaç dakika sonra tekrar deneyin."
+)
+
+
+class TahtaLoginView(auth_views.LoginView):
+    """Akıllı tahta cihazlarına özel giriş sayfası.
+
+    Kurumun genel ``/giris/`` sayfasından KASITLI olarak ayrıdır: etüt
+    salonundaki tahtaya bağlı tarayıcı hiçbir zaman kurumun ana giriş
+    ekranını, menüsünü ya da diğer panellerini görmemeli — cihazda sadece
+    bu kısıtlı giriş formu ve ardından tahta ekranı açılmalı. Bu yüzden bu
+    sayfa yalnızca aktif bir akıllı tahta hesabıyla girişi kabul eder;
+    başka bir hesapla (öğretmen, veli vb.) giriş denenirse reddedilir ve
+    oturum hemen kapatılır.
+    """
+
+    template_name = "akilli_tahta_tahta/giris.html"
+    redirect_authenticated_user = False
+
+    @method_decorator(ensure_csrf_cookie)
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated and kullanici_tahta_mi(request.user):
+            return redirect("akilli_tahta_tahta:ekran")
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        kullanici_adi = (request.POST.get("username") or "").strip()
+        if limit_asildi_mi(request, kullanici_adi):
+            self._rate_limited = True
+            form = self.get_form()
+            form.is_valid()
+            form.add_error(None, TAHTA_RATE_LIMIT_MESAJI)
+            return self.form_invalid(form)
+
+        self._rate_limited = False
+        return super().post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        if not kullanici_tahta_mi(form.get_user()):
+            # Doğru şifre ama tahta hesabı değil — bu sayfadan asla içeri
+            # alınmaz. Oturumu hemen kapatıp giriş hatası gibi göster.
+            basarisiz_deneme_kaydet(self.request, form.cleaned_data.get("username", ""))
+            form.add_error(None, "Bu giriş sayfası yalnızca akıllı tahta hesapları içindir.")
+            return self.form_invalid(form)
+
+        basarili_giris_sifirla(self.request, form.cleaned_data.get("username", ""))
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        if not getattr(self, "_rate_limited", False):
+            kullanici_adi = (self.request.POST.get("username") or "").strip()
+            basarisiz_deneme_kaydet(self.request, kullanici_adi)
+        return super().form_invalid(form)
+
+    def get_success_url(self):
+        return reverse("akilli_tahta_tahta:ekran")
+
+
+giris = TahtaLoginView.as_view()
+
+
+def cikis(request):
+    logout(request)
+    return redirect("akilli_tahta_tahta:giris")
 
 
 def _bolumler_baglami(hesap, arama: str = "") -> dict:
@@ -81,7 +162,6 @@ def _son_guncelleme_damgasi(hesap) -> str:
     return son.isoformat() if son else ""
 
 
-@login_required
 @tahta_hesabi_gerekli
 def ekran(request):
     hesap = request.user.akilli_tahta_hesabi
@@ -98,7 +178,6 @@ def ekran(request):
     return render(request, "akilli_tahta_tahta/ekran.html", baglam)
 
 
-@login_required
 @tahta_hesabi_gerekli
 def durum(request):
     """Canlı güncelleme (aşama 7): istemci bunu periyodik yoklar (polling)."""
@@ -106,7 +185,6 @@ def durum(request):
     return JsonResponse({"son_guncelleme": _son_guncelleme_damgasi(hesap)})
 
 
-@login_required
 @tahta_hesabi_gerekli
 def icerik(request):
     """Değişiklik algılandığında tam sayfa yenilemeden çekilen bölüm HTML'i."""
@@ -115,7 +193,6 @@ def icerik(request):
     return render(request, "akilli_tahta_tahta/_bolumler.html", baglam)
 
 
-@login_required
 @tahta_hesabi_gerekli
 def goruntule(request, pk):
     hesap = request.user.akilli_tahta_hesabi
