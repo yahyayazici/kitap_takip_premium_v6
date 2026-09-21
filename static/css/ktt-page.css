@@ -1462,6 +1462,67 @@ body.ktt-modal-open {
     overflow-x: clip;
 }
 
+details.ktt-akilli-strip {
+    padding: 0;
+}
+
+details.ktt-akilli-strip > .ktt-akilli-strip-head {
+    list-style: none;
+    cursor: pointer;
+    margin-bottom: 0;
+    padding: 10px 14px;
+    min-height: var(--cs-touch-min, 44px);
+    user-select: none;
+}
+
+details.ktt-akilli-strip > .ktt-akilli-strip-head::-webkit-details-marker {
+    display: none;
+}
+
+details.ktt-akilli-strip > .ktt-akilli-strip-head::marker {
+    content: "";
+}
+
+details.ktt-akilli-strip > .ktt-akilli-strip-head h2 {
+    flex: 1;
+    min-width: 0;
+    font-size: 14px;
+}
+
+.ktt-akilli-count {
+    flex-shrink: 0;
+    min-width: 22px;
+    padding: 2px 8px;
+    border-radius: var(--cs-radius-pill, 999px);
+    background: var(--cs-danger-bg, #fff3f3);
+    color: var(--cs-danger, #d74a4a);
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.4;
+}
+
+.ktt-akilli-chevron {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    margin-left: 4px;
+    border-right: 2px solid var(--cs-text-muted, #8491a3);
+    border-bottom: 2px solid var(--cs-text-muted, #8491a3);
+    transform: rotate(45deg);
+    margin-top: -4px;
+    transition: transform 0.16s ease;
+}
+
+details.ktt-akilli-strip[open] > .ktt-akilli-strip-head .ktt-akilli-chevron {
+    transform: rotate(225deg);
+    margin-top: 2px;
+}
+
+.ktt-akilli-strip-body {
+    padding: 0 14px 12px;
+}
+
 .ktt-akilli-strip-head,
 .ktt-akilli-panel-head {
     display: flex;
