@@ -1,83 +1,95 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}{% if duzenleme %}Dosyayı Düzenle{% else %}Dosya Yükle{% endif %} · Akıllı Tahta{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/akilli-tahta-premium.css' %}?v=atm3">
+{% endblock %}
 
 {% block content %}
-<header class="page-head patterned-page-head">
+<div class="atm-page atm-form-page">
+<header class="page-head patterned-page-head atm-head">
     <div>
         <p class="kicker">AKILLI TAHTA</p>
         <h1>{% if duzenleme %}Dosyayı Düzenle{% else %}Dosya Yükle{% endif %}</h1>
         <p class="muted">Dosyanın hangi sınıf seviyelerine gönderileceğini seçin.</p>
     </div>
-    <div class="page-head-actions">
+    <div class="page-head-actions atm-head-actions">
         <a href="{% url 'akilli_tahta:liste' %}" class="ghost-btn">Listeye Dön</a>
     </div>
 </header>
 
-<section class="dashboard-card">
+<section class="atm-card">
     {% if form.non_field_errors %}
     <div class="form-errors">
         {% for hata in form.non_field_errors %}<p class="error-text">{{ hata }}</p>{% endfor %}
     </div>
     {% endif %}
 
-    <form method="post" enctype="multipart/form-data" class="stacked-form">
+    <form method="post" enctype="multipart/form-data" class="atm-form">
         {% csrf_token %}
 
-        <label>Dosya başlığı
-            {{ form.baslik }}
-            {% for hata in form.baslik.errors %}<p class="error-text">{{ hata }}</p>{% endfor %}
-        </label>
+        <div class="atm-grid">
+            <label class="atm-field atm-field--full">Dosya başlığı
+                {{ form.baslik }}
+                {% for hata in form.baslik.errors %}<p class="error-text">{{ hata }}</p>{% endfor %}
+            </label>
 
-        <label>Dosya {% if duzenleme %}(değiştirmek istemiyorsanız boş bırakın){% endif %}
-            {{ form.dosya }}
-            {% for hata in form.dosya.errors %}<p class="error-text">{{ hata }}</p>{% endfor %}
-            <small class="muted-inline">PDF, JPG, JPEG, PNG, WEBP veya MP4.</small>
-        </label>
+            <label class="atm-field atm-field--full">Dosya {% if duzenleme %}(değiştirmek istemiyorsanız boş bırakın){% endif %}
+                {{ form.dosya }}
+                {% for hata in form.dosya.errors %}<p class="error-text">{{ hata }}</p>{% endfor %}
+                <small class="muted-inline">PDF, JPG, JPEG, PNG, WEBP veya MP4.</small>
+            </label>
 
-        <label>İçerik türü
-            {{ form.icerik_turu }}
-        </label>
+            <label class="atm-field">İçerik türü
+                {{ form.icerik_turu }}
+            </label>
 
-        <label>Ders (opsiyonel)
-            {{ form.ders }}
-        </label>
+            <label class="atm-field">Ders (opsiyonel)
+                {{ form.ders }}
+            </label>
 
-        <label>Açıklama (opsiyonel)
-            {{ form.aciklama }}
-        </label>
+            <label class="atm-field atm-field--full">Açıklama (opsiyonel)
+                {{ form.aciklama }}
+            </label>
 
-        <label class="checkbox-row">
-            {{ form.tum_siniflar }} Tüm sınıflara gönder
-        </label>
+            <div class="atm-field atm-field--full atm-targets">
+                <div class="atm-targets-head">
+                    <span>Hedef sınıf seviyeleri</span>
+                    <label class="atm-check">
+                        {{ form.tum_siniflar }} Tüm sınıflara gönder
+                    </label>
+                </div>
+                <fieldset class="atm-targets-set">
+                    {{ form.hedef_sinif_seviyeleri }}
+                    {% for hata in form.hedef_sinif_seviyeleri.errors %}<p class="error-text">{{ hata }}</p>{% endfor %}
+                </fieldset>
+            </div>
 
-        <fieldset>
-            <legend>Hedef sınıf seviyeleri</legend>
-            {{ form.hedef_sinif_seviyeleri }}
-            {% for hata in form.hedef_sinif_seviyeleri.errors %}<p class="error-text">{{ hata }}</p>{% endfor %}
-        </fieldset>
+            <label class="atm-field">Yayın başlangıç tarihi/saati
+                {{ form.yayin_baslangic }}
+            </label>
 
-        <label>Yayın başlangıç tarihi/saati
-            {{ form.yayin_baslangic }}
-        </label>
+            <label class="atm-field">Yayından kaldırılma tarihi/saati (opsiyonel)
+                {{ form.yayin_bitis }}
+                {% for hata in form.yayin_bitis.errors %}<p class="error-text">{{ hata }}</p>{% endfor %}
+            </label>
 
-        <label>Yayından kaldırılma tarihi/saati (opsiyonel)
-            {{ form.yayin_bitis }}
-            {% for hata in form.yayin_bitis.errors %}<p class="error-text">{{ hata }}</p>{% endfor %}
-        </label>
+            <div class="atm-field atm-field--full atm-options">
+                <label class="atm-check">
+                    {{ form.ust_sirada }} Üst sırada göster
+                </label>
+                <label class="atm-check">
+                    {{ form.indirme_izni }} İndirmeye izin ver
+                </label>
+            </div>
+        </div>
 
-        <label class="checkbox-row">
-            {{ form.ust_sirada }} Üst sırada göster
-        </label>
-
-        <label class="checkbox-row">
-            {{ form.indirme_izni }} İndirmeye izin ver
-        </label>
-
-        <div class="page-head-actions">
+        <div class="atm-actions">
             <button type="submit" name="yayimla" class="primary-btn">Kaydet ve Yayımla</button>
             <button type="submit" name="taslak" class="ghost-btn">Taslak Olarak Kaydet</button>
         </div>
     </form>
 </section>
+</div>
 {% endblock %}
