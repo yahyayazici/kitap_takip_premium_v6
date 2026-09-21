@@ -22,6 +22,7 @@ from django.core.exceptions import SuspiciousFileOperation
 from django.http import FileResponse, Http404, HttpResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils._os import safe_join
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from takip.akilli_tahta_models import AkilliTahtaDosya
 from takip.akilli_tahta_service import kullanici_tahta_mi, tam_yetkili
@@ -53,6 +54,7 @@ def _erisebilir_mi(request, dosya: AkilliTahtaDosya) -> bool:
 
 
 @login_required
+@xframe_options_sameorigin
 def akilli_tahta_medyasi(request, pk: int):
     dosya = get_object_or_404(AkilliTahtaDosya, pk=pk)
     if not _erisebilir_mi(request, dosya):

@@ -230,6 +230,14 @@ class AkilliTahtaHesapVeGirisTests(TestCase):
         yanit = self.client.get(reverse("akilli_tahta_tahta:goruntule", args=[dosya.pk]))
         self.assertEqual(yanit.status_code, 404)
 
+    def test_pdf_medya_ucu_ayni_kaynaktan_iframe_icinde_acilabiliyor(self):
+        """Django'nun varsayılan X-Frame-Options: DENY'si PDF iframe'ini
+        engellemesin — bu uç kendi sitemizin sayfasına gömülebilmeli."""
+        dosya = _dosya_olustur(self.hoca_user, tum_siniflar=True)
+        self.client.force_login(self.tahta5_user)
+        yanit = self.client.get(reverse("akilli_tahta_medyasi", args=[dosya.pk]))
+        self.assertEqual(yanit["X-Frame-Options"], "SAMEORIGIN")
+
     def test_tum_siniflara_gonderilen_dosya_dort_hesapta_da_gorunuyor(self):
         _dosya_olustur(self.hoca_user, baslik="Herkese Açık", tum_siniflar=True)
 
