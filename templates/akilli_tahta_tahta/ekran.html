@@ -24,6 +24,10 @@
 .at-kart-ac { margin-top: auto; background: var(--at-accent); color: #fff; border: none;
     border-radius: 10px; padding: 12px; text-align: center; font-size: 15px; font-weight: 600; }
 .at-bos { color: var(--at-muted); padding: 12px 0; }
+.at-bildirim { position: fixed; top: 16px; right: 16px; background: var(--at-accent); color: #fff;
+    padding: 12px 20px; border-radius: 10px; font-size: 14px; opacity: 0; transform: translateY(-10px);
+    transition: opacity .25s, transform .25s; z-index: 999; pointer-events: none; }
+.at-bildirim-goster { opacity: 1; transform: translateY(0); }
 {% endblock %}
 
 {% block content %}
@@ -38,25 +42,40 @@
     </form>
 </header>
 
-<div class="at-body">
-    {% for baslik, liste in bolumler %}
-    <section class="at-bolum">
-        <h2>{{ baslik }} <span class="at-sayi">({{ liste|length }})</span></h2>
-        {% if liste %}
-        <div class="at-grid">
-            {% for dosya in liste %}
-            <div class="at-kart {% if dosya.ust_sirada %}at-ust{% endif %}">
-                <div class="at-kart-baslik">{{ dosya.baslik }}</div>
-                <div class="at-kart-meta">{{ dosya.get_icerik_turu_display }} · {{ dosya.dosya_turu|upper }}{% if dosya.ders %} · {{ dosya.ders.ad }}{% endif %}</div>
-                <div class="at-kart-meta">{{ dosya.yukleyen.get_full_name|default:dosya.yukleyen.username }} · {{ dosya.olusturulma|date:"d.m.Y" }}</div>
-                <a class="at-kart-ac" href="{% url 'akilli_tahta_tahta:goruntule' dosya.pk %}">Aç</a>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <p class="at-bos">Bu bölümde henüz dosya yok.</p>
-        {% endif %}
-    </section>
-    {% endfor %}
+<div class="at-body" id="at-icerik" data-son-guncelleme="{{ son_guncelleme }}">
+    {% include "akilli_tahta_tahta/_bolumler.html" %}
 </div>
+
+<div id="at-bildirim" class="at-bildirim"></div>
+{% endblock %}
+
+{% block extra_body_end %}
+<script>
+(function () {
+    var icerikDiv = document.getElementById("at-icerik");
+    var bildirim = document.getElementById("at-bildirim");
+    var durumUrl = "{% url 'akilli_tahta_tahta:durum' %}";
+    var icerikUrl = "{% url 'akilli_tahta_tahta:icerik' %}";
+
+    function bildirimGoster(metin) {
+        bildirim.textContent = metin;
+        bildirim.classList.add("at-bildirim-goster");
+        setTimeout(function () { bildirim.classList.remove("at-bildirim-goster"); }, 4000);
+    }
+
+    function kontrolEt() {
+        fetch(durumUrl).then(function (r) { return r.json(); }).then(function (veri) {
+            if (veri.son_guncelleme && veri.son_guncelleme !== icerikDiv.dataset.sonGuncelleme) {
+                fetch(icerikUrl).then(function (r) { return r.text(); }).then(function (html) {
+                    icerikDiv.innerHTML = html;
+                    icerikDiv.dataset.sonGuncelleme = veri.son_guncelleme;
+                    bildirimGoster("Yeni içerik eklendi.");
+                });
+            }
+        }).catch(function () {});
+    }
+
+    setInterval(kontrolEt, 30000);
+})();
+</script>
 {% endblock %}

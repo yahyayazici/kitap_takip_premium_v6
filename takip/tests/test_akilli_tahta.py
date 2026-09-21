@@ -373,3 +373,33 @@ class AkilliTahtaYoneticiTests(TestCase):
         self.client.force_login(self.hoca_user)
         yanit = self.client.get(reverse("akilli_tahta_yonetim:hesap_listesi"))
         self.assertNotEqual(yanit.status_code, 200)
+
+
+class AkilliTahtaCanliGuncellemeTests(TestCase):
+    """Aşama 7: polling ile canlı güncelleme."""
+
+    def setUp(self):
+        self.hoca_user = User.objects.create_user("hoca_canli", password="test12345")
+        EtutHocasi.objects.create(ad_soyad="Canlı Hoca", user=self.hoca_user)
+        self.tahta_user = User.objects.create_user("tahta_canli", password="test12345")
+        self.hesap = AkilliTahtaHesap.objects.create(user=self.tahta_user, sinif_seviyesi="5")
+
+    def test_durum_ucu_degisiklik_gosterir(self):
+        self.client.force_login(self.tahta_user)
+        ilk = self.client.get(reverse("akilli_tahta_tahta:durum")).json()
+
+        _dosya_olustur(self.hoca_user, baslik="Yeni Dosya", tum_siniflar=True)
+
+        ikinci = self.client.get(reverse("akilli_tahta_tahta:durum")).json()
+        self.assertNotEqual(ilk["son_guncelleme"], ikinci["son_guncelleme"])
+
+    def test_icerik_ucu_yeni_dosyayi_iceriyor(self):
+        _dosya_olustur(self.hoca_user, baslik="Poll Dosyası", tum_siniflar=True)
+        self.client.force_login(self.tahta_user)
+        yanit = self.client.get(reverse("akilli_tahta_tahta:icerik"))
+        self.assertContains(yanit, "Poll Dosyası")
+
+    def test_normal_kullanici_durum_ucuna_giremiyor(self):
+        self.client.force_login(self.hoca_user)
+        yanit = self.client.get(reverse("akilli_tahta_tahta:durum"))
+        self.assertEqual(yanit.status_code, 302)

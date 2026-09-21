@@ -1,0 +1,19 @@
+{% for baslik, liste in bolumler %}
+<section class="at-bolum">
+    <h2>{{ baslik }} <span class="at-sayi">({{ liste|length }})</span></h2>
+    {% if liste %}
+    <div class="at-grid">
+        {% for dosya in liste %}
+        <div class="at-kart {% if dosya.ust_sirada %}at-ust{% endif %}">
+            <div class="at-kart-baslik">{{ dosya.baslik }}</div>
+            <div class="at-kart-meta">{{ dosya.get_icerik_turu_display }} · {{ dosya.dosya_turu|upper }}{% if dosya.ders %} · {{ dosya.ders.ad }}{% endif %}</div>
+            <div class="at-kart-meta">{{ dosya.yukleyen.get_full_name|default:dosya.yukleyen.username }} · {{ dosya.olusturulma|date:"d.m.Y" }}</div>
+            <a class="at-kart-ac" href="{% url 'akilli_tahta_tahta:goruntule' dosya.pk %}">Aç</a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="at-bos">Bu bölümde henüz dosya yok.</p>
+    {% endif %}
+</section>
+{% endfor %}

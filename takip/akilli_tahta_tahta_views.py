@@ -12,9 +12,8 @@ from __future__ import annotations
 from functools import wraps
 
 from django.contrib.auth.decorators import login_required
-from django.http import Http404
-from django.shortcuts import get_object_or_404, render
-from django.shortcuts import redirect
+from django.http import Http404, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from takip.akilli_tahta_models import AkilliTahtaDosya
@@ -34,12 +33,8 @@ def tahta_hesabi_gerekli(view_func):
 _GORSEL_TURLERI = {"jpg", "jpeg", "png", "webp"}
 
 
-@login_required
-@tahta_hesabi_gerekli
-def ekran(request):
-    hesap = request.user.akilli_tahta_hesabi
-    arama = (request.GET.get("q") or "").strip()
-
+def _bolumler_baglami(hesap, arama: str = "") -> dict:
+    """Ekran ve içerik-yenileme (canlı güncelleme) için paylaşılan bağlam."""
     dosyalar = list(yayindaki_dosyalar(hesap.sinif_seviyesi))
     if arama:
         dosyalar = [d for d in dosyalar if arama.lower() in d.baslik.lower()]
@@ -53,9 +48,7 @@ def ekran(request):
     denemeler = [d for d in dosyalar if d.icerik_turu == AkilliTahtaDosya.IcerikTuru.DENEME]
 
     arsiv = list(
-        AkilliTahtaDosya.objects.filter(
-            durum=AkilliTahtaDosya.Durum.ARSIVLENDI,
-        )
+        AkilliTahtaDosya.objects.filter(durum=AkilliTahtaDosya.Durum.ARSIVLENDI)
         .select_related("ders", "yukleyen")
         .order_by("-guncellenme")[:60]
     )
@@ -70,16 +63,56 @@ def ekran(request):
         ("Denemeler", denemeler),
         ("Arşiv", arsiv),
     ]
+    return {"bolumler": bolumler}
 
-    return render(
-        request,
-        "akilli_tahta_tahta/ekran.html",
+
+def _son_guncelleme_damgasi(hesap) -> str:
+    """Bu sınıf seviyesinin gördüğü içerikteki en güncel değişiklik zamanı.
+
+    Poll uçları bu değeri karşılaştırarak "değişen bir şey var mı?" sorusunu
+    tam içerik sorgusu çalıştırmadan, tek bir hafif sorguyla yanıtlar.
+    """
+    son = (
+        AkilliTahtaDosya.objects.filter(guncellenme__isnull=False)
+        .order_by("-guncellenme")
+        .values_list("guncellenme", flat=True)
+        .first()
+    )
+    return son.isoformat() if son else ""
+
+
+@login_required
+@tahta_hesabi_gerekli
+def ekran(request):
+    hesap = request.user.akilli_tahta_hesabi
+    arama = (request.GET.get("q") or "").strip()
+
+    baglam = _bolumler_baglami(hesap, arama)
+    baglam.update(
         {
             "hesap": hesap,
             "arama": arama,
-            "bolumler": bolumler,
-        },
+            "son_guncelleme": _son_guncelleme_damgasi(hesap),
+        }
     )
+    return render(request, "akilli_tahta_tahta/ekran.html", baglam)
+
+
+@login_required
+@tahta_hesabi_gerekli
+def durum(request):
+    """Canlı güncelleme (aşama 7): istemci bunu periyodik yoklar (polling)."""
+    hesap = request.user.akilli_tahta_hesabi
+    return JsonResponse({"son_guncelleme": _son_guncelleme_damgasi(hesap)})
+
+
+@login_required
+@tahta_hesabi_gerekli
+def icerik(request):
+    """Değişiklik algılandığında tam sayfa yenilemeden çekilen bölüm HTML'i."""
+    hesap = request.user.akilli_tahta_hesabi
+    baglam = _bolumler_baglami(hesap)
+    return render(request, "akilli_tahta_tahta/_bolumler.html", baglam)
 
 
 @login_required
