@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}{% if duzenleme %}Hesabı Düzenle{% else %}Yeni Akıllı Tahta Hesabı{% endif %}{% endblock %}
+
+{% block content %}
+<header class="page-head patterned-page-head">
+    <div>
+        <p class="kicker">AKILLI TAHTA</p>
+        <h1>{% if duzenleme %}“{{ hesap.user.username }}” Hesabını Düzenle{% else %}Yeni Akıllı Tahta Hesabı{% endif %}</h1>
+    </div>
+    <div class="page-head-actions">
+        <a href="{% url 'akilli_tahta_yonetim:hesap_listesi' %}" class="ghost-btn">Listeye Dön</a>
+    </div>
+</header>
+
+<section class="dashboard-card">
+    <form method="post" class="stacked-form">
+        {% csrf_token %}
+        {% if not duzenleme %}
+        <label>Kullanıcı adı
+            {{ form.username }}
+            {% for hata in form.username.errors %}<p class="error-text">{{ hata }}</p>{% endfor %}
+        </label>
+        <label>Şifre
+            {{ form.password }}
+            {% for hata in form.password.errors %}<p class="error-text">{{ hata }}</p>{% endfor %}
+        </label>
+        <label>Sınıf seviyesi
+            {{ form.sinif_seviyesi }}
+            {% for hata in form.sinif_seviyesi.errors %}<p class="error-text">{{ hata }}</p>{% endfor %}
+        </label>
+        {% endif %}
+        <label class="checkbox-row">
+            {{ form.aktif }} Aktif
+        </label>
+        <button type="submit" class="primary-btn">Kaydet</button>
+    </form>
+</section>
+{% endblock %}

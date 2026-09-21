@@ -195,6 +195,18 @@ if os.environ.get("MEDIA_ROOT"):
 EKRAN_MEDIA_ROOT = Path(os.environ.get("EKRAN_MEDIA_ROOT", "") or (MEDIA_ROOT / "ekran-medya"))
 EKRAN_MEDIA_URL = "/ekran-medya/"
 
+# —— Akıllı Tahta Dosya Merkezi medya deposu ——
+# Aynı gerekçe: video/PDF hacmi Cloudinary'nin ücretsiz sınırlarını aşar.
+AKILLI_TAHTA_MEDIA_ROOT = Path(
+    os.environ.get("AKILLI_TAHTA_MEDIA_ROOT", "") or (MEDIA_ROOT / "akilli-tahta-medya")
+)
+AKILLI_TAHTA_MEDIA_URL = "/akilli-tahta-medya/"
+
+# Tür bazlı boyut sınırları — ayarlardan değiştirilebilir (madde 4).
+AKILLI_TAHTA_MAKS_GORSEL_MB = int(os.environ.get("AKILLI_TAHTA_MAKS_GORSEL_MB", "20"))
+AKILLI_TAHTA_MAKS_PDF_MB = int(os.environ.get("AKILLI_TAHTA_MAKS_PDF_MB", "80"))
+AKILLI_TAHTA_MAKS_VIDEO_MB = int(os.environ.get("AKILLI_TAHTA_MAKS_VIDEO_MB", "150"))
+
 _default_file_storage = "django.core.files.storage.FileSystemStorage"
 if CLOUDINARY_URL:
     _default_file_storage = "cloudinary_storage.storage.MediaCloudinaryStorage"

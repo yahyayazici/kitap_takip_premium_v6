@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Akıllı Tahta İşlem Geçmişi{% endblock %}
+
+{% block content %}
+<header class="page-head patterned-page-head">
+    <div>
+        <p class="kicker">AKILLI TAHTA</p>
+        <h1>İşlem Geçmişi</h1>
+        <p class="muted">Kim, ne zaman, ne yaptı — denetim izi.</p>
+    </div>
+    <div class="page-head-actions">
+        <a href="{% url 'akilli_tahta:liste' %}" class="ghost-btn">Dosyalar</a>
+    </div>
+</header>
+
+<section class="report-table-card">
+    <div class="responsive-table">
+        <table class="report-data-table">
+            <thead>
+                <tr><th>Tarih</th><th>Kullanıcı</th><th>Aksiyon</th><th>Dosya/Hesap</th><th>Detay</th></tr>
+            </thead>
+            <tbody>
+                {% for kayit in kayitlar %}
+                <tr>
+                    <td>{{ kayit.olusturulma|date:"d.m.Y H:i" }}</td>
+                    <td>{{ kayit.kullanici.username|default:"—" }}</td>
+                    <td>{{ kayit.aksiyon }}</td>
+                    <td>{{ kayit.dosya.baslik|default:kayit.hesap }}</td>
+                    <td>{{ kayit.detay }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="report-empty">Henüz işlem kaydı yok.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

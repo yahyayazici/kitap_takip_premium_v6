@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}{% if duzenleme %}Dosyayı Düzenle{% else %}Dosya Yükle{% endif %} · Akıllı Tahta{% endblock %}
+
+{% block content %}
+<header class="page-head patterned-page-head">
+    <div>
+        <p class="kicker">AKILLI TAHTA</p>
+        <h1>{% if duzenleme %}Dosyayı Düzenle{% else %}Dosya Yükle{% endif %}</h1>
+        <p class="muted">Dosyanın hangi sınıf seviyelerine gönderileceğini seçin.</p>
+    </div>
+    <div class="page-head-actions">
+        <a href="{% url 'akilli_tahta:liste' %}" class="ghost-btn">Listeye Dön</a>
+    </div>
+</header>
+
+<section class="dashboard-card">
+    {% if form.non_field_errors %}
+    <div class="form-errors">
+        {% for hata in form.non_field_errors %}<p class="error-text">{{ hata }}</p>{% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="stacked-form">
+        {% csrf_token %}
+
+        <label>Dosya başlığı
+            {{ form.baslik }}
+            {% for hata in form.baslik.errors %}<p class="error-text">{{ hata }}</p>{% endfor %}
+        </label>
+
+        <label>Dosya {% if duzenleme %}(değiştirmek istemiyorsanız boş bırakın){% endif %}
+            {{ form.dosya }}
+            {% for hata in form.dosya.errors %}<p class="error-text">{{ hata }}</p>{% endfor %}
+            <small class="muted-inline">PDF, JPG, JPEG, PNG, WEBP veya MP4.</small>
+        </label>
+
+        <label>İçerik türü
+            {{ form.icerik_turu }}
+        </label>
+
+        <label>Ders (opsiyonel)
+            {{ form.ders }}
+        </label>
+
+        <label>Açıklama (opsiyonel)
+            {{ form.aciklama }}
+        </label>
+
+        <label class="checkbox-row">
+            {{ form.tum_siniflar }} Tüm sınıflara gönder
+        </label>
+
+        <fieldset>
+            <legend>Hedef sınıf seviyeleri</legend>
+            {{ form.hedef_sinif_seviyeleri }}
+            {% for hata in form.hedef_sinif_seviyeleri.errors %}<p class="error-text">{{ hata }}</p>{% endfor %}
+        </fieldset>
+
+        <label>Yayın başlangıç tarihi/saati
+            {{ form.yayin_baslangic }}
+        </label>
+
+        <label>Yayından kaldırılma tarihi/saati (opsiyonel)
+            {{ form.yayin_bitis }}
+            {% for hata in form.yayin_bitis.errors %}<p class="error-text">{{ hata }}</p>{% endfor %}
+        </label>
+
+        <label class="checkbox-row">
+            {{ form.ust_sirada }} Üst sırada göster
+        </label>
+
+        <label class="checkbox-row">
+            {{ form.indirme_izni }} İndirmeye izin ver
+        </label>
+
+        <div class="page-head-actions">
+            <button type="submit" name="yayimla" class="primary-btn">Kaydet ve Yayımla</button>
+            <button type="submit" name="taslak" class="ghost-btn">Taslak Olarak Kaydet</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

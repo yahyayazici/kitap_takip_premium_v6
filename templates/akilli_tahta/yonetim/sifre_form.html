@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Şifre Değiştir{% endblock %}
+
+{% block content %}
+<header class="page-head patterned-page-head">
+    <div>
+        <p class="kicker">AKILLI TAHTA</p>
+        <h1>“{{ hesap.user.username }}” Şifresini Değiştir</h1>
+        <p class="muted">Şifre değiştiğinde bu hesabın açık tüm oturumları otomatik kapatılır.</p>
+    </div>
+    <div class="page-head-actions">
+        <a href="{% url 'akilli_tahta_yonetim:hesap_listesi' %}" class="ghost-btn">Listeye Dön</a>
+    </div>
+</header>
+
+<section class="dashboard-card">
+    <form method="post" class="stacked-form">
+        {% csrf_token %}
+        <label>Yeni şifre
+            {{ form.password }}
+            {% for hata in form.password.errors %}<p class="error-text">{{ hata }}</p>{% endfor %}
+        </label>
+        <button type="submit" class="primary-btn">Şifreyi Değiştir</button>
+    </form>
+</section>
+{% endblock %}

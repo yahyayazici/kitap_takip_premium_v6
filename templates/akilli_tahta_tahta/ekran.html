@@ -1,0 +1,81 @@
+{% extends "akilli_tahta_tahta/base.html" %}
+
+{% block title %}{{ hesap.get_sinif_seviyesi_display }} Akıllı Tahtası{% endblock %}
+
+{% block extra_style %}
+.at-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    gap: 12px; padding: 20px 28px; background: var(--at-panel); border-bottom: 1px solid var(--at-border); }
+.at-header h1 { margin: 0; font-size: 26px; }
+.at-header .at-kurum { color: var(--at-muted); font-size: 15px; margin: 0 0 4px; }
+.at-header .at-tarih { color: var(--at-muted); font-size: 15px; }
+.at-arama { padding: 12px 18px; border-radius: 12px; border: 1px solid var(--at-border);
+    background: var(--at-panel-2); color: var(--at-text); font-size: 16px; min-width: 260px; }
+.at-body { padding: 24px 28px 100px; }
+.at-bolum { margin-bottom: 32px; }
+.at-bolum h2 { font-size: 19px; margin: 0 0 14px; color: var(--at-text);
+    display: flex; align-items: center; gap: 8px; }
+.at-bolum h2 .at-sayi { color: var(--at-muted); font-size: 14px; font-weight: 400; }
+.at-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.at-kart { background: var(--at-panel); border: 1px solid var(--at-border); border-radius: 14px;
+    padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+.at-kart.at-ust { border-color: var(--at-accent); }
+.at-kart-baslik { font-size: 16px; font-weight: 600; }
+.at-kart-meta { color: var(--at-muted); font-size: 13px; }
+.at-kart-ac { margin-top: auto; background: var(--at-accent); color: #fff; border: none;
+    border-radius: 10px; padding: 12px; text-align: center; font-size: 15px; font-weight: 600; }
+.at-bos { color: var(--at-muted); padding: 12px 0; }
+.at-bildirim { position: fixed; top: 16px; right: 16px; background: var(--at-accent); color: #fff;
+    padding: 12px 20px; border-radius: 10px; font-size: 14px; opacity: 0; transform: translateY(-10px);
+    transition: opacity .25s, transform .25s; z-index: 999; pointer-events: none; }
+.at-bildirim-goster { opacity: 1; transform: translateY(0); }
+{% endblock %}
+
+{% block content %}
+<header class="at-header">
+    <div>
+        <p class="at-kurum">{{ panel_name }}</p>
+        <h1>{{ hesap.get_sinif_seviyesi_display }} Akıllı Tahtası</h1>
+        <p class="at-tarih">{% now "d F Y, l" %}</p>
+    </div>
+    <form method="get">
+        <input class="at-arama" type="search" name="q" value="{{ arama }}" placeholder="Dosya ara…">
+    </form>
+</header>
+
+<div class="at-body" id="at-icerik" data-son-guncelleme="{{ son_guncelleme }}">
+    {% include "akilli_tahta_tahta/_bolumler.html" %}
+</div>
+
+<div id="at-bildirim" class="at-bildirim"></div>
+{% endblock %}
+
+{% block extra_body_end %}
+<script>
+(function () {
+    var icerikDiv = document.getElementById("at-icerik");
+    var bildirim = document.getElementById("at-bildirim");
+    var durumUrl = "{% url 'akilli_tahta_tahta:durum' %}";
+    var icerikUrl = "{% url 'akilli_tahta_tahta:icerik' %}";
+
+    function bildirimGoster(metin) {
+        bildirim.textContent = metin;
+        bildirim.classList.add("at-bildirim-goster");
+        setTimeout(function () { bildirim.classList.remove("at-bildirim-goster"); }, 4000);
+    }
+
+    function kontrolEt() {
+        fetch(durumUrl).then(function (r) { return r.json(); }).then(function (veri) {
+            if (veri.son_guncelleme && veri.son_guncelleme !== icerikDiv.dataset.sonGuncelleme) {
+                fetch(icerikUrl).then(function (r) { return r.text(); }).then(function (html) {
+                    icerikDiv.innerHTML = html;
+                    icerikDiv.dataset.sonGuncelleme = veri.son_guncelleme;
+                    bildirimGoster("Yeni içerik eklendi.");
+                });
+            }
+        }).catch(function () {});
+    }
+
+    setInterval(kontrolEt, 30000);
+})();
+</script>
+{% endblock %}
