@@ -139,7 +139,25 @@
     </article>
 </section>
 
-{# 2) Duyuru + YÇT #}
+{% if egitim_modulu %}
+{# 2) Hızlı menüler #}
+<section class="dash-panel dash-panel-lined">
+    <div class="dash-panel-head">
+        <div>
+            <p class="dash-eyebrow dash-accent-eyebrow-blue">Panel</p>
+            <h2>Hızlı menüler</h2>
+        </div>
+    </div>
+    <nav class="dash-shortcuts-grid-wrap" aria-label="Hızlı menüler">
+        {% include "includes/dash_kisayol_grid.html" %}
+        {% if not kisayollar %}
+        <p class="dash-empty-note">Bu rol için kısayol tanımlı değil. Yönetim → Kısayollar’dan ekleyebilirsiniz.</p>
+        {% endif %}
+    </nav>
+</section>
+{% endif %}
+
+{# 3) Duyuru + YÇT #}
 <section class="pv4-lower">
     <div class="pv4-promo">
         {% with duyuru=duyurular.0 %}
@@ -202,7 +220,7 @@
 
 {% if egitim_modulu %}
 
-{# 3) Haftalık etüt planı + dershane programı #}
+{# 4) Haftalık etüt planı + dershane programı #}
 <div class="personel-plan-split">
     <section class="dash-panel dash-panel-lined dash-etut-widget personel-plan-card">
         <div class="dash-panel-head">
@@ -294,22 +312,6 @@
         {% endif %}
     </section>
 </div>
-
-{# 4) Hızlı menüler #}
-<section class="dash-panel dash-panel-lined">
-    <div class="dash-panel-head">
-        <div>
-            <p class="dash-eyebrow dash-accent-eyebrow-blue">Panel</p>
-            <h2>Hızlı menüler</h2>
-        </div>
-    </div>
-    <nav class="dash-shortcuts-grid-wrap" aria-label="Hızlı menüler">
-        {% include "includes/dash_kisayol_grid.html" %}
-        {% if not kisayollar %}
-        <p class="dash-empty-note">Bu rol için kısayol tanımlı değil. Yönetim → Kısayollar’dan ekleyebilirsiniz.</p>
-        {% endif %}
-    </nav>
-</section>
 
 {% include "includes/dash_metrik_strip.html" %}
 

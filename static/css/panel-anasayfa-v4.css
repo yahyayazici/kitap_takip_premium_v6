@@ -509,9 +509,9 @@ body.pv4-page .v3-logout:hover {
 /* —— Duyuru + YÇT —— */
 .pv4-lower {
     display: grid;
-    grid-template-columns: 1fr 1.7fr;
+    grid-template-columns: 1fr 1fr;
     gap: var(--pv4-sp-3);
-    align-items: start;
+    align-items: stretch;
 }
 
 .pv4-promo {
@@ -519,6 +519,24 @@ body.pv4-page .v3-logout:hover {
     overflow: hidden;
     box-shadow: var(--pv4-shadow-sm);
     border: 1px solid var(--pv4-line);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.pv4-promo-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.pv4-promo-band {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .pv4-promo-band {
@@ -845,4 +863,41 @@ body.pv4-page .dash-gorev-card {
 
 body.pv4-page .dash-gorev-list li strong {
     color: var(--pv4-navy-3) !important;
+}
+
+body.pv4-page .dash-empty-note,
+body.pv4-page .empty-state {
+    background: #fbfbfc !important;
+    border-color: var(--pv4-line) !important;
+    color: var(--pv4-muted) !important;
+}
+
+body.pv4-page .dash-empty-note::before,
+body.pv4-page .empty-state::before {
+    background-color: var(--pv4-navy-3) !important;
+    background-image: none !important;
+    border-color: var(--pv4-line) !important;
+}
+
+body.pv4-page .dash-empty-note strong,
+body.pv4-page .empty-state strong {
+    color: var(--pv4-text) !important;
+}
+
+body.pv4-page .personel-plan-card .dash-panel-head,
+body.pv4-page .dash-etut-widget .dash-panel-head,
+body.pv4-page .dash-gunluk-gorev .dash-panel-head {
+    background: #fff !important;
+}
+
+body.pv4-page .dash-etut-stats span {
+    color: var(--pv4-muted) !important;
+}
+
+body.pv4-page .personel-plan-table thead th {
+    background: #fafbfc !important;
+}
+
+body.pv4-page .personel-plan-table tbody td {
+    color: var(--pv4-text) !important;
 }
