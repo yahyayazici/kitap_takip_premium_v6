@@ -278,63 +278,11 @@ def _legacy_personel_kisayollari(user: User, *, bugun: date) -> list[DashboardSh
             )
         )
 
-    ekle(egitim_modulu_erisimi_var(user), "kitap", "Kitap Takip", "Zimmet, okuma ve arşiv", "kitap_listesi", "book", mark="KT")
     ekle(egitim_modulu_erisimi_var(user), "talebeler", "Talebeler", "Liste ve profiller", "talebe_listesi", "users", mark="TL")
-    ekle(etut_plani_modulu_erisimi_var(user), "etut", "Etüt Grupları", "Grupları yönet", "etut_plan_panel", "groups", mark="EG")
-    try:
-        profil = user.personel_profili
-        etut_karne_ok = (
-            profil.aktif
-            and profil.etut_hocasi_id
-            and profil.ana_rol in ("etut_mesul", "sinif_mesul")
-        )
-    except Exception:
-        etut_karne_ok = False
-    ekle(
-        etut_karne_ok,
-        "etut_karne",
-        "Haftalık Karneler",
-        "Etüt değerlendirme arşivi",
-        "etut_haftalik_karneler",
-        "clipboard",
-        mark="HK",
-    )
-    ekle(gunluk_takip_modulu_erisimi_var(user), "gunluk_takip", "Günlük Takip", "Yoklama ve takip", "gunluk_takip_panel", "clipboard", mark="GT")
-    ekle(rehberlik_modulu_erisimi_var(user), "rehberlik", "Rehberlik", "Rehber öğretmeni görüşmeleri", "rehberlik_listesi", "chat", mark="RH")
-    ekle(veli_iletisim_modulu_erisimi_var(user), "veli_iletisim", "Veli & Talebe İletişim", "Veli ve öğrenci görüşmeleri", "iletisim_listesi", "phone", mark="Vİ")
-    ekle(deneme_modulu_erisimi_var(user), "deneme", "Deneme Sonuçları", "Deneme analizi", "deneme_listesi", "chart", mark="DN")
     ekle(ktt_modulu_erisimi_var(user), "ktt", "KTT Takip", "Kazanım tarama testleri", "ktt_listesi", "target", mark="KTT")
-    gorev_url = _gorevler_url(user)
-    if gorev_url:
-        adaylar.append(
-            DashboardShortcut(
-                key="gorevler",
-                title="Görevler",
-                subtitle="İmam, temizlik, yemek",
-                url=gorev_url,
-                icon="check",
-                badge=_gorev_badge_sayisi(user, bugun) or None,
-                banner="GÖREVLER",
-                mark="GV",
-                gorsel_url=gorseller.get("gorevler", ""),
-            )
-        )
-    ekle(gelisim_dosyasi_erisimi_var(user), "dosyalar", "Dosyalar", "Gelişim dosyaları", "talebe_listesi", "folder", mark="GD")
-    ekle(program_modulu_erisimi_var(user), "takvim", "Takvim", "Kurum programı", "program_panel", "calendar", mark="TK")
-    from takip.vazife_service import vazife_badge_sayisi
-
-    ekle(
-        True,
-        "vazife",
-        "Vazifelerim",
-        "Atanan görevler",
-        "vazife_personel",
-        "check",
-        mark="VZ",
-        badge=vazife_badge_sayisi(user, bugun=bugun) or None,
-    )
-    ekle(egitim_modulu_erisimi_var(user), "raporlar", "Raporlar", "Filtre ve PDF çıktı", "raporlar", "pie", mark="RP")
-    ekle(yonetim_erisimi_var(user), "ayarlar", "Ayarlar", "Kurum ve modül ayarları", "yonetim:dashboard", "settings", mark="AY")
+    ekle(deneme_modulu_erisimi_var(user), "deneme", "Deneme Sonuçları", "Deneme analizi", "deneme_listesi", "chart", mark="DN")
+    ekle(egitim_modulu_erisimi_var(user), "kitap", "Kitap Takip", "Zimmet, okuma ve arşiv", "kitap_listesi", "book", mark="KT")
+    ekle(gunluk_takip_modulu_erisimi_var(user), "gunluk_takip", "Günlük Takip", "Yoklama ve takip", "gunluk_takip_panel", "clipboard", mark="GT")
     return adaylar[:12]
 
 
