@@ -847,6 +847,16 @@ body.v3-body .v3-logout:hover {
     .pv4-date-sub span:last-child::after {
         content: "";
     }
+
+    /* Bento kartları mobilde tek sütunda dar boşlukla art arda dizilince
+       güçlü kart gölgeleri (özellikle --sinif/--namaz) alttaki kartın
+       üstüne gri bir leke gibi taşıyordu; mobilde daha minimalist/düz
+       bir görünüm için gölgeleri hafifletiyoruz. */
+    .pv4-card,
+    .pv4-card--sinif,
+    .pv4-card--namaz {
+        box-shadow: none;
+    }
 }
 
 /* —— Sayfanın alt bölümleri (etüt planı, dershane, hızlı menüler, akış vb.) ——
