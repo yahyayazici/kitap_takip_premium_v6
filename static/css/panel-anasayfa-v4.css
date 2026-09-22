@@ -27,6 +27,19 @@ body.v3-body {
     --pv4-shadow-sm: 0 1px 2px rgba(16, 24, 43, .04);
     --pv4-shadow-md: 0 4px 6px -1px rgba(16, 24, 43, .06), 0 2px 4px -1px rgba(16, 24, 43, .04);
     --pv4-shadow-lg: 0 10px 24px -6px rgba(16, 24, 43, .12);
+
+    /* —— Sayfa "hero" başlıkları (patterned-page-head ailesi) ——
+       Bu bileşen onlarca sayfada (Talebeler, KTT, Deneme, Kitap, program sayfaları vb.)
+       birbirinden ayrı CSS dosyalarında tekrar tanımlanmış; hepsi background'u
+       --dash-hero-bg değişkeninden alıyor. Değişkeni burada override ederek
+       tek noktadan, hiçbir dosyaya dokunmadan tüm sayfa başlıklarını lacivert+altına
+       çeviriyoruz. (--pv4-navy vb. bu selector'da tanımlı olduğundan burada kalmalı;
+       :root'ta tanımlanırsa var(--pv4-navy) çözülemez ve tüm zincir geçersiz olur.) */
+    --cs-hero-gradient: linear-gradient(118deg, var(--pv4-navy) 0%, var(--pv4-navy-3) 55%, var(--pv4-navy-2) 100%);
+    --cs-hero-glow:
+        radial-gradient(circle 280px at 12% 20%, rgba(227, 196, 121, 0.20), transparent 68%),
+        radial-gradient(circle 320px at 88% 75%, rgba(227, 196, 121, 0.14), transparent 70%);
+    --dash-hero-bg: var(--cs-hero-glow), var(--cs-hero-gradient);
 }
 
 body.v3-body .v3-main .page-content {
