@@ -935,12 +935,13 @@ body.v3-body .personel-plan-table tbody td {
    altın ışıltılı dekoratif ikon (parlama animasyonlu). */
 .ktt-page .ktt-page-head.patterned-page-head,
 .library-page .library-page-head.patterned-page-head,
-.tl-page .tl-page-head.patterned-page-head {
+.tl-page .tl-page-head.patterned-page-head,
+.ny-page .ny-head.ny-hero.patterned-page-head {
     position: relative;
 }
 
 .pv4-hero-deco-icon {
-    position: absolute;
+    position: absolute !important;
     top: 50%;
     right: 40px;
     transform: translateY(-50%);
@@ -948,7 +949,7 @@ body.v3-body .personel-plan-table tbody td {
     height: 76px;
     color: var(--pv4-gold-light, #e3c479);
     opacity: .95;
-    z-index: 1;
+    z-index: 1 !important;
     pointer-events: none;
     filter:
         drop-shadow(0 0 8px rgba(227, 196, 121, .55))
@@ -975,6 +976,13 @@ body.v3-body .personel-plan-table tbody td {
     }
 }
 
+/* namaz-yoklama.css'te ".ny-head > *" kuralı position:relative!important
+   dayatıyor (2 sınıf özgüllüğü); ikonun mutlak konumlanması için burada
+   daha yüksek özgüllükle tekrar absolute'a çeviriyoruz. */
+.ny-page .ny-head.ny-hero .pv4-hero-deco-icon {
+    position: absolute !important;
+}
+
 /* Sayfa başlıklarındaki beyaz "solid" butonların yazı rengi hâlâ eski
    maviydi (#15427f); bu yedi sayfada laciverte çeviriyoruz. */
 /* Talebeler — Excel İndir / Rapor Al butonları başlıktan (hero) çıkarıldı;
@@ -995,4 +1003,21 @@ body.v3-body .personel-plan-table tbody td {
 .dk-page .dk-head.dk-hero .dk-btn-primary,
 .fn-page .fn-head.fn-hero .fn-btn-primary {
     color: var(--pv4-navy, #0c1a3a) !important;
+}
+
+/* Namaz Yoklaması — ny-hero eklense de, bundle-panel-late.css'teki daha
+   eski/spesifik ".ny-page > header.page-head.ny-head ..." kuralları
+   (bilinçli olarak "kurum standardı soft kart" için yazılmıştı) başlık
+   metnini koyu bırakıyor. Şimdi bu sayfa da lacivert+altın temaya
+   girdiğinden, daha yüksek özgüllükle beyaza sabitliyoruz. */
+.ny-page .ny-head.ny-hero.patterned-page-head h1 {
+    color: #fff !important;
+}
+
+.ny-page .ny-head.ny-hero.patterned-page-head .kicker {
+    color: rgba(255, 255, 255, 0.82) !important;
+}
+
+.ny-page .ny-head.ny-hero.patterned-page-head .ny-sub {
+    color: rgba(255, 255, 255, 0.88) !important;
 }
