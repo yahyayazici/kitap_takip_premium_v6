@@ -931,48 +931,45 @@ body.v3-body .personel-plan-table tbody td {
     }
 }
 
-/* KTT sayfa başlığı — sağ uçta dekoratif kalem ikonu */
-.ktt-page .ktt-page-head.patterned-page-head {
-    position: relative;
-}
-
-.ktt-page .ktt-page-head.patterned-page-head .ktt-hero-pen-icon {
-    position: absolute;
-    top: 28px;
-    right: 32px;
-    width: 44px;
-    height: 44px;
-    color: var(--pv4-gold-light, #e3c479);
-    opacity: .55;
-    z-index: 1;
-    pointer-events: none;
-}
-
-@media (max-width: 720px) {
-    .ktt-page .ktt-page-head.patterned-page-head .ktt-hero-pen-icon {
-        display: none;
-    }
-}
-
-/* Kitap Arşivi sayfa başlığı — sağ uçta dekoratif kitap ikonu */
+/* KTT / Kitap Arşivi sayfa başlıkları — sağ uçta, dikey ortalanmış,
+   altın ışıltılı dekoratif ikon (parlama animasyonlu). */
+.ktt-page .ktt-page-head.patterned-page-head,
 .library-page .library-page-head.patterned-page-head {
     position: relative;
 }
 
-.library-page .library-page-head.patterned-page-head .library-hero-book-icon {
+.pv4-hero-deco-icon {
     position: absolute;
-    top: 28px;
-    right: 32px;
-    width: 44px;
-    height: 44px;
+    top: 50%;
+    right: 40px;
+    transform: translateY(-50%);
+    width: 76px;
+    height: 76px;
     color: var(--pv4-gold-light, #e3c479);
-    opacity: .55;
+    opacity: .95;
     z-index: 1;
     pointer-events: none;
+    filter:
+        drop-shadow(0 0 8px rgba(227, 196, 121, .55))
+        drop-shadow(0 0 22px rgba(227, 196, 121, .35));
+    animation: pv4-hero-icon-glow 3.2s ease-in-out infinite;
 }
 
-@media (max-width: 720px) {
-    .library-page .library-page-head.patterned-page-head .library-hero-book-icon {
+@keyframes pv4-hero-icon-glow {
+    0%, 100% {
+        filter:
+            drop-shadow(0 0 6px rgba(227, 196, 121, .45))
+            drop-shadow(0 0 16px rgba(227, 196, 121, .28));
+    }
+    50% {
+        filter:
+            drop-shadow(0 0 12px rgba(227, 196, 121, .8))
+            drop-shadow(0 0 30px rgba(227, 196, 121, .55));
+    }
+}
+
+@media (max-width: 780px) {
+    .pv4-hero-deco-icon {
         display: none;
     }
 }
