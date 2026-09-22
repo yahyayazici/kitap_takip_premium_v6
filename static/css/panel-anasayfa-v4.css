@@ -1,0 +1,919 @@
+/* Ana panel — kurumsal lacivert+altın tasarım sistemi (ui-design-system tokenlarıyla)
+   Sadece bu sayfaya özel (body.pv4-page); hiçbir paylaşılan/global sınıfı override etmez
+   dışında sadece üst nav'ın (v3-header) rengini bu sayfaya özel olarak beyaza çeviriyoruz. */
+
+body.pv4-page {
+    --pv4-navy: #0c1a3a;
+    --pv4-navy-2: #132a56;
+    --pv4-navy-3: #1c3b70;
+    --pv4-gold: #c39a3d;
+    --pv4-gold-light: #e3c479;
+    --pv4-gold-dim: #8a6d2a;
+    --pv4-bg: #f4f5f7;
+    --pv4-surface: #ffffff;
+    --pv4-line: #e2e4e9;
+    --pv4-text: #10182b;
+    --pv4-muted: #5c6478;
+    --pv4-muted-soft: #8c93a3;
+    --pv4-green: #186b4c;
+    --pv4-green-bg: #e9f4ee;
+    --pv4-red: #a23b30;
+    --pv4-sp-2: 8px;
+    --pv4-sp-3: 16px;
+    --pv4-sp-4: 24px;
+    --pv4-sp-5: 32px;
+    --pv4-r-sm: 6px;
+    --pv4-r-lg: 16px;
+    --pv4-shadow-sm: 0 1px 2px rgba(16, 24, 43, .04);
+    --pv4-shadow-md: 0 4px 6px -1px rgba(16, 24, 43, .06), 0 2px 4px -1px rgba(16, 24, 43, .04);
+    --pv4-shadow-lg: 0 10px 24px -6px rgba(16, 24, 43, .12);
+}
+
+body.pv4-page .v3-main .page-content {
+    background: var(--pv4-bg);
+}
+
+/* —— Üst nav — beyaz zemin, koyu metin, altın aktif çizgi —— */
+body.pv4-page .v3-header {
+    background: #ffffff !important;
+    background-size: auto !important;
+    animation: none !important;
+    box-shadow: 0 1px 0 rgba(16, 33, 61, .04), 0 8px 20px rgba(15, 40, 80, .06) !important;
+    border-bottom: 1px solid var(--pv4-line) !important;
+}
+
+body.pv4-page .v3-header::before,
+body.pv4-page .v3-header::after {
+    display: none !important;
+}
+
+body.pv4-page .v6-header-books {
+    display: none !important;
+}
+
+body.pv4-page .v3-brand-mark img,
+body.pv4-page .v6-brand-mark img {
+    display: none !important;
+}
+
+body.pv4-page .v6-brand-mark::before,
+body.pv4-page .v6-brand-mark::after {
+    display: none !important;
+}
+
+body.pv4-page .v3-brand-mark.v6-brand-mark {
+    background: url("../images/cinili-saray-logo-icon.png") center / contain no-repeat !important;
+    border-radius: var(--pv4-r-sm);
+}
+
+body.pv4-page .v3-brand.v6-brand-block {
+    background: #f4f5f8 !important;
+    border-color: var(--pv4-line) !important;
+    box-shadow: none !important;
+}
+
+body.pv4-page .v3-brand-copy strong,
+body.pv4-page .v6-brand-copy strong {
+    color: var(--pv4-text) !important;
+    text-shadow: none !important;
+}
+
+body.pv4-page .v3-brand-copy small,
+body.pv4-page .v6-brand-copy small {
+    color: var(--pv4-muted-soft) !important;
+}
+
+body.pv4-page .v3-header .v3-nav-link,
+body.pv4-page .v3-header .v3-nav-trigger,
+body.pv4-page .v3-header button.v3-nav-link.v3-nav-trigger {
+    color: var(--pv4-muted) !important;
+}
+
+body.pv4-page .v3-header .v3-nav-link:hover,
+body.pv4-page .v3-header .v3-nav-trigger:hover,
+body.pv4-page .v3-header button.v3-nav-link.v3-nav-trigger:hover,
+body.pv4-page .v3-header button.v3-nav-link.v3-nav-trigger:focus,
+body.pv4-page .v3-header button.v3-nav-link.v3-nav-trigger:focus-visible {
+    color: var(--pv4-text) !important;
+}
+
+body.pv4-page .v3-header .v3-nav-link.active,
+body.pv4-page .v3-header .v3-nav-link.active:hover,
+body.pv4-page .v3-nav-dropdown.is-section-active > .v3-nav-trigger,
+body.pv4-page .v3-nav-dropdown.open > .v3-nav-trigger,
+body.pv4-page .v3-nav-dropdown.is-section-active > .v3-nav-trigger:hover,
+body.pv4-page .v3-nav-dropdown.open > .v3-nav-trigger:hover {
+    color: var(--pv4-text) !important;
+}
+
+body.pv4-page .v3-header .v3-nav-link.active::after,
+body.pv4-page .v3-nav-dropdown.is-section-active > .v3-nav-trigger::after,
+body.pv4-page .v3-nav-dropdown.open > .v3-nav-trigger::after {
+    background: var(--pv4-gold) !important;
+}
+
+body.pv4-page .v3-user-avatar {
+    background: var(--pv4-navy) !important;
+    color: var(--pv4-gold-light) !important;
+}
+
+body.pv4-page .v3-user-copy {
+    display: flex !important;
+}
+
+body.pv4-page .v3-user-copy strong {
+    color: var(--pv4-text) !important;
+}
+
+body.pv4-page .v3-user-copy small {
+    color: var(--pv4-muted-soft) !important;
+}
+
+body.pv4-page .v3-logout {
+    background: var(--pv4-navy) !important;
+    border-color: var(--pv4-navy) !important;
+    color: #fff !important;
+}
+
+body.pv4-page .v3-logout:hover {
+    background: var(--pv4-navy-2) !important;
+    border-color: var(--pv4-navy-2) !important;
+}
+
+/* —— Sayfa gövdesi —— */
+.pv4-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: var(--pv4-sp-4);
+    font-family: "Poppins", "Segoe UI", sans-serif;
+    color: var(--pv4-text);
+}
+
+.pv4-wrap * {
+    box-sizing: border-box;
+}
+
+.pv4-num {
+    font-variant-numeric: tabular-nums;
+}
+
+/* —— Hero —— */
+.pv4-hero-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 240px;
+    gap: var(--pv4-sp-4);
+}
+
+.pv4-hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--pv4-r-lg);
+    padding: var(--pv4-sp-5) var(--pv4-sp-4);
+    display: flex;
+    align-items: center;
+    background: linear-gradient(122deg, var(--pv4-navy) 0%, var(--pv4-navy-2) 55%, var(--pv4-navy-3) 100%);
+    box-shadow: var(--pv4-shadow-lg);
+    border-bottom: 3px solid var(--pv4-gold);
+}
+
+.pv4-hero-grid {
+    position: absolute;
+    inset: 0;
+    opacity: .35;
+    pointer-events: none;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, .5) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .5) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mask-image: linear-gradient(120deg, transparent 15%, #000 65%);
+}
+
+.pv4-hero-copy {
+    position: relative;
+    z-index: 1;
+}
+
+.pv4-eyebrow {
+    margin: 0 0 var(--pv4-sp-2);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--pv4-gold-light);
+}
+
+.pv4-hero h1 {
+    margin: 0 !important;
+    font-size: clamp(22px, 2.6vw, 30px) !important;
+    font-weight: 400 !important;
+    letter-spacing: -.01em !important;
+    color: #fff !important;
+    line-height: 1.15 !important;
+    font-family: "Poppins", "Segoe UI", sans-serif !important;
+}
+
+.pv4-hero h1 strong {
+    font-weight: 700 !important;
+}
+
+.pv4-hero p {
+    margin: var(--pv4-sp-2) 0 0;
+    font-size: 13.5px;
+    color: rgba(255, 255, 255, .68);
+    font-weight: 300;
+}
+
+.pv4-date-card {
+    border-radius: var(--pv4-r-lg);
+    background: var(--pv4-surface);
+    border: 1.5px solid var(--pv4-gold);
+    box-shadow: var(--pv4-shadow-md);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: var(--pv4-sp-3);
+}
+
+.pv4-date-kicker {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--pv4-gold-dim);
+}
+
+.pv4-date-num {
+    font-size: 38px;
+    font-weight: 700;
+    color: var(--pv4-navy);
+    line-height: 1;
+}
+
+.pv4-date-sub {
+    font-size: 12px;
+    color: var(--pv4-muted);
+    text-align: center;
+}
+
+/* —— Bento kartlar —— */
+.pv4-bento {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-auto-rows: minmax(112px, auto);
+    gap: var(--pv4-sp-3);
+}
+
+.pv4-card {
+    background: var(--pv4-surface);
+    border: 1px solid var(--pv4-line);
+    border-radius: var(--pv4-r-lg);
+    box-shadow: var(--pv4-shadow-sm);
+    padding: var(--pv4-sp-4);
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow .18s ease, transform .18s ease;
+}
+
+.pv4-card:hover {
+    box-shadow: var(--pv4-shadow-md);
+    transform: translateY(-2px);
+}
+
+.pv4-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--pv4-sp-3);
+}
+
+.pv4-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: var(--pv4-r-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.pv4-icon svg {
+    width: 17px;
+    height: 17px;
+}
+
+.pv4-tag {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+}
+
+.pv4-card--sinif {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    color: #fff;
+    border: none;
+    border-top: 3px solid var(--pv4-gold);
+    background:
+        radial-gradient(circle at 88% 8%, rgba(227, 196, 121, .16), transparent 42%),
+        linear-gradient(150deg, var(--pv4-navy) 0%, var(--pv4-navy-2) 100%);
+    box-shadow: var(--pv4-shadow-lg);
+}
+
+.pv4-card--sinif .pv4-icon {
+    background: rgba(227, 196, 121, .16);
+    color: var(--pv4-gold-light);
+}
+
+.pv4-card--sinif .pv4-tag {
+    color: var(--pv4-gold-light);
+}
+
+.pv4-stat {
+    margin-top: auto;
+}
+
+.pv4-stat-value {
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.pv4-stat-label {
+    margin-top: var(--pv4-sp-2);
+    font-size: 13px;
+    color: rgba(255, 255, 255, .82);
+}
+
+.pv4-stat-sub {
+    margin-top: 2px;
+    font-size: 11.5px;
+    color: rgba(255, 255, 255, .55);
+}
+
+.pv4-card-link {
+    margin-top: var(--pv4-sp-3);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--pv4-gold-light);
+}
+
+.pv4-card-link svg {
+    width: 11px;
+    height: 11px;
+    transition: transform .15s ease;
+}
+
+.pv4-card:hover .pv4-card-link svg {
+    transform: translateX(2px);
+}
+
+.pv4-card--wide {
+    grid-column: 2 / span 2;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--pv4-sp-3);
+}
+
+.pv4-card--wide .pv4-icon {
+    width: 40px;
+    height: 40px;
+    background: #eaf0fb;
+    color: var(--pv4-navy-3);
+}
+
+.pv4-wide-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--pv4-sp-3);
+}
+
+.pv4-wide-title {
+    font-size: 13.5px;
+    font-weight: 600;
+}
+
+.pv4-wide-title .pv4-tag {
+    margin-left: 8px;
+    color: var(--pv4-gold-dim);
+    font-size: 10px;
+}
+
+.pv4-wide-meta {
+    margin-top: 3px;
+    font-size: 12.5px;
+    color: var(--pv4-muted);
+}
+
+.pv4-empty {
+    margin-top: 3px;
+    font-size: 12.5px;
+    color: var(--pv4-muted-soft);
+}
+
+.pv4-card--wide .pv4-card-link {
+    margin-top: 0;
+    color: var(--pv4-navy-3);
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.pv4-card--namaz {
+    grid-column: 4;
+    grid-row: 1 / span 2;
+    border-color: #c7e6d5;
+    background: linear-gradient(165deg, var(--pv4-green-bg) 0%, #fff 55%);
+}
+
+.pv4-card--namaz .pv4-icon {
+    background: var(--pv4-green);
+    color: #fff;
+}
+
+.pv4-card--namaz .pv4-tag {
+    color: var(--pv4-green);
+}
+
+.pv4-card--namaz.is-alert .pv4-icon {
+    background: var(--pv4-red);
+}
+
+.pv4-card--namaz.is-alert .pv4-tag {
+    color: var(--pv4-red);
+}
+
+.pv4-namaz-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    margin-bottom: var(--pv4-sp-2);
+}
+
+.pv4-namaz-ok {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #127a55;
+}
+
+.pv4-namaz-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--pv4-green);
+    flex-shrink: 0;
+}
+
+.pv4-namaz-alert-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--pv4-red);
+    line-height: 1;
+}
+
+.pv4-namaz-alert-list {
+    margin-top: 6px;
+    display: grid;
+    gap: 4px;
+    max-height: 88px;
+    overflow: auto;
+}
+
+.pv4-namaz-alert-list div {
+    font-size: 11.5px;
+    color: var(--pv4-muted);
+    line-height: 1.4;
+}
+
+.pv4-namaz-alert-list em {
+    font-style: normal;
+    font-weight: 700;
+    color: var(--pv4-text);
+    margin-right: 4px;
+}
+
+.pv4-card--namaz .pv4-card-link {
+    margin-top: auto;
+    color: #127a55;
+}
+
+/* —— Duyuru + YÇT —— */
+.pv4-lower {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--pv4-sp-3);
+    align-items: stretch;
+}
+
+.pv4-promo {
+    border-radius: var(--pv4-r-lg);
+    overflow: hidden;
+    box-shadow: var(--pv4-shadow-sm);
+    border: 1px solid var(--pv4-line);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.pv4-promo-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.pv4-promo-band {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.pv4-promo-band {
+    padding: var(--pv4-sp-4) var(--pv4-sp-4) var(--pv4-sp-3);
+    background: linear-gradient(120deg, var(--pv4-navy) 0%, var(--pv4-navy-2) 100%);
+    border-bottom: 3px solid var(--pv4-gold);
+    color: #fff;
+}
+
+.pv4-promo-band .pv4-tag {
+    color: var(--pv4-gold-light);
+}
+
+.pv4-promo-title {
+    margin: var(--pv4-sp-2) 0 0;
+    font-size: 19px;
+    font-weight: 600;
+}
+
+.pv4-promo-foot {
+    padding: var(--pv4-sp-3) var(--pv4-sp-4);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--pv4-sp-3);
+    background: var(--pv4-surface);
+}
+
+.pv4-promo-stat {
+    font-size: 12.5px;
+    color: var(--pv4-muted);
+}
+
+.pv4-promo-btn {
+    padding: 9px var(--pv4-sp-3);
+    border-radius: var(--pv4-r-sm);
+    border: 1px solid var(--pv4-gold);
+    background: var(--pv4-navy);
+    color: var(--pv4-gold-light);
+    font-size: 12.5px;
+    font-weight: 600;
+}
+
+.pv4-promo-empty {
+    padding: var(--pv4-sp-4);
+    text-align: center;
+    color: var(--pv4-muted-soft);
+    font-size: 13px;
+}
+
+.pv4-promo-empty a {
+    display: inline-block;
+    margin-top: var(--pv4-sp-3);
+    padding: 9px var(--pv4-sp-3);
+    border-radius: var(--pv4-r-sm);
+    background: var(--pv4-navy);
+    color: var(--pv4-gold-light);
+    font-size: 12.5px;
+    font-weight: 600;
+}
+
+.pv4-cal {
+    background: var(--pv4-surface);
+    border: 1px solid var(--pv4-line);
+    border-radius: var(--pv4-r-lg);
+    box-shadow: var(--pv4-shadow-sm);
+    padding: var(--pv4-sp-4);
+}
+
+.pv4-cal-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: var(--pv4-sp-3);
+}
+
+.pv4-cal-title {
+    margin: 2px 0 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.pv4-cal-link {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--pv4-navy-3);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.pv4-cal-link svg {
+    width: 10px;
+    height: 10px;
+}
+
+.pv4-cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.pv4-cal-dow {
+    text-align: center;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--pv4-muted-soft);
+    padding-bottom: 4px;
+}
+
+.pv4-cal-cell {
+    min-height: 52px;
+    border-radius: var(--pv4-r-sm);
+    border: 1px solid var(--pv4-line);
+    padding: 6px;
+    position: relative;
+}
+
+.pv4-cal-cell.is-empty {
+    border-color: transparent;
+}
+
+.pv4-cal-daynum {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    background: #eef0f4;
+    color: var(--pv4-text);
+}
+
+.pv4-cal-cell.has-event {
+    background: #eef3ff;
+    border-color: #c9daff;
+}
+
+.pv4-cal-cell.has-event .pv4-cal-daynum {
+    background: var(--pv4-navy-3);
+    color: #fff;
+}
+
+.pv4-cal-cell.is-today {
+    background: var(--pv4-navy);
+    border-color: var(--pv4-navy);
+}
+
+.pv4-cal-cell.is-today .pv4-cal-daynum {
+    background: var(--pv4-gold);
+    color: var(--pv4-navy);
+}
+
+.pv4-cal-today-label {
+    display: block;
+    margin-top: 4px;
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--pv4-gold-light);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.pv4-cal-events {
+    margin-top: 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.pv4-cal-chip {
+    display: block;
+    width: 100%;
+    font-size: 8.5px;
+    font-weight: 600;
+    color: #1e40af;
+    background: #fff;
+    border: 1px solid #dbeafe;
+    border-radius: 4px;
+    padding: 1px 3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
+}
+
+.pv4-cal-cell.is-today .pv4-cal-chip {
+    background: rgba(255, 255, 255, .12);
+    border-color: rgba(255, 255, 255, .22);
+    color: var(--pv4-gold-light);
+}
+
+@media (max-width: 1100px) {
+    .pv4-hero-row {
+        grid-template-columns: 1fr;
+    }
+
+    .pv4-bento {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .pv4-card--sinif,
+    .pv4-card--wide,
+    .pv4-card--namaz {
+        grid-column: auto;
+        grid-row: auto;
+    }
+
+    .pv4-card--wide {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .pv4-lower {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    .pv4-bento {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* —— Sayfanın alt bölümleri (etüt planı, dershane, hızlı menüler, akış vb.) ——
+   Markup/JS aynı kalıyor; sadece görünüm bu sayfada kurumsal lacivert+altına çevriliyor. */
+body.pv4-page .dash-panel {
+    border-radius: var(--pv4-r-lg) !important;
+    border-color: var(--pv4-line) !important;
+    box-shadow: var(--pv4-shadow-sm) !important;
+}
+
+body.pv4-page .dash-panel::after {
+    background: var(--pv4-gold) !important;
+    opacity: 1 !important;
+}
+
+body.pv4-page .dash-panel-head {
+    background: #fff !important;
+    border-bottom-color: var(--pv4-line) !important;
+}
+
+body.pv4-page .dash-panel-lined::before {
+    display: none !important;
+}
+
+body.pv4-page .dash-eyebrow {
+    color: var(--pv4-gold-dim) !important;
+}
+
+body.pv4-page .dash-panel-head h2 {
+    color: var(--pv4-text) !important;
+    font-weight: 600 !important;
+}
+
+body.pv4-page .dash-text-btn {
+    border-color: var(--pv4-line) !important;
+    background: #fff !important;
+    color: var(--pv4-navy-3) !important;
+    font-weight: 600 !important;
+}
+
+body.pv4-page .dash-text-btn:hover {
+    border-color: var(--pv4-gold) !important;
+    background: #fff !important;
+    color: var(--pv4-gold-dim) !important;
+}
+
+body.pv4-page .personel-plan-table thead th {
+    color: var(--pv4-muted-soft) !important;
+    border-bottom-color: var(--pv4-line) !important;
+}
+
+body.pv4-page .personel-plan-table tbody tr {
+    border-bottom-color: var(--pv4-line) !important;
+}
+
+body.pv4-page .personel-plan-table tbody tr.tamam {
+    background: var(--pv4-green-bg) !important;
+}
+
+body.pv4-page .personel-ders-tag {
+    background: #eaf0fb !important;
+    color: var(--pv4-navy-3) !important;
+}
+
+body.pv4-page .dash-etut-stats span strong {
+    color: var(--pv4-navy) !important;
+}
+
+body.pv4-page .dash-activity-avatar {
+    background: var(--pv4-navy) !important;
+    color: var(--pv4-gold-light) !important;
+}
+
+body.pv4-page .dash-activity-row,
+body.pv4-page .dash-gorusme-row,
+body.pv4-page .dash-event-row {
+    border-bottom-color: var(--pv4-line) !important;
+}
+
+body.pv4-page .dash-gorusme-row:hover,
+body.pv4-page .dash-event-row:hover {
+    background: #f8f9fb !important;
+}
+
+body.pv4-page .dash-gorusme-tag {
+    background: #eaf0fb !important;
+    color: var(--pv4-navy-3) !important;
+}
+
+body.pv4-page .dash-event-date strong {
+    color: var(--pv4-navy) !important;
+}
+
+body.pv4-page .dash-gorev-card {
+    border-color: var(--pv4-line) !important;
+    border-radius: var(--pv4-r-lg) !important;
+}
+
+body.pv4-page .dash-gorev-list li strong {
+    color: var(--pv4-navy-3) !important;
+}
+
+body.pv4-page .dash-empty-note,
+body.pv4-page .empty-state {
+    background: #fbfbfc !important;
+    border-color: var(--pv4-line) !important;
+    color: var(--pv4-muted) !important;
+    padding: 20px 24px !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+body.pv4-page .dash-empty-note::before,
+body.pv4-page .empty-state::before {
+    background-color: var(--pv4-navy-3) !important;
+    background-image: none !important;
+    border-color: var(--pv4-line) !important;
+    width: 34px !important;
+    height: 34px !important;
+    margin: 0 auto !important;
+}
+
+body.pv4-page .dash-empty-note strong,
+body.pv4-page .empty-state strong {
+    color: var(--pv4-text) !important;
+}
+
+body.pv4-page .personel-plan-card .dash-panel-head,
+body.pv4-page .dash-etut-widget .dash-panel-head,
+body.pv4-page .dash-gunluk-gorev .dash-panel-head {
+    background: #fff !important;
+}
+
+body.pv4-page .dash-etut-stats span {
+    color: var(--pv4-muted) !important;
+}
+
+body.pv4-page .personel-plan-table thead th {
+    background: #fafbfc !important;
+}
+
+body.pv4-page .personel-plan-table tbody td {
+    color: var(--pv4-text) !important;
+}
+
+/* Hızlı menüler — 5 kısayol tek satırda yan yana */
+@media (min-width: 1101px) {
+    body.pv4-page .dash-shortcuts-grid {
+        --dash-sc-cols: 5 !important;
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    }
+}

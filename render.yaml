@@ -46,6 +46,11 @@ services:
       # böylece her deploy'da silinmezler.
       - key: EKRAN_MEDIA_ROOT
         value: "/var/ekran-medya"
+      # Akıllı Tahta Dosya Merkezi'nin dosyaları da AYNI kalıcı diskin bir alt
+      # klasörüne yazılır (yeni disk gerekmez). Bu ayar olmadan dosyalar
+      # container'ın geçici diskine yazılır ve her deploy'da silinir.
+      - key: AKILLI_TAHTA_MEDIA_ROOT
+        value: "/var/ekran-medya/akilli-tahta-medya"
       - key: DATABASE_URL
         fromDatabase:
           name: kitap-takip-db
