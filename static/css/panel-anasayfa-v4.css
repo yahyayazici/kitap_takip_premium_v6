@@ -108,6 +108,12 @@ body.v3-body .v3-menu-toggle span {
     background: var(--pv4-navy) !important;
 }
 
+/* Mobilde kurum adının kısa hali (v3-brand-title-short) eski koyu nav
+   için beyaz yazıydı; nav beyaza dönünce görünmez kalıyordu. */
+body.v3-body .v3-brand-title-short {
+    color: var(--pv4-text) !important;
+}
+
 /* Mobildeki "Çıkış" butonu mavi/mor gradyan kullanıyordu; lacivert+altın
    kimliğimizle tutarlı olsun diye laciverte çeviriyoruz. */
 body.v3-body .v3-logout-mobile {
@@ -144,8 +150,13 @@ body.v3-body .v3-user-avatar {
     color: var(--pv4-gold-light) !important;
 }
 
-body.v3-body .v3-user-copy {
-    display: flex !important;
+/* Sadece masaüstünde göster — mobilde (nav-groups.css) bilinçli olarak
+   gizleniyor; !important olmadan mobil kuralı eziyorduk (kurum ismini
+   sıkıştırıp kullanıcı adını mobilde de zorla gösteriyordu). */
+@media (min-width: 1401px) {
+    body.v3-body .v3-user-copy {
+        display: flex !important;
+    }
 }
 
 body.v3-body .v3-user-copy strong {
@@ -789,6 +800,43 @@ body.v3-body .v3-logout:hover {
 @media (max-width: 700px) {
     .pv4-bento {
         grid-template-columns: 1fr;
+    }
+
+    /* Tarih kutucuğu mobilde tek başına büyük bir kart olarak dikey
+       yer kaplıyordu; yatay, ince bir şeride çeviriyoruz. */
+    .pv4-date-card {
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 10px;
+        padding: 10px var(--pv4-sp-3);
+    }
+
+    .pv4-date-kicker {
+        order: 2;
+    }
+
+    .pv4-date-num {
+        font-size: 20px;
+        order: 1;
+    }
+
+    .pv4-date-sub {
+        order: 3;
+        margin-left: auto;
+        text-align: right;
+    }
+
+    .pv4-date-sub br {
+        display: none;
+    }
+
+    .pv4-date-sub span::after {
+        content: " · ";
+    }
+
+    .pv4-date-sub span:last-child::after {
+        content: "";
     }
 }
 
