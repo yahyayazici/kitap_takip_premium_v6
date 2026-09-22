@@ -187,25 +187,6 @@ def deneme_excel_indir(request, pk):
     return excel_http_yanit(icerik, f"deneme_{dosya}_{localdate():%Y%m%d}.xlsx")
 
 
-class _BransSatir:
-    __slots__ = (
-        "talebe",
-        "toplam_dogru",
-        "toplam_yanlis",
-        "toplam_bos",
-        "toplam_net",
-        "puan",
-    )
-
-    def __init__(self, talebe, dogru, yanlis, bos, net, puan):
-        self.talebe = talebe
-        self.toplam_dogru = dogru
-        self.toplam_yanlis = yanlis
-        self.toplam_bos = bos
-        self.toplam_net = net
-        self.puan = puan
-
-
 def _deneme_liste_ctx(sonuclar, *, kicker, baslik):
     adet = len(sonuclar)
     split_at = (adet + 1) // 2
@@ -219,28 +200,6 @@ def _deneme_liste_ctx(sonuclar, *, kicker, baslik):
         "liste_kicker": kicker,
         "liste_baslik": baslik,
     }
-
-
-def _brans_pdf_satirlari(sonuclar, kod):
-    satirlar = []
-    for sonuc in sonuclar:
-        brans = next((b for b in sonuc.brans_satirlari.all() if b.brans == kod), None)
-        if brans is None:
-            continue
-        satirlar.append(
-            _BransSatir(
-                sonuc.talebe,
-                int(brans.dogru or 0),
-                int(brans.yanlis or 0),
-                int(brans.bos or 0),
-                brans.net,
-                sonuc.puan,
-            )
-        )
-    satirlar.sort(
-        key=lambda s: (-float(s.toplam_net or 0), (s.talebe.ad_soyad or "").upper())
-    )
-    return satirlar
 
 
 @login_required
@@ -257,17 +216,6 @@ def deneme_detay_pdf(request, pk):
             baslik="Doğru / Yanlış / Boş / Net / Puan",
         )
     ]
-    for kod, etiket in BRANS_ETIKETLERI.items():
-        brans_satir = _brans_pdf_satirlari(sonuclar, kod)
-        if not brans_satir:
-            continue
-        listeler.append(
-            _deneme_liste_ctx(
-                brans_satir,
-                kicker=etiket,
-                baslik=f"{etiket} — D / Y / B / Net",
-            )
-        )
 
     html = render(
         request,
@@ -284,10 +232,9 @@ def deneme_detay_pdf(request, pk):
         return pdf_error_response(
             f"PDF oluşturulamadı. (Motor: {pdf_engine_status()})",
         )
-    ad = slugify(deneme.ad) or f"deneme_{deneme.pk}"
     return make_pdf_response(
         pdf_verisi,
-        f"deneme_{ad}_{pdf_sayfa['kod']}_{localdate():%Y%m%d}.pdf",
+        f"{deneme.ad}.pdf",
     )
 
 
