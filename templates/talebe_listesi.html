@@ -15,11 +15,13 @@
         <p class="kicker">TALEBE YÖNETİMİ</p>
         <h1>Talebeler</h1>
         <p class="tl-head-desc">Etüdünüzdeki talebelerin kitap ve okuma durumlarını görüntüleyin.</p>
-        <div class="page-head-actions tl-head-actions">
-            <a href="{{ rapor_excel_url }}" class="ghost-btn">Excel İndir</a>
-            {% include "includes/talebe_liste_rapor_panel.html" %}
-        </div>
     </div>
+    <svg class="pv4-hero-deco-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/>
+        <circle cx="10" cy="7" r="4"/>
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
 </header>
 
 <section class="panel tl-panel">
@@ -28,8 +30,12 @@
             <strong>{{ talebeler|length }} talebe</strong>
             <span>Aktif talebe listesi</span>
         </div>
-        <div class="search-box">
-            <input type="text" id="student-search" placeholder="Talebe ara..." autocomplete="off">
+        <div class="tl-list-tools">
+            <a href="{{ rapor_excel_url }}" class="ghost-btn">Excel İndir</a>
+            {% include "includes/talebe_liste_rapor_panel.html" %}
+            <div class="search-box">
+                <input type="text" id="student-search" placeholder="Talebe ara..." autocomplete="off">
+            </div>
         </div>
     </div>
 

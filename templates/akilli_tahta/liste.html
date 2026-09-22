@@ -9,12 +9,6 @@
         <h1>Akıllı Tahta Dosya Merkezi</h1>
         <p class="muted">Sınıf seviyelerine gönderilen deneme, test, çalışma kâğıdı, görsel ve videolar.</p>
     </div>
-    <div class="page-head-actions">
-        {% if tam_yetkili %}
-        <a href="{% url 'akilli_tahta_yonetim:hesap_listesi' %}" class="ghost-btn">Tahta Hesapları</a>
-        {% endif %}
-        <a href="{% url 'akilli_tahta:yukle' %}" class="primary-btn">Dosya Yükle</a>
-    </div>
 </header>
 
 {% if tam_yetkili %}
@@ -56,6 +50,12 @@
         <div>
             <p class="card-kicker">{% if tam_yetkili %}TÜM DOSYALAR{% else %}KENDİ DOSYALARIM{% endif %}</p>
             <h2>Yüklenen Dosyalar</h2>
+        </div>
+        <div class="page-head-actions">
+            {% if tam_yetkili %}
+            <a href="{% url 'akilli_tahta_yonetim:hesap_listesi' %}" class="ghost-btn">Tahta Hesapları</a>
+            {% endif %}
+            <a href="{% url 'akilli_tahta:yukle' %}" class="primary-btn">Dosya Yükle</a>
         </div>
         <span class="report-record-count">{{ dosyalar|length }} dosya</span>
     </div>

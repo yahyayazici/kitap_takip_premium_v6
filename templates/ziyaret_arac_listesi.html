@@ -11,16 +11,16 @@
             <p class="kicker">ZİYARET ARAÇ PLANLAMA</p>
             <h1>Ziyaret Planları</h1>
             <p class="za-head-desc">Veli ziyaretleri için araç toplama ve talebe dağıtımı.</p>
-            <div class="za-head-actions">
-                {% if yonetim %}
-                <a href="{% url 'ziyaret_arac_olustur' %}" class="primary-btn">+ Yeni Plan</a>
-                {% endif %}
-                <a href="{% url 'dashboard' %}" class="ghost-btn">Ana Sayfa</a>
-            </div>
         </div>
     </header>
 
     <section class="za-card">
+        <div class="za-head-actions" style="margin-bottom:0.85rem;">
+            {% if yonetim %}
+            <a href="{% url 'ziyaret_arac_olustur' %}" class="primary-btn">+ Yeni Plan</a>
+            {% endif %}
+            <a href="{% url 'dashboard' %}" class="ghost-btn">Ana Sayfa</a>
+        </div>
         {% if planlar %}
         <div class="za-table-wrap">
             <table class="za-table">

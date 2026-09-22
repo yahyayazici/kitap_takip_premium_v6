@@ -1,8 +1,8 @@
 /* Ana panel — kurumsal lacivert+altın tasarım sistemi (ui-design-system tokenlarıyla)
-   Sadece bu sayfaya özel (body.pv4-page); hiçbir paylaşılan/global sınıfı override etmez
+   Sadece bu sayfaya özel (body.v3-body); hiçbir paylaşılan/global sınıfı override etmez
    dışında sadece üst nav'ın (v3-header) rengini bu sayfaya özel olarak beyaza çeviriyoruz. */
 
-body.pv4-page {
+body.v3-body {
     --pv4-navy: #0c1a3a;
     --pv4-navy-2: #132a56;
     --pv4-navy-3: #1c3b70;
@@ -27,14 +27,27 @@ body.pv4-page {
     --pv4-shadow-sm: 0 1px 2px rgba(16, 24, 43, .04);
     --pv4-shadow-md: 0 4px 6px -1px rgba(16, 24, 43, .06), 0 2px 4px -1px rgba(16, 24, 43, .04);
     --pv4-shadow-lg: 0 10px 24px -6px rgba(16, 24, 43, .12);
+
+    /* —— Sayfa "hero" başlıkları (patterned-page-head ailesi) ——
+       Bu bileşen onlarca sayfada (Talebeler, KTT, Deneme, Kitap, program sayfaları vb.)
+       birbirinden ayrı CSS dosyalarında tekrar tanımlanmış; hepsi background'u
+       --dash-hero-bg değişkeninden alıyor. Değişkeni burada override ederek
+       tek noktadan, hiçbir dosyaya dokunmadan tüm sayfa başlıklarını lacivert+altına
+       çeviriyoruz. (--pv4-navy vb. bu selector'da tanımlı olduğundan burada kalmalı;
+       :root'ta tanımlanırsa var(--pv4-navy) çözülemez ve tüm zincir geçersiz olur.) */
+    --cs-hero-gradient: linear-gradient(118deg, var(--pv4-navy) 0%, var(--pv4-navy-3) 55%, var(--pv4-navy-2) 100%);
+    --cs-hero-glow:
+        radial-gradient(circle 280px at 12% 20%, rgba(227, 196, 121, 0.20), transparent 68%),
+        radial-gradient(circle 320px at 88% 75%, rgba(227, 196, 121, 0.14), transparent 70%);
+    --dash-hero-bg: var(--cs-hero-glow), var(--cs-hero-gradient);
 }
 
-body.pv4-page .v3-main .page-content {
+body.v3-body .v3-main .page-content {
     background: var(--pv4-bg);
 }
 
 /* —— Üst nav — beyaz zemin, koyu metin, altın aktif çizgi —— */
-body.pv4-page .v3-header {
+body.v3-body .v3-header {
     background: #ffffff !important;
     background-size: auto !important;
     animation: none !important;
@@ -42,100 +55,125 @@ body.pv4-page .v3-header {
     border-bottom: 1px solid var(--pv4-line) !important;
 }
 
-body.pv4-page .v3-header::before,
-body.pv4-page .v3-header::after {
+body.v3-body .v3-header::before,
+body.v3-body .v3-header::after {
     display: none !important;
 }
 
-body.pv4-page .v6-header-books {
+body.v3-body .v6-header-books {
     display: none !important;
 }
 
-body.pv4-page .v3-brand-mark img,
-body.pv4-page .v6-brand-mark img {
+body.v3-body .v3-brand-mark img,
+body.v3-body .v6-brand-mark img {
     display: none !important;
 }
 
-body.pv4-page .v6-brand-mark::before,
-body.pv4-page .v6-brand-mark::after {
+body.v3-body .v6-brand-mark::before,
+body.v3-body .v6-brand-mark::after {
     display: none !important;
 }
 
-body.pv4-page .v3-brand-mark.v6-brand-mark {
+body.v3-body .v3-brand-mark.v6-brand-mark {
     background: url("../images/cinili-saray-logo-icon.png") center / contain no-repeat !important;
     border-radius: var(--pv4-r-sm);
 }
 
-body.pv4-page .v3-brand.v6-brand-block {
+body.v3-body .v3-brand.v6-brand-block {
     background: #f4f5f8 !important;
     border-color: var(--pv4-line) !important;
     box-shadow: none !important;
 }
 
-body.pv4-page .v3-brand-copy strong,
-body.pv4-page .v6-brand-copy strong {
+body.v3-body .v3-brand-copy strong,
+body.v3-body .v6-brand-copy strong {
     color: var(--pv4-text) !important;
     text-shadow: none !important;
 }
 
-body.pv4-page .v3-brand-copy small,
-body.pv4-page .v6-brand-copy small {
+body.v3-body .v3-brand-copy small,
+body.v3-body .v6-brand-copy small {
     color: var(--pv4-muted-soft) !important;
 }
 
-body.pv4-page .v3-header .v3-nav-link,
-body.pv4-page .v3-header .v3-nav-trigger,
-body.pv4-page .v3-header button.v3-nav-link.v3-nav-trigger {
+body.v3-body .v3-header .v3-nav-link,
+body.v3-body .v3-header .v3-nav-trigger,
+body.v3-body .v3-header button.v3-nav-link.v3-nav-trigger {
     color: var(--pv4-muted) !important;
 }
 
-body.pv4-page .v3-header .v3-nav-link:hover,
-body.pv4-page .v3-header .v3-nav-trigger:hover,
-body.pv4-page .v3-header button.v3-nav-link.v3-nav-trigger:hover,
-body.pv4-page .v3-header button.v3-nav-link.v3-nav-trigger:focus,
-body.pv4-page .v3-header button.v3-nav-link.v3-nav-trigger:focus-visible {
+/* Mobil menü açma düğmesi (3 çizgi) — eski koyu nav için beyaz çizgiliydi;
+   nav artık beyaz olduğundan görünmez kalıyordu. */
+body.v3-body .v3-menu-toggle span {
+    background: var(--pv4-navy) !important;
+}
+
+/* Mobilde kurum adının kısa hali (v3-brand-title-short) eski koyu nav
+   için beyaz yazıydı; nav beyaza dönünce görünmez kalıyordu. */
+body.v3-body .v3-brand-title-short {
     color: var(--pv4-text) !important;
 }
 
-body.pv4-page .v3-header .v3-nav-link.active,
-body.pv4-page .v3-header .v3-nav-link.active:hover,
-body.pv4-page .v3-nav-dropdown.is-section-active > .v3-nav-trigger,
-body.pv4-page .v3-nav-dropdown.open > .v3-nav-trigger,
-body.pv4-page .v3-nav-dropdown.is-section-active > .v3-nav-trigger:hover,
-body.pv4-page .v3-nav-dropdown.open > .v3-nav-trigger:hover {
+/* Mobildeki "Çıkış" butonu mavi/mor gradyan kullanıyordu; lacivert+altın
+   kimliğimizle tutarlı olsun diye laciverte çeviriyoruz. */
+body.v3-body .v3-logout-mobile {
+    background-image: none !important;
+    background-color: var(--pv4-navy) !important;
+    border-color: var(--pv4-navy) !important;
+}
+
+body.v3-body .v3-header .v3-nav-link:hover,
+body.v3-body .v3-header .v3-nav-trigger:hover,
+body.v3-body .v3-header button.v3-nav-link.v3-nav-trigger:hover,
+body.v3-body .v3-header button.v3-nav-link.v3-nav-trigger:focus,
+body.v3-body .v3-header button.v3-nav-link.v3-nav-trigger:focus-visible {
     color: var(--pv4-text) !important;
 }
 
-body.pv4-page .v3-header .v3-nav-link.active::after,
-body.pv4-page .v3-nav-dropdown.is-section-active > .v3-nav-trigger::after,
-body.pv4-page .v3-nav-dropdown.open > .v3-nav-trigger::after {
+body.v3-body .v3-header .v3-nav-link.active,
+body.v3-body .v3-header .v3-nav-link.active:hover,
+body.v3-body .v3-nav-dropdown.is-section-active > .v3-nav-trigger,
+body.v3-body .v3-nav-dropdown.open > .v3-nav-trigger,
+body.v3-body .v3-nav-dropdown.is-section-active > .v3-nav-trigger:hover,
+body.v3-body .v3-nav-dropdown.open > .v3-nav-trigger:hover {
+    color: var(--pv4-text) !important;
+}
+
+body.v3-body .v3-header .v3-nav-link.active::after,
+body.v3-body .v3-nav-dropdown.is-section-active > .v3-nav-trigger::after,
+body.v3-body .v3-nav-dropdown.open > .v3-nav-trigger::after {
     background: var(--pv4-gold) !important;
 }
 
-body.pv4-page .v3-user-avatar {
+body.v3-body .v3-user-avatar {
     background: var(--pv4-navy) !important;
     color: var(--pv4-gold-light) !important;
 }
 
-body.pv4-page .v3-user-copy {
-    display: flex !important;
+/* Sadece masaüstünde göster — mobilde (nav-groups.css) bilinçli olarak
+   gizleniyor; !important olmadan mobil kuralı eziyorduk (kurum ismini
+   sıkıştırıp kullanıcı adını mobilde de zorla gösteriyordu). */
+@media (min-width: 1401px) {
+    body.v3-body .v3-user-copy {
+        display: flex !important;
+    }
 }
 
-body.pv4-page .v3-user-copy strong {
+body.v3-body .v3-user-copy strong {
     color: var(--pv4-text) !important;
 }
 
-body.pv4-page .v3-user-copy small {
+body.v3-body .v3-user-copy small {
     color: var(--pv4-muted-soft) !important;
 }
 
-body.pv4-page .v3-logout {
+body.v3-body .v3-logout {
     background: var(--pv4-navy) !important;
     border-color: var(--pv4-navy) !important;
     color: #fff !important;
 }
 
-body.pv4-page .v3-logout:hover {
+body.v3-body .v3-logout:hover {
     background: var(--pv4-navy-2) !important;
     border-color: var(--pv4-navy-2) !important;
 }
@@ -214,6 +252,15 @@ body.pv4-page .v3-logout:hover {
 
 .pv4-hero h1 strong {
     font-weight: 700 !important;
+}
+
+/* "Hoş geldiniz" — kıvrımlı, sofistike bir dokunuş için el yazısı font. */
+.pv4-script {
+    font-family: "Great Vibes", cursive !important;
+    font-weight: 400 !important;
+    font-size: 1.55em !important;
+    color: var(--pv4-gold-light) !important;
+    letter-spacing: .01em !important;
 }
 
 .pv4-hero p {
@@ -763,6 +810,379 @@ body.pv4-page .v3-logout:hover {
     .pv4-bento {
         grid-template-columns: 1fr;
     }
+
+    /* Tarih kutucuğu mobilde tek başına büyük bir kart olarak dikey
+       yer kaplıyordu; yatay, ince bir şeride çeviriyoruz. */
+    .pv4-date-card {
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 10px;
+        padding: 10px var(--pv4-sp-3);
+    }
+
+    .pv4-date-kicker {
+        order: 2;
+    }
+
+    .pv4-date-num {
+        font-size: 20px;
+        order: 1;
+    }
+
+    .pv4-date-sub {
+        order: 3;
+        margin-left: auto;
+        text-align: right;
+    }
+
+    .pv4-date-sub br {
+        display: none;
+    }
+
+    .pv4-date-sub span::after {
+        content: " · ";
+    }
+
+    .pv4-date-sub span:last-child::after {
+        content: "";
+    }
+}
+
+/* —— Sayfanın alt bölümleri (etüt planı, dershane, hızlı menüler, akış vb.) ——
+   Markup/JS aynı kalıyor; sadece görünüm bu sayfada kurumsal lacivert+altına çevriliyor. */
+body.v3-body .dash-panel {
+    border-radius: var(--pv4-r-lg) !important;
+    border-color: var(--pv4-line) !important;
+    box-shadow: var(--pv4-shadow-sm) !important;
+}
+
+body.v3-body .dash-panel::after {
+    background: var(--pv4-gold) !important;
+    opacity: 1 !important;
+}
+
+body.v3-body .dash-panel-head {
+    background: #fff !important;
+    border-bottom-color: var(--pv4-line) !important;
+}
+
+body.v3-body .dash-panel-lined::before {
+    display: none !important;
+}
+
+body.v3-body .dash-eyebrow {
+    color: var(--pv4-gold-dim) !important;
+}
+
+body.v3-body .dash-panel-head h2 {
+    color: var(--pv4-text) !important;
+    font-weight: 600 !important;
+}
+
+body.v3-body .dash-text-btn {
+    border-color: var(--pv4-line) !important;
+    background: #fff !important;
+    color: var(--pv4-navy-3) !important;
+    font-weight: 600 !important;
+}
+
+body.v3-body .dash-text-btn:hover {
+    border-color: var(--pv4-gold) !important;
+    background: #fff !important;
+    color: var(--pv4-gold-dim) !important;
+}
+
+body.v3-body .personel-plan-table thead th {
+    color: var(--pv4-muted-soft) !important;
+    border-bottom-color: var(--pv4-line) !important;
+}
+
+body.v3-body .personel-plan-table tbody tr {
+    border-bottom-color: var(--pv4-line) !important;
+}
+
+body.v3-body .personel-plan-table tbody tr.tamam {
+    background: var(--pv4-green-bg) !important;
+}
+
+body.v3-body .personel-ders-tag {
+    background: #eaf0fb !important;
+    color: var(--pv4-navy-3) !important;
+}
+
+body.v3-body .dash-etut-stats span strong {
+    color: var(--pv4-navy) !important;
+}
+
+body.v3-body .dash-activity-avatar {
+    background: var(--pv4-navy) !important;
+    color: var(--pv4-gold-light) !important;
+}
+
+body.v3-body .dash-activity-row,
+body.v3-body .dash-gorusme-row,
+body.v3-body .dash-event-row {
+    border-bottom-color: var(--pv4-line) !important;
+}
+
+body.v3-body .dash-gorusme-row:hover,
+body.v3-body .dash-event-row:hover {
+    background: #f8f9fb !important;
+}
+
+body.v3-body .dash-gorusme-tag {
+    background: #eaf0fb !important;
+    color: var(--pv4-navy-3) !important;
+}
+
+body.v3-body .dash-event-date strong {
+    color: var(--pv4-navy) !important;
+}
+
+body.v3-body .dash-gorev-card {
+    border-color: var(--pv4-line) !important;
+    border-radius: var(--pv4-r-lg) !important;
+}
+
+body.v3-body .dash-gorev-list li strong {
+    color: var(--pv4-navy-3) !important;
+}
+
+body.v3-body .dash-empty-note,
+body.v3-body .empty-state {
+    background: #fbfbfc !important;
+    border-color: var(--pv4-line) !important;
+    color: var(--pv4-muted) !important;
+    padding: 20px 24px !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+body.v3-body .dash-empty-note::before,
+body.v3-body .empty-state::before {
+    background-color: var(--pv4-navy-3) !important;
+    background-image: none !important;
+    border-color: var(--pv4-line) !important;
+    width: 34px !important;
+    height: 34px !important;
+    margin: 0 auto !important;
+}
+
+body.v3-body .dash-empty-note strong,
+body.v3-body .empty-state strong {
+    color: var(--pv4-text) !important;
+}
+
+body.v3-body .personel-plan-card .dash-panel-head,
+body.v3-body .dash-etut-widget .dash-panel-head,
+body.v3-body .dash-gunluk-gorev .dash-panel-head {
+    background: #fff !important;
+}
+
+body.v3-body .dash-etut-stats span {
+    color: var(--pv4-muted) !important;
+}
+
+body.v3-body .personel-plan-table thead th {
+    background: #fafbfc !important;
+}
+
+body.v3-body .personel-plan-table tbody td {
+    color: var(--pv4-text) !important;
+}
+
+/* Hızlı menüler — 5 kısayol tek satırda yan yana */
+@media (min-width: 1101px) {
+    body.v3-body .dash-shortcuts-grid {
+        --dash-sc-cols: 5 !important;
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    }
+}
+
+/* KTT / Kitap Arşivi sayfa başlıkları — sağ uçta, dikey ortalanmış,
+   altın ışıltılı dekoratif ikon (parlama animasyonlu). */
+.ktt-page .ktt-page-head.patterned-page-head,
+.library-page .library-page-head.patterned-page-head,
+.tl-page .tl-page-head.patterned-page-head,
+.ny-page .ny-head.ny-hero.patterned-page-head {
+    position: relative;
+}
+
+.pv4-hero-deco-icon {
+    position: absolute !important;
+    top: 50%;
+    right: 40px;
+    transform: translateY(-50%);
+    width: 76px;
+    height: 76px;
+    color: var(--pv4-gold-light, #e3c479);
+    opacity: .95;
+    z-index: 1 !important;
+    pointer-events: none;
+    filter:
+        drop-shadow(0 0 8px rgba(227, 196, 121, .55))
+        drop-shadow(0 0 22px rgba(227, 196, 121, .35));
+    animation: pv4-hero-icon-glow 3.2s ease-in-out infinite;
+}
+
+@keyframes pv4-hero-icon-glow {
+    0%, 100% {
+        filter:
+            drop-shadow(0 0 6px rgba(227, 196, 121, .45))
+            drop-shadow(0 0 16px rgba(227, 196, 121, .28));
+    }
+    50% {
+        filter:
+            drop-shadow(0 0 12px rgba(227, 196, 121, .8))
+            drop-shadow(0 0 30px rgba(227, 196, 121, .55));
+    }
+}
+
+@media (max-width: 780px) {
+    .pv4-hero-deco-icon {
+        display: none;
+    }
+}
+
+/* namaz-yoklama.css'te ".ny-head > *" kuralı position:relative!important
+   dayatıyor (2 sınıf özgüllüğü); ikonun mutlak konumlanması için burada
+   daha yüksek özgüllükle tekrar absolute'a çeviriyoruz. */
+.ny-page .ny-head.ny-hero .pv4-hero-deco-icon {
+    position: absolute !important;
+}
+
+/* Sayfa başlıklarındaki beyaz "solid" butonların yazı rengi hâlâ eski
+   maviydi (#15427f); bu yedi sayfada laciverte çeviriyoruz. */
+/* Talebeler — Excel İndir / Rapor Al butonları başlıktan (hero) çıkarıldı;
+   başlık çok yükseliyordu. Artık arama kutusuyla aynı satırda, liste
+   panelinin üstünde. */
+.tl-page .tl-list-tools {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.ktt-page .ktt-page-head.patterned-page-head .ktt-solid-btn,
+.ktt-page .ktt-page-head.patterned-page-head .primary-btn,
+.ktt-page.yazili-page .ktt-head-actions .ktt-outline-btn.is-active,
+.at-page .at-page-head.patterned-page-head .at-purple-btn,
+.ny-page .ny-head.ny-hero .ny-chip.is-on,
+.dk-page .dk-head.dk-hero .dk-btn-primary,
+.fn-page .fn-head.fn-hero .fn-btn-primary {
+    color: var(--pv4-navy, #0c1a3a) !important;
+}
+
+/* Namaz Yoklaması — ny-hero eklense de, bundle-panel-late.css'teki daha
+   eski/spesifik ".ny-page > header.page-head.ny-head ..." kuralları
+   (bilinçli olarak "kurum standardı soft kart" için yazılmıştı) başlık
+   metnini koyu bırakıyor. Şimdi bu sayfa da lacivert+altın temaya
+   girdiğinden, daha yüksek özgüllükle beyaza sabitliyoruz. */
+.ny-page .ny-head.ny-hero.patterned-page-head h1 {
+    color: #fff !important;
+}
+
+.ny-page .ny-head.ny-hero.patterned-page-head .kicker {
+    color: rgba(255, 255, 255, 0.82) !important;
+}
+
+.ny-page .ny-head.ny-hero.patterned-page-head .ny-sub {
+    color: rgba(255, 255, 255, 0.88) !important;
+}
+
+/* Mezun Takip Merkezi — bu sayfa "patterned-page-head" ailesinden değil,
+   kendi izole tasarımını (mz-*) kullanıyor; düz beyaz zemin üstünde
+   koyu başlıktı. Diğer sayfalarla tutarlı olsun diye lacivert+altın
+   bir hero kartına çeviriyoruz. */
+.mz-page .mz-head {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--pv4-r-lg, 16px);
+    padding: 28px 32px;
+    background: linear-gradient(118deg, var(--pv4-navy, #0c1a3a) 0%, var(--pv4-navy-3, #1c3b70) 55%, var(--pv4-navy-2, #132a56) 100%);
+    box-shadow: var(--pv4-shadow-lg, 0 10px 24px -6px rgba(16, 24, 43, .12));
+    border-bottom: 3px solid var(--pv4-gold, #c39a3d);
+}
+
+.mz-page .mz-head h1 {
+    color: #fff !important;
+}
+
+.mz-page .mz-eyebrow {
+    color: var(--pv4-gold-light, #e3c479) !important;
+}
+
+.mz-page .mz-sub {
+    color: rgba(255, 255, 255, 0.82) !important;
+}
+
+.mz-page .mz-head .mz-btn {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border-color: rgba(255, 255, 255, 0.22) !important;
+    color: #fff !important;
+}
+
+.mz-page .mz-head .mz-crumb {
+    color: rgba(255, 255, 255, 0.68) !important;
+}
+
+.mz-page .mz-head .mz-crumb a {
+    color: var(--pv4-gold-light, #e3c479) !important;
+}
+
+.mz-page .mz-head .mz-btn-primary {
+    background: #fff !important;
+    color: var(--pv4-navy, #0c1a3a) !important;
+    border-color: transparent !important;
+}
+
+/* Sözel–Sayısal Denemeler — "+ Deneme Ekle" başlıktan çıkarıldı, liste
+   başlığının (Denemeler) yanına taşındı. */
+.ss-page .ss-list-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* İlerleme Raporu / Soru Takip — "Çizelge/Rapor" ve "Ana Sayfa" butonları
+   koyu hero'dan beyaz kart içine taşındı; .result-secondary-button ve
+   .result-back-button koyu zemin varsayıyordu (beyaz yazı beyaz zeminde
+   kayboluyordu). Açık zemine uygun stile çeviriyoruz. */
+.dd-card .result-secondary-button,
+.dd-card .result-back-button,
+.st-filter-card .result-secondary-button,
+.st-filter-card .result-back-button {
+    color: #173b80 !important;
+    background: transparent !important;
+    border-color: #d2dce8 !important;
+}
+
+.dd-card .result-secondary-button:hover,
+.dd-card .result-back-button:hover,
+.st-filter-card .result-secondary-button:hover,
+.st-filter-card .result-back-button:hover {
+    background: #f4f7fb !important;
+}
+
+/* KTT Raporlama & Analiz — bu sayfanın başlığı "patterned-page-head"
+   ailesinden değil, düz bir flex satırıydı (renk yok). Diğer rapor
+   sayfalarıyla tutarlı olsun diye navy hero kartına çeviriyoruz.
+   Butonlar (.ktt-outline-btn) zaten beyaz zeminli, dokunmuyoruz. */
+.ktt-report-page .ktt-report-head {
+    background: linear-gradient(118deg, var(--pv4-navy, #0c1a3a) 0%, var(--pv4-navy-3, #1c3b70) 55%, var(--pv4-navy-2, #132a56) 100%);
+    padding: 22px 28px;
+    border-radius: var(--pv4-r-lg, 16px);
+    box-shadow: var(--pv4-shadow-lg, 0 10px 24px -6px rgba(16, 24, 43, .12));
+    border-bottom: 3px solid var(--pv4-gold, #c39a3d);
+}
+
+.ktt-report-page .ktt-report-head h1 {
+    color: #fff !important;
 }
 
 /* —— Sayfanın alt bölümleri (etüt planı, dershane, hızlı menüler, akış vb.) ——
