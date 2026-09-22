@@ -11,14 +11,14 @@
             <p class="kicker">DİNİ DERS TAKİP</p>
             <h1>İlerleme Raporu</h1>
             <p class="dd-head-desc">Seviye ve alana göre talebe ilerlemesini görüntüleyin.</p>
-            <div class="dd-head-actions result-header-actions">
-                <a href="{% url 'dini_ders_panel' %}{% if seviye and alan %}?seviye={{ seviye.id }}&alan={{ alan.id }}{% endif %}" class="result-secondary-button">Çizelge</a>
-                <a href="{% url 'dashboard' %}" class="result-back-button">Ana Sayfa</a>
-            </div>
         </div>
     </header>
 
     <section class="dd-card" style="margin-bottom:1rem;">
+        <div class="dd-head-actions result-header-actions" style="margin-bottom:0.85rem;">
+            <a href="{% url 'dini_ders_panel' %}{% if seviye and alan %}?seviye={{ seviye.id }}&alan={{ alan.id }}{% endif %}" class="result-secondary-button">Çizelge</a>
+            <a href="{% url 'dashboard' %}" class="result-back-button">Ana Sayfa</a>
+        </div>
         <form method="get" class="dd-filter-grid">
             <div class="dd-field">
                 <label for="dd-seviye">Seviye</label>
