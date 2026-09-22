@@ -11,19 +11,19 @@
         <div class="ktt-head-main">
             <p class="kicker">SÖZEL · SAYISAL DENEME</p>
             <h1>Sözel ve Sayısal Denemeler</h1>
-            <div class="ktt-head-actions profile-head-actions">
-                {% if olusturabilir and form %}
-                <button type="button" class="ktt-solid-btn primary-btn" id="ktt-open-form" aria-controls="ktt-form-modal" aria-expanded="false">
-                    + Deneme Ekle
-                </button>
-                {% endif %}
-            </div>
         </div>
         <p class="ktt-head-desc">90 soruda Türkçe–Mat–Fen 20, diğerleri 10. 75 soruda Türkçe–Mat–Fen 15, diğerleri 10.</p>
     </header>
 
     <section class="ktt-table-card ktt-list-only">
-        <h2>Denemeler</h2>
+        <div class="ss-list-heading">
+            <h2>Denemeler</h2>
+            {% if olusturabilir and form %}
+            <button type="button" class="ktt-solid-btn primary-btn" id="ktt-open-form" aria-controls="ktt-form-modal" aria-expanded="false">
+                + Deneme Ekle
+            </button>
+            {% endif %}
+        </div>
         {% if sinavlar %}
         <div class="ktt-desktop-table responsive-table">
             <table class="ktt-table">
