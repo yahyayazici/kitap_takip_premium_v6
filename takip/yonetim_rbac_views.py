@@ -16,6 +16,7 @@ from takip.models import (
     YetkiModul,
 )
 from takip.permissions.service import can, clear_permission_cache
+from config.branding import panel_module_enabled
 
 from .yonetim_views import yonetici_gerekli
 
@@ -102,9 +103,19 @@ def _personel_rbac_senkronize() -> int:
     return sayac
 
 
+def _rbac_moduller():
+    """Markada kapalı modülleri yetki matrisinden gizler."""
+    qs = (
+        YetkiModul.objects.filter(aktif=True)
+        .prefetch_related("islemler")
+        .order_by("sira")
+    )
+    return [modul for modul in qs if panel_module_enabled(modul.kod)]
+
+
 def _rol_izin_iskeleti(rol: Rol) -> None:
     """Yeni rol için tüm modüllerde boş erişim/izin satırları oluşturur."""
-    for modul in YetkiModul.objects.filter(aktif=True):
+    for modul in _rbac_moduller():
         RolModulErisim.objects.get_or_create(
             rol=rol, modul=modul, defaults={"erisim": False}
         )
@@ -195,11 +206,7 @@ def rol_duzenle(request, pk):
         return redirect("yonetim:rol_listesi")
 
     rol = get_object_or_404(Rol, pk=pk)
-    moduller = (
-        YetkiModul.objects.filter(aktif=True)
-        .prefetch_related("islemler")
-        .order_by("sira")
-    )
+    moduller = _rbac_moduller()
 
     if request.method == "POST":
         for modul in moduller:
@@ -222,15 +229,11 @@ def rol_duzenle(request, pk):
         return redirect("yonetim:rol_listesi")
 
     # Modül kataloğu boşsa varsayılanları yükle (yetki satırları görünsün)
-    if not moduller.exists():
+    if not YetkiModul.objects.filter(aktif=True).exists():
         from takip.management.commands.seed_wave0 import seed_modul_katalogu
 
         seed_modul_katalogu()
-        moduller = (
-            YetkiModul.objects.filter(aktif=True)
-            .prefetch_related("islemler")
-            .order_by("sira")
-        )
+        moduller = _rbac_moduller()
 
     modul_erisim = {
         e.modul_id: e.erisim

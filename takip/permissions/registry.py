@@ -122,7 +122,6 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
             "vazife",
             "yct",
             "mezun",
-            "aidat",
             "veli_iletisim",
             "iletisim_merkezi",
             "veli_randevu",
@@ -164,7 +163,6 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
             "ziyaret_arac",
             "yazili_takip",
             "mezun",
-            "aidat",
             "veli_iletisim",
             "iletisim_merkezi",
             "veli_randevu",
@@ -204,7 +202,6 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
             "ziyaret_arac",
             "yazili_takip",
             "mezun",
-            "aidat",
             "veli_iletisim",
             "iletisim_merkezi",
             "veli_randevu",
@@ -243,7 +240,6 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
             "pazar_izin_donus",
             "ziyaret_arac",
             "yazili_takip",
-            "aidat",
             "gunluk_takip",
             "veli_iletisim",
             "iletisim_merkezi",
@@ -288,7 +284,6 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
             "pazar_izin_donus",
             "ziyaret_arac",
             "mezun",
-            "aidat",
             "veli_iletisim",
             "iletisim_merkezi",
             "veli_randevu",
@@ -309,7 +304,7 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
         }
     ),
     "muhasebeci": frozenset(
-        {"raporlar", "ogretmen_odeme", "aidat", "mezun", "asistan", "sabah_beslenmesi"}
+        {"raporlar", "ogretmen_odeme", "mezun", "asistan", "sabah_beslenmesi"}
     ),
     "nehari_mesul": frozenset(
         {

@@ -537,23 +537,6 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         nav_group="Kurum",
     ),
     PanelNavItem(
-        key="aidat",
-        label="Finans Yönetimi",
-        url_name="finans_panel",
-        roller=TUM_PERSONEL_ROLLER,
-        active_names=(
-            "finans_panel",
-            "finans_ogrenci",
-            "finans_politikalar",
-            "finans_indirimler",
-            "finans_raporlar",
-            "finans_ayarlar",
-            "aidat_listesi",
-            "aidat_detay",
-        ),
-        nav_group="Kurum",
-    ),
-    PanelNavItem(
         key="yazili_takip",
         label="Yazılı Takip",
         url_name="yazili_kamp_listesi",

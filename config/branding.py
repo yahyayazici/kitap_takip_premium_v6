@@ -187,7 +187,7 @@ PANEL_MODULES = {
     },
     "aidat": {
         "label": "Finans Yönetimi",
-        "enabled": True,
+        "enabled": False,
         "nav_group": "Kurum",
     },
     "rbac": {
@@ -211,3 +211,11 @@ PANEL_MODULES = {
         "nav_group": "Eğitim",
     },
 }
+
+
+def panel_module_enabled(kod: str) -> bool:
+    """Kapalı modüller nav ve yetkide görünmez."""
+    meta = PANEL_MODULES.get(kod)
+    if meta is None:
+        return True
+    return bool(meta.get("enabled", True))

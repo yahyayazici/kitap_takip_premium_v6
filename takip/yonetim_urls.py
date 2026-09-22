@@ -13,7 +13,7 @@ from . import yonetim_rbac_views
 from . import yonetim_views
 from . import ogretmen_odeme_yonetim_views
 from . import mezun_yonetim_views
-from . import aidat_yonetim_views
+from . import finans_views
 from . import veli_randevu_yonetim_views
 from . import sinav_basvuru_yonetim_views
 from . import sinav_basvuru_mesaj_yonetim_views
@@ -250,17 +250,17 @@ urlpatterns = [
 
     path(
         "aidat-tanimlari/",
-        aidat_yonetim_views.aidat_tanim_listesi,
+        finans_views.aidat_kaldirildi,
         name="aidat_tanim_listesi",
     ),
     path(
         "aidat-tanimlari/ekle/",
-        aidat_yonetim_views.aidat_tanim_ekle,
+        finans_views.aidat_kaldirildi,
         name="aidat_tanim_ekle",
     ),
     path(
         "aidat-tanimlari/<int:pk>/duzenle/",
-        aidat_yonetim_views.aidat_tanim_duzenle,
+        finans_views.aidat_kaldirildi,
         name="aidat_tanim_duzenle",
     ),
 

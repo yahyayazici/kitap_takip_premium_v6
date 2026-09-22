@@ -6,6 +6,7 @@ from functools import lru_cache
 
 from django.contrib.auth.models import User
 
+from config.branding import panel_module_enabled
 from takip.models import KullaniciRol, KullaniciYetkiOverride, PersonelProfili, Rol
 
 from .registry import (
@@ -281,6 +282,9 @@ def _rbac_islem_izin(user: User, modul_kod: str, islem_kod: str) -> bool | None:
 
 def can(user: User, modul_kod: str, islem_kod: str = "view") -> bool:
     if not user.is_authenticated:
+        return False
+
+    if not panel_module_enabled(modul_kod):
         return False
 
     if user.is_superuser:

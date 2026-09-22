@@ -8,7 +8,6 @@ from . import namaz_yoklama_views
 from . import pazar_izin_donus_views
 from . import ogretmen_odeme_views
 from . import mezun_views
-from . import aidat_views
 from . import finans_views
 from . import rehberlik_views
 from . import disiplin_views
@@ -647,17 +646,17 @@ urlpatterns = [
     path("mezunlar/raporlar/", mezun_views.mezun_raporlar, name="mezun_raporlar"),
     path("mezunlar/<int:pk>/", mezun_views.mezun_detay, name="mezun_detay"),
 
-    path("aidat/", finans_views.aidat_listesi_yonlendir, name="aidat_listesi"),
-    path("aidat/<int:pk>/", aidat_views.aidat_detay, name="aidat_detay"),
+    path("aidat/", finans_views.aidat_kaldirildi, name="aidat_listesi"),
+    path("aidat/<int:pk>/", finans_views.aidat_kaldirildi, name="aidat_detay"),
 
-    path("finans/", finans_views.finans_panel, name="finans_panel"),
-    path("finans/ogrenci/<int:pk>/", finans_views.finans_ogrenci, name="finans_ogrenci"),
-    path("finans/politikalar/", finans_views.finans_politikalar, name="finans_politikalar"),
-    path("finans/indirimler/", finans_views.finans_indirimler, name="finans_indirimler"),
-    path("finans/raporlar/", finans_views.finans_raporlar, name="finans_raporlar"),
-    path("finans/raporlar/pdf/", finans_views.finans_rapor_pdf, name="finans_rapor_pdf"),
-    path("finans/raporlar/excel/", finans_views.finans_rapor_excel, name="finans_rapor_excel"),
-    path("finans/ayarlar/", finans_views.finans_ayarlar, name="finans_ayarlar"),
+    path("finans/", finans_views.aidat_kaldirildi, name="finans_panel"),
+    path("finans/ogrenci/<int:pk>/", finans_views.aidat_kaldirildi, name="finans_ogrenci"),
+    path("finans/politikalar/", finans_views.aidat_kaldirildi, name="finans_politikalar"),
+    path("finans/indirimler/", finans_views.aidat_kaldirildi, name="finans_indirimler"),
+    path("finans/raporlar/", finans_views.aidat_kaldirildi, name="finans_raporlar"),
+    path("finans/raporlar/pdf/", finans_views.aidat_kaldirildi, name="finans_rapor_pdf"),
+    path("finans/raporlar/excel/", finans_views.aidat_kaldirildi, name="finans_rapor_excel"),
+    path("finans/ayarlar/", finans_views.aidat_kaldirildi, name="finans_ayarlar"),
 
     path("rehberlik/", rehberlik_views.rehberlik_listesi, name="rehberlik_listesi"),
     path(

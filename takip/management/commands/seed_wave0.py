@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
+from config.branding import panel_module_enabled
 from takip.models import (
     Brans,
     Ders,
@@ -46,7 +47,7 @@ def seed_modul_katalogu() -> dict[str, YetkiModul]:
             defaults={
                 "ad": tanim.ad,
                 "sira": tanim.sira,
-                "aktif": True,
+                "aktif": panel_module_enabled(tanim.kod),
             },
         )
         for sira, (kod, ad) in enumerate(tanim.islemler, start=1):

@@ -193,7 +193,7 @@ def seed_vazifeler() -> None:
         ("Yemekçilik haftalık kontrol", PersonelVazife.Durum.ATANDI, PersonelVazife.Oncelik.NORMAL, 0, 6),
         ("Dini ders konu işleme takibi", PersonelVazife.Durum.ONAYLANDI, PersonelVazife.Oncelik.NORMAL, 0, 10),
         ("Sohbet mevzuu veliye duyuru", PersonelVazife.Durum.TAMAMLANDI, PersonelVazife.Oncelik.DUSUK, -10, -3),
-        ("Finans tahsilat hatırlatması", PersonelVazife.Durum.ATANDI, PersonelVazife.Oncelik.ACIL, 0, 2),
+        ("Öğretmen ödeme kontrolü", PersonelVazife.Durum.ATANDI, PersonelVazife.Oncelik.ACIL, 0, 2),
         ("Program PDF kontrolü", PersonelVazife.Durum.DEVAM, PersonelVazife.Oncelik.NORMAL, 0, 4),
     ]
     for i, (baslik, durum, oncelik, bas_offset, bit_offset) in enumerate(ornekler):
@@ -306,7 +306,7 @@ def seed_bildirimler() -> None:
         ("Etüt planı hatırlatması", "Bu haftanın faaliyetlerini tamamlayın.", Bildirim.Tur.PROGRAM, False, 3),
         ("Veli toplantısı", "15'inde veli toplantısı planlandı.", Bildirim.Tur.GENEL, False, 10),
         ("KTT sonuçları hazır", "Son KTT sonuçları panellerde görünür.", Bildirim.Tur.GENEL, False, 4),
-        ("Acil vazife", "Finans tahsilat hatırlatması süresi yaklaşıyor.", Bildirim.Tur.VAZIFE, False, 2),
+        ("Acil vazife", "Öğretmen ödeme dönemi kapanış tarihi yaklaşıyor.", Bildirim.Tur.VAZIFE, False, 2),
         ("Okuma raporu", "Talebe okuma ilerlemeleri güncellendi.", Bildirim.Tur.GENEL, True, None),
     ]
     for i, (baslik, mesaj, tur, okundu, bit_gun) in enumerate(ornekler):
@@ -821,7 +821,7 @@ def seed_duyuru_zenginlestir() -> None:
 
     admin = User.objects.filter(username="admin").first()
     ekstra = [
-        ("Finans ödeme hatırlatması", "Aidat taksitlerini panellerden takip edebilirsiniz.", Duyuru.Kategori.GENEL, Duyuru.Ton.TEAL, Duyuru.HedefKitle.TUM_PERSONEL),
+        ("Öğretmen ödeme hatırlatması", "Dönem kapanışını Öğretmen Ödeme panelinden takip edebilirsiniz.", Duyuru.Kategori.GENEL, Duyuru.Ton.TEAL, Duyuru.HedefKitle.TUM_PERSONEL),
         ("Veli paneli aktif", "Sohbet mevzuu, notlar ve yoklama bilgileri velilerde görünür.", Duyuru.Kategori.KURUM, Duyuru.Ton.NAVY, Duyuru.HedefKitle.VELI),
         ("Disiplin kurulu süreci", "Kurul dosyaları idareci panelinden takip edilir.", Duyuru.Kategori.GENEL, Duyuru.Ton.VIOLET, Duyuru.HedefKitle.TUM_PERSONEL),
         ("Yemekçilik döngüsü", "Sınıf havuzları otomatik güncelleme ile çalışıyor.", Duyuru.Kategori.PROGRAM, Duyuru.Ton.TEAL, Duyuru.HedefKitle.TUM_PERSONEL),

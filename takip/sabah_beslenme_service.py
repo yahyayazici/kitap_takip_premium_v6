@@ -68,7 +68,7 @@ def siparis_iptal_edebilir(user: User) -> bool:
 def borc_kapatabilir(user: User) -> bool:
     if can(user, MODUL, "borc_kapat"):
         return True
-    return can(user, "aidat", "edit") and _slug(user) in BORC_KAPAT_ROLLER
+    return _slug(user) in BORC_KAPAT_ROLLER
 
 
 def rapor_gorebilir(user: User) -> bool:

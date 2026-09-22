@@ -135,23 +135,6 @@ YONETIM_NAV_GROUPS: tuple[YonetimNavGroup, ...] = (
         name="Finans",
         items=(
             YonetimNavItem(
-                label="Aidat",
-                url_name="finans_panel",
-                active_names=(
-                    "finans_panel",
-                    "finans_ogrenci",
-                    "finans_politikalar",
-                    "finans_indirimler",
-                    "finans_raporlar",
-                    "finans_ayarlar",
-                    "aidat_listesi",
-                    "aidat_detay",
-                    "aidat_tanim_listesi",
-                    "aidat_tanim_ekle",
-                    "aidat_tanim_duzenle",
-                ),
-            ),
-            YonetimNavItem(
                 label="Öğretmen Ödeme",
                 url_name="ogretmen_odeme_listesi",
                 active_names=(

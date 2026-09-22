@@ -77,6 +77,12 @@ def _parse_date(raw: str | None) -> date | None:
 
 
 @login_required
+def aidat_kaldirildi(request, *args, **kwargs):
+    """Aidat / öğrenci finansı siteden kaldırıldı; eski adresleri ana sayfaya alır."""
+    return redirect("dashboard")
+
+
+@login_required
 @require_permission("aidat", "view")
 def finans_panel(request):
     finans_seed_verisi()

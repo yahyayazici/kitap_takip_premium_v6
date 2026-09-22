@@ -503,20 +503,8 @@ REHBER_MENULER: tuple[RehberMenu, ...] = (
         "menu_kurum",
         "menu-kurum.png",
         "Kurum",
-        "Kurumsal finans modülleri (rolünüze göre görünür).",
+        "Öğretmen ödeme modülü (rolünüze göre görünür).",
         (
-            _s(
-                "Finans Yönetimi",
-                "Kurum → Finans Yönetimi",
-                "Kurum aidat, taksit ve tahsilat takibi. Etüt hocası yalnızca kendi grubunun tahsilatını girer.",
-                "kurum-finans-yonetimi.png",
-                maddeler=(
-                    "Özet kartlar: Toplam Alacak · Tahsil Edilen · Bekleyen · Vadesi Geçmiş",
-                    "Öğrenci finans listesi ve filtreler",
-                    "Raporlar",
-                ),
-                not_metni="Bu modül rolünüze göre görünmeyebilir.",
-            ),
             _s(
                 "Öğretmen Ödeme",
                 "Kurum → Öğretmen Ödeme",
