@@ -278,8 +278,11 @@ def _legacy_personel_kisayollari(user: User, *, bugun: date) -> list[DashboardSh
             )
         )
 
-    ekle(egitim_modulu_erisimi_var(user), "kitap", "Kitap Takip", "Zimmet, okuma ve arşiv", "kitap_listesi", "book", mark="KT")
     ekle(egitim_modulu_erisimi_var(user), "talebeler", "Talebeler", "Liste ve profiller", "talebe_listesi", "users", mark="TL")
+    ekle(ktt_modulu_erisimi_var(user), "ktt", "KTT Takip", "Kazanım tarama testleri", "ktt_listesi", "target", mark="KTT")
+    ekle(deneme_modulu_erisimi_var(user), "deneme", "Deneme Sonuçları", "Deneme analizi", "deneme_listesi", "chart", mark="DN")
+    ekle(egitim_modulu_erisimi_var(user), "kitap", "Kitap Takip", "Zimmet, okuma ve arşiv", "kitap_listesi", "book", mark="KT")
+    ekle(gunluk_takip_modulu_erisimi_var(user), "gunluk_takip", "Günlük Takip", "Yoklama ve takip", "gunluk_takip_panel", "clipboard", mark="GT")
     ekle(etut_plani_modulu_erisimi_var(user), "etut", "Etüt Grupları", "Grupları yönet", "etut_plan_panel", "groups", mark="EG")
     try:
         profil = user.personel_profili
@@ -299,11 +302,8 @@ def _legacy_personel_kisayollari(user: User, *, bugun: date) -> list[DashboardSh
         "clipboard",
         mark="HK",
     )
-    ekle(gunluk_takip_modulu_erisimi_var(user), "gunluk_takip", "Günlük Takip", "Yoklama ve takip", "gunluk_takip_panel", "clipboard", mark="GT")
     ekle(rehberlik_modulu_erisimi_var(user), "rehberlik", "Rehberlik", "Rehber öğretmeni görüşmeleri", "rehberlik_listesi", "chat", mark="RH")
     ekle(veli_iletisim_modulu_erisimi_var(user), "veli_iletisim", "Veli & Talebe İletişim", "Veli ve öğrenci görüşmeleri", "iletisim_listesi", "phone", mark="Vİ")
-    ekle(deneme_modulu_erisimi_var(user), "deneme", "Deneme Sonuçları", "Deneme analizi", "deneme_listesi", "chart", mark="DN")
-    ekle(ktt_modulu_erisimi_var(user), "ktt", "KTT Takip", "Kazanım tarama testleri", "ktt_listesi", "target", mark="KTT")
     gorev_url = _gorevler_url(user)
     if gorev_url:
         adaylar.append(
