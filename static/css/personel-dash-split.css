@@ -464,11 +464,10 @@
     }
 }
 
-/* —— Özel kartlar (sınıf / imam / yemek / namaz) — asimetrik bento —— */
+/* —— Özel kartlar (sınıf / imam / yemek / namaz) —— */
 .personel-ozel-kartlar {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    grid-auto-rows: minmax(92px, auto);
     gap: 10px;
     margin-top: var(--cs-space-3);
     width: 100%;
@@ -489,166 +488,37 @@
     border: 1px solid var(--pok-accent-line);
     border-left: 3px solid var(--pok-accent);
     box-shadow: var(--cs-shadow-xs);
-    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .personel-ozel-card:hover {
     border-color: color-mix(in srgb, var(--pok-accent) 34%, var(--cs-border));
     box-shadow: var(--cs-shadow-sm);
-    transform: translateY(-2px);
 }
 
-/* Sınıf sayısı — öncelikli/önemli vurgu: dolgun lacivert + altın tile */
 .personel-ozel-card--sinif {
-    --pok-accent: var(--cs-gold-light);
-    --pok-accent-line: rgba(230, 201, 118, 0.32);
-    grid-column: 1;
-    grid-row: 1 / span 2;
-    border: none;
-    border-top: 3px solid var(--cs-gold);
-    background:
-        radial-gradient(circle at 88% 8%, rgba(230, 201, 118, 0.16), transparent 42%),
-        linear-gradient(150deg, var(--cs-primary-dark) 0%, #16305f 100%);
-    box-shadow: 0 16px 32px -16px rgba(12, 26, 58, 0.5);
-}
-
-.personel-ozel-card--sinif:hover {
-    border-color: transparent;
-    box-shadow: 0 20px 38px -16px rgba(12, 26, 58, 0.55);
-}
-
-.personel-ozel-card--sinif .personel-ozel-head {
-    border-bottom-color: rgba(255, 255, 255, 0.16);
-}
-
-.personel-ozel-card--sinif .personel-ozel-icon {
-    background: rgba(230, 201, 118, 0.18);
-    border-color: transparent;
-    color: var(--cs-gold-light);
-}
-
-.personel-ozel-card--sinif h2 {
-    color: #fff;
-}
-
-.personel-ozel-card--sinif .personel-ozel-meta {
-    color: rgba(255, 255, 255, 0.68);
-}
-
-.personel-ozel-card--sinif .personel-ozel-link {
-    border-top-color: rgba(255, 255, 255, 0.18);
-}
-
-/* İmam & müezzin / Yemekçiler — bilgi kartları, orta iki sütunda yan yana */
-.personel-ozel-card--imam,
-.personel-ozel-card--yemek {
-    --pok-accent: var(--cs-primary-mid);
-    --pok-accent-bg: var(--cs-soft-blue);
-    grid-column: 2 / span 2;
-    flex-direction: row;
-    align-items: center;
-    gap: var(--cs-space-3);
+    --pok-accent: var(--cs-accent);
+    --pok-accent-bg: var(--cs-info-bg);
 }
 
 .personel-ozel-card--imam {
-    grid-row: 1;
+    --pok-accent: var(--cs-primary-mid);
+    --pok-accent-bg: var(--cs-soft-blue);
 }
 
 .personel-ozel-card--yemek {
     --pok-accent: var(--cs-warning);
     --pok-accent-bg: var(--cs-warning-bg);
-    grid-row: 2;
 }
 
-.personel-ozel-card--imam .personel-ozel-head,
-.personel-ozel-card--yemek .personel-ozel-head {
-    flex-direction: column;
-    justify-content: center;
-    gap: 3px;
-    min-height: 0;
-    padding-bottom: 0;
-    border-bottom: none;
-    flex-shrink: 0;
-    align-self: flex-start;
-}
-
-.personel-ozel-card--imam .personel-ozel-main,
-.personel-ozel-card--yemek .personel-ozel-main {
-    flex: 1 1 auto;
-    min-width: 0;
-    padding-top: 0;
-}
-
-.personel-ozel-card--imam .personel-ozel-link,
-.personel-ozel-card--yemek .personel-ozel-link {
-    width: auto;
-    min-height: 0;
-    padding: 0;
-    margin-top: 0;
-    border-top: none;
-    align-self: center;
-    flex-shrink: 0;
-    white-space: nowrap;
-}
-
-/* Namaza gelmeyenler — sağda dikey, yeşil vurgulu durum tile'ı */
 .personel-ozel-card--namaz {
     --pok-accent: var(--cs-success);
     --pok-accent-bg: var(--cs-success-bg);
-    grid-column: 4;
-    grid-row: 1 / span 2;
-}
-
-.personel-ozel-card--namaz .personel-ozel-icon {
-    background: var(--cs-success);
-    color: #fff;
-    border-color: transparent;
-    box-shadow: 0 8px 16px -6px rgba(26, 164, 119, 0.55);
 }
 
 .personel-ozel-card--namaz.is-alert {
     --pok-accent: var(--cs-danger);
     --pok-accent-bg: var(--cs-danger-bg);
-}
-
-.personel-ozel-card--namaz.is-alert .personel-ozel-icon {
-    background: var(--cs-danger);
-    box-shadow: 0 8px 16px -6px rgba(215, 74, 74, 0.5);
-}
-
-@media (max-width: 1100px) {
-    .personel-ozel-card--sinif,
-    .personel-ozel-card--imam,
-    .personel-ozel-card--yemek,
-    .personel-ozel-card--namaz {
-        grid-column: auto;
-        grid-row: auto;
-    }
-
-    .personel-ozel-card--imam,
-    .personel-ozel-card--yemek {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .personel-ozel-card--imam .personel-ozel-head,
-    .personel-ozel-card--yemek .personel-ozel-head {
-        flex-direction: row;
-        align-items: center;
-        border-bottom: 1px solid var(--pok-accent-line);
-        padding-bottom: 8px;
-        align-self: stretch;
-    }
-
-    .personel-ozel-card--imam .personel-ozel-link,
-    .personel-ozel-card--yemek .personel-ozel-link {
-        width: 100%;
-        min-height: 32px;
-        padding: 6px 10px 0;
-        margin-top: auto;
-        border-top: 1px solid var(--pok-accent-line);
-        align-self: stretch;
-    }
 }
 
 .personel-ozel-head {
