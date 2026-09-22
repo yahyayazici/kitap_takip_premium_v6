@@ -317,7 +317,7 @@ class DenemeSilVePdfTests(TestCase):
         self.assertEqual(satirlar[0]["branslar"][kodlar.index("din")]["etiket"], "Din Kültürü")
 
     @patch("takip.deneme_views.html_to_pdf", return_value=b"%PDF-1.4 fake")
-    def test_pdf_tek_dosyada_genel_ve_ders_tablolari(self, mock_pdf):
+    def test_pdf_tek_dosyada_sadece_genel_siralama(self, mock_pdf):
         sonuc = DenemeSonucu.objects.get(deneme=self.deneme)
         DenemeBransSonucu.objects.create(
             sonuc=sonuc, brans="din", dogru=8, yanlis=1, bos=1, net=Decimal("7.75")
@@ -330,8 +330,7 @@ class DenemeSilVePdfTests(TestCase):
         self.assertEqual(mock_pdf.call_count, 1)
         html = mock_pdf.call_args[0][0]
         self.assertIn("Genel Sıralama", html)
-        self.assertIn("Türkçe", html)
-        self.assertIn("Din Kültürü", html)
+        self.assertNotIn("Din Kültürü", html)
 
 
 class DenemeEtutKapsamTests(TestCase):
