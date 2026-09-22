@@ -428,64 +428,8 @@ def seed_disiplin_kayitlari() -> None:
 
 
 def seed_finans_dosyalari() -> None:
-    from takip.finans_models import FinansTahsilat, FinansTaksit, TalebeFinansDosyasi
-    from takip.finans_service import aktif_egitim_yili, finans_seed_verisi
-    from takip.models import Talebe
-
-    finans_seed_verisi()
-    yil = aktif_egitim_yili()
-    if not yil:
-        return
-    admin = User.objects.filter(username="admin").first()
-    bugun = timezone.localdate()
-    for i, talebe in enumerate(Talebe.objects.filter(aktif=True).order_by("id")[:18]):
-        toplam = Decimal("92000") if (talebe.sinif or "7") != "8" else Decimal("112000")
-        indirim = Decimal("5000") if i % 3 == 0 else Decimal("0")
-        net = toplam - indirim
-        pesinat = Decimal("10000")
-        odenen = pesinat + (Decimal("8000") if i % 2 == 0 else Decimal("0"))
-        dosya, created = TalebeFinansDosyasi.objects.get_or_create(
-            talebe=talebe,
-            egitim_yili=yil,
-            defaults={
-                "toplam_ucret": toplam,
-                "indirim_tutari": indirim,
-                "net_ucret": net,
-                "pesinat": pesinat,
-                "odenen_tutar": odenen,
-                "taksit_sayisi": 10,
-                "durum": TalebeFinansDosyasi.Durum.DEVAM,
-                "not_alani": "Demo finans dosyası",
-                "olusturan": admin,
-            },
-        )
-        if not created:
-            continue
-        kalan = net - pesinat
-        taksit_tutar = (kalan / Decimal("10")).quantize(Decimal("0.01"))
-        for sira in range(1, 11):
-            durum = FinansTaksit.Durum.BEKLIYOR
-            odenen_t = Decimal("0")
-            if sira == 1 and i % 2 == 0:
-                durum = FinansTaksit.Durum.ODENDI
-                odenen_t = taksit_tutar
-            FinansTaksit.objects.create(
-                dosya=dosya,
-                sira=sira,
-                tutar=taksit_tutar,
-                vade=bugun + timedelta(days=30 * sira),
-                odenen_tutar=odenen_t,
-                durum=durum,
-            )
-        FinansTahsilat.objects.create(
-            dosya=dosya,
-            tutar=pesinat,
-            tarih=bugun - timedelta(days=20),
-            yontem="nakit",
-            tur="pesinat",
-            aciklama="Demo peşinat",
-            kaydeden=admin,
-        )
+    """Aidat / öğrenci finansı kaldırıldı; demo veri yazılmaz."""
+    return
 
 
 def seed_dershane_program() -> None:
