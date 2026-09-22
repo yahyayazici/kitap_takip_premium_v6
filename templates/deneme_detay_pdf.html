@@ -129,6 +129,13 @@
         .pdf-karne.deneme-detay-pdf .footer-right {
             display: none;
         }
+        .pdf-karne.deneme-detay-pdf .top-logo-cell {
+            text-align: center;
+        }
+        .pdf-karne.deneme-detay-pdf .top-logo {
+            width: 130px;
+            height: auto;
+        }
     </style>
 </head>
 <body class="pdf-karne deneme-detay-pdf {{ sonuclar|length|pdf_density_class }}">
@@ -136,6 +143,14 @@
 {% for liste in listeler %}
 <div class="pdf-sheet">
 <table class="layout">
+    <tr>
+        <td class="top-logo-cell">
+            <img class="top-logo" src="{% static 'images/cinili-saray-logo.jpeg' %}" alt="{{ panel_short }}">
+        </td>
+    </tr>
+
+    <tr><td class="gap6"></td></tr>
+
     <tr>
         <td class="hero">
             <svg class="hero-deco" width="44" height="44" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
