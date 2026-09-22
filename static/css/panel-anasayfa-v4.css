@@ -934,7 +934,8 @@ body.v3-body .personel-plan-table tbody td {
 /* KTT / Kitap Arşivi sayfa başlıkları — sağ uçta, dikey ortalanmış,
    altın ışıltılı dekoratif ikon (parlama animasyonlu). */
 .ktt-page .ktt-page-head.patterned-page-head,
-.library-page .library-page-head.patterned-page-head {
+.library-page .library-page-head.patterned-page-head,
+.tl-page .tl-page-head.patterned-page-head {
     position: relative;
 }
 
@@ -972,4 +973,16 @@ body.v3-body .personel-plan-table tbody td {
     .pv4-hero-deco-icon {
         display: none;
     }
+}
+
+/* Sayfa başlıklarındaki beyaz "solid" butonların yazı rengi hâlâ eski
+   maviydi (#15427f); bu yedi sayfada laciverte çeviriyoruz. */
+.ktt-page .ktt-page-head.patterned-page-head .ktt-solid-btn,
+.ktt-page .ktt-page-head.patterned-page-head .primary-btn,
+.ktt-page.yazili-page .ktt-head-actions .ktt-outline-btn.is-active,
+.at-page .at-page-head.patterned-page-head .at-purple-btn,
+.ny-page .ny-head.ny-hero .ny-chip.is-on,
+.dk-page .dk-head.dk-hero .dk-btn-primary,
+.fn-page .fn-head.fn-hero .fn-btn-primary {
+    color: var(--pv4-navy, #0c1a3a) !important;
 }
