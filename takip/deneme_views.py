@@ -76,6 +76,7 @@ def deneme_detay(request, pk):
             "pdf_yetkisi": can(request.user, "deneme", "export_pdf"),
             "excel_yetkisi": can(request.user, "deneme", "export_excel"),
             "pdf_sayfa": coz_pdf_sayfa(request),
+            "pdf_sayfa_yatay": coz_pdf_sayfa("a4_landscape"),
         }
     )
     return render(request, "deneme_detay.html", ctx)
@@ -235,6 +236,33 @@ def deneme_detay_pdf(request, pk):
     return make_pdf_response(
         pdf_verisi,
         f"{deneme.ad}.pdf",
+    )
+
+
+@login_required
+@require_permission("deneme", "export_pdf")
+def deneme_detayli_pdf(request, pk):
+    deneme = get_object_or_404(yetkili_denemeler(request.user), pk=pk)
+    veri = _deneme_detay_verisi(request, deneme)
+    pdf_sayfa = coz_pdf_sayfa(request, default="a4_landscape")
+
+    html = render(
+        request,
+        "deneme_detayli_pdf.html",
+        {
+            **veri,
+            "olusturma_tarihi": now(),
+            "pdf_sayfa": pdf_sayfa,
+        },
+    ).content.decode("utf-8")
+    pdf_verisi = html_to_pdf(html, base_url=request.build_absolute_uri("/"))
+    if not pdf_verisi:
+        return pdf_error_response(
+            f"PDF oluşturulamadı. (Motor: {pdf_engine_status()})",
+        )
+    return make_pdf_response(
+        pdf_verisi,
+        f"{deneme.ad} - Detayli Basari Listesi.pdf",
     )
 
 

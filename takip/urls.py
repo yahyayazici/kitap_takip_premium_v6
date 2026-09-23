@@ -390,6 +390,7 @@ urlpatterns = [
     path("denemeler/<int:pk>/sil/", deneme_views.deneme_sil, name="deneme_sil"),
     path("denemeler/<int:pk>/excel/", deneme_views.deneme_excel_indir, name="deneme_excel_indir"),
     path("denemeler/<int:pk>/pdf/", deneme_views.deneme_detay_pdf, name="deneme_detay_pdf"),
+    path("denemeler/<int:pk>/detayli-pdf/", deneme_views.deneme_detayli_pdf, name="deneme_detayli_pdf"),
 
     path("yazili-takip/", yazili_takip_views.yazili_kamp_listesi, name="yazili_kamp_listesi"),
     path(
