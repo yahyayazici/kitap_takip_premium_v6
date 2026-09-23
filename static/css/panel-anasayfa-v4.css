@@ -80,9 +80,16 @@ body.v3-body .v3-brand-mark.v6-brand-mark {
 }
 
 body.v3-body .v3-brand.v6-brand-block {
-    background: #f4f5f8 !important;
-    border-color: var(--pv4-line) !important;
+    background: transparent !important;
+    border: none !important;
     box-shadow: none !important;
+}
+
+/* Kurum adının altındaki "Eğitim Modülü" alt yazısı kaldırıldı; logo ile
+   kurum ismi artık tek satır olarak dikeyde ortalanıyor. */
+body.v3-body .v3-brand-copy small,
+body.v3-body .v6-brand-copy small {
+    display: none !important;
 }
 
 body.v3-body .v3-brand-copy strong,
@@ -91,15 +98,13 @@ body.v3-body .v6-brand-copy strong {
     text-shadow: none !important;
 }
 
-body.v3-body .v3-brand-copy small,
-body.v3-body .v6-brand-copy small {
-    color: var(--pv4-muted-soft) !important;
-}
-
 body.v3-body .v3-header .v3-nav-link,
 body.v3-body .v3-header .v3-nav-trigger,
 body.v3-body .v3-header button.v3-nav-link.v3-nav-trigger {
-    color: var(--pv4-muted) !important;
+    color: var(--pv4-navy) !important;
+    font-family: "Playfair Display", Georgia, serif !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.01em;
 }
 
 /* Mobil menü açma düğmesi (3 çizgi) — eski koyu nav için beyaz çizgiliydi;
@@ -127,7 +132,7 @@ body.v3-body .v3-header .v3-nav-trigger:hover,
 body.v3-body .v3-header button.v3-nav-link.v3-nav-trigger:hover,
 body.v3-body .v3-header button.v3-nav-link.v3-nav-trigger:focus,
 body.v3-body .v3-header button.v3-nav-link.v3-nav-trigger:focus-visible {
-    color: var(--pv4-text) !important;
+    color: var(--pv4-navy) !important;
 }
 
 body.v3-body .v3-header .v3-nav-link.active,
@@ -136,7 +141,7 @@ body.v3-body .v3-nav-dropdown.is-section-active > .v3-nav-trigger,
 body.v3-body .v3-nav-dropdown.open > .v3-nav-trigger,
 body.v3-body .v3-nav-dropdown.is-section-active > .v3-nav-trigger:hover,
 body.v3-body .v3-nav-dropdown.open > .v3-nav-trigger:hover {
-    color: var(--pv4-text) !important;
+    color: var(--pv4-navy) !important;
 }
 
 body.v3-body .v3-header .v3-nav-link.active::after,
@@ -1166,7 +1171,9 @@ body.v3-body .personel-plan-table tbody td {
 .dd-card .result-secondary-button,
 .dd-card .result-back-button,
 .st-filter-card .result-secondary-button,
-.st-filter-card .result-back-button {
+.st-filter-card .result-back-button,
+.deneme-branches-head .result-secondary-button,
+.deneme-branches-head .result-back-button {
     color: #173b80 !important;
     background: transparent !important;
     border-color: #d2dce8 !important;
@@ -1175,7 +1182,9 @@ body.v3-body .personel-plan-table tbody td {
 .dd-card .result-secondary-button:hover,
 .dd-card .result-back-button:hover,
 .st-filter-card .result-secondary-button:hover,
-.st-filter-card .result-back-button:hover {
+.st-filter-card .result-back-button:hover,
+.deneme-branches-head .result-secondary-button:hover,
+.deneme-branches-head .result-back-button:hover {
     background: #f4f7fb !important;
 }
 
