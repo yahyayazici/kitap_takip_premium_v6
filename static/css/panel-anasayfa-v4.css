@@ -75,7 +75,7 @@ body.v3-body .v6-brand-mark::after {
 }
 
 body.v3-body .v3-brand-mark.v6-brand-mark {
-    background: url("../images/cinili-saray-logo-icon.png") center / contain no-repeat !important;
+    background: url("../images/cinili-saray-logo-icon-sm.png") center / contain no-repeat !important;
     border-radius: var(--pv4-r-sm);
 }
 
@@ -1367,5 +1367,52 @@ body.pv4-page .personel-plan-table tbody td {
     body.pv4-page .dash-shortcuts-grid {
         --dash-sc-cols: 5 !important;
         grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    }
+}
+
+/* —— Sayfa geçişleri — tıklama anında üstte ince bir ilerleme çubuğu,
+   yeni sayfa açıldığında da içerik hafifçe belirerek yumuşak bir geçiş
+   hissi verir. (static/js/page-transition.js ile birlikte çalışır.) */
+.pv4-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 0;
+    background: linear-gradient(90deg, var(--pv4-gold-light), var(--pv4-gold));
+    opacity: 0;
+    z-index: 99999;
+    pointer-events: none;
+    transition: width .25s ease, opacity .2s ease;
+}
+
+.pv4-progress--active {
+    width: 78%;
+    opacity: 1;
+    transition: width 4s cubic-bezier(.1, .6, .2, 1), opacity .2s ease;
+}
+
+body.v3-body .page-content {
+    animation: pv4-fade-in .32s ease both;
+}
+
+@keyframes pv4-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.v3-body .page-content {
+        animation: none;
+    }
+
+    .pv4-progress {
+        transition: none;
     }
 }
