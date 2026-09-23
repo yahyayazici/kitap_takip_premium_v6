@@ -8,8 +8,36 @@ from django.db.models import Q, QuerySet
 from takip.models import Talebe
 
 from .registry import LEGACY_TUM_TALEBE_ROLLER
-from .service import can, kullanici_birincil_rol_slug, kullanici_rol_slugleri
+from .service import (
+    _req_cache,
+    can,
+    kullanici_birincil_rol_slug,
+    kullanici_rol_slugleri,
+)
 from takip.user_helpers import etut_hocasi_for_user
+
+
+def _rol_kapsam_listesi(user: User, slugler: frozenset[str]):
+    """``slugler``'a karşılık gelen Rol kayıtları (kapsamları prefetch
+    edilmiş), istek başına tek sorguda yüklenip önbelleğe alınır.
+
+    ``tum_talebe_kapsami_var`` ve ``yetkili_talebeler`` aynı sorguyu ayrı
+    ayrı atıyordu; dashboard gibi tek sayfada birden çok kez talebe
+    kapsamı sorgulayan görünümlerde bu, sayfa başına gereksiz onlarca
+    tekrar sorguya yol açıyordu.
+    """
+    cache = _req_cache(user)
+    key = "rol_kapsam_listesi"
+    if key in cache:
+        return cache[key]
+
+    from takip.models import Rol
+
+    sonuc = list(
+        Rol.objects.filter(slug__in=slugler, aktif=True).prefetch_related("kapsamlar")
+    )
+    cache[key] = sonuc
+    return sonuc
 
 
 def tum_talebe_kapsami_var(user: User) -> bool:
@@ -21,11 +49,9 @@ def tum_talebe_kapsami_var(user: User) -> bool:
 
     slugler = kullanici_rol_slugleri(user)
     if slugler:
-        from takip.models import Rol, RolKapsam
+        from takip.models import RolKapsam
 
-        for rol in Rol.objects.filter(slug__in=slugler, aktif=True).prefetch_related(
-            "kapsamlar"
-        ):
+        for rol in _rol_kapsam_listesi(user, slugler):
             for kapsam in rol.kapsamlar.all():
                 if kapsam.tip == RolKapsam.KapsamTipi.TUM:
                     return True
@@ -51,15 +77,13 @@ def yetkili_talebeler(user: User, *, aktif_only: bool = True) -> QuerySet[Talebe
 
     slugler = kullanici_rol_slugleri(user)
     if slugler:
-        from takip.models import Rol, RolKapsam
+        from takip.models import RolKapsam
 
         sinif_ids: set[int] = set()
         seviye_ids: set[int] = set()
         etut_grubu = False
 
-        for rol in Rol.objects.filter(slug__in=slugler, aktif=True).prefetch_related(
-            "kapsamlar"
-        ):
+        for rol in _rol_kapsam_listesi(user, slugler):
             for kapsam in rol.kapsamlar.all():
                 if kapsam.tip == RolKapsam.KapsamTipi.TUM:
                     return talebeler
