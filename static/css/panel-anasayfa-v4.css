@@ -102,9 +102,6 @@ body.v3-body .v3-header .v3-nav-link,
 body.v3-body .v3-header .v3-nav-trigger,
 body.v3-body .v3-header button.v3-nav-link.v3-nav-trigger {
     color: var(--pv4-navy) !important;
-    font-family: "Playfair Display", Georgia, serif !important;
-    font-weight: 600 !important;
-    letter-spacing: 0.01em;
 }
 
 /* Mobil menü açma düğmesi (3 çizgi) — eski koyu nav için beyaz çizgiliydi;
@@ -995,6 +992,22 @@ body.v3-body .personel-plan-card .dash-panel-head,
 body.v3-body .dash-etut-widget .dash-panel-head,
 body.v3-body .dash-gunluk-gorev .dash-panel-head {
     background: #fff !important;
+}
+
+/* Hızlı menüler kartı — kısayol kutularının boyutu değişmeden, panelin
+   kendi beyaz boşluğu (üst/alt dolgu) sıkılaştırılıyor. */
+body.v3-body .dash-panel:has(.dash-shortcuts-grid) {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+body.v3-body .dash-panel:has(.dash-shortcuts-grid) .dash-panel-head {
+    padding: 12px 24px 8px !important;
+}
+
+body.v3-body .dash-panel .dash-shortcuts-grid,
+body.v3-body .dash-panel-lined .dash-shortcuts-grid {
+    padding: 4px 20px 12px !important;
 }
 
 body.v3-body .dash-etut-stats span {
