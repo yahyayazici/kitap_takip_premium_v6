@@ -98,10 +98,15 @@ body.v3-body .v6-brand-copy strong {
     text-shadow: none !important;
 }
 
-body.v3-body .v3-header .v3-nav-link,
-body.v3-body .v3-header .v3-nav-trigger,
-body.v3-body .v3-header button.v3-nav-link.v3-nav-trigger {
-    color: var(--pv4-navy) !important;
+/* Menü başlıkları sadece masaüstünde lacivert — mobilde nav paneli koyu
+   lacivert zeminli kaldığından (nav-groups.css), orada eski açık renk
+   metin korunmalı; aksi halde lacivert yazı lacivert zeminde kaybolur. */
+@media (min-width: 1401px) {
+    body.v3-body .v3-header .v3-nav-link,
+    body.v3-body .v3-header .v3-nav-trigger,
+    body.v3-body .v3-header button.v3-nav-link.v3-nav-trigger {
+        color: var(--pv4-navy) !important;
+    }
 }
 
 /* Mobil menü açma düğmesi (3 çizgi) — eski koyu nav için beyaz çizgiliydi;
@@ -124,21 +129,23 @@ body.v3-body .v3-logout-mobile {
     border-color: var(--pv4-navy) !important;
 }
 
-body.v3-body .v3-header .v3-nav-link:hover,
-body.v3-body .v3-header .v3-nav-trigger:hover,
-body.v3-body .v3-header button.v3-nav-link.v3-nav-trigger:hover,
-body.v3-body .v3-header button.v3-nav-link.v3-nav-trigger:focus,
-body.v3-body .v3-header button.v3-nav-link.v3-nav-trigger:focus-visible {
-    color: var(--pv4-navy) !important;
-}
+@media (min-width: 1401px) {
+    body.v3-body .v3-header .v3-nav-link:hover,
+    body.v3-body .v3-header .v3-nav-trigger:hover,
+    body.v3-body .v3-header button.v3-nav-link.v3-nav-trigger:hover,
+    body.v3-body .v3-header button.v3-nav-link.v3-nav-trigger:focus,
+    body.v3-body .v3-header button.v3-nav-link.v3-nav-trigger:focus-visible {
+        color: var(--pv4-navy) !important;
+    }
 
-body.v3-body .v3-header .v3-nav-link.active,
-body.v3-body .v3-header .v3-nav-link.active:hover,
-body.v3-body .v3-nav-dropdown.is-section-active > .v3-nav-trigger,
-body.v3-body .v3-nav-dropdown.open > .v3-nav-trigger,
-body.v3-body .v3-nav-dropdown.is-section-active > .v3-nav-trigger:hover,
-body.v3-body .v3-nav-dropdown.open > .v3-nav-trigger:hover {
-    color: var(--pv4-navy) !important;
+    body.v3-body .v3-header .v3-nav-link.active,
+    body.v3-body .v3-header .v3-nav-link.active:hover,
+    body.v3-body .v3-nav-dropdown.is-section-active > .v3-nav-trigger,
+    body.v3-body .v3-nav-dropdown.open > .v3-nav-trigger,
+    body.v3-body .v3-nav-dropdown.is-section-active > .v3-nav-trigger:hover,
+    body.v3-body .v3-nav-dropdown.open > .v3-nav-trigger:hover {
+        color: var(--pv4-navy) !important;
+    }
 }
 
 body.v3-body .v3-header .v3-nav-link.active::after,
