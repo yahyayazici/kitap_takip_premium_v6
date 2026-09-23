@@ -70,8 +70,16 @@
 
     {% if detay_satirlari %}
     <section class="result-card deneme-branches-section">
-        <h2 class="deneme-section-title">Detaylı Başarı Listesi</h2>
-        <p class="deneme-section-desc">Türkçe, Matematik, Fen, Sosyal, Din Kültürü ve İngilizce — ders ders doğru / yanlış / boş</p>
+        <div class="deneme-branches-head">
+            <div>
+                <h2 class="deneme-section-title">Detaylı Başarı Listesi</h2>
+                <p class="deneme-section-desc">Türkçe, Matematik, Fen, Sosyal, Din Kültürü ve İngilizce — ders ders doğru / yanlış / boş</p>
+            </div>
+            {% if pdf_yetkisi %}
+            {% url 'deneme_detayli_pdf' deneme.pk as deneme_detayli_pdf_href %}
+            {% include "includes/pdf_sayfa_secici.html" with pdf_href=deneme_detayli_pdf_href pdf_sayfa=pdf_sayfa_yatay pdf_btn_class="result-secondary-button" pdf_btn_label="PDF İndir" %}
+            {% endif %}
+        </div>
 
         <div class="responsive-table deneme-branches-table deneme-branches-desktop">
             <table class="report-data-table">
@@ -164,6 +172,21 @@
 }
 .deneme-branches-section {
     margin-top: 20px;
+}
+.deneme-branches-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+.deneme-branches-head .deneme-section-title,
+.deneme-branches-head .deneme-section-desc {
+    margin-bottom: 0;
+}
+.deneme-branches-head .pdf-sayfa-sec {
+    flex-shrink: 0;
 }
 .deneme-branches-table .brans-group-head {
     text-align: center;

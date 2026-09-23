@@ -1,0 +1,280 @@
+{% load static pdf_extras %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>{{ deneme.ad }} · Detaylı Başarı Listesi</title>
+    <style>
+        {% include "includes/pdf_karne_fonts.html" %}
+        {% include "includes/pdf_karne_a4_css.html" %}
+
+        @page {
+            size: {{ pdf_sayfa.size_css|default:"A4 landscape" }};
+            margin: 4mm 6mm 3mm;
+        }
+
+        .pdf-karne.deneme-detayli-pdf { font-size: 7px; }
+        .pdf-karne.deneme-detayli-pdf .gap6 { height: 10px; }
+        .pdf-karne.deneme-detayli-pdf .gap8 { height: 12px; }
+        .pdf-karne.deneme-detayli-pdf .hero { padding: 14px 18px; }
+        .pdf-karne.deneme-detayli-pdf .hero-inner { padding-right: 58px; }
+        .pdf-karne.deneme-detayli-pdf .hero-deco {
+            opacity: 0.34;
+            right: 16px;
+            width: 44px;
+            height: 44px;
+            margin-top: -22px;
+        }
+        .pdf-karne.deneme-detayli-pdf .stats-table {
+            width: 100%;
+            margin-left: 0;
+            border-spacing: 8px 0;
+        }
+        .pdf-karne.deneme-detayli-pdf .stat-cell,
+        .pdf-karne.deneme-detayli-pdf .table-panel {
+            box-shadow: none;
+        }
+        .pdf-karne.deneme-detayli-pdf .stat-label { font-size: 7px; }
+        .pdf-karne.deneme-detayli-pdf .stat-metric { font-size: 15px; }
+        .pdf-karne.deneme-detayli-pdf .stat-sub { font-size: 6.5px; }
+        .pdf-karne.deneme-detayli-pdf .section-kicker { font-size: 7px; }
+        .pdf-karne.deneme-detayli-pdf .section-title { font-size: 11px; }
+        .pdf-karne.deneme-detayli-pdf .table-panel-head { padding: 10px 12px 4px; }
+        .pdf-karne.deneme-detayli-pdf .results-wrap {
+            column-count: 1 !important;
+            padding: 6px 8px 10px;
+        }
+        .pdf-karne.deneme-detayli-pdf .top-logo-cell { text-align: center; }
+        .pdf-karne.deneme-detayli-pdf .top-logo { width: 130px; height: auto; }
+
+        .pdf-karne.deneme-detayli-pdf table.detayli-results {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+        }
+        .pdf-karne.deneme-detayli-pdf table.detayli-results col.col-sira { width: 2.6%; }
+        .pdf-karne.deneme-detayli-pdf table.detayli-results col.col-ad { width: 14%; }
+        .pdf-karne.deneme-detayli-pdf table.detayli-results col.col-sinif { width: 4.4%; }
+        .pdf-karne.deneme-detayli-pdf table.detayli-results col.col-sub { width: 3.75%; }
+        .pdf-karne.deneme-detayli-pdf table.detayli-results col.col-net { width: 5%; }
+        .pdf-karne.deneme-detayli-pdf table.detayli-results col.col-puan { width: 5.7%; }
+
+        .pdf-karne.deneme-detayli-pdf table.detayli-results thead th {
+            padding: 6px 3px;
+            font-size: 7.5px;
+            font-weight: 700;
+            text-align: center;
+            border-bottom: 1px solid #eef2f6;
+        }
+        .pdf-karne.deneme-detayli-pdf table.detayli-results thead th.left {
+            text-align: left;
+            padding-left: 8px;
+        }
+        .pdf-karne.deneme-detayli-pdf table.detayli-results thead tr.brans-head th {
+            padding-top: 8px;
+            padding-bottom: 3px;
+            color: #173f78;
+            letter-spacing: 0.02em;
+            border-bottom: none;
+        }
+        .pdf-karne.deneme-detayli-pdf table.detayli-results thead tr.sub-head th {
+            padding-top: 2px;
+            font-size: 6.8px;
+            font-weight: 600;
+            color: #7a889c;
+            text-transform: uppercase;
+        }
+        .pdf-karne.deneme-detayli-pdf table.detayli-results thead tr.sub-head th.d-col { color: #15803d; }
+        .pdf-karne.deneme-detayli-pdf table.detayli-results thead tr.sub-head th.y-col { color: #b91c1c; }
+        .pdf-karne.deneme-detayli-pdf table.detayli-results thead tr.sub-head th.b-col { color: #64748b; }
+
+        .pdf-karne.deneme-detayli-pdf table.detayli-results tbody td {
+            padding: 5px 3px;
+            font-size: 8.2px;
+            font-family: "Poppins", sans-serif;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+            text-align: center;
+            border-top: 1px solid #f0f3f7;
+        }
+        .pdf-karne.deneme-detayli-pdf table.detayli-results tbody tr:first-child td { border-top: none; }
+        .pdf-karne.deneme-detayli-pdf table.detayli-results tbody td.left {
+            text-align: left;
+            padding-left: 8px;
+        }
+        .pdf-karne.deneme-detayli-pdf .student-name {
+            font-family: "Montserrat", "Poppins", sans-serif;
+            font-weight: 700;
+            font-size: 9px;
+            line-height: 1.2;
+            white-space: normal;
+            word-wrap: break-word;
+        }
+        .pdf-karne.deneme-detayli-pdf .rank-no {
+            display: inline-block;
+            font-size: 8.5px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: #475569;
+        }
+        .pdf-karne.deneme-detayli-pdf .d-cell { color: #15803d; }
+        .pdf-karne.deneme-detayli-pdf .y-cell { color: #b91c1c; }
+        .pdf-karne.deneme-detayli-pdf .b-cell { color: #64748b; font-weight: 500; }
+        .pdf-karne.deneme-detayli-pdf .net-cell { color: #173f78; font-weight: 700; }
+        .pdf-karne.deneme-detayli-pdf .puan-cell { color: #b45309; font-weight: 700; font-size: 8.6px; }
+        .pdf-karne.deneme-detayli-pdf .footer-right { display: none; }
+        .pdf-karne.deneme-detayli-pdf .pdf-sheet + .pdf-sheet {
+            page-break-before: always;
+            break-before: page;
+        }
+    </style>
+</head>
+<body class="pdf-karne deneme-detayli-pdf">
+
+<div class="pdf-sheet">
+<table class="layout">
+    <tr>
+        <td class="top-logo-cell">
+            <img class="top-logo" src="{% static 'images/cinili-saray-logo.jpeg' %}" alt="{{ panel_short }}">
+        </td>
+    </tr>
+
+    <tr><td class="gap6"></td></tr>
+
+    <tr>
+        <td class="hero">
+            <svg class="hero-deco" width="44" height="44" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="11" y="9" width="26" height="32" rx="4" stroke="#FFFFFF" stroke-width="2.2"/>
+                <rect x="17" y="6" width="14" height="7" rx="2" fill="#FFFFFF"/>
+                <path d="M18 22h12M18 28h12M18 34h8" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+            <div class="hero-inner">
+                <div class="hero-tag">Detaylı Başarı Listesi</div>
+                <div class="hero-title">{{ deneme.ad }}</div>
+                <div class="hero-meta">
+                    {{ deneme.sinif_seviyesi }}. sınıf · {{ deneme.sinav_tarihi|date:"d.m.Y" }} ·
+                    {{ ozet.ogrenci_sayisi }} öğrenci
+                </div>
+            </div>
+        </td>
+    </tr>
+
+    <tr><td class="gap6"></td></tr>
+
+    <tr>
+        <td>
+            <table class="stats-table" cellpadding="0">
+                <tr>
+                    <td width="25%" class="stat-cell tone-blue">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">Öğrenci</div>
+                        <div class="stat-metric">{{ ozet.ogrenci_sayisi }}</div>
+                        <div class="stat-sub">Katılım</div>
+                    </td>
+                    <td width="25%" class="stat-cell tone-green">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">Ort. Net</div>
+                        <div class="stat-metric">{{ ozet.ortalama_net }}</div>
+                        <div class="stat-sub">Ortalama</div>
+                    </td>
+                    <td width="25%" class="stat-cell tone-orange">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">Ort. Puan</div>
+                        <div class="stat-metric">{{ ozet.ortalama_puan }}</div>
+                        <div class="stat-sub">Ortalama</div>
+                    </td>
+                    <td width="25%" class="stat-cell tone-purple">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">En Yüksek</div>
+                        <div class="stat-metric">{{ ozet.en_yuksek_puan }}</div>
+                        <div class="stat-sub">Puan</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+
+    <tr><td class="gap8"></td></tr>
+
+    <tr>
+        <td>
+            <div class="table-panel">
+                <div class="table-panel-accent"></div>
+                <div class="table-panel-head">
+                    <div class="section-kicker">Detaylı Başarı Listesi</div>
+                    <div class="section-title">Ders Ders Doğru / Yanlış / Boş — Net / Puan</div>
+                </div>
+                <div class="results-wrap">
+                    <table class="detayli-results">
+                        <colgroup>
+                            <col class="col-sira">
+                            <col class="col-ad">
+                            <col class="col-sinif">
+                            {% for baslik in detay_brans_basliklari %}
+                            <col class="col-sub"><col class="col-sub"><col class="col-sub">
+                            {% endfor %}
+                            <col class="col-net">
+                            <col class="col-puan">
+                        </colgroup>
+                        <thead>
+                            <tr class="brans-head">
+                                <th rowspan="2">Sıra</th>
+                                <th class="left" rowspan="2">Talebe</th>
+                                <th rowspan="2">Sınıf</th>
+                                {% for baslik in detay_brans_basliklari %}
+                                <th colspan="3">{{ baslik }}</th>
+                                {% endfor %}
+                                <th rowspan="2">Net</th>
+                                <th rowspan="2">Puan</th>
+                            </tr>
+                            <tr class="sub-head">
+                                {% for kod in detay_branslar %}
+                                <th class="d-col">D</th>
+                                <th class="y-col">Y</th>
+                                <th class="b-col">B</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for satir in detay_satirlari %}
+                            <tr>
+                                <td><span class="rank-no">{{ satir.sira }}</span></td>
+                                <td class="left">
+                                    <div class="student-name">{{ satir.sonuc.talebe.ad_soyad }}</div>
+                                </td>
+                                <td>{{ satir.sonuc.talebe.sinif_sube|default:"—" }}</td>
+                                {% for brans in satir.branslar %}
+                                <td class="d-cell">{{ brans.dogru }}</td>
+                                <td class="y-cell">{{ brans.yanlis }}</td>
+                                <td class="b-cell">{{ brans.bos }}</td>
+                                {% endfor %}
+                                <td class="net-cell">{{ satir.sonuc.toplam_net }}</td>
+                                <td class="puan-cell">{{ satir.sonuc.puan }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="{{ detay_branslar|length|add:5 }}" class="left" style="padding:8px;">—</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </td>
+    </tr>
+
+    <tr>
+        <td>
+            <table class="footer-table" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="footer-left">{{ panel_org }} · {{ olusturma_tarihi|date:"d.m.Y H:i" }}</td>
+                    <td class="footer-right">{{ panel_footer }}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</div>
+
+</body>
+</html>
