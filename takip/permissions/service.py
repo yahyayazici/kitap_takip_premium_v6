@@ -116,11 +116,26 @@ def kullanici_rol_slugleri(user: User) -> frozenset[str]:
     return sonuc
 
 
+@lru_cache(maxsize=128)
+def _rol_aktif_cached(rol_slug: str) -> Rol | None:
+    """Aktif rol kaydı, rol_slug başına süreç ömrü boyunca tek sorgu.
+
+    ``_rol_modul_erisim_cached``/``_rol_islem_izni_cached`` aynı rolü aynı
+    (modul_kod) veya (modul_kod, islem_kod) kombinasyonu farklı olduğunda
+    tekrar tekrar sorguluyordu — bir rol için nav menüsündeki her modül
+    ayrı bir "Rol.objects.get()" sorgusu anlamına geliyordu. Rol satırı
+    burada bir kez çekilip paylaşılıyor.
+    """
+    try:
+        return Rol.objects.get(slug=rol_slug, aktif=True)
+    except Rol.DoesNotExist:
+        return None
+
+
 @lru_cache(maxsize=256)
 def _rol_modul_erisim_cached(rol_slug: str, modul_kod: str) -> bool | None:
-    try:
-        rol = Rol.objects.get(slug=rol_slug, aktif=True)
-    except Rol.DoesNotExist:
+    rol = _rol_aktif_cached(rol_slug)
+    if rol is None:
         return None
 
     kayit = rol.modul_erisimleri.filter(modul__kod=modul_kod).first()
@@ -137,9 +152,8 @@ def _rol_islem_izni_cached(rol_slug: str, modul_kod: str, islem_kod: str) -> boo
     process-wide cache'lenir (``_rol_modul_erisim_cached`` ile aynı desen).
     Rol bulunamazsa None döner ki çağıran taraf legacy fallback'e düşebilsin.
     """
-    try:
-        rol = Rol.objects.get(slug=rol_slug, aktif=True)
-    except Rol.DoesNotExist:
+    rol = _rol_aktif_cached(rol_slug)
+    if rol is None:
         return None
 
     return rol.islem_yetkileri.filter(
@@ -229,21 +243,33 @@ def _legacy_islem_izin(rol_slug: str | None, modul_kod: str, islem_kod: str) -> 
     return True
 
 
-def _override_etki(user: User, modul_kod: str, islem_kod: str) -> str | None:
-    """(user, modul, işlem) için tanımlı override etkisi (DENY/GRANT), varsa.
+def _kullanici_overrides(user: User) -> dict[tuple[str, str], str]:
+    """Kullanıcının tüm override kayıtlarını (modul_kod, islem_kod) -> etki
+    şeklinde, istek başına TEK sorguda yükler.
 
-    Tek sorguda hem DENY hem GRANT kontrolü için kullanılır (önceden ayrı
-    ayrı iki sorguydu).
+    Önceden her (modul, işlem) çifti için ayrı bir sorgu atılıyordu; nav
+    menüsü onlarca öğe içerdiğinden bu, her sayfa yüklemesinde onlarca
+    gereksiz sorguya (N+1) yol açıyordu. Override tanımlı kullanıcı sayısı
+    azınlıkta olduğundan bu tablo küçüktür — tek sorguda tamamı çekilip
+    istek ömrü boyunca önbellekten okunur.
     """
-    return (
-        KullaniciYetkiOverride.objects.filter(
-            user=user,
-            modul__kod=modul_kod,
-            islem_kod=islem_kod,
-        )
-        .values_list("etki", flat=True)
-        .first()
-    )
+    cache = _req_cache(user)
+    if "overrides" in cache:
+        return cache["overrides"]
+
+    overrides: dict[tuple[str, str], str] = {}
+    for modul_kod, islem_kod, etki in KullaniciYetkiOverride.objects.filter(
+        user=user
+    ).values_list("modul__kod", "islem_kod", "etki"):
+        overrides[(modul_kod, islem_kod)] = etki
+
+    cache["overrides"] = overrides
+    return overrides
+
+
+def _override_etki(user: User, modul_kod: str, islem_kod: str) -> str | None:
+    """(user, modul, işlem) için tanımlı override etkisi (DENY/GRANT), varsa."""
+    return _kullanici_overrides(user).get((modul_kod, islem_kod))
 
 
 def _rbac_islem_izin(user: User, modul_kod: str, islem_kod: str) -> bool | None:
@@ -315,5 +341,6 @@ def modul_erisimi_var(user: User, modul_kod: str) -> bool:
 
 
 def clear_permission_cache() -> None:
+    _rol_aktif_cached.cache_clear()
     _rol_modul_erisim_cached.cache_clear()
     _rol_islem_izni_cached.cache_clear()
