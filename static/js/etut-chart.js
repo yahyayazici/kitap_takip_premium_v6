@@ -145,7 +145,23 @@ window.csNavyLine = function (canvas, values) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      interaction: { mode: "index", axis: "x", intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          enabled: true,
+          intersect: false,
+          displayColors: false,
+          callbacks: {
+            title: (items) => (items[0] ? items[0].label + ". deneme" : ""),
+            label: (item) => {
+              const v = item.parsed.y;
+              if (v == null) return "";
+              return String(v).replace(".", ",");
+            },
+          },
+        },
+      },
       scales: {
         x: {
           ticks: { color: "rgba(240,244,252,.62)", font: { family: "Poppins", size: 12 } },
@@ -162,5 +178,23 @@ window.csNavyLine = function (canvas, values) {
         },
       },
     },
+    plugins: [{
+      id: "hoverStem",
+      afterDatasetsDraw(chart) {
+        const active = chart.getActiveElements();
+        if (!active.length) return;
+        const pt = active[0].element;
+        const { bottom } = chart.chartArea;
+        const c = chart.ctx;
+        c.save();
+        c.strokeStyle = "rgba(255,255,255,.7)";
+        c.lineWidth = 1;
+        c.beginPath();
+        c.moveTo(pt.x, pt.y + 8);
+        c.lineTo(pt.x, bottom);
+        c.stroke();
+        c.restore();
+      },
+    }],
   });
 };
