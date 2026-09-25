@@ -39,6 +39,7 @@
       <div>
         <p class="ek-kicker">Zayıf / geride konular</p>
         {% if dikkat.zayif_konular %}
+        <div class="ek-table-wrap">
         <table class="ek-table">
           <thead><tr><th>Konu</th><th>Etüt</th><th>Sınıf</th></tr></thead>
           <tbody>
@@ -51,6 +52,7 @@
           {% endfor %}
           </tbody>
         </table>
+        </div>
         {% else %}
         <p class="ek-muted">Kritik zayıf konu yok veya henüz kazanım Excel’i yok.</p>
         {% endif %}
@@ -58,6 +60,7 @@
       <div>
         <p class="ek-kicker">Düşüşteki talebeler</p>
         {% if dikkat.dusen_talebeler %}
+        <div class="ek-table-wrap">
         <table class="ek-table">
           <thead><tr><th>Talebe</th><th>Önceki</th><th>Son</th><th>Fark</th></tr></thead>
           <tbody>
@@ -71,6 +74,7 @@
           {% endfor %}
           </tbody>
         </table>
+        </div>
         {% else %}
         <p class="ek-muted">Belirgin düşüş yok.</p>
         {% endif %}

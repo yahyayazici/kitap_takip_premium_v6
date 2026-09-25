@@ -30,6 +30,7 @@
     {% if sekme == 'siralama' %}
     <h2>Genel sıralama</h2>
     {% if siralama %}
+    <div class="ek-table-wrap">
     <table class="ek-table">
       <thead><tr><th>#</th><th>Talebe</th><th>Sınıf</th><th>Ortalama</th><th>Konu</th></tr></thead>
       <tbody>
@@ -44,11 +45,13 @@
       {% endfor %}
       </tbody>
     </table>
+    </div>
     {% else %}<p class="ek-muted">Bu denemede etüt kazanım sonucu yok.</p>{% endif %}
     {% else %}
     <h2>Detaylı kazanım listesi</h2>
     <p class="ek-muted" style="margin-bottom:.8rem;">%70 altı kırmızı — etüt ortalaması.</p>
     {% if kazanimlar %}
+    <div class="ek-table-wrap">
     <table class="ek-table">
       <thead><tr><th>Ders</th><th>Kazanım</th><th>Etüt ort.</th><th>Katılan</th></tr></thead>
       <tbody>
@@ -62,6 +65,7 @@
       {% endfor %}
       </tbody>
     </table>
+    </div>
     {% else %}<p class="ek-muted">Kazanım verisi yok.</p>{% endif %}
     {% endif %}
   </section>
