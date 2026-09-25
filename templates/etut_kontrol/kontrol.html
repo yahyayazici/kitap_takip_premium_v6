@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Etüt Takip · {{ hoca.ad_soyad }}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek14">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek17">{% endblock %}
 {% block content %}
 <div class="ek-page">
   <header class="ek-head">
@@ -26,11 +26,12 @@
 
   <section class="ek-hero">
     <div class="ek-hero-bar">
-      <h2>Sınıf puan ortalaması{% if gelisim.sinif_ad %} <span class="ek-class">{{ gelisim.sinif_ad }}</span>{% endif %}</h2>
+      {% if gelisim.sinif_ad %}<span class="ek-class">{{ gelisim.sinif_ad }}</span>{% else %}<span></span>{% endif %}
       <span class="ek-trend">{% if gelisim.trend == "↓" %}Düşüşte{% elif gelisim.trend == "→" %}Yatay{% else %}Yükselişte{% endif %}</span>
     </div>
     <div class="ek-hero-top">
       <div>
+        <p class="ek-hero-kicker">Sınıf puan ortalaması</p>
         <p class="ek-hero-kicker">Son deneme{% if kutular %}, {{ kutular.0.deneme.sinav_tarihi|date:"j F Y" }}{% endif %}</p>
         <p class="ek-hero-score"><b id="ekSon">—</b><span>/ 500</span></p>
       </div>
