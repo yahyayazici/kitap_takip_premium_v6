@@ -56,20 +56,21 @@ def deneme_listesi(request):
     denemeler = list(denemeler.annotate(puan_ort=Avg("sonuclar__puan")))
     yayinlar = {(d.yayin or "").strip() for d in denemeler if (d.yayin or "").strip()}
     seri = [float(d.puan_ort) for d in reversed(denemeler) if d.puan_ort is not None]
-    fark = round(seri[-1] - seri[0]) if len(seri) >= 2 else None
+    genel = round(sum(seri) / len(seri)) if seri else None
+    son5 = seri[-5:]
+    fark = round(son5[-1] - son5[0]) if len(son5) >= 2 else None
     cizgi = ""
-    if len(seri) >= 2:
-        lo, hi = min(seri), max(seri)
+    cizgi_x = cizgi_y = ""
+    if len(son5) >= 2:
+        lo, hi = min(son5), max(son5)
         span = hi - lo or 1
         parca = []
-        for i, v in enumerate(seri):
-            x = 6 + (228 * i / (len(seri) - 1))
+        for i, v in enumerate(son5):
+            x = 6 + (228 * i / (len(son5) - 1))
             y = 8 + 48 * (1 - (v - lo) / span)
             parca.append(f"{x:.1f},{y:.1f}")
         cizgi = " ".join(parca)
         cizgi_x, cizgi_y = parca[-1].split(",")
-    else:
-        cizgi_x = cizgi_y = ""
     context = {
         "denemeler": denemeler,
         "arsiv_ozet": {
@@ -77,10 +78,11 @@ def deneme_listesi(request):
             "katilim": sum(d.sonuc_sayisi or 0 for d in denemeler),
             "yayin_sayisi": len(yayinlar),
             "son": denemeler[0] if denemeler else None,
-            "seri": seri,
+            "seri": son5,
+            "genel": genel,
             "cizgi": cizgi,
-            "cizgi_x": cizgi_x if len(seri) >= 2 else "",
-            "cizgi_y": cizgi_y if len(seri) >= 2 else "",
+            "cizgi_x": cizgi_x,
+            "cizgi_y": cizgi_y,
             "fark": fark,
         },
         "sil_yetkisi": deneme_silebilir(request.user),
