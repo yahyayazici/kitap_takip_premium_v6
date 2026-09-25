@@ -160,7 +160,7 @@ window.csNavyLine = function (canvas, values, dates) {
           titleColor: "rgba(240,244,252,.72)",
           titleFont: { family: "Poppins", size: 12, weight: "500" },
           bodyColor: "#ffffff",
-          bodyFont: { family: "Georgia, serif", size: 22, weight: "500" },
+          bodyFont: { family: "MontBlanc, Georgia, serif", size: 22, weight: "800" },
           callbacks: {
             title: (items) => {
               const i = items[0] ? items[0].dataIndex : 0;
