@@ -115,3 +115,52 @@ window.csLuminousLine = function (canvas, labels, values) {
     }],
   });
 };
+
+window.csNavyLine = function (canvas, values) {
+  if (!canvas || !values || !values.length || typeof Chart === "undefined") return;
+  const nums = values.filter((v) => v != null);
+  const lo = Math.min.apply(null, nums);
+  const hi = Math.max.apply(null, nums);
+  const pad = Math.max(16, (hi - lo) * 0.45);
+  const min = Math.max(0, Math.floor((lo - pad) / 10) * 10);
+  const max = Math.min(500, Math.ceil((hi + pad) / 10) * 10);
+  const labels = values.map((_, i) => String(i + 1));
+  const last = values.length - 1;
+  new Chart(canvas, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [{
+        data: values,
+        borderColor: "#ffffff",
+        tension: 0.08,
+        fill: false,
+        borderWidth: 1.75,
+        pointRadius: (c) => (c.dataIndex === last ? 5 : 3),
+        pointHoverRadius: 6,
+        pointBackgroundColor: (c) => (c.dataIndex === last ? "#e0c27a" : "#ffffff"),
+        pointBorderWidth: 0,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          ticks: { color: "rgba(240,244,252,.62)", font: { family: "Poppins", size: 12 } },
+          grid: { display: false },
+          border: { display: false },
+        },
+        y: {
+          position: "right",
+          min: min,
+          max: max,
+          ticks: { color: "rgba(240,244,252,.45)", font: { family: "Poppins", size: 11 }, maxTicksLimit: 5 },
+          grid: { color: "rgba(240,244,252,.14)" },
+          border: { display: false },
+        },
+      },
+    },
+  });
+};

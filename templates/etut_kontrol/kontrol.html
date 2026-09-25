@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Etüt Takip · {{ hoca.ad_soyad }}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek12">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek13">{% endblock %}
 {% block content %}
 <div class="ek-page">
   <header class="ek-head">
@@ -24,15 +24,19 @@
     </div>
   </header>
 
-  <section class="ek-card ek-frame">
-    <div class="ek-stage-top">
+  <section class="ek-hero">
+    <div class="ek-hero-top">
       <div>
-        <p class="ek-kicker">Gelişim</p>
-        <h2>Sınıf puan ortalaması{% if gelisim.sinif_ad %} · {{ gelisim.sinif_ad }}{% endif %}</h2>
+        <p class="ek-hero-kicker">Son deneme{% if kutular %}, {{ kutular.0.deneme.sinav_tarihi|date:"j F Y" }}{% endif %}</p>
+        <p class="ek-hero-score"><b id="ekSon">—</b><span>/ 500</span></p>
       </div>
-      <span class="ek-badge">Trend {{ gelisim.trend }}</span>
+      <div class="ek-hero-stats">
+        <div><span>İlk denemeden bu yana</span><b id="ekFark">—</b></div>
+        <div><span>Ortalama</span><b id="ekOrt">—</b></div>
+        <div><span>En yüksek</span><b id="ekMax">—</b></div>
+      </div>
     </div>
-    <div class="ek-chart ek-chart-stage"><canvas id="gelisimChart"></canvas></div>
+    <div class="ek-hero-chart"><canvas id="gelisimChart"></canvas></div>
   </section>
 
   <section class="ek-card ek-watch">
@@ -89,29 +93,33 @@
     </div>
   </section>
 
-  <section>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.7rem;">
-      <h2 style="margin:0;font-size:1.1rem;">Denemelerim</h2>
-      <span class="ek-muted">{{ kutular|length }} deneme</span>
+  <section class="ek-exams">
+    <div class="ek-exams-head">
+      <h2>Tüm denemeler <span>{{ kutular|length }} deneme</span></h2>
+      {% if kutular %}
+      <label class="ek-sort">Sırala
+        <select id="ekSort">
+          <option value="new">Yeniden eskiye</option>
+          <option value="old">Eskiden yeniye</option>
+        </select>
+      </label>
+      {% endif %}
     </div>
     {% if kutular %}
-    <div class="ek-grid">
+    <div class="ek-exam-grid" id="ekExamGrid">
       {% for k in kutular %}
-      <a class="ek-score" href="{% url 'etut_kontrol_deneme' hoca.id k.deneme.id %}">
-        <div class="ek-score-rail">
-          <span>{% if k.deneme.sira_no %}{{ k.deneme.sira_no }}. deneme{% else %}Deneme{% endif %}</span>
-          <b>{% if k.sinif_ortalama %}{{ k.sinif_ortalama|floatformat:0 }}{% else %}—{% endif %}</b>
-          <small>sınıf / 500</small>
+      <a class="ek-exam{% if forloop.first %} is-last{% endif %}" href="{% url 'etut_kontrol_deneme' hoca.id k.deneme.id %}" data-time="{{ k.deneme.sinav_tarihi|date:'Ymd' }}" data-puan="{% if k.sinif_ortalama %}{{ k.sinif_ortalama|floatformat:0 }}{% endif %}">
+        <div class="ek-exam-top">
+          <strong>{% if k.deneme.sira_no %}{{ k.deneme.sira_no }}. Deneme{% else %}{{ k.deneme.ad }}{% endif %}</strong>
+          {% if forloop.first %}<span class="ek-pill">Son deneme</span>{% else %}<span>{{ k.deneme.sinav_tarihi|date:"j M Y" }}</span>{% endif %}
         </div>
-        <div class="ek-score-body">
-          <strong>{{ k.deneme.ad }}</strong>
-          <div class="ek-muted">{{ k.deneme.sinav_tarihi|date:"d.m.Y" }} · etüt {% if k.etut_ortalama %}{{ k.etut_ortalama|floatformat:0 }}{% else %}—{% endif %}</div>
-          <div class="ek-meter"><i class="{% if k.zayif_konu %}is-low{% endif %}" style="width:{% if k.sinif_ortalama %}{% widthratio k.sinif_ortalama 500 100 %}{% else %}0{% endif %}%"></i></div>
-          <div class="ek-score-foot">
-            <span class="ek-flag {% if k.zayif_konu %}is-bad{% else %}is-ok{% endif %}">{% if k.zayif_konu %}{{ k.zayif_konu }} zayıf konu{% else %}Zayıf konu yok{% endif %}</span>
-            <span>{{ k.trend }}</span>
-          </div>
+        <p class="ek-exam-score"><b>{% if k.sinif_ortalama %}{{ k.sinif_ortalama|floatformat:0 }}{% else %}—{% endif %}</b><small>sınıf / 500</small></p>
+        <div class="ek-meter"><i style="width:{% if k.sinif_ortalama %}{% widthratio k.sinif_ortalama 500 100 %}{% else %}0{% endif %}%"></i></div>
+        <div class="ek-exam-meta">
+          <span class="ek-delta"></span>
+          <span>Etüt {% if k.etut_ortalama %}{{ k.etut_ortalama|floatformat:0 }}{% else %}—{% endif %}</span>
         </div>
+        <p class="ek-exam-weak">{% if k.zayif_konu %}{{ k.zayif_konu }} zayıf konu{% else %}Zayıf konu yok{% endif %}</p>
       </a>
       {% endfor %}
     </div>
@@ -121,9 +129,46 @@
   </section>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="{% static 'js/etut-chart.js' %}?v=ek9"></script>
+<script src="{% static 'js/etut-chart.js' %}?v=ek13"></script>
 <script>
 const data = {{ gelisim_json|safe }};
-csLuminousLine(document.getElementById('gelisimChart'), data.labels, data.sinif);
+csNavyLine(document.getElementById('gelisimChart'), data.sinif || []);
+(function () {
+  const vals = (data.sinif || []).filter(function (v) { return v != null; });
+  const txt = function (n, digit) {
+    if (n == null || Number.isNaN(n)) return "—";
+    return digit ? n.toFixed(1).replace(".", ",") : String(Math.round(n));
+  };
+  if (vals.length) {
+    const last = vals[vals.length - 1];
+    const first = vals[0];
+    const fark = Math.round(last - first);
+    document.getElementById("ekSon").textContent = txt(last);
+    document.getElementById("ekFark").textContent = (fark > 0 ? "+" : "") + fark;
+    document.getElementById("ekOrt").textContent = txt(vals.reduce(function (a, b) { return a + b; }, 0) / vals.length, true);
+    document.getElementById("ekMax").textContent = txt(Math.max.apply(null, vals));
+  }
+  const cards = Array.prototype.slice.call(document.querySelectorAll(".ek-exam"));
+  const chrono = cards.slice().sort(function (a, b) { return a.dataset.time < b.dataset.time ? -1 : 1; });
+  chrono.forEach(function (card, i) {
+    const el = card.querySelector(".ek-delta");
+    const prev = chrono[i - 1];
+    if (!el || !prev || !card.dataset.puan || !prev.dataset.puan) return;
+    const d = Number(card.dataset.puan) - Number(prev.dataset.puan);
+    el.textContent = (d > 0 ? "+" : "") + d + " puan";
+    if (d < 0) el.classList.add("is-down");
+  });
+  const sort = document.getElementById("ekSort");
+  const grid = document.getElementById("ekExamGrid");
+  if (sort && grid) {
+    sort.addEventListener("change", function () {
+      const items = Array.prototype.slice.call(grid.children);
+      items.sort(function (a, b) {
+        return sort.value === "old" ? (a.dataset.time < b.dataset.time ? -1 : 1) : (a.dataset.time > b.dataset.time ? -1 : 1);
+      });
+      items.forEach(function (el) { grid.appendChild(el); });
+    });
+  }
+})();
 </script>
 {% endblock %}
