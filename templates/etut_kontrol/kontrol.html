@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Etüt Takip · {{ hoca.ad_soyad }}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek3">{% endblock %}
 {% block content %}
 <div class="ek-page">
   <header class="ek-head">
@@ -90,19 +90,21 @@
     {% if kutular %}
     <div class="ek-grid">
       {% for k in kutular %}
-      <a class="ek-box" href="{% url 'etut_kontrol_deneme' hoca.id k.deneme.id %}">
-        <div style="display:flex;justify-content:space-between;gap:.5rem;">
-          <span class="ek-badge">{{ k.deneme.sinav_tarihi|date:"d.m.Y" }}</span>
-          <span class="ek-badge">{{ k.trend }}</span>
+      <a class="ek-score" href="{% url 'etut_kontrol_deneme' hoca.id k.deneme.id %}">
+        <div class="ek-score-rail">
+          <span>{% if k.deneme.sira_no %}{{ k.deneme.sira_no }}. deneme{% else %}Deneme{% endif %}</span>
+          <b>{% if k.sinif_ortalama %}{{ k.sinif_ortalama|floatformat:0 }}{% else %}—{% endif %}</b>
+          <small>sınıf / 500</small>
         </div>
-        <strong>{{ k.deneme.ad }}</strong>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">
-          <div><div class="ek-muted">Etüt puan</div><div class="ek-stat">{% if k.etut_ortalama %}{{ k.etut_ortalama }}{% else %}—{% endif %}</div></div>
-          <div><div class="ek-muted">Sınıf puan</div><div class="ek-stat">{% if k.sinif_ortalama %}{{ k.sinif_ortalama }}{% else %}—{% endif %}</div></div>
+        <div class="ek-score-body">
+          <strong>{{ k.deneme.ad }}</strong>
+          <div class="ek-muted">{{ k.deneme.sinav_tarihi|date:"d.m.Y" }} · etüt {% if k.etut_ortalama %}{{ k.etut_ortalama|floatformat:0 }}{% else %}—{% endif %}</div>
+          <div class="ek-meter"><i class="{% if k.zayif_konu %}is-low{% endif %}" style="width:{% if k.sinif_ortalama %}{% widthratio k.sinif_ortalama 500 100 %}{% else %}0{% endif %}%"></i></div>
+          <div class="ek-score-foot">
+            <span class="ek-flag {% if k.zayif_konu %}is-bad{% else %}is-ok{% endif %}">{% if k.zayif_konu %}{{ k.zayif_konu }} zayıf konu{% else %}Zayıf konu yok{% endif %}</span>
+            <span>{{ k.trend }}</span>
+          </div>
         </div>
-        {% if k.zayif_konu %}<div class="ek-danger" style="margin-top:.7rem;font-size:.82rem;">{{ k.zayif_konu }} zayıf konu</div>
-        {% else %}<div class="ek-ok" style="margin-top:.7rem;font-size:.82rem;">Zayıf konu yok</div>{% endif %}
-        <div class="ek-muted" style="margin-top:.55rem;font-size:.8rem;">Sıralama · Kazanımlar →</div>
       </a>
       {% endfor %}
     </div>

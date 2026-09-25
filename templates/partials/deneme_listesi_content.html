@@ -63,20 +63,21 @@
             <a href="{% url 'deneme_listesi' %}" class="ghost-btn">Temizle</a>
         </form>
 
-        <div class="ek-grid" style="margin-bottom:1.25rem;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));">
+        <div class="ek-grid" style="margin-bottom:1.25rem;">
             {% for d in denemeler %}
-            <a class="ek-box" href="{% url 'deneme_detay' d.pk %}">
-                <span class="ek-badge">{% if d.sira_no %}{{ d.sira_no }}. Deneme{% else %}Deneme{% endif %}</span>
-                <strong>{{ d.ad }}</strong>
-                <div class="ek-muted">{{ d.sinav_tarihi|date:"d.m.Y" }} · {{ d.sinif_seviyesi }}. sınıf{% if d.yayin %} · {{ d.yayin }}{% endif %}</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.75rem;">
-                    <div>
-                        <div class="ek-muted">Puan ort.</div>
-                        <div class="ek-stat">{% if d.puan_ort %}{{ d.puan_ort|floatformat:1 }}{% else %}—{% endif %}</div>
-                    </div>
-                    <div>
-                        <div class="ek-muted">Öğrenci</div>
-                        <div class="ek-stat">{{ d.sonuc_sayisi }}</div>
+            <a class="ek-score" href="{% url 'deneme_detay' d.pk %}">
+                <div class="ek-score-rail">
+                    <span>{% if d.sira_no %}{{ d.sira_no }}. deneme{% else %}Deneme{% endif %}</span>
+                    <b>{% if d.puan_ort %}{{ d.puan_ort|floatformat:0 }}{% else %}—{% endif %}</b>
+                    <small>ort. / 500</small>
+                </div>
+                <div class="ek-score-body">
+                    <strong>{{ d.ad }}</strong>
+                    <div class="ek-muted">{{ d.sinav_tarihi|date:"d.m.Y" }} · {{ d.sinif_seviyesi }}. sınıf{% if d.yayin %} · {{ d.yayin }}{% endif %}</div>
+                    <div class="ek-meter"><i style="width:{% if d.puan_ort %}{% widthratio d.puan_ort 500 100 %}{% else %}0{% endif %}%"></i></div>
+                    <div class="ek-score-foot">
+                        <span>{{ d.sonuc_sayisi }} öğrenci</span>
+                        <span>{{ d.get_tur_display }}</span>
                     </div>
                 </div>
             </a>

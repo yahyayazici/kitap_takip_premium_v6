@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Talebeler · {{ hoca.ad_soyad }}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek3">{% endblock %}
 {% block content %}
 <div class="ek-page">
   <header class="ek-head">
@@ -18,18 +18,20 @@
   {% if kutular %}
   <div class="ek-grid">
     {% for k in kutular %}
-    <a class="ek-box" href="{% url 'etut_kontrol_talebe' hoca.id k.talebe.id %}">
-      <div style="display:flex;justify-content:space-between;gap:.5rem;">
-        <span class="ek-badge">{% if k.talebe.sinif_sube %}{{ k.talebe.sinif_sube.sinif }}-{{ k.talebe.sinif_sube.sube }}{% else %}—{% endif %}</span>
-        <span class="ek-badge">{{ k.trend }}</span>
+    <a class="ek-score" href="{% url 'etut_kontrol_talebe' hoca.id k.talebe.id %}">
+      <div class="ek-score-rail">
+        <span>{% if k.talebe.sinif_sube %}{{ k.talebe.sinif_sube.sinif }}-{{ k.talebe.sinif_sube.sube }}{% else %}sınıf{% endif %}</span>
+        <b>{% if k.son_ortalama %}{{ k.son_ortalama|floatformat:0 }}{% else %}—{% endif %}</b>
+        <small>/ 500</small>
       </div>
-      <strong>{{ k.talebe.ad_soyad }}</strong>
-      <div class="ek-muted">Son ortalama</div>
-      <div class="ek-stat">{% if k.son_ortalama %}{{ k.son_ortalama }}{% else %}—{% endif %}</div>
-      <div class="{% if k.zayif_sayisi %}ek-danger{% else %}ek-ok{% endif %}" style="margin-top:.65rem;font-size:.82rem;">
-        {% if k.zayif_sayisi %}Son denemede {{ k.zayif_sayisi }} zayıf konu{% else %}Zayıf konu yok{% endif %}
+      <div class="ek-score-body">
+        <strong>{{ k.talebe.ad_soyad }}</strong>
+        <div class="ek-meter"><i class="{% if k.zayif_sayisi %}is-low{% endif %}" style="width:{% if k.son_ortalama %}{% widthratio k.son_ortalama 500 100 %}{% else %}0{% endif %}%"></i></div>
+        <div class="ek-score-foot">
+          <span class="ek-flag {% if k.zayif_sayisi %}is-bad{% else %}is-ok{% endif %}">{% if k.zayif_sayisi %}{{ k.zayif_sayisi }} zayıf konu{% else %}Zayıf yok{% endif %}</span>
+          <span>{{ k.deneme_sayisi }} deneme {{ k.trend }}</span>
+        </div>
       </div>
-      <div class="ek-muted" style="margin-top:.4rem;font-size:.78rem;">{{ k.deneme_sayisi }} deneme</div>
     </a>
     {% endfor %}
   </div>

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}{{ deneme.ad }}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek3">{% endblock %}
 {% block content %}
 <div class="result-entry-page deneme-detail-page">
     <header class="result-entry-header">
@@ -175,11 +175,20 @@
         <p class="deneme-section-desc">Puan 500 üzerinden. Zayıf kazanım sayısı bu denemeye aittir.</p>
         <div class="ek-grid">
             {% for k in alt.talebeler %}
-            <a class="ek-box" href="?talebe={{ k.talebe.id }}#talebe-kazanim">
-                <strong>{{ k.talebe.ad_soyad }}</strong>
-                <div class="ek-stat">{% if k.puan %}{{ k.puan }}{% else %}—{% endif %}</div>
-                {% if k.zayif_sayisi %}<div class="ek-danger">{{ k.zayif_sayisi }} zayıf kazanım</div>
-                {% else %}<div class="ek-ok">Zayıf kazanım yok</div>{% endif %}
+            <a class="ek-score" href="?talebe={{ k.talebe.id }}#talebe-kazanim">
+                <div class="ek-score-rail">
+                    <span>puan</span>
+                    <b>{% if k.puan %}{{ k.puan|floatformat:0 }}{% else %}—{% endif %}</b>
+                    <small>/ 500</small>
+                </div>
+                <div class="ek-score-body">
+                    <strong>{{ k.talebe.ad_soyad }}</strong>
+                    <div class="ek-meter"><i class="{% if k.zayif_sayisi %}is-low{% endif %}" style="width:{% if k.puan %}{% widthratio k.puan 500 100 %}{% else %}0{% endif %}%"></i></div>
+                    <div class="ek-score-foot">
+                        <span class="ek-flag {% if k.zayif_sayisi %}is-bad{% else %}is-ok{% endif %}">{% if k.zayif_sayisi %}{{ k.zayif_sayisi }} zayıf kazanım{% else %}Zayıf yok{% endif %}</span>
+                        <span>aç</span>
+                    </div>
+                </div>
             </a>
             {% endfor %}
         </div>
@@ -191,7 +200,7 @@
                     <thead><tr><th>Ders</th><th>Kazanım</th><th>Yüzde</th><th>Net</th></tr></thead>
                     <tbody>
                     {% for row in secili_talebe.kazanimlar %}
-                    <tr>
+                    <tr class="{% if row.zayif %}is-weak{% endif %}">
                         <td>{{ row.ders }}</td>
                         <td>{{ row.konu }}</td>
                         <td class="{% if row.zayif %}ek-danger{% else %}ek-ok{% endif %}">{% if row.yuzde is not None %}{{ row.yuzde }}%{% else %}—{% endif %}</td>
