@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import zipfile
 from datetime import date
 from decimal import Decimal
 from io import BytesIO
@@ -159,6 +160,26 @@ class KazanimEtutKontrolTests(TestCase):
         talebe, tip, _ = talebe_eslestir("Ali Veli", "8-B")
         self.assertIsNone(talebe)
         self.assertNotEqual(tip, "otomatik")
+
+    def test_top_left_cell_exceli_kabul_eder(self):
+        xlsx = _sample_xlsx([("8-A", "Ali Veli", 65, "5/8", 80, "7/8")])
+        raw = xlsx.getvalue()
+        out = BytesIO()
+        with zipfile.ZipFile(BytesIO(raw)) as src, zipfile.ZipFile(out, "w") as dst:
+            for info in src.infolist():
+                data = src.read(info.filename)
+                if info.filename.startswith("xl/worksheets/sheet"):
+                    text = data.decode()
+                    text = text.replace(
+                        '<selection activeCell="A1" sqref="A1" />',
+                        '<selection activeCell="A1" sqref="A1" topLeftCell="A1"/>',
+                    )
+                    data = text.encode()
+                dst.writestr(info, data)
+        out.seek(0)
+        out.name = "KonuKazanimDetay_topLeft.xlsx"
+        stats = import_kazanim_excel(out, deneme=self.deneme)
+        self.assertGreaterEqual(stats.sonuc_yazilan, 1)
 
     def test_seviye_geneli_ve_sube_cizgileri(self):
         sinif_a = SinifSube.objects.create(sinif="7", sube="A", aktif=True)
