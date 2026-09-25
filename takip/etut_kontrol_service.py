@@ -432,6 +432,8 @@ def etut_talebe_kutulari(hoca: EtutHocasi) -> list[dict]:
                 ),
                 "zayif_sayisi": zayif_son,
                 "deneme_sayisi": len(orts),
+                "seri": [float(v) for v in reversed(orts)],
+                "fark": (son - onceki) if son is not None and onceki is not None else None,
             }
         )
     return kutular

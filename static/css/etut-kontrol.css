@@ -2,6 +2,8 @@
 .ek-page { max-width: 1180px; margin: 0 auto; padding: var(--cs-space-5) var(--cs-page-gutter) var(--cs-space-8); }
 .ek-head { margin-bottom: var(--cs-space-5); display: flex; justify-content: space-between; gap: var(--cs-space-4); flex-wrap: wrap; align-items: flex-end; }
 .ek-kicker { font-size: 0.68rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cs-text-muted); margin: 0 0 var(--cs-space-1); font-weight: 600; }
+.ek-kicker-soft { letter-spacing: .04em; text-transform: none; font-size: var(--cs-font-caption); font-weight: 600; color: var(--cs-text-secondary); display: flex; align-items: center; gap: 8px; }
+.ek-kicker-soft i { width: 18px; height: 2px; border-radius: 2px; background: #c4a574; }
 .ek-head h1 { margin: 0; font-size: var(--cs-font-page-title); letter-spacing: -0.045em; font-weight: 500; color: var(--cs-text-primary); }
 .ek-desc { margin: var(--cs-space-2) 0 0; color: var(--cs-text-secondary); font-size: var(--cs-font-body); max-width: 52ch; line-height: var(--cs-line-height-body); }
 .ek-actions { display: flex; gap: var(--cs-space-2); flex-wrap: wrap; align-items: center; }
@@ -191,9 +193,51 @@
   .ek-hero-stats div { padding: 0 var(--cs-space-3); min-width: 0; flex: 1; }
   .ek-hero-score b { font-size: 3.2rem; }
 }
+.ek-roster { background: var(--cs-navy-deep); color: #fff; border-radius: 22px; padding: var(--cs-space-5) var(--cs-space-6); margin-bottom: var(--cs-space-6); }
+.ek-roster-stats { display: grid; grid-template-columns: repeat(4, 1fr); }
+.ek-roster-stats div { padding: 0 var(--cs-space-4); border-left: 1px solid rgba(240, 244, 252, .18); display: flex; flex-direction: column; gap: 6px; }
+.ek-roster-stats div:first-child { border-left: 0; padding-left: 0; }
+.ek-roster-stats span { font-size: var(--cs-font-caption); letter-spacing: .04em; color: rgba(240, 244, 252, .62); }
+.ek-roster-stats b { font-size: 2rem; font-weight: 560; letter-spacing: -0.03em; }
+.ek-roster-stats small { font-size: .95rem; font-weight: 500; }
+.ek-roster-plot { margin-top: var(--cs-space-5); padding-top: var(--cs-space-4); border-top: 1px solid rgba(240, 244, 252, .14); }
+.ek-roster-plot-top { display: flex; justify-content: space-between; font-size: var(--cs-font-caption); color: rgba(240, 244, 252, .62); margin-bottom: var(--cs-space-3); }
+.ek-dots { position: relative; height: 42px; }
+.ek-dots i { position: absolute; width: 9px; height: 9px; margin-left: -4px; border-radius: 50%; background: #fff; }
+.ek-dots i.is-hot { background: #e07a86; }
+.ek-dots b { position: absolute; top: -16px; bottom: -6px; width: 0; border-left: 1px dashed #e0c27a; }
+.ek-dots b::after { content: attr(data-label); position: absolute; top: -2px; left: 8px; font-size: 11px; font-weight: 500; color: #e0c27a; white-space: nowrap; }
+.ek-dots-axis { display: flex; justify-content: space-between; margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(240, 244, 252, .28); font-size: 11px; color: rgba(240, 244, 252, .5); }
+.ek-dots-legend { display: flex; gap: var(--cs-space-4); margin: var(--cs-space-3) 0 0; font-size: var(--cs-font-caption); color: rgba(240, 244, 252, .7); }
+.ek-dots-legend span::before, .ek-person-weak::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: #fff; vertical-align: middle; }
+.ek-dots-legend .is-hot::before, .ek-person.is-hot .ek-person-weak::before { background: #e07a86; }
+.ek-roster-tools { display: flex; gap: var(--cs-space-2); align-items: center; }
+.ek-roster-tools .input { min-height: var(--cs-input-h); background: var(--cs-surface); }
+.ek-people { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--cs-space-3); }
+.ek-person { display: flex; flex-direction: column; gap: var(--cs-space-2); padding: var(--cs-space-4); background: var(--cs-surface); border: 1px solid var(--cs-border); border-radius: 16px; text-decoration: none; color: var(--cs-text-primary); box-shadow: 0 8px 20px rgba(15, 32, 60, .04); }
+.ek-person.is-hot { background: #fff8f8; border-color: #f0d0d4; }
+.ek-person-top { display: flex; align-items: center; gap: var(--cs-space-2); }
+.ek-avatar { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--cs-soft-blue); color: var(--cs-primary); font-size: 12px; font-weight: 650; flex: none; }
+.ek-person.is-hot .ek-avatar { background: #fde8ea; color: #a33b48; }
+.ek-person-top strong { display: block; font-size: var(--cs-font-body); font-weight: 600; }
+.ek-person-top em { font-style: normal; font-size: var(--cs-font-caption); color: var(--cs-text-muted); }
+.ek-person-score { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--cs-space-2); }
+.ek-person-score p { margin: 0; display: flex; align-items: baseline; gap: 6px; }
+.ek-person-score b { font-family: Palatino, Georgia, serif; font-size: 2.15rem; font-weight: 500; letter-spacing: -0.03em; line-height: 1; }
+.ek-person-score small { font-size: var(--cs-font-caption); color: var(--cs-text-muted); }
+.ek-spark { width: 78px; height: 28px; color: var(--cs-primary); }
+.ek-spark svg { width: 100%; height: 100%; }
+.ek-spark polyline { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.ek-person-meta { display: flex; justify-content: space-between; gap: var(--cs-space-2); padding-bottom: var(--cs-space-2); border-bottom: 1px solid var(--cs-border-subtle); font-size: var(--cs-font-caption); color: var(--cs-text-secondary); }
+.ek-person-weak { margin: 0; font-size: var(--cs-font-caption); font-weight: 600; color: var(--cs-danger); }
+.ek-person-weak::before { background: var(--cs-danger); }
+@media (max-width: 900px) {
+  .ek-roster-stats { grid-template-columns: 1fr 1fr; gap: var(--cs-space-4); }
+  .ek-roster-stats div { border-left: 0; padding: 0; }
+}
 @media (max-width: 640px) {
   .ek-head h1 { font-size: 1.35rem; }
-  .ek-grid, .ek-exam-grid { grid-template-columns: 1fr; }
+  .ek-grid, .ek-exam-grid, .ek-people { grid-template-columns: 1fr; }
   .ek-hero { padding: var(--cs-space-4); }
   .ek-hero-stats { flex-direction: column; gap: var(--cs-space-3); }
   .ek-hero-stats div { border-left: 0; padding: 0; }
