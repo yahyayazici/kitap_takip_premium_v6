@@ -159,9 +159,25 @@ def _tam_sayi(deger: str) -> int:
         return 0
 
 
+def excel_secim_uyumu() -> None:
+    """Yeni Excel, seçime topLeftCell yazar. openpyxl 3.1.5 bunu tanımaz."""
+    from openpyxl.worksheet.views import Selection
+
+    if getattr(Selection.__init__, "_cs_topleft", False):
+        return
+    original = Selection.__init__
+
+    def _init(self, pane=None, activeCell="A1", activeCellId=None, sqref="A1", **_ignored):
+        original(self, pane=pane, activeCell=activeCell, activeCellId=activeCellId, sqref=sqref)
+
+    _init._cs_topleft = True
+    Selection.__init__ = _init
+
+
 def _excel_satirlari(dosya) -> list[list[str]]:
     from openpyxl import load_workbook
 
+    excel_secim_uyumu()
     workbook = load_workbook(dosya, read_only=True, data_only=True)
     sayfa = workbook.active
     satirlar = []

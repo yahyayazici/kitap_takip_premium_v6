@@ -18,7 +18,7 @@ from decimal import Decimal, InvalidOperation
 from django.db import transaction
 from openpyxl import load_workbook
 
-from takip.deneme_excel import talebe_eslestir
+from takip.deneme_excel import excel_secim_uyumu, talebe_eslestir
 from takip.deneme_models import DenemeKazanimSonucu, DenemeSinavi
 
 
@@ -117,6 +117,7 @@ def _read_columns(ws) -> list[dict]:
 @transaction.atomic
 def import_kazanim_excel(uploaded_file, *, deneme: DenemeSinavi) -> KazanimImportStats:
     stats = KazanimImportStats()
+    excel_secim_uyumu()
     wb = load_workbook(uploaded_file, data_only=True, read_only=False)
     try:
         ws = wb[wb.sheetnames[0]]
