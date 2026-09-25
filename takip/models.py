@@ -2310,6 +2310,8 @@ from takip.sabah_beslenme_models import (  # noqa: E402,F401
     SabahBeslenmeSiparis,
 )
 
+from takip.karsilama_models import KarsilamaSozu  # noqa: E402,F401
+
 from takip.iletisim_models import (  # noqa: E402,F401
     IletisimEki,
     IletisimKurumAyar,
