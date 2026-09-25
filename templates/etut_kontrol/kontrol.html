@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Etüt Takip · {{ hoca.ad_soyad }}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek4">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek5">{% endblock %}
 {% block content %}
 <div class="ek-page">
   <header class="ek-head">
@@ -123,7 +123,28 @@ if (ctx && data.labels && data.labels.length) {
     data: {
       labels: data.labels,
       datasets: [
-        { label: 'Sınıf puan ort.', data: data.sinif, borderColor: '#3778ff', backgroundColor: 'rgba(55,120,255,.18)', tension: .35, fill: true, borderWidth: 3, pointRadius: 6, pointBackgroundColor: '#e8f0ff', pointBorderColor: '#3778ff', pointBorderWidth: 2, pointHoverRadius: 8 }
+        {
+          label: 'Sınıf puan ort.',
+          data: data.sinif,
+          borderColor: (c) => {
+            const area = c.chart.chartArea;
+            if (!area) return '#2f6ff3';
+            const g = c.chart.ctx.createLinearGradient(area.left, 0, area.right, 0);
+            g.addColorStop(0, '#2f6ff3');
+            g.addColorStop(0.45, '#2a6cb8');
+            g.addColorStop(1, '#1aa477');
+            return g;
+          },
+          backgroundColor: 'rgba(47,111,243,.10)',
+          tension: .35,
+          fill: true,
+          borderWidth: 4,
+          pointRadius: 7,
+          pointBackgroundColor: '#ffffff',
+          pointBorderColor: '#2f6ff3',
+          pointBorderWidth: 3,
+          pointHoverRadius: 9
+        }
       ]
     },
     options: {
@@ -133,7 +154,7 @@ if (ctx && data.labels && data.labels.length) {
         tooltip: { callbacks: { title: (items) => data.labels[items[0].dataIndex] || '' } }
       },
       scales: {
-        x: { ticks: { color: '#e8f0ff', font: { family: 'Poppins', size: 12, weight: '500' } }, grid: { display: false }, border: { display: true, color: 'rgba(55,120,255,.55)' } },
+        x: { ticks: { color: '#15427f', font: { family: 'Poppins', size: 13, weight: '600' } }, grid: { display: false }, border: { display: true, color: '#2f6ff3' } },
         y: { display: false, min: 0, max: 500, grid: { display: false }, border: { display: false } }
       }
     },
@@ -143,8 +164,10 @@ if (ctx && data.labels && data.labels.length) {
         const { ctx } = chart;
         const meta = chart.getDatasetMeta(0);
         ctx.save();
-        ctx.fillStyle = '#e8f0ff';
+        ctx.fillStyle = '#15427f';
         ctx.font = '600 14px Poppins, sans-serif';
+        ctx.shadowColor = 'rgba(47,111,243,.55)';
+        ctx.shadowBlur = 8;
         ctx.textAlign = 'center';
         meta.data.forEach((pt, i) => {
           const v = data.sinif[i];
