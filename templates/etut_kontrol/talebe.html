@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}{{ talebe.ad_soyad }} · Etüt{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek12">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek18">{% endblock %}
 {% block content %}
 <div class="ek-page">
   <header class="ek-head">
@@ -17,63 +17,97 @@
     </div>
   </header>
 
-  <section class="ek-card">
-    <h2>Deneme puanları <span class="ek-badge">{{ gelisim.trend }}</span></h2>
-    <div class="ek-chart ek-chart-stage"><canvas id="talebeChart"></canvas></div>
+  <section class="ek-hero">
+    <div class="ek-hero-bar">
+      <p class="ek-hero-kicker" style="color:#fff;font-weight:600;">Deneme puanları</p>
+      <span class="ek-trend">{% if gelisim.trend == "↓" %}Düşüşte{% elif gelisim.trend == "→" %}Yatay{% else %}Yükselişte{% endif %}</span>
+    </div>
+    <div class="ek-hero-top">
+      <div>
+        <p class="ek-hero-kicker">Son deneme{% if kutular %}, {{ kutular.0.deneme.sinav_tarihi|date:"j F Y" }}{% endif %}</p>
+        <p class="ek-hero-score"><b id="ekSon">—</b><span>/ 500</span></p>
+      </div>
+      <div class="ek-hero-stats">
+        <div><span>İlk denemeden bu yana</span><b id="ekFark">—</b></div>
+        <div><span>Ortalama</span><b id="ekOrt">—</b></div>
+        <div><span>En yüksek</span><b id="ekMax">—</b></div>
+      </div>
+    </div>
+    <div class="ek-hero-chart"><canvas id="talebeChart"></canvas></div>
   </section>
 
+  <div class="ek-exams-head">
+    <h2>Deneme kazanımları</h2>
+    <span class="ek-limit">%70 başarı sınırı</span>
+  </div>
   {% for k in kutular %}
-  <section class="ek-card">
-    <div style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:.7rem;">
+  <details class="ek-gain"{% if forloop.first %} open{% endif %}>
+    <summary>
       <div>
-        <h2 style="margin:0;">{{ k.deneme.ad }}</h2>
-        <div class="ek-muted">{{ k.deneme.sinav_tarihi|date:"d.m.Y" }} · {{ k.konu_sayisi }} konu</div>
+        <strong>{% if k.deneme.sira_no %}{{ k.deneme.sira_no }}. Deneme{% else %}{{ k.deneme.ad }}{% endif %}</strong>
+        {% if forloop.first %}<span class="ek-pill">Son deneme</span>{% endif %}
+        <em>{{ k.deneme.sinav_tarihi|date:"j F Y" }}, {{ k.konu_sayisi }} konu</em>
       </div>
-      <div style="text-align:right;">
-        <span class="ek-badge">{{ k.trend }}</span>
-        <div class="ek-stat">{% if k.ortalama %}{{ k.ortalama }}{% else %}—{% endif %}</div>
-        {% if k.zayif_sayisi %}<div class="ek-danger" style="font-size:.82rem;">{{ k.zayif_sayisi }} zayıf</div>
-        {% else %}<div class="ek-ok" style="font-size:.82rem;">Zayıf yok</div>{% endif %}
+      <div class="ek-gain-score">
+        <p><b>{% if k.ortalama %}{{ k.ortalama|floatformat:0 }}{% else %}—{% endif %}</b><small>/ 500</small></p>
+        <span>{% if k.fark != None %}<i class="ek-delta{% if k.fark < 0 %} is-down{% endif %}">{% if k.fark > 0 %}+{% endif %}{{ k.fark|floatformat:0 }} puan</i>{% endif %}{% if k.zayif_sayisi %} <i class="is-weak">{{ k.zayif_sayisi }} zayıf</i>{% else %} <i class="ek-ok">Zayıf yok</i>{% endif %}</span>
       </div>
-    </div>
-    {% if k.zayiflar %}
-    <div style="margin-bottom:.8rem;padding:.75rem;border:1px solid rgba(185,28,28,.2);border-radius:12px;background:rgba(185,28,28,.04);">
-      <div class="ek-kicker" style="color:#b91c1c;">Öncelikli zayıf kazanımlar</div>
-      {% for z in k.zayiflar %}
-      <div style="display:flex;justify-content:space-between;gap:.75rem;font-size:.9rem;padding:.2rem 0;">
-        <span>{{ z.konu }} <span class="ek-muted">({{ z.ders }})</span></span>
-        <strong class="ek-danger">{{ z.yuzde }}%</strong>
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
-    <details>
-      <summary style="cursor:pointer;color:#1d4ed8;font-size:.9rem;margin-bottom:.5rem;">Tüm kazanımlar</summary>
-      <div class="ek-table-wrap">
-      <table class="ek-table">
-        <thead><tr><th>Ders</th><th>Kazanım</th><th>Yüzde</th><th>Net</th></tr></thead>
-        <tbody>
-        {% for row in k.kazanimlar %}
-        <tr>
-          <td>{{ row.ders }}</td>
-          <td>{{ row.konu }}</td>
-          <td class="{% if row.zayif %}ek-danger{% else %}ek-ok{% endif %}">{% if row.yuzde is not None %}{{ row.yuzde }}%{% else %}—{% endif %}</td>
-          <td>{% if row.net_dogru is not None and row.net_toplam is not None %}{{ row.net_dogru }}/{{ row.net_toplam }}{% else %}—{% endif %}</td>
-        </tr>
+    </summary>
+    <div class="ek-gain-body">
+      {% if k.zayiflar %}
+      <div class="ek-weak-box">
+        <p>Öncelikli zayıf kazanımlar</p>
+        {% for z in k.zayiflar %}
+        <div class="ek-weak-row">
+          <span><b>{{ z.konu }}</b> {{ z.ders }}</span>
+          <div class="ek-bar"><i style="width:{% widthratio z.yuzde 100 100 %}%"></i><em></em></div>
+          <strong>%{{ z.yuzde|floatformat:0 }}</strong>
+        </div>
         {% endfor %}
-        </tbody>
-      </table>
       </div>
-    </details>
-  </section>
+      {% endif %}
+      <details class="ek-all">
+        <summary>Tüm kazanımlar ({{ k.konu_sayisi }})</summary>
+        <div class="ek-table-wrap">
+        <table class="ek-table">
+          <thead><tr><th>Ders</th><th>Kazanım</th><th>Yüzde</th><th>Net</th></tr></thead>
+          <tbody>
+          {% for row in k.kazanimlar %}
+          <tr>
+            <td>{{ row.ders }}</td>
+            <td>{{ row.konu }}</td>
+            <td class="{% if row.zayif %}ek-danger{% else %}ek-ok{% endif %}">{% if row.yuzde is not None %}{{ row.yuzde|floatformat:0 }}%{% else %}—{% endif %}</td>
+            <td>{% if row.net_dogru is not None and row.net_toplam is not None %}{{ row.net_dogru }}/{{ row.net_toplam }}{% else %}—{% endif %}</td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        </div>
+      </details>
+    </div>
+  </details>
   {% empty %}
   <div class="ek-card"><p class="ek-muted">Bu talebenin kazanım sonucu yok.</p></div>
   {% endfor %}
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="{% static 'js/etut-chart.js' %}?v=ek10"></script>
+<script src="{% static 'js/etut-chart.js' %}?v=ek15"></script>
 <script>
 const data = {{ gelisim_json|safe }};
-csLuminousLine(document.getElementById('talebeChart'), data.labels, data.puanlar);
+csNavyLine(document.getElementById('talebeChart'), data.puanlar || []);
+(function () {
+  const vals = (data.puanlar || []).filter(function (v) { return v != null; });
+  const txt = function (n, digit) {
+    if (n == null || Number.isNaN(n)) return "—";
+    return digit ? n.toFixed(1).replace(".", ",") : String(Math.round(n));
+  };
+  if (!vals.length) return;
+  const last = vals[vals.length - 1];
+  const fark = Math.round(last - vals[0]);
+  document.getElementById("ekSon").textContent = txt(last);
+  document.getElementById("ekFark").textContent = (fark > 0 ? "+" : "") + fark;
+  document.getElementById("ekOrt").textContent = txt(vals.reduce(function (a, b) { return a + b; }, 0) / vals.length, true);
+  document.getElementById("ekMax").textContent = txt(Math.max.apply(null, vals));
+})();
 </script>
 {% endblock %}

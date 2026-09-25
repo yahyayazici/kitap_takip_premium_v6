@@ -529,6 +529,7 @@ def talebe_deneme_kutulari(talebe: Talebe) -> list[dict]:
                         float(ort) if ort is not None else None,
                     ]
                 ),
+                "fark": (ort - prev) if ort is not None and prev is not None else None,
                 "zayif_sayisi": len(zayiflar),
                 "zayiflar": zayiflar[:15],
                 "kazanimlar": rows,
