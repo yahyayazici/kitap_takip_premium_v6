@@ -331,16 +331,36 @@ def deneme_alt_baslik(deneme: DenemeSinavi, talebe_ids: list[int]) -> dict:
         }
         for r in kazanimlar
     ]
+    ham = DenemeKazanimSonucu.objects.filter(
+        deneme=deneme, talebe_id__in=talebe_ids
+    ).order_by("yuzde", "ders_ad", "konu_ad")
+    kazanim_harita: dict[int, list] = {}
+    for k in ham:
+        kazanim_harita.setdefault(k.talebe_id, []).append(
+            {
+                "ders": k.ders_ad,
+                "konu": k.konu_ad,
+                "yuzde": k.yuzde,
+                "net_dogru": k.net_dogru,
+                "net_toplam": k.net_toplam,
+                "zayif": k.yuzde is not None and k.yuzde < ZAYIF_ESIK,
+            }
+        )
     talebeler = []
     for tid in talebe_ids:
         ort = deneme_ortalama(deneme, [tid])
-        zayif = DenemeKazanimSonucu.objects.filter(
-            deneme=deneme, talebe_id=tid, yuzde__lt=ZAYIF_ESIK
-        ).count()
+        satirlar = kazanim_harita.get(tid, [])
         talebe = Talebe.objects.filter(pk=tid).first()
         if talebe is None:
             continue
-        talebeler.append({"talebe": talebe, "puan": ort, "zayif_sayisi": zayif})
+        talebeler.append(
+            {
+                "talebe": talebe,
+                "puan": ort,
+                "zayif_sayisi": sum(1 for s in satirlar if s["zayif"]),
+                "kazanimlar": satirlar,
+            }
+        )
     talebeler.sort(key=lambda r: (r["puan"] is None, -(float(r["puan"] or 0))))
     return {"kazanimlar": kazanim_satir, "talebeler": talebeler}
 

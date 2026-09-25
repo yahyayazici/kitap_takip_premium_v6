@@ -175,14 +175,36 @@
         <p class="deneme-section-desc">Puan 500 üzerinden. Zayıf kazanım sayısı bu denemeye aittir.</p>
         <div class="ek-grid">
             {% for k in alt.talebeler %}
-            <div class="ek-box">
+            <a class="ek-box" href="?talebe={{ k.talebe.id }}#talebe-kazanim">
                 <strong>{{ k.talebe.ad_soyad }}</strong>
                 <div class="ek-stat">{% if k.puan %}{{ k.puan }}{% else %}—{% endif %}</div>
                 {% if k.zayif_sayisi %}<div class="ek-danger">{{ k.zayif_sayisi }} zayıf kazanım</div>
                 {% else %}<div class="ek-ok">Zayıf kazanım yok</div>{% endif %}
-            </div>
+            </a>
             {% endfor %}
         </div>
+        {% if secili_talebe %}
+        <div id="talebe-kazanim" style="margin-top:1.25rem;">
+            <h3 class="deneme-section-title">{{ secili_talebe.talebe.ad_soyad }} · kazanımlar</h3>
+            <div class="ek-table-wrap">
+                <table class="ek-table">
+                    <thead><tr><th>Ders</th><th>Kazanım</th><th>Yüzde</th><th>Net</th></tr></thead>
+                    <tbody>
+                    {% for row in secili_talebe.kazanimlar %}
+                    <tr>
+                        <td>{{ row.ders }}</td>
+                        <td>{{ row.konu }}</td>
+                        <td class="{% if row.zayif %}ek-danger{% else %}ek-ok{% endif %}">{% if row.yuzde is not None %}{{ row.yuzde }}%{% else %}—{% endif %}</td>
+                        <td>{% if row.net_dogru is not None and row.net_toplam is not None %}{{ row.net_dogru }}/{{ row.net_toplam }}{% else %}—{% endif %}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4">Bu denemede kazanım satırı yok.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
     </section>
     {% endif %}
 

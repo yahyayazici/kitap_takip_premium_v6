@@ -77,6 +77,15 @@ def deneme_detay(request, pk):
 
     ids = [s.talebe_id for s in ctx["sonuclar"]]
     ctx["alt"] = deneme_alt_baslik(deneme, ids)
+    secili = request.GET.get("talebe")
+    ctx["secili_talebe"] = next(
+        (
+            k
+            for k in ctx["alt"]["talebeler"]
+            if secili and str(k["talebe"].id) == secili
+        ),
+        None,
+    )
     ctx.update(
         {
             "pdf_yetkisi": can(request.user, "deneme", "export_pdf"),
