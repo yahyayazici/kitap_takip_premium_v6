@@ -71,6 +71,10 @@ def deneme_listesi(request):
 def deneme_detay(request, pk):
     deneme = get_object_or_404(yetkili_denemeler(request.user), pk=pk)
     ctx = _deneme_detay_verisi(request, deneme)
+    from takip.etut_kontrol_service import deneme_alt_baslik
+
+    ids = [s.talebe_id for s in ctx["sonuclar"]]
+    ctx["alt"] = deneme_alt_baslik(deneme, ids)
     ctx.update(
         {
             "pdf_yetkisi": can(request.user, "deneme", "export_pdf"),

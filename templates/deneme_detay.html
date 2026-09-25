@@ -1,5 +1,7 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}{{ deneme.ad }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}">{% endblock %}
 {% block content %}
 <div class="result-entry-page deneme-detail-page">
     <header class="result-entry-header">
@@ -140,6 +142,45 @@
                     {% endfor %}
                 </div>
             </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if alt.kazanimlar %}
+    <section class="result-card" style="margin-top:20px;">
+        <h2 class="deneme-section-title">Kazanımlar</h2>
+        <p class="deneme-section-desc">KonuKazanimDetay. %70 altı zayıf.</p>
+        <div class="ek-table-wrap">
+            <table class="ek-table">
+                <thead><tr><th>Ders</th><th>Kazanım</th><th>Ortalama</th><th>Katılan</th></tr></thead>
+                <tbody>
+                {% for row in alt.kazanimlar %}
+                <tr>
+                    <td>{{ row.ders }}</td>
+                    <td>{{ row.konu }}</td>
+                    <td class="{% if row.zayif %}ek-danger{% else %}ek-ok{% endif %}">{{ row.ortalama }}%</td>
+                    <td>{{ row.talebe_sayisi }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if alt.talebeler %}
+    <section class="result-card" style="margin-top:20px;">
+        <h2 class="deneme-section-title">Talebeler</h2>
+        <p class="deneme-section-desc">Puan 500 üzerinden. Zayıf kazanım sayısı bu denemeye aittir.</p>
+        <div class="ek-grid">
+            {% for k in alt.talebeler %}
+            <div class="ek-box">
+                <strong>{{ k.talebe.ad_soyad }}</strong>
+                <div class="ek-stat">{% if k.puan %}{{ k.puan }}{% else %}—{% endif %}</div>
+                {% if k.zayif_sayisi %}<div class="ek-danger">{{ k.zayif_sayisi }} zayıf kazanım</div>
+                {% else %}<div class="ek-ok">Zayıf kazanım yok</div>{% endif %}
+            </div>
             {% endfor %}
         </div>
     </section>

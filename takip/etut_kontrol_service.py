@@ -307,6 +307,44 @@ def etut_deneme_siralamasi(hoca: EtutHocasi, deneme: DenemeSinavi) -> list[dict]
     return out
 
 
+def deneme_alt_baslik(deneme: DenemeSinavi, talebe_ids: list[int]) -> dict:
+    """Tek denemenin kazanım ve talebe özeti — mevcut sıralamanın alt başlıkları."""
+    if not talebe_ids:
+        return {"kazanimlar": [], "talebeler": []}
+    kazanimlar = (
+        DenemeKazanimSonucu.objects.filter(
+            deneme=deneme,
+            talebe_id__in=talebe_ids,
+            yuzde__isnull=False,
+        )
+        .values("ders_ad", "konu_ad")
+        .annotate(ortalama=Avg("yuzde"), talebe_sayisi=Count("talebe_id", distinct=True))
+        .order_by("ders_ad", "konu_ad")
+    )
+    kazanim_satir = [
+        {
+            "ders": r["ders_ad"],
+            "konu": r["konu_ad"],
+            "ortalama": _avg_or_none(r["ortalama"]),
+            "talebe_sayisi": r["talebe_sayisi"],
+            "zayif": r["ortalama"] is not None and Decimal(str(r["ortalama"])) < ZAYIF_ESIK,
+        }
+        for r in kazanimlar
+    ]
+    talebeler = []
+    for tid in talebe_ids:
+        ort = deneme_ortalama(deneme, [tid])
+        zayif = DenemeKazanimSonucu.objects.filter(
+            deneme=deneme, talebe_id=tid, yuzde__lt=ZAYIF_ESIK
+        ).count()
+        talebe = Talebe.objects.filter(pk=tid).first()
+        if talebe is None:
+            continue
+        talebeler.append({"talebe": talebe, "puan": ort, "zayif_sayisi": zayif})
+    talebeler.sort(key=lambda r: (r["puan"] is None, -(float(r["puan"] or 0))))
+    return {"kazanimlar": kazanim_satir, "talebeler": talebeler}
+
+
 def etut_konu_ozeti(hoca: EtutHocasi, deneme: DenemeSinavi) -> list[dict]:
     ids = hoca_talebe_ids(hoca)
     rows = (

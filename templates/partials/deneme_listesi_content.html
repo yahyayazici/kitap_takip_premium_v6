@@ -63,6 +63,20 @@
             <a href="{% url 'deneme_listesi' %}" class="ghost-btn">Temizle</a>
         </form>
 
+        <div class="ek-grid" style="margin-bottom:1.25rem;">
+            {% for d in denemeler %}
+            <a class="ek-box" href="{% url 'deneme_detay' d.pk %}">
+                <span class="ek-badge">{% if d.sira_no %}{{ d.sira_no }}. Deneme{% else %}Deneme{% endif %}</span>
+                <strong>{{ d.ad }}</strong>
+                <div class="ek-muted">{{ d.sinav_tarihi|date:"d.m.Y" }} · {{ d.sinif_seviyesi }}. sınıf</div>
+                <div class="ek-stat" style="margin-top:.45rem;">{{ d.sonuc_sayisi }}</div>
+                <div class="ek-muted">öğrenci</div>
+            </a>
+            {% empty %}
+            <p class="ek-muted">Deneme yok.</p>
+            {% endfor %}
+        </div>
+
         <div class="responsive-table">
             <table class="report-data-table deneme-arsiv-table">
                 <thead>
