@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Etüt Takip · {{ hoca.ad_soyad }}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek3">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek4">{% endblock %}
 {% block content %}
 <div class="ek-page">
   <header class="ek-head">
@@ -30,7 +30,7 @@
       <span class="ek-badge">Trend {{ gelisim.trend }}</span>
     </div>
     <p class="ek-muted" style="margin:.4rem 0 .8rem">Sınıf puan ortalaması{% if gelisim.sinif_ad %} · {{ gelisim.sinif_ad }}{% endif %}</p>
-    <div class="ek-chart"><canvas id="gelisimChart"></canvas></div>
+    <div class="ek-chart ek-chart-stage"><canvas id="gelisimChart"></canvas></div>
   </section>
 
   <section class="ek-card">
@@ -123,7 +123,7 @@ if (ctx && data.labels && data.labels.length) {
     data: {
       labels: data.labels,
       datasets: [
-        { label: 'Sınıf puan ort.', data: data.sinif, borderColor: '#15427f', backgroundColor: 'transparent', tension: 0, fill: false, borderWidth: 2, pointRadius: 4 }
+        { label: 'Sınıf puan ort.', data: data.sinif, borderColor: '#3778ff', backgroundColor: 'rgba(55,120,255,.18)', tension: .35, fill: true, borderWidth: 3, pointRadius: 6, pointBackgroundColor: '#e8f0ff', pointBorderColor: '#3778ff', pointBorderWidth: 2, pointHoverRadius: 8 }
       ]
     },
     options: {
@@ -133,7 +133,7 @@ if (ctx && data.labels && data.labels.length) {
         tooltip: { callbacks: { title: (items) => data.labels[items[0].dataIndex] || '' } }
       },
       scales: {
-        x: { ticks: { color: '#546173' }, grid: { display: false }, border: { display: true, color: '#15427f' } },
+        x: { ticks: { color: '#e8f0ff', font: { family: 'Poppins', size: 12, weight: '500' } }, grid: { display: false }, border: { display: true, color: 'rgba(55,120,255,.55)' } },
         y: { display: false, min: 0, max: 500, grid: { display: false }, border: { display: false } }
       }
     },
@@ -143,8 +143,8 @@ if (ctx && data.labels && data.labels.length) {
         const { ctx } = chart;
         const meta = chart.getDatasetMeta(0);
         ctx.save();
-        ctx.fillStyle = '#0f203c';
-        ctx.font = '600 13px Poppins, sans-serif';
+        ctx.fillStyle = '#e8f0ff';
+        ctx.font = '600 14px Poppins, sans-serif';
         ctx.textAlign = 'center';
         meta.data.forEach((pt, i) => {
           const v = data.sinif[i];

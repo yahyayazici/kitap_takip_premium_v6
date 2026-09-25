@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}{{ talebe.ad_soyad }} · Etüt{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek3">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek4">{% endblock %}
 {% block content %}
 <div class="ek-page">
   <header class="ek-head">
@@ -19,7 +19,7 @@
 
   <section class="ek-card">
     <h2>Deneme puanları <span class="ek-badge">{{ gelisim.trend }}</span></h2>
-    <div class="ek-chart"><canvas id="talebeChart"></canvas></div>
+    <div class="ek-chart ek-chart-stage"><canvas id="talebeChart"></canvas></div>
   </section>
 
   {% for k in kutular %}
@@ -79,13 +79,13 @@ if (ctx && data.labels && data.labels.length) {
     type: 'line',
     data: {
       labels: data.labels,
-      datasets: [{ label: 'Puan', data: data.puanlar, borderColor: '#15427f', backgroundColor: 'transparent', tension: 0, fill: false, borderWidth: 2, pointRadius: 4 }]
+      datasets: [{ label: 'Puan', data: data.puanlar, borderColor: '#3778ff', backgroundColor: 'rgba(55,120,255,.18)', tension: .35, fill: true, borderWidth: 3, pointRadius: 6, pointBackgroundColor: '#e8f0ff', pointBorderColor: '#3778ff', pointBorderWidth: 2 }]
     },
     options: {
       responsive: true, maintainAspectRatio: false, layout: { padding: { top: 28 } },
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color: '#546173' }, grid: { display: false }, border: { display: true, color: '#15427f' } },
+        x: { ticks: { color: '#e8f0ff', font: { family: 'Poppins', size: 12, weight: '500' } }, grid: { display: false }, border: { display: true, color: 'rgba(55,120,255,.55)' } },
         y: { display: false, min: 0, max: 500, grid: { display: false }, border: { display: false } }
       }
     }
