@@ -2101,6 +2101,7 @@ from takip.deneme_models import (  # noqa: E402,F401
     DenemeEslestirmeAlias,
     DenemeExcelYukleme,
     DenemeGapRaporu,
+    DenemeKazanimSonucu,
     DenemeKonuSonucu,
     DenemeSinavi,
     DenemeSonucu,

@@ -791,6 +791,11 @@ urlpatterns = [
         name="deneme_gap_yukle",
     ),
     path(
+        "denemeler/<int:pk>/kazanim-excel/",
+        deneme_yonetim_views.deneme_kazanim_yukle,
+        name="deneme_kazanim_yukle",
+    ),
+    path(
         "denemeler/<int:pk>/gap/<int:rapor_id>/eslestir/",
         deneme_yonetim_views.deneme_gap_eslestir,
         name="deneme_gap_eslestir",

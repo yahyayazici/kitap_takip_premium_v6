@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ talebe.ad_soyad }} · Etüt{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}">{% endblock %}
+{% block content %}
+<div class="ek-page">
+  <header class="ek-head">
+    <div>
+      <p class="ek-kicker">{{ hoca.ad_soyad }} · {% if talebe.sinif_sube %}{{ talebe.sinif_sube.sinif }}-{{ talebe.sinif_sube.sube }}{% endif %}</p>
+      <h1>{{ talebe.ad_soyad }}</h1>
+      <p class="ek-desc">Deneme puan grafiği; altta her denemenin kazanımları. Zayıflar (%70 altı) kırmızı ve üstte.</p>
+    </div>
+    <div class="ek-actions">
+      <a href="{% url 'etut_kontrol_talebeler' hoca.id %}" class="ghost-btn">← Talebeler</a>
+      <a href="?indir=excel" class="ghost-btn">Excel</a>
+      <a href="?indir=pdf" class="primary-btn">PDF</a>
+    </div>
+  </header>
+
+  <section class="ek-card">
+    <h2>Deneme puanları <span class="ek-badge">{{ gelisim.trend }}</span></h2>
+    <div class="ek-chart"><canvas id="talebeChart"></canvas></div>
+  </section>
+
+  {% for k in kutular %}
+  <section class="ek-card">
+    <div style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:.7rem;">
+      <div>
+        <h2 style="margin:0;">{{ k.deneme.ad }}</h2>
+        <div class="ek-muted">{{ k.deneme.sinav_tarihi|date:"d.m.Y" }} · {{ k.konu_sayisi }} konu</div>
+      </div>
+      <div style="text-align:right;">
+        <span class="ek-badge">{{ k.trend }}</span>
+        <div class="ek-stat">{% if k.ortalama %}{{ k.ortalama }}%{% else %}—{% endif %}</div>
+        {% if k.zayif_sayisi %}<div class="ek-danger" style="font-size:.82rem;">{{ k.zayif_sayisi }} zayıf</div>
+        {% else %}<div class="ek-ok" style="font-size:.82rem;">Zayıf yok</div>{% endif %}
+      </div>
+    </div>
+    {% if k.zayiflar %}
+    <div style="margin-bottom:.8rem;padding:.75rem;border:1px solid rgba(185,28,28,.2);border-radius:12px;background:rgba(185,28,28,.04);">
+      <div class="ek-kicker" style="color:#b91c1c;">Öncelikli zayıf kazanımlar</div>
+      {% for z in k.zayiflar %}
+      <div style="display:flex;justify-content:space-between;gap:.75rem;font-size:.9rem;padding:.2rem 0;">
+        <span>{{ z.konu }} <span class="ek-muted">({{ z.ders }})</span></span>
+        <strong class="ek-danger">{{ z.yuzde }}%</strong>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <details>
+      <summary style="cursor:pointer;color:#1d4ed8;font-size:.9rem;margin-bottom:.5rem;">Tüm kazanımlar</summary>
+      <table class="ek-table">
+        <thead><tr><th>Ders</th><th>Kazanım</th><th>Yüzde</th><th>Net</th></tr></thead>
+        <tbody>
+        {% for row in k.kazanimlar %}
+        <tr>
+          <td>{{ row.ders }}</td>
+          <td>{{ row.konu }}</td>
+          <td class="{% if row.zayif %}ek-danger{% else %}ek-ok{% endif %}">{% if row.yuzde is not None %}{{ row.yuzde }}%{% else %}—{% endif %}</td>
+          <td>{% if row.net_dogru is not None and row.net_toplam is not None %}{{ row.net_dogru }}/{{ row.net_toplam }}{% else %}—{% endif %}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </details>
+  </section>
+  {% empty %}
+  <div class="ek-card"><p class="ek-muted">Bu talebenin kazanım sonucu yok.</p></div>
+  {% endfor %}
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const data = {{ gelisim_json|safe }};
+const ctx = document.getElementById('talebeChart');
+if (ctx && data.labels && data.labels.length) {
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.labels.map((l, i) => (i + 1) + '.'),
+      datasets: [{ label: 'Deneme ort.', data: data.puanlar, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.12)', tension: .35, fill: true, borderWidth: 2.4, pointRadius: 3.5 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#334155' } }, tooltip: { callbacks: { title: (items) => data.labels[items[0].dataIndex] || '' } } },
+      scales: {
+        x: { ticks: { color: '#64748b' }, grid: { color: 'rgba(15,23,42,.05)' } },
+        y: { min: 40, max: 100, ticks: { color: '#64748b' }, grid: { color: 'rgba(15,23,42,.05)' } }
+      }
+    }
+  });
+}
+</script>
+{% endblock %}

@@ -52,6 +52,22 @@
     {% if deneme.durum == 'aktif' %}
     {% if yukleyebilir %}
     <section class="yonetim-card" style="margin-bottom:20px;">
+        <h2>KonuKazanimDetay Excel yükle</h2>
+        <p style="margin:0 0 12px;color:#64748b;font-size:13px;">
+            Deneme kutuğundan indirdiğiniz <strong>KonuKazanimDetay</strong> (.xlsx) dosyasını yükleyin.
+            Mevcut talebe isimleriyle eşleşir; Etüt Kontrol paneline grafik / dikkat / talebe kutuları akar.
+            {% if kazanim_satir %}Şu an {{ kazanim_satir }} satır · {{ kazanim_talebe }} talebe kayıtlı.{% endif %}
+        </p>
+        <form method="post" action="{% url 'yonetim:deneme_kazanim_yukle' deneme.pk %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="file" name="kazanim_excel" accept=".xlsx,.xlsm" class="input" required>
+            <button type="submit" class="primary-btn" style="margin-top:12px;">Kazanım Excel yükle</button>
+        </form>
+    </section>
+    {% endif %}
+
+    {% if yukleyebilir %}
+    <section class="yonetim-card" style="margin-bottom:20px;">
         <h2>Gap / konu raporu yükle</h2>
         <p style="margin:0 0 12px;color:#64748b;font-size:13px;">
             Öğrenci Gap PDF’lerini (çoklu seçim) yükleyin. Yapay zekâ / eşleştirme adı okur;

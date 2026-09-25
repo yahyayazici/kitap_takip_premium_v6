@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ deneme.ad }} · Etüt Kontrol{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}">{% endblock %}
+{% block content %}
+<div class="ek-page">
+  <header class="ek-head">
+    <div>
+      <p class="ek-kicker">{{ hoca.ad_soyad }} · {{ deneme.sinav_tarihi|date:"d.m.Y" }}</p>
+      <h1>{{ deneme.ad }}</h1>
+      <p class="ek-desc">
+        Etüt ort. {% if etut_ortalama %}{{ etut_ortalama }}%{% else %}—{% endif %}
+        · Sınıf ort. {% if sinif_ortalama %}{{ sinif_ortalama }}%{% else %}—{% endif %}
+        {% if sinif_ad %} ({{ sinif_ad }}){% endif %}
+      </p>
+    </div>
+    <div class="ek-actions">
+      <a href="{% url 'etut_kontrol' hoca.id %}" class="ghost-btn">← Etüt Kontrol</a>
+      <a href="?sekme={{ sekme }}&indir=excel" class="ghost-btn">Excel</a>
+      <a href="?sekme={{ sekme }}&indir=pdf" class="primary-btn">PDF</a>
+    </div>
+  </header>
+
+  <div class="ek-actions" style="margin-bottom:1rem;">
+    <a href="?sekme=siralama" class="{% if sekme == 'siralama' %}primary-btn{% else %}ghost-btn{% endif %}">Genel sıralama</a>
+    <a href="?sekme=kazanim" class="{% if sekme == 'kazanim' %}primary-btn{% else %}ghost-btn{% endif %}">Detaylı kazanım</a>
+  </div>
+
+  <section class="ek-card">
+    {% if sekme == 'siralama' %}
+    <h2>Genel sıralama</h2>
+    {% if siralama %}
+    <table class="ek-table">
+      <thead><tr><th>#</th><th>Talebe</th><th>Sınıf</th><th>Ortalama</th><th>Konu</th></tr></thead>
+      <tbody>
+      {% for row in siralama %}
+      <tr>
+        <td>{{ row.sira }}</td>
+        <td><a href="{% url 'etut_kontrol_talebe' hoca.id row.talebe_id %}">{{ row.ad_soyad }}</a></td>
+        <td><span class="ek-badge">{{ row.sinif }}</span></td>
+        <td><strong>{% if row.ortalama %}{{ row.ortalama }}%{% else %}—{% endif %}</strong></td>
+        <td>{{ row.konu_sayisi }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}<p class="ek-muted">Bu denemede etüt kazanım sonucu yok.</p>{% endif %}
+    {% else %}
+    <h2>Detaylı kazanım listesi</h2>
+    <p class="ek-muted" style="margin-bottom:.8rem;">%70 altı kırmızı — etüt ortalaması.</p>
+    {% if kazanimlar %}
+    <table class="ek-table">
+      <thead><tr><th>Ders</th><th>Kazanım</th><th>Etüt ort.</th><th>Katılan</th></tr></thead>
+      <tbody>
+      {% for row in kazanimlar %}
+      <tr>
+        <td>{{ row.ders }}</td>
+        <td>{{ row.konu }}</td>
+        <td class="{% if row.zayif %}ek-danger{% else %}ek-ok{% endif %}"><strong>{% if row.ortalama %}{{ row.ortalama }}%{% else %}—{% endif %}</strong></td>
+        <td>{{ row.talebe_sayisi }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}<p class="ek-muted">Kazanım verisi yok.</p>{% endif %}
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

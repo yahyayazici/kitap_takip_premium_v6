@@ -14,6 +14,7 @@ from . import disiplin_views
 from . import disiplin_kurul_views
 from . import gunluk_takip_views
 from . import deneme_views
+from . import etut_kontrol_views
 from . import yazili_takip_views
 from . import personel_vazife_views
 from . import cuma_durum_views
@@ -391,6 +392,24 @@ urlpatterns = [
     path("denemeler/<int:pk>/excel/", deneme_views.deneme_excel_indir, name="deneme_excel_indir"),
     path("denemeler/<int:pk>/pdf/", deneme_views.deneme_detay_pdf, name="deneme_detay_pdf"),
     path("denemeler/<int:pk>/detayli-pdf/", deneme_views.deneme_detayli_pdf, name="deneme_detayli_pdf"),
+
+    path("etut-kontrol/", etut_kontrol_views.etut_kontrol_panel, name="etut_kontrol_panel"),
+    path("etut-kontrol/<int:hoca_id>/", etut_kontrol_views.etut_kontrol, name="etut_kontrol"),
+    path(
+        "etut-kontrol/<int:hoca_id>/deneme/<int:deneme_id>/",
+        etut_kontrol_views.etut_kontrol_deneme,
+        name="etut_kontrol_deneme",
+    ),
+    path(
+        "etut-kontrol/<int:hoca_id>/talebeler/",
+        etut_kontrol_views.etut_kontrol_talebeler,
+        name="etut_kontrol_talebeler",
+    ),
+    path(
+        "etut-kontrol/<int:hoca_id>/talebe/<int:talebe_id>/",
+        etut_kontrol_views.etut_kontrol_talebe,
+        name="etut_kontrol_talebe",
+    ),
 
     path("yazili-takip/", yazili_takip_views.yazili_kamp_listesi, name="yazili_kamp_listesi"),
     path(

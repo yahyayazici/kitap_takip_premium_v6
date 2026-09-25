@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Etüt Kontrol · {{ hoca.ad_soyad }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}">{% endblock %}
+{% block content %}
+<div class="ek-page">
+  <header class="ek-head">
+    <div>
+      <p class="ek-kicker">Etüt Kontrol · {{ talebe_sayisi }} talebe</p>
+      <h1>{{ hoca.ad_soyad }}</h1>
+      <p class="ek-desc">Gelişim grafiği, dikkat listesi ve deneme kutuları. Kazanım Excel’i yönetimden yüklenince burada görünür.</p>
+    </div>
+    <div class="ek-actions">
+      {% if hocalar|length > 1 %}
+      <form method="get" action="{% url 'etut_kontrol_panel' %}">
+        <select name="hoca" onchange="this.form.submit()" class="input">
+          {% for e in hocalar %}
+          <option value="{{ e.id }}" {% if e.id == hoca.id %}selected{% endif %}>{{ e.ad_soyad }}</option>
+          {% endfor %}
+        </select>
+      </form>
+      {% endif %}
+      <a href="{% url 'etut_kontrol_talebeler' hoca.id %}" class="primary-btn">Talebelerim</a>
+    </div>
+  </header>
+
+  <section class="ek-card">
+    <div style="display:flex;justify-content:space-between;gap:.75rem;align-items:baseline;flex-wrap:wrap;">
+      <h2 style="margin:0">Gelişim</h2>
+      <span class="ek-badge">Trend {{ gelisim.trend }}</span>
+    </div>
+    <p class="ek-muted" style="margin:.4rem 0 .8rem">Mavi: etüt ort. · Gri: sınıf ort.{% if gelisim.sinif_ad %} ({{ gelisim.sinif_ad }}){% endif %}</p>
+    <div class="ek-chart"><canvas id="gelisimChart"></canvas></div>
+  </section>
+
+  <section class="ek-card">
+    <h2>Dikkat {% if dikkat.deneme %}<span class="ek-badge">{{ dikkat.deneme.ad }}</span>{% endif %}</h2>
+    <div class="ek-split">
+      <div>
+        <p class="ek-kicker">Zayıf / geride konular</p>
+        {% if dikkat.zayif_konular %}
+        <table class="ek-table">
+          <thead><tr><th>Konu</th><th>Etüt</th><th>Sınıf</th></tr></thead>
+          <tbody>
+          {% for row in dikkat.zayif_konular %}
+          <tr>
+            <td>{{ row.konu }}<div class="ek-muted">{{ row.ders }}</div></td>
+            <td class="ek-danger">{{ row.ortalama }}%</td>
+            <td>{% if row.sinif_ortalama %}{{ row.sinif_ortalama }}%{% else %}—{% endif %}</td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="ek-muted">Kritik zayıf konu yok veya henüz kazanım Excel’i yok.</p>
+        {% endif %}
+      </div>
+      <div>
+        <p class="ek-kicker">Düşüşteki talebeler</p>
+        {% if dikkat.dusen_talebeler %}
+        <table class="ek-table">
+          <thead><tr><th>Talebe</th><th>Önceki</th><th>Son</th><th>Fark</th></tr></thead>
+          <tbody>
+          {% for row in dikkat.dusen_talebeler %}
+          <tr>
+            <td>{{ row.talebe.ad_soyad }}</td>
+            <td>{{ row.eski }}%</td>
+            <td>{{ row.yeni }}%</td>
+            <td class="ek-danger">{{ row.delta }}</td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="ek-muted">Belirgin düşüş yok.</p>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.7rem;">
+      <h2 style="margin:0;font-size:1.1rem;">Denemelerim</h2>
+      <span class="ek-muted">{{ kutular|length }} deneme</span>
+    </div>
+    {% if kutular %}
+    <div class="ek-grid">
+      {% for k in kutular %}
+      <a class="ek-box" href="{% url 'etut_kontrol_deneme' hoca.id k.deneme.id %}">
+        <div style="display:flex;justify-content:space-between;gap:.5rem;">
+          <span class="ek-badge">{{ k.deneme.sinav_tarihi|date:"d.m.Y" }}</span>
+          <span class="ek-badge">{{ k.trend }}</span>
+        </div>
+        <strong>{{ k.deneme.ad }}</strong>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">
+          <div><div class="ek-muted">Etüt ort.</div><div class="ek-stat">{% if k.etut_ortalama %}{{ k.etut_ortalama }}%{% else %}—{% endif %}</div></div>
+          <div><div class="ek-muted">Sınıf ort.</div><div class="ek-stat">{% if k.sinif_ortalama %}{{ k.sinif_ortalama }}%{% else %}—{% endif %}</div></div>
+        </div>
+        {% if k.zayif_konu %}<div class="ek-danger" style="margin-top:.7rem;font-size:.82rem;">{{ k.zayif_konu }} zayıf konu</div>
+        {% else %}<div class="ek-ok" style="margin-top:.7rem;font-size:.82rem;">Zayıf konu yok</div>{% endif %}
+        <div class="ek-muted" style="margin-top:.55rem;font-size:.8rem;">Sıralama · Kazanımlar →</div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="ek-card"><p class="ek-muted">Henüz kazanım Excel’i yok. Yönetim → Deneme detayından KonuKazanimDetay yükleyin.</p></div>
+    {% endif %}
+  </section>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const data = {{ gelisim_json|safe }};
+const ctx = document.getElementById('gelisimChart');
+if (ctx && data.labels && data.labels.length) {
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.labels.map((l, i) => (i + 1) + '.'),
+      datasets: [
+        { label: 'Etüt ort.', data: data.etut, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.12)', tension: .35, fill: true, borderWidth: 2.4, pointRadius: 3.5 },
+        { label: data.sinif_ad ? ('Sınıf ort. (' + data.sinif_ad + ')') : 'Sınıf ort.', data: data.sinif, borderColor: '#94a3b8', backgroundColor: 'transparent', tension: .35, borderWidth: 2, borderDash: [5,5], pointRadius: 3 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#334155' } }, tooltip: { callbacks: { title: (items) => data.labels[items[0].dataIndex] || '' } } },
+      scales: {
+        x: { ticks: { color: '#64748b' }, grid: { color: 'rgba(15,23,42,.05)' } },
+        y: { min: 40, max: 100, ticks: { color: '#64748b' }, grid: { color: 'rgba(15,23,42,.05)' } }
+      }
+    }
+  });
+}
+</script>
+{% endblock %}
