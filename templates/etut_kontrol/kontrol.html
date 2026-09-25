@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Etüt Takip · {{ hoca.ad_soyad }}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek13">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek14">{% endblock %}
 {% block content %}
 <div class="ek-page">
   <header class="ek-head">
@@ -25,6 +25,10 @@
   </header>
 
   <section class="ek-hero">
+    <div class="ek-hero-bar">
+      <h2>Sınıf puan ortalaması{% if gelisim.sinif_ad %} <span class="ek-class">{{ gelisim.sinif_ad }}</span>{% endif %}</h2>
+      <span class="ek-trend">{% if gelisim.trend == "↓" %}Düşüşte{% elif gelisim.trend == "→" %}Yatay{% else %}Yükselişte{% endif %}</span>
+    </div>
     <div class="ek-hero-top">
       <div>
         <p class="ek-hero-kicker">Son deneme{% if kutular %}, {{ kutular.0.deneme.sinav_tarihi|date:"j F Y" }}{% endif %}</p>
@@ -40,15 +44,13 @@
   </section>
 
   <section class="ek-card ek-watch">
-    <div class="ek-stage-top">
-      <div>
-        <p class="ek-kicker">Dikkat</p>
-        <h2>{% if dikkat.deneme %}{{ dikkat.deneme.ad }}{% else %}Takip listesi{% endif %}</h2>
-      </div>
+    <div class="ek-watch-head">
+      <h2>Dikkat{% if dikkat.deneme %}: {% if dikkat.deneme.sira_no %}{{ dikkat.deneme.sira_no }}. Deneme{% else %}{{ dikkat.deneme.ad }}{% endif %}{% endif %}</h2>
+      {% if dikkat.deneme %}<span>{{ dikkat.deneme.sinav_tarihi|date:"j F Y" }}</span>{% endif %}
     </div>
     <div class="ek-split">
       <div class="ek-watch-pane">
-        <p class="ek-kicker">Zayıf / geride konular</p>
+        <div class="ek-watch-label"><span>Zayıf ve geride konular</span><b>{{ dikkat.zayif_konular|length }}</b></div>
         {% if dikkat.zayif_konular %}
         <div class="ek-table-wrap">
         <table class="ek-table">
@@ -65,11 +67,11 @@
         </table>
         </div>
         {% else %}
-        <p class="ek-muted">Kritik zayıf konu yok veya henüz kazanım Excel’i yok.</p>
+        <p class="ek-ok-line">Kritik zayıf konu yok veya henüz kazanım Excel’i yok.</p>
         {% endif %}
       </div>
       <div class="ek-watch-pane">
-        <p class="ek-kicker">Düşüşteki talebeler</p>
+        <div class="ek-watch-label"><span>Düşüşteki talebeler</span><b>{{ dikkat.dusen_talebeler|length }}</b></div>
         {% if dikkat.dusen_talebeler %}
         <div class="ek-table-wrap">
         <table class="ek-table">
@@ -87,7 +89,7 @@
         </table>
         </div>
         {% else %}
-        <p class="ek-muted">Belirgin düşüş yok.</p>
+        <p class="ek-ok-line">Belirgin düşüş yok.</p>
         {% endif %}
       </div>
     </div>
@@ -95,7 +97,7 @@
 
   <section class="ek-exams">
     <div class="ek-exams-head">
-      <h2>Tüm denemeler <span>{{ kutular|length }} deneme</span></h2>
+      <h2>Denemelerim <span>{{ kutular|length }} deneme</span></h2>
       {% if kutular %}
       <label class="ek-sort">Sırala
         <select id="ekSort">
@@ -108,12 +110,15 @@
     {% if kutular %}
     <div class="ek-exam-grid" id="ekExamGrid">
       {% for k in kutular %}
-      <a class="ek-exam{% if forloop.first %} is-last{% endif %}" href="{% url 'etut_kontrol_deneme' hoca.id k.deneme.id %}" data-time="{{ k.deneme.sinav_tarihi|date:'Ymd' }}" data-puan="{% if k.sinif_ortalama %}{{ k.sinif_ortalama|floatformat:0 }}{% endif %}">
+      <a class="ek-exam{% if forloop.first %} is-last{% endif %}" href="{% url 'etut_kontrol_deneme' hoca.id k.deneme.id %}" data-time="{{ k.deneme.sinav_tarihi|date:'Ymd' }}" data-puan="{% if k.sinif_ortalama %}{{ k.sinif_ortalama|floatformat:1 }}{% endif %}">
         <div class="ek-exam-top">
-          <strong>{% if k.deneme.sira_no %}{{ k.deneme.sira_no }}. Deneme{% else %}{{ k.deneme.ad }}{% endif %}</strong>
-          {% if forloop.first %}<span class="ek-pill">Son deneme</span>{% else %}<span>{{ k.deneme.sinav_tarihi|date:"j M Y" }}</span>{% endif %}
+          <div>
+            <strong>{% if k.deneme.sira_no %}{{ k.deneme.sira_no }}. Deneme{% else %}{{ k.deneme.ad }}{% endif %}</strong>
+            {% if forloop.first %}<span class="ek-pill">Son deneme</span><em>{{ k.deneme.sinav_tarihi|date:"j F Y" }}</em>{% endif %}
+          </div>
+          {% if not forloop.first %}<span>{{ k.deneme.sinav_tarihi|date:"j M Y" }}</span>{% endif %}
         </div>
-        <p class="ek-exam-score"><b>{% if k.sinif_ortalama %}{{ k.sinif_ortalama|floatformat:0 }}{% else %}—{% endif %}</b><small>sınıf / 500</small></p>
+        <p class="ek-exam-score"><b>{% if k.sinif_ortalama %}{{ k.sinif_ortalama|floatformat:1 }}{% else %}—{% endif %}</b><small>sınıf ort. / 500</small></p>
         <div class="ek-meter"><i style="width:{% if k.sinif_ortalama %}{% widthratio k.sinif_ortalama 500 100 %}{% else %}0{% endif %}%"></i></div>
         <div class="ek-exam-meta">
           <span class="ek-delta"></span>
@@ -143,18 +148,21 @@ csNavyLine(document.getElementById('gelisimChart'), data.sinif || []);
     const last = vals[vals.length - 1];
     const first = vals[0];
     const fark = Math.round(last - first);
-    document.getElementById("ekSon").textContent = txt(last);
+    document.getElementById("ekSon").textContent = txt(last, true);
     document.getElementById("ekFark").textContent = (fark > 0 ? "+" : "") + fark;
     document.getElementById("ekOrt").textContent = txt(vals.reduce(function (a, b) { return a + b; }, 0) / vals.length, true);
-    document.getElementById("ekMax").textContent = txt(Math.max.apply(null, vals));
+    document.getElementById("ekMax").textContent = txt(Math.max.apply(null, vals), true);
   }
+  document.querySelectorAll(".ek-exam-score b").forEach(function (el) {
+    el.textContent = el.textContent.replace(".", ",");
+  });
   const cards = Array.prototype.slice.call(document.querySelectorAll(".ek-exam"));
   const chrono = cards.slice().sort(function (a, b) { return a.dataset.time < b.dataset.time ? -1 : 1; });
   chrono.forEach(function (card, i) {
     const el = card.querySelector(".ek-delta");
     const prev = chrono[i - 1];
     if (!el || !prev || !card.dataset.puan || !prev.dataset.puan) return;
-    const d = Number(card.dataset.puan) - Number(prev.dataset.puan);
+    const d = Math.round(Number(card.dataset.puan) - Number(prev.dataset.puan));
     el.textContent = (d > 0 ? "+" : "") + d + " puan";
     if (d < 0) el.classList.add("is-down");
   });

@@ -81,25 +81,23 @@
   mask-composite: exclude;
   pointer-events: none;
 }
-.ek-watch { border: 0; box-shadow: 0 16px 36px rgba(21, 66, 127, .06); }
+.ek-watch { border: 1px solid var(--cs-border); box-shadow: 0 8px 20px rgba(15, 32, 60, .04); }
+.ek-watch-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--cs-space-3); margin-bottom: var(--cs-space-4); }
+.ek-watch-head h2 { font-size: 1.15rem; }
+.ek-watch-head span { font-size: var(--cs-font-secondary); color: var(--cs-text-muted); }
 .ek-watch-pane {
   position: relative;
   padding: var(--cs-space-4);
   border-radius: 16px;
   background: var(--cs-surface);
-  box-shadow: inset 0 0 0 1px rgba(47, 111, 243, .12);
+  border: 1px solid var(--cs-border);
+  box-shadow: none;
 }
-.ek-watch-pane::before {
-  content: "";
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  top: 0;
-  height: 2px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, transparent, #3ee0ff 18%, #2f6ff3 48%, #1ed4a8 78%, transparent);
-  box-shadow: 0 0 8px rgba(62, 224, 255, .9);
-}
+.ek-watch-pane::before { content: none; }
+.ek-watch-label { display: flex; justify-content: space-between; align-items: center; gap: var(--cs-space-2); margin-bottom: var(--cs-space-3); font-size: var(--cs-font-secondary); font-weight: 600; }
+.ek-watch-label b { font-weight: 600; color: var(--cs-text-secondary); }
+.ek-ok-line { margin: 0; display: flex; align-items: center; gap: 8px; color: var(--cs-text-secondary); font-size: var(--cs-font-secondary); }
+.ek-ok-line::before { content: ""; width: 16px; height: 16px; flex: none; border-radius: 50%; background: var(--cs-success-bg); box-shadow: inset 0 0 0 5px var(--cs-success); }
 .ek-watch .ek-table th { letter-spacing: .16em; font-weight: 600; }
 .ek-watch .ek-table td { font-weight: 500; letter-spacing: -0.01em; }
 .ek-watch .ek-danger, .ek-watch .ek-ok { font-variant-numeric: tabular-nums; font-weight: 600; letter-spacing: -0.02em; }
@@ -137,6 +135,11 @@
   padding: var(--cs-space-6) var(--cs-space-6) var(--cs-space-4);
   margin-bottom: var(--cs-space-6);
 }
+.ek-hero-bar { display: flex; justify-content: space-between; align-items: center; gap: var(--cs-space-3); margin-bottom: var(--cs-space-4); }
+.ek-hero-bar h2 { margin: 0; font-size: 1.05rem; font-weight: 600; letter-spacing: -0.02em; color: #fff; }
+.ek-class { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: var(--cs-radius-pill); background: #fff; color: var(--cs-primary); font-size: 12px; font-weight: 600; vertical-align: middle; }
+.ek-trend { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border: 1px solid rgba(240, 244, 252, .35); border-radius: var(--cs-radius-pill); font-size: 12px; color: #fff; }
+.ek-trend::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #e0c27a; }
 .ek-hero-top { display: flex; justify-content: space-between; gap: var(--cs-space-6); align-items: center; flex-wrap: wrap; }
 .ek-hero-kicker { margin: 0 0 var(--cs-space-2); font-size: var(--cs-font-secondary); color: rgba(240, 244, 252, .72); }
 .ek-hero-score { margin: 0; display: flex; align-items: baseline; gap: var(--cs-space-2); }
@@ -165,9 +168,12 @@
   color: var(--cs-text-primary);
   box-shadow: 0 8px 20px rgba(15, 32, 60, .04);
 }
-.ek-exam.is-last { border-color: #c4a574; box-shadow: 0 0 0 1px #c4a574; }
-.ek-exam-top { display: flex; justify-content: space-between; align-items: center; gap: var(--cs-space-2); }
+.ek-exam.is-last { border-color: var(--cs-border); box-shadow: 0 8px 20px rgba(15, 32, 60, .04); }
+.ek-exam.is-last::before { content: ""; position: absolute; left: 14px; right: 14px; top: 0; height: 2px; border-radius: 2px; background: #c4a574; }
+.ek-exam { position: relative; }
+.ek-exam-top { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--cs-space-2); }
 .ek-exam-top strong { font-size: var(--cs-font-body); font-weight: 650; }
+.ek-exam-top em { display: block; margin-top: 4px; font-style: normal; font-size: var(--cs-font-caption); color: var(--cs-text-muted); font-weight: 500; }
 .ek-exam-top span { font-size: var(--cs-font-caption); color: var(--cs-text-muted); }
 .ek-pill { background: #f4ead6; color: #8a6a32; border-radius: var(--cs-radius-pill); padding: 2px 8px; font-weight: 600; }
 .ek-exam-score { margin: 0; display: flex; align-items: baseline; gap: var(--cs-space-2); }
