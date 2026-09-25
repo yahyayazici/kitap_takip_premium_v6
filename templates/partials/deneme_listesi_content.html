@@ -82,16 +82,14 @@
                 <input class="input" type="date" id="bitis" name="bitis" value="{{ filtre.bitis }}">
             </div>
             <div class="ek-arsiv-form-foot">
-                <span>{{ arsiv_ozet.sayi }} deneme</span>
-                <div>
-                    <a href="{% url 'deneme_listesi' %}" class="ghost-btn">Temizle</a>
-                    <button type="submit" class="primary-btn">Filtrele</button>
-                </div>
+                <a href="{% url 'deneme_listesi' %}" class="ghost-btn">Temizle</a>
+                <button type="submit" class="primary-btn">Filtrele</button>
             </div>
         </form>
 
         {% if denemeler %}
         <div class="ek-arsiv-tools">
+            <span>{{ arsiv_ozet.sayi }} deneme</span>
             <label class="ek-sort">Sırala
                 <select id="ekArsivSort">
                     <option value="new">Yeniden eskiye</option>
