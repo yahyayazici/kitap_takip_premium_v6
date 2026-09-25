@@ -2,20 +2,42 @@
 <title hx-swap-oob="true">Denemeler</title>
 {% endif %}
 {% if request.htmx %}<div id="main-content" class="page-content">{% endif %}
-<div class="deneme-page" data-page-title="Denemeler">
-    <header class="page-head patterned-page-head deneme-page-head deneme-hero">
-        <div class="deneme-head-main">
-            <p class="kicker">DENEME SONUÇLARI</p>
-            <h1>Deneme Arşivi</h1>
-            <p class="deneme-head-desc">Kurum geneli deneme sınav sonuçları.</p>
-        </div>
+<div class="deneme-page ek-arsiv" data-page-title="Denemeler">
+    <header class="ek-arsiv-head">
+        <p class="ek-kicker-soft"><i></i>Deneme sonuçları</p>
+        <h1>Deneme Arşivi</h1>
+        <p class="ek-desc">Kurum geneli deneme sınav sonuçları.</p>
     </header>
 
-    <section class="library-panel deneme-list-panel">
-        <h2>Mevcut Denemeler</h2>
-        <p class="deneme-list-hint">Kutuya girince sıralama, kazanım ve talebe puanı açılır.</p>
+    <section class="ek-arsiv-band">
+        <div class="ek-arsiv-stats">
+            <div>
+                <span>Deneme</span>
+                <b>{{ arsiv_ozet.sayi }}</b>
+            </div>
+            <div>
+                <span>Toplam katılım</span>
+                <b>{{ arsiv_ozet.katilim }} <small>öğrenci</small></b>
+            </div>
+            <div>
+                <span>Son deneme ortalaması</span>
+                <b>{% if arsiv_ozet.son and arsiv_ozet.son.puan_ort %}{{ arsiv_ozet.son.puan_ort|floatformat:0 }}{% else %}—{% endif %} <small>/500</small></b>
+            </div>
+            <div>
+                <span>Yayın</span>
+                <b>{{ arsiv_ozet.yayin_sayisi }}</b>
+            </div>
+        </div>
+        {% if arsiv_ozet.son %}
+        <p class="ek-arsiv-son">Son deneme: {% if arsiv_ozet.son.sira_no %}{{ arsiv_ozet.son.sira_no }}. Deneme{% else %}{{ arsiv_ozet.son.ad }}{% endif %}, {{ arsiv_ozet.son.sinav_tarihi|date:"j F Y" }}</p>
+        {% endif %}
+    </section>
 
-        <form method="get" style="display:flex;flex-wrap:wrap;gap:0.75rem;margin:0 0 1rem;align-items:end;">
+    <section class="ek-arsiv-list">
+        <h2>Mevcut Denemeler</h2>
+        <p class="ek-arsiv-hint">Kutuya girince sıralama, kazanım ve talebe puanı açılır.</p>
+
+        <form method="get" class="ek-arsiv-form">
             <div>
                 <label for="egitim_yili">Eğitim yılı</label>
                 <select class="input" id="egitim_yili" name="egitim_yili">
@@ -27,7 +49,7 @@
             </div>
             <div>
                 <label for="sinif_seviyesi">Sınıf seviyesi</label>
-                <input class="input" type="text" id="sinif_seviyesi" name="sinif_seviyesi" value="{{ filtre.sinif_seviyesi }}" placeholder="Örn. 8" style="width:6rem;">
+                <input class="input" type="text" id="sinif_seviyesi" name="sinif_seviyesi" value="{{ filtre.sinif_seviyesi }}" placeholder="Örn. 8">
             </div>
             <div>
                 <label for="sinif_sube">Sınıf</label>
@@ -59,32 +81,65 @@
                 <label for="bitis">Bitiş</label>
                 <input class="input" type="date" id="bitis" name="bitis" value="{{ filtre.bitis }}">
             </div>
-            <button type="submit" class="primary-btn">Filtrele</button>
-            <a href="{% url 'deneme_listesi' %}" class="ghost-btn">Temizle</a>
+            <div class="ek-arsiv-form-foot">
+                <span>{{ arsiv_ozet.sayi }} deneme</span>
+                <div>
+                    <a href="{% url 'deneme_listesi' %}" class="ghost-btn">Temizle</a>
+                    <button type="submit" class="primary-btn">Filtrele</button>
+                </div>
+            </div>
         </form>
 
-        <div class="ek-grid" style="margin-bottom:1.25rem;">
+        {% if denemeler %}
+        <div class="ek-arsiv-tools">
+            <label class="ek-sort">Sırala
+                <select id="ekArsivSort">
+                    <option value="new">Yeniden eskiye</option>
+                    <option value="old">Eskiden yeniye</option>
+                </select>
+            </label>
+        </div>
+        <div class="ek-exam-grid" id="ekArsivGrid">
             {% for d in denemeler %}
-            <a class="ek-score" href="{% url 'deneme_detay' d.pk %}">
-                <div class="ek-score-rail">
-                    <span>{% if d.sira_no %}{{ d.sira_no }}. deneme{% else %}Deneme{% endif %}</span>
-                    <b>{% if d.puan_ort %}{{ d.puan_ort|floatformat:0 }}{% else %}—{% endif %}</b>
-                    <small>ort. / 500</small>
+            <a class="ek-exam ek-arsiv-card{% if forloop.first %} is-last{% endif %}" href="{% url 'deneme_detay' d.pk %}" data-time="{{ d.sinav_tarihi|date:'Ymd' }}">
+                <div class="ek-exam-top">
+                    <strong>{% if d.sira_no %}{{ d.sira_no }}. Deneme{% else %}{{ d.ad }}{% endif %}</strong>
+                    <span>{{ d.sinav_tarihi|date:"j M Y" }}</span>
                 </div>
-                <div class="ek-score-body">
-                    <strong>{{ d.ad }}</strong>
-                    <div class="ek-muted">{{ d.sinav_tarihi|date:"d.m.Y" }} · {{ d.sinif_seviyesi }}. sınıf{% if d.yayin %} · {{ d.yayin }}{% endif %}</div>
-                    <div class="ek-meter"><i style="width:{% if d.puan_ort %}{% widthratio d.puan_ort 500 100 %}{% else %}0{% endif %}%"></i></div>
-                    <div class="ek-score-foot">
-                        <span>{{ d.sonuc_sayisi }} öğrenci</span>
-                        <span>{{ d.get_tur_display }}</span>
-                    </div>
+                <div class="ek-arsiv-pills">
+                    {% if d.sinif_seviyesi %}<span class="ek-pill">{{ d.sinif_seviyesi }}. sınıf</span>{% endif %}
+                    {% if d.yayin %}<span class="ek-pill is-mute">{{ d.yayin }}</span>{% endif %}
+                </div>
+                <p class="ek-exam-score"><b>{% if d.puan_ort %}{{ d.puan_ort|floatformat:0 }}{% else %}—{% endif %}</b><small>ort. / 500</small></p>
+                <div class="ek-meter"><i style="width:{% if d.puan_ort %}{% widthratio d.puan_ort 500 100 %}{% else %}0{% endif %}%"></i></div>
+                <div class="ek-exam-meta">
+                    <span>{{ d.sonuc_sayisi }} öğrenci</span>
+                    <span>{{ d.get_tur_display }}</span>
                 </div>
             </a>
-            {% empty %}
-            <p class="ek-muted">Deneme yok.</p>
             {% endfor %}
         </div>
+        {% else %}
+        <p class="ek-muted">Deneme yok.</p>
+        {% endif %}
     </section>
 </div>
+{% if denemeler %}
+<script>
+(function () {
+  var sort = document.getElementById("ekArsivSort");
+  var grid = document.getElementById("ekArsivGrid");
+  if (!sort || !grid) return;
+  sort.addEventListener("change", function () {
+    var items = Array.prototype.slice.call(grid.children);
+    items.sort(function (a, b) {
+      return sort.value === "old"
+        ? (a.dataset.time < b.dataset.time ? -1 : 1)
+        : (a.dataset.time > b.dataset.time ? -1 : 1);
+    });
+    items.forEach(function (el) { grid.appendChild(el); });
+  });
+})();
+</script>
+{% endif %}
 {% if request.htmx %}</div>{% endif %}

@@ -53,9 +53,16 @@ def deneme_listesi(request):
         durum="aktif",
     )
     denemeler, filtre = deneme_arsiv_filtrele(denemeler, request.GET)
-    denemeler = denemeler.annotate(puan_ort=Avg("sonuclar__puan"))
+    denemeler = list(denemeler.annotate(puan_ort=Avg("sonuclar__puan")))
+    yayinlar = {(d.yayin or "").strip() for d in denemeler if (d.yayin or "").strip()}
     context = {
         "denemeler": denemeler,
+        "arsiv_ozet": {
+            "sayi": len(denemeler),
+            "katilim": sum(d.sonuc_sayisi or 0 for d in denemeler),
+            "yayin_sayisi": len(yayinlar),
+            "son": denemeler[0] if denemeler else None,
+        },
         "sil_yetkisi": deneme_silebilir(request.user),
         "filtre": filtre,
         **deneme_arsiv_filtre_secenekleri(),
