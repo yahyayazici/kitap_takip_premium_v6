@@ -26,6 +26,9 @@
             <p class="pv4-eyebrow">{{ panel_short }}</p>
             <h1><span class="pv4-script">Hoş geldiniz,</span> <strong>{{ hero_name }}</strong></h1>
             <p>{{ panel_rol }} · Kurum yönetim paneli</p>
+            {% if yonetim_modulu and not karsilama_sozu %}
+            <a class="pv4-quote-edit is-empty" href="{% url 'yonetim:karsilama_sozu' %}">Söz ekle</a>
+            {% endif %}
         </div>
         {% if karsilama_sozu %}
         <blockquote class="pv4-quote">
