@@ -869,15 +869,38 @@ body.v3-body .v3-logout:hover {
 @media (max-width: 900px) {
     .pv4-hero:has(.pv4-quote) {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: stretch;
+        gap: 12px;
+        padding: 16px;
+    }
+
+    /* Yatay flex-basis (280/240) sütunda yükseklik oluyor; kartı şişirmesin. */
+    .pv4-hero-copy,
+    .pv4-quote {
+        flex: 0 1 auto;
     }
 
     .pv4-quote {
         border-left: 0;
         padding-left: 0;
-        padding-top: 12px;
+        padding-top: 10px;
         border-top: 1px solid rgba(224, 194, 122, .45);
         width: 100%;
+    }
+}
+
+@media (max-width: 640px) {
+    .pv4-hero {
+        padding: 14px 16px;
+    }
+
+    .pv4-hero h1 {
+        font-size: 20px !important;
+    }
+
+    .pv4-quote p {
+        font-size: 1rem !important;
+        line-height: 1.3 !important;
     }
 }
 
