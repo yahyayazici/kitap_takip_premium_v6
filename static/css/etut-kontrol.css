@@ -304,7 +304,7 @@
   gap: var(--cs-space-5);
   position: relative;
   overflow: hidden;
-  background: linear-gradient(115deg, var(--cs-navy-deep) 0%, var(--cs-primary-dark) 55%, var(--cs-primary) 140%);
+  background: linear-gradient(108deg, var(--cs-primary) 0%, var(--cs-primary-mid) 52%, var(--cs-primary-light) 100%);
   color: #fff;
   border-radius: 22px;
   padding: var(--cs-space-5) var(--cs-space-6);
@@ -315,6 +315,31 @@
   left: 22px; right: 22px; top: 0; height: 1px;
   background: linear-gradient(90deg, transparent, rgba(255,255,255,.85) 20%, #e0c27a 50%, rgba(255,255,255,.7) 80%, transparent);
   pointer-events: none;
+}
+.ek-arsiv-hero > * { position: relative; z-index: 1; }
+.ek-arsiv-hero-glow {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(180px 120px at 92% 0%, rgba(255, 255, 255, .22), transparent 70%),
+    linear-gradient(118deg, transparent 36%, rgba(255, 255, 255, .14) 48%, transparent 60%);
+}
+.ek-arsiv-hero-glow::before, .ek-arsiv-hero-glow::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.ek-arsiv-hero-glow::before {
+  width: 220px; height: 220px; right: -70px; bottom: -120px;
+  border: 1px solid rgba(224, 194, 122, .45);
+  box-shadow: 0 0 28px color-mix(in srgb, var(--cs-accent) 45%, transparent);
+}
+.ek-arsiv-hero-glow::after {
+  width: 140px; height: 140px; right: 24px; bottom: -78px;
+  border: 1px solid rgba(255, 255, 255, .28);
 }
 .ek-arsiv-hero-id { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .ek-arsiv-hero-id p { margin: 0; display: flex; align-items: center; gap: 8px; font-size: var(--cs-font-caption); color: rgba(240,244,252,.72); }
