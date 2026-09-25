@@ -32,6 +32,11 @@ YONETIM_NAV_GROUPS: tuple[YonetimNavGroup, ...] = (
                 active_names=("idareci_panel",),
             ),
             YonetimNavItem(
+                label="Karşılama sözü",
+                url_name="yonetim:karsilama_sozu",
+                active_names=("karsilama_sozu",),
+            ),
+            YonetimNavItem(
                 label="Genel Bakış",
                 url_name="yonetim:dashboard",
                 active_names=("dashboard",),
