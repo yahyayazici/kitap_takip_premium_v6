@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Etüt Takip · {{ hoca.ad_soyad }}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek21">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek24">{% endblock %}
 {% block content %}
 <div class="ek-page">
   <header class="ek-head">
@@ -80,7 +80,7 @@
           <tbody>
           {% for row in dikkat.dusen_talebeler %}
           <tr>
-            <td>{{ row.talebe.ad_soyad }}</td>
+            <td class="ek-name">{{ row.talebe.ad_soyad }}</td>
             <td>{{ row.eski }}%</td>
             <td>{{ row.yeni }}%</td>
             <td class="ek-danger">{{ row.delta }}</td>

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}{{ deneme.ad }} · Etüt Kontrol{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek21">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek24">{% endblock %}
 {% block content %}
 <div class="ek-page">
   <header class="ek-head">
@@ -37,7 +37,7 @@
       {% for row in siralama %}
       <tr>
         <td>{{ row.sira }}</td>
-        <td><a href="{% url 'etut_kontrol_talebe' hoca.id row.talebe_id %}">{{ row.ad_soyad }}</a></td>
+        <td><a href="{% url 'etut_kontrol_talebe' hoca.id row.talebe_id %}"><span class="ek-name">{{ row.ad_soyad }}</span></a></td>
         <td><span class="ek-badge">{{ row.sinif }}</span></td>
         <td><strong>{% if row.ortalama %}{{ row.ortalama }}%{% else %}—{% endif %}</strong></td>
         <td>{{ row.konu_sayisi }}</td>
