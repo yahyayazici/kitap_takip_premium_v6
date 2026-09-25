@@ -297,27 +297,46 @@
 .ek-arsiv h1 { margin: 0; font-family: "CaviarDreams", Georgia, serif !important; font-weight: 400 !important; font-size: 2.4rem !important; letter-spacing: 0 !important; line-height: 1.05 !important; color: var(--cs-text-primary) !important; }
 .ek-arsiv-rule { display: block; width: 168px; height: 2px; margin: 8px 0 0; border-radius: 2px; background: linear-gradient(90deg, var(--cs-primary) 0%, var(--cs-accent) 42%, #c4a574 78%, transparent 100%); }
 .ek-arsiv .ek-desc { margin-top: 6px; }
-.ek-arsiv-band {
+.ek-arsiv-hero {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.1fr) minmax(140px, .8fr) minmax(200px, 1.2fr);
+  align-items: center;
+  gap: var(--cs-space-5);
   position: relative;
   overflow: hidden;
-  background: var(--cs-surface);
-  color: var(--cs-text-primary);
-  border: 1px solid var(--cs-border);
-  border-radius: 16px;
-  padding: 10px var(--cs-space-5) 8px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9), 0 1px 0 rgba(15, 32, 60, .04);
+  background: linear-gradient(115deg, var(--cs-navy-deep) 0%, var(--cs-primary-dark) 55%, var(--cs-primary) 140%);
+  color: #fff;
+  border-radius: 22px;
+  padding: var(--cs-space-5) var(--cs-space-6);
 }
-.ek-arsiv-band::before {
+.ek-arsiv-hero::before {
   content: "";
   position: absolute;
-  left: 18px;
-  right: 18px;
-  top: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .95) 12%, var(--cs-primary) 38%, var(--cs-accent) 62%, #c4a574 86%, transparent);
+  left: 22px; right: 22px; top: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.85) 20%, #e0c27a 50%, rgba(255,255,255,.7) 80%, transparent);
   pointer-events: none;
 }
-.ek-arsiv-band::after { content: none; }
+.ek-arsiv-hero-id { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ek-arsiv-hero-id p { margin: 0; display: flex; align-items: center; gap: 8px; font-size: var(--cs-font-caption); color: rgba(240,244,252,.72); }
+.ek-arsiv-hero-id p i { width: 7px; height: 7px; border-radius: 50%; background: #e0c27a; }
+.ek-arsiv-hero-id strong { font-size: 1.65rem; font-weight: 600; letter-spacing: -0.03em; }
+.ek-arsiv-hero-id span { font-size: var(--cs-font-caption); color: rgba(240,244,252,.7); }
+.ek-arsiv-hero-id a { margin-top: 8px; width: fit-content; color: #fff; font-size: var(--cs-font-secondary); font-weight: 600; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.7); }
+.ek-arsiv-hero-score { display: flex; flex-direction: column; align-items: center; gap: 4px; border-left: 1px solid rgba(240,244,252,.18); border-right: 1px solid rgba(240,244,252,.18); padding: 0 var(--cs-space-4); }
+.ek-arsiv-hero-score b { font-family: "LemonMilk", Georgia, sans-serif !important; font-weight: 400 !important; font-size: 3.4rem; line-height: .9; letter-spacing: 0; }
+.ek-arsiv-hero-score small { font-size: var(--cs-font-caption); color: rgba(240,244,252,.7); }
+.ek-arsiv-hero-line { min-width: 0; }
+.ek-arsiv-hero-line > div { display: flex; justify-content: space-between; gap: var(--cs-space-3); font-size: var(--cs-font-caption); color: rgba(240,244,252,.72); }
+.ek-arsiv-hero-line svg { width: 100%; height: 72px; }
+.ek-arsiv-hero-line polyline { fill: none; stroke: rgba(255,255,255,.85); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.ek-arsiv-hero-line circle { fill: #e0c27a; }
+.ek-arsiv .ek-exam::before, .ek-arsiv .ek-exam.is-last::before {
+  content: "";
+  position: absolute;
+  left: 16px; right: 16px; top: 0; height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, #8a6a32 12%, #c4a574 48%, #e0c27a 82%, transparent);
+}
 .ek-arsiv-list { margin: var(--cs-space-4) 0 0 !important; padding-top: 0; }
 .ek-arsiv-list h2 { margin: 0 0 6px !important; position: relative; }
 .ek-arsiv-band > * { position: relative; z-index: 1; }
@@ -361,8 +380,8 @@
   .ek-arsiv .ek-exam-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 900px) {
-  .ek-arsiv-stats { grid-template-columns: 1fr 1fr; gap: var(--cs-space-4); }
-  .ek-arsiv-stats div { border-left: 0; padding: 0; }
+  .ek-arsiv-hero { grid-template-columns: 1fr; }
+  .ek-arsiv-hero-score { border: 0; padding: var(--cs-space-3) 0; align-items: flex-start; }
 }
 @media (max-width: 640px) {
   .ek-arsiv h1 { font-size: 1.8rem !important; }

@@ -9,34 +9,32 @@
         <p class="ek-desc">Kurum geneli deneme sınav sonuçları.</p>
     </header>
 
-    <section class="ek-arsiv-band">
-        <div class="ek-arsiv-stats">
-            <div>
-                <span>Deneme</span>
-                <b>{{ arsiv_ozet.sayi }}</b>
-            </div>
-            <div>
-                <span>Toplam katılım</span>
-                <b>{{ arsiv_ozet.katilim }} <small>talebe</small></b>
-            </div>
-            <div>
-                <span>Son deneme ortalaması</span>
-                <b>{% if arsiv_ozet.son and arsiv_ozet.son.puan_ort %}{{ arsiv_ozet.son.puan_ort|floatformat:0 }}{% else %}—{% endif %} <small>/500</small></b>
-            </div>
-            <div>
-                <span>Yayın</span>
-                <b>{{ arsiv_ozet.yayin_sayisi }}</b>
-            </div>
+    {% if arsiv_ozet.son %}
+    <section class="ek-arsiv-hero">
+        <div class="ek-arsiv-hero-id">
+            <p><i></i>Son deneme</p>
+            <strong>{% if arsiv_ozet.son.sira_no %}{{ arsiv_ozet.son.sira_no }}. Deneme{% else %}{{ arsiv_ozet.son.ad }}{% endif %}</strong>
+            <span>{{ arsiv_ozet.son.sinav_tarihi|date:"j F Y" }}{% if arsiv_ozet.son.sinif_seviyesi %}, {{ arsiv_ozet.son.sinif_seviyesi }}. sınıf{% endif %}{% if arsiv_ozet.son.yayin %}, {{ arsiv_ozet.son.yayin }}{% endif %}</span>
+            <a href="{% url 'deneme_detay' arsiv_ozet.son.pk %}">Sonuçları aç</a>
         </div>
-        {% if arsiv_ozet.son %}
-        <p class="ek-arsiv-son">Son deneme: {% if arsiv_ozet.son.sira_no %}{{ arsiv_ozet.son.sira_no }}. Deneme{% else %}{{ arsiv_ozet.son.ad }}{% endif %}, {{ arsiv_ozet.son.sinav_tarihi|date:"j F Y" }}</p>
-        {% endif %}
+        <div class="ek-arsiv-hero-score">
+            <b>{% if arsiv_ozet.son.puan_ort %}{{ arsiv_ozet.son.puan_ort|floatformat:0 }}{% else %}—{% endif %}</b>
+            <small>ortalama, 500 üzerinden</small>
+        </div>
+        <div class="ek-arsiv-hero-line">
+            <div>
+                <span>Son {{ arsiv_ozet.sayi }} deneme</span>
+                <span>{% if arsiv_ozet.fark != None %}İlk denemeye göre {% if arsiv_ozet.fark > 0 %}+{% endif %}{{ arsiv_ozet.fark }}{% endif %}</span>
+            </div>
+            <svg viewBox="0 0 240 72" aria-hidden="true">
+                <polyline points="{{ arsiv_ozet.cizgi }}" />
+                {% if arsiv_ozet.cizgi_x %}<circle cx="{{ arsiv_ozet.cizgi_x }}" cy="{{ arsiv_ozet.cizgi_y }}" r="4.5" />{% endif %}
+            </svg>
+        </div>
     </section>
+    {% endif %}
 
     <section class="ek-arsiv-list">
-        <h2>Mevcut Denemeler</h2>
-        <p class="ek-arsiv-hint">Kutuya girince sıralama, kazanım ve talebe puanı açılır.</p>
-
         <form method="get" class="ek-arsiv-form">
             <div>
                 <label for="egitim_yili">Eğitim yılı</label>
