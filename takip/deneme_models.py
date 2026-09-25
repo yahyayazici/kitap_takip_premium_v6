@@ -12,6 +12,7 @@ class DenemeSinavi(models.Model):
     class Durum(models.TextChoices):
         TASLAK = "taslak", "Taslak"
         AKTIF = "aktif", "Aktif"
+        ARSIV = "arsiv", "Arşiv"
 
     class Tur(models.TextChoices):
         GRUP = "grup", "Grup denemesi"

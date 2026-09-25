@@ -63,7 +63,9 @@ def deneme_listesi(request):
 
     from takip.deneme_service import deneme_arsiv_filtre_secenekleri, deneme_arsiv_filtrele
 
-    denemeler = DenemeSinavi.objects.select_related("egitim_yili").annotate(
+    denemeler = DenemeSinavi.objects.exclude(
+        durum=DenemeSinavi.Durum.ARSIV
+    ).select_related("egitim_yili").annotate(
         sonuc_sayisi=Count("sonuclar"),
     ).order_by("-sinav_tarihi", "-id")
     denemeler, filtre = deneme_arsiv_filtrele(denemeler, request.GET)
@@ -214,7 +216,7 @@ def deneme_sil(request, pk):
         return redirect("yonetim:deneme_detay", pk=pk)
     ad = deneme.ad
     deneme_sinavini_sil(request.user, deneme)
-    messages.success(request, f"«{ad}» silindi.")
+    messages.success(request, f"«{ad}» arşive alındı. Sonuçlar ve kazanımlar duruyor.")
     return redirect("yonetim:deneme_listesi")
 
 

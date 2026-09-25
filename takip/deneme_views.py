@@ -298,5 +298,5 @@ def deneme_sil(request, pk):
         return redirect("deneme_listesi")
     ad = deneme.ad
     deneme_sinavini_sil(request.user, deneme)
-    messages.success(request, f"«{ad}» silindi.")
+    messages.success(request, f"«{ad}» arşive alındı. Sonuçlar ve kazanımlar duruyor.")
     return redirect("deneme_listesi")

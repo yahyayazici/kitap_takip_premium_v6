@@ -599,6 +599,22 @@ def _satir_deger(satir: list[str], index: int | None) -> str:
     return satir[index]
 
 
+def _sinif_uyuyor(talebe: Talebe, sinif: str) -> bool:
+    """Sınıf hücresi doluysa talebe başka şubedeyse otomatik eşleşme yapma."""
+    istenen = normalize_ad(sinif).replace(" ", "")
+    if not istenen:
+        return True
+    if talebe.sinif_sube_id:
+        sahip = normalize_ad(
+            f"{talebe.sinif_sube.sinif}{talebe.sinif_sube.sube}"
+        ).replace(" ", "")
+    else:
+        sahip = normalize_ad(f"{talebe.sinif}{talebe.sube}").replace(" ", "")
+    if not sahip:
+        return True
+    return istenen == sahip or istenen in sahip or sahip in istenen
+
+
 def talebe_eslestir(excel_ad: str, sinif: str = "") -> tuple[Talebe | None, str, list[dict]]:
     """
     Dönüş: (talebe, eslesme_tipi, oneriler)
@@ -613,12 +629,12 @@ def talebe_eslestir(excel_ad: str, sinif: str = "") -> tuple[Talebe | None, str,
         .select_related("talebe")
         .first()
     )
-    if alias and alias.talebe.aktif:
+    if alias and alias.talebe.aktif and _sinif_uyuyor(alias.talebe, sinif):
         return alias.talebe, "alias", []
 
-    # Tam eşleşme (büyük/küçük harf)
+    # Tam eşleşme (büyük/küçük harf). Sınıf verilmişse farklı sınıfa bağlama.
     adaylar = list(Talebe.objects.filter(aktif=True, ad_soyad__iexact=excel_ad.strip()))
-    if len(adaylar) == 1:
+    if len(adaylar) == 1 and _sinif_uyuyor(adaylar[0], sinif):
         return adaylar[0], "otomatik", []
     if len(adaylar) > 1 and sinif:
         sinif_norm = normalize_ad(sinif)
@@ -637,7 +653,7 @@ def talebe_eslestir(excel_ad: str, sinif: str = "") -> tuple[Talebe | None, str,
         for t in Talebe.objects.filter(aktif=True).select_related("sinif_sube")
         if normalize_ad(t.ad_soyad or "") == norm
     ]
-    if len(norm_adaylar) == 1:
+    if len(norm_adaylar) == 1 and _sinif_uyuyor(norm_adaylar[0], sinif):
         return norm_adaylar[0], "otomatik", []
     if len(norm_adaylar) > 1 and sinif:
         sinif_norm = normalize_ad(sinif)
@@ -700,7 +716,7 @@ def _satirdan_sonuclari_cek(
             "net": str(t_net.quantize(Decimal("0.01"))),
         }
 
-    kayit.puan = _satir_deger(satir, harita.get("puan")) or "0"
+    kayit.puan = _satir_deger(satir, harita.get("puan"))
 
     for idx, etiket in harita.get("dis_siralama", []):
         deger = _satir_deger(satir, idx)
@@ -871,7 +887,11 @@ def deneme_sonuclari_aktar(
                 "net": str(t_net),
             }
 
-        puan = _ondalik(satir.puan)
+        puan_ham = (satir.puan or "").strip()
+        if not puan_ham:
+            atlanan += 1
+            continue
+        puan = _ondalik(puan_ham)
 
         sonuc = DenemeSonucu.objects.create(
             deneme=deneme,

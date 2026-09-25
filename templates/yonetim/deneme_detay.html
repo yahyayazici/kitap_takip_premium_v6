@@ -29,7 +29,7 @@
         <div class="yonetim-page-head-actions">
             <a href="{% url 'yonetim:deneme_listesi' %}" class="ghost-btn">Liste</a>
             {% if sil_yetkisi %}
-            <form method="post" action="{% url 'yonetim:deneme_sil' deneme.pk %}" onsubmit="return confirm('«{{ deneme.ad|escapejs }}» silinsin mi? Sonuçlar da kalkar.');">
+            <form method="post" action="{% url 'yonetim:deneme_sil' deneme.pk %}" onsubmit="return confirm('«{{ deneme.ad|escapejs }}» arşive alınsın mı? Sonuçlar ve kazanımlar silinmez, listeden kalkar.');">
                 {% csrf_token %}
                 <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger">Denemeyi Sil</button>
             </form>

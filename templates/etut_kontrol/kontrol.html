@@ -31,14 +31,14 @@
     </div>
     <div class="ek-hero-top">
       <div>
-        <p class="ek-hero-kicker">Sınıf puan ortalaması</p>
-        <p class="ek-hero-kicker">Son deneme{% if kutular %}, {{ kutular.0.deneme.sinav_tarihi|date:"j F Y" }}{% endif %}</p>
+        <p class="ek-hero-kicker">Etüt geneli <span id="ekEtut">—</span> / 500</p>
+        <p class="ek-hero-kicker">Sınıf geneli{% if gelisim.sinif_ad %} · {{ gelisim.sinif_ad }}{% endif %}</p>
         <p class="ek-hero-score"><b id="ekSon">—</b><span>/ 500</span></p>
       </div>
       <div class="ek-hero-stats">
-        <div><span>İlk denemeden bu yana</span><b id="ekFark">—</b></div>
-        <div><span>Ortalama</span><b id="ekOrt">—</b></div>
-        <div><span>En yüksek</span><b id="ekMax">—</b></div>
+        <div><span>Sınıf, ilk denemeden</span><b id="ekFark">—</b></div>
+        <div><span>Sınıf ortalaması</span><b id="ekOrt">—</b></div>
+        <div><span>Sınıf en yüksek</span><b id="ekMax">—</b></div>
       </div>
     </div>
     <div class="ek-hero-chart"><canvas id="gelisimChart"></canvas></div>
@@ -51,7 +51,7 @@
     </div>
     <div class="ek-split">
       <div class="ek-watch-pane">
-        <div class="ek-watch-label"><span>Zayıf ve geride konular</span><b>{{ dikkat.zayif_konular|length }}</b></div>
+        <div class="ek-watch-label"><span>Zayıf kazanımlar{% if dikkat.deneme %} · bu deneme{% endif %}</span><b>{{ dikkat.zayif_konular|length }}</b></div>
         {% if dikkat.zayif_konular %}
         <div class="ek-table-wrap">
         <table class="ek-table">
@@ -68,11 +68,11 @@
         </table>
         </div>
         {% else %}
-        <p class="ek-ok-line">Kritik zayıf konu yok veya henüz kazanım Excel’i yok.</p>
+        <p class="ek-ok-line">Zayıf kazanım yok veya henüz kazanım Excel’i yok.</p>
         {% endif %}
       </div>
       <div class="ek-watch-pane">
-        <div class="ek-watch-label"><span>Düşüşteki talebeler</span><b>{{ dikkat.dusen_talebeler|length }}</b></div>
+        <div class="ek-watch-label"><span>Düşüşteki talebeler{% if dikkat.onceki_deneme %} · önceki kazanımlı denemeye göre{% endif %}</span><b>{{ dikkat.dusen_talebeler|length }}</b></div>
         {% if dikkat.dusen_talebeler %}
         <div class="ek-table-wrap">
         <table class="ek-table">
@@ -81,8 +81,8 @@
           {% for row in dikkat.dusen_talebeler %}
           <tr>
             <td class="ek-name">{{ row.talebe.ad_soyad }}</td>
-            <td>{{ row.eski }}%</td>
-            <td>{{ row.yeni }}%</td>
+            <td>{{ row.eski }}</td>
+            <td>{{ row.yeni }}</td>
             <td class="ek-danger">{{ row.delta }}</td>
           </tr>
           {% endfor %}
@@ -111,7 +111,7 @@
     {% if kutular %}
     <div class="ek-exam-grid" id="ekExamGrid">
       {% for k in kutular %}
-      <a class="ek-exam{% if forloop.first %} is-last{% endif %}" href="{% url 'etut_kontrol_deneme' hoca.id k.deneme.id %}" data-time="{{ k.deneme.sinav_tarihi|date:'Ymd' }}" data-puan="{% if k.sinif_ortalama %}{{ k.sinif_ortalama|floatformat:1 }}{% endif %}">
+      <a class="ek-exam{% if forloop.first %} is-last{% endif %}" href="{% url 'etut_kontrol_deneme' hoca.id k.deneme.id %}" data-time="{{ k.deneme.sinav_tarihi|date:'Ymd' }}" data-puan="{% if k.etut_ortalama %}{{ k.etut_ortalama|floatformat:1 }}{% endif %}">
         <div class="ek-exam-top">
           <div>
             <strong>{% if k.deneme.sira_no %}{{ k.deneme.sira_no }}. Deneme{% else %}{{ k.deneme.ad }}{% endif %}</strong>
@@ -119,13 +119,13 @@
           </div>
           {% if not forloop.first %}<span>{{ k.deneme.sinav_tarihi|date:"j M Y" }}</span>{% endif %}
         </div>
-        <p class="ek-exam-score"><b>{% if k.sinif_ortalama %}{{ k.sinif_ortalama|floatformat:1 }}{% else %}—{% endif %}</b><small>sınıf ort. / 500</small></p>
+        <p class="ek-exam-score"><b>{% if k.etut_ortalama %}{{ k.etut_ortalama|floatformat:1 }}{% else %}—{% endif %}</b><small>etüt / 500</small></p>
         <div class="ek-meter"><i style="width:{% if k.sinif_ortalama %}{% widthratio k.sinif_ortalama 500 100 %}{% else %}0{% endif %}%"></i></div>
         <div class="ek-exam-meta">
           <span class="ek-delta"></span>
-          <span>Etüt {% if k.etut_ortalama %}{{ k.etut_ortalama|floatformat:0 }}{% else %}—{% endif %}</span>
+          <span>Sınıf geneli {% if k.sinif_ortalama %}{{ k.sinif_ortalama|floatformat:0 }}{% else %}—{% endif %}</span>
         </div>
-        <p class="ek-exam-weak">{% if k.zayif_konu %}{{ k.zayif_konu }} zayıf konu{% else %}Zayıf konu yok{% endif %}</p>
+        <p class="ek-exam-weak">{% if k.zayif_konu %}{{ k.zayif_konu }} zayıf kazanım{% else %}Zayıf kazanım yok{% endif %}</p>
       </a>
       {% endfor %}
     </div>
@@ -141,6 +141,7 @@ const data = {{ gelisim_json|safe }};
 csNavyLine(document.getElementById('gelisimChart'), data.sinif || [], data.tarihler || []);
 (function () {
   const vals = (data.sinif || []).filter(function (v) { return v != null; });
+  const etutVals = (data.etut || []).filter(function (v) { return v != null; });
   const txt = function (n, digit) {
     if (n == null || Number.isNaN(n)) return "—";
     return digit ? n.toFixed(1).replace(".", ",") : String(Math.round(n));
@@ -150,6 +151,7 @@ csNavyLine(document.getElementById('gelisimChart'), data.sinif || [], data.tarih
     const first = vals[0];
     const fark = Math.round(last - first);
     document.getElementById("ekSon").textContent = txt(last, true);
+    if (etutVals.length) document.getElementById("ekEtut").textContent = txt(etutVals[etutVals.length - 1], true);
     document.getElementById("ekFark").textContent = (fark > 0 ? "+" : "") + fark;
     document.getElementById("ekOrt").textContent = txt(vals.reduce(function (a, b) { return a + b; }, 0) / vals.length, true);
     document.getElementById("ekMax").textContent = txt(Math.max.apply(null, vals), true);

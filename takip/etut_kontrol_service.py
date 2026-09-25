@@ -70,11 +70,22 @@ def hoca_baskin_sinif_etiket(hoca: EtutHocasi) -> str:
     return f"{sinif}-{sube}".strip("-")
 
 
+def _puanli_sonuclar():
+    """Puanı boş ya da hiç işaretlenmemiş satır ortalamaya girmez."""
+    return DenemeSonucu.objects.exclude(
+        puan=0,
+        toplam_dogru=0,
+        toplam_yanlis=0,
+        toplam_bos=0,
+        toplam_net=0,
+    )
+
+
 def deneme_ortalama(deneme: DenemeSinavi, talebe_ids: list[int]) -> Decimal | None:
-    """Etüt talebelerinin 500 üzerinden puan ortalaması."""
+    """Etüt talebelerinin 500 üzerinden puan ortalaması. Katılmayan talebe yok sayılır."""
     if not talebe_ids:
         return None
-    agg = DenemeSonucu.objects.filter(
+    agg = _puanli_sonuclar().filter(
         deneme=deneme,
         talebe_id__in=talebe_ids,
     ).aggregate(avg=Avg("puan"))
@@ -85,7 +96,7 @@ def sinif_deneme_ortalama(deneme: DenemeSinavi, sinif_etiket: str) -> Decimal | 
     if not sinif_etiket:
         return None
     parts = sinif_etiket.replace(" ", "").split("-")
-    qs = DenemeSonucu.objects.filter(
+    qs = _puanli_sonuclar().filter(
         deneme=deneme,
         talebe__aktif=True,
     )
@@ -179,18 +190,25 @@ def etut_deneme_kutulari(hoca: EtutHocasi) -> list[dict]:
     return kutular
 
 
-def etut_dikkat(hoca: EtutHocasi) -> dict:
-    ids = hoca_talebe_ids(hoca)
-    sinif_ad = hoca_baskin_sinif_etiket(hoca)
-    son = (
+def _kazanimli_denemeler(ids: list[int]) -> list[DenemeSinavi]:
+    if not ids:
+        return []
+    return list(
         DenemeSinavi.objects.filter(
             durum=DenemeSinavi.Durum.AKTIF,
             kazanim_sonuclari__talebe_id__in=ids,
         )
         .distinct()
         .order_by("-sinav_tarihi", "-id")
-        .first()
     )
+
+
+def etut_dikkat(hoca: EtutHocasi) -> dict:
+    ids = hoca_talebe_ids(hoca)
+    sinif_ad = hoca_baskin_sinif_etiket(hoca)
+    kazanimli = _kazanimli_denemeler(ids)
+    son = kazanimli[0] if kazanimli else None
+    onceki = kazanimli[1] if len(kazanimli) > 1 else None
     zayif_konular = []
     if son:
         rows = (
@@ -238,16 +256,8 @@ def etut_dikkat(hoca: EtutHocasi) -> dict:
                 break
 
     dusen = []
-    denemeler = list(
-        DenemeSinavi.objects.filter(
-            durum=DenemeSinavi.Durum.AKTIF,
-            kazanim_sonuclari__talebe_id__in=ids,
-        )
-        .distinct()
-        .order_by("-sinav_tarihi", "-id")[:2]
-    )
-    if len(denemeler) == 2:
-        yeni, eski = denemeler[0], denemeler[1]
+    if son is not None and onceki is not None:
+        yeni, eski = son, onceki
         for tid in ids:
             y = deneme_ortalama(yeni, [tid])
             e = deneme_ortalama(eski, [tid])
@@ -270,6 +280,7 @@ def etut_dikkat(hoca: EtutHocasi) -> dict:
 
     return {
         "deneme": son,
+        "onceki_deneme": onceki,
         "zayif_konular": zayif_konular,
         "dusen_talebeler": dusen,
     }
@@ -442,14 +453,13 @@ def etut_talebe_kutulari(hoca: EtutHocasi) -> list[dict]:
 
 
 def talebe_gelisim_serisi(talebe: Talebe) -> dict:
-    denemeler = list(
-        DenemeSinavi.objects.filter(
-            durum=DenemeSinavi.Durum.AKTIF,
-            sonuclar__talebe=talebe,
-        )
-        .distinct()
-        .order_by("sinav_tarihi", "id")
-    )
+    """Sınıfın girdiği denemeler eksende kalır. Katılmayan deneme boşluktur, 0 değildir."""
+    kapsam = DenemeSinavi.objects.filter(durum=DenemeSinavi.Durum.AKTIF)
+    if talebe.sinif_sube_id:
+        kapsam = kapsam.filter(sonuclar__talebe__sinif_sube=talebe.sinif_sube)
+    else:
+        kapsam = kapsam.filter(sonuclar__talebe=talebe)
+    denemeler = list(kapsam.distinct().order_by("sinav_tarihi", "id"))
     labels, puanlar, tarihler = [], [], []
     for i, d in enumerate(denemeler, start=1):
         labels.append(f"{i}. Deneme")

@@ -148,6 +148,7 @@ def import_kazanim_excel(uploaded_file, *, deneme: DenemeSinavi) -> KazanimImpor
         stats.konu_sayisi = len(topic_cols)
 
         eslesen: set[int] = set()
+        yazilacak: dict[tuple, DenemeKazanimSonucu] = {}
         for row in ws.iter_rows(min_row=4, values_only=False):
             if not row:
                 continue
@@ -179,21 +180,22 @@ def import_kazanim_excel(uploaded_file, *, deneme: DenemeSinavi) -> KazanimImpor
                 if yuzde is None and net_dogru is None and net_toplam is None:
                     stats.atlanan_bos += 1
                     continue
-
-                DenemeKazanimSonucu.objects.update_or_create(
+                anahtar = (talebe.id, meta["ders_key"], meta["konu_key"])
+                yazilacak[anahtar] = DenemeKazanimSonucu(
                     deneme=deneme,
                     talebe=talebe,
                     ders_key=meta["ders_key"],
                     konu_key=meta["konu_key"],
-                    defaults={
-                        "ders_ad": meta["ders"][:120],
-                        "konu_ad": meta["konu"][:300],
-                        "yuzde": yuzde,
-                        "net_dogru": net_dogru,
-                        "net_toplam": net_toplam,
-                    },
+                    ders_ad=meta["ders"][:120],
+                    konu_ad=meta["konu"][:300],
+                    yuzde=yuzde,
+                    net_dogru=net_dogru,
+                    net_toplam=net_toplam,
                 )
-                stats.sonuc_yazilan += 1
+        if yazilacak:
+            DenemeKazanimSonucu.objects.filter(deneme=deneme).delete()
+            DenemeKazanimSonucu.objects.bulk_create(yazilacak.values())
+            stats.sonuc_yazilan = len(yazilacak)
         stats.eslesen_talebe = len(eslesen)
     finally:
         wb.close()

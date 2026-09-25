@@ -24,7 +24,7 @@
             {% endif %}
             <a href="{% url 'deneme_listesi' %}" class="result-back-button">Denemeler</a>
             {% if sil_yetkisi %}
-            <form method="post" action="{% url 'deneme_sil' deneme.pk %}" onsubmit="return confirm('«{{ deneme.ad|escapejs }}» silinsin mi? Sonuçlar da kalkar.');">
+            <form method="post" action="{% url 'deneme_sil' deneme.pk %}" onsubmit="return confirm('«{{ deneme.ad|escapejs }}» arşive alınsın mı? Sonuçlar ve kazanımlar silinmez, listeden kalkar.');">
                 {% csrf_token %}
                 <button type="submit" class="result-secondary-button">Sil</button>
             </form>
