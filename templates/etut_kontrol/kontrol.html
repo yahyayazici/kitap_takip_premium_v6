@@ -29,7 +29,7 @@
       <h2 style="margin:0">Gelişim</h2>
       <span class="ek-badge">Trend {{ gelisim.trend }}</span>
     </div>
-    <p class="ek-muted" style="margin:.4rem 0 .8rem">Mavi: etüt ort. · Gri: sınıf ort.{% if gelisim.sinif_ad %} ({{ gelisim.sinif_ad }}){% endif %}</p>
+    <p class="ek-muted" style="margin:.4rem 0 .8rem">Sınıf puan ortalaması{% if gelisim.sinif_ad %} · {{ gelisim.sinif_ad }}{% endif %}</p>
     <div class="ek-chart"><canvas id="gelisimChart"></canvas></div>
   </section>
 
@@ -97,8 +97,8 @@
         </div>
         <strong>{{ k.deneme.ad }}</strong>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">
-          <div><div class="ek-muted">Etüt ort.</div><div class="ek-stat">{% if k.etut_ortalama %}{{ k.etut_ortalama }}%{% else %}—{% endif %}</div></div>
-          <div><div class="ek-muted">Sınıf ort.</div><div class="ek-stat">{% if k.sinif_ortalama %}{{ k.sinif_ortalama }}%{% else %}—{% endif %}</div></div>
+          <div><div class="ek-muted">Etüt puan</div><div class="ek-stat">{% if k.etut_ortalama %}{{ k.etut_ortalama }}{% else %}—{% endif %}</div></div>
+          <div><div class="ek-muted">Sınıf puan</div><div class="ek-stat">{% if k.sinif_ortalama %}{{ k.sinif_ortalama }}{% else %}—{% endif %}</div></div>
         </div>
         {% if k.zayif_konu %}<div class="ek-danger" style="margin-top:.7rem;font-size:.82rem;">{{ k.zayif_konu }} zayıf konu</div>
         {% else %}<div class="ek-ok" style="margin-top:.7rem;font-size:.82rem;">Zayıf konu yok</div>{% endif %}
@@ -119,20 +119,39 @@ if (ctx && data.labels && data.labels.length) {
   new Chart(ctx, {
     type: 'line',
     data: {
-      labels: data.labels.map((l, i) => (i + 1) + '.'),
+      labels: data.labels,
       datasets: [
-        { label: 'Etüt ort.', data: data.etut, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.12)', tension: .35, fill: true, borderWidth: 2.4, pointRadius: 3.5 },
-        { label: data.sinif_ad ? ('Sınıf ort. (' + data.sinif_ad + ')') : 'Sınıf ort.', data: data.sinif, borderColor: '#94a3b8', backgroundColor: 'transparent', tension: .35, borderWidth: 2, borderDash: [5,5], pointRadius: 3 }
+        { label: 'Sınıf puan ort.', data: data.sinif, borderColor: '#15427f', backgroundColor: 'transparent', tension: 0, fill: false, borderWidth: 2, pointRadius: 4 }
       ]
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { labels: { color: '#334155' } }, tooltip: { callbacks: { title: (items) => data.labels[items[0].dataIndex] || '' } } },
+      responsive: true, maintainAspectRatio: false, layout: { padding: { top: 28 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { title: (items) => data.labels[items[0].dataIndex] || '' } }
+      },
       scales: {
-        x: { ticks: { color: '#64748b' }, grid: { color: 'rgba(15,23,42,.05)' } },
-        y: { min: 40, max: 100, ticks: { color: '#64748b' }, grid: { color: 'rgba(15,23,42,.05)' } }
+        x: { ticks: { color: '#546173' }, grid: { display: false }, border: { display: true, color: '#15427f' } },
+        y: { display: false, min: 0, max: 500, grid: { display: false }, border: { display: false } }
       }
-    }
+    },
+    plugins: [{
+      id: 'puanUstte',
+      afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        const meta = chart.getDatasetMeta(0);
+        ctx.save();
+        ctx.fillStyle = '#0f203c';
+        ctx.font = '600 13px Poppins, sans-serif';
+        ctx.textAlign = 'center';
+        meta.data.forEach((pt, i) => {
+          const v = data.sinif[i];
+          if (v == null) return;
+          ctx.fillText(String(v).replace('.', ','), pt.x, pt.y - 10);
+        });
+        ctx.restore();
+      }
+    }]
   });
 }
 </script>

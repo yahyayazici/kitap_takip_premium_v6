@@ -11,7 +11,7 @@ from django.test import TestCase
 from openpyxl import Workbook
 
 from takip.deneme_kazanim_excel import import_kazanim_excel
-from takip.deneme_models import DenemeKazanimSonucu, DenemeSinavi
+from takip.deneme_models import DenemeKazanimSonucu, DenemeSinavi, DenemeSonucu
 from takip.etut_kontrol_service import etut_deneme_kutulari, etut_gelisim_serisi
 from takip.models import EtutHocasi, SinifSube, Talebe
 
@@ -69,8 +69,10 @@ class KazanimEtutKontrolTests(TestCase):
                 deneme=self.deneme, talebe=self.talebe
             ).exists()
         )
+        DenemeSonucu.objects.create(deneme=self.deneme, talebe=self.talebe, puan=Decimal("420.00"))
         gelisim = etut_gelisim_serisi(self.hoca)
-        self.assertEqual(len(gelisim["labels"]), 1)
+        self.assertEqual(gelisim["labels"], ["1. Deneme"])
+        self.assertEqual(gelisim["sinif"], [420.0])
         kutular = etut_deneme_kutulari(self.hoca)
         self.assertEqual(len(kutular), 1)
-        self.assertIsInstance(kutular[0]["etut_ortalama"], Decimal)
+        self.assertEqual(kutular[0]["etut_ortalama"], Decimal("420.00"))

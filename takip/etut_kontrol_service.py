@@ -6,7 +6,7 @@ from decimal import Decimal
 
 from django.db.models import Avg, Count, Q
 
-from takip.deneme_models import DenemeKazanimSonucu, DenemeSinavi
+from takip.deneme_models import DenemeKazanimSonucu, DenemeSinavi, DenemeSonucu
 from takip.etut_zimmet_service import etut_mesul_queryset, hoca_talebe_q
 from takip.models import EtutHocasi, Talebe
 from takip.user_helpers import etut_hocasi_for_user
@@ -71,13 +71,13 @@ def hoca_baskin_sinif_etiket(hoca: EtutHocasi) -> str:
 
 
 def deneme_ortalama(deneme: DenemeSinavi, talebe_ids: list[int]) -> Decimal | None:
+    """Etüt talebelerinin 500 üzerinden puan ortalaması."""
     if not talebe_ids:
         return None
-    agg = DenemeKazanimSonucu.objects.filter(
+    agg = DenemeSonucu.objects.filter(
         deneme=deneme,
         talebe_id__in=talebe_ids,
-        yuzde__isnull=False,
-    ).aggregate(avg=Avg("yuzde"))
+    ).aggregate(avg=Avg("puan"))
     return _avg_or_none(agg["avg"])
 
 
@@ -85,9 +85,8 @@ def sinif_deneme_ortalama(deneme: DenemeSinavi, sinif_etiket: str) -> Decimal | 
     if not sinif_etiket:
         return None
     parts = sinif_etiket.replace(" ", "").split("-")
-    qs = DenemeKazanimSonucu.objects.filter(
+    qs = DenemeSonucu.objects.filter(
         deneme=deneme,
-        yuzde__isnull=False,
         talebe__aktif=True,
     )
     if len(parts) >= 2:
@@ -100,7 +99,7 @@ def sinif_deneme_ortalama(deneme: DenemeSinavi, sinif_etiket: str) -> Decimal | 
             Q(talebe__sinif_sube__sinif=sinif_etiket)
             | Q(talebe__sinif__icontains=sinif_etiket)
         )
-    return _avg_or_none(qs.aggregate(avg=Avg("yuzde"))["avg"])
+    return _avg_or_none(qs.aggregate(avg=Avg("puan"))["avg"])
 
 
 def etut_gelisim_serisi(hoca: EtutHocasi) -> dict:
@@ -109,14 +108,14 @@ def etut_gelisim_serisi(hoca: EtutHocasi) -> dict:
     denemeler = list(
         DenemeSinavi.objects.filter(
             durum=DenemeSinavi.Durum.AKTIF,
-            kazanim_sonuclari__talebe_id__in=ids,
+            sonuclar__talebe_id__in=ids,
         )
         .distinct()
         .order_by("sinav_tarihi", "id")
     )
     labels, etut, sinif = [], [], []
-    for d in denemeler:
-        labels.append(d.ad)
+    for i, d in enumerate(denemeler, start=1):
+        labels.append(f"{i}. Deneme")
         etut.append(
             float(v) if (v := deneme_ortalama(d, ids)) is not None else None
         )
@@ -384,14 +383,14 @@ def talebe_gelisim_serisi(talebe: Talebe) -> dict:
     denemeler = list(
         DenemeSinavi.objects.filter(
             durum=DenemeSinavi.Durum.AKTIF,
-            kazanim_sonuclari__talebe=talebe,
+            sonuclar__talebe=talebe,
         )
         .distinct()
         .order_by("sinav_tarihi", "id")
     )
     labels, puanlar = [], []
-    for d in denemeler:
-        labels.append(d.ad)
+    for i, d in enumerate(denemeler, start=1):
+        labels.append(f"{i}. Deneme")
         v = deneme_ortalama(d, [talebe.id])
         puanlar.append(float(v) if v is not None else None)
     return {

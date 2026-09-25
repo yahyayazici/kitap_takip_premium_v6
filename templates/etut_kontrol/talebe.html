@@ -31,7 +31,7 @@
       </div>
       <div style="text-align:right;">
         <span class="ek-badge">{{ k.trend }}</span>
-        <div class="ek-stat">{% if k.ortalama %}{{ k.ortalama }}%{% else %}—{% endif %}</div>
+        <div class="ek-stat">{% if k.ortalama %}{{ k.ortalama }}{% else %}—{% endif %}</div>
         {% if k.zayif_sayisi %}<div class="ek-danger" style="font-size:.82rem;">{{ k.zayif_sayisi }} zayıf</div>
         {% else %}<div class="ek-ok" style="font-size:.82rem;">Zayıf yok</div>{% endif %}
       </div>
@@ -78,15 +78,15 @@ if (ctx && data.labels && data.labels.length) {
   new Chart(ctx, {
     type: 'line',
     data: {
-      labels: data.labels.map((l, i) => (i + 1) + '.'),
-      datasets: [{ label: 'Deneme ort.', data: data.puanlar, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.12)', tension: .35, fill: true, borderWidth: 2.4, pointRadius: 3.5 }]
+      labels: data.labels,
+      datasets: [{ label: 'Puan', data: data.puanlar, borderColor: '#15427f', backgroundColor: 'transparent', tension: 0, fill: false, borderWidth: 2, pointRadius: 4 }]
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { labels: { color: '#334155' } }, tooltip: { callbacks: { title: (items) => data.labels[items[0].dataIndex] || '' } } },
+      responsive: true, maintainAspectRatio: false, layout: { padding: { top: 28 } },
+      plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color: '#64748b' }, grid: { color: 'rgba(15,23,42,.05)' } },
-        y: { min: 40, max: 100, ticks: { color: '#64748b' }, grid: { color: 'rgba(15,23,42,.05)' } }
+        x: { ticks: { color: '#546173' }, grid: { display: false }, border: { display: true, color: '#15427f' } },
+        y: { display: false, min: 0, max: 500, grid: { display: false }, border: { display: false } }
       }
     }
   });
