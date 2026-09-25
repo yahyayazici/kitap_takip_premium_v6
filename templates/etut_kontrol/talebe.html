@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}{{ talebe.ad_soyad }} · Etüt{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek6">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek9">{% endblock %}
 {% block content %}
 <div class="ek-page">
   <header class="ek-head">
@@ -71,25 +71,9 @@
   {% endfor %}
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/etut-chart.js' %}?v=ek9"></script>
 <script>
 const data = {{ gelisim_json|safe }};
-const ctx = document.getElementById('talebeChart');
-if (ctx && data.labels && data.labels.length) {
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: data.labels,
-      datasets: [{ label: 'Puan', data: data.puanlar, borderColor: '#2f6ff3', backgroundColor: 'rgba(47,111,243,.10)', tension: .42, fill: true, borderWidth: 2.5, pointRadius: 3, pointHoverRadius: 5, pointBackgroundColor: '#ffffff', pointBorderColor: '#2f6ff3', pointBorderWidth: 1.5 }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false, layout: { padding: { top: 28 } },
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { ticks: { color: '#15427f', font: { family: 'Poppins', size: 13, weight: '600' } }, grid: { display: false }, border: { display: true, color: '#2f6ff3' } },
-        y: { display: false, min: 0, max: 500, grid: { display: false }, border: { display: false } }
-      }
-    }
-  });
-}
+csLuminousLine(document.getElementById('talebeChart'), data.labels, data.puanlar);
 </script>
 {% endblock %}

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Etüt Takip · {{ hoca.ad_soyad }}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek6">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek9">{% endblock %}
 {% block content %}
 <div class="ek-page">
   <header class="ek-head">
@@ -24,19 +24,26 @@
     </div>
   </header>
 
-  <section class="ek-card">
-    <div style="display:flex;justify-content:space-between;gap:.75rem;align-items:baseline;flex-wrap:wrap;">
-      <h2 style="margin:0">Gelişim</h2>
+  <section class="ek-card ek-frame">
+    <div class="ek-stage-top">
+      <div>
+        <p class="ek-kicker">Gelişim</p>
+        <h2>Sınıf puan ortalaması{% if gelisim.sinif_ad %} · {{ gelisim.sinif_ad }}{% endif %}</h2>
+      </div>
       <span class="ek-badge">Trend {{ gelisim.trend }}</span>
     </div>
-    <p class="ek-muted" style="margin:.4rem 0 .8rem">Sınıf puan ortalaması{% if gelisim.sinif_ad %} · {{ gelisim.sinif_ad }}{% endif %}</p>
     <div class="ek-chart ek-chart-stage"><canvas id="gelisimChart"></canvas></div>
   </section>
 
-  <section class="ek-card">
-    <h2>Dikkat {% if dikkat.deneme %}<span class="ek-badge">{{ dikkat.deneme.ad }}</span>{% endif %}</h2>
-    <div class="ek-split">
+  <section class="ek-card ek-watch">
+    <div class="ek-stage-top">
       <div>
+        <p class="ek-kicker">Dikkat</p>
+        <h2>{% if dikkat.deneme %}{{ dikkat.deneme.ad }}{% else %}Takip listesi{% endif %}</h2>
+      </div>
+    </div>
+    <div class="ek-split">
+      <div class="ek-watch-pane">
         <p class="ek-kicker">Zayıf / geride konular</p>
         {% if dikkat.zayif_konular %}
         <div class="ek-table-wrap">
@@ -57,7 +64,7 @@
         <p class="ek-muted">Kritik zayıf konu yok veya henüz kazanım Excel’i yok.</p>
         {% endif %}
       </div>
-      <div>
+      <div class="ek-watch-pane">
         <p class="ek-kicker">Düşüşteki talebeler</p>
         {% if dikkat.dusen_talebeler %}
         <div class="ek-table-wrap">
@@ -114,70 +121,9 @@
   </section>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/etut-chart.js' %}?v=ek9"></script>
 <script>
 const data = {{ gelisim_json|safe }};
-const ctx = document.getElementById('gelisimChart');
-if (ctx && data.labels && data.labels.length) {
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: data.labels,
-      datasets: [
-        {
-          label: 'Sınıf puan ort.',
-          data: data.sinif,
-          borderColor: (c) => {
-            const area = c.chart.chartArea;
-            if (!area) return '#2f6ff3';
-            const g = c.chart.ctx.createLinearGradient(area.left, 0, area.right, 0);
-            g.addColorStop(0, '#2f6ff3');
-            g.addColorStop(0.45, '#2a6cb8');
-            g.addColorStop(1, '#1aa477');
-            return g;
-          },
-          backgroundColor: 'rgba(47,111,243,.10)',
-          tension: .42,
-          fill: true,
-          borderWidth: 2.5,
-          pointRadius: 3,
-          pointHoverRadius: 5,
-          pointBackgroundColor: '#ffffff',
-          pointBorderColor: '#2f6ff3',
-          pointBorderWidth: 1.5,
-        }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false, layout: { padding: { top: 28 } },
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { title: (items) => data.labels[items[0].dataIndex] || '' } }
-      },
-      scales: {
-        x: { ticks: { color: '#15427f', font: { family: 'Poppins', size: 13, weight: '600' } }, grid: { display: false }, border: { display: true, color: '#2f6ff3' } },
-        y: { display: false, min: 0, max: 500, grid: { display: false }, border: { display: false } }
-      }
-    },
-    plugins: [{
-      id: 'puanUstte',
-      afterDatasetsDraw(chart) {
-        const { ctx } = chart;
-        const meta = chart.getDatasetMeta(0);
-        ctx.save();
-        ctx.fillStyle = '#15427f';
-        ctx.font = '600 14px Poppins, sans-serif';
-        ctx.shadowColor = 'rgba(47,111,243,.55)';
-        ctx.shadowBlur = 8;
-        ctx.textAlign = 'center';
-        meta.data.forEach((pt, i) => {
-          const v = data.sinif[i];
-          if (v == null) return;
-          ctx.fillText(String(v).replace('.', ','), pt.x, pt.y - 10);
-        });
-        ctx.restore();
-      }
-    }]
-  });
-}
+csLuminousLine(document.getElementById('gelisimChart'), data.labels, data.sinif);
 </script>
 {% endblock %}
