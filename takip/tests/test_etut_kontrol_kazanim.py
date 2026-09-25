@@ -20,6 +20,8 @@ from takip.etut_kontrol_service import (
     etut_deneme_kutulari,
     etut_dikkat,
     etut_gelisim_serisi,
+    etut_gorunum_serisi,
+    hoca_seviye_kirilimi,
     talebe_gelisim_serisi,
 )
 from takip.models import EtutHocasi, SinifSube, Talebe
@@ -157,6 +159,34 @@ class KazanimEtutKontrolTests(TestCase):
         talebe, tip, _ = talebe_eslestir("Ali Veli", "8-B")
         self.assertIsNone(talebe)
         self.assertNotEqual(tip, "otomatik")
+
+    def test_seviye_geneli_ve_sube_cizgileri(self):
+        sinif_a = SinifSube.objects.create(sinif="7", sube="A", aktif=True)
+        sinif_b = SinifSube.objects.create(sinif="7", sube="B", aktif=True)
+        self.hoca.sorumlu_sinif_subeler.add(sinif_a, sinif_b)
+        a = Talebe.objects.create(
+            ad_soyad="Yedi A", sinif="7", sube="A", sinif_sube=sinif_a,
+            etut_hocasi=self.hoca, aktif=True, durum=Talebe.Durum.AKTIF,
+        )
+        b = Talebe.objects.create(
+            ad_soyad="Yedi B", sinif="7", sube="B", sinif_sube=sinif_b,
+            etut_hocasi=self.hoca, aktif=True, durum=Talebe.Durum.AKTIF,
+        )
+        deneme = DenemeSinavi.objects.create(
+            ad="7 deneme", sinav_tarihi=date(2026, 6, 1),
+            sinif_seviyesi="7", durum=DenemeSinavi.Durum.AKTIF,
+        )
+        DenemeSonucu.objects.create(deneme=deneme, talebe=a, puan=Decimal("300"))
+        DenemeSonucu.objects.create(deneme=deneme, talebe=b, puan=Decimal("500"))
+        kirilim = hoca_seviye_kirilimi(self.hoca)
+        self.assertEqual(kirilim["seviye"], "7")
+        self.assertEqual(len(kirilim["subeler"]), 2)
+        genel = etut_gorunum_serisi(self.hoca, kirilim, ayrim=False)
+        self.assertEqual(genel["seriler"][0]["degerler"], [400.0])
+        ayrik = etut_gorunum_serisi(self.hoca, kirilim, ayrim=True)
+        self.assertEqual([s["ad"] for s in ayrik["seriler"]], ["7-A", "7-B"])
+        self.assertEqual(ayrik["seriler"][0]["degerler"], [300.0])
+        self.assertEqual(ayrik["seriler"][1]["degerler"], [500.0])
 
     def test_silme_arsivler_sonuclari_birakir(self):
         DenemeSonucu.objects.create(deneme=self.deneme, talebe=self.talebe, puan=Decimal("410"))

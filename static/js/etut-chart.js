@@ -116,38 +116,45 @@ window.csLuminousLine = function (canvas, labels, values) {
   });
 };
 
-window.csNavyLine = function (canvas, values, dates) {
-  if (!canvas || !values || !values.length || typeof Chart === "undefined") return;
-  const nums = values.filter((v) => v != null);
+window.csNavyLine = function (canvas, values, dates, series) {
+  const sets = (series && series.length) ? series : [{ ad: "", degerler: values || [] }];
+  const flat = sets.reduce((acc, s) => acc.concat(s.degerler || []), []);
+  if (!canvas || !flat.length || typeof Chart === "undefined") return;
+  const nums = flat.filter((v) => v != null);
   const lo = Math.min.apply(null, nums);
   const hi = Math.max.apply(null, nums);
   const pad = Math.max(16, (hi - lo) * 0.45);
   const min = Math.max(0, Math.floor((lo - pad) / 10) * 10);
   const max = Math.min(500, Math.ceil((hi + pad) / 10) * 10);
-  const labels = values.map((_, i) => String(i + 1));
-  const last = values.length - 1;
+  const labels = (sets[0].degerler || []).map((_, i) => String(i + 1));
+  const renkler = ["#ffffff", "#e0c27a", "#7eb6ff"];
+  const last = labels.length - 1;
   new Chart(canvas, {
     type: "line",
     data: {
       labels: labels,
-      datasets: [{
-        data: values,
-        borderColor: "#ffffff",
+      datasets: sets.map((s, si) => ({
+        label: s.ad || "",
+        data: s.degerler || [],
+        borderColor: renkler[si % renkler.length],
         tension: 0.08,
         fill: false,
         borderWidth: 1.75,
         pointRadius: (c) => (c.dataIndex === last ? 5 : 3),
         pointHoverRadius: 6,
-        pointBackgroundColor: (c) => (c.dataIndex === last ? "#e0c27a" : "#ffffff"),
+        pointBackgroundColor: renkler[si % renkler.length],
         pointBorderWidth: 0,
-      }],
+      })),
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       interaction: { mode: "index", axis: "x", intersect: false },
       plugins: {
-        legend: { display: false },
+        legend: {
+          display: sets.length > 1,
+          labels: { color: "rgba(240,244,252,.85)", boxWidth: 12, font: { family: "Poppins", size: 12 } },
+        },
         tooltip: {
           enabled: true,
           intersect: false,
@@ -177,7 +184,8 @@ window.csNavyLine = function (canvas, values, dates) {
               const v = item.parsed.y;
               if (v == null) return "";
               const n = Math.round(v * 10) / 10;
-              return Number.isInteger(n) ? String(n) : String(n).replace(".", ",");
+              const text = Number.isInteger(n) ? String(n) : String(n).replace(".", ",");
+              return item.dataset.label ? item.dataset.label + "  " + text : text;
             },
           },
         },

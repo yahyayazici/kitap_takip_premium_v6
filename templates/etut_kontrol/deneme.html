@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}{{ deneme.ad }} · Etüt Kontrol{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek36">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek41">{% endblock %}
 {% block content %}
 <div class="ek-page">
   <header class="ek-head">
@@ -9,21 +9,25 @@
       <p class="ek-kicker">{{ hoca.ad_soyad }} · {{ deneme.sinav_tarihi|date:"d.m.Y" }}</p>
       <h1>{{ deneme.ad }}</h1>
       <p class="ek-desc">
-        Etüt geneli {% if etut_ortalama %}{{ etut_ortalama }}{% else %}—{% endif %}
-        · Sınıf geneli {% if sinif_ortalama %}{{ sinif_ortalama }}{% else %}—{% endif %}
-        {% if sinif_ad %} ({{ sinif_ad }}){% endif %}
+        {{ sinif_ad }} geneli {% if etut_ortalama %}{{ etut_ortalama }}{% else %}—{% endif %}
       </p>
+      {% if kirilim.subeler|length > 1 %}
+      <span class="ek-scope ek-scope-light">
+        <a href="?sekme={{ sekme }}&gorunum=genel" class="{% if gorunum != 'ayrim' %}is-on{% endif %}">Genel</a>
+        <a href="?sekme={{ sekme }}&gorunum=ayrim" class="{% if gorunum == 'ayrim' %}is-on{% endif %}">Sınıflar</a>
+      </span>
+      {% endif %}
     </div>
     <div class="ek-actions">
-      <a href="{% url 'etut_kontrol' hoca.id %}" class="ghost-btn">← Etüt Kontrol</a>
+      <a href="{% url 'etut_kontrol' hoca.id %}?gorunum={{ gorunum }}" class="ghost-btn">← Etüt Kontrol</a>
       <a href="?sekme={{ sekme }}&indir=excel" class="ghost-btn">Excel</a>
       <a href="?sekme={{ sekme }}&indir=pdf" class="primary-btn">PDF</a>
     </div>
   </header>
 
   <div class="ek-actions" style="margin-bottom:1rem;">
-    <a href="?sekme=siralama" class="{% if sekme == 'siralama' %}primary-btn{% else %}ghost-btn{% endif %}">Genel sıralama</a>
-    <a href="?sekme=kazanim" class="{% if sekme == 'kazanim' %}primary-btn{% else %}ghost-btn{% endif %}">Detaylı kazanım</a>
+    <a href="?sekme=siralama&gorunum={{ gorunum }}" class="{% if sekme == 'siralama' %}primary-btn{% else %}ghost-btn{% endif %}">Genel sıralama</a>
+    <a href="?sekme=kazanim&gorunum={{ gorunum }}" class="{% if sekme == 'kazanim' %}primary-btn{% else %}ghost-btn{% endif %}">Detaylı kazanım</a>
   </div>
 
   <section class="ek-card">
@@ -53,14 +57,27 @@
     {% if kazanimlar %}
     <div class="ek-table-wrap">
     <table class="ek-table">
-      <thead><tr><th>Ders</th><th>Kazanım</th><th>Etüt ort.</th><th>Katılan</th></tr></thead>
+      <thead><tr>
+        <th>Ders</th><th>Kazanım</th>
+        {% if gorunum == 'ayrim' %}
+        {% for s in kirilim.subeler %}<th>{{ s.etiket }}</th>{% endfor %}
+        {% else %}
+        <th>{{ sinif_ad }}</th><th>Katılan</th>
+        {% endif %}
+      </tr></thead>
       <tbody>
       {% for row in kazanimlar %}
       <tr>
         <td>{{ row.ders }}</td>
         <td>{{ row.konu }}</td>
+        {% if gorunum == 'ayrim' %}
+        {% for s in row.siniflar %}
+        <td class="{% if s.ortalama and s.ortalama < 70 %}ek-danger{% else %}ek-ok{% endif %}"><strong>{% if s.ortalama %}{{ s.ortalama }}%{% else %}—{% endif %}</strong></td>
+        {% endfor %}
+        {% else %}
         <td class="{% if row.zayif %}ek-danger{% else %}ek-ok{% endif %}"><strong>{% if row.ortalama %}{{ row.ortalama }}%{% else %}—{% endif %}</strong></td>
         <td>{{ row.talebe_sayisi }}</td>
+        {% endif %}
       </tr>
       {% endfor %}
       </tbody>

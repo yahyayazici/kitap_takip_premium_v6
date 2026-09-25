@@ -16,14 +16,14 @@ from takip.etut_kontrol_service import (
     etut_deneme_kutulari,
     etut_deneme_siralamasi,
     etut_dikkat,
-    etut_gelisim_serisi,
+    etut_gorunum_serisi,
     etut_konu_ozeti,
     etut_talebe_kutulari,
     hoca_baskin_sinif_etiket,
+    hoca_seviye_kirilimi,
     hoca_talebe_ids,
     kullanici_etut_hocalari,
     deneme_ortalama,
-    sinif_deneme_ortalama,
     talebe_deneme_kutulari,
     talebe_gelisim_serisi,
 )
@@ -67,26 +67,41 @@ def etut_kontrol(request, hoca_id):
         return redirect("dashboard")
 
     hocalar = kullanici_etut_hocalari(request.user)
-    gelisim = etut_gelisim_serisi(hoca)
-    dikkat = etut_dikkat(hoca)
+    kirilim = hoca_seviye_kirilimi(hoca)
+    gorunum = request.GET.get("gorunum")
+    if gorunum not in {"genel", "ayrim"} or len(kirilim["subeler"]) < 2:
+        gorunum = "genel"
+    ayrim = gorunum == "ayrim"
+    seri = etut_gorunum_serisi(hoca, kirilim, ayrim)
+    dikkat = etut_dikkat(
+        hoca,
+        talebe_ids=kirilim["genel_ids"] or None,
+        subeler=kirilim["subeler"] if ayrim else None,
+    )
     kutular = etut_deneme_kutulari(hoca)
+    for kutu in kutular:
+        kutu["seviye_ortalama"] = deneme_ortalama(kutu["deneme"], kirilim["genel_ids"])
+    cizgi = seri["seriler"][0]["degerler"] if seri["seriler"] else []
     return render(
         request,
         "etut_kontrol/kontrol.html",
         {
             "hoca": hoca,
             "hocalar": hocalar,
-            "gelisim": gelisim,
+            "kirilim": kirilim,
+            "gorunum": gorunum,
+            "seri": seri,
             "dikkat": dikkat,
             "kutular": kutular,
-            "talebe_sayisi": len(hoca_talebe_ids(hoca)),
+            "talebe_sayisi": len(kirilim["genel_ids"] or hoca_talebe_ids(hoca)),
             "gelisim_json": json.dumps(
                 {
-                    "labels": gelisim["labels"],
-                    "etut": gelisim["etut"],
-                    "sinif": gelisim["sinif"],
-                    "sinif_ad": gelisim["sinif_ad"],
-                    "tarihler": gelisim["tarihler"],
+                    "labels": seri["labels"],
+                    "sinif": cizgi,
+                    "sinif_ad": kirilim["etiket"],
+                    "tarihler": seri["tarihler"],
+                    "seriler": seri["seriler"],
+                    "ayrim": ayrim,
                 },
                 ensure_ascii=False,
             ),
@@ -105,10 +120,23 @@ def etut_kontrol_deneme(request, hoca_id, deneme_id):
     if sekme not in {"siralama", "kazanim"}:
         sekme = "siralama"
 
-    siralama = etut_deneme_siralamasi(hoca, deneme)
-    kazanimlar = etut_konu_ozeti(hoca, deneme)
-    ids = hoca_talebe_ids(hoca)
-    sinif_ad = hoca_baskin_sinif_etiket(hoca)
+    kirilim = hoca_seviye_kirilimi(hoca)
+    gorunum = request.GET.get("gorunum")
+    if gorunum not in {"genel", "ayrim"} or len(kirilim["subeler"]) < 2:
+        gorunum = "genel"
+    ayrim = gorunum == "ayrim"
+    ids = kirilim["genel_ids"] or hoca_talebe_ids(hoca)
+    izinli = set(ids)
+    siralama = [
+        row for row in etut_deneme_siralamasi(hoca, deneme) if row["talebe_id"] in izinli
+    ]
+    kazanimlar = etut_konu_ozeti(
+        hoca,
+        deneme,
+        talebe_ids=ids,
+        subeler=kirilim["subeler"] if ayrim else None,
+    )
+    sinif_ad = kirilim["etiket"] or hoca_baskin_sinif_etiket(hoca)
 
     indir = request.GET.get("indir")
     if indir == "excel":
@@ -126,8 +154,10 @@ def etut_kontrol_deneme(request, hoca_id, deneme_id):
             "siralama": siralama,
             "kazanimlar": kazanimlar,
             "sinif_ad": sinif_ad,
+            "kirilim": kirilim,
+            "gorunum": gorunum,
             "etut_ortalama": deneme_ortalama(deneme, ids),
-            "sinif_ortalama": sinif_deneme_ortalama(deneme, sinif_ad),
+            "sinif_ortalama": deneme_ortalama(deneme, ids),
         },
     )
 

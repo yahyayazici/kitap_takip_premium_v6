@@ -54,6 +54,44 @@ def hoca_talebe_ids(hoca: EtutHocasi) -> list[int]:
     )
 
 
+def hoca_seviye_kirilimi(hoca: EtutHocasi) -> dict:
+    """Hocanın talebelerini seviye ve şubeye ayırır. Varsayılan en kalabalık seviyedir."""
+    talebeler = (
+        Talebe.objects.filter(aktif=True)
+        .filter(hoca_talebe_q(hoca))
+        .select_related("sinif_sube")
+    )
+    gruplar: dict[tuple[str, str], list[int]] = {}
+    for talebe in talebeler:
+        sinif = ""
+        sube = ""
+        if talebe.sinif_sube_id:
+            sinif = talebe.sinif_sube.sinif or ""
+            sube = talebe.sinif_sube.sube or ""
+        sinif = sinif or (talebe.sinif or "")
+        sube = sube or (talebe.sube or "")
+        gruplar.setdefault((str(sinif), str(sube)), []).append(talebe.id)
+    by_seviye: dict[str, list[tuple[str, list[int]]]] = {}
+    for (sinif, sube), ids in gruplar.items():
+        by_seviye.setdefault(sinif, []).append((sube, ids))
+    if not by_seviye:
+        return {"seviye": "", "etiket": "Genel", "genel_ids": [], "subeler": []}
+    seviye = max(by_seviye, key=lambda s: sum(len(ids) for _, ids in by_seviye[s]))
+    subeler = []
+    genel_ids: list[int] = []
+    for sube, ids in sorted(by_seviye[seviye], key=lambda row: row[0]):
+        etiket = f"{seviye}-{sube}".strip("-") if sube else (seviye or "Genel")
+        subeler.append({"etiket": etiket, "ids": ids})
+        genel_ids.extend(ids)
+    etiket = f"{seviye}. sınıf" if seviye else "Genel"
+    return {
+        "seviye": seviye,
+        "etiket": etiket,
+        "genel_ids": genel_ids,
+        "subeler": subeler,
+    }
+
+
 def hoca_baskin_sinif_etiket(hoca: EtutHocasi) -> str:
     row = (
         Talebe.objects.filter(aktif=True)
@@ -203,8 +241,41 @@ def _kazanimli_denemeler(ids: list[int]) -> list[DenemeSinavi]:
     )
 
 
-def etut_dikkat(hoca: EtutHocasi) -> dict:
-    ids = hoca_talebe_ids(hoca)
+def etut_gorunum_serisi(hoca: EtutHocasi, kirilim: dict, ayrim: bool) -> dict:
+    """Seviye geneli tek çizgi; ayrımda şube başına bir çizgi."""
+    ids = kirilim.get("genel_ids") or hoca_talebe_ids(hoca)
+    denemeler = []
+    if ids:
+        denemeler = list(
+            DenemeSinavi.objects.filter(
+                durum=DenemeSinavi.Durum.AKTIF,
+                sonuclar__talebe_id__in=ids,
+            )
+            .distinct()
+            .order_by("sinav_tarihi", "id")
+        )
+    labels, tarihler = [], []
+    for i, deneme in enumerate(denemeler, start=1):
+        labels.append(f"{i}. Deneme")
+        tarihler.append(deneme.sinav_tarihi.isoformat() if deneme.sinav_tarihi else "")
+
+    def _cizgi(id_list: list[int]) -> list[float | None]:
+        out = []
+        for deneme in denemeler:
+            ortalama = deneme_ortalama(deneme, id_list)
+            out.append(float(ortalama) if ortalama is not None else None)
+        return out
+
+    subeler = kirilim.get("subeler") or []
+    if ayrim and len(subeler) > 1:
+        seriler = [{"ad": s["etiket"], "degerler": _cizgi(s["ids"])} for s in subeler]
+    else:
+        seriler = [{"ad": kirilim.get("etiket") or "Genel", "degerler": _cizgi(ids)}]
+    return {"labels": labels, "tarihler": tarihler, "seriler": seriler}
+
+
+def etut_dikkat(hoca: EtutHocasi, talebe_ids: list[int] | None = None, subeler: list[dict] | None = None) -> dict:
+    ids = hoca_talebe_ids(hoca) if talebe_ids is None else talebe_ids
     sinif_ad = hoca_baskin_sinif_etiket(hoca)
     kazanimli = _kazanimli_denemeler(ids)
     son = kazanimli[0] if kazanimli else None
@@ -223,10 +294,29 @@ def etut_dikkat(hoca: EtutHocasi) -> dict:
         )
         for row in rows:
             ort = _avg_or_none(row["ortalama"])
-            if ort is None or ort >= ZAYIF_ESIK:
-                continue
+            siniflar = []
+            if subeler:
+                for sube in subeler:
+                    s_ort = _avg_or_none(
+                        DenemeKazanimSonucu.objects.filter(
+                            deneme=son,
+                            talebe_id__in=sube["ids"],
+                            ders_key=row["ders_key"],
+                            konu_key=row["konu_key"],
+                            yuzde__isnull=False,
+                        ).aggregate(avg=Avg("yuzde"))["avg"]
+                    )
+                    siniflar.append({"etiket": sube["etiket"], "ortalama": s_ort})
+                zayif_mi = any(
+                    s["ortalama"] is not None and s["ortalama"] < ZAYIF_ESIK for s in siniflar
+                ) or (ort is not None and ort < ZAYIF_ESIK)
+                if not zayif_mi:
+                    continue
+            else:
+                if ort is None or ort >= ZAYIF_ESIK:
+                    continue
             sinif_ort = None
-            if sinif_ad:
+            if sinif_ad and not subeler:
                 srows = DenemeKazanimSonucu.objects.filter(
                     deneme=son,
                     ders_key=row["ders_key"],
@@ -249,6 +339,7 @@ def etut_dikkat(hoca: EtutHocasi) -> dict:
                     "konu_key": row["konu_key"],
                     "ortalama": ort,
                     "sinif_ortalama": sinif_ort,
+                    "siniflar": siniflar,
                     "zayif": True,
                 }
             )
@@ -283,6 +374,8 @@ def etut_dikkat(hoca: EtutHocasi) -> dict:
         "onceki_deneme": onceki,
         "zayif_konular": zayif_konular,
         "dusen_talebeler": dusen,
+        "ayrim": bool(subeler),
+        "sube_adlari": [s["etiket"] for s in (subeler or [])],
     }
 
 
@@ -378,8 +471,8 @@ def deneme_alt_baslik(deneme: DenemeSinavi, talebe_ids: list[int]) -> dict:
     return {"kazanimlar": kazanim_satir, "talebeler": talebeler}
 
 
-def etut_konu_ozeti(hoca: EtutHocasi, deneme: DenemeSinavi) -> list[dict]:
-    ids = hoca_talebe_ids(hoca)
+def etut_konu_ozeti(hoca: EtutHocasi, deneme: DenemeSinavi, talebe_ids: list[int] | None = None, subeler: list[dict] | None = None) -> list[dict]:
+    ids = hoca_talebe_ids(hoca) if talebe_ids is None else talebe_ids
     rows = (
         DenemeKazanimSonucu.objects.filter(
             deneme=deneme,
@@ -390,19 +483,39 @@ def etut_konu_ozeti(hoca: EtutHocasi, deneme: DenemeSinavi) -> list[dict]:
         .annotate(ortalama=Avg("yuzde"), talebe_sayisi=Count("talebe_id", distinct=True))
         .order_by("ders_ad", "konu_ad")
     )
-    return [
-        {
-            "ders": r["ders_ad"],
-            "konu": r["konu_ad"],
-            "ders_key": r["ders_key"],
-            "konu_key": r["konu_key"],
-            "ortalama": _avg_or_none(r["ortalama"]),
-            "talebe_sayisi": r["talebe_sayisi"],
-            "zayif": r["ortalama"] is not None
-            and Decimal(str(r["ortalama"])) < ZAYIF_ESIK,
-        }
-        for r in rows
-    ]
+    sonuc = []
+    for r in rows:
+        siniflar = []
+        if subeler:
+            for sube in subeler:
+                siniflar.append(
+                    {
+                        "etiket": sube["etiket"],
+                        "ortalama": _avg_or_none(
+                            DenemeKazanimSonucu.objects.filter(
+                                deneme=deneme,
+                                talebe_id__in=sube["ids"],
+                                ders_key=r["ders_key"],
+                                konu_key=r["konu_key"],
+                                yuzde__isnull=False,
+                            ).aggregate(avg=Avg("yuzde"))["avg"]
+                        ),
+                    }
+                )
+        sonuc.append(
+            {
+                "ders": r["ders_ad"],
+                "konu": r["konu_ad"],
+                "ders_key": r["ders_key"],
+                "konu_key": r["konu_key"],
+                "ortalama": _avg_or_none(r["ortalama"]),
+                "talebe_sayisi": r["talebe_sayisi"],
+                "siniflar": siniflar,
+                "zayif": r["ortalama"] is not None
+                and Decimal(str(r["ortalama"])) < ZAYIF_ESIK,
+            }
+        )
+    return sonuc
 
 
 def etut_talebe_kutulari(hoca: EtutHocasi) -> list[dict]:
