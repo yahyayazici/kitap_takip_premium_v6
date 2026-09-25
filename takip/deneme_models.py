@@ -12,6 +12,7 @@ class DenemeSinavi(models.Model):
     class Durum(models.TextChoices):
         TASLAK = "taslak", "Taslak"
         AKTIF = "aktif", "Aktif"
+        ARSIV = "arsiv", "Arşiv"
 
     class Tur(models.TextChoices):
         GRUP = "grup", "Grup denemesi"
@@ -365,6 +366,68 @@ class DenemeKonuSonucu(models.Model):
 
     def __str__(self):
         return f"{self.konu_normalize or self.konu_ham} ({self.yuzde}%)"
+
+
+class DenemeKazanimSonucu(models.Model):
+    """KonuKazanimDetay Excel satırı — Gap PDF'den bağımsız kazanım yüzdesi/net."""
+
+    deneme = models.ForeignKey(
+        DenemeSinavi,
+        on_delete=models.CASCADE,
+        related_name="kazanim_sonuclari",
+        verbose_name="Deneme",
+    )
+    talebe = models.ForeignKey(
+        "Talebe",
+        on_delete=models.CASCADE,
+        related_name="deneme_kazanim_sonuclari",
+        verbose_name="Talebe",
+    )
+    ders_ad = models.CharField(max_length=120, verbose_name="Ders")
+    konu_ad = models.CharField(max_length=300, verbose_name="Kazanım / konu")
+    ders_key = models.CharField(max_length=120, db_index=True)
+    konu_key = models.CharField(max_length=300, db_index=True)
+    yuzde = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="Başarı %",
+    )
+    net_dogru = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="Net doğru",
+    )
+    net_toplam = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="Net toplam",
+    )
+    olusturulma = models.DateTimeField(auto_now_add=True)
+    guncellenme = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Deneme kazanım sonucu"
+        verbose_name_plural = "Deneme kazanım sonuçları"
+        ordering = ["ders_ad", "konu_ad", "id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["deneme", "talebe", "ders_key", "konu_key"],
+                name="deneme_kazanim_benzersiz",
+            )
+        ]
+        indexes = [
+            models.Index(fields=["deneme", "talebe"]),
+            models.Index(fields=["deneme", "konu_key"]),
+        ]
+
+    def __str__(self):
+        return f"{self.talebe_id} · {self.konu_ad} ({self.yuzde}%)"
 
 
 class DenemeExcelYukleme(models.Model):

@@ -25,7 +25,8 @@ from takip.deneme_gap_pdf import (
     gap_raporu_eslestir,
     gap_raporu_kaydet,
 )
-from takip.deneme_models import DenemeGapRaporu
+from takip.deneme_kazanim_excel import import_kazanim_excel
+from takip.deneme_models import DenemeGapRaporu, DenemeKazanimSonucu
 from takip.deneme_service import (
     BRANS_ETIKETLERI,
     DENEME_DETAY_BRANSLAR,
@@ -62,7 +63,9 @@ def deneme_listesi(request):
 
     from takip.deneme_service import deneme_arsiv_filtre_secenekleri, deneme_arsiv_filtrele
 
-    denemeler = DenemeSinavi.objects.select_related("egitim_yili").annotate(
+    denemeler = DenemeSinavi.objects.exclude(
+        durum=DenemeSinavi.Durum.ARSIV
+    ).select_related("egitim_yili").annotate(
         sonuc_sayisi=Count("sonuclar"),
     ).order_by("-sinav_tarihi", "-id")
     denemeler, filtre = deneme_arsiv_filtrele(denemeler, request.GET)
@@ -186,6 +189,13 @@ def deneme_detay(request, pk):
                 for r in gap_raporlari
                 if r.durum == DenemeGapRaporu.Durum.ESLESME_BEKLIYOR
             ),
+            "kazanim_satir": DenemeKazanimSonucu.objects.filter(deneme=deneme).count(),
+            "kazanim_talebe": (
+                DenemeKazanimSonucu.objects.filter(deneme=deneme)
+                .values("talebe_id")
+                .distinct()
+                .count()
+            ),
             "talebeler": (
                 Talebe.objects.filter(aktif=True).order_by("ad_soyad")
                 if deneme.durum == DenemeSinavi.Durum.AKTIF
@@ -206,8 +216,49 @@ def deneme_sil(request, pk):
         return redirect("yonetim:deneme_detay", pk=pk)
     ad = deneme.ad
     deneme_sinavini_sil(request.user, deneme)
-    messages.success(request, f"«{ad}» silindi.")
+    messages.success(request, f"«{ad}» arşive alındı. Sonuçlar ve kazanımlar duruyor.")
     return redirect("yonetim:deneme_listesi")
+
+
+@yonetici_gerekli
+def deneme_kazanim_yukle(request, pk):
+    if not deneme_yukleyebilir(request.user):
+        messages.error(request, "Kazanım Excel yükleme yetkiniz yok.")
+        return redirect("yonetim:deneme_listesi")
+
+    deneme = get_object_or_404(DenemeSinavi, pk=pk)
+    if deneme.durum != DenemeSinavi.Durum.AKTIF:
+        messages.error(
+            request,
+            "KonuKazanimDetay yalnızca aktif (Excel’i işlenmiş) denemelere yüklenebilir.",
+        )
+        return redirect("yonetim:deneme_detay", pk=pk)
+
+    if request.method != "POST":
+        return redirect("yonetim:deneme_detay", pk=pk)
+
+    dosya = request.FILES.get("kazanim_excel")
+    if not dosya:
+        messages.error(request, "Excel dosyası seçin.")
+        return redirect("yonetim:deneme_detay", pk=pk)
+    if not (dosya.name or "").lower().endswith((".xlsx", ".xlsm")):
+        messages.error(request, "Lütfen .xlsx formatında KonuKazanimDetay dosyası yükleyin.")
+        return redirect("yonetim:deneme_detay", pk=pk)
+
+    try:
+        stats = import_kazanim_excel(dosya, deneme=deneme)
+    except Exception as exc:  # noqa: BLE001
+        messages.error(request, f"Kazanım Excel işlenemedi: {exc}")
+        return redirect("yonetim:deneme_detay", pk=pk)
+
+    messages.success(
+        request,
+        f"Kazanım Excel yüklendi: {stats.sonuc_yazilan} satır, "
+        f"{stats.eslesen_talebe} talebe, {stats.konu_sayisi} konu.",
+    )
+    for uyari in stats.uyari[:3]:
+        messages.warning(request, uyari)
+    return redirect("yonetim:deneme_detay", pk=pk)
 
 
 @yonetici_gerekli

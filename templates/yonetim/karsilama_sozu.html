@@ -1,0 +1,28 @@
+{% extends "yonetim/base.html" %}
+{% block title %}Karşılama sözü{% endblock %}
+{% block content %}
+<div class="yonetim-page">
+    <header class="yonetim-page-head">
+        <div>
+            <p class="kicker">ANA SAYFA</p>
+            <h1>Karşılama sözü</h1>
+            <p>Hoş geldiniz bandının yanında durur. Motivasyon, hadis veya kısa bir söz. Boş bırakırsanız bantta yer kaplamaz.</p>
+        </div>
+    </header>
+    <section class="yonetim-card">
+        <form method="post">
+            {% csrf_token %}
+            <p>
+                <label for="metin">Söz</label>
+                <textarea class="input" id="metin" name="metin" rows="4">{{ soz.metin }}</textarea>
+            </p>
+            <p>
+                <label for="kaynak">Kaynak</label>
+                <input class="input" id="kaynak" name="kaynak" maxlength="160" value="{{ soz.kaynak }}">
+            </p>
+            <button type="submit" class="primary-btn">Kaydet</button>
+            <a href="{% url 'dashboard' %}" class="ghost-btn">Ana sayfa</a>
+        </form>
+    </section>
+</div>
+{% endblock %}

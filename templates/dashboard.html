@@ -27,6 +27,12 @@
             <h1><span class="pv4-script">Hoş geldiniz,</span> <strong>{{ hero_name }}</strong></h1>
             <p>{{ panel_rol }} · Kurum yönetim paneli</p>
         </div>
+        {% if karsilama_sozu %}
+        <blockquote class="pv4-quote">
+            <p>{{ karsilama_sozu.metin }}</p>
+            {% if karsilama_sozu.kaynak %}<cite>{{ karsilama_sozu.kaynak }}</cite>{% endif %}
+        </blockquote>
+        {% endif %}
     </div>
     <div class="pv4-date-card" data-panel-date-block>
         <span class="pv4-date-kicker">Bugün</span>

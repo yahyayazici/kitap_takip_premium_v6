@@ -1,6 +1,7 @@
 """Deneme — personel görüntüleme."""
 
 from django.contrib import messages
+from django.db.models import Avg
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.text import slugify
@@ -52,8 +53,38 @@ def deneme_listesi(request):
         durum="aktif",
     )
     denemeler, filtre = deneme_arsiv_filtrele(denemeler, request.GET)
+    denemeler = list(denemeler.annotate(puan_ort=Avg("sonuclar__puan")))
+    yayinlar = {(d.yayin or "").strip() for d in denemeler if (d.yayin or "").strip()}
+    seri = [float(d.puan_ort) for d in reversed(denemeler) if d.puan_ort is not None]
+    genel = round(sum(seri) / len(seri)) if seri else None
+    son5 = seri[-5:]
+    fark = round(son5[-1] - son5[0]) if len(son5) >= 2 else None
+    cizgi = ""
+    cizgi_x = cizgi_y = ""
+    if len(son5) >= 2:
+        lo, hi = min(son5), max(son5)
+        span = hi - lo or 1
+        parca = []
+        for i, v in enumerate(son5):
+            x = 6 + (228 * i / (len(son5) - 1))
+            y = 8 + 48 * (1 - (v - lo) / span)
+            parca.append(f"{x:.1f},{y:.1f}")
+        cizgi = " ".join(parca)
+        cizgi_x, cizgi_y = parca[-1].split(",")
     context = {
         "denemeler": denemeler,
+        "arsiv_ozet": {
+            "sayi": len(denemeler),
+            "katilim": sum(d.sonuc_sayisi or 0 for d in denemeler),
+            "yayin_sayisi": len(yayinlar),
+            "son": denemeler[0] if denemeler else None,
+            "seri": son5,
+            "genel": genel,
+            "cizgi": cizgi,
+            "cizgi_x": cizgi_x,
+            "cizgi_y": cizgi_y,
+            "fark": fark,
+        },
         "sil_yetkisi": deneme_silebilir(request.user),
         "filtre": filtre,
         **deneme_arsiv_filtre_secenekleri(),
@@ -71,6 +102,19 @@ def deneme_listesi(request):
 def deneme_detay(request, pk):
     deneme = get_object_or_404(yetkili_denemeler(request.user), pk=pk)
     ctx = _deneme_detay_verisi(request, deneme)
+    from takip.etut_kontrol_service import deneme_alt_baslik
+
+    ids = [s.talebe_id for s in ctx["sonuclar"]]
+    ctx["alt"] = deneme_alt_baslik(deneme, ids)
+    secili = request.GET.get("talebe")
+    ctx["secili_talebe"] = next(
+        (
+            k
+            for k in ctx["alt"]["talebeler"]
+            if secili and str(k["talebe"].id) == secili
+        ),
+        None,
+    )
     ctx.update(
         {
             "pdf_yetkisi": can(request.user, "deneme", "export_pdf"),
@@ -276,5 +320,5 @@ def deneme_sil(request, pk):
         return redirect("deneme_listesi")
     ad = deneme.ad
     deneme_sinavini_sil(request.user, deneme)
-    messages.success(request, f"«{ad}» silindi.")
+    messages.success(request, f"«{ad}» arşive alındı. Sonuçlar ve kazanımlar duruyor.")
     return redirect("deneme_listesi")

@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Etüt Takip · {{ hoca.ad_soyad }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek41">{% endblock %}
+{% block content %}
+<div class="ek-page">
+  <header class="ek-head">
+    <div>
+      <p class="ek-kicker">Etüt Takip · {{ talebe_sayisi }} talebe</p>
+      <h1>{{ hoca.ad_soyad }}</h1>
+      <p class="ek-desc">Gelişim grafiği, dikkat listesi ve deneme kutuları. Kazanım Excel’i yönetimden yüklenince burada görünür.</p>
+    </div>
+    <div class="ek-actions">
+      {% if hocalar|length > 1 %}
+      <form method="get" action="{% url 'etut_kontrol_panel' %}">
+        <select name="hoca" onchange="this.form.submit()" class="input">
+          {% for e in hocalar %}
+          <option value="{{ e.id }}" {% if e.id == hoca.id %}selected{% endif %}>{{ e.ad_soyad }}</option>
+          {% endfor %}
+        </select>
+      </form>
+      {% endif %}
+      <a href="{% url 'etut_kontrol_talebeler' hoca.id %}" class="primary-btn">Talebelerim</a>
+    </div>
+  </header>
+
+  <section class="ek-hero">
+    <div class="ek-hero-bar">
+      <span class="ek-class">{{ kirilim.etiket }}</span>
+      {% if kirilim.subeler|length > 1 %}
+      <span class="ek-scope">
+        <a href="?gorunum=genel" class="{% if gorunum != 'ayrim' %}is-on{% endif %}">Genel</a>
+        <a href="?gorunum=ayrim" class="{% if gorunum == 'ayrim' %}is-on{% endif %}">Sınıflar</a>
+      </span>
+      {% endif %}
+    </div>
+    <div class="ek-hero-top">
+      <div>
+        <p class="ek-hero-kicker">{% if gorunum == 'ayrim' %}Sınıf ayrımları{% else %}{{ kirilim.etiket }} geneli{% endif %}</p>
+        <p class="ek-hero-score"><b id="ekSon">—</b><span>/ 500</span></p>
+      </div>
+      <div class="ek-hero-stats">
+        <div><span>Sınıf, ilk denemeden</span><b id="ekFark">—</b></div>
+        <div><span>Sınıf ortalaması</span><b id="ekOrt">—</b></div>
+        <div><span>Sınıf en yüksek</span><b id="ekMax">—</b></div>
+      </div>
+    </div>
+    <div class="ek-hero-chart"><canvas id="gelisimChart"></canvas></div>
+  </section>
+
+  <section class="ek-card ek-watch">
+    <div class="ek-watch-head">
+      <h2>Dikkat{% if dikkat.deneme %}: {% if dikkat.deneme.sira_no %}{{ dikkat.deneme.sira_no }}. Deneme{% else %}{{ dikkat.deneme.ad }}{% endif %}{% endif %}</h2>
+      {% if dikkat.deneme %}<span>{{ dikkat.deneme.sinav_tarihi|date:"j F Y" }}</span>{% endif %}
+    </div>
+    <div class="ek-split">
+      <div class="ek-watch-pane">
+        <div class="ek-watch-label"><span>Zayıf kazanımlar{% if dikkat.deneme %} · bu deneme{% endif %}</span><b>{{ dikkat.zayif_konular|length }}</b></div>
+        {% if dikkat.zayif_konular %}
+        <div class="ek-table-wrap">
+        <table class="ek-table">
+          <thead><tr>
+            <th>Konu</th>
+            {% if dikkat.ayrim %}
+            {% for ad in dikkat.sube_adlari %}<th>{{ ad }}</th>{% endfor %}
+            {% else %}
+            <th>{{ kirilim.etiket }}</th>
+            {% endif %}
+          </tr></thead>
+          <tbody>
+          {% for row in dikkat.zayif_konular %}
+          <tr>
+            <td>{{ row.konu }}<div class="ek-muted">{{ row.ders }}</div></td>
+            {% if dikkat.ayrim %}
+            {% for s in row.siniflar %}
+            <td class="{% if s.ortalama and s.ortalama < 70 %}ek-danger{% endif %}">{% if s.ortalama %}{{ s.ortalama }}%{% else %}—{% endif %}</td>
+            {% endfor %}
+            {% else %}
+            <td class="ek-danger">{{ row.ortalama }}%</td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        </div>
+        {% else %}
+        <p class="ek-ok-line">Zayıf kazanım yok veya henüz kazanım Excel’i yok.</p>
+        {% endif %}
+      </div>
+      <div class="ek-watch-pane">
+        <div class="ek-watch-label"><span>Düşüşteki talebeler{% if dikkat.onceki_deneme %} · önceki kazanımlı denemeye göre{% endif %}</span><b>{{ dikkat.dusen_talebeler|length }}</b></div>
+        {% if dikkat.dusen_talebeler %}
+        <div class="ek-table-wrap">
+        <table class="ek-table">
+          <thead><tr><th>Talebe</th><th>Önceki</th><th>Son</th><th>Fark</th></tr></thead>
+          <tbody>
+          {% for row in dikkat.dusen_talebeler %}
+          <tr>
+            <td class="ek-name">{{ row.talebe.ad_soyad }}</td>
+            <td>{{ row.eski }}</td>
+            <td>{{ row.yeni }}</td>
+            <td class="ek-danger">{{ row.delta }}</td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        </div>
+        {% else %}
+        <p class="ek-ok-line">Belirgin düşüş yok.</p>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <section class="ek-exams">
+    <div class="ek-exams-head">
+      <h2>Denemelerim <span>{{ kutular|length }} deneme</span></h2>
+      {% if kutular %}
+      <label class="ek-sort">Sırala
+        <select id="ekSort">
+          <option value="new">Yeniden eskiye</option>
+          <option value="old">Eskiden yeniye</option>
+        </select>
+      </label>
+      {% endif %}
+    </div>
+    {% if kutular %}
+    <div class="ek-exam-grid" id="ekExamGrid">
+      {% for k in kutular %}
+      <a class="ek-exam{% if forloop.first %} is-last{% endif %}" href="{% url 'etut_kontrol_deneme' hoca.id k.deneme.id %}?gorunum={{ gorunum }}" data-time="{{ k.deneme.sinav_tarihi|date:'Ymd' }}" data-puan="{% if k.seviye_ortalama %}{{ k.seviye_ortalama|floatformat:1 }}{% endif %}">
+        <div class="ek-exam-top">
+          <div>
+            <strong>{% if k.deneme.sira_no %}{{ k.deneme.sira_no }}. Deneme{% else %}{{ k.deneme.ad }}{% endif %}</strong>
+            {% if forloop.first %}<span class="ek-pill">Son deneme</span><em>{{ k.deneme.sinav_tarihi|date:"j F Y" }}</em>{% endif %}
+          </div>
+          {% if not forloop.first %}<span>{{ k.deneme.sinav_tarihi|date:"j M Y" }}</span>{% endif %}
+        </div>
+        <p class="ek-exam-score"><b>{% if k.seviye_ortalama %}{{ k.seviye_ortalama|floatformat:1 }}{% else %}—{% endif %}</b><small>{{ kirilim.etiket }} / 500</small></p>
+        <div class="ek-meter"><i style="width:{% if k.seviye_ortalama %}{% widthratio k.seviye_ortalama 500 100 %}{% else %}0{% endif %}%"></i></div>
+        <div class="ek-exam-meta">
+          <span class="ek-delta"></span>
+          <span>{% if gorunum == 'ayrim' %}Sınıf ayrımları grafikte{% else %}{{ kirilim.etiket }} geneli{% endif %}</span>
+        </div>
+        <p class="ek-exam-weak">{% if k.zayif_konu %}{{ k.zayif_konu }} zayıf kazanım{% else %}Zayıf kazanım yok{% endif %}</p>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="ek-card"><p class="ek-muted">Henüz kazanım Excel’i yok. Yönetim → Deneme detayından KonuKazanimDetay yükleyin.</p></div>
+    {% endif %}
+  </section>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/etut-chart.js' %}?v=ek41"></script>
+<script>
+const data = {{ gelisim_json|safe }};
+csNavyLine(document.getElementById('gelisimChart'), data.sinif || [], data.tarihler || [], data.seriler || []);
+(function () {
+  const vals = (data.ayrim ? [] : (data.sinif || [])).filter(function (v) { return v != null; });
+  const etutVals = [];
+  const txt = function (n, digit) {
+    if (n == null || Number.isNaN(n)) return "—";
+    return digit ? n.toFixed(1).replace(".", ",") : String(Math.round(n));
+  };
+  if (vals.length) {
+    const last = vals[vals.length - 1];
+    const first = vals[0];
+    const fark = Math.round(last - first);
+    document.getElementById("ekSon").textContent = txt(last, true);
+    if (etutVals.length) document.getElementById("ekEtut").textContent = txt(etutVals[etutVals.length - 1], true);
+    document.getElementById("ekFark").textContent = (fark > 0 ? "+" : "") + fark;
+    document.getElementById("ekOrt").textContent = txt(vals.reduce(function (a, b) { return a + b; }, 0) / vals.length, true);
+    document.getElementById("ekMax").textContent = txt(Math.max.apply(null, vals), true);
+  }
+  document.querySelectorAll(".ek-exam-score b").forEach(function (el) {
+    el.textContent = el.textContent.replace(".", ",");
+  });
+  const cards = Array.prototype.slice.call(document.querySelectorAll(".ek-exam"));
+  const chrono = cards.slice().sort(function (a, b) { return a.dataset.time < b.dataset.time ? -1 : 1; });
+  chrono.forEach(function (card, i) {
+    const el = card.querySelector(".ek-delta");
+    const prev = chrono[i - 1];
+    if (!el || !prev || !card.dataset.puan || !prev.dataset.puan) return;
+    const d = Math.round(Number(card.dataset.puan) - Number(prev.dataset.puan));
+    el.textContent = (d > 0 ? "+" : "") + d + " puan";
+    if (d < 0) el.classList.add("is-down");
+  });
+  const sort = document.getElementById("ekSort");
+  const grid = document.getElementById("ekExamGrid");
+  if (sort && grid) {
+    sort.addEventListener("change", function () {
+      const items = Array.prototype.slice.call(grid.children);
+      items.sort(function (a, b) {
+        return sort.value === "old" ? (a.dataset.time < b.dataset.time ? -1 : 1) : (a.dataset.time > b.dataset.time ? -1 : 1);
+      });
+      items.forEach(function (el) { grid.appendChild(el); });
+    });
+  }
+})();
+</script>
+{% endblock %}

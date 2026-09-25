@@ -1,5 +1,7 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}{{ deneme.ad }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek36">{% endblock %}
 {% block content %}
 <div class="result-entry-page deneme-detail-page">
     <header class="result-entry-header">
@@ -22,7 +24,7 @@
             {% endif %}
             <a href="{% url 'deneme_listesi' %}" class="result-back-button">Denemeler</a>
             {% if sil_yetkisi %}
-            <form method="post" action="{% url 'deneme_sil' deneme.pk %}" onsubmit="return confirm('«{{ deneme.ad|escapejs }}» silinsin mi? Sonuçlar da kalkar.');">
+            <form method="post" action="{% url 'deneme_sil' deneme.pk %}" onsubmit="return confirm('«{{ deneme.ad|escapejs }}» arşive alınsın mı? Sonuçlar ve kazanımlar silinmez, listeden kalkar.');">
                 {% csrf_token %}
                 <button type="submit" class="result-secondary-button">Sil</button>
             </form>
@@ -142,6 +144,76 @@
             </article>
             {% endfor %}
         </div>
+    </section>
+    {% endif %}
+
+    {% if alt.kazanimlar %}
+    <section class="result-card" style="margin-top:20px;">
+        <h2 class="deneme-section-title">Kazanımlar</h2>
+        <p class="deneme-section-desc">KonuKazanimDetay. %70 altı zayıf.</p>
+        <div class="ek-table-wrap">
+            <table class="ek-table">
+                <thead><tr><th>Ders</th><th>Kazanım</th><th>Ortalama</th><th>Katılan</th></tr></thead>
+                <tbody>
+                {% for row in alt.kazanimlar %}
+                <tr>
+                    <td>{{ row.ders }}</td>
+                    <td>{{ row.konu }}</td>
+                    <td class="{% if row.zayif %}ek-danger{% else %}ek-ok{% endif %}">{{ row.ortalama }}%</td>
+                    <td>{{ row.talebe_sayisi }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if alt.talebeler %}
+    <section class="result-card" style="margin-top:20px;">
+        <h2 class="deneme-section-title">Talebeler</h2>
+        <p class="deneme-section-desc">Puan 500 üzerinden. Zayıf kazanım sayısı bu denemeye aittir.</p>
+        <div class="ek-grid">
+            {% for k in alt.talebeler %}
+            <a class="ek-score" href="?talebe={{ k.talebe.id }}#talebe-kazanim">
+                <div class="ek-score-rail">
+                    <span>puan</span>
+                    <b>{% if k.puan %}{{ k.puan|floatformat:0 }}{% else %}—{% endif %}</b>
+                    <small>/ 500</small>
+                </div>
+                <div class="ek-score-body">
+                    <strong>{{ k.talebe.ad_soyad }}</strong>
+                    <div class="ek-meter"><i class="{% if k.zayif_sayisi %}is-low{% endif %}" style="width:{% if k.puan %}{% widthratio k.puan 500 100 %}{% else %}0{% endif %}%"></i></div>
+                    <div class="ek-score-foot">
+                        <span class="ek-flag {% if k.zayif_sayisi %}is-bad{% else %}is-ok{% endif %}">{% if k.zayif_sayisi %}{{ k.zayif_sayisi }} zayıf kazanım{% else %}Zayıf yok{% endif %}</span>
+                        <span>aç</span>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% if secili_talebe %}
+        <div id="talebe-kazanim" style="margin-top:1.25rem;">
+            <h3 class="deneme-section-title">{{ secili_talebe.talebe.ad_soyad }} · kazanımlar</h3>
+            <div class="ek-table-wrap">
+                <table class="ek-table">
+                    <thead><tr><th>Ders</th><th>Kazanım</th><th>Yüzde</th><th>Net</th></tr></thead>
+                    <tbody>
+                    {% for row in secili_talebe.kazanimlar %}
+                    <tr class="{% if row.zayif %}is-weak{% endif %}">
+                        <td>{{ row.ders }}</td>
+                        <td>{{ row.konu }}</td>
+                        <td class="{% if row.zayif %}ek-danger{% else %}ek-ok{% endif %}">{% if row.yuzde is not None %}{{ row.yuzde }}%{% else %}—{% endif %}</td>
+                        <td>{% if row.net_dogru is not None and row.net_toplam is not None %}{{ row.net_dogru }}/{{ row.net_toplam }}{% else %}—{% endif %}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4">Bu denemede kazanım satırı yok.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
     </section>
     {% endif %}
 

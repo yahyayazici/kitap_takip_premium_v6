@@ -262,18 +262,12 @@ def deneme_arsiv_filtre_secenekleri() -> dict:
 
 
 def deneme_sinavini_sil(user: User, deneme: DenemeSinavi) -> None:
-    from takip.soru_takip_service import deneme_sonucu_soru_takibe_yansit
-
-    sonuclar = list(
-        DenemeSonucu.objects.filter(deneme=deneme).prefetch_related(
-            "brans_satirlari", "talebe"
-        )
-    )
-    for sonuc in sonuclar:
-        deneme_sonucu_soru_takibe_yansit(
-            user=user, deneme=deneme, sonuc=sonuc, silindi=True
-        )
-    deneme.delete()
+    """Sınavı arşive alır. Sonuç ve kazanım satırları durur, listelerden düşer."""
+    del user
+    if deneme.durum == DenemeSinavi.Durum.ARSIV:
+        return
+    deneme.durum = DenemeSinavi.Durum.ARSIV
+    deneme.save(update_fields=["durum", "guncellenme"])
 
 
 def deneme_detay_satirlari(sonuclar) -> list[dict]:

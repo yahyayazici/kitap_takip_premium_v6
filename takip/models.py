@@ -2101,6 +2101,7 @@ from takip.deneme_models import (  # noqa: E402,F401
     DenemeEslestirmeAlias,
     DenemeExcelYukleme,
     DenemeGapRaporu,
+    DenemeKazanimSonucu,
     DenemeKonuSonucu,
     DenemeSinavi,
     DenemeSonucu,
@@ -2308,6 +2309,8 @@ from takip.sabah_beslenme_models import (  # noqa: E402,F401
     SabahBeslenmeIslemLog,
     SabahBeslenmeSiparis,
 )
+
+from takip.karsilama_models import KarsilamaSozu  # noqa: E402,F401
 
 from takip.iletisim_models import (  # noqa: E402,F401
     IletisimEki,

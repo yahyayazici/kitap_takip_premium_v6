@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Talebeler · {{ hoca.ad_soyad }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek36">{% endblock %}
+{% block content %}
+<div class="ek-page">
+  <header class="ek-head">
+    <div>
+      <p class="ek-kicker ek-kicker-soft"><i></i> Etüt, talebelerim</p>
+      <h1>{{ hoca.ad_soyad }}</h1>
+      <p class="ek-desc">Talebe kutularına gir; puan grafiği ve deneme kazanımlarını gör. Zayıflar öne çıkar.</p>
+    </div>
+    <div class="ek-actions">
+      <a href="{% url 'etut_kontrol' hoca.id %}" class="ghost-btn">← Etüt Kontrol</a>
+    </div>
+  </header>
+
+  {% if kutular %}
+  <section class="ek-roster">
+    <div class="ek-roster-stats">
+      <div><span>Talebe</span><b id="ekAdet">{{ kutular|length }}</b></div>
+      <div><span>Son deneme ortalaması</span><b id="ekOrt">—</b></div>
+      <div><span>En yüksek</span><b id="ekMax">—</b></div>
+      <div><span>Dikkat isteyen</span><b id="ekDikkat">—</b></div>
+    </div>
+    <div class="ek-roster-plot">
+      <div class="ek-roster-plot-top"><span>Son deneme puan dağılımı</span><span>/ 500</span></div>
+      <div class="ek-dots" id="ekDots"></div>
+      <div class="ek-dots-axis" id="ekDotsAxis"></div>
+      <p class="ek-dots-legend"><span>Talebe</span><span class="is-hot">3 ve üzeri zayıf kazanım</span></p>
+    </div>
+  </section>
+
+  <div class="ek-exams-head">
+    <h2>Talebelerim <span>{{ kutular|length }} talebe</span></h2>
+    <div class="ek-roster-tools">
+      <input id="ekAra" class="input" type="search" placeholder="Talebe ara" autocomplete="off">
+      <label class="ek-sort">
+        <select id="ekSira">
+          <option value="zayif">Zayıflar önce</option>
+          <option value="puan">Puana göre</option>
+          <option value="ad">Ada göre</option>
+        </select>
+      </label>
+    </div>
+  </div>
+  <div class="ek-people" id="ekPeople">
+    {% for k in kutular %}
+    <a class="ek-person{% if k.zayif_sayisi >= 3 %} is-hot{% endif %}" href="{% url 'etut_kontrol_talebe' hoca.id k.talebe.id %}" data-ad="{{ k.talebe.ad_soyad }}" data-puan="{% if k.son_ortalama != None %}{{ k.son_ortalama }}{% endif %}" data-zayif="{{ k.zayif_sayisi }}" data-seri="{{ k.seri|join:',' }}">
+      <div class="ek-person-top">
+        <span class="ek-avatar"></span>
+        <div>
+          <strong>{{ k.talebe.ad_soyad }}</strong>
+          <em>{% if k.talebe.sinif_sube %}{{ k.talebe.sinif_sube.sinif }}-{{ k.talebe.sinif_sube.sube }}{% else %}sınıf{% endif %}</em>
+        </div>
+      </div>
+      <div class="ek-person-score">
+        <p><b>{% if k.son_ortalama %}{{ k.son_ortalama|floatformat:0 }}{% else %}—{% endif %}</b><small>/ 500</small></p>
+        <span class="ek-spark"></span>
+      </div>
+      <div class="ek-person-meta">
+        <span class="ek-delta">{% if k.fark != None %}{% if k.fark > 0 %}+{% endif %}{{ k.fark|floatformat:0 }} puan{% endif %}</span>
+        <span>{{ k.deneme_sayisi }} deneme</span>
+      </div>
+      <p class="ek-person-weak">{% if k.zayif_sayisi %}{{ k.zayif_sayisi }} zayıf kazanım{% else %}Zayıf kazanım yok{% endif %}</p>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="ek-card"><p class="ek-muted">Bu etütte talebe yok.</p></div>
+  {% endif %}
+</div>
+<script>
+(function () {
+  const cards = Array.prototype.slice.call(document.querySelectorAll(".ek-person"));
+  const tr = function (n) { return String(n).replace(".", ","); };
+  cards.forEach(function (card) {
+    const name = card.dataset.ad || "";
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    const av = card.querySelector(".ek-avatar");
+    if (av && parts.length) {
+      av.textContent = (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : "")).toLocaleUpperCase("tr");
+    }
+    const spark = card.querySelector(".ek-spark");
+    const vals = (card.dataset.seri || "").split(",").map(Number).filter(function (n) { return !isNaN(n); });
+    if (spark && vals.length > 1) {
+      const lo = Math.min.apply(null, vals);
+      const hi = Math.max.apply(null, vals);
+      const w = 78;
+      const h = 28;
+      const pts = vals.map(function (v, i) {
+        const x = (i / (vals.length - 1)) * (w - 2) + 1;
+        const y = (h - 4) - ((v - lo) / (hi - lo || 1)) * (h - 8);
+        return x.toFixed(1) + "," + y.toFixed(1);
+      }).join(" ");
+      spark.innerHTML = '<svg viewBox="0 0 ' + w + " " + h + '" aria-hidden="true"><polyline points="' + pts + '" /></svg>';
+    }
+    const delta = card.querySelector(".ek-delta");
+    if (delta && delta.textContent.trim().charAt(0) === "-") delta.classList.add("is-down");
+  });
+
+  const num = function (v) { return Number(String(v || "").replace(",", ".")); };
+  const puanlar = cards.map(function (c) { return num(c.dataset.puan); }).filter(function (n) { return !isNaN(n); });
+  if (puanlar.length) {
+    const ort = puanlar.reduce(function (a, b) { return a + b; }, 0) / puanlar.length;
+    const max = Math.max.apply(null, puanlar);
+    const dikkat = cards.filter(function (c) { return Number(c.dataset.zayif) >= 3; }).length;
+    document.getElementById("ekOrt").textContent = tr(ort.toFixed(1));
+    document.getElementById("ekMax").textContent = tr(String(Math.round(max)));
+    const dk = document.getElementById("ekDikkat");
+    dk.innerHTML = String(dikkat) + ' <small>talebe</small>';
+    const lo = Math.max(0, Math.floor((Math.min.apply(null, puanlar) - 20) / 25) * 25);
+    const hi = 500;
+    const dots = document.getElementById("ekDots");
+    const axis = document.getElementById("ekDotsAxis");
+    cards.forEach(function (c, i) {
+      const p = num(c.dataset.puan);
+      if (isNaN(p)) return;
+      const dot = document.createElement("i");
+      if (Number(c.dataset.zayif) >= 3) dot.className = "is-hot";
+      const x = ((p - lo) / (hi - lo)) * 100;
+      dot.style.left = Math.min(98, Math.max(1, x)) + "%";
+      dot.style.top = (8 + (i % 3) * 7) + "px";
+      dot.title = c.dataset.ad;
+      dots.appendChild(dot);
+    });
+    const mark = document.createElement("b");
+    mark.style.left = (((ort - lo) / (hi - lo)) * 100) + "%";
+    mark.dataset.label = "Ortalama " + tr(ort.toFixed(1));
+    dots.appendChild(mark);
+    [lo, Math.round((lo + hi) / 2), hi].forEach(function (n, idx) {
+      const s = document.createElement("span");
+      s.textContent = idx === 2 ? "" : String(n);
+      axis.appendChild(s);
+    });
+  }
+
+  const grid = document.getElementById("ekPeople");
+  const ara = document.getElementById("ekAra");
+  const sira = document.getElementById("ekSira");
+  function uygula() {
+    const q = (ara.value || "").toLocaleLowerCase("tr");
+    const mode = sira.value;
+    const list = cards.slice().sort(function (a, b) {
+      if (mode === "puan") return num(b.dataset.puan) - num(a.dataset.puan);
+      if (mode === "ad") return a.dataset.ad.localeCompare(b.dataset.ad, "tr");
+      return Number(b.dataset.zayif || 0) - Number(a.dataset.zayif || 0) || a.dataset.ad.localeCompare(b.dataset.ad, "tr");
+    });
+    list.forEach(function (el) {
+      const show = !q || el.dataset.ad.toLocaleLowerCase("tr").indexOf(q) !== -1;
+      el.hidden = !show;
+      grid.appendChild(el);
+    });
+  }
+  ara.addEventListener("input", uygula);
+  sira.addEventListener("change", uygula);
+  uygula();
+})();
+</script>
+{% endblock %}

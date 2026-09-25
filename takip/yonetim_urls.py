@@ -10,6 +10,7 @@ from . import akademik_mudahale_yonetim_views
 from . import ktt_yonetim_views
 from . import ktt_akilli_views
 from . import yonetim_rbac_views
+from . import karsilama_views
 from . import yonetim_views
 from . import ogretmen_odeme_yonetim_views
 from . import mezun_yonetim_views
@@ -27,6 +28,7 @@ app_name = "yonetim"
 
 urlpatterns = [
     path("", yonetim_views.dashboard, name="dashboard"),
+    path("karsilama-sozu/", karsilama_views.karsilama_sozu_duzenle, name="karsilama_sozu"),
     path("idareci/", idareci_views.idareci_panel, name="idareci_panel"),
     path("vazife/", idareci_views.vazife_listesi, name="vazife_listesi"),
     path("vazife/ekle/", idareci_views.vazife_ekle, name="vazife_ekle"),
@@ -789,6 +791,11 @@ urlpatterns = [
         "denemeler/<int:pk>/gap/",
         deneme_yonetim_views.deneme_gap_yukle,
         name="deneme_gap_yukle",
+    ),
+    path(
+        "denemeler/<int:pk>/kazanim-excel/",
+        deneme_yonetim_views.deneme_kazanim_yukle,
+        name="deneme_kazanim_yukle",
     ),
     path(
         "denemeler/<int:pk>/gap/<int:rapor_id>/eslestir/",

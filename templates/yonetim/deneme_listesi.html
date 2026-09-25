@@ -94,7 +94,7 @@
                         <div class="yonetim-action-group">
                             <a href="{% url 'yonetim:deneme_detay' d.pk %}" class="yonetim-action-btn">Yönet</a>
                             {% if sil_yetkisi %}
-                            <form method="post" action="{% url 'yonetim:deneme_sil' d.pk %}" class="yonetim-inline-action" onsubmit="return confirm('«{{ d.ad|escapejs }}» silinsin mi? Sonuçlar da kalkar.');">
+                            <form method="post" action="{% url 'yonetim:deneme_sil' d.pk %}" class="yonetim-inline-action" onsubmit="return confirm('«{{ d.ad|escapejs }}» arşive alınsın mı? Sonuçlar ve kazanımlar silinmez, listeden kalkar.');">
                                 {% csrf_token %}
                                 <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger">Sil</button>
                             </form>

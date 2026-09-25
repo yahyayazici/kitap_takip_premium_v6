@@ -534,6 +534,8 @@ def dashboard(request):
 
         mudahale_adaylari = mudahale_oneri_listesi(request.user)[:6]
 
+    from takip.karsilama_views import karsilama_sozu
+
     return render(
         request,
         "dashboard.html",
@@ -572,6 +574,7 @@ def dashboard(request):
             "vazife_bildirimleri": vazife_bildirimleri,
             "etut_hocasi": etut_hocasi,
             "mudahale_adaylari": mudahale_adaylari,
+            "karsilama_sozu": karsilama_sozu(),
             **dashboard_widgets,
         },
     )
