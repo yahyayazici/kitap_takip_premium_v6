@@ -113,9 +113,10 @@ def etut_gelisim_serisi(hoca: EtutHocasi) -> dict:
         .distinct()
         .order_by("sinav_tarihi", "id")
     )
-    labels, etut, sinif = [], [], []
+    labels, etut, sinif, tarihler = [], [], [], []
     for i, d in enumerate(denemeler, start=1):
         labels.append(f"{i}. Deneme")
+        tarihler.append(d.sinav_tarihi.isoformat() if d.sinav_tarihi else "")
         etut.append(
             float(v) if (v := deneme_ortalama(d, ids)) is not None else None
         )
@@ -127,6 +128,7 @@ def etut_gelisim_serisi(hoca: EtutHocasi) -> dict:
         "etut": etut,
         "sinif": sinif,
         "sinif_ad": sinif_ad,
+        "tarihler": tarihler,
         "trend": _trend(etut),
     }
 
@@ -448,14 +450,16 @@ def talebe_gelisim_serisi(talebe: Talebe) -> dict:
         .distinct()
         .order_by("sinav_tarihi", "id")
     )
-    labels, puanlar = [], []
+    labels, puanlar, tarihler = [], [], []
     for i, d in enumerate(denemeler, start=1):
         labels.append(f"{i}. Deneme")
+        tarihler.append(d.sinav_tarihi.isoformat() if d.sinav_tarihi else "")
         v = deneme_ortalama(d, [talebe.id])
         puanlar.append(float(v) if v is not None else None)
     return {
         "labels": labels,
         "puanlar": puanlar,
+        "tarihler": tarihler,
         "son_ortalama": (
             Decimal(str(puanlar[-1])) if puanlar and puanlar[-1] is not None else None
         ),

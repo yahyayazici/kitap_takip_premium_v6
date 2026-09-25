@@ -116,7 +116,7 @@ window.csLuminousLine = function (canvas, labels, values) {
   });
 };
 
-window.csNavyLine = function (canvas, values) {
+window.csNavyLine = function (canvas, values, dates) {
   if (!canvas || !values || !values.length || typeof Chart === "undefined") return;
   const nums = values.filter((v) => v != null);
   const lo = Math.min.apply(null, nums);
@@ -152,12 +152,32 @@ window.csNavyLine = function (canvas, values) {
           enabled: true,
           intersect: false,
           displayColors: false,
+          backgroundColor: "rgba(16, 32, 58, .78)",
+          borderColor: "rgba(255,255,255,.14)",
+          borderWidth: 1,
+          cornerRadius: 12,
+          padding: 12,
+          titleColor: "rgba(240,244,252,.72)",
+          titleFont: { family: "Poppins", size: 12, weight: "500" },
+          bodyColor: "#ffffff",
+          bodyFont: { family: "Georgia, serif", size: 22, weight: "500" },
           callbacks: {
-            title: (items) => (items[0] ? items[0].label + ". deneme" : ""),
+            title: (items) => {
+              const i = items[0] ? items[0].dataIndex : 0;
+              const ay = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+              const iso = (dates || [])[i] || "";
+              let when = "";
+              if (iso) {
+                const p = iso.split("-");
+                when = ", " + Number(p[2]) + " " + ay[Number(p[1]) - 1] + " " + p[0];
+              }
+              return (i + 1) + ". Deneme" + when;
+            },
             label: (item) => {
               const v = item.parsed.y;
               if (v == null) return "";
-              return String(v).replace(".", ",");
+              const n = Math.round(v * 10) / 10;
+              return Number.isInteger(n) ? String(n) : String(n).replace(".", ",");
             },
           },
         },
@@ -173,7 +193,7 @@ window.csNavyLine = function (canvas, values) {
           min: min,
           max: max,
           ticks: { color: "rgba(240,244,252,.45)", font: { family: "Poppins", size: 11 }, maxTicksLimit: 5 },
-          grid: { color: "rgba(240,244,252,.14)" },
+          grid: { color: "rgba(240,244,252,.22)", borderDash: [3, 5] },
           border: { display: false },
         },
       },

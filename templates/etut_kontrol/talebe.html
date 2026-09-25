@@ -91,10 +91,10 @@
   {% endfor %}
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="{% static 'js/etut-chart.js' %}?v=ek15"></script>
+<script src="{% static 'js/etut-chart.js' %}?v=ek20"></script>
 <script>
 const data = {{ gelisim_json|safe }};
-csNavyLine(document.getElementById('talebeChart'), data.puanlar || []);
+csNavyLine(document.getElementById('talebeChart'), data.puanlar || [], data.tarihler || []);
 (function () {
   const vals = (data.puanlar || []).filter(function (v) { return v != null; });
   const txt = function (n, digit) {

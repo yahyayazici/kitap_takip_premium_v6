@@ -86,6 +86,7 @@ def etut_kontrol(request, hoca_id):
                     "etut": gelisim["etut"],
                     "sinif": gelisim["sinif"],
                     "sinif_ad": gelisim["sinif_ad"],
+                    "tarihler": gelisim["tarihler"],
                 },
                 ensure_ascii=False,
             ),
@@ -174,7 +175,7 @@ def etut_kontrol_talebe(request, hoca_id, talebe_id):
             "gelisim": gelisim,
             "kutular": kutular,
             "gelisim_json": json.dumps(
-                {"labels": gelisim["labels"], "puanlar": gelisim["puanlar"]},
+                {"labels": gelisim["labels"], "puanlar": gelisim["puanlar"], "tarihler": gelisim["tarihler"]},
                 ensure_ascii=False,
             ),
         },
