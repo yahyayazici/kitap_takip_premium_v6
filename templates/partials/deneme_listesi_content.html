@@ -13,7 +13,7 @@
 
     <section class="library-panel deneme-list-panel">
         <h2>Mevcut Denemeler</h2>
-        <p class="deneme-list-hint">Detay için satırdaki bağlantıyı kullanın.</p>
+        <p class="deneme-list-hint">Kutuya girince sıralama, kazanım ve talebe puanı açılır.</p>
 
         <form method="get" style="display:flex;flex-wrap:wrap;gap:0.75rem;margin:0 0 1rem;align-items:end;">
             <div>
@@ -63,59 +63,26 @@
             <a href="{% url 'deneme_listesi' %}" class="ghost-btn">Temizle</a>
         </form>
 
-        <div class="ek-grid" style="margin-bottom:1.25rem;">
+        <div class="ek-grid" style="margin-bottom:1.25rem;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));">
             {% for d in denemeler %}
             <a class="ek-box" href="{% url 'deneme_detay' d.pk %}">
                 <span class="ek-badge">{% if d.sira_no %}{{ d.sira_no }}. Deneme{% else %}Deneme{% endif %}</span>
                 <strong>{{ d.ad }}</strong>
-                <div class="ek-muted">{{ d.sinav_tarihi|date:"d.m.Y" }} · {{ d.sinif_seviyesi }}. sınıf</div>
-                <div class="ek-stat" style="margin-top:.45rem;">{{ d.sonuc_sayisi }}</div>
-                <div class="ek-muted">öğrenci</div>
+                <div class="ek-muted">{{ d.sinav_tarihi|date:"d.m.Y" }} · {{ d.sinif_seviyesi }}. sınıf{% if d.yayin %} · {{ d.yayin }}{% endif %}</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.75rem;">
+                    <div>
+                        <div class="ek-muted">Puan ort.</div>
+                        <div class="ek-stat">{% if d.puan_ort %}{{ d.puan_ort|floatformat:1 }}{% else %}—{% endif %}</div>
+                    </div>
+                    <div>
+                        <div class="ek-muted">Öğrenci</div>
+                        <div class="ek-stat">{{ d.sonuc_sayisi }}</div>
+                    </div>
+                </div>
             </a>
             {% empty %}
             <p class="ek-muted">Deneme yok.</p>
             {% endfor %}
-        </div>
-
-        <div class="responsive-table">
-            <table class="report-data-table deneme-arsiv-table">
-                <thead>
-                    <tr>
-                        <th>Sıra</th>
-                        <th>Tarih</th>
-                        <th>Deneme</th>
-                        <th>Yayın</th>
-                        <th>Tür</th>
-                        <th>Sınıf</th>
-                        <th>Sonuç</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for d in denemeler %}
-                    <tr>
-                        <td>{% if d.sira_no %}{{ d.sira_no }}. Deneme{% else %}—{% endif %}</td>
-                        <td>{{ d.sinav_tarihi|date:"d.m.Y" }}</td>
-                        <td><strong>{{ d.ad }}</strong></td>
-                        <td>{{ d.yayin|default:"—" }}</td>
-                        <td>{{ d.get_tur_display }}</td>
-                        <td>{{ d.sinif_seviyesi }}</td>
-                        <td><span class="deneme-katilim">{{ d.sonuc_sayisi }} öğrenci</span></td>
-                        <td>
-                            <a href="{% url 'deneme_detay' d.pk %}" class="ghost-btn">Detay</a>
-                            {% if sil_yetkisi %}
-                            <form method="post" action="{% url 'deneme_sil' d.pk %}" style="display:inline;" onsubmit="return confirm('«{{ d.ad|escapejs }}» silinsin mi? Sonuçlar da kalkar.');">
-                                {% csrf_token %}
-                                <button type="submit" class="ghost-btn">Sil</button>
-                            </form>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="8" class="report-empty">Henüz aktif deneme yok.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
         </div>
     </section>
 </div>

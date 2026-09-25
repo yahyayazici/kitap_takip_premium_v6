@@ -1,6 +1,7 @@
 """Deneme — personel görüntüleme."""
 
 from django.contrib import messages
+from django.db.models import Avg
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.text import slugify
@@ -52,6 +53,7 @@ def deneme_listesi(request):
         durum="aktif",
     )
     denemeler, filtre = deneme_arsiv_filtrele(denemeler, request.GET)
+    denemeler = denemeler.annotate(puan_ort=Avg("sonuclar__puan"))
     context = {
         "denemeler": denemeler,
         "sil_yetkisi": deneme_silebilir(request.user),
