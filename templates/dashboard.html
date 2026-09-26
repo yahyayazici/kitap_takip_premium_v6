@@ -318,32 +318,25 @@
     </section>
 </div>
 
-{% include "includes/dash_metrik_strip.html" %}
-
 {% if gunluk_gorevler.temizlik %}
 <section class="dash-panel dash-panel-lined dash-gunluk-gorev">
     <div class="dash-panel-head">
         <div>
             <p class="dash-eyebrow dash-accent-eyebrow-teal">Temizlik</p>
             <h2>Temizlik görevleriniz</h2>
-        </div>
-    </div>
-    <div class="dash-gorev-grid">
-        <article class="dash-gorev-card">
-            <p class="dash-gorev-label">Temizlik — {% if gunluk_gorevler.kat_sorumlusu %}sizin katınız{% else %}sabit liste{% endif %}</p>
             {% if gunluk_gorevler.temizlik_katlari %}
             <p class="dash-gorev-meta">{{ gunluk_gorevler.temizlik_katlari|join:", " }}</p>
             {% endif %}
-            <ul class="dash-gorev-list">
-                {% for satir in gunluk_gorevler.temizlik %}
-                <li><span>{{ satir.baslik }}</span><strong>{{ satir.deger }}</strong></li>
-                {% endfor %}
-            </ul>
-            {% if gunluk_gorevler.temizlik.0.url %}
-            <a href="{{ gunluk_gorevler.temizlik.0.url }}" class="dash-text-btn">Temizlik paneli</a>
-            {% endif %}
-        </article>
+        </div>
+        {% if gunluk_gorevler.temizlik.0.url %}
+        <a href="{{ gunluk_gorevler.temizlik.0.url }}" class="dash-text-btn">Temizlik paneli</a>
+        {% endif %}
     </div>
+    <ul class="dash-gorev-list">
+        {% for satir in gunluk_gorevler.temizlik %}
+        <li><span>{{ satir.baslik }}</span><strong>{{ satir.deger }}</strong></li>
+        {% endfor %}
+    </ul>
 </section>
 {% endif %}
 
