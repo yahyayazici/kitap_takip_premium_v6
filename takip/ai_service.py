@@ -468,7 +468,7 @@ def veli_takip_zekasi_raporu(
 _DENEME_ETIKET = {
     "ozet": "Genel Tablo",
     "brans_analizi": "Branş Analizi",
-    "konu_analizi": "Konu Analizi (Gap + KTT)",
+    "konu_analizi": "Kazanım Analizi",
     "sinif_ozeti": "Sınıf Özeti",
     "etut_onerileri": "Etüt Önerileri",
     "risk_ve_firsatlar": "Risk ve Fırsatlar",
@@ -478,20 +478,20 @@ _DENEME_SISTEM = f"""Sen {PANEL_NAME} ölçme-değerlendirme uzmanısın.
 Deneme sonuçlarını branş ve konu bazında yorumla. Veri uydurma.
 Veride şunlar olabilir:
 - sonuclar[].branslar: ders D/Y/B
-- sonuclar[].gap_konular: Gap PDF konu D/Y/B (yüzde < 70 zayıf)
+- sonuclar[].kazanimlar: KonuKazanimDetay yüzde ve net (yüzde < 70 zayıf)
 - sonuclar[].ktt_konular: aynı talebenin KTT konu/puan özeti
-- gap_zayif_konular_sinif: sınıf geneli Gap zayıf konular
+- kazanim_zayif_konular: sınıf geneli zayıf kazanımlar (ortalama yüzde)
 
-Gap ve KTT konularını birlikte ele al; örtüşen zayıf konuları özellikle belirt.
+Kazanım detayını esas al. KTT varsa yalnızca örtüşen konuları destek olarak an.
 Konu adı yoksa uydurma; yalnızca verilen listeleri kullan.
 JSON:
 {{
-  "ozet": "Sınıf geneli 2-3 cümle (Gap varsa konu düzeyine de değin)",
+  "ozet": "Sınıf geneli 2-3 cümle; kazanım varsa konu düzeyine de değin",
   "brans_analizi": "Türkçe/Mat/Fen/Sos/İng zayıf-güçlü branşlar",
-  "konu_analizi": "Gap + KTT zayıf/güçlü konular; örtüşme ve ayrışma",
+  "konu_analizi": "Kazanım detayından zayıf ve güçlü konular",
   "sinif_ozeti": "Üst ve destek gerektiren gruplar",
-  "etut_onerileri": "Somut etüt planı — mümkünse konu adı ver",
-  "risk_ve_firsatlar": "Acil müdahale gereken alanlar"
+  "etut_onerileri": "Somut etüt planı — mümkünse kazanım adı ver",
+  "risk_ve_firsatlar": "Acil müdahale gereken kazanımlar"
 }}"""
 
 
@@ -502,7 +502,7 @@ def deneme_zekasi_analizi(
     *,
     yenile: bool = False,
 ) -> AiAnalizSonuc:
-    anahtar = f"deneme:{deneme.id}"
+    anahtar = f"deneme:{deneme.id}:kazanim"
 
     def uret():
         baglam = deneme_baglam(deneme, sonuclar)
@@ -520,11 +520,10 @@ def deneme_zekasi_analizi(
             )
 
         ogrenci_s = baglam["deneme"]["ogrenci_sayisi"]
-        gap_s = baglam["deneme"].get("gap_rapor_sayisi") or 0
-        zayif = baglam.get("gap_zayif_konular_sinif") or []
+        kazanim_s = baglam["deneme"].get("kazanim_satir_sayisi") or 0
+        zayif = baglam.get("kazanim_zayif_konular") or []
         zayif_metin = "\n".join(
-            f"• {z['talebe']}: {z['brans']} · «{z['konu']}» %{z['yuzde']:.0f} "
-            f"(D{z['D']} Y{z['Y']} B{z['B']})"
+            f"• {z['ders']} · «{z['konu']}» ortalama %{z['ortalama']:.0f} ({z['katilan']} talebe)"
             for z in zayif[:12]
         )
         bolumler = [
@@ -532,9 +531,9 @@ def deneme_zekasi_analizi(
                 "Genel Tablo",
                 f"{ogrenci_s} öğrencinin branş sonuçları değerlendirildi."
                 + (
-                    f" {gap_s} Gap / konu raporu yüklü."
-                    if gap_s
-                    else " Gap konusu henüz yüklenmedi."
+                    f" {kazanim_s} kazanım satırı yüklü."
+                    if kazanim_s
+                    else " Kazanım detayı henüz yüklenmedi."
                 ),
                 "notr",
             ),
@@ -542,7 +541,7 @@ def deneme_zekasi_analizi(
         if zayif_metin:
             bolumler.append(
                 AiAnalizBolum(
-                    "Konu Analizi (Gap + KTT)",
+                    "Kazanım Analizi",
                     zayif_metin,
                     "zayif",
                 )
@@ -550,15 +549,19 @@ def deneme_zekasi_analizi(
         else:
             bolumler.append(
                 AiAnalizBolum(
-                    "Konu Analizi (Gap + KTT)",
-                    "Gap konu satırı yok; branş özeti ve varsa KTT kayıtları üzerinden ilerlenmeli.",
+                    "Kazanım Analizi",
+                    (
+                        "Yüklenen kazanımlarda %70 altında sınıf ortalaması yok."
+                        if kazanim_s
+                        else "Kazanım detayı yok. KonuKazanimDetay dosyasını yükleyin."
+                    ),
                     "notr",
                 )
             )
         bolumler.append(
             AiAnalizBolum(
                 "Etüt Önerileri",
-                "Zayıf branş ve Gap’te düşük yüzdeli konular için hedefli etüt grupları oluşturulmalı.",
+                "Yüzdesi %70 altındaki kazanımlar için hedefli etüt grupları oluşturulmalı.",
                 "aksiyon",
             )
         )

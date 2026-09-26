@@ -10,8 +10,6 @@ from django.db.models import Count
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
-from decimal import Decimal
-
 from takip.deneme_excel import (
     deneme_excel_onizle,
     deneme_sonuclari_aktar,
@@ -20,13 +18,8 @@ from takip.deneme_excel import (
     session_key,
     DenemeImportOnizleme,
 )
-from takip.deneme_gap_pdf import (
-    deneme_zayif_konular,
-    gap_raporu_eslestir,
-    gap_raporu_kaydet,
-)
 from takip.deneme_kazanim_excel import import_kazanim_excel
-from takip.deneme_models import DenemeGapRaporu, DenemeKazanimSonucu
+from takip.deneme_models import DenemeKazanimSonucu
 from takip.deneme_service import (
     BRANS_ETIKETLERI,
     DENEME_DETAY_BRANSLAR,
@@ -160,16 +153,6 @@ def deneme_detay(request, pk):
         _onizleme_kaydet(request, pk, onizleme)
         return redirect("yonetim:deneme_onizleme", pk=pk)
 
-    gap_raporlari = []
-    zayif_konular = []
-    if deneme.durum == DenemeSinavi.Durum.AKTIF:
-        gap_raporlari = list(
-            deneme.gap_raporlari.select_related("talebe")
-            .prefetch_related("konu_satirlari")
-            .order_by("-olusturulma")[:80]
-        )
-        zayif_konular = deneme_zayif_konular(deneme, esik=Decimal("70"), limit=30)
-
     return render(
         request,
         "yonetim/deneme_detay.html",
@@ -182,13 +165,6 @@ def deneme_detay(request, pk):
             "detay_brans_basliklari": [BRANS_ETIKETLERI[k] for k in DENEME_DETAY_BRANSLAR],
             "yukleyebilir": deneme_yukleyebilir(request.user),
             "sil_yetkisi": deneme_silebilir(request.user),
-            "gap_raporlari": gap_raporlari,
-            "zayif_konular": zayif_konular,
-            "gap_bekleyen": sum(
-                1
-                for r in gap_raporlari
-                if r.durum == DenemeGapRaporu.Durum.ESLESME_BEKLIYOR
-            ),
             "kazanim_satir": DenemeKazanimSonucu.objects.filter(deneme=deneme).count(),
             "kazanim_talebe": (
                 DenemeKazanimSonucu.objects.filter(deneme=deneme)
@@ -258,131 +234,13 @@ def deneme_kazanim_yukle(request, pk):
     )
     for uyari in stats.uyari[:3]:
         messages.warning(request, uyari)
-    return redirect("yonetim:deneme_detay", pk=pk)
-
-
-@yonetici_gerekli
-def deneme_gap_yukle(request, pk):
-    if not deneme_yukleyebilir(request.user):
-        messages.error(request, "Gap raporu yükleme yetkiniz yok.")
-        return redirect("yonetim:deneme_listesi")
-
-    deneme = get_object_or_404(DenemeSinavi, pk=pk)
-    if deneme.durum != DenemeSinavi.Durum.AKTIF:
-        messages.error(
-            request,
-            "Gap / konu raporu yalnızca Excel aktarılmış (aktif) denemelere yüklenebilir.",
-        )
-        return redirect("yonetim:deneme_detay", pk=pk)
-
-    if request.method != "POST":
-        return redirect("yonetim:deneme_detay", pk=pk)
-
-    dosyalar = request.FILES.getlist("gap_pdf")
-    if not dosyalar:
-        messages.error(request, "En az bir PDF seçin.")
-        return redirect("yonetim:deneme_detay", pk=pk)
-
-    ok = 0
-    bekleyen = 0
-    hatali = 0
-    for dosya in dosyalar:
-        ad = (dosya.name or "gap.pdf").lower()
-        if not ad.endswith(".pdf"):
-            hatali += 1
-            messages.warning(request, f"«{dosya.name}» PDF değil, atlandı.")
-            continue
-        try:
-            icerik = dosya.read()
-            rapor = gap_raporu_kaydet(
-                deneme,
-                icerik,
-                dosya.name or "gap.pdf",
-                yukleyen=request.user,
-            )
-        except Exception as exc:  # noqa: BLE001
-            hatali += 1
-            messages.error(request, f"«{dosya.name}» işlenemedi: {exc}")
-            continue
-
-        if rapor.durum == DenemeGapRaporu.Durum.ISLENDI:
-            ok += 1
-        elif rapor.durum == DenemeGapRaporu.Durum.ESLESME_BEKLIYOR:
-            bekleyen += 1
-        else:
-            hatali += 1
-            if rapor.hata_mesaji:
-                messages.warning(
-                    request,
-                    f"«{dosya.name}»: {rapor.hata_mesaji}",
-                )
-
-    if ok:
-        messages.success(request, f"{ok} Gap raporu işlendi ve eşleştirildi.")
-        try:
-            from takip.ai_service import deneme_zekasi_analizi
-
-            sonuclar = list(deneme_sonuclari(request.user, deneme))
-            deneme_zekasi_analizi(request.user, deneme, sonuclar, yenile=True)
-        except Exception:  # noqa: BLE001
-            pass
-    if bekleyen:
-        messages.info(
-            request,
-            f"{bekleyen} raporda isim onayı bekleniyor — aşağıdan eşleştirin.",
-        )
-    if hatali and not ok and not bekleyen:
-        messages.error(request, "Hiçbir Gap raporu işlenemedi.")
-
-    return redirect("yonetim:deneme_detay", pk=pk)
-
-
-@yonetici_gerekli
-def deneme_gap_eslestir(request, pk, rapor_id):
-    if not deneme_yukleyebilir(request.user):
-        return redirect("yonetim:deneme_listesi")
-
-    deneme = get_object_or_404(DenemeSinavi, pk=pk)
-    rapor = get_object_or_404(DenemeGapRaporu, pk=rapor_id, deneme=deneme)
-
-    if request.method != "POST":
-        return redirect("yonetim:deneme_detay", pk=pk)
-
-    talebe_id = request.POST.get("talebe_id") or rapor.oneri_talebe_id
-    if not talebe_id:
-        messages.error(request, "Talebe seçin.")
-        return redirect("yonetim:deneme_detay", pk=pk)
-
     try:
-        gap_raporu_eslestir(rapor, int(talebe_id))
-        messages.success(
-            request,
-            f"«{rapor.ham_ad or rapor.dosya_adi}» eşleştirildi.",
-        )
-        try:
-            from takip.ai_service import deneme_zekasi_analizi
+        from takip.ai_service import deneme_zekasi_analizi
 
-            sonuclar = list(deneme_sonuclari(request.user, deneme))
-            deneme_zekasi_analizi(request.user, deneme, sonuclar, yenile=True)
-        except Exception:  # noqa: BLE001
-            pass
-    except ValueError as exc:
-        messages.error(request, str(exc))
-
-    return redirect("yonetim:deneme_detay", pk=pk)
-
-
-@yonetici_gerekli
-def deneme_gap_sil(request, pk, rapor_id):
-    if not deneme_yukleyebilir(request.user):
-        return redirect("yonetim:deneme_listesi")
-
-    deneme = get_object_or_404(DenemeSinavi, pk=pk)
-    rapor = get_object_or_404(DenemeGapRaporu, pk=rapor_id, deneme=deneme)
-    if request.method == "POST":
-        ad = rapor.ham_ad or rapor.dosya_adi
-        rapor.delete()
-        messages.success(request, f"«{ad}» Gap raporu silindi.")
+        sonuclar = list(deneme_sonuclari(request.user, deneme))
+        deneme_zekasi_analizi(request.user, deneme, sonuclar, yenile=True)
+    except Exception:  # noqa: BLE001
+        pass
     return redirect("yonetim:deneme_detay", pk=pk)
 
 

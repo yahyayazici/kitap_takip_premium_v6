@@ -226,29 +226,28 @@ def _mudahale_adaylari(user: User, *, limit: int = 10) -> list[dict[str, Any]]:
     return adaylar[:limit]
 
 
-def _deneme_gap_konulari(deneme, talebe_id: int | None, *, limit: int = 8) -> list[dict[str, Any]]:
+def _deneme_kazanimlari(deneme, talebe_id: int | None, *, limit: int = 8) -> list[dict[str, Any]]:
     from decimal import Decimal
 
-    from takip.deneme_models import DenemeGapRaporu, DenemeKonuSonucu
+    from takip.deneme_models import DenemeKazanimSonucu
 
     if not talebe_id:
         return []
-    qs = (
-        DenemeKonuSonucu.objects.filter(
-            rapor__deneme=deneme,
-            rapor__talebe_id=talebe_id,
-            rapor__durum=DenemeGapRaporu.Durum.ISLENDI,
-        )
-        .order_by("yuzde", "brans")[:limit]
-    )
+    qs = DenemeKazanimSonucu.objects.filter(
+        deneme=deneme,
+        talebe_id=talebe_id,
+        yuzde__isnull=False,
+    ).order_by("yuzde", "ders_ad")[:limit]
     return [
         {
-            "brans": k.get_brans_display(),
-            "konu": k.konu_normalize or k.konu_ham,
-            "D": k.dogru,
-            "Y": k.yanlis,
-            "B": k.bos,
+            "ders": k.ders_ad,
+            "konu": k.konu_ad,
             "yuzde": float(k.yuzde or 0),
+            "net": (
+                f"{k.net_dogru}/{k.net_toplam}"
+                if k.net_dogru is not None and k.net_toplam is not None
+                else None
+            ),
             "zayif": (k.yuzde or Decimal("0")) < Decimal("70"),
         }
         for k in qs
@@ -309,8 +308,9 @@ def _deneme_ktt_konulari(talebe, *, limit: int = 6) -> list[dict[str, Any]]:
 def deneme_baglam(deneme, sonuclar) -> dict[str, Any]:
     from decimal import Decimal
 
-    from takip.deneme_gap_pdf import deneme_zayif_konular
-    from takip.deneme_models import DenemeGapRaporu
+    from django.db.models import Avg, Count
+
+    from takip.deneme_models import DenemeKazanimSonucu
     from takip.deneme_service import deneme_detay_satirlari
 
     satirlar = deneme_detay_satirlari(sonuclar)
@@ -329,31 +329,27 @@ def deneme_baglam(deneme, sonuclar) -> dict[str, Any]:
                 "net": float(sonuc.toplam_net or 0),
                 "puan": float(sonuc.puan or 0),
                 "branslar": brans_ozet,
-                "gap_konular": _deneme_gap_konulari(deneme, sonuc.talebe_id),
+                "kazanimlar": _deneme_kazanimlari(deneme, sonuc.talebe_id),
                 "ktt_konular": _deneme_ktt_konulari(sonuc.talebe),
             }
         )
 
     sinif_zayif = [
         {
-            "talebe": (
-                k.rapor.talebe.ad_soyad
-                if k.rapor.talebe_id
-                else k.rapor.ham_ad
-            ),
-            "brans": k.get_brans_display(),
-            "konu": k.konu_normalize or k.konu_ham,
-            "yuzde": float(k.yuzde or 0),
-            "D": k.dogru,
-            "Y": k.yanlis,
-            "B": k.bos,
+            "ders": row["ders_ad"],
+            "konu": row["konu_ad"],
+            "ortalama": round(float(row["ortalama"] or 0), 1),
+            "katilan": row["n"],
         }
-        for k in deneme_zayif_konular(deneme, esik=Decimal("70"), limit=25)
+        for row in (
+            DenemeKazanimSonucu.objects.filter(deneme=deneme, yuzde__isnull=False)
+            .values("ders_ad", "konu_ad")
+            .annotate(ortalama=Avg("yuzde"), n=Count("id"))
+            .filter(ortalama__lt=Decimal("70"))
+            .order_by("ortalama")[:25]
+        )
     ]
-    gap_adet = DenemeGapRaporu.objects.filter(
-        deneme=deneme,
-        durum=DenemeGapRaporu.Durum.ISLENDI,
-    ).count()
+    kazanim_adet = DenemeKazanimSonucu.objects.filter(deneme=deneme).count()
 
     return {
         "deneme": {
@@ -361,10 +357,10 @@ def deneme_baglam(deneme, sonuclar) -> dict[str, Any]:
             "tarih": deneme.sinav_tarihi.isoformat(),
             "sinif": deneme.sinif_seviyesi,
             "ogrenci_sayisi": len(satirlar),
-            "gap_rapor_sayisi": gap_adet,
+            "kazanim_satir_sayisi": kazanim_adet,
         },
         "sonuclar": ogrenci_verileri,
-        "gap_zayif_konular_sinif": sinif_zayif,
+        "kazanim_zayif_konular": sinif_zayif,
     }
 
 
