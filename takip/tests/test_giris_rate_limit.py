@@ -147,7 +147,7 @@ class RolBazliGirisRegresyonTests(TestCase):
             {"username": "hoca-test", "password": "EskiZayifSifre1"},
         )
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse("ogretmen_not_girisi"))
+        self.assertEqual(response.url, reverse("ogretmen_dashboard"))
 
     def test_talebe_girisi(self):
         sinif = SinifSube.objects.create(sinif="7", sube="B")
