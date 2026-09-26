@@ -23,6 +23,7 @@ from takip.etut_kontrol_service import (
     etut_gelisim_serisi,
     etut_gorunum_serisi,
     hoca_seviye_kirilimi,
+    kullanici_etut_hocalari,
     talebe_gelisim_serisi,
 )
 from takip.models import EtutHocasi, SinifSube, Talebe
@@ -66,6 +67,23 @@ class KazanimEtutKontrolTests(TestCase):
             sinif_seviyesi="8",
             durum=DenemeSinavi.Durum.AKTIF,
         )
+
+    def test_mesul_baska_etudu_gormez_admin_hepsini_gorur(self):
+        diger_user = User.objects.create_user("hoca2", password="x", is_staff=True)
+        diger = EtutHocasi.objects.create(user=diger_user, ad_soyad="Başka Hoca", aktif=True)
+        self.user.is_staff = True
+        self.user.save(update_fields=["is_staff"])
+
+        kendi = kullanici_etut_hocalari(self.user)
+        self.assertEqual([h.id for h in kendi], [self.hoca.id])
+
+        admin = User.objects.create_superuser("admin1", "a@b.c", "x")
+        hepsi = {h.id for h in kullanici_etut_hocalari(admin)}
+        self.assertIn(self.hoca.id, hepsi)
+        self.assertIn(diger.id, hepsi)
+
+        yabanci = User.objects.create_user("yabanci", password="x", is_staff=True)
+        self.assertEqual(kullanici_etut_hocalari(yabanci), [])
 
     def test_import_and_etut_boxes(self):
         xlsx = _sample_xlsx(
