@@ -1536,3 +1536,72 @@ body.v3-body .page-content {
         transition: none;
     }
 }
+
+/* Ana sayfa — temizlik listesi: alan ve sorumlu aynı kutuda, sayfa boyu aralık yok */
+body.pv4-page .dash-gunluk-gorev {
+    border-radius: var(--cs-radius-xl) !important;
+    border: 1px solid var(--cs-border) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+    background: var(--cs-surface) !important;
+}
+
+body.pv4-page .dash-gunluk-gorev .dash-panel-head h2 {
+    font-family: "CaviarDreams", Georgia, serif !important;
+    font-weight: 400 !important;
+    letter-spacing: 0 !important;
+    font-size: 1.65rem !important;
+    color: var(--cs-text-primary) !important;
+}
+
+body.pv4-page .dash-gunluk-gorev .dash-gorev-meta {
+    margin: 6px 0 0 !important;
+    color: var(--cs-text-secondary) !important;
+}
+
+body.pv4-page .dash-gunluk-gorev .dash-gorev-list {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--cs-space-3);
+    margin: 0 !important;
+    padding: 4px var(--cs-space-5) var(--cs-space-5) !important;
+    list-style: none;
+}
+
+body.pv4-page .dash-gunluk-gorev .dash-gorev-list li {
+    display: flex !important;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start !important;
+    gap: 4px;
+    min-width: 0;
+    padding: 12px 14px !important;
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-md) !important;
+    background: var(--cs-surface-muted) !important;
+}
+
+body.pv4-page .dash-gunluk-gorev .dash-gorev-list li span {
+    color: var(--cs-text-muted) !important;
+    font-size: 11px !important;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+body.pv4-page .dash-gunluk-gorev .dash-gorev-list li strong {
+    display: block !important;
+    width: 100%;
+    margin: 0 !important;
+    text-align: left !important;
+    font-family: var(--cs-font) !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    line-height: 1.45 !important;
+    color: var(--cs-text-primary) !important;
+}
+
+@media (max-width: 900px) {
+    body.pv4-page .dash-gunluk-gorev .dash-gorev-list {
+        grid-template-columns: 1fr;
+    }
+}
