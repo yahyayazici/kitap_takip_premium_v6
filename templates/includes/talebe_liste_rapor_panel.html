@@ -1,4 +1,6 @@
+{% load static %}
 {% load filter_tags %}
+<link rel="stylesheet" href="{% static 'css/talebe-rapor.css' %}?v=tr1">
 <div class="talebe-rapor-wrap">
     <button type="button" class="ghost-btn talebe-rapor-ac" aria-expanded="false" aria-controls="talebe-rapor-panel">
         Rapor Al
@@ -47,13 +49,8 @@
 
 <script>
 (function () {
-    var backdrop = document.querySelector('.talebe-rapor-backdrop');
-    if (!backdrop) {
-        backdrop = document.createElement('div');
-        backdrop.className = 'talebe-rapor-backdrop';
-        backdrop.setAttribute('aria-hidden', 'true');
-        document.body.appendChild(backdrop);
-    }
+    if (window.__talebeRaporMenu) return;
+    window.__talebeRaporMenu = true;
 
     function closeAll() {
         document.querySelectorAll('.talebe-rapor-panel').forEach(function (panel) {
@@ -65,10 +62,27 @@
         document.body.classList.remove('talebe-rapor-open');
     }
 
+    function place(panel, ac) {
+        var rect = ac.getBoundingClientRect();
+        var width = Math.min(380, window.innerWidth - 24);
+        var left = rect.right - width;
+        if (left < 12) left = 12;
+        if (left + width > window.innerWidth - 12) left = window.innerWidth - width - 12;
+        var top = rect.bottom + 8;
+        panel.style.width = width + 'px';
+        var height = panel.offsetHeight || 280;
+        if (top + height > window.innerHeight - 12 && rect.top - height - 8 > 12) {
+            top = rect.top - height - 8;
+        }
+        panel.style.top = Math.max(12, top) + 'px';
+        panel.style.left = left + 'px';
+    }
+
     document.querySelectorAll('.talebe-rapor-wrap').forEach(function (wrap) {
         var ac = wrap.querySelector('.talebe-rapor-ac');
         var panel = wrap.querySelector('.talebe-rapor-panel');
-        if (!ac || !panel) return;
+        if (!ac || !panel || wrap.dataset.raporBound) return;
+        wrap.dataset.raporBound = '1';
 
         if (window.initMultiSelectFilters) {
             window.initMultiSelectFilters(wrap);
@@ -78,21 +92,25 @@
             event.stopPropagation();
             var willOpen = panel.hasAttribute('hidden');
             closeAll();
-            if (willOpen) {
-                panel.removeAttribute('hidden');
-                ac.setAttribute('aria-expanded', 'true');
-                document.body.classList.add('talebe-rapor-open');
-            }
+            if (!willOpen) return;
+            document.body.appendChild(panel);
+            panel.removeAttribute('hidden');
+            ac.setAttribute('aria-expanded', 'true');
+            place(panel, ac);
+        });
+
+        window.addEventListener('resize', function () {
+            if (!panel.hasAttribute('hidden')) place(panel, ac);
         });
     });
 
-    backdrop.addEventListener('click', closeAll);
     document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') closeAll();
     });
     document.addEventListener('click', function (event) {
         if (event.target.closest('.talebe-rapor-wrap')) return;
         if (event.target.closest('.talebe-rapor-panel')) return;
+        if (event.target.closest('.ms-filter-panel')) return;
         closeAll();
     });
 })();
