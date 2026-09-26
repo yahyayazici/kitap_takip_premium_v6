@@ -33,17 +33,19 @@ def _trend(values: list[float | None]) -> str:
 
 
 def kullanici_etut_hocalari(user) -> list[EtutHocasi]:
-    """Giriş yapan için görülebilir etüt/mesul listesi."""
+    """Yalnızca sorumlu olduğu etüt. Tüm listeyi yönetim görür."""
     if not user.is_authenticated:
         return []
-    if user.is_superuser or user.is_staff:
-        return list(etut_mesul_queryset()[:50]) or list(
-            EtutHocasi.objects.filter(aktif=True).order_by("ad_soyad")[:50]
+    from takip.permissions.scope import yonetim_kapsami_var
+
+    if yonetim_kapsami_var(user):
+        return list(etut_mesul_queryset()) or list(
+            EtutHocasi.objects.filter(aktif=True).order_by("ad_soyad")
         )
     own = etut_hocasi_for_user(user)
-    if own:
+    if own and own.aktif:
         return [own]
-    return list(etut_mesul_queryset()[:50])
+    return []
 
 
 def hoca_talebe_ids(hoca: EtutHocasi) -> list[int]:
