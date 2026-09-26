@@ -3,6 +3,14 @@
    bu dosya bundle-panel-late sonrası yüklenir. Yalnızca body.ogretmen-body. */
 
 @font-face {
+    font-family: "SmileDelight";
+    src: url("../fonts/SmileDelight-Demo.otf") format("opentype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
     font-family: "CaviarDreams";
     src: url("../fonts/CaviarDreams.ttf") format("truetype");
     font-weight: 400;
@@ -529,10 +537,6 @@ body.ogretmen-body .dash-sc-banner {
         grid-template-columns: 1fr !important;
     }
 
-    body.ogretmen-body .og-wow-lesson {
-        grid-template-columns: 1fr;
-    }
-
     body.ogretmen-body select,
     body.ogretmen-body .ogretmen-not-form input,
     body.ogretmen-body .ogretmen-not-form textarea {
@@ -542,5 +546,341 @@ body.ogretmen-body .dash-sc-banner {
     body.ogretmen-body .ogretmen-form-actions .ogretmen-save-btn,
     body.ogretmen-body .ogretmen-form-actions .ghost-btn {
         width: 100%;
+    }
+}
+
+/* Etüt hocası paneliyle aynı kabuk: beyaz üst menü, lacivert+altın karşılama.
+   Mobilde menü ikinci satıra inmesin; sabit bar 64px, içerik onun altında başlasın. */
+body.ogretmen-body {
+    --pv4-navy: #0c1a3a;
+    --pv4-navy-2: #132a56;
+    --pv4-navy-3: #1c3b70;
+    --pv4-gold: #c39a3d;
+    --pv4-gold-light: #e3c479;
+    --pv4-gold-dim: #8a6d2a;
+    --pv4-bg: #f4f5f7;
+    --pv4-surface: #ffffff;
+    --pv4-line: #e2e4e9;
+    --pv4-text: #10182b;
+    --pv4-muted: #5c6478;
+    --pv4-sp-2: 8px;
+    --pv4-sp-3: 16px;
+    --pv4-sp-4: 24px;
+    --pv4-sp-5: 32px;
+    --pv4-r-sm: 6px;
+    --pv4-r-lg: 16px;
+    --pv4-shadow-md: 0 4px 6px -1px rgba(16, 24, 43, .06), 0 2px 4px -1px rgba(16, 24, 43, .04);
+    --pv4-shadow-lg: 0 10px 24px -6px rgba(16, 24, 43, .12);
+    background: var(--pv4-bg) !important;
+}
+
+body.ogretmen-body .cs-v6-header {
+    background: #fff !important;
+    background-image: none !important;
+    animation: none !important;
+    box-shadow: 0 1px 0 rgba(16, 33, 61, .04), 0 8px 20px rgba(15, 40, 80, .06) !important;
+    border-bottom: 1px solid var(--pv4-line) !important;
+}
+
+body.ogretmen-body .cs-v6-header::before,
+body.ogretmen-body .cs-v6-header::after {
+    display: none !important;
+}
+
+body.ogretmen-body .cs-v6-brand strong,
+body.ogretmen-body .v6-brand-copy strong {
+    color: var(--pv4-text) !important;
+    text-shadow: none !important;
+}
+
+body.ogretmen-body .v6-brand-copy small {
+    color: var(--pv4-muted) !important;
+}
+
+body.ogretmen-body .ogretmen-menu-toggle span {
+    background: var(--pv4-navy) !important;
+}
+
+body.ogretmen-body .panel-user-chip {
+    background: var(--pv4-navy) !important;
+    color: var(--pv4-gold-light) !important;
+}
+
+body.ogretmen-body .panel-user-copy,
+body.ogretmen-body .panel-user-copy strong {
+    color: var(--pv4-text) !important;
+}
+
+body.ogretmen-body .panel-user-copy small {
+    color: var(--pv4-muted) !important;
+}
+
+body.ogretmen-body .bn-bell-btn {
+    border-color: var(--pv4-line) !important;
+    background: var(--pv4-surface) !important;
+    color: var(--pv4-navy) !important;
+}
+
+body.ogretmen-body .v3-logout-mobile,
+body.ogretmen-body .panel-logout-btn {
+    background: var(--pv4-navy) !important;
+    background-image: none !important;
+    border-color: var(--pv4-navy) !important;
+    color: #fff !important;
+}
+
+@media (min-width: 1401px) {
+    body.ogretmen-body .cs-v6-nav a {
+        color: var(--pv4-navy) !important;
+    }
+
+    body.ogretmen-body .cs-v6-nav a.active {
+        color: var(--pv4-navy) !important;
+        box-shadow: inset 0 -2px 0 var(--pv4-gold) !important;
+    }
+}
+
+@media (max-width: 1400px) {
+    body.ogretmen-body {
+        padding-top: 64px !important;
+    }
+
+    body.ogretmen-body > .cs-v6-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 64px;
+        min-height: 64px;
+        max-height: 64px;
+    }
+
+    body.ogretmen-body .ogretmen-v6-header .cs-v6-inner {
+        flex-wrap: nowrap !important;
+        height: 64px !important;
+        min-height: 64px !important;
+        max-height: 64px !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        overflow: visible;
+    }
+
+    body.ogretmen-body .ogretmen-v6-header .cs-v6-nav {
+        order: 0;
+        flex: none !important;
+    }
+}
+
+/* Karşılama — etüt ana sayfasındaki hero + tarih kartı */
+body.ogretmen-body .pv4-hero-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 200px;
+    gap: var(--pv4-sp-3);
+    align-items: stretch;
+}
+
+body.ogretmen-body .pv4-hero {
+    position: relative;
+    overflow: hidden;
+    margin: 0;
+    border: 0;
+    border-radius: var(--pv4-r-lg);
+    border-bottom: 3px solid var(--pv4-gold);
+    padding: 22px 22px;
+    display: flex;
+    align-items: center;
+    background: linear-gradient(122deg, var(--pv4-navy) 0%, var(--pv4-navy-2) 55%, var(--pv4-navy-3) 100%);
+    box-shadow: var(--pv4-shadow-lg);
+    color: #fff;
+}
+
+body.ogretmen-body .pv4-hero-grid {
+    position: absolute;
+    inset: 0;
+    opacity: .35;
+    pointer-events: none;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, .5) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .5) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mask-image: linear-gradient(120deg, transparent 15%, #000 65%);
+}
+
+body.ogretmen-body .pv4-hero-copy {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+}
+
+body.ogretmen-body .pv4-eyebrow {
+    margin: 0 0 8px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--pv4-gold-light) !important;
+}
+
+body.ogretmen-body .pv4-hero h1 {
+    margin: 0 !important;
+    color: #fff !important;
+    font-family: "CaviarDreams", Georgia, serif !important;
+    font-weight: 400 !important;
+    font-size: clamp(1.6rem, 2.4vw, 2.2rem) !important;
+    letter-spacing: 0 !important;
+    line-height: 1.05 !important;
+}
+
+body.ogretmen-body .pv4-script {
+    font-family: "SmileDelight", Georgia, serif !important;
+    font-weight: 400 !important;
+    font-size: 1.35em !important;
+    color: var(--pv4-gold-light) !important;
+    letter-spacing: .01em !important;
+}
+
+body.ogretmen-body .pv4-hero h1 strong {
+    font-family: "CaviarDreams", Georgia, serif !important;
+    font-weight: 400 !important;
+}
+
+body.ogretmen-body .pv4-hero p {
+    margin: 8px 0 0;
+    font-size: 13.5px;
+    color: rgba(255, 255, 255, .72);
+    font-weight: 400;
+}
+
+body.ogretmen-body .pv4-date-card {
+    border-radius: var(--pv4-r-lg);
+    background: #fff;
+    border: 1.5px solid var(--pv4-gold);
+    box-shadow: var(--pv4-shadow-md);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 12px;
+    min-height: 0;
+}
+
+body.ogretmen-body .pv4-date-kicker {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--pv4-gold-dim);
+}
+
+body.ogretmen-body .pv4-date-num {
+    font-family: "LemonMilk", var(--cs-font);
+    font-size: 36px;
+    font-weight: 400;
+    color: var(--pv4-navy);
+    line-height: 1;
+}
+
+body.ogretmen-body .pv4-date-sub {
+    font-size: 12px;
+    color: var(--pv4-muted);
+    text-align: center;
+}
+
+/* İçerik kartları — beyaz yüzey, altın kicker, lacivert başlık */
+body.ogretmen-body .og-wow-week {
+    background: #fff !important;
+    color: var(--pv4-text) !important;
+    border: 1px solid var(--pv4-line) !important;
+    border-bottom: 3px solid var(--pv4-gold) !important;
+    border-radius: var(--pv4-r-lg) !important;
+    box-shadow: var(--pv4-shadow-md) !important;
+}
+
+body.ogretmen-body .og-wow-week-kicker,
+body.ogretmen-body .og-wow-kicker {
+    color: var(--pv4-gold-dim) !important;
+    letter-spacing: .16em !important;
+}
+
+body.ogretmen-body .og-wow-week-copy h2,
+body.ogretmen-body .og-wow-week-copy p {
+    color: var(--pv4-text) !important;
+}
+
+body.ogretmen-body .og-wow-week-copy p {
+    color: var(--pv4-muted) !important;
+}
+
+body.ogretmen-body .og-wow-cta {
+    background: var(--pv4-navy) !important;
+    color: #fff !important;
+    border-radius: var(--pv4-r-sm) !important;
+    min-height: var(--cs-btn-h);
+}
+
+body.ogretmen-body .og-wow-card,
+body.ogretmen-body .dash-panel {
+    border: 1px solid var(--pv4-line) !important;
+    border-radius: var(--pv4-r-lg) !important;
+    box-shadow: var(--pv4-shadow-md) !important;
+}
+
+body.ogretmen-body .og-wow-card-head h2,
+body.ogretmen-body .dash-panel-head h2,
+body.ogretmen-body .og-section-head h2 {
+    font-family: "CaviarDreams", Georgia, serif !important;
+    font-weight: 400 !important;
+    color: var(--pv4-navy) !important;
+}
+
+body.ogretmen-body .og-wow-day-tab.is-active {
+    background: var(--pv4-navy) !important;
+    border-color: var(--pv4-navy) !important;
+}
+
+body.ogretmen-body .og-wow-lesson {
+    grid-template-columns: auto minmax(0, 1fr) !important;
+    background: #fff !important;
+    border-color: var(--pv4-line) !important;
+}
+
+body.ogretmen-body .og-week-active-banner {
+    border-bottom: 3px solid var(--pv4-gold) !important;
+    background: linear-gradient(122deg, var(--pv4-navy) 0%, var(--pv4-navy-2) 55%, var(--pv4-navy-3) 100%) !important;
+}
+
+@media (max-width: 900px) {
+    body.ogretmen-body .pv4-hero-row {
+        grid-template-columns: 1fr;
+    }
+
+    body.ogretmen-body .pv4-hero {
+        padding: 16px;
+    }
+
+    body.ogretmen-body .pv4-date-card {
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 12px;
+        padding: 10px 14px;
+    }
+
+    body.ogretmen-body .pv4-date-sub {
+        text-align: left;
+    }
+
+    body.ogretmen-body .og-wow-cta {
+        width: 100%;
+    }
+}
+
+@media (max-width: 640px) {
+    body.ogretmen-body .pv4-hero h1 {
+        font-size: 1.45rem !important;
+    }
+
+    body.ogretmen-body .pv4-script {
+        font-size: 1.2em !important;
     }
 }

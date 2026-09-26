@@ -1,0 +1,26 @@
+<div class="pv4-hero-row">
+    <section class="pv4-hero">
+        <span class="pv4-hero-grid" aria-hidden="true"></span>
+        <div class="pv4-hero-copy">
+            {% if eyebrow %}<p class="pv4-eyebrow">{{ eyebrow }}</p>{% endif %}
+            <h1>
+                {% if script %}<span class="pv4-script">{{ script }}</span> {% endif %}
+                {% if name %}<strong>{{ name }}</strong>{% else %}{{ title }}{% endif %}
+            </h1>
+            {% if meta %}<p>{{ meta }}</p>{% endif %}
+        </div>
+    </section>
+    {% if date_obj %}
+    <div class="pv4-date-card" aria-label="Tarih">
+        <span class="pv4-date-kicker">Bugün</span>
+        <span class="pv4-date-num">{{ date_obj|date:"d" }}</span>
+        <span class="pv4-date-sub">{{ date_obj|date:"F Y" }}<br>{{ date_obj|date:"l" }}</span>
+    </div>
+    {% elif show_date %}
+    <div class="pv4-date-card" aria-label="Bugün" data-panel-date-block>
+        <span class="pv4-date-kicker">Bugün</span>
+        <span class="pv4-date-num" data-panel-date-day>{% now "d" %}</span>
+        <span class="pv4-date-sub"><span data-panel-date-month>{% now "F Y" %}</span><br><span data-panel-date-week>{% now "l" %}</span></span>
+    </div>
+    {% endif %}
+</div>
