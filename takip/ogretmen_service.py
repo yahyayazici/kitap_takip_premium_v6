@@ -87,10 +87,8 @@ def ogretmen_ekstra_rolu_var_mi(user: User) -> bool:
 
 
 def ogretmen_giris_url_adi(user: User) -> str:
-    """Klasik öğretmen → not girişi; ekstra rol varsa ana sayfa."""
-    if ogretmen_ekstra_rolu_var_mi(user):
-        return "ogretmen_dashboard"
-    return "ogretmen_not_girisi"
+    """Panel açılışı ana sayfadır. Not girişi menüden açılır."""
+    return "ogretmen_dashboard"
 
 
 def ogretmen_brans_etiketi(hoca: EtutHocasi | None) -> str:

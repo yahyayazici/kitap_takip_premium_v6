@@ -340,12 +340,9 @@ def dashboard(request):
 
         return talebe_dashboard(request)
     if ogretmen_paneli_kullanicisi_mi(request.user):
-        from takip.ogretmen_service import ogretmen_ekstra_rolu_var_mi
-        from takip.ogretmen_views import ogretmen_dashboard, ogretmen_not_girisi
+        from takip.ogretmen_views import ogretmen_dashboard
 
-        if ogretmen_ekstra_rolu_var_mi(request.user):
-            return ogretmen_dashboard(request)
-        return ogretmen_not_girisi(request)
+        return ogretmen_dashboard(request)
 
     bugun = localdate()
 

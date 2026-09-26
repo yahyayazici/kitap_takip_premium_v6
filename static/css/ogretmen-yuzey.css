@@ -1,0 +1,546 @@
+/* Öğretmen paneli son katman — lacivert sayfa dili.
+   bundle-ogretmen-pre içindeki ogretmen-panel.css korunur;
+   bu dosya bundle-panel-late sonrası yüklenir. Yalnızca body.ogretmen-body. */
+
+@font-face {
+    font-family: "CaviarDreams";
+    src: url("../fonts/CaviarDreams.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "LemonMilk";
+    src: url("../fonts/LemonMilk.otf") format("opentype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+body.ogretmen-body .dash-home {
+    --dash-bg: var(--cs-background);
+    --dash-surface: var(--cs-surface);
+    --dash-line: var(--cs-border);
+    --dash-line-strong: var(--cs-border-strong);
+    --dash-text: var(--cs-text-primary);
+    --dash-secondary: var(--cs-text-secondary);
+    --dash-tertiary: var(--cs-text-muted);
+    --dash-accent: var(--cs-primary);
+    --dash-radius: var(--cs-radius-xl);
+    --dash-radius-sm: var(--cs-radius-md);
+    --dash-shadow: var(--cs-shadow-card);
+    gap: var(--cs-section-gap);
+}
+
+/* —— Karşılama —— */
+body.ogretmen-body .dash-hero {
+    position: relative;
+    overflow: hidden;
+    border: 0 !important;
+    border-radius: var(--cs-radius-xl) !important;
+    color: #fff !important;
+    animation: none !important;
+    background: linear-gradient(115deg, var(--cs-navy-deep) 0%, var(--cs-primary) 52%, var(--cs-primary-mid) 100%) !important;
+    background-image: linear-gradient(115deg, var(--cs-navy-deep) 0%, var(--cs-primary) 52%, var(--cs-primary-mid) 100%) !important;
+    box-shadow: 0 16px 36px color-mix(in srgb, var(--cs-navy-deep) 26%, transparent) !important;
+}
+
+body.ogretmen-body .dash-hero-scene,
+body.ogretmen-body .dash-orb,
+body.ogretmen-body .dash-float,
+body.ogretmen-body .dash-grid-lines {
+    display: none !important;
+}
+
+body.ogretmen-body .dash-hero::before {
+    content: "" !important;
+    display: block !important;
+    position: absolute !important;
+    inset: 0 !important;
+    pointer-events: none !important;
+    z-index: 0;
+    background:
+        radial-gradient(220px 140px at 88% 8%, rgba(255, 255, 255, 0.22), transparent 70%),
+        linear-gradient(122deg, transparent 24%, rgba(255, 255, 255, 0.12) 46%, transparent 64%) !important;
+}
+
+body.ogretmen-body .dash-hero::after {
+    display: none !important;
+}
+
+body.ogretmen-body .dash-hero-brand,
+body.ogretmen-body .dash-hero-date {
+    position: relative;
+    z-index: 1;
+}
+
+body.ogretmen-body .dash-hero .dash-eyebrow,
+body.ogretmen-body .dash-hero-meta {
+    color: rgba(240, 244, 252, 0.78) !important;
+}
+
+body.ogretmen-body .dash-hero h1,
+body.ogretmen-body .dash-hero-copy h1 {
+    margin: 4px 0 0 !important;
+    color: #fff !important;
+    font-family: "CaviarDreams", Georgia, serif !important;
+    font-weight: 400 !important;
+    font-size: 2.2rem !important;
+    letter-spacing: 0 !important;
+    line-height: 1.05 !important;
+    text-shadow: none !important;
+}
+
+body.ogretmen-body .dash-hero-date {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.22);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+body.ogretmen-body .dash-hero-date-num {
+    font-family: "LemonMilk", var(--cs-font) !important;
+    font-weight: 400 !important;
+    color: var(--cs-primary) !important;
+    background: #fff !important;
+}
+
+/* —— Hafta bandı (ana sayfa) —— */
+body.ogretmen-body .og-wow-week {
+    border: 0 !important;
+    border-radius: var(--cs-radius-xl) !important;
+    background: linear-gradient(115deg, var(--cs-navy-deep) 0%, var(--cs-primary) 58%, var(--cs-primary-mid) 100%) !important;
+    box-shadow: var(--cs-shadow-md) !important;
+}
+
+body.ogretmen-body .og-wow-week-kicker {
+    color: rgba(240, 244, 252, 0.78) !important;
+    letter-spacing: 0.14em !important;
+}
+
+body.ogretmen-body .og-wow-week-copy h2 {
+    font-family: "CaviarDreams", Georgia, serif !important;
+    font-weight: 400 !important;
+    font-size: clamp(1.35rem, 2.2vw, 1.75rem) !important;
+    letter-spacing: 0 !important;
+    color: #fff !important;
+}
+
+body.ogretmen-body .og-wow-cta {
+    min-height: var(--cs-btn-h);
+    padding: 0 var(--cs-space-5) !important;
+    border-radius: var(--cs-radius-md) !important;
+    background: #fff !important;
+    color: var(--cs-primary) !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+}
+
+/* —— Kartlar —— */
+body.ogretmen-body .og-wow-card,
+body.ogretmen-body .dash-panel,
+body.ogretmen-body .ogretmen-select-card,
+body.ogretmen-body .ogretmen-program-page,
+body.ogretmen-body .og-yoklama-card,
+body.ogretmen-body .og-ders-card,
+body.ogretmen-body .dk-card {
+    background: var(--cs-surface) !important;
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-xl) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+}
+
+body.ogretmen-body .og-wow-card-head,
+body.ogretmen-body .dash-panel-head,
+body.ogretmen-body .og-section-head {
+    background: transparent !important;
+    border-bottom: 1px solid var(--cs-border) !important;
+}
+
+body.ogretmen-body .og-section-head-warn {
+    background: var(--cs-danger-bg) !important;
+}
+
+body.ogretmen-body .og-wow-kicker,
+body.ogretmen-body .dash-eyebrow {
+    color: var(--cs-text-muted) !important;
+    letter-spacing: 0.12em !important;
+}
+
+body.ogretmen-body .og-wow-card-head h2,
+body.ogretmen-body .dash-panel-head h2,
+body.ogretmen-body .og-section-head h2,
+body.ogretmen-body .dk-card-head h2,
+body.ogretmen-body .dk-summary-title {
+    font-family: "CaviarDreams", Georgia, serif !important;
+    font-weight: 400 !important;
+    letter-spacing: 0 !important;
+    color: var(--cs-text-primary) !important;
+}
+
+body.ogretmen-body .og-wow-link,
+body.ogretmen-body .dash-text-btn {
+    color: var(--cs-primary) !important;
+    min-height: var(--cs-touch-min);
+    display: inline-flex;
+    align-items: center;
+}
+
+/* —— Gün sekmeleri —— */
+body.ogretmen-body .og-wow-day-tab,
+body.ogretmen-body .ogretmen-class-tab,
+body.ogretmen-body .dk-sinif-tab {
+    min-height: var(--cs-touch-min);
+    border-radius: var(--cs-radius-md) !important;
+    border: 1px solid var(--cs-border) !important;
+    background: var(--cs-surface) !important;
+    color: var(--cs-text-primary) !important;
+    box-shadow: none !important;
+}
+
+body.ogretmen-body .og-wow-day-tab.is-active,
+body.ogretmen-body .ogretmen-class-tab.active,
+body.ogretmen-body .dk-sinif-tab.is-active {
+    background: var(--cs-primary) !important;
+    border-color: var(--cs-primary) !important;
+    color: #fff !important;
+}
+
+body.ogretmen-body .ogretmen-class-tab.active .og-count-badge {
+    background: rgba(255, 255, 255, 0.18) !important;
+    color: #fff !important;
+}
+
+body.ogretmen-body .og-wow-lesson {
+    border-radius: var(--cs-radius-md);
+    border-color: var(--cs-border);
+    background: var(--cs-surface-muted);
+}
+
+body.ogretmen-body .og-wow-lesson-time,
+body.ogretmen-body .og-wow-lesson-class {
+    color: var(--cs-primary);
+    border-color: var(--cs-border);
+    background: var(--cs-surface);
+}
+
+body.ogretmen-body .og-wow-lesson-body strong,
+body.ogretmen-body .og-wow-meet-list strong,
+body.ogretmen-body .og-yoklama-name,
+body.ogretmen-body .og-ogrenci-ad,
+body.ogretmen-body .og-ogrenci-cell span {
+    font-family: var(--cs-font) !important;
+    font-weight: 600 !important;
+    color: var(--cs-text-primary);
+}
+
+body.ogretmen-body .og-wow-lesson-dot {
+    background: var(--cs-primary);
+    box-shadow: none;
+}
+
+/* —— Sınıf kutuları —— */
+body.ogretmen-body .og-wow-class-tile {
+    border-radius: var(--cs-radius-lg) !important;
+    border: 1px solid var(--cs-border) !important;
+    background: var(--cs-surface) !important;
+    box-shadow: var(--cs-shadow-xs);
+    min-height: var(--cs-touch-min);
+}
+
+body.ogretmen-body .og-wow-class-tile::before,
+body.ogretmen-body .og-wow-class-tile:nth-child(even)::before {
+    background: var(--cs-primary);
+}
+
+body.ogretmen-body .og-wow-class-badge,
+body.ogretmen-body .og-wow-class-tile:nth-child(even) .og-wow-class-badge {
+    font-family: "CaviarDreams", Georgia, serif !important;
+    font-weight: 400 !important;
+    color: var(--cs-primary) !important;
+}
+
+/* —— Metrikler —— */
+body.ogretmen-body .og-wow-metric,
+body.ogretmen-body .og-wow-metric-blue,
+body.ogretmen-body .og-wow-metric-green,
+body.ogretmen-body .og-wow-metric-amber {
+    background: var(--cs-surface) !important;
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-xl) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+}
+
+body.ogretmen-body .og-wow-metric::after {
+    background: var(--cs-primary) !important;
+}
+
+body.ogretmen-body .og-wow-metric-icon,
+body.ogretmen-body .og-wow-metric-blue .og-wow-metric-icon,
+body.ogretmen-body .og-wow-metric-green .og-wow-metric-icon,
+body.ogretmen-body .og-wow-metric-amber .og-wow-metric-icon {
+    color: var(--cs-primary) !important;
+    background: var(--cs-soft-blue) !important;
+    border-color: transparent !important;
+}
+
+body.ogretmen-body .og-wow-metric-value,
+body.ogretmen-body .og-wow-metric-blue .og-wow-metric-value,
+body.ogretmen-body .og-wow-metric-green .og-wow-metric-value,
+body.ogretmen-body .og-wow-metric-amber .og-wow-metric-value,
+body.ogretmen-body .dk-stat strong {
+    font-family: "LemonMilk", var(--cs-font) !important;
+    font-weight: 400 !important;
+    color: var(--cs-primary) !important;
+    letter-spacing: 0 !important;
+}
+
+body.ogretmen-body .dk-stat strong.pos {
+    color: var(--cs-success) !important;
+}
+
+body.ogretmen-body .dk-stat strong.neg {
+    color: var(--cs-danger) !important;
+}
+
+body.ogretmen-body .og-wow-empty-box {
+    border-radius: var(--cs-radius-lg);
+    border-color: var(--cs-border);
+    background: var(--cs-surface-muted);
+}
+
+/* —— Not girişi hafta şeridi —— */
+body.ogretmen-body .og-week-active-banner {
+    border: 0 !important;
+    border-radius: var(--cs-radius-xl) !important;
+    color: #fff !important;
+    background: linear-gradient(115deg, var(--cs-navy-deep) 0%, var(--cs-primary) 58%, var(--cs-primary-mid) 100%) !important;
+    box-shadow: var(--cs-shadow-md) !important;
+}
+
+body.ogretmen-body .og-week-active-banner .dash-eyebrow,
+body.ogretmen-body .og-week-active-banner .og-week-lock-note,
+body.ogretmen-body .og-week-active-banner > span {
+    color: rgba(240, 244, 252, 0.82) !important;
+}
+
+body.ogretmen-body .og-week-active-banner strong {
+    font-family: "CaviarDreams", Georgia, serif !important;
+    font-weight: 400 !important;
+    font-size: clamp(1.35rem, 2.2vw, 1.7rem) !important;
+    letter-spacing: 0 !important;
+    color: #fff !important;
+}
+
+body.ogretmen-body .og-week-active-banner.og-week-locked {
+    background: var(--cs-surface) !important;
+    color: var(--cs-text-primary) !important;
+    border: 1px solid var(--cs-border) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+}
+
+body.ogretmen-body .og-week-locked .dash-eyebrow,
+body.ogretmen-body .og-week-locked .og-week-lock-note,
+body.ogretmen-body .og-week-locked > span {
+    color: var(--cs-text-secondary) !important;
+}
+
+body.ogretmen-body .og-week-locked strong {
+    color: var(--cs-text-primary) !important;
+}
+
+/* —— Kayıt düğmesi —— */
+body.ogretmen-body .ogretmen-save-btn,
+body.ogretmen-body .og-save-all {
+    min-height: var(--cs-btn-h);
+    border-radius: var(--cs-radius-md) !important;
+    background: var(--cs-primary) !important;
+    color: #fff !important;
+    box-shadow: none !important;
+}
+
+body.ogretmen-body .ogretmen-not-form .ghost-btn {
+    min-height: var(--cs-btn-h);
+    background: transparent !important;
+    color: var(--cs-primary) !important;
+    border: 1px solid var(--cs-border) !important;
+    box-shadow: none !important;
+}
+
+body.ogretmen-body .ogretmen-not-form input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+body.ogretmen-body .ogretmen-not-form select,
+body.ogretmen-body .ogretmen-not-form textarea {
+    min-height: var(--cs-input-h);
+    border-radius: var(--cs-radius-sm);
+    border-color: var(--cs-border);
+}
+
+/* —— Tablolar —— */
+body.ogretmen-body .og-table-wrap,
+body.ogretmen-body .og-program-table-wrap {
+    border-radius: var(--cs-radius-md);
+    border-color: var(--cs-border);
+    overflow: auto;
+}
+
+body.ogretmen-body .og-grade-table thead th,
+body.ogretmen-body .og-program-table thead th {
+    background: transparent !important;
+    color: var(--cs-text-muted) !important;
+    border-color: var(--cs-border) !important;
+    font-family: var(--cs-font) !important;
+}
+
+body.ogretmen-body .og-grade-table tbody td,
+body.ogretmen-body .og-program-table tbody td {
+    border-color: var(--cs-border) !important;
+    color: var(--cs-text-primary);
+}
+
+body.ogretmen-body .og-degerlendirme-table td strong {
+    font-family: "LemonMilk", var(--cs-font) !important;
+    font-weight: 400 !important;
+    color: var(--cs-primary) !important;
+}
+
+/* —— Deneme kontrol —— */
+body.ogretmen-body .dk-summary-card {
+    border: 0;
+    border-radius: var(--cs-radius-xl);
+    background: linear-gradient(115deg, var(--cs-navy-deep) 0%, var(--cs-primary) 52%, var(--cs-primary-mid) 100%);
+    box-shadow: 0 16px 36px color-mix(in srgb, var(--cs-navy-deep) 26%, transparent);
+}
+
+body.ogretmen-body .dk-summary-title,
+body.ogretmen-body .dk-summary-card .dk-stat strong,
+body.ogretmen-body .dk-summary-card .dk-stat strong.pos,
+body.ogretmen-body .dk-summary-card .dk-stat strong.neg {
+    color: #fff !important;
+}
+
+body.ogretmen-body .dk-summary-card .dk-stat strong.pos {
+    color: #b7f0d4 !important;
+}
+
+body.ogretmen-body .dk-summary-card .dk-stat strong.neg {
+    color: #ffc9c9 !important;
+}
+
+body.ogretmen-body .dk-stat {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--cs-radius-md);
+}
+
+body.ogretmen-body .dk-sort-link.is-active {
+    background: var(--cs-soft-blue);
+    border-color: var(--cs-border-strong);
+    color: var(--cs-primary);
+}
+
+body.ogretmen-body .ogretmen-dash .dash-metrics {
+    gap: var(--cs-space-3) !important;
+}
+
+body.ogretmen-body .ogretmen-dash .dash-stat,
+body.ogretmen-body .ogretmen-dash .dash-stat-blue,
+body.ogretmen-body .ogretmen-dash .dash-stat-green,
+body.ogretmen-body .ogretmen-dash .dash-stat-amber,
+body.ogretmen-body .ogretmen-dash .dash-stat-teal {
+    background: var(--cs-surface) !important;
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-xl) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+}
+
+body.ogretmen-body .ogretmen-dash .dash-stat-value {
+    font-family: "LemonMilk", var(--cs-font) !important;
+    font-weight: 400 !important;
+    color: var(--cs-primary) !important;
+    letter-spacing: 0 !important;
+}
+
+body.ogretmen-body .ogretmen-dash .dash-stat-label {
+    color: var(--cs-text-secondary) !important;
+}
+
+body.ogretmen-body .ogretmen-dash .dash-stat-icon {
+    color: var(--cs-primary) !important;
+}
+
+body.ogretmen-body .ogretmen-program-page .og-program-day-block {
+    border-color: var(--cs-border) !important;
+    border-radius: var(--cs-radius-lg) !important;
+    background: var(--cs-surface-muted) !important;
+}
+
+body.ogretmen-body .og-program-day-label {
+    font-family: "CaviarDreams", Georgia, serif !important;
+    font-weight: 400 !important;
+    color: var(--cs-primary) !important;
+}
+
+body.ogretmen-body .dash-shortcut-card {
+    border-radius: var(--cs-radius-lg);
+    border-color: var(--cs-border);
+}
+
+body.ogretmen-body .dash-sc-banner {
+    --sc-navy: var(--cs-navy-deep);
+    --sc-accent: var(--cs-primary);
+}
+
+@media (max-width: 900px) {
+    body.ogretmen-body .dash-hero {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    body.ogretmen-body .dash-hero-brand,
+    body.ogretmen-body .dash-hero-date,
+    body.ogretmen-body .dash-hero-logo-wrap {
+        flex: 0 1 auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+    }
+
+    body.ogretmen-body .dash-hero h1,
+    body.ogretmen-body .dash-hero-copy h1 {
+        font-size: 1.7rem !important;
+    }
+
+    body.ogretmen-body .og-wow-metrics {
+        grid-template-columns: 1fr;
+    }
+
+    body.ogretmen-body .og-wow-cta {
+        width: 100%;
+    }
+}
+
+@media (max-width: 640px) {
+    body.ogretmen-body .dash-hero h1,
+    body.ogretmen-body .dash-hero-copy h1 {
+        font-size: 1.45rem !important;
+    }
+
+    body.ogretmen-body .og-wow-class-grid,
+    body.ogretmen-body .ogretmen-dash .dash-metrics {
+        grid-template-columns: 1fr !important;
+    }
+
+    body.ogretmen-body .og-wow-lesson {
+        grid-template-columns: 1fr;
+    }
+
+    body.ogretmen-body select,
+    body.ogretmen-body .ogretmen-not-form input,
+    body.ogretmen-body .ogretmen-not-form textarea {
+        font-size: 16px;
+    }
+
+    body.ogretmen-body .ogretmen-form-actions .ogretmen-save-btn,
+    body.ogretmen-body .ogretmen-form-actions .ghost-btn {
+        width: 100%;
+    }
+}

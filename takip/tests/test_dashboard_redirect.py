@@ -60,8 +60,8 @@ class DashboardRedirectKaldirmaTests(TestCase):
 
         response = self.client.get(DASHBOARD_URL)
 
-        # Ekstra RBAC rolü yok → ogretmen_not_girisi doğrudan render edilmeli.
         self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "ogretmen/dashboard.html")
 
     def test_tek_cocuklu_veli_ic_redirect_mantigi_bozulmadi(self):
         """veli_dashboard'ın KENDİ içindeki tek-çocuk kısayolu (redirect)
