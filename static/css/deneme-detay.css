@@ -1,0 +1,316 @@
+/* Deneme detay — sıralama, ders listesi, kazanım, talebe kartları */
+
+.deneme-detail-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cs-section-gap);
+}
+
+.deneme-detail-page .result-card {
+    margin: 0 !important;
+    padding: var(--cs-space-5) !important;
+    background: var(--cs-surface) !important;
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-xl) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+}
+
+.deneme-detail-page .deneme-section-title {
+    margin: 0 0 var(--cs-space-2) !important;
+    font-family: "CaviarDreams", Georgia, serif !important;
+    font-size: var(--cs-font-section) !important;
+    font-weight: 400 !important;
+    letter-spacing: 0 !important;
+    line-height: 1.15 !important;
+    color: var(--cs-text-primary) !important;
+}
+
+.deneme-detail-page .deneme-section-desc {
+    margin: 0 0 var(--cs-space-4);
+    font-size: var(--cs-font-secondary);
+    color: var(--cs-text-secondary);
+}
+
+.deneme-detail-page .deneme-branches-section {
+    margin-top: 0;
+}
+
+.deneme-detail-page .deneme-branches-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--cs-space-4);
+    flex-wrap: wrap;
+    margin-bottom: var(--cs-space-4);
+}
+
+.deneme-detail-page .deneme-branches-head .deneme-section-title,
+.deneme-detail-page .deneme-branches-head .deneme-section-desc {
+    margin-bottom: 0;
+}
+
+.deneme-detail-page .responsive-table,
+.deneme-detail-page .ek-table-wrap {
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+.deneme-detail-page .report-data-table,
+.deneme-detail-page .ek-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.deneme-detail-page .report-data-table thead th,
+.deneme-detail-page .ek-table th {
+    background: transparent !important;
+    color: var(--cs-text-muted) !important;
+    font-size: var(--cs-font-caption) !important;
+    font-weight: 600 !important;
+    letter-spacing: var(--cs-letter-kicker) !important;
+    text-transform: uppercase;
+    text-align: left;
+    padding: var(--cs-space-3) var(--cs-space-2) !important;
+    border-bottom: 1px solid var(--cs-border) !important;
+}
+
+.deneme-detail-page .report-data-table tbody td,
+.deneme-detail-page .ek-table td {
+    padding: var(--cs-space-3) var(--cs-space-2) !important;
+    font-size: var(--cs-font-body) !important;
+    color: var(--cs-text-primary);
+    border-top: 0;
+    border-bottom: 1px solid var(--cs-border-subtle);
+    vertical-align: middle;
+}
+
+.deneme-detail-page .report-data-table tbody tr:hover td,
+.deneme-detail-page .ek-table tbody tr:hover td {
+    background: var(--cs-surface-muted);
+}
+
+.deneme-detail-page .deneme-siralama-table thead th.num-col,
+.deneme-detail-page .deneme-siralama-table tbody td.num-col,
+.deneme-detail-page .deneme-branches-table .num-col {
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.deneme-detail-page .deneme-siralama-table td[data-label="Talebe"] strong,
+.deneme-detail-page .deneme-branches-table td strong,
+.deneme-detail-page .ek-table td:nth-child(2),
+.deneme-detail-page .ek-score-body strong {
+    font-family: "CaviarDreams", Georgia, serif !important;
+    font-weight: 400 !important;
+    letter-spacing: 0 !important;
+}
+
+.deneme-detail-page td.profile-score,
+.deneme-detail-page td[data-label="Puan"],
+.deneme-detail-page .ek-score-rail b,
+.deneme-detail-page .ek-table .ek-danger,
+.deneme-detail-page .ek-table .ek-ok {
+    font-family: "LemonMilk", Georgia, sans-serif !important;
+    font-weight: 400 !important;
+    letter-spacing: 0 !important;
+    color: var(--cs-primary) !important;
+}
+
+.deneme-detail-page .ek-table .ek-danger {
+    color: var(--cs-danger);
+}
+
+.deneme-detail-page .deneme-branches-table .brans-group-head {
+    text-align: center;
+    color: var(--cs-primary) !important;
+    border-bottom: 1px solid var(--cs-border-strong) !important;
+}
+
+.deneme-detail-page .deneme-branches-table .brans-sub {
+    text-align: center;
+    color: var(--cs-text-muted) !important;
+}
+
+.deneme-detail-page .ek-table tr.is-weak td {
+    background: var(--cs-danger-bg);
+}
+
+.deneme-detail-page .ek-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--cs-space-3);
+}
+
+.deneme-detail-page .deneme-branches-mobile {
+    display: none;
+}
+
+.deneme-detail-page .deneme-branches-card {
+    margin-bottom: var(--cs-space-3);
+    padding: var(--cs-space-4);
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-lg);
+    background: var(--cs-surface);
+    box-shadow: var(--cs-shadow-sm);
+}
+
+.deneme-detail-page .deneme-branches-card-head {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--cs-space-3);
+    margin-bottom: var(--cs-space-3);
+}
+
+.deneme-detail-page .deneme-branches-rank {
+    font-family: "LemonMilk", Georgia, sans-serif;
+    font-size: var(--cs-font-caption);
+    color: var(--cs-primary);
+    min-width: 28px;
+}
+
+.deneme-detail-page .deneme-branches-card-head strong {
+    display: block;
+    font-family: "CaviarDreams", Georgia, serif;
+    font-weight: 400;
+    font-size: var(--cs-font-card-title);
+}
+
+.deneme-detail-page .deneme-branches-card-head span {
+    font-size: var(--cs-font-caption);
+    color: var(--cs-text-muted);
+}
+
+.deneme-detail-page .deneme-branches-grid {
+    display: grid;
+    gap: var(--cs-space-2);
+}
+
+.deneme-detail-page .deneme-branches-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--cs-space-3);
+    padding: var(--cs-space-2) 0;
+    border-top: 1px solid var(--cs-border-subtle);
+}
+
+.deneme-detail-page .deneme-branches-label {
+    font-size: var(--cs-font-secondary);
+    font-weight: 600;
+    color: var(--cs-text-primary);
+}
+
+.deneme-detail-page .deneme-branches-stats {
+    display: flex;
+    gap: var(--cs-space-3);
+    font-family: "LemonMilk", Georgia, sans-serif;
+    font-size: var(--cs-font-secondary);
+}
+
+.deneme-detail-page .deneme-branches-stats small {
+    font-family: var(--cs-font);
+    font-size: 9px;
+    font-weight: 700;
+    margin-left: 2px;
+}
+
+.deneme-detail-page .d-stat { color: var(--cs-success); }
+.deneme-detail-page .y-stat { color: var(--cs-danger); }
+.deneme-detail-page .b-stat { color: var(--cs-text-muted); }
+
+@media (max-width: 900px) {
+    .deneme-detail-page .result-entry-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .deneme-detail-page .result-header-actions {
+        width: 100%;
+        justify-content: flex-start !important;
+    }
+
+    .deneme-detail-page .deneme-result-table {
+        overflow: visible;
+    }
+
+    .deneme-detail-page .deneme-result-table table,
+    .deneme-detail-page .deneme-result-table tbody,
+    .deneme-detail-page .deneme-result-table tr,
+    .deneme-detail-page .deneme-result-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .deneme-detail-page .deneme-result-table thead {
+        display: none;
+    }
+
+    .deneme-detail-page .deneme-result-table tr.deneme-result-row {
+        margin-bottom: var(--cs-space-3);
+        padding: var(--cs-space-4);
+        border: 1px solid var(--cs-border);
+        border-radius: var(--cs-radius-lg);
+        background: var(--cs-surface);
+        box-shadow: var(--cs-shadow-sm);
+    }
+
+    .deneme-detail-page .deneme-result-table tr.deneme-result-row td {
+        display: grid;
+        grid-template-columns: minmax(72px, 34%) 1fr;
+        gap: var(--cs-space-2);
+        padding: var(--cs-space-2) 0 !important;
+        border-bottom: 0;
+        border-top: 1px solid var(--cs-border-subtle);
+        text-align: left !important;
+    }
+
+    .deneme-detail-page .deneme-result-table tr.deneme-result-row td:first-child,
+    .deneme-detail-page .deneme-result-table tr.deneme-result-row td[data-label="Talebe"] {
+        display: block;
+        padding: 0 0 var(--cs-space-2) !important;
+        border-top: 0;
+    }
+
+    .deneme-detail-page .deneme-result-table tr.deneme-result-row td:first-child {
+        font-family: "LemonMilk", Georgia, sans-serif;
+        font-size: var(--cs-font-caption);
+        color: var(--cs-primary);
+    }
+
+    .deneme-detail-page .deneme-result-table tr.deneme-result-row td:first-child::before {
+        content: "Sıra";
+        display: inline-block;
+        margin-right: var(--cs-space-2);
+        font-family: var(--cs-font);
+        font-size: 10px;
+        letter-spacing: var(--cs-letter-kicker);
+        text-transform: uppercase;
+        color: var(--cs-text-muted);
+    }
+
+    .deneme-detail-page .deneme-result-table tr.deneme-result-row td[data-label="Talebe"]::before {
+        display: none;
+    }
+
+    .deneme-detail-page .deneme-result-table tr.deneme-result-row td:not([data-label="Talebe"])::before {
+        content: attr(data-label);
+        font-family: var(--cs-font);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: var(--cs-letter-kicker);
+        text-transform: uppercase;
+        color: var(--cs-text-muted);
+    }
+
+    .deneme-detail-page .deneme-branches-desktop {
+        display: none;
+    }
+
+    .deneme-detail-page .deneme-branches-mobile {
+        display: block;
+    }
+
+    .deneme-detail-page .ek-grid {
+        grid-template-columns: 1fr;
+    }
+}

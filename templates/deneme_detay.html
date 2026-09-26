@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}{{ deneme.ad }}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek36">{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek41">
+<link rel="stylesheet" href="{% static 'css/deneme-detay.css' %}?v=dd2">
+{% endblock %}
 {% block content %}
 <div class="result-entry-page deneme-detail-page">
     <header class="result-entry-header">
@@ -148,7 +151,7 @@
     {% endif %}
 
     {% if alt.kazanimlar %}
-    <section class="result-card" style="margin-top:20px;">
+    <section class="result-card">
         <h2 class="deneme-section-title">Kazanımlar</h2>
         <p class="deneme-section-desc">KonuKazanimDetay. %70 altı zayıf.</p>
         <div class="ek-table-wrap">
@@ -170,7 +173,7 @@
     {% endif %}
 
     {% if alt.talebeler %}
-    <section class="result-card" style="margin-top:20px;">
+    <section class="result-card">
         <h2 class="deneme-section-title">Talebeler</h2>
         <p class="deneme-section-desc">Puan 500 üzerinden. Zayıf kazanım sayısı bu denemeye aittir.</p>
         <div class="ek-grid">
@@ -221,202 +224,4 @@
     {% include "includes/ai_zekasi_widget.html" with ai_tur="deneme_analiz" ai_deneme_id=deneme.id ai_kicker="Deneme analizi" ai_baslik=deneme.ad|add:" · Akademik değerlendirme" %}
     {% endif %}
 </div>
-<style>
-.deneme-section-title {
-    margin: 0 0 8px;
-    font-size: 1.05rem;
-    font-weight: 800;
-    color: #0f172a;
-}
-.deneme-siralama-table thead th,
-.deneme-siralama-table tbody td {
-    text-align: left;
-}
-.deneme-siralama-table thead th.num-col,
-.deneme-siralama-table tbody td.num-col {
-    text-align: center;
-    font-variant-numeric: tabular-nums;
-}
-.deneme-section-desc {
-    margin: 0 0 16px;
-    font-size: 13px;
-    color: #64748b;
-}
-.deneme-branches-section {
-    margin-top: 20px;
-}
-.deneme-branches-head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 16px;
-    flex-wrap: wrap;
-    margin-bottom: 16px;
-}
-.deneme-branches-head .deneme-section-title,
-.deneme-branches-head .deneme-section-desc {
-    margin-bottom: 0;
-}
-.deneme-branches-head .pdf-sayfa-sec {
-    flex-shrink: 0;
-}
-.deneme-branches-table .brans-group-head {
-    text-align: center;
-    font-size: 11px;
-    letter-spacing: 0.03em;
-    border-bottom: 1px solid #e2e8f0;
-}
-.deneme-branches-table .brans-sub {
-    font-size: 10px;
-    color: #64748b;
-}
-.deneme-branches-mobile {
-    display: none;
-}
-.deneme-branches-card {
-    margin-bottom: 12px;
-    padding: 14px;
-    border: 1px solid #dbe3ef;
-    border-radius: 14px;
-    background: #fff;
-    box-shadow: 0 2px 10px rgba(15, 40, 80, 0.05);
-}
-.deneme-branches-card-head {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    margin-bottom: 12px;
-    text-align: left;
-}
-.deneme-branches-rank {
-    font-size: 12px;
-    font-weight: 800;
-    color: #64748b;
-    min-width: 28px;
-}
-.deneme-branches-card-head strong {
-    display: block;
-    font-size: 15px;
-}
-.deneme-branches-card-head span {
-    font-size: 12px;
-    color: #64748b;
-}
-.deneme-branches-grid {
-    display: grid;
-    gap: 8px;
-}
-.deneme-branches-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 8px 0;
-    border-top: 1px solid #eef2f7;
-}
-.deneme-branches-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: #334155;
-}
-.deneme-branches-stats {
-    display: flex;
-    gap: 10px;
-    font-size: 13px;
-    font-weight: 700;
-}
-.deneme-branches-stats small {
-    font-size: 9px;
-    font-weight: 800;
-    margin-left: 2px;
-    opacity: 0.65;
-}
-.d-stat { color: #15803d; }
-.y-stat { color: #b91c1c; }
-.b-stat { color: #64748b; }
-
-@media (max-width: 768px) {
-    .deneme-detail-page .result-entry-header {
-        align-items: flex-start;
-        flex-direction: column;
-        text-align: left;
-    }
-    .deneme-detail-page .result-entry-header > div {
-        width: 100%;
-        text-align: left;
-    }
-    .deneme-detail-page .result-header-actions {
-        width: 100%;
-        justify-content: flex-start !important;
-    }
-    .deneme-result-table {
-        overflow: visible;
-        margin-top: 0;
-    }
-    .deneme-result-table table,
-    .deneme-result-table tbody,
-    .deneme-result-table tr,
-    .deneme-result-table td {
-        display: block;
-        width: 100%;
-    }
-    .deneme-result-table thead {
-        display: none;
-    }
-    .deneme-result-table tr.deneme-result-row {
-        margin-bottom: 12px;
-        padding: 14px;
-        border: 1px solid #dbe3ef;
-        border-radius: 14px;
-        background: #fff;
-        box-shadow: 0 2px 10px rgba(15, 40, 80, 0.05);
-    }
-    .deneme-result-table tr.deneme-result-row td {
-        display: grid;
-        grid-template-columns: minmax(72px, 34%) 1fr;
-        gap: 8px;
-        padding: 8px 0;
-        border-top: 1px solid #eef2f7;
-        text-align: left !important;
-    }
-    .deneme-result-table tr.deneme-result-row td:first-child {
-        display: block;
-        padding: 0 0 10px;
-        border-top: 0;
-        font-size: 12px;
-        font-weight: 700;
-        color: #64748b;
-    }
-    .deneme-result-table tr.deneme-result-row td:first-child::before {
-        content: "Sıra";
-        display: inline-block;
-        margin-right: 8px;
-        font-size: 10px;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-    }
-    .deneme-result-table tr.deneme-result-row td[data-label="Talebe"] {
-        display: block;
-        padding: 0 0 12px;
-        border-top: 0;
-    }
-    .deneme-result-table tr.deneme-result-row td[data-label="Talebe"]::before {
-        display: none;
-    }
-    .deneme-result-table tr.deneme-result-row td:not([data-label="Talebe"])::before {
-        content: attr(data-label);
-        font-size: 10px;
-        font-weight: 800;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        color: #64748b;
-    }
-    .deneme-branches-desktop {
-        display: none;
-    }
-    .deneme-branches-mobile {
-        display: block;
-    }
-}
-</style>
 {% endblock %}
