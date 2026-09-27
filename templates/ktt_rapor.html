@@ -2,7 +2,7 @@
 {% load static filter_tags %}
 {% block title %}KTT Rapor · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=ktt-grup1">
+<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=ktt-rapor2">
 {% endblock %}
 {% block content %}
 <div class="ktt-page ktt-report-page">
@@ -14,6 +14,7 @@
             {% endif %}
             {% if pdf_yetkisi %}
             {% include "includes/pdf_sayfa_secici.html" with pdf_href=pdf_url pdf_sayfa=pdf_sayfa pdf_btn_class="ktt-outline-btn red" pdf_btn_label="PDF İndir" %}
+            <a href="{{ zip_url }}" class="ktt-outline-btn navy">Talebe ZIP</a>
             {% endif %}
             <a href="{% url 'ktt_listesi' %}" class="ktt-outline-btn muted">KTT Listesi</a>
         </div>
@@ -80,21 +81,81 @@
         </article>
         <article class="ktt-kpi-card green">
             <div>
-                <span>Ortalama Puan / Net</span>
-                <strong>{{ istatistik.ortalama_puan }}</strong>
-                <small>Puan / {{ istatistik.ortalama_net }} Net</small>
+                <span>Toplam net</span>
+                <strong>{{ istatistik.toplam_net }}</strong>
+                <small>Doğru − yanlış / 4</small>
             </div>
             <span class="ktt-kpi-icon">🧮</span>
         </article>
         <article class="ktt-kpi-card amber">
             <div>
-                <span>En Yüksek Puan</span>
-                <strong>{{ istatistik.en_yuksek_puan }}</strong>
-                <small>/ 100</small>
+                <span>Başarı oranı</span>
+                <strong>%{{ istatistik.basari }}</strong>
+                <small>{{ istatistik.toplam_dogru }} doğru / {{ istatistik.toplam_soru }} soru</small>
             </div>
             <span class="ktt-kpi-icon">🏆</span>
         </article>
     </div>
+
+    <section class="ktt-report-card">
+        <p class="ktt-section-title">▦ Talebe Raporu</p>
+        {% if talebe_satirlari %}
+        <div class="ktt-acc-list ktt-rapor-gruplar">
+            {% for s in talebe_satirlari %}
+            <details class="ktt-acc-item">
+                <summary class="ktt-acc-summary">
+                    <span class="ktt-acc-chevron" aria-hidden="true"></span>
+                    <span class="ktt-acc-main">
+                        <strong class="ktt-acc-title">{{ s.talebe.ad_soyad }}</strong>
+                        <span class="ktt-acc-meta">
+                            <span>{{ s.soru }} soru</span>
+                            <span>{{ s.dogru }} doğru</span>
+                            <span>{{ s.yanlis }} yanlış</span>
+                            <span>{{ s.bos }} boş</span>
+                        </span>
+                    </span>
+                    {% if pdf_yetkisi %}
+                    <a href="{% url 'ktt_rapor_talebe_pdf' s.talebe.pk %}{% if export_qs %}?{{ export_qs }}{% endif %}" class="ktt-outline-btn" onclick="event.stopPropagation()">PDF</a>
+                    {% endif %}
+                </summary>
+                <div class="ktt-acc-body">
+                    <p class="ktt-talebe-ozet">{{ s.ozet }}</p>
+                    <div class="responsive-table">
+                        <table class="ktt-table">
+                            <thead>
+                                <tr>
+                                    <th>Test</th>
+                                    <th>Tarih</th>
+                                    <th>Soru</th>
+                                    <th>Doğru</th>
+                                    <th>Yanlış</th>
+                                    <th>Boş</th>
+                                    <th>Net</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for t in s.testler %}
+                                <tr>
+                                    <td>{{ t.ad }}</td>
+                                    <td>{{ t.tarih|date:"d.m.Y" }}</td>
+                                    <td>{{ t.soru }}</td>
+                                    <td>{{ t.dogru }}</td>
+                                    <td>{{ t.yanlis }}</td>
+                                    <td>{{ t.bos }}</td>
+                                    <td><span class="ktt-net-pill">{{ t.net }}</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </details>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="ktt-empty">Filtreye uygun sonuç bulunamadı.</p>
+        {% endif %}
+    </section>
 
     {% if sonuclar %}
     <section class="ktt-analiz-toggle-wrap">

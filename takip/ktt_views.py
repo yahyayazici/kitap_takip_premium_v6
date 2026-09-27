@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import csv
+import io
+import zipfile
 from io import StringIO
 
 from django.contrib import messages
@@ -28,6 +30,9 @@ from takip.ktt_service import (
     ktt_rapor_filtrele,
     ktt_rapor_grupla,
     ktt_rapor_istatistik,
+    ktt_rapor_pdf_adi,
+    ktt_rapor_talebe_satirlari,
+    ktt_rapor_zip_adi,
     ktt_silebilir,
     ktt_sinif_secenekleri,
     ktt_sinif_secimlerini_dogrula,
@@ -541,6 +546,36 @@ def ktt_detay_pdf(request, pk):
     return make_pdf_response(pdf_verisi, f"{ad}.pdf")
 
 
+KTT_RAPOR_SATIR_LIMIT = 2000
+
+
+def _ktt_rapor_liste(request, talebe_id=None):
+    sonuclar, filtre = _ktt_rapor_sonuclar(request)
+    if talebe_id is not None:
+        sonuclar = sonuclar.filter(talebe_id=talebe_id)
+    sonuclar_list = list(sonuclar[:KTT_RAPOR_SATIR_LIMIT])
+    return sonuclar_list, filtre, ktt_rapor_talebe_satirlari(sonuclar_list)
+
+
+def _ktt_rapor_adresi(request) -> str:
+    hedef = reverse("ktt_rapor")
+    sorgu = request.GET.urlencode()
+    return f"{hedef}?{sorgu}" if sorgu else hedef
+
+
+def _ktt_talebe_pdf_bayt(request, satir, filtre_etiketleri) -> bytes | None:
+    html = render(
+        request,
+        "ktt_talebe_rapor_pdf.html",
+        {
+            "satir": satir,
+            "filtre": filtre_etiketleri,
+            "olusturma_tarihi": now(),
+        },
+    ).content.decode("utf-8")
+    return html_to_pdf(html, base_url=request.build_absolute_uri("/"))
+
+
 def _ktt_rapor_sonuclar(request):
     filtre = ktt_rapor_filtre_dict(request)
     qs = yetkili_ktt_sonuclari(request.user)
@@ -600,10 +635,9 @@ def ktt_rapor(request):
     if request.GET.get("format") == "pdf" and can(request.user, "ktt", "export_pdf"):
         return ktt_rapor_pdf(request)
 
-    sonuclar, filtre = _ktt_rapor_sonuclar(request)
-    sonuclar_list = list(sonuclar[:500])
+    sonuclar_list, filtre, talebe_satirlari = _ktt_rapor_liste(request)
     secenekler = ktt_rapor_filtre_secenekleri(request.user)
-    istatistik = ktt_rapor_istatistik(sonuclar)
+    istatistik = ktt_rapor_istatistik(sonuclar_list)
 
     export_params = request.GET.copy()
     export_params.pop("format", None)
@@ -619,6 +653,7 @@ def ktt_rapor(request):
         {
             "sonuclar": sonuclar_list,
             "ktt_gruplari": ktt_rapor_grupla(sonuclar_list),
+            "talebe_satirlari": talebe_satirlari,
             "istatistik": istatistik,
             "filtre": filtre,
             "sinif_subeler": secenekler["sinif_subeler"],
@@ -629,6 +664,8 @@ def ktt_rapor(request):
             "pdf_yetkisi": can(request.user, "ktt", "export_pdf"),
             "excel_url": f"{request.path}?format=excel{export_tail}",
             "pdf_url": f"{request.path}?format=pdf{export_tail}",
+            "zip_url": f"{reverse('ktt_rapor_zip')}?{export_qs}" if export_qs else reverse("ktt_rapor_zip"),
+            "export_qs": export_qs,
             "analiz_url": analiz_url,
             "pdf_sayfa": coz_pdf_sayfa(request),
         },
@@ -675,10 +712,9 @@ def ktt_rapor_excel(request):
 @login_required
 @require_permission("ktt", "export_pdf")
 def ktt_rapor_pdf(request):
-    sonuclar, filtre = _ktt_rapor_sonuclar(request)
-    istatistik = ktt_rapor_istatistik(sonuclar)
+    sonuclar_list, filtre, talebe_satirlari = _ktt_rapor_liste(request)
+    istatistik = ktt_rapor_istatistik(sonuclar_list)
     secenekler = ktt_rapor_filtre_secenekleri(request.user)
-    sonuclar_list = list(sonuclar[:300])
     filtre_etiketleri = ktt_rapor_filtre_etiketleri(filtre, secenekler)
     pdf_sayfa = coz_pdf_sayfa(request)
 
@@ -686,11 +722,11 @@ def ktt_rapor_pdf(request):
         request,
         "ktt_rapor_pdf.html",
         {
-            "sonuclar": sonuclar_list,
+            "talebe_satirlari": talebe_satirlari,
             "istatistik": istatistik,
             "filtre": filtre_etiketleri,
-            "kayit_sayisi": len(sonuclar_list),
-            "kapsam": "KTT Sonuç Özeti",
+            "kayit_sayisi": len(talebe_satirlari),
+            "kapsam": "KTT Talebe Özeti",
             "olusturma_tarihi": now(),
             "pdf_sayfa": pdf_sayfa,
         },
@@ -709,3 +745,67 @@ def ktt_rapor_pdf(request):
         pdf_verisi,
         f"ktt_rapor_{pdf_sayfa['kod']}_{localdate():%Y%m%d}.pdf",
     )
+
+
+@login_required
+@require_permission("ktt", "export_pdf")
+def ktt_rapor_talebe_pdf(request, talebe_id: int):
+    sonuclar_list, filtre, talebe_satirlari = _ktt_rapor_liste(request, talebe_id)
+    if not talebe_satirlari:
+        messages.warning(request, "Bu aralıkta çözülmüş KTT yok.")
+        return redirect(_ktt_rapor_adresi(request))
+
+    satir = talebe_satirlari[0]
+    secenekler = ktt_rapor_filtre_secenekleri(request.user)
+    pdf_verisi = _ktt_talebe_pdf_bayt(
+        request,
+        satir,
+        ktt_rapor_filtre_etiketleri(filtre, secenekler),
+    )
+    if not pdf_verisi:
+        return pdf_error_response(
+            f"PDF oluşturulamadı. (Motor: {pdf_engine_status()})",
+        )
+    return make_pdf_response(
+        pdf_verisi,
+        ktt_rapor_pdf_adi(satir["talebe"].ad_soyad, filtre.get("baslangic") or "", filtre.get("bitis") or ""),
+    )
+
+
+@login_required
+@require_permission("ktt", "export_pdf")
+def ktt_rapor_zip(request):
+    sonuclar_list, filtre, talebe_satirlari = _ktt_rapor_liste(request)
+    if not talebe_satirlari:
+        messages.warning(request, "İndirilecek talebe raporu yok.")
+        return redirect(_ktt_rapor_adresi(request))
+
+    secenekler = ktt_rapor_filtre_secenekleri(request.user)
+    filtre_etiketleri = ktt_rapor_filtre_etiketleri(filtre, secenekler)
+    baslangic = filtre.get("baslangic") or ""
+    bitis = filtre.get("bitis") or ""
+
+    buffer = io.BytesIO()
+    yazilan = 0
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as arsiv:
+        for satir in talebe_satirlari:
+            pdf_verisi = _ktt_talebe_pdf_bayt(request, satir, filtre_etiketleri)
+            if not pdf_verisi:
+                continue
+            arsiv.writestr(
+                ktt_rapor_pdf_adi(satir["talebe"].ad_soyad, baslangic, bitis),
+                pdf_verisi,
+            )
+            yazilan += 1
+
+    if not yazilan:
+        return pdf_error_response(
+            f"PDF oluşturulamadı. (Motor: {pdf_engine_status()})",
+        )
+
+    dosya = ktt_rapor_zip_adi(baslangic, bitis)
+    response = HttpResponse(buffer.getvalue(), content_type="application/zip")
+    response["Content-Disposition"] = f'attachment; filename="{dosya}"'
+    response["X-Content-Type-Options"] = "nosniff"
+    response["Cache-Control"] = "no-store"
+    return response

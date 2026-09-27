@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from datetime import timedelta
+from decimal import Decimal
 
 from django.contrib.auth.models import User
 from django.db.models import Avg, Count, Max, Q, QuerySet, Sum
@@ -431,20 +432,183 @@ def ktt_test_soru_toplami(qs: QuerySet[KttSonucu]) -> int:
     return int(toplam["toplam"] or 0)
 
 
-def ktt_rapor_istatistik(qs: QuerySet[KttSonucu]) -> dict:
-    agg = qs.aggregate(
-        toplam=Count("id"),
-        ort_puan=Avg("puan"),
-        ort_net=Avg("net"),
-        max_puan=Max("puan"),
-    )
+def _tr_sayi(deger, ondalik: int = 2) -> str:
+    if isinstance(deger, Decimal):
+        sayi = deger
+    else:
+        sayi = Decimal(str(deger or 0))
+    sayi = sayi.quantize(Decimal(10) ** -ondalik)
+    metin = f"{sayi:.{ondalik}f}".replace(".", ",")
+    if ondalik:
+        metin = metin.rstrip("0").rstrip(",")
+    return metin or "0"
+
+
+def _ktt_rapor_sayilari(
+    *,
+    test: int,
+    dogru: int,
+    yanlis: int,
+    bos: int,
+    net,
+    ort_puan,
+    ort_net,
+    max_puan,
+) -> dict:
+    soru = int(dogru or 0) + int(yanlis or 0) + int(bos or 0)
+    if soru:
+        basari = Decimal(int(dogru or 0)) * Decimal(100) / Decimal(soru)
+    else:
+        basari = Decimal(0)
     return {
-        "toplam_sonuc": int(agg["toplam"] or 0),
-        "toplam_soru": ktt_test_soru_toplami(qs),
-        "ortalama_puan": round(float(agg["ort_puan"] or 0), 1),
-        "ortalama_net": round(float(agg["ort_net"] or 0), 1),
-        "en_yuksek_puan": round(float(agg["max_puan"] or 0), 1),
+        "toplam_sonuc": int(test or 0),
+        "toplam_soru": soru,
+        "toplam_dogru": int(dogru or 0),
+        "toplam_yanlis": int(yanlis or 0),
+        "toplam_bos": int(bos or 0),
+        "toplam_net": _tr_sayi(net, 2),
+        "basari": _tr_sayi(basari, 1),
+        "ortalama_puan": round(float(ort_puan or 0), 1),
+        "ortalama_net": round(float(ort_net or 0), 1),
+        "en_yuksek_puan": round(float(max_puan or 0), 1),
     }
+
+
+def ktt_rapor_ozet_metni(test: int, soru: int, dogru: int, yanlis: int, bos: int) -> str:
+    return (
+        f"{int(test)} test · {int(soru)} soru · {int(dogru)} doğru · "
+        f"{int(yanlis)} yanlış · {int(bos)} boş"
+    )
+
+
+def ktt_rapor_istatistik(kaynak) -> dict:
+    """Çözülen soru, kağıtlardaki doğru+yanlış+boş toplamıdır."""
+    if isinstance(kaynak, QuerySet):
+        agg = kaynak.aggregate(
+            toplam=Count("id"),
+            ort_puan=Avg("puan"),
+            ort_net=Avg("net"),
+            max_puan=Max("puan"),
+            dogru=Sum("dogru"),
+            yanlis=Sum("yanlis"),
+            bos=Sum("bos"),
+            net=Sum("net"),
+        )
+        return _ktt_rapor_sayilari(
+            test=agg["toplam"] or 0,
+            dogru=agg["dogru"] or 0,
+            yanlis=agg["yanlis"] or 0,
+            bos=agg["bos"] or 0,
+            net=agg["net"] or 0,
+            ort_puan=agg["ort_puan"],
+            ort_net=agg["ort_net"],
+            max_puan=agg["max_puan"],
+        )
+
+    satirlar = list(kaynak)
+    test = len(satirlar)
+    dogru = yanlis = bos = 0
+    net = Decimal(0)
+    puanlar: list[Decimal] = []
+    for sonuc in satirlar:
+        dogru += int(sonuc.dogru or 0)
+        yanlis += int(sonuc.yanlis or 0)
+        bos += int(sonuc.bos or 0)
+        net += Decimal(sonuc.net or 0)
+        puanlar.append(Decimal(sonuc.puan or 0))
+    ort_puan = (sum(puanlar, Decimal(0)) / test) if test else Decimal(0)
+    ort_net = (net / test) if test else Decimal(0)
+    max_puan = max(puanlar) if puanlar else Decimal(0)
+    return _ktt_rapor_sayilari(
+        test=test,
+        dogru=dogru,
+        yanlis=yanlis,
+        bos=bos,
+        net=net,
+        ort_puan=ort_puan,
+        ort_net=ort_net,
+        max_puan=max_puan,
+    )
+
+
+def ktt_rapor_talebe_satirlari(sonuclar) -> list[dict]:
+    """Seçilen aralıktaki kağıtları talebeye göre, ada göre sıralı toplar."""
+    kovalar: dict[int, dict] = {}
+    for sonuc in sonuclar:
+        talebe = sonuc.talebe
+        satir = kovalar.get(talebe.pk)
+        if satir is None:
+            satir = {
+                "talebe": talebe,
+                "testler": [],
+                "test": 0,
+                "soru": 0,
+                "dogru": 0,
+                "yanlis": 0,
+                "bos": 0,
+                "net": Decimal(0),
+            }
+            kovalar[talebe.pk] = satir
+        dogru = int(sonuc.dogru or 0)
+        yanlis = int(sonuc.yanlis or 0)
+        bos = int(sonuc.bos or 0)
+        soru = dogru + yanlis + bos
+        satir["testler"].append(
+            {
+                "ad": sonuc.ktt.ad,
+                "tarih": sonuc.ktt.sinav_tarihi,
+                "ders": sonuc.ktt.ders.ad if sonuc.ktt.ders_id else "",
+                "soru": soru,
+                "dogru": dogru,
+                "yanlis": yanlis,
+                "bos": bos,
+                "net": _tr_sayi(sonuc.net, 2),
+                "ktt_id": sonuc.ktt_id,
+            }
+        )
+        satir["test"] += 1
+        satir["soru"] += soru
+        satir["dogru"] += dogru
+        satir["yanlis"] += yanlis
+        satir["bos"] += bos
+        satir["net"] += Decimal(sonuc.net or 0)
+
+    sirali = sorted(
+        kovalar.values(),
+        key=lambda satir: (satir["talebe"].ad_soyad or "").casefold(),
+    )
+    for satir in sirali:
+        satir["net"] = _tr_sayi(satir["net"], 2)
+        satir["ozet"] = ktt_rapor_ozet_metni(
+            satir["test"],
+            satir["soru"],
+            satir["dogru"],
+            satir["yanlis"],
+            satir["bos"],
+        )
+    return sirali
+
+
+def ktt_rapor_pdf_adi(ad_soyad: str, baslangic: str = "", bitis: str = "") -> str:
+    ad = re.sub(r'[\\/:*?"<>|\r\n]+', " ", (ad_soyad or "").strip())
+    ad = re.sub(r"\s+", " ", ad).strip() or "Talebe"
+    bas = (baslangic or "").strip()
+    bit = (bitis or "").strip()
+    if bas or bit:
+        aralik = f"{bas or 'baslangic'}_{bit or 'bitis'}"
+    else:
+        aralik = "tum-aralik"
+    return f"{ad}_{aralik}.pdf"
+
+
+def ktt_rapor_zip_adi(baslangic: str = "", bitis: str = "") -> str:
+    bas = (baslangic or "").strip()
+    bit = (bitis or "").strip()
+    if bas or bit:
+        aralik = f"{bas or 'baslangic'}_{bit or 'bitis'}"
+    else:
+        aralik = "tum-aralik"
+    return f"ktt-talebe-raporlari_{aralik}.zip"
 
 
 def ktt_hafta_cozulen_soru(user: User, gun=None) -> int:

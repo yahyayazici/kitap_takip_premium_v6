@@ -1,0 +1,75 @@
+{% load static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>{{ satir.talebe.ad_soyad }} · KTT</title>
+    <style>
+        {% include "includes/pdf_karne_fonts.html" %}
+        @page { size: A4 portrait; margin: 12mm; }
+        body { font-family: "Poppins", "PdfTurkish", sans-serif; color: #122a4a; margin: 0; }
+        h1 { font-size: 18px; margin: 0 0 4px; }
+        .meta { color: #546173; font-size: 11px; margin-bottom: 14px; }
+        .ozet {
+            margin: 0 0 14px;
+            padding: 12px 14px;
+            background: #eef1f6;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #d5deea; padding: 7px 8px; text-align: center; font-size: 11px; }
+        th { background: #15427f; color: #fff; }
+        td.name { text-align: left; font-weight: 600; }
+        tfoot td { font-weight: 700; background: #f4f7fb; }
+        .footer { margin-top: 16px; color: #546173; font-size: 10px; }
+    </style>
+</head>
+<body>
+    <h1>{{ satir.talebe.ad_soyad }}</h1>
+    <div class="meta">
+        {{ satir.talebe.sinif_sube|default:"—" }}
+        · {{ filtre.ders }}
+        · {{ filtre.baslangic }} — {{ filtre.bitis }}
+    </div>
+    <p class="ozet">{{ satir.ozet }}</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Test</th>
+                <th>Tarih</th>
+                <th>Soru</th>
+                <th>Doğru</th>
+                <th>Yanlış</th>
+                <th>Boş</th>
+                <th>Net</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in satir.testler %}
+            <tr>
+                <td class="name">{{ t.ad }}</td>
+                <td>{{ t.tarih|date:"d.m.Y" }}</td>
+                <td>{{ t.soru }}</td>
+                <td>{{ t.dogru }}</td>
+                <td>{{ t.yanlis }}</td>
+                <td>{{ t.bos }}</td>
+                <td>{{ t.net }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td class="name" colspan="2">Toplam</td>
+                <td>{{ satir.soru }}</td>
+                <td>{{ satir.dogru }}</td>
+                <td>{{ satir.yanlis }}</td>
+                <td>{{ satir.bos }}</td>
+                <td>{{ satir.net }}</td>
+            </tr>
+        </tfoot>
+    </table>
+    <div class="footer">{{ panel_org }} · {{ olusturma_tarihi|date:"d.m.Y H:i" }}</div>
+</body>
+</html>
