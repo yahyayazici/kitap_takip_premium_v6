@@ -2,7 +2,7 @@
 {% load static filter_tags %}
 {% block title %}KTT Rapor · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=ktt-rapor3">
+<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=ktt-rapor4">
 {% endblock %}
 {% block content %}
 <div class="ktt-page ktt-report-page">
@@ -102,17 +102,10 @@
         {% if talebe_satirlari %}
         <div class="ktt-acc-list ktt-rapor-gruplar">
             {% for s in talebe_satirlari %}
-            <details class="ktt-acc-item">
+            <details class="ktt-acc-item ktt-talebe-satir">
                 <summary class="ktt-acc-summary">
-                    <span class="ktt-acc-chevron" aria-hidden="true"></span>
                     <span class="ktt-acc-main">
-                        <strong class="ktt-acc-title">{{ s.talebe.ad_soyad }}</strong>
-                        <span class="ktt-acc-meta">
-                            <span>{{ s.soru }} soru</span>
-                            <span>{{ s.dogru }} doğru</span>
-                            <span>{{ s.yanlis }} yanlış</span>
-                            <span>{{ s.bos }} boş</span>
-                        </span>
+                        <strong class="ktt-acc-title">{{ s.talebe.ad_soyad }} <span class="ktt-asagi-ok" aria-hidden="true">▼</span></strong>
                     </span>
                     {% if pdf_yetkisi %}
                     <a href="{% url 'ktt_rapor_talebe_pdf' s.talebe.pk %}{% if export_qs %}?{{ export_qs }}{% endif %}" class="ktt-outline-btn" onclick="event.stopPropagation()">PDF</a>
