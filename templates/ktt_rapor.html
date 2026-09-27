@@ -2,7 +2,7 @@
 {% load static filter_tags %}
 {% block title %}KTT Rapor · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=nizam2">
+<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=ktt-grup1">
 {% endblock %}
 {% block content %}
 <div class="ktt-page ktt-report-page">
@@ -73,8 +73,8 @@
     <div class="ktt-kpi-row">
         <article class="ktt-kpi-card blue">
             <div>
-                <span>Toplam Sonuç Sayısı</span>
-                <strong>{{ istatistik.toplam_sonuc }}</strong>
+                <span>Toplam çözülen soru sayısı</span>
+                <strong>{{ istatistik.toplam_soru }}</strong>
             </div>
             <span class="ktt-kpi-icon">📋</span>
         </article>
@@ -117,42 +117,57 @@
 
     <section class="ktt-report-card">
         <p class="ktt-section-title">▦ KTT Sonuç Listesi</p>
-        <div class="responsive-table">
-            <table class="ktt-table">
-                <thead>
-                    <tr>
-                        <th>Tarih</th>
-                        <th>KTT Sınavı</th>
-                        <th>Öğrenci</th>
-                        <th>Sınıf</th>
-                        <th>Ders</th>
-                        <th>D</th>
-                        <th>Y</th>
-                        <th>B</th>
-                        <th>Net</th>
-                        <th>Puan (100)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for s in sonuclar %}
-                    <tr>
-                        <td>{{ s.ktt.sinav_tarihi|date:"d.m.Y" }}</td>
-                        <td><strong>{{ s.ktt.ad }}</strong></td>
-                        <td>{{ s.talebe.ad_soyad }}</td>
-                        <td>{{ s.talebe.sinif_sube|default:s.ktt.sinif_goster }}</td>
-                        <td><span class="ktt-ders-pill">{{ s.ktt.ders.ad }}</span></td>
-                        <td>{{ s.dogru }}</td>
-                        <td>{{ s.yanlis }}</td>
-                        <td>{{ s.bos }}</td>
-                        <td><span class="ktt-net-pill">{{ s.net }}</span></td>
-                        <td><span class="ktt-score-pill">{{ s.puan }}</span></td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="10" class="ktt-empty">Filtreye uygun sonuç bulunamadı.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        {% if ktt_gruplari %}
+        <div class="ktt-acc-list ktt-rapor-gruplar">
+            {% for g in ktt_gruplari %}
+            <details class="ktt-acc-item">
+                <summary class="ktt-acc-summary">
+                    <span class="ktt-acc-chevron" aria-hidden="true"></span>
+                    <span class="ktt-acc-main">
+                        <strong class="ktt-acc-title">{{ g.ktt.ad }} <span class="ktt-acc-soru">{{ g.ktt.soru_sayisi }} soru</span></strong>
+                        <span class="ktt-acc-meta">
+                            <span>{{ g.ktt.sinav_tarihi|date:"d.m.Y" }}</span>
+                            <span class="ktt-ders-pill">{{ g.ktt.ders.ad }}</span>
+                        </span>
+                    </span>
+                    <a href="{% url 'ktt_detay' g.ktt.pk %}" class="ktt-outline-btn" onclick="event.stopPropagation()">Teste Git</a>
+                </summary>
+                <div class="ktt-acc-body">
+                    <div class="responsive-table">
+                        <table class="ktt-table">
+                            <thead>
+                                <tr>
+                                    <th>Öğrenci</th>
+                                    <th>Sınıf</th>
+                                    <th>D</th>
+                                    <th>Y</th>
+                                    <th>B</th>
+                                    <th>Net</th>
+                                    <th>Puan (100)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in g.sonuclar %}
+                                <tr>
+                                    <td>{{ s.talebe.ad_soyad }}</td>
+                                    <td>{{ s.talebe.sinif_sube|default:g.ktt.sinif_goster }}</td>
+                                    <td>{{ s.dogru }}</td>
+                                    <td>{{ s.yanlis }}</td>
+                                    <td>{{ s.bos }}</td>
+                                    <td><span class="ktt-net-pill">{{ s.net }}</span></td>
+                                    <td><span class="ktt-score-pill">{{ s.puan }}</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </details>
+            {% endfor %}
         </div>
+        {% else %}
+        <p class="ktt-empty">Filtreye uygun sonuç bulunamadı.</p>
+        {% endif %}
     </section>
 </div>
 {% endblock %}

@@ -6,7 +6,7 @@ import re
 from datetime import timedelta
 
 from django.contrib.auth.models import User
-from django.db.models import Avg, Count, Max, Q, QuerySet
+from django.db.models import Avg, Count, Max, Q, QuerySet, Sum
 from django.utils.timezone import localdate
 
 from takip.filter_utils import get_int_list, qs_filtre_id
@@ -423,6 +423,14 @@ def ktt_rapor_filtrele(
     return qs
 
 
+def ktt_test_soru_toplami(qs: QuerySet[KttSonucu]) -> int:
+    """Filtredeki her testin soru sayısı bir kez sayılır."""
+    toplam = KttSinav.objects.filter(pk__in=qs.values("ktt_id")).aggregate(
+        toplam=Sum("soru_sayisi")
+    )
+    return int(toplam["toplam"] or 0)
+
+
 def ktt_rapor_istatistik(qs: QuerySet[KttSonucu]) -> dict:
     agg = qs.aggregate(
         toplam=Count("id"),
@@ -432,10 +440,38 @@ def ktt_rapor_istatistik(qs: QuerySet[KttSonucu]) -> dict:
     )
     return {
         "toplam_sonuc": int(agg["toplam"] or 0),
+        "toplam_soru": ktt_test_soru_toplami(qs),
         "ortalama_puan": round(float(agg["ort_puan"] or 0), 1),
         "ortalama_net": round(float(agg["ort_net"] or 0), 1),
         "en_yuksek_puan": round(float(agg["max_puan"] or 0), 1),
     }
+
+
+def ktt_hafta_cozulen_soru(user: User, gun=None) -> int:
+    """Bu hafta (pazartesi–pazar) sonucu girilmiş testlerin soru toplamı."""
+    gun = gun or localdate()
+    baslangic = gun - timedelta(days=gun.weekday())
+    bitis = baslangic + timedelta(days=6)
+    qs = yetkili_ktt_sonuclari(user).filter(
+        ktt__sinav_tarihi__gte=baslangic,
+        ktt__sinav_tarihi__lte=bitis,
+    )
+    return ktt_test_soru_toplami(qs)
+
+
+def ktt_rapor_grupla(sonuclar) -> list[dict]:
+    """Sonuç satırlarını teste göre toplar. Sıra, gelen listenin tarih sırasını korur."""
+    gruplar: list[dict] = []
+    index: dict[int, dict] = {}
+    for sonuc in sonuclar:
+        ktt = sonuc.ktt
+        grup = index.get(ktt.pk)
+        if grup is None:
+            grup = {"ktt": ktt, "sonuclar": []}
+            index[ktt.pk] = grup
+            gruplar.append(grup)
+        grup["sonuclar"].append(sonuc)
+    return gruplar
 
 
 def ktt_rapor_filtre_dict(request) -> dict:
