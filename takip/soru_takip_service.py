@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import re
 from calendar import monthrange
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.db.models import QuerySet, Sum
+from django.db.models import Count, QuerySet, Sum
 from django.utils.timezone import localdate
 
 from takip.models import Ders, GunlukSoruDersSatiri, GunlukSoruKaydi, Talebe
@@ -403,6 +404,8 @@ def rapor_talebe_satirlari(
         sinif = item["kayit__talebe__sinif"] or ""
         sube = item["kayit__talebe__sube"] or ""
         sinif_goster = f"{sinif}-{sube}" if sinif and sube else sinif or "—"
+        yanlis = int(item["yanlis"] or 0)
+        bos = int(item["bos"] or 0)
         rows.append(
             {
                 "talebe_id": item["kayit__talebe_id"],
@@ -410,16 +413,61 @@ def rapor_talebe_satirlari(
                 "sinif_goster": sinif_goster,
                 "toplam_soru": toplam,
                 "dogru": dogru,
-                "yanlis": int(item["yanlis"] or 0),
-                "bos": int(item["bos"] or 0),
+                "yanlis": yanlis,
+                "bos": bos,
                 "toplam_net": Decimal(item["net"] or 0).quantize(Decimal("0.01")),
                 "basari_orani": basari,
-                "gun_sayisi": kayitlar.filter(
-                    talebe_id=item["kayit__talebe_id"]
-                ).count(),
+                "gun_sayisi": 0,
             }
         )
+
+    gun_sayilari = {
+        satir["talebe_id"]: satir["n"]
+        for satir in kayitlar.values("talebe_id").annotate(n=Count("id"))
+    }
+    ders_sira = {ad: i for i, ad in enumerate(SORU_TAKIP_DERS_ADLARI)}
+    ders_grup: dict[int, list[dict]] = {}
+    for item in (
+        satirlar.values("kayit__talebe_id", "ders__ad")
+        .annotate(
+            toplam_soru=Sum("toplam_soru"),
+            dogru=Sum("dogru"),
+            yanlis=Sum("yanlis"),
+            bos=Sum("bos"),
+            net=Sum("net"),
+        )
+    ):
+        ders_grup.setdefault(item["kayit__talebe_id"], []).append(
+            {
+                "ders": item["ders__ad"],
+                "toplam_soru": int(item["toplam_soru"] or 0),
+                "dogru": int(item["dogru"] or 0),
+                "yanlis": int(item["yanlis"] or 0),
+                "bos": int(item["bos"] or 0),
+                "net": Decimal(item["net"] or 0).quantize(Decimal("0.01")),
+            }
+        )
+
+    for row in rows:
+        row["gun_sayisi"] = int(gun_sayilari.get(row["talebe_id"]) or 0)
+        dersler = ders_grup.get(row["talebe_id"], [])
+        dersler.sort(key=lambda satir: ders_sira.get(satir["ders"], 99))
+        row["dersler"] = dersler
+        row["ozet"] = (
+            f"{row['gun_sayisi']} gün · {row['toplam_soru']} soru · "
+            f"{row['dogru']} doğru · {row['yanlis']} yanlış · {row['bos']} boş"
+        )
     return rows
+
+
+def soru_takip_pdf_adi(ad_soyad: str, baslangic: date, bitis: date) -> str:
+    ad = re.sub(r'[\\/:*?"<>|\r\n]+', " ", (ad_soyad or "").strip())
+    ad = re.sub(r"\s+", " ", ad).strip() or "Talebe"
+    return f"{ad}_{baslangic:%Y-%m-%d}_{bitis:%Y-%m-%d}.pdf"
+
+
+def soru_takip_zip_adi(baslangic: date, bitis: date) -> str:
+    return f"soru-takip-talebe-raporlari_{baslangic:%Y-%m-%d}_{bitis:%Y-%m-%d}.zip"
 
 
 def rapor_filtre_etiketleri(

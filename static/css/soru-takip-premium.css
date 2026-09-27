@@ -513,6 +513,117 @@
     .st-table {
         min-width: 480px;
     }
+
+    .st-report-page .st-talebe-summary {
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+}
+
+.st-report-page .st-bolum-wrap {
+    margin: 0 0 var(--cs-section-gap);
+}
+
+.st-report-page .st-bolum-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--cs-space-3);
+    width: 100%;
+    min-height: var(--cs-touch-min);
+    padding: var(--cs-space-4) var(--cs-space-5);
+    border: 1px solid var(--cs-border);
+    border-left: 3px solid var(--cs-primary);
+    border-radius: var(--cs-radius-md);
+    background: var(--cs-surface);
+    color: var(--cs-text-primary);
+    font-family: var(--cs-font);
+    font-size: var(--cs-font-card-title);
+    font-weight: 700;
+    cursor: pointer;
+    list-style: none;
+}
+
+.st-report-page .st-bolum-summary::-webkit-details-marker,
+.st-report-page .st-talebe-summary::-webkit-details-marker {
+    display: none;
+}
+
+.st-report-page .st-bolum-summary::marker,
+.st-report-page .st-talebe-summary::marker {
+    content: "";
+}
+
+.st-report-page .st-bolum-ok,
+.st-report-page .st-asagi-ok {
+    color: var(--cs-primary);
+    font-size: 12px;
+    line-height: 1;
+}
+
+.st-report-page details.st-bolum[open] > .st-bolum-summary {
+    border-radius: var(--cs-radius-md) var(--cs-radius-md) 0 0;
+    border-bottom-color: transparent;
+}
+
+.st-report-page details.st-bolum[open] > .st-bolum-summary .st-bolum-ok,
+.st-report-page details.st-talebe[open] .st-asagi-ok {
+    display: inline-block;
+    transform: rotate(180deg);
+}
+
+.st-report-page .st-bolum-panel {
+    border: 1px solid var(--cs-border);
+    border-top: none;
+    border-left: 3px solid var(--cs-primary);
+    border-radius: 0 0 var(--cs-radius-md) var(--cs-radius-md);
+    background: var(--cs-surface);
+    padding: var(--cs-space-4) var(--cs-space-5);
+}
+
+.st-report-page .st-talebe-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cs-space-3);
+}
+
+.st-report-page .st-talebe {
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-md);
+    background: var(--cs-surface);
+}
+
+.st-report-page .st-talebe-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--cs-space-3);
+    min-height: var(--cs-touch-min);
+    padding: var(--cs-space-3) var(--cs-space-4);
+    cursor: pointer;
+    list-style: none;
+    color: var(--cs-text-primary);
+    font-family: var(--cs-font);
+}
+
+.st-report-page .st-talebe-body {
+    padding: 0 var(--cs-space-4) var(--cs-space-4);
+}
+
+.st-report-page .st-talebe-ozet {
+    margin: 0 0 var(--cs-space-3);
+    padding: var(--cs-space-3) var(--cs-space-4);
+    border-radius: var(--cs-radius-md);
+    background: var(--cs-background);
+    color: var(--cs-text-primary);
+    font-weight: 600;
+    line-height: 1.45;
+}
+
+.st-report-page .st-pdf-btn {
+    min-height: var(--cs-btn-h);
+    min-width: 44px;
+    flex-shrink: 0;
 }
 
 /* —— Panel: sıkı, nizamlı giriş —— */

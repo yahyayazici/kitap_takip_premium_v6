@@ -1,18 +1,11 @@
-﻿{% load static pdf_extras %}
+{% load static %}
 <!doctype html>
 <html lang="tr">
 <head>
     <meta charset="utf-8">
-    <title>{% if talebe %}{{ talebe.ad_soyad }} · {% endif %}Soru Takip Raporu</title>
+    <title>{{ satir.ad_soyad }} · Soru Takip</title>
     <style>
         {% include "includes/pdf_rapor_landscape_css.html" %}
-        /*
-          Canlı yedek motor (xhtml2pdf) CSS gradient / overflow:hidden / nested auto-table
-          kullanamaz: logo X kadar küçülür, KPI alt yazısı üst üste biner.
-          İki hücre + bgcolor her motorda durur. Sınıf adı hero geçmesin
-          (xhtml2pdf .hero'yu alt string sanabiliyor). CSS'te background-color yok
-          (WeasyPrint gradienti aksi halde 3 banda bölünür).
-        */
         table.st-banner {
             width: 100%;
             border-collapse: collapse;
@@ -39,7 +32,7 @@
         }
         .st-banner-title {
             margin: 0;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
             line-height: 1.15;
             color: #FFFFFF;
@@ -48,7 +41,6 @@
             margin-top: 2px;
             font-size: 8px;
             font-weight: 500;
-            letter-spacing: 0.35px;
             line-height: 1.2;
             color: #FFFFFF;
         }
@@ -67,26 +59,14 @@
         .stat-cell.tone-blue { border-left-color: #2B6FD4; }
         .stat-cell.tone-green { border-left-color: #1AA477; }
         .stat-cell.tone-orange { border-left-color: #EE8A24; }
-        .stat-cell.tone-purple { border-left-color: #7657E8; }
         .stat-accent,
         .stat-deco,
-        .table-panel-accent {
-            display: none;
-        }
+        .table-panel-accent { display: none; }
         .table-panel,
-        .meta-panel {
-            box-shadow: none;
-        }
-        .st-sinif-pdf table.results thead th,
-        .st-sinif-pdf table.results tbody td {
-            padding: 3px 6px;
-        }
-        .st-sinif-pdf .student-name { font-size: 9px; }
-        .st-sinif-pdf .stat-cell { padding: 8px 10px; }
-        .st-sinif-pdf .meta-panel { padding: 8px 12px; }
+        .meta-panel { box-shadow: none; }
     </style>
 </head>
-<body class="st-sinif-pdf">
+<body>
 
 <table class="layout">
     <tr>
@@ -97,10 +77,8 @@
                         <img width="44" height="44" style="width:44px;height:44px;" src="{% static 'images/cinili-saray-logo-white.png' %}" alt="">
                     </td>
                     <td class="st-banner-text" valign="middle">
-                        <div class="st-banner-title" style="color:#FFFFFF;">Soru Takip Raporu</div>
-                        {% if talebe %}
-                        <div class="st-banner-meta" style="color:#FFFFFF;">{{ talebe.ad_soyad }}</div>
-                        {% endif %}
+                        <div class="st-banner-title" style="color:#FFFFFF;">{{ satir.ad_soyad }}</div>
+                        <div class="st-banner-meta" style="color:#FFFFFF;">Soru Takip Karnesi · {{ satir.sinif_goster }}</div>
                     </td>
                 </tr>
             </table>
@@ -115,16 +93,16 @@
                 <table class="meta-table" cellspacing="0" cellpadding="0">
                     <tr>
                         <td class="meta-item">
-                            <div class="meta-label">Dönem</div>
-                            <div class="meta-value">{{ filtre.donem }}</div>
+                            <div class="meta-label">Kapsam</div>
+                            <div class="meta-value">Bireysel karne</div>
                         </td>
                         <td class="meta-item">
                             <div class="meta-label">Tarih Aralığı</div>
                             <div class="meta-value">{{ filtre.tarih }}</div>
                         </td>
                         <td class="meta-item">
-                            <div class="meta-label">Talebe</div>
-                            <div class="meta-value">{{ filtre.talebe }}</div>
+                            <div class="meta-label">Sınıf</div>
+                            <div class="meta-value">{{ satir.sinif_goster }}</div>
                         </td>
                         <td class="meta-item">
                             <div class="meta-label">Ders</div>
@@ -142,25 +120,20 @@
         <td colspan="3">
             <table class="stats-table" cellpadding="0">
                 <tr>
-                    <td width="25%" class="stat-cell tone-blue">
-                        <div class="stat-label">Toplam Soru</div>
-                        <div class="stat-metric">{{ istatistik.toplam_soru }}</div>
-                        <div class="stat-sub">{{ istatistik.kayit_sayisi }} kayıt günü</div>
+                    <td width="33%" class="stat-cell tone-blue">
+                        <div class="stat-label">Çözülen soru</div>
+                        <div class="stat-metric">{{ satir.toplam_soru }}</div>
+                        <div class="stat-sub">{{ satir.gun_sayisi }} gün</div>
                     </td>
-                    <td width="25%" class="stat-cell tone-green">
-                        <div class="stat-label">Doğru</div>
-                        <div class="stat-metric">{{ istatistik.dogru }}</div>
-                        <div class="stat-sub">Yanlış {{ istatistik.yanlis }} / Boş {{ istatistik.bos }}</div>
+                    <td width="33%" class="stat-cell tone-green">
+                        <div class="stat-label">Toplam net</div>
+                        <div class="stat-metric">{{ satir.toplam_net }}</div>
+                        <div class="stat-sub">Doğru − yanlış / 4</div>
                     </td>
-                    <td width="25%" class="stat-cell tone-orange">
-                        <div class="stat-label">Toplam Net</div>
-                        <div class="stat-metric">{{ istatistik.toplam_net }}</div>
-                        <div class="stat-sub">D - Y/4</div>
-                    </td>
-                    <td width="25%" class="stat-cell tone-purple">
-                        <div class="stat-label">Başarı</div>
-                        <div class="stat-metric">%{{ istatistik.basari_orani }}</div>
-                        <div class="stat-sub">Doğru / toplam soru</div>
+                    <td width="34%" class="stat-cell tone-orange">
+                        <div class="stat-label">Başarı oranı</div>
+                        <div class="stat-metric">%{{ satir.basari_orani }}</div>
+                        <div class="stat-sub">{{ satir.dogru }} doğru</div>
                     </td>
                 </tr>
             </table>
@@ -174,39 +147,39 @@
             <div class="table-panel">
                 <div class="table-panel-accent"></div>
                 <div class="table-panel-head">
-                    <div class="section-kicker">Sınıf Dökümü</div>
-                    <div class="section-title">{{ istatistik.talebe_sayisi }} talebe · {{ filtre.tarih }}</div>
+                    <div class="section-kicker">Ders Dökümü</div>
+                    <div class="section-title">{{ satir.ozet }}</div>
                 </div>
-                <table class="results" style="margin-top:8px;">
+                <table class="results" style="margin-top:10px;">
                     <thead>
                         <tr>
-                            <th class="left" style="width:28%;">Talebe</th>
-                            <th style="width:10%;">Sınıf</th>
-                            <th style="width:10%;">Soru</th>
-                            <th style="width:10%;">D</th>
-                            <th style="width:10%;">Y</th>
-                            <th style="width:10%;">B</th>
-                            <th style="width:11%;">Net</th>
-                            <th style="width:11%;">Başarı</th>
+                            <th class="left" style="width:34%;">Ders</th>
+                            <th style="width:12%;">Soru</th>
+                            <th style="width:12%;">Doğru</th>
+                            <th style="width:12%;">Yanlış</th>
+                            <th style="width:12%;">Boş</th>
+                            <th style="width:18%;">Net</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for satir in talebe_satirlari %}
+                        {% for d in satir.dersler %}
                         <tr>
-                            <td class="left"><div class="student-name">{{ satir.ad_soyad }}</div></td>
-                            <td>{{ satir.sinif_goster }}</td>
+                            <td class="left"><div class="ktt-name">{{ d.ders }}</div></td>
+                            <td class="num-cell">{{ d.toplam_soru }}</td>
+                            <td class="num-cell">{{ d.dogru }}</td>
+                            <td class="num-cell">{{ d.yanlis }}</td>
+                            <td class="num-cell">{{ d.bos }}</td>
+                            <td class="num-cell">{{ d.net }}</td>
+                        </tr>
+                        {% endfor %}
+                        <tr>
+                            <td class="left"><div class="student-name">Toplam</div></td>
                             <td class="num-cell">{{ satir.toplam_soru }}</td>
                             <td class="num-cell">{{ satir.dogru }}</td>
                             <td class="num-cell">{{ satir.yanlis }}</td>
                             <td class="num-cell">{{ satir.bos }}</td>
                             <td class="num-cell">{{ satir.toplam_net }}</td>
-                            <td class="num-cell">%{{ satir.basari_orani }}</td>
                         </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="8" class="left" style="padding:18px;">Seçilen aralıkta kayıt bulunamadı.</td>
-                        </tr>
-                        {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -217,8 +190,8 @@
         <td colspan="3">
             <table class="footer-table" cellpadding="0" cellspacing="0">
                 <tr>
-                    <td class="footer-left">{{ panel_org|default:"Çinili Saray Proje" }}</td>
-                    <td class="footer-right">{{ olusturma_tarihi|date:"d.m.Y H:i" }}</td>
+                    <td class="footer-left">{{ panel_org|default:"Çinili Saray Proje" }} · {{ olusturma_tarihi|date:"d.m.Y H:i" }}</td>
+                    <td class="footer-right"></td>
                 </tr>
             </table>
         </td>
