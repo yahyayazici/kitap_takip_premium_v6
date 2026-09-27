@@ -421,9 +421,12 @@ def rapor_talebe_satirlari(
             }
         )
 
+    # Model sırası (-tarih, -id) GROUP BY'a karışırsa her talebe 1 gün görünür.
     gun_sayilari = {
         satir["talebe_id"]: satir["n"]
-        for satir in kayitlar.values("talebe_id").annotate(n=Count("id"))
+        for satir in kayitlar.order_by()
+        .values("talebe_id")
+        .annotate(n=Count("id", distinct=True))
     }
     ders_sira = {ad: i for i, ad in enumerate(SORU_TAKIP_DERS_ADLARI)}
     ders_grup: dict[int, list[dict]] = {}
@@ -454,7 +457,7 @@ def rapor_talebe_satirlari(
         dersler.sort(key=lambda satir: ders_sira.get(satir["ders"], 99))
         row["dersler"] = dersler
         row["ozet"] = (
-            f"{row['gun_sayisi']} gün · {row['toplam_soru']} soru · "
+            f"{row['gun_sayisi']} kayıt günü · {row['toplam_soru']} soru · "
             f"{row['dogru']} doğru · {row['yanlis']} yanlış · {row['bos']} boş"
         )
     return rows
