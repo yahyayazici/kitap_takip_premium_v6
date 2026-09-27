@@ -983,38 +983,68 @@ body.ktt-modal-open {
 }
 
 .ktt-report-page .ktt-bolum-wrap {
-    margin: 0 0 18px;
+    margin: 0 0 var(--cs-section-gap);
 }
 
-.ktt-report-page details.ktt-bolum > summary.ktt-analiz-toggle-btn {
-    list-style: none;
+.ktt-report-page .ktt-bolum-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--cs-space-3);
+    width: 100%;
     min-height: var(--cs-touch-min);
+    padding: var(--cs-space-4) var(--cs-space-5);
+    border: 1px solid var(--cs-border);
+    border-left: 3px solid var(--cs-primary);
+    border-radius: var(--cs-radius-md);
+    background: var(--cs-surface);
+    color: var(--cs-text-primary);
+    font-family: var(--cs-font);
+    font-size: var(--cs-font-card-title);
+    font-weight: 700;
+    letter-spacing: var(--cs-letter-tight);
+    box-shadow: var(--cs-shadow-sm);
+    cursor: pointer;
+    list-style: none;
 }
 
-.ktt-report-page details.ktt-bolum > summary.ktt-analiz-toggle-btn::-webkit-details-marker {
+.ktt-report-page .ktt-bolum-summary::-webkit-details-marker {
     display: none;
 }
 
-.ktt-report-page details.ktt-bolum > summary.ktt-analiz-toggle-btn::marker {
+.ktt-report-page .ktt-bolum-summary::marker {
     content: "";
 }
 
-.ktt-report-page details.ktt-bolum[open] > summary.ktt-analiz-toggle-btn {
-    border-radius: 14px 14px 0 0;
-    border-bottom-color: transparent;
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+.ktt-report-page .ktt-bolum-summary:hover {
+    background: var(--cs-surface-muted);
 }
 
-.ktt-report-page details.ktt-bolum[open] > summary .ktt-analiz-chevron {
+.ktt-report-page .ktt-bolum-ok {
+    color: var(--cs-primary);
+    font-size: 12px;
+    line-height: 1;
+    transition: transform var(--cs-transition-fast);
+}
+
+.ktt-report-page details.ktt-bolum[open] > .ktt-bolum-summary {
+    border-radius: var(--cs-radius-md) var(--cs-radius-md) 0 0;
+    border-bottom-color: transparent;
+    box-shadow: none;
+}
+
+.ktt-report-page details.ktt-bolum[open] > .ktt-bolum-summary .ktt-bolum-ok {
     transform: rotate(180deg);
 }
 
 .ktt-report-page .ktt-bolum-panel {
-    border: 1px solid #bfdbfe;
+    border: 1px solid var(--cs-border);
     border-top: none;
-    border-radius: 0 0 14px 14px;
+    border-left: 3px solid var(--cs-primary);
+    border-radius: 0 0 var(--cs-radius-md) var(--cs-radius-md);
     background: var(--cs-surface);
-    padding: var(--cs-space-4);
+    padding: var(--cs-space-4) var(--cs-space-5);
+    box-shadow: var(--cs-shadow-sm);
 }
 
 .ktt-analiz-panel {
