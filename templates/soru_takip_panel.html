@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Soru Takip · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/soru-takip-premium.css' %}?v=nizam4">
+<link rel="stylesheet" href="{% static 'css/soru-takip-premium.css' %}?v=nizam5">
 {% endblock %}
 {% block content %}
 <div class="st-page st-list-page">
@@ -10,7 +10,7 @@
         <div class="st-head-main">
             <p class="kicker">GÜNLÜK SORU TAKİP</p>
             <h1>Soru Takip</h1>
-            <p class="st-head-desc">Talebe başına günde bir kayıt · Net = Doğru − Yanlış/4</p>
+            <p class="st-head-desc">Talebe başına günde bir kayıt · KTT ve deneme ayrıca eklenir · Net = Doğru − Yanlış/4</p>
         </div>
     </header>
 
@@ -62,6 +62,8 @@
                     </p>
                 </div>
 
+                <p class="st-olcum-giris">KTT ve deneme sonuçları bu güne otomatik işlenir. Kutulara yalnızca onların dışında çözülen soruları yazın.</p>
+
                 <div class="st-table-wrap">
                     <table class="st-table">
                         <thead>
@@ -77,11 +79,16 @@
                         <tbody>
                             {% for satir in satirlar %}
                             <tr>
-                                <td>{{ satir.ders.ad }}</td>
-                                <td><input type="number" min="0" name="ders_{{ satir.ders.id }}_toplam" value="{{ satir.toplam_soru }}" class="st-num-input"></td>
-                                <td><input type="number" min="0" name="ders_{{ satir.ders.id }}_dogru" value="{{ satir.dogru }}" class="st-num-input"></td>
-                                <td><input type="number" min="0" name="ders_{{ satir.ders.id }}_yanlis" value="{{ satir.yanlis }}" class="st-num-input"></td>
-                                <td><input type="number" min="0" name="ders_{{ satir.ders.id }}_bos" value="{{ satir.bos }}" class="st-num-input"></td>
+                                <td class="st-ders-cell">
+                                    {{ satir.ders.ad }}
+                                    {% if satir.olcum_ayri %}
+                                    <span class="st-olcum-not">İşlendi: {{ satir.olcum_soru }} soru ({{ satir.olcum_dogru }}D · {{ satir.olcum_yanlis }}Y · {{ satir.olcum_bos }}B). Tekrar yazmayın.</span>
+                                    {% endif %}
+                                </td>
+                                <td><input type="number" min="0" name="ders_{{ satir.ders.id }}_toplam" value="{{ satir.elle_toplam }}" class="st-num-input"></td>
+                                <td><input type="number" min="0" name="ders_{{ satir.ders.id }}_dogru" value="{{ satir.elle_dogru }}" class="st-num-input"></td>
+                                <td><input type="number" min="0" name="ders_{{ satir.ders.id }}_yanlis" value="{{ satir.elle_yanlis }}" class="st-num-input"></td>
+                                <td><input type="number" min="0" name="ders_{{ satir.ders.id }}_bos" value="{{ satir.elle_bos }}" class="st-num-input"></td>
                                 <td><span class="st-net">{{ satir.net }}</span></td>
                             </tr>
                             {% endfor %}

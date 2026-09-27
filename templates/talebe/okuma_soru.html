@@ -22,6 +22,7 @@
 
     <section class="dash-panel">
         <div class="dash-panel-head"><div><p class="dash-eyebrow">Soru</p><h2>Ders bazlı kayıt</h2></div></div>
+        <p class="talebe-olcum-giris">KTT ve deneme sonuçları bu güne otomatik eklenir. Kutulara yalnızca onların dışında çözdüğün soruları yaz.</p>
         <div class="responsive-table">
             <table class="veli-table">
                 <thead>
@@ -30,11 +31,16 @@
                 <tbody>
                     {% for satir in satirlar %}
                     <tr>
-                        <td>{{ satir.ders.ad }}</td>
-                        <td><input type="number" name="ders_{{ satir.ders.id }}_toplam" min="0" value="{{ satir.toplam_soru }}"></td>
-                        <td><input type="number" name="ders_{{ satir.ders.id }}_dogru" min="0" value="{{ satir.dogru }}"></td>
-                        <td><input type="number" name="ders_{{ satir.ders.id }}_yanlis" min="0" value="{{ satir.yanlis }}"></td>
-                        <td><input type="number" name="ders_{{ satir.ders.id }}_bos" min="0" value="{{ satir.bos }}"></td>
+                        <td>
+                            {{ satir.ders.ad }}
+                            {% if satir.olcum_ayri %}
+                            <span class="talebe-olcum-not">İşlendi: {{ satir.olcum_soru }} soru ({{ satir.olcum_dogru }}D · {{ satir.olcum_yanlis }}Y · {{ satir.olcum_bos }}B). Tekrar yazma.</span>
+                            {% endif %}
+                        </td>
+                        <td><input type="number" name="ders_{{ satir.ders.id }}_toplam" min="0" value="{{ satir.elle_toplam }}"></td>
+                        <td><input type="number" name="ders_{{ satir.ders.id }}_dogru" min="0" value="{{ satir.elle_dogru }}"></td>
+                        <td><input type="number" name="ders_{{ satir.ders.id }}_yanlis" min="0" value="{{ satir.elle_yanlis }}"></td>
+                        <td><input type="number" name="ders_{{ satir.ders.id }}_bos" min="0" value="{{ satir.elle_bos }}"></td>
                     </tr>
                     {% endfor %}
                 </tbody>

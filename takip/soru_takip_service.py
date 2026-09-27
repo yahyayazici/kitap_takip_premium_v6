@@ -512,17 +512,111 @@ def gunluk_ozet(kayit: GunlukSoruKaydi | None) -> dict:
     }
 
 
+def gunun_olcum_haritasi(talebe_id: int, tarih: date) -> dict[int, tuple[int, int, int]]:
+    """KTT, deneme ve sözel–sayısal denemenin o gündeki ders katkısı.
+
+    Günlük form bu payı kutulardan düşer; talebe yalnızca sınav dışında
+    çözdüğü soruları yazar. Kayıtlı toplam değişmez.
+    """
+    from takip.deneme_models import DenemeBransSonucu
+    from takip.deneme_service import DENEME_BRANS_DERS_MAP
+    from takip.ktt_models import KttSonucu
+    from takip.ss_deneme_models import BRANS_DERS_ADLARI, SozelSayisalBransSonuc
+
+    toplam: dict[int, list[int]] = {}
+
+    def ekle(ders_id, dogru, yanlis, bos) -> None:
+        if not ders_id:
+            return
+        hucre = toplam.setdefault(int(ders_id), [0, 0, 0])
+        hucre[0] += int(dogru or 0)
+        hucre[1] += int(yanlis or 0)
+        hucre[2] += int(bos or 0)
+
+    for satir in (
+        KttSonucu.objects.filter(talebe_id=talebe_id, ktt__sinav_tarihi=tarih)
+        .values("ktt__ders_id")
+        .annotate(d=Sum("dogru"), y=Sum("yanlis"), b=Sum("bos"))
+    ):
+        ekle(satir["ktt__ders_id"], satir["d"], satir["y"], satir["b"])
+
+    ders_adlari = set(DENEME_BRANS_DERS_MAP.values()) | set(BRANS_DERS_ADLARI.values())
+    ad_id = {
+        ders.ad: ders.id
+        for ders in Ders.objects.filter(ad__in=ders_adlari, aktif=True)
+    }
+
+    for satir in (
+        DenemeBransSonucu.objects.filter(
+            sonuc__talebe_id=talebe_id,
+            sonuc__deneme__sinav_tarihi=tarih,
+        )
+        .values("brans")
+        .annotate(d=Sum("dogru"), y=Sum("yanlis"), b=Sum("bos"))
+    ):
+        ekle(ad_id.get(DENEME_BRANS_DERS_MAP.get(satir["brans"], "")), satir["d"], satir["y"], satir["b"])
+
+    for satir in (
+        SozelSayisalBransSonuc.objects.filter(
+            sonuc__talebe_id=talebe_id,
+            sonuc__deneme__sinav_tarihi=tarih,
+        )
+        .values("brans")
+        .annotate(d=Sum("dogru"), y=Sum("yanlis"), b=Sum("bos"))
+    ):
+        ekle(ad_id.get(BRANS_DERS_ADLARI.get(satir["brans"], "")), satir["d"], satir["y"], satir["b"])
+
+    return {ders_id: (hucre[0], hucre[1], hucre[2]) for ders_id, hucre in toplam.items()}
+
+
+def _elle_pay(
+    full: tuple[int, int, int],
+    olcum: tuple[int, int, int],
+    *,
+    satir_var: bool,
+) -> tuple[int, int, int, bool]:
+    """Formda yazılacak elle pay ve ölçümün satıra dahil olup olmadığı.
+
+    Ölçüm satırdaysa kutular toplam eksi KTT/deneme olur. Satır hiç yoksa
+    elle pay sıfırdır; kayıtta ölçüm ayrıca eklenir.
+    """
+    o_d, o_y, o_b = olcum
+    olcum_var = bool(o_d or o_y or o_b)
+    if not satir_var:
+        return 0, 0, 0, olcum_var
+    if full[0] >= o_d and full[1] >= o_y and full[2] >= o_b:
+        return full[0] - o_d, full[1] - o_y, full[2] - o_b, olcum_var
+    return full[0], full[1], full[2], False
+
+
 def kayit_satirlari_form_verisi(
     kayit: GunlukSoruKaydi | None,
     dersler: list[Ders],
+    *,
+    talebe_id: int | None = None,
+    tarih: date | None = None,
 ) -> list[dict]:
     mevcut = {}
+    olcum_map: dict[int, tuple[int, int, int]] = {}
     if kayit:
         mevcut = {s.ders_id: s for s in kayit.ders_satirlari.all()}
+        talebe_id = kayit.talebe_id
+        tarih = kayit.tarih
+    if talebe_id and tarih:
+        olcum_map = gunun_olcum_haritasi(talebe_id, tarih)
 
     satirlar = []
     for ders in dersler:
         s = mevcut.get(ders.id)
+        olcum = olcum_map.get(ders.id, (0, 0, 0))
+        full = (
+            (int(s.dogru or 0), int(s.yanlis or 0), int(s.bos or 0))
+            if s
+            else (0, 0, 0)
+        )
+        elle_d, elle_y, elle_b, olcum_ayri = _elle_pay(
+            full, olcum, satir_var=s is not None
+        )
         satirlar.append(
             {
                 "ders": ders,
@@ -531,6 +625,15 @@ def kayit_satirlari_form_verisi(
                 "yanlis": s.yanlis if s else 0,
                 "bos": s.bos if s else 0,
                 "net": s.net if s else Decimal("0.00"),
+                "elle_dogru": elle_d,
+                "elle_yanlis": elle_y,
+                "elle_bos": elle_b,
+                "elle_toplam": elle_d + elle_y + elle_b,
+                "olcum_dogru": olcum[0] if olcum_ayri else 0,
+                "olcum_yanlis": olcum[1] if olcum_ayri else 0,
+                "olcum_bos": olcum[2] if olcum_ayri else 0,
+                "olcum_soru": (olcum[0] + olcum[1] + olcum[2]) if olcum_ayri else 0,
+                "olcum_ayri": olcum_ayri,
             }
         )
     return satirlar
@@ -546,6 +649,7 @@ def kayit_kaydet(
     gunluk_not: str = "",
 ) -> tuple[GunlukSoruKaydi | None, list[str]]:
     hatalar: list[str] = []
+    olcum_map = gunun_olcum_haritasi(talebe.id, tarih)
 
     kayit, _ = GunlukSoruKaydi.objects.get_or_create(
         talebe=talebe,
@@ -567,15 +671,35 @@ def kayit_kaydet(
             hatalar.append(f"{ders.ad}: Geçerli sayılar girin.")
             continue
 
-        if toplam == 0 and dogru == 0 and yanlis == 0 and bos == 0:
-            GunlukSoruDersSatiri.objects.filter(kayit=kayit, ders=ders).delete()
-            continue
+        satir = GunlukSoruDersSatiri.objects.filter(kayit=kayit, ders=ders).first()
+        olcum = olcum_map.get(ders.id, (0, 0, 0))
+        full = (
+            (int(satir.dogru or 0), int(satir.yanlis or 0), int(satir.bos or 0))
+            if satir
+            else (0, 0, 0)
+        )
+        _elle_d, _elle_y, _elle_b, olcum_ayri = _elle_pay(
+            full, olcum, satir_var=satir is not None
+        )
 
-        if dogru + yanlis + bos != toplam:
-            hatalar.append(
-                f"{ders.ad}: Doğru + yanlış + boş = {toplam} olmalı."
-            )
-            continue
+        if toplam == 0 and dogru == 0 and yanlis == 0 and bos == 0:
+            if not olcum_ayri:
+                if satir:
+                    satir.delete()
+                continue
+            dogru, yanlis, bos = olcum
+            toplam = dogru + yanlis + bos
+        else:
+            if dogru + yanlis + bos != toplam:
+                hatalar.append(
+                    f"{ders.ad}: Doğru + yanlış + boş = {toplam} olmalı."
+                )
+                continue
+            if olcum_ayri:
+                dogru += olcum[0]
+                yanlis += olcum[1]
+                bos += olcum[2]
+                toplam = dogru + yanlis + bos
 
         try:
             satir, _ = GunlukSoruDersSatiri.objects.update_or_create(

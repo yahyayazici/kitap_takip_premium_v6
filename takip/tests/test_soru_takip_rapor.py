@@ -4,13 +4,24 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.utils.timezone import localdate
 
-from takip.models import Ders, EtutHocasi, GunlukSoruDersSatiri, GunlukSoruKaydi, Talebe
+from takip.models import (
+    Ders,
+    EtutHocasi,
+    GunlukSoruDersSatiri,
+    GunlukSoruKaydi,
+    KttSinav,
+    KttSonucu,
+    Talebe,
+)
 from takip.soru_takip_service import (
+    kayit_kaydet,
+    kayit_satirlari_form_verisi,
     ktt_sonucu_soru_takibe_yansit,
     rapor_ders_ozeti,
     rapor_donemi_coz,
     rapor_kayitlari,
     seed_soru_takip_dersleri,
+    soru_takip_dersleri,
 )
 
 
@@ -123,3 +134,132 @@ class SoruTakipRaporIcerikTests(TestCase):
         self.assertEqual(satir.dogru, 15)
         self.assertEqual(satir.yanlis, 3)
         self.assertEqual(satir.toplam_soru, 18)
+
+    def test_ktt_sonrasi_form_yalnizca_elle_payi_ister(self):
+        gun = date(2026, 9, 27)
+        ktt = KttSinav.objects.create(
+            ad="Matematik KTT",
+            ders=self.mat,
+            sinif_seviyesi="7",
+            sinav_tarihi=gun,
+            soru_sayisi=15,
+            etut_hocasi=self.hoca,
+            olusturan=self.user,
+        )
+        KttSonucu.objects.create(
+            ktt=ktt,
+            talebe=self.talebe,
+            dogru=12,
+            yanlis=2,
+            bos=1,
+            kaydeden=self.user,
+        )
+        ktt_sonucu_soru_takibe_yansit(
+            user=self.user,
+            ktt=ktt,
+            talebe=self.talebe,
+            dogru=12,
+            yanlis=2,
+            bos=1,
+        )
+
+        kayit = GunlukSoruKaydi.objects.get(talebe=self.talebe, tarih=gun)
+        mat_form = next(
+            s
+            for s in kayit_satirlari_form_verisi(kayit, soru_takip_dersleri())
+            if s["ders"].id == self.mat.id
+        )
+        self.assertEqual(mat_form["elle_toplam"], 0)
+        self.assertEqual(mat_form["elle_dogru"], 0)
+        self.assertEqual(mat_form["olcum_soru"], 15)
+        self.assertTrue(mat_form["olcum_ayri"])
+        self.assertEqual(mat_form["toplam_soru"], 15)
+
+        post = {}
+        for ders in soru_takip_dersleri():
+            post[f"ders_{ders.id}_toplam"] = "0"
+            post[f"ders_{ders.id}_dogru"] = "0"
+            post[f"ders_{ders.id}_yanlis"] = "0"
+            post[f"ders_{ders.id}_bos"] = "0"
+        post[f"ders_{self.mat.id}_toplam"] = "10"
+        post[f"ders_{self.mat.id}_dogru"] = "8"
+        post[f"ders_{self.mat.id}_yanlis"] = "2"
+        post[f"ders_{self.mat.id}_bos"] = "0"
+
+        kayit_kaydet(
+            self.user,
+            self.talebe,
+            gun,
+            soru_takip_dersleri(),
+            post,
+        )
+        satir = GunlukSoruDersSatiri.objects.get(
+            kayit__talebe=self.talebe, kayit__tarih=gun, ders=self.mat
+        )
+        self.assertEqual(satir.dogru, 20)
+        self.assertEqual(satir.yanlis, 4)
+        self.assertEqual(satir.bos, 1)
+        self.assertEqual(satir.toplam_soru, 25)
+
+        kayit = GunlukSoruKaydi.objects.get(talebe=self.talebe, tarih=gun)
+        mat_form = next(
+            s
+            for s in kayit_satirlari_form_verisi(kayit, soru_takip_dersleri())
+            if s["ders"].id == self.mat.id
+        )
+        self.assertEqual(mat_form["elle_dogru"], 8)
+        self.assertEqual(mat_form["elle_yanlis"], 2)
+        self.assertEqual(mat_form["elle_toplam"], 10)
+
+        kayit_kaydet(
+            self.user,
+            self.talebe,
+            gun,
+            soru_takip_dersleri(),
+            post,
+        )
+        satir.refresh_from_db()
+        self.assertEqual(satir.toplam_soru, 25)
+        self.assertEqual(satir.dogru, 20)
+
+    def test_bos_kayit_ktt_payini_silmez(self):
+        gun = date(2026, 9, 28)
+        ktt = KttSinav.objects.create(
+            ad="Fen KTT",
+            ders=self.turkce,
+            sinif_seviyesi="7",
+            sinav_tarihi=gun,
+            soru_sayisi=10,
+            etut_hocasi=self.hoca,
+            olusturan=self.user,
+        )
+        KttSonucu.objects.create(
+            ktt=ktt,
+            talebe=self.talebe,
+            dogru=7,
+            yanlis=2,
+            bos=1,
+            kaydeden=self.user,
+        )
+        ktt_sonucu_soru_takibe_yansit(
+            user=self.user,
+            ktt=ktt,
+            talebe=self.talebe,
+            dogru=7,
+            yanlis=2,
+            bos=1,
+        )
+        post = {}
+        for ders in soru_takip_dersleri():
+            post[f"ders_{ders.id}_toplam"] = "0"
+            post[f"ders_{ders.id}_dogru"] = "0"
+            post[f"ders_{ders.id}_yanlis"] = "0"
+            post[f"ders_{ders.id}_bos"] = "0"
+        kayit_kaydet(
+            self.user, self.talebe, gun, soru_takip_dersleri(), post
+        )
+        satir = GunlukSoruDersSatiri.objects.get(
+            kayit__talebe=self.talebe, kayit__tarih=gun, ders=self.turkce
+        )
+        self.assertEqual(satir.toplam_soru, 10)
+        self.assertEqual(satir.dogru, 7)
