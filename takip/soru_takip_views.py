@@ -91,7 +91,7 @@ def _soru_talebe_pdf_bayt(request, satir, filtre_etiket, baslangic, bitis):
             "baslangic": baslangic,
             "bitis": bitis,
             "olusturma_tarihi": now(),
-            "pdf_sayfa": coz_pdf_sayfa(request, default="a4_landscape"),
+            "pdf_sayfa": coz_pdf_sayfa(request, default="a4_portrait"),
         },
         request=request,
     )

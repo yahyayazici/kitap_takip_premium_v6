@@ -273,17 +273,18 @@ class SoruTakipRaporIcerikTests(TestCase):
         self.assertEqual(satir.dogru, 7)
 
     def test_talebe_satiri_ders_dokumu_ve_ozet(self):
-        gun = date(2026, 1, 5)
-        self._satir(gun, self.turkce, 8, 1, 1)
-        self._satir(gun, self.mat, 6, 2, 2)
+        self._satir(date(2026, 1, 5), self.turkce, 8, 1, 1)
+        self._satir(date(2026, 1, 5), self.mat, 6, 2, 2)
+        self._satir(date(2026, 1, 6), self.turkce, 4, 0, 0)
         kayitlar, *_ = rapor_kayitlari(
             self.user,
             {"donem": "ozel", "baslangic": "2026-01-01", "bitis": "2026-01-31"},
         )
         satir = rapor_talebe_satirlari(kayitlar)[0]
+        self.assertEqual(satir["gun_sayisi"], 2)
         self.assertEqual(
             satir["ozet"],
-            "1 gün · 20 soru · 14 doğru · 3 yanlış · 3 boş",
+            "2 kayıt günü · 24 soru · 18 doğru · 3 yanlış · 3 boş",
         )
         self.assertEqual([d["ders"] for d in satir["dersler"]], ["Türkçe", "Matematik"])
 
@@ -331,7 +332,8 @@ class SoruTakipRaporIcerikTests(TestCase):
             quote("Rapor Talebe_2026-01-01_2026-01-31.pdf"),
             pdf["Content-Disposition"],
         )
-        self.assertIn("1 gün · 10 soru · 8 doğru · 1 yanlış · 1 boş", _pdf.call_args.args[0])
+        self.assertIn("1 kayıt günü · 10 soru · 8 doğru · 1 yanlış · 1 boş", _pdf.call_args.args[0])
+        self.assertIn("A4 portrait", _pdf.call_args.args[0])
 
         bos = self.client.get(
             reverse("soru_takip_talebe_pdf", args=[diger.pk]),
@@ -358,4 +360,4 @@ class SoruTakipRaporIcerikTests(TestCase):
         sayfa = self.client.get(reverse("soru_takip_rapor"), sorgu)
         self.assertContains(sayfa, "Talebe Raporu")
         self.assertContains(sayfa, "Talebe ZIP")
-        self.assertContains(sayfa, "1 gün · 10 soru · 8 doğru · 1 yanlış · 1 boş")
+        self.assertContains(sayfa, "1 kayıt günü · 10 soru · 8 doğru · 1 yanlış · 1 boş")
