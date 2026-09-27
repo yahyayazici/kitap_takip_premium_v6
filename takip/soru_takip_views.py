@@ -106,7 +106,12 @@ def soru_takip_panel(request):
                 f"{request.path}?talebe={talebe.id}&tarih={tarih:%Y-%m-%d}"
             )
 
-    satirlar = kayit_satirlari_form_verisi(kayit, dersler)
+    satirlar = kayit_satirlari_form_verisi(
+        kayit,
+        dersler,
+        talebe_id=talebe.id if talebe else None,
+        tarih=tarih,
+    )
     son_kayitlar = yetkili_soru_kayitlari(request.user)[:12]
 
     sinif_subeler = (

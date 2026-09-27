@@ -183,7 +183,9 @@ def talebe_okuma_soru_form_verisi(hesap: TalebeHesap, tarih: date | None = None)
         "konum_etiket": konum_gosterimi(konum_for_date(talebe, tarih)),
         "girebilir": okuma_soru_girebilir(talebe, tarih),
         "dersler": dersler,
-        "satirlar": kayit_satirlari_form_verisi(kayit, dersler),
+        "satirlar": kayit_satirlari_form_verisi(
+            kayit, dersler, talebe_id=talebe.id, tarih=tarih
+        ),
         "kayit": kayit,
         "gunluk_not": kayit.gunluk_not if kayit else "",
     }

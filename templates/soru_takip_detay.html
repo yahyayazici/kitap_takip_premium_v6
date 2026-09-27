@@ -33,7 +33,12 @@
                     {% for satir in satirlar %}
                     {% if satir.toplam_soru %}
                     <tr>
-                        <td><strong>{{ satir.ders.ad }}</strong></td>
+                        <td>
+                            <strong>{{ satir.ders.ad }}</strong>
+                            {% if satir.olcum_ayri %}
+                            <span class="st-olcum-not">KTT / deneme: {{ satir.olcum_soru }} soru</span>
+                            {% endif %}
+                        </td>
                         <td class="num-col">{{ satir.toplam_soru }}</td>
                         <td class="num-col">{{ satir.dogru }}</td>
                         <td class="num-col">{{ satir.yanlis }}</td>
