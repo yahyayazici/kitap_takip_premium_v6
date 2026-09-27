@@ -157,25 +157,6 @@
         </details>
     </section>
 
-    {% if sonuclar %}
-    <section class="ktt-analiz-toggle-wrap">
-        <button
-            type="button"
-            class="ktt-analiz-toggle-btn"
-            id="kttAnalizToggle"
-            data-url="{{ analiz_url }}"
-            aria-expanded="false"
-        >
-            <span class="ktt-analiz-toggle-label">📊 Akademik Analiz</span>
-            <span class="ktt-analiz-chevron" aria-hidden="true">▼</span>
-        </button>
-        <div class="ktt-analiz-panel" id="kttAnalizPanel" hidden>
-            <p class="ktt-analiz-loading" id="kttAnalizLoading" hidden>Analiz hazırlanıyor…</p>
-            <div class="ktt-analiz-content" id="kttAnalizContent"></div>
-        </div>
-    </section>
-    {% endif %}
-
     <section class="ktt-bolum-wrap">
         <details class="ktt-bolum">
             <summary class="ktt-analiz-toggle-btn">
@@ -237,6 +218,25 @@
             </div>
         </details>
     </section>
+
+    {% if sonuclar %}
+    <section class="ktt-analiz-toggle-wrap">
+        <button
+            type="button"
+            class="ktt-analiz-toggle-btn"
+            id="kttAnalizToggle"
+            data-url="{{ analiz_url }}"
+            aria-expanded="false"
+        >
+            <span class="ktt-analiz-toggle-label">📊 Akademik Analiz</span>
+            <span class="ktt-analiz-chevron" aria-hidden="true">▼</span>
+        </button>
+        <div class="ktt-analiz-panel" id="kttAnalizPanel" hidden>
+            <p class="ktt-analiz-loading" id="kttAnalizLoading" hidden>Analiz hazırlanıyor…</p>
+            <div class="ktt-analiz-content" id="kttAnalizContent"></div>
+        </div>
+    </section>
+    {% endif %}
 </div>
 {% endblock %}
 {% block extra_js %}
