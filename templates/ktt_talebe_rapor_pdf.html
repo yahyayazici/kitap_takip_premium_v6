@@ -5,71 +5,172 @@
     <meta charset="utf-8">
     <title>{{ satir.talebe.ad_soyad }} · KTT</title>
     <style>
-        {% include "includes/pdf_karne_fonts.html" %}
-        @page { size: A4 portrait; margin: 12mm; }
-        body { font-family: "Poppins", "PdfTurkish", sans-serif; color: #122a4a; margin: 0; }
-        h1 { font-size: 18px; margin: 0 0 4px; }
-        .meta { color: #546173; font-size: 11px; margin-bottom: 14px; }
-        .ozet {
-            margin: 0 0 14px;
-            padding: 12px 14px;
-            background: #eef1f6;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #d5deea; padding: 7px 8px; text-align: center; font-size: 11px; }
-        th { background: #15427f; color: #fff; }
-        td.name { text-align: left; font-weight: 600; }
-        tfoot td { font-weight: 700; background: #f4f7fb; }
-        .footer { margin-top: 16px; color: #546173; font-size: 10px; }
+        {% include "includes/pdf_rapor_landscape_css.html" %}
     </style>
 </head>
 <body>
-    <h1>{{ satir.talebe.ad_soyad }}</h1>
-    <div class="meta">
-        {{ satir.talebe.sinif_sube|default:"—" }}
-        · {{ filtre.ders }}
-        · {{ filtre.baslangic }} — {{ filtre.bitis }}
-    </div>
-    <p class="ozet">{{ satir.ozet }}</p>
-    <table>
-        <thead>
-            <tr>
-                <th>Test</th>
-                <th>Tarih</th>
-                <th>Soru</th>
-                <th>Doğru</th>
-                <th>Yanlış</th>
-                <th>Boş</th>
-                <th>Net</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for t in satir.testler %}
-            <tr>
-                <td class="name">{{ t.ad }}</td>
-                <td>{{ t.tarih|date:"d.m.Y" }}</td>
-                <td>{{ t.soru }}</td>
-                <td>{{ t.dogru }}</td>
-                <td>{{ t.yanlis }}</td>
-                <td>{{ t.bos }}</td>
-                <td>{{ t.net }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-        <tfoot>
-            <tr>
-                <td class="name" colspan="2">Toplam</td>
-                <td>{{ satir.soru }}</td>
-                <td>{{ satir.dogru }}</td>
-                <td>{{ satir.yanlis }}</td>
-                <td>{{ satir.bos }}</td>
-                <td>{{ satir.net }}</td>
-            </tr>
-        </tfoot>
-    </table>
-    <div class="footer">{{ panel_org }} · {{ olusturma_tarihi|date:"d.m.Y H:i" }}</div>
+
+<table class="layout">
+    <tr>
+        <td colspan="3">
+            <table class="header-table" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="header-logo-cell">
+                        <div class="brand-logo-wrap">
+                            <img class="brand-logo" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="{{ panel_short }}">
+                        </div>
+                    </td>
+                    <td class="header-text-cell">
+                        <div class="brand-name">{{ panel_org }}</div>
+                        <div class="brand-sub">KTT Raporu</div>
+                    </td>
+                    <td class="header-right"></td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+
+    <tr><td colspan="3" class="gap16"></td></tr>
+
+    <tr>
+        <td colspan="3" class="hero">
+            <svg class="hero-deco" width="120" height="72" viewBox="0 0 120 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="18" y="10" width="72" height="52" rx="8" fill="#FFFFFF" opacity="0.85"/>
+                <rect x="28" y="22" width="52" height="4" rx="2" fill="#FFFFFF" opacity="0.55"/>
+                <rect x="38" y="32" width="32" height="4" rx="2" fill="#FFFFFF" opacity="0.4"/>
+            </svg>
+            <div class="hero-inner">
+                <div class="hero-tag">Sonuç Dökümü</div>
+                <div class="hero-title">{{ satir.talebe.ad_soyad }}</div>
+                <div class="hero-meta">
+                    Bireysel rapor · {{ satir.test }} test ·
+                    {{ satir.talebe.sinif_sube|default:"—" }} · {{ filtre.ders }} ·
+                    {{ filtre.baslangic }} — {{ filtre.bitis }}
+                </div>
+            </div>
+        </td>
+    </tr>
+
+    <tr><td colspan="3" class="gap16"></td></tr>
+
+    <tr>
+        <td colspan="3">
+            <div class="meta-panel">
+                <table class="meta-table" cellspacing="0" cellpadding="0">
+                    <tr>
+                        <td class="meta-item">
+                            <div class="meta-label">Kapsam</div>
+                            <div class="meta-value">Bireysel rapor</div>
+                        </td>
+                        <td class="meta-item">
+                            <div class="meta-label">Tarih Aralığı</div>
+                            <div class="meta-value">{{ filtre.baslangic }} — {{ filtre.bitis }}</div>
+                        </td>
+                        <td class="meta-item">
+                            <div class="meta-label">Sınıf</div>
+                            <div class="meta-value">{{ satir.talebe.sinif_sube|default:filtre.sinif }}</div>
+                        </td>
+                        <td class="meta-item">
+                            <div class="meta-label">Ders / KTT</div>
+                            <div class="meta-value">{{ filtre.ders }}</div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </td>
+    </tr>
+
+    <tr><td colspan="3" class="gap16"></td></tr>
+
+    <tr>
+        <td colspan="3">
+            <table class="stats-table" cellpadding="0">
+                <tr>
+                    <td width="33%" class="stat-cell tone-blue">
+                        <div class="stat-accent"></div>
+                        <div class="stat-deco"></div>
+                        <div class="stat-label">Çözülen soru</div>
+                        <div class="stat-metric">{{ satir.soru }}</div>
+                        <div class="stat-sub">Seçilen aralık</div>
+                    </td>
+                    <td width="33%" class="stat-cell tone-green">
+                        <div class="stat-accent"></div>
+                        <div class="stat-deco"></div>
+                        <div class="stat-label">Toplam net</div>
+                        <div class="stat-metric">{{ satir.net }}</div>
+                        <div class="stat-sub">Kağıt netleri</div>
+                    </td>
+                    <td width="34%" class="stat-cell tone-orange">
+                        <div class="stat-accent"></div>
+                        <div class="stat-deco"></div>
+                        <div class="stat-label">Başarı oranı</div>
+                        <div class="stat-metric">%{{ satir.basari }}</div>
+                        <div class="stat-sub">{{ satir.dogru }} doğru</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+
+    <tr><td colspan="3" class="gap20"></td></tr>
+
+    <tr>
+        <td colspan="3">
+            <div class="table-panel">
+                <div class="table-panel-accent"></div>
+                <div class="table-panel-head">
+                    <div class="section-kicker">Test Dökümü</div>
+                    <div class="section-title">{{ satir.ozet }}</div>
+                </div>
+                <table class="results" style="margin-top:10px;">
+                    <thead>
+                        <tr>
+                            <th class="left" style="width:34%;">Test</th>
+                            <th style="width:14%;">Tarih</th>
+                            <th style="width:10%;">Soru</th>
+                            <th style="width:10%;">Doğru</th>
+                            <th style="width:10%;">Yanlış</th>
+                            <th style="width:10%;">Boş</th>
+                            <th style="width:12%;">Net</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in satir.testler %}
+                        <tr>
+                            <td class="left"><div class="ktt-name">{{ t.ad }}</div></td>
+                            <td>{{ t.tarih|date:"d.m.Y" }}</td>
+                            <td class="num-cell">{{ t.soru }}</td>
+                            <td class="num-cell">{{ t.dogru }}</td>
+                            <td class="num-cell">{{ t.yanlis }}</td>
+                            <td class="num-cell">{{ t.bos }}</td>
+                            <td class="num-cell">{{ t.net }}</td>
+                        </tr>
+                        {% endfor %}
+                        <tr>
+                            <td class="left" colspan="2"><div class="student-name">Toplam</div></td>
+                            <td class="num-cell">{{ satir.soru }}</td>
+                            <td class="num-cell">{{ satir.dogru }}</td>
+                            <td class="num-cell">{{ satir.yanlis }}</td>
+                            <td class="num-cell">{{ satir.bos }}</td>
+                            <td class="num-cell">{{ satir.net }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </td>
+    </tr>
+
+    <tr>
+        <td colspan="3">
+            <table class="footer-table" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="footer-left">{{ panel_org }} · {{ olusturma_tarihi|date:"d.m.Y H:i" }}</td>
+                    <td class="footer-right">{{ panel_footer }}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
 </body>
 </html>

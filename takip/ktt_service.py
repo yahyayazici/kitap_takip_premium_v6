@@ -578,6 +578,11 @@ def ktt_rapor_talebe_satirlari(sonuclar) -> list[dict]:
         key=lambda satir: (satir["talebe"].ad_soyad or "").casefold(),
     )
     for satir in sirali:
+        if satir["soru"]:
+            basari = Decimal(satir["dogru"]) * Decimal(100) / Decimal(satir["soru"])
+        else:
+            basari = Decimal(0)
+        satir["basari"] = _tr_sayi(basari, 1)
         satir["net"] = _tr_sayi(satir["net"], 2)
         satir["ozet"] = ktt_rapor_ozet_metni(
             satir["test"],

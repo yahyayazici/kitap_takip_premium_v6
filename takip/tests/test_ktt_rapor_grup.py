@@ -109,6 +109,7 @@ class KttRaporGrupTests(TestCase):
         self.assertEqual(ayse["bos"], 6)
         self.assertEqual(ayse["net"], "16,5")
         self.assertEqual(ayse["ozet"], "2 test · 30 soru · 18 doğru · 6 yanlış · 6 boş")
+        self.assertEqual(ayse["basari"], "60")
         self.assertEqual(ayse["testler"][0]["ktt_id"], self.ktt_a.pk)
         mehmet = satirlar[1]
         self.assertEqual(mehmet["soru"], 20)
