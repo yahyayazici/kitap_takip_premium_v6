@@ -6,6 +6,14 @@
     <title>{{ satir.talebe.ad_soyad }} · KTT</title>
     <style>
         {% include "includes/pdf_rapor_landscape_css.html" %}
+        .hero-deco {
+            opacity: 1;
+            width: 58px;
+            height: 58px;
+            right: 18px;
+            margin-top: -29px;
+        }
+        .hero-inner { padding-right: 88px; }
     </style>
 </head>
 <body>
@@ -34,10 +42,11 @@
 
     <tr>
         <td colspan="3" class="hero">
-            <svg class="hero-deco" width="120" height="72" viewBox="0 0 120 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="18" y="10" width="72" height="52" rx="8" fill="#FFFFFF" opacity="0.85"/>
-                <rect x="28" y="22" width="52" height="4" rx="2" fill="#FFFFFF" opacity="0.55"/>
-                <rect x="38" y="32" width="32" height="4" rx="2" fill="#FFFFFF" opacity="0.4"/>
+            <svg class="hero-deco" width="58" height="58" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="32" cy="32" r="30" fill="#FFFFFF"/>
+                <rect x="20" y="18" width="24" height="30" rx="3.5" stroke="#173B73" stroke-width="2.2"/>
+                <rect x="26" y="13" width="12" height="8" rx="2" fill="#173B73"/>
+                <path d="M26 33.2l3.6 3.6L38 28" stroke="#173B73" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
             <div class="hero-inner">
                 <div class="hero-tag">Sonuç Dökümü</div>
@@ -165,7 +174,7 @@
             <table class="footer-table" cellpadding="0" cellspacing="0">
                 <tr>
                     <td class="footer-left">{{ panel_org }} · {{ olusturma_tarihi|date:"d.m.Y H:i" }}</td>
-                    <td class="footer-right">{{ panel_footer }}</td>
+                    <td class="footer-right"></td>
                 </tr>
             </table>
         </td>
