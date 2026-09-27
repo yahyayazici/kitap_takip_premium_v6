@@ -85,33 +85,26 @@
         <td colspan="3">
             <table class="stats-table" cellpadding="0">
                 <tr>
-                    <td width="25%" class="stat-cell tone-blue">
+                    <td width="33%" class="stat-cell tone-blue">
                         <div class="stat-accent"></div>
                         <div class="stat-deco"></div>
                         <div class="stat-label">Çözülen soru</div>
                         <div class="stat-metric">{{ istatistik.toplam_soru }}</div>
                         <div class="stat-sub">Seçilen aralık</div>
                     </td>
-                    <td width="25%" class="stat-cell tone-green">
+                    <td width="33%" class="stat-cell tone-green">
                         <div class="stat-accent"></div>
                         <div class="stat-deco"></div>
-                        <div class="stat-label">Ort. Puan</div>
-                        <div class="stat-metric">{{ istatistik.ortalama_puan }}</div>
-                        <div class="stat-sub">100 üzerinden</div>
+                        <div class="stat-label">Toplam net</div>
+                        <div class="stat-metric">{{ istatistik.toplam_net }}</div>
+                        <div class="stat-sub">Kağıt netleri</div>
                     </td>
-                    <td width="25%" class="stat-cell tone-orange">
+                    <td width="34%" class="stat-cell tone-orange">
                         <div class="stat-accent"></div>
                         <div class="stat-deco"></div>
-                        <div class="stat-label">Ort. Net</div>
-                        <div class="stat-metric">{{ istatistik.ortalama_net }}</div>
-                        <div class="stat-sub">Ortalama</div>
-                    </td>
-                    <td width="25%" class="stat-cell tone-purple">
-                        <div class="stat-accent"></div>
-                        <div class="stat-deco"></div>
-                        <div class="stat-label">En Yüksek</div>
-                        <div class="stat-metric">{{ istatistik.en_yuksek_puan }}</div>
-                        <div class="stat-sub">Puan</div>
+                        <div class="stat-label">Başarı oranı</div>
+                        <div class="stat-metric">%{{ istatistik.basari }}</div>
+                        <div class="stat-sub">{{ istatistik.toplam_dogru }} doğru</div>
                     </td>
                 </tr>
             </table>
@@ -125,44 +118,35 @@
             <div class="table-panel">
                 <div class="table-panel-accent"></div>
                 <div class="table-panel-head">
-                    <div class="section-kicker">Detaylı Döküm</div>
-                    <div class="section-title">KTT Sonuç Kayıtları</div>
+                    <div class="section-kicker">Talebe Özeti</div>
+                    <div class="section-title">Seçilen aralıktaki talebeler</div>
                 </div>
                 <table class="results" style="margin-top:10px;">
                     <thead>
                         <tr>
-                            <th style="width:8%;">Tarih</th>
-                            <th class="left" style="width:16%;">KTT</th>
-                            <th class="left" style="width:16%;">Talebe</th>
-                            <th style="width:7%;">Sınıf</th>
-                            <th style="width:9%;">Ders</th>
-                            <th style="width:6%;">D</th>
-                            <th style="width:6%;">Y</th>
-                            <th style="width:6%;">B</th>
-                            <th style="width:7%;">Net</th>
-                            <th style="width:7%;">Puan</th>
+                            <th class="left" style="width:34%;">Talebe</th>
+                            <th style="width:12%;">Sınıf</th>
+                            <th style="width:12%;">Soru</th>
+                            <th style="width:10%;">Doğru</th>
+                            <th style="width:10%;">Yanlış</th>
+                            <th style="width:10%;">Boş</th>
+                            <th style="width:12%;">Net</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for s in sonuclar %}
+                        {% for s in talebe_satirlari %}
                         <tr>
-                            <td>{{ s.ktt.sinav_tarihi|date:"d.m.Y" }}</td>
-                            <td class="left"><div class="ktt-name">{{ s.ktt.ad }}</div></td>
-                            <td class="left">
-                                <div class="student-name">{{ s.talebe.ad_soyad }}</div>
-                                <div class="student-meta">{{ s.talebe.talebe_no|default:"—" }}</div>
-                            </td>
-                            <td>{{ s.talebe.sinif_sube|default:s.ktt.sinif_goster }}</td>
-                            <td>{{ s.ktt.ders.ad }}</td>
+                            <td class="left"><div class="student-name">{{ s.talebe.ad_soyad }}</div></td>
+                            <td>{{ s.talebe.sinif_sube|default:"—" }}</td>
+                            <td class="num-cell">{{ s.soru }}</td>
                             <td class="num-cell">{{ s.dogru }}</td>
                             <td class="num-cell">{{ s.yanlis }}</td>
                             <td class="num-cell">{{ s.bos }}</td>
                             <td class="num-cell">{{ s.net }}</td>
-                            <td class="num-cell">{{ s.puan }}</td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="10" class="left" style="padding:18px;">Seçilen filtrelerde kayıt bulunamadı.</td>
+                            <td colspan="7" class="left" style="padding:18px;">Seçilen filtrelerde kayıt bulunamadı.</td>
                         </tr>
                         {% endfor %}
                     </tbody>

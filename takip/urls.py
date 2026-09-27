@@ -365,6 +365,12 @@ urlpatterns = [
     ),
     path("ktt/rapor/", ktt_views.ktt_rapor, name="ktt_rapor"),
     path("ktt/rapor/analiz/", ktt_views.ktt_rapor_analiz, name="ktt_rapor_analiz"),
+    path("ktt/rapor/zip/", ktt_views.ktt_rapor_zip, name="ktt_rapor_zip"),
+    path(
+        "ktt/rapor/talebe/<int:talebe_id>/pdf/",
+        ktt_views.ktt_rapor_talebe_pdf,
+        name="ktt_rapor_talebe_pdf",
+    ),
     path("ktt/ekle/", ktt_views.ktt_ekle, name="ktt_ekle"),
     path("ktt/<int:pk>/sil/", ktt_views.ktt_sil, name="ktt_sil"),
     path("ktt/<int:pk>/", ktt_views.ktt_detay, name="ktt_detay"),

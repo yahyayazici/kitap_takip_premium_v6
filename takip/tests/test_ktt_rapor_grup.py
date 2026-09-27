@@ -1,8 +1,12 @@
+import io
+import zipfile
 from datetime import date
 from unittest.mock import patch
+from urllib.parse import quote
 
 from django.contrib.auth.models import User
 from django.test import TestCase
+from django.urls import reverse
 
 from takip.ktt_models import KttSinav, KttSonucu
 from takip.ktt_service import (
@@ -10,6 +14,9 @@ from takip.ktt_service import (
     ktt_rapor_filtrele,
     ktt_rapor_grupla,
     ktt_rapor_istatistik,
+    ktt_rapor_pdf_adi,
+    ktt_rapor_talebe_satirlari,
+    ktt_rapor_zip_adi,
 )
 from takip.models import Ders, EtutHocasi, SinifSube, Talebe
 
@@ -53,7 +60,12 @@ class KttRaporGrupTests(TestCase):
     def test_araliktaki_cozulen_soru_toplami(self):
         istatistik = ktt_rapor_istatistik(KttSonucu.objects.all())
         self.assertEqual(istatistik["toplam_sonuc"], 3)
-        self.assertEqual(istatistik["toplam_soru"], 30)
+        self.assertEqual(istatistik["toplam_soru"], 50)
+        self.assertEqual(istatistik["toplam_dogru"], 28)
+        self.assertEqual(istatistik["toplam_yanlis"], 11)
+        self.assertEqual(istatistik["toplam_bos"], 11)
+        self.assertEqual(istatistik["toplam_net"], "25,25")
+        self.assertEqual(istatistik["basari"], "56")
 
         tek_gun = ktt_rapor_filtrele(
             KttSonucu.objects.all(),
@@ -77,3 +89,109 @@ class KttRaporGrupTests(TestCase):
         self.assertEqual(len(gruplar[0]["sonuclar"]), 2)
         self.assertEqual(gruplar[0]["ktt"].soru_sayisi, 20)
         self.assertEqual(len(gruplar[1]["sonuclar"]), 1)
+
+    def test_talebe_satirlari_ada_gore_toplar(self):
+        sonuclar = list(
+            KttSonucu.objects.select_related("ktt", "ktt__ders", "talebe").order_by(
+                "-ktt__sinav_tarihi", "-puan", "talebe__ad_soyad"
+            )
+        )
+        satirlar = ktt_rapor_talebe_satirlari(sonuclar)
+        self.assertEqual(
+            [s["talebe"].ad_soyad for s in satirlar],
+            ["Ayşe Yılmaz", "Mehmet Demir"],
+        )
+        ayse = satirlar[0]
+        self.assertEqual(ayse["test"], 2)
+        self.assertEqual(ayse["soru"], 30)
+        self.assertEqual(ayse["dogru"], 18)
+        self.assertEqual(ayse["yanlis"], 6)
+        self.assertEqual(ayse["bos"], 6)
+        self.assertEqual(ayse["net"], "16,5")
+        self.assertEqual(ayse["ozet"], "2 test · 30 soru · 18 doğru · 6 yanlış · 6 boş")
+        self.assertEqual(ayse["testler"][0]["ktt_id"], self.ktt_a.pk)
+        mehmet = satirlar[1]
+        self.assertEqual(mehmet["soru"], 20)
+        self.assertEqual(mehmet["dogru"], 10)
+        self.assertEqual(mehmet["yanlis"], 5)
+        self.assertEqual(mehmet["bos"], 5)
+        self.assertEqual(mehmet["test"], 1)
+
+    def test_ders_filtresi_yalnizca_secilen_dersi_sayar(self):
+        fen = Ders.objects.create(ad="Fen", sira=2, aktif=True)
+        self.ktt_b.ders = fen
+        self.ktt_b.save(update_fields=["ders"])
+        qs = ktt_rapor_filtrele(KttSonucu.objects.all(), ders_ids=[fen.id])
+        istatistik = ktt_rapor_istatistik(qs)
+        self.assertEqual(istatistik["toplam_soru"], 10)
+        self.assertEqual(istatistik["toplam_dogru"], 6)
+        satirlar = ktt_rapor_talebe_satirlari(list(qs.select_related("ktt", "ktt__ders", "talebe")))
+        self.assertEqual(len(satirlar), 1)
+        self.assertEqual(satirlar[0]["talebe"].pk, self.talebe_a.pk)
+        self.assertEqual(satirlar[0]["ozet"], "1 test · 10 soru · 6 doğru · 2 yanlış · 2 boş")
+
+    def test_pdf_adi_talebe_ve_tarih_araligini_icerir(self):
+        self.assertEqual(
+            ktt_rapor_pdf_adi("Ayşe Yılmaz", "2026-09-21", "2026-09-27"),
+            "Ayşe Yılmaz_2026-09-21_2026-09-27.pdf",
+        )
+        self.assertEqual(ktt_rapor_pdf_adi("Ayşe Yılmaz", "", ""), "Ayşe Yılmaz_tum-aralik.pdf")
+        self.assertEqual(
+            ktt_rapor_zip_adi("2026-09-21", "2026-09-27"),
+            "ktt-talebe-raporlari_2026-09-21_2026-09-27.zip",
+        )
+
+    @patch("takip.ktt_views.html_to_pdf", return_value=b"%PDF-1.4 fake")
+    def test_talebe_pdf_ve_zip(self, _pdf):
+        user = User.objects.create_superuser("ktt-rapor-super-indirme", password="x")
+        self.client.force_login(user)
+        sorgu = {"baslangic": "2026-09-21", "bitis": "2026-09-27"}
+
+        pdf = self.client.get(
+            reverse("ktt_rapor_talebe_pdf", args=[self.talebe_a.pk]),
+            sorgu,
+        )
+        self.assertEqual(pdf.status_code, 200)
+        self.assertEqual(pdf["Content-Type"], "application/pdf")
+        beklenen = quote("Ayşe Yılmaz_2026-09-21_2026-09-27.pdf")
+        self.assertIn(beklenen, pdf["Content-Disposition"])
+        self.assertIn("2 test · 30 soru · 18 doğru · 6 yanlış · 6 boş", _pdf.call_args.args[0])
+
+        bos = self.client.get(
+            reverse("ktt_rapor_talebe_pdf", args=[self.talebe_b.pk]),
+            {"baslangic": "2026-09-22", "bitis": "2026-09-22"},
+        )
+        self.assertEqual(bos.status_code, 302)
+
+        paket = self.client.get(reverse("ktt_rapor_zip"), sorgu)
+        self.assertEqual(paket.status_code, 200)
+        self.assertEqual(paket["Content-Type"], "application/zip")
+        self.assertIn(
+            "ktt-talebe-raporlari_2026-09-21_2026-09-27.zip",
+            paket["Content-Disposition"],
+        )
+        with zipfile.ZipFile(io.BytesIO(paket.content)) as arsiv:
+            adlar = arsiv.namelist()
+        self.assertEqual(
+            adlar,
+            [
+                "Ayşe Yılmaz_2026-09-21_2026-09-27.pdf",
+                "Mehmet Demir_2026-09-21_2026-09-27.pdf",
+            ],
+        )
+
+    def test_rapor_sayfasi_talebe_ozetini_gosterir(self):
+        user = User.objects.create_superuser("ktt-rapor-super-sayfa", password="x")
+        self.client.force_login(user)
+        yanit = self.client.get(reverse("ktt_rapor"))
+        self.assertContains(yanit, "2 test · 30 soru · 18 doğru · 6 yanlış · 6 boş")
+        self.assertContains(yanit, "1 test · 20 soru · 10 doğru · 5 yanlış · 5 boş")
+        self.assertContains(yanit, "Toplam net")
+        self.assertContains(yanit, "25,25")
+
+        fen = Ders.objects.create(ad="Fen", sira=2, aktif=True)
+        self.ktt_b.ders = fen
+        self.ktt_b.save(update_fields=["ders"])
+        dar = self.client.get(reverse("ktt_rapor"), {"ders": fen.id})
+        self.assertContains(dar, "1 test · 10 soru · 6 doğru · 2 yanlış · 2 boş")
+        self.assertNotContains(dar, "Mehmet Demir</strong>")
