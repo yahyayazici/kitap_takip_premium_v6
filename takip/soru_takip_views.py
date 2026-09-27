@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import csv
+import io
+import zipfile
 from datetime import datetime
 from io import StringIO
+from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -33,12 +36,15 @@ from takip.soru_takip_service import (
     kayit_satirlari_form_verisi,
     kayit_silebilir,
     rapor_filtre_dict,
+    rapor_filtre_etiketleri,
     rapor_istatistik,
     rapor_kayitlari,
     rapor_ders_ozeti,
     rapor_talebe_satirlari,
     rapor_pdf_baglami,
     soru_takip_dersleri,
+    soru_takip_pdf_adi,
+    soru_takip_zip_adi,
     yetkili_soru_kayitlari,
 )
 
@@ -55,8 +61,41 @@ def _parse_tarih(deger: str | None):
 def _rapor_export_tail(request) -> str:
     params = request.GET.copy()
     params.pop("format", None)
+    params.pop("sayfa", None)
     qs = params.urlencode()
     return f"&{qs}" if qs else ""
+
+
+def _rapor_export_qs(filtre: dict[str, str]) -> str:
+    pairs = [
+        (anahtar, (filtre.get(anahtar) or "").strip())
+        for anahtar in ("donem", "talebe", "ders", "baslangic", "bitis")
+    ]
+    return urlencode([(anahtar, deger) for anahtar, deger in pairs if deger])
+
+
+def _rapor_adresi(filtre: dict[str, str]) -> str:
+    from django.urls import reverse
+
+    qs = _rapor_export_qs(filtre)
+    adres = reverse("soru_takip_rapor")
+    return f"{adres}?{qs}" if qs else adres
+
+
+def _soru_talebe_pdf_bayt(request, satir, filtre_etiket, baslangic, bitis):
+    html = render_to_string(
+        "soru_takip_talebe_pdf.html",
+        {
+            "satir": satir,
+            "filtre": filtre_etiket,
+            "baslangic": baslangic,
+            "bitis": bitis,
+            "olusturma_tarihi": now(),
+            "pdf_sayfa": coz_pdf_sayfa(request, default="a4_landscape"),
+        },
+        request=request,
+    )
+    return html_to_pdf(html, base_url=request.build_absolute_uri("/"))
 
 
 @login_required
@@ -205,6 +244,7 @@ def soru_takip_rapor(request):
             "pdf_yetki": can(request.user, "soru_takip", "export_pdf"),
             "excel_yetki": can(request.user, "soru_takip", "export_excel"),
             "export_tail": export_tail,
+            "export_qs": _rapor_export_qs(filtre),
         },
     )
 
@@ -213,9 +253,12 @@ def soru_takip_rapor(request):
 @require_permission("soru_takip", "export_pdf")
 def soru_takip_pdf(request):
     filtre = rapor_filtre_dict(request)
+    if (filtre.get("talebe") or "").isdigit():
+        return soru_takip_talebe_pdf(request, int(filtre["talebe"]))
+
     baglam = rapor_pdf_baglami(request.user, filtre, limit=300)
     baglam["olusturma_tarihi"] = now()
-    baglam["pdf_sayfa"] = coz_pdf_sayfa(request)
+    baglam["pdf_sayfa"] = coz_pdf_sayfa(request, default="a4_landscape")
 
     html = render_to_string(
         "soru_takip_rapor_pdf.html",
@@ -279,3 +322,86 @@ def soru_takip_excel(request):
         genislikler=[12, 26, 10, 14, 10, 9, 9, 9, 9, 28],
     )
     return excel_http_yanit(icerik, f"soru_takip_rapor_{localdate():%Y%m%d}.xlsx")
+
+
+def _talebe_satiri(request, talebe_id: int):
+    filtre = rapor_filtre_dict(request)
+    hedef = dict(filtre)
+    hedef["talebe"] = str(talebe_id)
+    kayitlar, baslangic, bitis, _donem = rapor_kayitlari(request.user, hedef)
+    satirlar = rapor_talebe_satirlari(kayitlar, ders_id=hedef.get("ders") or None)
+    return filtre, hedef, baslangic, bitis, satirlar[0] if satirlar else None
+
+
+@login_required
+@require_permission("soru_takip", "export_pdf")
+def soru_takip_talebe_pdf(request, talebe_id: int):
+    filtre, hedef, baslangic, bitis, satir = _talebe_satiri(request, talebe_id)
+    if satir is None:
+        messages.warning(request, "Bu aralıkta soru kaydı yok.")
+        return redirect(_rapor_adresi(filtre))
+
+    talebeler = yetkili_talebeler(request.user).order_by("ad_soyad")
+    etiket = rapor_filtre_etiketleri(
+        hedef,
+        talebeler=talebeler,
+        dersler=soru_takip_dersleri(),
+        baslangic=baslangic,
+        bitis=bitis,
+    )
+    pdf_verisi = _soru_talebe_pdf_bayt(request, satir, etiket, baslangic, bitis)
+    if not pdf_verisi:
+        return pdf_error_response(
+            f"PDF oluşturulamadı. (Motor: {pdf_engine_status()})",
+        )
+    return make_pdf_response(
+        pdf_verisi,
+        soru_takip_pdf_adi(satir["ad_soyad"], baslangic, bitis),
+    )
+
+
+@login_required
+@require_permission("soru_takip", "export_pdf")
+def soru_takip_zip(request):
+    filtre = rapor_filtre_dict(request)
+    kayitlar, baslangic, bitis, _donem = rapor_kayitlari(request.user, filtre)
+    satirlar = rapor_talebe_satirlari(kayitlar, ders_id=filtre.get("ders") or None)
+    if not satirlar:
+        messages.warning(request, "İndirilecek talebe karnesi yok.")
+        return redirect(_rapor_adresi(filtre))
+
+    talebeler = list(yetkili_talebeler(request.user).order_by("ad_soyad"))
+    dersler = soru_takip_dersleri()
+    buffer = io.BytesIO()
+    yazilan = 0
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as arsiv:
+        for satir in satirlar:
+            hedef = dict(filtre)
+            hedef["talebe"] = str(satir["talebe_id"])
+            etiket = rapor_filtre_etiketleri(
+                hedef,
+                talebeler=talebeler,
+                dersler=dersler,
+                baslangic=baslangic,
+                bitis=bitis,
+            )
+            pdf_verisi = _soru_talebe_pdf_bayt(request, satir, etiket, baslangic, bitis)
+            if not pdf_verisi:
+                continue
+            arsiv.writestr(
+                soru_takip_pdf_adi(satir["ad_soyad"], baslangic, bitis),
+                pdf_verisi,
+            )
+            yazilan += 1
+
+    if not yazilan:
+        return pdf_error_response(
+            f"PDF oluşturulamadı. (Motor: {pdf_engine_status()})",
+        )
+
+    dosya = soru_takip_zip_adi(baslangic, bitis)
+    response = HttpResponse(buffer.getvalue(), content_type="application/zip")
+    response["Content-Disposition"] = f'attachment; filename="{dosya}"'
+    response["X-Content-Type-Options"] = "nosniff"
+    response["Cache-Control"] = "no-store"
+    return response

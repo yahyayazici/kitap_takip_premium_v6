@@ -1,7 +1,12 @@
+import io
+import zipfile
 from datetime import date
+from unittest.mock import patch
+from urllib.parse import quote
 
 from django.contrib.auth.models import User
 from django.test import TestCase
+from django.urls import reverse
 from django.utils.timezone import localdate
 
 from takip.models import (
@@ -20,8 +25,11 @@ from takip.soru_takip_service import (
     rapor_ders_ozeti,
     rapor_donemi_coz,
     rapor_kayitlari,
+    rapor_talebe_satirlari,
     seed_soru_takip_dersleri,
     soru_takip_dersleri,
+    soru_takip_pdf_adi,
+    soru_takip_zip_adi,
 )
 
 
@@ -263,3 +271,91 @@ class SoruTakipRaporIcerikTests(TestCase):
         )
         self.assertEqual(satir.toplam_soru, 10)
         self.assertEqual(satir.dogru, 7)
+
+    def test_talebe_satiri_ders_dokumu_ve_ozet(self):
+        gun = date(2026, 1, 5)
+        self._satir(gun, self.turkce, 8, 1, 1)
+        self._satir(gun, self.mat, 6, 2, 2)
+        kayitlar, *_ = rapor_kayitlari(
+            self.user,
+            {"donem": "ozel", "baslangic": "2026-01-01", "bitis": "2026-01-31"},
+        )
+        satir = rapor_talebe_satirlari(kayitlar)[0]
+        self.assertEqual(
+            satir["ozet"],
+            "1 gün · 20 soru · 14 doğru · 3 yanlış · 3 boş",
+        )
+        self.assertEqual([d["ders"] for d in satir["dersler"]], ["Türkçe", "Matematik"])
+
+    def test_pdf_ve_zip_adlari(self):
+        bas, bit = date(2026, 1, 1), date(2026, 1, 31)
+        self.assertEqual(
+            soru_takip_pdf_adi("Ayşe Yılmaz", bas, bit),
+            "Ayşe Yılmaz_2026-01-01_2026-01-31.pdf",
+        )
+        self.assertEqual(
+            soru_takip_zip_adi(bas, bit),
+            "soru-takip-talebe-raporlari_2026-01-01_2026-01-31.zip",
+        )
+
+    @patch("takip.soru_takip_views.html_to_pdf", return_value=b"%PDF-1.4 fake")
+    def test_talebe_pdf_ve_zip(self, _pdf):
+        user = User.objects.create_superuser("st-zip", password="x")
+        self.client.force_login(user)
+        diger = Talebe.objects.create(
+            ad_soyad="Mehmet Demir",
+            sinif="7",
+            sube="A",
+            etut_hocasi=self.hoca,
+            dini_ders_hocasi=self.hoca,
+            aktif=True,
+        )
+        self._satir(date(2026, 1, 5), self.turkce, 8, 1, 1)
+        kayit, _ = GunlukSoruKaydi.objects.get_or_create(
+            talebe=diger, tarih=date(2026, 1, 6), defaults={"kaydeden": self.user}
+        )
+        GunlukSoruDersSatiri.objects.update_or_create(
+            kayit=kayit,
+            ders=self.mat,
+            defaults={"toplam_soru": 10, "dogru": 6, "yanlis": 2, "bos": 2},
+        )
+        sorgu = {"donem": "ozel", "baslangic": "2026-01-01", "bitis": "2026-01-31"}
+
+        pdf = self.client.get(
+            reverse("soru_takip_talebe_pdf", args=[self.talebe.pk]),
+            sorgu,
+        )
+        self.assertEqual(pdf.status_code, 200)
+        self.assertEqual(pdf["Content-Type"], "application/pdf")
+        self.assertIn(
+            quote("Rapor Talebe_2026-01-01_2026-01-31.pdf"),
+            pdf["Content-Disposition"],
+        )
+        self.assertIn("1 gün · 10 soru · 8 doğru · 1 yanlış · 1 boş", _pdf.call_args.args[0])
+
+        bos = self.client.get(
+            reverse("soru_takip_talebe_pdf", args=[diger.pk]),
+            {"donem": "ozel", "baslangic": "2026-02-01", "bitis": "2026-02-02"},
+        )
+        self.assertEqual(bos.status_code, 302)
+
+        paket = self.client.get(reverse("soru_takip_rapor_zip"), sorgu)
+        self.assertEqual(paket.status_code, 200)
+        self.assertEqual(paket["Content-Type"], "application/zip")
+        self.assertIn(
+            "soru-takip-talebe-raporlari_2026-01-01_2026-01-31.zip",
+            paket["Content-Disposition"],
+        )
+        with zipfile.ZipFile(io.BytesIO(paket.content)) as arsiv:
+            self.assertEqual(
+                arsiv.namelist(),
+                [
+                    "Mehmet Demir_2026-01-01_2026-01-31.pdf",
+                    "Rapor Talebe_2026-01-01_2026-01-31.pdf",
+                ],
+            )
+
+        sayfa = self.client.get(reverse("soru_takip_rapor"), sorgu)
+        self.assertContains(sayfa, "Talebe Raporu")
+        self.assertContains(sayfa, "Talebe ZIP")
+        self.assertContains(sayfa, "1 gün · 10 soru · 8 doğru · 1 yanlış · 1 boş")

@@ -466,6 +466,16 @@ urlpatterns = [
         name="soru_takip_rapor",
     ),
     path(
+        "soru-takip/rapor/zip/",
+        soru_takip_views.soru_takip_zip,
+        name="soru_takip_rapor_zip",
+    ),
+    path(
+        "soru-takip/rapor/talebe/<int:talebe_id>/pdf/",
+        soru_takip_views.soru_takip_talebe_pdf,
+        name="soru_takip_talebe_pdf",
+    ),
+    path(
         "soru-takip/excel/",
         soru_takip_views.soru_takip_excel,
         name="soru_takip_excel",

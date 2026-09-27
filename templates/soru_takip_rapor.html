@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Soru Takip Rapor · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/soru-takip-premium.css' %}?v=nizam3">
+<link rel="stylesheet" href="{% static 'css/soru-takip-premium.css' %}?v=nizam6">
 {% endblock %}
 {% block content %}
 <div class="library-page st-report-page">
@@ -81,7 +81,8 @@
             <div class="st-report-actions">
                 <button type="submit" class="primary-btn">Filtrele</button>
                 {% if pdf_yetki %}
-                <a href="{% url 'soru_takip_rapor' %}?format=pdf{{ export_tail }}&v=stpdf7" class="primary-btn" download>PDF İndir</a>
+                <a href="{% url 'soru_takip_rapor' %}?format=pdf{{ export_tail }}" class="primary-btn" download>PDF İndir</a>
+                <a href="{% url 'soru_takip_rapor_zip' %}{% if export_qs %}?{{ export_qs }}{% endif %}" class="ghost-btn">Talebe ZIP</a>
                 {% endif %}
                 {% if excel_yetki %}
                 <a href="{% url 'soru_takip_rapor' %}?format=excel{{ export_tail }}" class="ghost-btn">Excel İndir</a>
@@ -90,85 +91,102 @@
         </form>
     </section>
 
-    <section class="library-panel">
-        <div class="card-heading library-panel-head">
-            <div>
-                <p class="card-kicker">DERS ÖZETİ</p>
-                <h2>{{ baslangic|date:"d.m.Y" }} – {{ bitis|date:"d.m.Y" }}</h2>
-            </div>
-        </div>
-        <div class="responsive-table">
-            <table class="report-data-table">
-                <thead>
-                    <tr>
-                        <th>Ders</th>
-                        <th>Toplam Soru</th>
-                        <th>Doğru</th>
-                        <th>Yanlış</th>
-                        <th>Boş</th>
-                        <th>Net</th>
-                        <th>Başarı</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for satir in ders_ozeti %}
-                    <tr>
-                        <td><strong>{{ satir.ders }}</strong></td>
-                        <td class="num-col">{{ satir.toplam_soru }}</td>
-                        <td class="num-col">{{ satir.dogru }}</td>
-                        <td class="num-col">{{ satir.yanlis }}</td>
-                        <td class="num-col">{{ satir.bos }}</td>
-                        <td class="num-col">{{ satir.net }}</td>
-                        <td class="num-col">%{{ satir.basari_orani }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="7" class="report-empty">Bu tarih aralığında kayıt yok.</td></tr>
+    <section class="st-bolum-wrap">
+        <details class="st-bolum">
+            <summary class="st-bolum-summary">
+                <span class="st-bolum-label">Talebe Raporu</span>
+                <span class="st-bolum-ok" aria-hidden="true">▼</span>
+            </summary>
+            <div class="st-bolum-panel">
+                {% if talebe_satirlari %}
+                <div class="st-talebe-list">
+                    {% for satir in talebe_satirlari %}
+                    <details class="st-talebe">
+                        <summary class="st-talebe-summary">
+                            <strong>{{ satir.ad_soyad }} <span class="st-asagi-ok" aria-hidden="true">▼</span></strong>
+                            {% if pdf_yetki %}
+                            <a href="{% url 'soru_takip_talebe_pdf' satir.talebe_id %}{% if export_qs %}?{{ export_qs }}{% endif %}" class="ghost-btn st-pdf-btn" onclick="event.stopPropagation()">PDF</a>
+                            {% endif %}
+                        </summary>
+                        <div class="st-talebe-body">
+                            <p class="st-talebe-ozet">{{ satir.ozet }}</p>
+                            <div class="responsive-table">
+                                <table class="report-data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Ders</th>
+                                            <th>Soru</th>
+                                            <th>Doğru</th>
+                                            <th>Yanlış</th>
+                                            <th>Boş</th>
+                                            <th>Net</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for d in satir.dersler %}
+                                        <tr>
+                                            <td><strong>{{ d.ders }}</strong></td>
+                                            <td class="num-col">{{ d.toplam_soru }}</td>
+                                            <td class="num-col">{{ d.dogru }}</td>
+                                            <td class="num-col">{{ d.yanlis }}</td>
+                                            <td class="num-col">{{ d.bos }}</td>
+                                            <td class="num-col">{{ d.net }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </details>
                     {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                </div>
+                {% else %}
+                <p class="report-empty">Bu tarih aralığında kayıt yok.</p>
+                {% endif %}
+            </div>
+        </details>
     </section>
 
-    {% if talebe_satirlari and talebe_satirlari|length > 1 %}
-    <section class="library-panel">
-        <div class="card-heading library-panel-head">
-            <div>
-                <p class="card-kicker">TALEBE ÖZETİ</p>
-                <h2>Seçili aralık toplamı</h2>
+    <section class="st-bolum-wrap">
+        <details class="st-bolum">
+            <summary class="st-bolum-summary">
+                <span class="st-bolum-label">Ders Özeti</span>
+                <span class="st-bolum-ok" aria-hidden="true">▼</span>
+            </summary>
+            <div class="st-bolum-panel">
+                <div class="responsive-table">
+                    <table class="report-data-table">
+                        <thead>
+                            <tr>
+                                <th>Ders</th>
+                                <th>Toplam Soru</th>
+                                <th>Doğru</th>
+                                <th>Yanlış</th>
+                                <th>Boş</th>
+                                <th>Net</th>
+                                <th>Başarı</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for satir in ders_ozeti %}
+                            <tr>
+                                <td><strong>{{ satir.ders }}</strong></td>
+                                <td class="num-col">{{ satir.toplam_soru }}</td>
+                                <td class="num-col">{{ satir.dogru }}</td>
+                                <td class="num-col">{{ satir.yanlis }}</td>
+                                <td class="num-col">{{ satir.bos }}</td>
+                                <td class="num-col">{{ satir.net }}</td>
+                                <td class="num-col">%{{ satir.basari_orani }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="7" class="report-empty">Bu tarih aralığında kayıt yok.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
-        <div class="responsive-table">
-            <table class="report-data-table">
-                <thead>
-                    <tr>
-                        <th>Talebe</th>
-                        <th>Sınıf</th>
-                        <th>Toplam Soru</th>
-                        <th>Doğru</th>
-                        <th>Yanlış</th>
-                        <th>Boş</th>
-                        <th>Net</th>
-                        <th>Başarı</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for satir in talebe_satirlari %}
-                    <tr>
-                        <td><strong>{{ satir.ad_soyad }}</strong></td>
-                        <td>{{ satir.sinif_goster }}</td>
-                        <td class="num-col">{{ satir.toplam_soru }}</td>
-                        <td class="num-col">{{ satir.dogru }}</td>
-                        <td class="num-col">{{ satir.yanlis }}</td>
-                        <td class="num-col">{{ satir.bos }}</td>
-                        <td class="num-col">{{ satir.toplam_net }}</td>
-                        <td class="num-col">%{{ satir.basari_orani }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        </details>
     </section>
-    {% endif %}
 </div>
 {% endblock %}
 {% block extra_js %}

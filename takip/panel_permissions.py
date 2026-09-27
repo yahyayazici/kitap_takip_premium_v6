@@ -369,6 +369,8 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
             "soru_takip_panel",
             "soru_takip_detay",
             "soru_takip_rapor",
+            "soru_takip_rapor_zip",
+            "soru_takip_talebe_pdf",
         ),
         nav_group="Eğitim",
     ),
