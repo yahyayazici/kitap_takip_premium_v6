@@ -571,6 +571,7 @@ def _ktt_talebe_pdf_bayt(request, satir, filtre_etiketleri) -> bytes | None:
             "satir": satir,
             "filtre": filtre_etiketleri,
             "olusturma_tarihi": now(),
+            "pdf_sayfa": coz_pdf_sayfa(request),
         },
     ).content.decode("utf-8")
     return html_to_pdf(html, base_url=request.build_absolute_uri("/"))
