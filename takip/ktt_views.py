@@ -24,7 +24,9 @@ from takip.ktt_service import (
     ktt_rapor_filtre_dict,
     ktt_rapor_filtre_etiketleri,
     ktt_rapor_filtre_secenekleri,
+    ktt_hafta_cozulen_soru,
     ktt_rapor_filtrele,
+    ktt_rapor_grupla,
     ktt_rapor_istatistik,
     ktt_silebilir,
     ktt_sinif_secenekleri,
@@ -163,6 +165,7 @@ def ktt_listesi(request):
             "olusturabilir": olusturabilir,
             "silme_yetkisi": any(ktt.silebilir for ktt in sinavlar),
             "akilli_ozet": akilli_ozet,
+            "hafta_soru": ktt_hafta_cozulen_soru(request.user),
         },
     )
 
@@ -615,6 +618,7 @@ def ktt_rapor(request):
         "ktt_rapor.html",
         {
             "sonuclar": sonuclar_list,
+            "ktt_gruplari": ktt_rapor_grupla(sonuclar_list),
             "istatistik": istatistik,
             "filtre": filtre,
             "sinif_subeler": secenekler["sinif_subeler"],

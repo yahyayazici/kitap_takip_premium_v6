@@ -1318,6 +1318,104 @@ body.ktt-modal-open {
     font-weight: 800;
 }
 
+.ktt-report-page .ktt-rapor-gruplar {
+    gap: var(--cs-space-3);
+}
+
+.ktt-report-page .ktt-acc-title .ktt-acc-soru {
+    font-weight: 600;
+    color: var(--cs-text-secondary);
+    margin-left: var(--cs-space-2);
+}
+
+.ktt-report-page .ktt-acc-summary .ktt-outline-btn {
+    min-width: 0;
+    flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+    .ktt-report-page .ktt-acc-summary {
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+
+    .ktt-report-page .ktt-acc-summary .ktt-outline-btn {
+        margin-left: auto;
+    }
+}
+
+/* KTT listesi başlığı — ortada bu haftanın soru toplamı */
+body.v3-body .ktt-page.ktt-list-page > header.ktt-page-head.ktt-hero {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center !important;
+    flex-direction: row !important;
+    column-gap: var(--cs-space-4);
+}
+
+body.v3-body .ktt-page.ktt-list-page > header.ktt-page-head.ktt-hero .ktt-head-main {
+    grid-column: 1;
+    width: auto !important;
+    min-width: 0;
+}
+
+body.v3-body .ktt-page.ktt-list-page .ktt-hafta-soru {
+    grid-column: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    text-align: center;
+    padding: 0 var(--cs-space-4);
+    border-left: 1px solid rgba(240, 244, 252, .18);
+    border-right: 1px solid rgba(240, 244, 252, .18);
+    position: relative;
+    z-index: 2;
+}
+
+body.v3-body .ktt-page.ktt-list-page .ktt-hafta-soru b {
+    font-family: var(--cs-font);
+    font-weight: 600;
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1;
+    color: #fff;
+}
+
+body.v3-body .ktt-page.ktt-list-page .ktt-hafta-soru small {
+    max-width: 11rem;
+    font-size: var(--cs-font-caption);
+    font-weight: 500;
+    line-height: 1.3;
+    color: rgba(240, 244, 252, .75);
+}
+
+body.v3-body .ktt-page.ktt-list-page > header.ktt-page-head.ktt-hero .pv4-hero-deco-icon {
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    width: 72px;
+    height: 72px;
+    margin: 0;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, .28);
+    pointer-events: none;
+}
+
+@media (max-width: 900px) {
+    body.v3-body .ktt-page.ktt-list-page > header.ktt-page-head.ktt-hero {
+        grid-template-columns: 1fr !important;
+    }
+
+    body.v3-body .ktt-page.ktt-list-page .ktt-hafta-soru {
+        grid-column: 1;
+        align-items: flex-start;
+        text-align: left;
+        border: 0;
+        padding: var(--cs-space-3) 0 0;
+    }
+}
+
 .ktt-report-page .ktt-kpi-card small {
     font-size: 14px;
     font-weight: 700;
