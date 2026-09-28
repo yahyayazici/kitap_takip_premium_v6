@@ -25,6 +25,7 @@ from takip.deneme_service import (
     deneme_sinavini_sil,
     deneme_sonuc_ozeti,
     deneme_sonuclari,
+    denemelere_goster_sira,
     yetkili_denemeler,
 )
 from takip.permissions.decorators import require_permission
@@ -63,6 +64,7 @@ def deneme_listesi(request):
     )
     denemeler, filtre = deneme_arsiv_filtrele(denemeler, request.GET)
     denemeler = list(denemeler.annotate(puan_ort=Avg("sonuclar__puan")))
+    denemelere_goster_sira(request.user, denemeler)
     yayinlar = {(d.yayin or "").strip() for d in denemeler if (d.yayin or "").strip()}
     seri = [float(d.puan_ort) for d in reversed(denemeler) if d.puan_ort is not None]
     genel = round(sum(seri) / len(seri)) if seri else None
@@ -110,6 +112,7 @@ def deneme_listesi(request):
 @require_permission("deneme", "view")
 def deneme_detay(request, pk):
     deneme = get_object_or_404(yetkili_denemeler(request.user), pk=pk)
+    denemelere_goster_sira(request.user, [deneme])
     ctx = _deneme_detay_verisi(request, deneme)
     from takip.etut_kontrol_service import deneme_alt_baslik
 

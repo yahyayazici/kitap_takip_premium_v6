@@ -48,6 +48,17 @@ def kullanici_etut_hocalari(user) -> list[EtutHocasi]:
     return []
 
 
+def _denemelere_etut_sira(denemeler, talebe_ids) -> None:
+    """Kart etiketini kurum sırası yerine bu talebelerin sırasına bağlar."""
+    from takip.deneme_service import deneme_sira_haritasi_talebeler
+
+    harita = deneme_sira_haritasi_talebeler(talebe_ids)
+    for deneme in denemeler:
+        if deneme is None:
+            continue
+        deneme.goster_sira = harita.get(deneme.pk, deneme.sira_no)
+
+
 def hoca_talebe_ids(hoca: EtutHocasi) -> list[int]:
     return list(
         Talebe.objects.filter(aktif=True)
@@ -195,6 +206,7 @@ def etut_deneme_kutulari(hoca: EtutHocasi) -> list[dict]:
         .distinct()
         .order_by("-sinav_tarihi", "-id")
     )
+    _denemelere_etut_sira(denemeler, ids)
     ortalamalar = []
     for d in denemeler:
         ortalamalar.append(deneme_ortalama(d, ids))
@@ -282,6 +294,7 @@ def etut_dikkat(hoca: EtutHocasi, talebe_ids: list[int] | None = None, subeler: 
     kazanimli = _kazanimli_denemeler(ids)
     son = kazanimli[0] if kazanimli else None
     onceki = kazanimli[1] if len(kazanimli) > 1 else None
+    _denemelere_etut_sira([son, onceki], hoca_talebe_ids(hoca))
     zayif_konular = []
     if son:
         rows = (
@@ -601,6 +614,11 @@ def talebe_deneme_kutulari(talebe: Talebe) -> list[dict]:
         .distinct()
         .order_by("-sinav_tarihi", "-id")
     )
+    if talebe.etut_hocasi_id:
+        sira_ids = hoca_talebe_ids(talebe.etut_hocasi)
+    else:
+        sira_ids = [talebe.id]
+    _denemelere_etut_sira(denemeler, sira_ids)
     kutular = []
     onceki_ort = None
     # chronological for trend then reverse display
