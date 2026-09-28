@@ -47,7 +47,7 @@ PANEL_MODULES = {
     },
     "iletisim_merkezi": {
         "label": "İletişim Merkezi",
-        "enabled": True,
+        "enabled": False,
         "nav_group": "İletişim",
     },
     "veli_randevu": {
