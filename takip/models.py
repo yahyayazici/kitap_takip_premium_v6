@@ -2173,18 +2173,6 @@ from takip.rehberlik_models import (  # noqa: E402,F401
 
 from takip.disiplin_models import DisiplinKaydi, DisiplinOlayTuru  # noqa: E402,F401
 
-from takip.disiplin_kurul_models import (  # noqa: E402,F401
-    DisiplinKurulAyar,
-    DisiplinKurulGundem,
-    DisiplinKurulKarar,
-    DisiplinKurulKararNot,
-    DisiplinKurulKararTakip,
-    DisiplinKurulKatilimci,
-    DisiplinKurulVarsayilanGundem,
-    DisiplinKurulVarsayilanUye,
-    DisiplinKurulu,
-)
-
 from takip.gunluk_takip_models import GunlukTakipKaydi  # noqa: E402,F401
 
 from takip.pazar_izin_donus_models import (  # noqa: E402,F401
@@ -2309,14 +2297,6 @@ from takip.sabah_beslenme_models import (  # noqa: E402,F401
 )
 
 from takip.karsilama_models import KarsilamaSozu  # noqa: E402,F401
-
-from takip.iletisim_models import (  # noqa: E402,F401
-    IletisimEki,
-    IletisimKurumAyar,
-    IletisimOlay,
-    IletisimPaketi,
-    IletisimSablon,
-)
 
 from takip.ekran_models import (  # noqa: E402,F401
     EkranAcilDuyuru,

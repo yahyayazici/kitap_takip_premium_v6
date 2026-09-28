@@ -889,12 +889,6 @@ def talebe_detay(
 
     context["veli_kisileri"] = VeliKisi.objects.filter(talebe=talebe)
 
-    from takip.disiplin_kurul_service import kurul_gorebilir, talebe_kurul_gecmisi
-
-    if kurul_gorebilir(request.user):
-        context["disiplin_kurul_erisim"] = True
-        context["kurul_gecmisi"] = talebe_kurul_gecmisi(talebe)
-
     from takip.models import MezunProfil
 
     context["mezun_profil"] = MezunProfil.objects.filter(talebe=talebe).first()
