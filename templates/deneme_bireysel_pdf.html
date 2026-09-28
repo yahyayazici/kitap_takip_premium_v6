@@ -1,244 +1,250 @@
 {% load static %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="tr">
 <head>
     <meta charset="utf-8">
-    <title>{{ karne.ad_soyad }} — {{ deneme.ad }}</title>
-    {% include "includes/pdf_karne_fonts.html" %}
+    <title>{{ karne.ad_soyad }} · Deneme Karnesi</title>
     <style>
-        @page { size: A4 portrait; margin: 10mm 12mm 9mm; }
-        * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            font-family: "PdfTurkish", sans-serif;
-            font-size: 11px;
-            color: #173f78;
-            background: #fff;
+        {% include "includes/pdf_karne_fonts.html" %}
+        {% include "includes/pdf_karne_a4_css.html" %}
+        @page { size: A4 portrait; margin: 12mm 14mm 10mm; }
+        .pdf-karne.deneme-bireysel { font-size: 10px; color: #33425a; }
+        .pdf-karne.deneme-bireysel .brand-logo-wrap,
+        .pdf-karne.deneme-bireysel .brand-logo { width: 44px; height: 44px; }
+        .pdf-karne.deneme-bireysel .brand-name { font-size: 14px; }
+        .pdf-karne.deneme-bireysel .brand-sub { font-size: 8px; letter-spacing: 0.4px; }
+        .pdf-karne.deneme-bireysel .doc-title { font-size: 8px; }
+        .pdf-karne.deneme-bireysel .hero { padding: 16px 18px; border-radius: 14px; }
+        .pdf-karne.deneme-bireysel .hero-inner { padding-right: 78px; }
+        .pdf-karne.deneme-bireysel .hero-tag { font-size: 8px; }
+        .pdf-karne.deneme-bireysel .hero-title { margin-top: 6px; font-size: 20px; }
+        .pdf-karne.deneme-bireysel .hero-meta { margin-top: 6px; font-size: 9px; }
+        .pdf-karne.deneme-bireysel .hero-deco {
+            opacity: 1;
+            width: 58px;
+            height: 58px;
+            right: 16px;
+            margin-top: -29px;
         }
-        table { width: 100%; border-collapse: collapse; }
-        .ust td { border: 1px solid #8eb4d6; vertical-align: middle; }
-        .logo-hucre {
-            width: 78px;
-            text-align: center;
-            background: #fff;
-            padding: 6px;
+        .pdf-karne.deneme-bireysel .meta-panel,
+        .pdf-karne.deneme-bireysel .stat-cell,
+        .pdf-karne.deneme-bireysel .table-panel {
+            box-shadow: none;
+            overflow: visible;
         }
-        .logo-hucre img { width: 58px; height: 58px; }
-        .ad-hucre {
-            text-align: center;
-            font-size: 18px;
-            font-weight: 700;
+        .pdf-karne.deneme-bireysel .stats-table {
+            width: 100%;
+            margin-left: 0;
+            border-spacing: 8px 0;
+        }
+        .pdf-karne.deneme-bireysel .stat-cell { padding: 12px 14px; }
+        .pdf-karne.deneme-bireysel .stat-label { font-size: 8px; }
+        .pdf-karne.deneme-bireysel .stat-metric { font-size: 20px; }
+        .pdf-karne.deneme-bireysel .stat-sub { font-size: 8px; }
+        .pdf-karne.deneme-bireysel .meta-table { width: 100%; border-collapse: collapse; }
+        .pdf-karne.deneme-bireysel .meta-label {
+            font-size: 8px;
+            font-weight: 600;
             letter-spacing: 0.4px;
-            color: #14386e;
-            background: #f7fbff;
-            padding: 10px 8px;
+            color: #8b98aa;
+            text-transform: uppercase;
         }
-        .rozet-hucre {
-            width: 92px;
-            text-align: center;
-            background: #f08a1a;
-            color: #fff;
-            font-size: 13px;
-            font-weight: 700;
-            letter-spacing: 0.3px;
-            padding: 8px 4px;
+        .pdf-karne.deneme-bireysel .meta-value {
+            margin-top: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #14213d;
         }
-        .meta { margin-top: 0; }
-        .meta th, .meta td {
-            border: 1px solid #8eb4d6;
-            padding: 5px 8px;
+        .pdf-karne.deneme-bireysel .section-kicker { font-size: 8px; }
+        .pdf-karne.deneme-bireysel .section-title { font-size: 14px; }
+        .pdf-karne.deneme-bireysel .table-panel-head { padding: 12px 14px 0; }
+        .pdf-karne.deneme-bireysel table.results { margin-top: 8px; }
+        .pdf-karne.deneme-bireysel table.results thead th {
+            padding: 8px 6px;
+            font-size: 8px;
+        }
+        .pdf-karne.deneme-bireysel table.results tbody td {
+            padding: 8px 6px;
             font-size: 11px;
         }
-        .meta th {
-            width: 22%;
-            background: #e7f1fa;
-            color: #14386e;
+        .pdf-karne.deneme-bireysel .ders-ad {
             font-weight: 700;
-            text-align: left;
+            color: #17243a;
         }
-        .meta td { background: #fffdf3; color: #1d3f73; }
-        .bosluk { height: 10px; }
-        .analiz th, .analiz td {
-            border: 1px solid #7eadd4;
-            padding: 5px 6px;
-            text-align: center;
-            font-size: 11px;
-        }
-        .analiz .baslik {
-            background: #3d7eb8;
-            color: #fff;
-            font-size: 14px;
-            font-weight: 700;
-            letter-spacing: 0.6px;
-            padding: 7px 6px;
-        }
-        .analiz .kolon {
-            background: #d7ebf8;
-            color: #14386e;
-            font-weight: 700;
-            font-size: 10px;
-        }
-        .analiz .ders {
-            text-align: left;
-            font-weight: 700;
-            background: #fff6c9;
-            color: #14386e;
-            padding-left: 8px;
-        }
-        .analiz .sayi { background: #fff6c9; color: #1a3d72; }
-        .analiz .toplam td {
-            background: #eef5fb;
+        .pdf-karne.deneme-bireysel tr.toplam td {
             font-weight: 700;
             color: #102a52;
+            background: #f4f7fb;
+            border-top: 1px solid #dfe6f0;
         }
-        .alt { margin-top: 12px; }
-        .alt > tbody > tr > td { vertical-align: top; border: 0; padding: 0; }
-        .alt .sol { width: 68%; padding-right: 10px; }
-        .sira th, .sira td, .puan th, .puan td {
-            border: 1px solid #7eadd4;
-            padding: 5px 6px;
-            text-align: center;
-            font-size: 11px;
-        }
-        .sira .ust-baslik, .puan .ust-baslik {
-            background: #3d7eb8;
-            color: #fff;
-            font-weight: 700;
-            font-size: 10px;
-            letter-spacing: 0.2px;
-        }
-        .sira .etiket {
-            background: #fff6c9;
-            color: #14386e;
-            font-weight: 700;
-            text-align: left;
-            padding-left: 8px;
-            width: 28%;
-        }
-        .sira .deger, .puan .deger { background: #fffdf6; font-weight: 700; color: #1a3d72; }
-        .puan .etiket {
-            background: #fff6c9;
-            width: 40%;
-            font-weight: 700;
-            color: #14386e;
-        }
-        .puan .puan-deger {
-            font-size: 16px;
-            font-weight: 700;
-            color: #14386e;
-            background: #fffdf6;
-        }
-        .not {
-            margin: 6px 0 0;
-            font-size: 9px;
-            color: #5d7190;
-        }
-        .altbilgi {
-            margin-top: 14px;
-            font-size: 9px;
-            color: #7b8ba3;
-        }
+        .pdf-karne.deneme-bireysel .footer-table td { font-size: 8px; }
+        .pdf-karne.deneme-bireysel .footer-right { display: none; }
     </style>
 </head>
-<body>
-    <table class="ust">
-        <tr>
-            <td class="logo-hucre">
-                <img src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="{{ panel_short }}">
-            </td>
-            <td class="ad-hucre">{{ karne.ad_soyad }}</td>
-            <td class="rozet-hucre">{{ karne.sinif_rozet }}</td>
-        </tr>
-    </table>
-    <table class="meta">
-        <tr>
-            <th>Okul</th>
-            <td colspan="3">{{ panel_org }}</td>
-        </tr>
-        <tr>
-            <th>Okul No / Sınıf</th>
-            <td>{{ karne.okul_no }} / {{ karne.sinif_etiket }}</td>
-            <th>Sınav Tarihi</th>
-            <td>{{ karne.sinav_tarihi|date:"d.m.Y" }}</td>
-        </tr>
-        <tr>
-            <th>Sınav Adı</th>
-            <td colspan="3">{{ karne.sinav_adi }}</td>
-        </tr>
-    </table>
+<body class="pdf-karne deneme-bireysel">
+<div class="pdf-sheet">
+<table class="layout">
+    <tr>
+        <td>
+            <table class="header-table" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="header-logo-cell">
+                        <div class="brand-logo-wrap">
+                            <img class="brand-logo" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="{{ panel_short }}">
+                        </div>
+                    </td>
+                    <td class="header-text-cell">
+                        <div class="brand-name">{{ panel_org }}</div>
+                        <div class="brand-sub">Deneme Karnesi</div>
+                    </td>
+                    <td class="header-right">
+                        <div class="doc-title">Bireysel sonuç</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
 
-    <div class="bosluk"></div>
+    <tr><td class="gap8"></td></tr>
 
-    <table class="analiz">
-        <tr>
-            <th class="baslik" colspan="7">DERS ANALİZİ</th>
-        </tr>
-        <tr>
-            <th class="kolon">Ders</th>
-            <th class="kolon">Soru Sayısı</th>
-            <th class="kolon">Doğru</th>
-            <th class="kolon">Yanlış</th>
-            <th class="kolon">Boş</th>
-            <th class="kolon">Net</th>
-            <th class="kolon">Genel Ort.</th>
-        </tr>
-        {% for ders in karne.dersler %}
-        <tr>
-            <td class="ders">{{ ders.ad }}</td>
-            <td class="sayi">{{ ders.soru }}</td>
-            <td class="sayi">{{ ders.dogru }}</td>
-            <td class="sayi">{{ ders.yanlis }}</td>
-            <td class="sayi">{{ ders.bos }}</td>
-            <td class="sayi">{{ ders.net }}</td>
-            <td class="sayi">{{ ders.ort }}</td>
-        </tr>
-        {% endfor %}
-        <tr class="toplam">
-            <td class="ders">Toplam</td>
-            <td>{{ karne.toplam.soru }}</td>
-            <td>{{ karne.toplam.dogru }}</td>
-            <td>{{ karne.toplam.yanlis }}</td>
-            <td>{{ karne.toplam.bos }}</td>
-            <td>{{ karne.toplam.net }}</td>
-            <td>{{ karne.toplam.ort }}</td>
-        </tr>
-    </table>
+    <tr>
+        <td class="hero">
+            <svg class="hero-deco" width="58" height="58" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="32" cy="32" r="30" fill="#FFFFFF"/>
+                <rect x="20" y="18" width="24" height="30" rx="3.5" stroke="#173B73" stroke-width="2.2"/>
+                <rect x="26" y="13" width="12" height="8" rx="2" fill="#173B73"/>
+                <path d="M26 33.2l3.6 3.6L38 28" stroke="#173B73" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div class="hero-inner">
+                <div class="hero-tag">Deneme</div>
+                <div class="hero-title">{{ karne.ad_soyad }}</div>
+                <div class="hero-meta">
+                    {{ karne.sinif_etiket }} · {{ karne.sinav_tarihi|date:"d.m.Y" }} · {{ karne.sinav_adi }}
+                </div>
+            </div>
+        </td>
+    </tr>
 
-    <table class="alt">
-        <tr>
-            <td class="sol">
-                <table class="sira">
+    <tr><td class="gap8"></td></tr>
+
+    <tr>
+        <td>
+            <div class="meta-panel">
+                <table class="meta-table" cellspacing="0" cellpadding="0">
                     <tr>
-                        <th class="ust-baslik"></th>
-                        <th class="ust-baslik">SINAVA GİREN<br>ÖĞRENCİ SAYISI</th>
-                        <th class="ust-baslik">SIRANIZ</th>
-                    </tr>
-                    {% for satir in karne.siralama %}
-                    <tr>
-                        <td class="etiket">{{ satir.ad }}</td>
-                        <td class="deger">{{ satir.giren }}</td>
-                        <td class="deger">{{ satir.sira }}</td>
-                    </tr>
-                    {% endfor %}
-                </table>
-                {% if karne.harici_not %}
-                <p class="not">{{ karne.harici_not }}</p>
-                {% endif %}
-            </td>
-            <td>
-                <table class="puan">
-                    <tr>
-                        <th class="ust-baslik" colspan="2">PUAN</th>
-                    </tr>
-                    <tr>
-                        <td class="etiket">LGS</td>
-                        <td class="puan-deger">{{ karne.puan }}</td>
+                        <td>
+                            <div class="meta-label">Okul no</div>
+                            <div class="meta-value">{{ karne.okul_no }}</div>
+                        </td>
+                        <td>
+                            <div class="meta-label">Sınıf</div>
+                            <div class="meta-value">{{ karne.sinif_etiket }}</div>
+                        </td>
+                        <td>
+                            <div class="meta-label">Sınav tarihi</div>
+                            <div class="meta-value">{{ karne.sinav_tarihi|date:"d.m.Y" }}</div>
+                        </td>
+                        <td>
+                            <div class="meta-label">Sınav</div>
+                            <div class="meta-value">{{ karne.sinav_adi }}</div>
+                        </td>
                     </tr>
                 </table>
-            </td>
-        </tr>
-    </table>
+            </div>
+        </td>
+    </tr>
 
-    <p class="altbilgi">{{ panel_org }} · {{ olusturma_tarihi|date:"d.m.Y H:i" }}</p>
+    <tr><td class="gap8"></td></tr>
+
+    <tr>
+        <td>
+            <table class="stats-table" cellpadding="0">
+                <tr>
+                    <td width="33%" class="stat-cell tone-blue">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">Toplam net</div>
+                        <div class="stat-metric">{{ karne.toplam.net }}</div>
+                        <div class="stat-sub">{{ karne.toplam.soru }} soru</div>
+                    </td>
+                    <td width="33%" class="stat-cell tone-orange">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">Puan</div>
+                        <div class="stat-metric">{{ karne.puan }}</div>
+                        <div class="stat-sub">LGS</div>
+                    </td>
+                    <td width="34%" class="stat-cell tone-green">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">Doğru</div>
+                        <div class="stat-metric">{{ karne.toplam.dogru }}</div>
+                        <div class="stat-sub">{{ karne.toplam.yanlis }} yanlış · {{ karne.toplam.bos }} boş</div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+
+    <tr><td class="gap8"></td></tr>
+
+    <tr>
+        <td>
+            <div class="table-panel">
+                <div class="table-panel-accent"></div>
+                <div class="table-panel-head">
+                    <div class="section-kicker">Ders dökümü</div>
+                    <div class="section-title">Ders Analizi</div>
+                </div>
+                <table class="results">
+                    <thead>
+                        <tr>
+                            <th class="left">Ders</th>
+                            <th>Soru</th>
+                            <th>Doğru</th>
+                            <th>Yanlış</th>
+                            <th>Boş</th>
+                            <th>Net</th>
+                            <th>Genel Ort.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ders in karne.dersler %}
+                        <tr>
+                            <td class="left ders-ad">{{ ders.ad }}</td>
+                            <td>{{ ders.soru }}</td>
+                            <td>{{ ders.dogru }}</td>
+                            <td>{{ ders.yanlis }}</td>
+                            <td>{{ ders.bos }}</td>
+                            <td>{{ ders.net }}</td>
+                            <td>{{ ders.ort }}</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="toplam">
+                            <td class="left ders-ad">Toplam</td>
+                            <td>{{ karne.toplam.soru }}</td>
+                            <td>{{ karne.toplam.dogru }}</td>
+                            <td>{{ karne.toplam.yanlis }}</td>
+                            <td>{{ karne.toplam.bos }}</td>
+                            <td>{{ karne.toplam.net }}</td>
+                            <td>{{ karne.toplam.ort }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </td>
+    </tr>
+
+    <tr><td class="gap8"></td></tr>
+
+    <tr>
+        <td>
+            <table class="footer-table">
+                <tr>
+                    <td class="footer-left">{{ panel_org }} · {{ olusturma_tarihi|date:"d.m.Y H:i" }}</td>
+                    <td class="footer-right"></td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</div>
 </body>
 </html>

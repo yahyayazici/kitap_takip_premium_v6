@@ -166,15 +166,19 @@ class DenemeBireyselKarneTests(TestCase):
         self.assertEqual(resp["Content-Type"], "application/pdf")
         self.assertIn("Talha", resp["Content-Disposition"])
         html = mock_pdf.call_args[0][0]
-        self.assertIn("DERS ANALİZİ", html)
+        self.assertIn("Ders Analizi", html)
         self.assertIn("TALHA ŞAHİN", html)
         self.assertIn("TÜRKÇE", html)
         self.assertIn("9,67", html)
         self.assertIn("8,34", html)
         self.assertIn("LGS", html)
         self.assertIn("341,60", html)
-        self.assertIn("6.SINIF", html)
+        self.assertIn("6-A", html)
         self.assertIn("A4 portrait", html)
+        self.assertLess(html.find("<style>"), html.find("@font-face"))
+        self.assertNotIn("SIRANIZ", html)
+        self.assertNotIn("SINAVA GİREN", html)
+        self.assertIn("box-shadow: none", html)
 
     @patch("takip.deneme_views.html_to_pdf", return_value=b"%PDF-1.4 fake")
     def test_zip_her_talebe_icin_karne_icerir(self, mock_pdf):
