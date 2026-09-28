@@ -156,7 +156,9 @@ class KttRaporGrupTests(TestCase):
         self.assertEqual(pdf["Content-Type"], "application/pdf")
         beklenen = quote("Ayşe Yılmaz_2026-09-21_2026-09-27.pdf")
         self.assertIn(beklenen, pdf["Content-Disposition"])
-        self.assertIn("2 test · 30 soru · 18 doğru · 6 yanlış · 6 boş", _pdf.call_args.args[0])
+        html = _pdf.call_args.args[0]
+        self.assertIn("2 test · 30 soru · 18 doğru · 6 yanlış · 6 boş", html)
+        self.assertIn("box-shadow: none", html)
 
         bos = self.client.get(
             reverse("ktt_rapor_talebe_pdf", args=[self.talebe_b.pk]),
