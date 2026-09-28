@@ -401,5 +401,169 @@ class DenemeEtutKapsamTests(TestCase):
         self.client.force_login(self.etut_user)
         resp = self.client.get(reverse("deneme_listesi"))
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, "1 öğrenci")
-        self.assertNotContains(resp, "2 öğrenci")
+        self.assertContains(resp, "1 talebe")
+        self.assertNotContains(resp, "2 talebe")
+
+
+class DenemeEtutSiraTests(TestCase):
+    """Kurum sırası durur; etüt kendi denemelerini 1'den görür."""
+
+    def setUp(self):
+        from takip.models import EgitimYili
+
+        self.yil = EgitimYili.objects.create(
+            ad="2026-2027 sira",
+            baslangic=date(2026, 9, 1),
+            bitis=date(2027, 6, 30),
+        )
+        self.sinif = SinifSube.objects.create(sinif="5", sube="A")
+        self.diger_sinif = SinifSube.objects.create(sinif="5", sube="B")
+        self.admin = User.objects.create_superuser("sira-admin", "a@b.com", "x")
+
+        self.etut_user = User.objects.create_user("sira-etut", password="x")
+        self.etut_hoca = EtutHocasi.objects.create(
+            ad_soyad="Recep Bebek", user=self.etut_user, aktif=True
+        )
+        self.etut_hoca.sorumlu_sinif_subeler.add(self.sinif)
+        PersonelProfili.objects.create(
+            user=self.etut_user,
+            ad_soyad="Recep Bebek",
+            ana_rol=PersonelProfili.Rol.ETUT_MESUL,
+            etut_hocasi=self.etut_hoca,
+        )
+
+        self.diger_user = User.objects.create_user("sira-diger", password="x")
+        self.diger_hoca = EtutHocasi.objects.create(
+            ad_soyad="Diğer Hoca", user=self.diger_user, aktif=True
+        )
+        self.diger_hoca.sorumlu_sinif_subeler.add(self.diger_sinif)
+
+        self.talebe = Talebe.objects.create(
+            ad_soyad="Etüt Talebesi",
+            sinif_sube=self.sinif,
+            etut_hocasi=self.etut_hoca,
+            dini_ders_hocasi=self.etut_hoca,
+        )
+        self.baska = Talebe.objects.create(
+            ad_soyad="Başka Sınıf",
+            sinif_sube=self.diger_sinif,
+            etut_hocasi=self.diger_hoca,
+            dini_ders_hocasi=self.diger_hoca,
+        )
+        self.d1 = self._deneme("Kurum 1", date(2026, 9, 1), 1)
+        self.d2 = self._deneme("Kurum 2", date(2026, 9, 10), 2)
+        self.d3 = self._deneme("Ankara", date(2026, 9, 22), 3)
+        DenemeSonucu.objects.create(
+            deneme=self.d1, talebe=self.baska, puan=Decimal("300.00")
+        )
+        DenemeSonucu.objects.create(
+            deneme=self.d2, talebe=self.baska, puan=Decimal("320.00")
+        )
+        DenemeSonucu.objects.create(
+            deneme=self.d3, talebe=self.talebe, puan=Decimal("409.00")
+        )
+        DenemeSonucu.objects.create(
+            deneme=self.d3, talebe=self.baska, puan=Decimal("400.00")
+        )
+
+    def _deneme(self, ad, tarih, sira, seviye="5"):
+        return DenemeSinavi.objects.create(
+            ad=ad,
+            sinav_tarihi=tarih,
+            sinif_seviyesi=seviye,
+            egitim_yili=self.yil,
+            sira_no=sira,
+            yayin=ad,
+            durum=DenemeSinavi.Durum.AKTIF,
+            tur=DenemeSinavi.Tur.GRUP,
+        )
+
+    def test_etut_kendi_ilk_denemesini_bir_gorur(self):
+        self.client.force_login(self.etut_user)
+        resp = self.client.get(reverse("deneme_listesi"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "1. Deneme")
+        self.assertNotContains(resp, "3. Deneme")
+        detay = self.client.get(reverse("deneme_detay", args=[self.d3.pk]))
+        self.assertEqual(detay.status_code, 200)
+        self.assertContains(detay, "1. Deneme")
+        self.assertNotContains(detay, "3. Deneme")
+        self.d3.refresh_from_db()
+        self.assertEqual(self.d3.sira_no, 3)
+
+    def test_idare_kurum_sirasini_gorur(self):
+        self.client.force_login(self.admin)
+        resp = self.client.get(reverse("deneme_listesi"))
+        self.assertContains(resp, "1. Deneme")
+        self.assertContains(resp, "3. Deneme")
+        detay = self.client.get(reverse("deneme_detay", args=[self.d3.pk]))
+        self.assertContains(detay, "3. Deneme — Ankara")
+
+    def test_filtre_sonraki_numarayi_kaydirmaz(self):
+        d4 = self._deneme("İkinci", date(2026, 10, 1), 4)
+        DenemeSonucu.objects.create(
+            deneme=d4, talebe=self.talebe, puan=Decimal("420.00")
+        )
+        self.client.force_login(self.etut_user)
+        resp = self.client.get(
+            reverse("deneme_listesi"), {"baslangic": "2026-09-25"}
+        )
+        self.assertContains(resp, "2. Deneme")
+        self.assertNotContains(resp, "1. Deneme")
+        self.assertNotContains(resp, "4. Deneme")
+
+    def test_arsiv_ve_baska_seviye_sayaci_bozmaz(self):
+        from takip.deneme_service import deneme_sira_haritasi_talebeler
+
+        arsiv = self._deneme("Eski", date(2026, 8, 1), 9)
+        arsiv.durum = DenemeSinavi.Durum.ARSIV
+        arsiv.save(update_fields=["durum"])
+        DenemeSonucu.objects.create(
+            deneme=arsiv, talebe=self.talebe, puan=Decimal("10.00")
+        )
+        bireysel = DenemeSinavi.objects.create(
+            ad="Bireysel",
+            sinav_tarihi=date(2026, 8, 15),
+            sinif_seviyesi="5",
+            egitim_yili=self.yil,
+            durum=DenemeSinavi.Durum.AKTIF,
+            tur=DenemeSinavi.Tur.BIREYSEL,
+        )
+        DenemeSonucu.objects.create(
+            deneme=bireysel, talebe=self.talebe, puan=Decimal("50.00")
+        )
+        alti = self._deneme("Altı", date(2026, 9, 5), 1, seviye="6")
+        DenemeSonucu.objects.create(
+            deneme=alti, talebe=self.talebe, puan=Decimal("100.00")
+        )
+        harita = deneme_sira_haritasi_talebeler([self.talebe.id])
+        self.assertEqual(harita[self.d3.pk], 1)
+        self.assertEqual(harita[alti.pk], 1)
+        self.assertNotIn(arsiv.pk, harita)
+        self.assertNotIn(bireysel.pk, harita)
+
+    def test_etut_kontrol_etiketi_etut_sirasidir(self):
+        from takip.etut_kontrol_service import (
+            etut_deneme_kutulari,
+            etut_dikkat,
+            talebe_deneme_kutulari,
+        )
+        from takip.deneme_models import DenemeKazanimSonucu
+
+        DenemeKazanimSonucu.objects.create(
+            deneme=self.d3,
+            talebe=self.talebe,
+            ders_ad="Matematik",
+            konu_ad="Kesirler",
+            ders_key="matematik",
+            konu_key="kesirler",
+            yuzde=Decimal("80.00"),
+        )
+        kutular = etut_deneme_kutulari(self.etut_hoca)
+        self.assertEqual(len(kutular), 1)
+        self.assertEqual(kutular[0]["deneme"].goster_sira, 1)
+        self.assertEqual(kutular[0]["deneme"].sira_no, 3)
+        dikkat = etut_dikkat(self.etut_hoca)
+        self.assertEqual(dikkat["deneme"].goster_sira, 1)
+        talebe_kutu = talebe_deneme_kutulari(self.talebe)
+        self.assertEqual(talebe_kutu[0]["deneme"].goster_sira, 1)

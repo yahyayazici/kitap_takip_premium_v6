@@ -50,7 +50,7 @@
 
   <section class="ek-card ek-watch">
     <div class="ek-watch-head">
-      <h2>Dikkat{% if dikkat.deneme %}: {% if dikkat.deneme.sira_no %}{{ dikkat.deneme.sira_no }}. Deneme{% else %}{{ dikkat.deneme.ad }}{% endif %}{% endif %}</h2>
+      <h2>Dikkat{% if dikkat.deneme %}: {% if dikkat.deneme.goster_sira %}{{ dikkat.deneme.goster_sira }}. Deneme{% else %}{{ dikkat.deneme.ad }}{% endif %}{% endif %}</h2>
       {% if dikkat.deneme %}<span>{{ dikkat.deneme.sinav_tarihi|date:"j F Y" }}</span>{% endif %}
     </div>
     <div class="ek-split">
@@ -130,7 +130,7 @@
       <a class="ek-exam{% if forloop.first %} is-last{% endif %}" href="{% url 'etut_kontrol_deneme' hoca.id k.deneme.id %}?gorunum={{ gorunum }}" data-time="{{ k.deneme.sinav_tarihi|date:'Ymd' }}" data-puan="{% if k.seviye_ortalama %}{{ k.seviye_ortalama|floatformat:1 }}{% endif %}">
         <div class="ek-exam-top">
           <div>
-            <strong>{% if k.deneme.sira_no %}{{ k.deneme.sira_no }}. Deneme{% else %}{{ k.deneme.ad }}{% endif %}</strong>
+            <strong>{% if k.deneme.goster_sira %}{{ k.deneme.goster_sira }}. Deneme{% else %}{{ k.deneme.ad }}{% endif %}</strong>
             {% if forloop.first %}<span class="ek-pill">Son deneme</span><em>{{ k.deneme.sinav_tarihi|date:"j F Y" }}</em>{% endif %}
           </div>
           {% if not forloop.first %}<span>{{ k.deneme.sinav_tarihi|date:"j M Y" }}</span>{% endif %}

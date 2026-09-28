@@ -211,6 +211,70 @@ def sira_no_ata(
     return (mevcut or 0) + 1
 
 
+def deneme_sira_haritasi_talebeler(talebe_ids) -> dict[int, int]:
+    """Etüdün kendi deneme sırası.
+
+    Kurum ``sira_no`` eğitim yılı + sınıf seviyesi içinde bütün şubeleri
+    sayar. Burada yalnızca verilen talebelerin sonucu olan aktif grup
+    denemeleri, aynı yıl ve seviye içinde sınav tarihine göre 1'den
+    numaralanır. Sayfa filtresi bu kümeyi daraltmaz; erken bir deneme
+    gizlenince sonrakinin numarası kaymaz. Kayıtlı ``sira_no`` değişmez.
+    """
+    ids = [pk for pk in (talebe_ids or []) if pk]
+    if not ids:
+        return {}
+    denemeler = (
+        DenemeSinavi.objects.filter(
+            tur=DenemeSinavi.Tur.GRUP,
+            durum=DenemeSinavi.Durum.AKTIF,
+            sonuclar__talebe_id__in=ids,
+        )
+        .distinct()
+        .order_by("sinav_tarihi", "id")
+    )
+    sayac: dict[tuple, int] = {}
+    harita: dict[int, int] = {}
+    for deneme in denemeler:
+        anahtar = (deneme.egitim_yili_id, (deneme.sinif_seviyesi or "").strip())
+        sira = sayac.get(anahtar, 0) + 1
+        sayac[anahtar] = sira
+        harita[deneme.pk] = sira
+    return harita
+
+
+def gorunen_deneme_sira_haritasi(user: User) -> dict[int, int] | None:
+    """Tam kapsamda ``None``: kart kurum sırasını gösterir.
+
+    Dar kapsamda etüdün (yetkili talebelerin) kendi sırası. İstek ömrünce
+    kullanıcı nesnesinde tutulur.
+    """
+    if not getattr(user, "is_authenticated", False):
+        return {}
+    if user.is_superuser or tum_talebe_kapsami_var(user):
+        return None
+    from takip.permissions.service import _req_cache
+
+    cache = _req_cache(user)
+    key = "deneme_etut_sira"
+    if key not in cache:
+        cache[key] = deneme_sira_haritasi_talebeler(
+            yetkili_talebeler(user).values_list("id", flat=True)
+        )
+    return cache[key]
+
+
+def denemelere_goster_sira(user: User, denemeler) -> None:
+    """Şablonun okuduğu ``goster_sira`` alanını yazar. Veritabanına kaydetmez."""
+    harita = gorunen_deneme_sira_haritasi(user)
+    for deneme in denemeler:
+        if deneme is None:
+            continue
+        if harita is None:
+            deneme.goster_sira = deneme.sira_no
+        else:
+            deneme.goster_sira = harita.get(deneme.pk, deneme.sira_no)
+
+
 def deneme_arsiv_filtrele(qs: QuerySet[DenemeSinavi], get_params) -> tuple[QuerySet[DenemeSinavi], dict]:
     """Deneme arşivi filtreleri: eğitim yılı, sınıf seviyesi, sınıf, tür, yayın, tarih.
 

@@ -92,7 +92,7 @@
             {% for d in denemeler %}
             <a class="ek-exam ek-arsiv-card{% if forloop.first %} is-last{% endif %}" href="{% url 'deneme_detay' d.pk %}" data-time="{{ d.sinav_tarihi|date:'Ymd' }}">
                 <div class="ek-exam-top">
-                    <strong>{% if d.sira_no %}{{ d.sira_no }}. Deneme{% else %}{{ d.ad }}{% endif %}</strong>
+                    <strong>{% if d.goster_sira %}{{ d.goster_sira }}. Deneme{% else %}{{ d.ad }}{% endif %}</strong>
                     <span>{{ d.sinav_tarihi|date:"j M Y" }}</span>
                 </div>
                 <div class="ek-arsiv-pills">
