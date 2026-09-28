@@ -477,20 +477,6 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         nav_group="İletişim",
     ),
     PanelNavItem(
-        key="iletisim_merkezi",
-        label="İletişim Merkezi",
-        url_name="iletisim_merkezi",
-        roller=EGITIM_MODULU_ROLLER,
-        active_names=(
-            "iletisim_merkezi",
-            "iletisim_yeni_mesaj",
-            "iletisim_hazirla",
-            "iletisim_paket_onizleme",
-            "iletisim_ek_indir",
-        ),
-        nav_group="İletişim",
-    ),
-    PanelNavItem(
         key="veli_iletisim",
         label="Veli & Talebe İletişim",
         url_name="iletisim_listesi",
