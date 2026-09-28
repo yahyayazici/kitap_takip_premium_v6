@@ -365,6 +365,16 @@ urlpatterns = [
     path("denemeler/<int:pk>/excel/", deneme_views.deneme_excel_indir, name="deneme_excel_indir"),
     path("denemeler/<int:pk>/pdf/", deneme_views.deneme_detay_pdf, name="deneme_detay_pdf"),
     path("denemeler/<int:pk>/detayli-pdf/", deneme_views.deneme_detayli_pdf, name="deneme_detayli_pdf"),
+    path(
+        "denemeler/<int:pk>/karne/<int:talebe_id>.pdf",
+        deneme_views.deneme_bireysel_pdf,
+        name="deneme_bireysel_pdf",
+    ),
+    path(
+        "denemeler/<int:pk>/karneler.zip",
+        deneme_views.deneme_karne_zip,
+        name="deneme_karne_zip",
+    ),
 
     path("etut-kontrol/", etut_kontrol_views.etut_kontrol_panel, name="etut_kontrol_panel"),
     path("etut-kontrol/<int:hoca_id>/", etut_kontrol_views.etut_kontrol, name="etut_kontrol"),

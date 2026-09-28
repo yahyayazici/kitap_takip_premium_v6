@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from decimal import Decimal, ROUND_HALF_UP
 
 from django.contrib.auth.models import User
@@ -354,6 +355,258 @@ def yetkili_deneme_sonuclari(user: User) -> QuerySet[DenemeSonucu]:
 def deneme_sonuclari(user: User, deneme: DenemeSinavi) -> QuerySet[DenemeSonucu]:
     qs = yetkili_deneme_sonuclari(user).filter(deneme=deneme)
     return qs.order_by("-puan", "-toplam_net", "talebe__ad_soyad")
+
+
+# Bireysel karne ders sırası — LGS karnesindeki yerleşim.
+DENEME_KARNE_DERSLERI: tuple[tuple[str, str], ...] = (
+    ("turkce", "TÜRKÇE"),
+    ("sosyal", "SOSYAL BİLGİLER"),
+    ("din", "DİN KÜLTÜRÜ"),
+    ("ingilizce", "İNGİLİZCE"),
+    ("matematik", "MATEMATİK"),
+    ("fen", "FEN BİLGİSİ"),
+)
+
+_HARICI_AYIR = re.compile(r"\s*(?:·|\|)\s*")
+_SIRA_CIFT = re.compile(r"(\d+)\s*/\s*(\d+)")
+_SIRA_SAYI = re.compile(r"\d+")
+
+
+def tr_buyuk(metin: str) -> str:
+    """Türkçe büyük harf: i → İ, ı → I."""
+    return (metin or "").replace("i", "İ").replace("ı", "I").upper()
+
+
+def tr_ondalik(deger, basamak: int = 2) -> str:
+    """Karnedeki net ve puan: Türkçe virgül, sabit basamak."""
+    if deger is None or deger == "":
+        return "—"
+    try:
+        sayi = Decimal(str(deger))
+    except Exception:
+        return "—"
+    quant = Decimal("1").scaleb(-basamak)
+    sayi = sayi.quantize(quant, rounding=ROUND_HALF_UP)
+    return f"{sayi:.{basamak}f}".replace(".", ",")
+
+
+def _karne_adet(deger) -> str:
+    if deger is None or deger == "":
+        return "—"
+    return str(int(deger))
+
+
+def _ascii_kucuk(metin: str) -> str:
+    metin = (metin or "").strip().replace("İ", "i").replace("I", "ı").lower()
+    return (
+        metin.replace("ı", "i")
+        .replace("ğ", "g")
+        .replace("ü", "u")
+        .replace("ş", "s")
+        .replace("ö", "o")
+        .replace("ç", "c")
+    )
+
+
+def _sira_cifti(deger: str) -> tuple[str, str]:
+    """Excel sıralama hücresinden (giren, sıra). Tek sayı sıradır."""
+    ham = (deger or "").strip()
+    if not ham:
+        return "—", "—"
+    cift = _SIRA_CIFT.search(ham)
+    if cift:
+        a, b = int(cift.group(1)), int(cift.group(2))
+        if a == b:
+            return str(a), str(b)
+        giren, sira = (a, b) if a > b else (b, a)
+        return str(giren), str(sira)
+    sayilar = _SIRA_SAYI.findall(ham)
+    if len(sayilar) >= 2:
+        a, b = int(sayilar[0]), int(sayilar[1])
+        if a == b:
+            return str(a), str(b)
+        giren, sira = (a, b) if a > b else (b, a)
+        return str(giren), str(sira)
+    if len(sayilar) == 1:
+        return "—", sayilar[0]
+    return "—", "—"
+
+
+def _sira_turu(etiket: str) -> str:
+    anahtar = _ascii_kucuk(etiket)
+    if not anahtar:
+        return "genel"
+    if "sube" in anahtar:
+        return "sube"
+    if "sinif" in anahtar:
+        return "sinif"
+    if "kurum" in anahtar or anahtar.startswith("okul"):
+        return "kurum"
+    if any(parca in anahtar for parca in ("genel", "turkiye", "ulke", "ulusal", "il ")):
+        return "genel"
+    if anahtar in {"il", "il sirasi", "il siralamasi"} or anahtar.startswith("il "):
+        return "genel"
+    if any(parca in anahtar for parca in ("sira", "dilim", "rank")):
+        return "genel"
+    return ""
+
+
+def _harici_siralama_kovasi(metin: str) -> tuple[dict[str, tuple[str, str]], list[str]]:
+    """Excel harici metnini genel/kurum/şube/sınıf kovalarına ayırır."""
+    kovalar: dict[str, tuple[str, str]] = {}
+    artik: list[str] = []
+    ham = (metin or "").strip()
+    if not ham:
+        return kovalar, artik
+    for parca in _HARICI_AYIR.split(ham):
+        parca = parca.strip()
+        if not parca:
+            continue
+        if ":" in parca:
+            etiket, deger = parca.split(":", 1)
+        else:
+            etiket, deger = "", parca
+        tur = _sira_turu(etiket)
+        cift = _sira_cifti(deger)
+        if not tur or tur in kovalar:
+            artik.append(parca)
+            continue
+        kovalar[tur] = cift
+    return kovalar, artik
+
+
+def deneme_karne_ortalamalari(deneme: DenemeSinavi) -> dict:
+    """Sınavdaki her dersin ve toplam netin genel ortalaması."""
+    sonuclar = list(
+        DenemeSonucu.objects.filter(deneme=deneme).prefetch_related("brans_satirlari")
+    )
+    kovalar: dict[str, list[Decimal]] = {kod: [] for kod, _ in DENEME_KARNE_DERSLERI}
+    toplamlar: list[Decimal] = []
+    for sonuc in sonuclar:
+        toplamlar.append(Decimal(sonuc.toplam_net or 0))
+        for brans in sonuc.brans_satirlari.all():
+            if brans.brans in kovalar:
+                kovalar[brans.brans].append(Decimal(brans.net or 0))
+
+    def _ort(degerler: list[Decimal]):
+        if not degerler:
+            return None
+        return (sum(degerler, Decimal("0")) / Decimal(len(degerler))).quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        )
+
+    ort = {kod: _ort(nets) for kod, nets in kovalar.items()}
+    ort["toplam"] = _ort(toplamlar)
+    return ort
+
+
+def _sinif_etiket(talebe: Talebe) -> str:
+    sube = getattr(talebe, "sinif_sube", None)
+    if sube is not None:
+        return sube.etiket
+    sinif = (getattr(talebe, "sinif", "") or "").strip()
+    harf = (getattr(talebe, "sube", "") or "").strip()
+    if sinif and harf:
+        return f"{sinif}-{harf}"
+    return sinif or harf or "—"
+
+
+def _sinif_rozet(seviye: str) -> str:
+    s = (seviye or "").strip()
+    if s.isdigit():
+        return f"{s}.SINIF"
+    return (s or "SINIF").upper()
+
+
+def deneme_bireysel_karne(deneme: DenemeSinavi, sonuc: DenemeSonucu, ortalamalar: dict) -> dict:
+    """Tek talebenin ders analizi karnesi. Netler kayıtlı değerdir, yeniden hesaplanmaz."""
+    brans_map = {b.brans: b for b in sonuc.brans_satirlari.all()}
+    dersler = []
+    for kod, etiket in DENEME_KARNE_DERSLERI:
+        brans = brans_map.get(kod)
+        ort = ortalamalar.get(kod)
+        if brans is None:
+            dersler.append(
+                {
+                    "ad": etiket,
+                    "soru": "—",
+                    "dogru": "—",
+                    "yanlis": "—",
+                    "bos": "—",
+                    "net": "—",
+                    "ort": tr_ondalik(ort) if ort is not None else "—",
+                }
+            )
+            continue
+        dogru = int(brans.dogru or 0)
+        yanlis = int(brans.yanlis or 0)
+        bos = int(brans.bos or 0)
+        dersler.append(
+            {
+                "ad": etiket,
+                "soru": dogru + yanlis + bos,
+                "dogru": dogru,
+                "yanlis": yanlis,
+                "bos": bos,
+                "net": tr_ondalik(brans.net),
+                "ort": tr_ondalik(ort) if ort is not None else "—",
+            }
+        )
+
+    kovalar, artik = _harici_siralama_kovasi(sonuc.dis_siralama_metni or "")
+
+    def _hucre(tur: str, yedek_giren, yedek_sira) -> tuple[str, str]:
+        if tur in kovalar:
+            return kovalar[tur]
+        return _karne_adet(yedek_giren), _karne_adet(yedek_sira)
+
+    genel_giren, genel_sira = _hucre("genel", None, None)
+    kurum_giren, kurum_sira = _hucre("kurum", sonuc.kurum_toplam, sonuc.kurum_sirasi)
+    sube_giren, sube_sira = _hucre("sube", None, None)
+    sinif_giren, sinif_sira = _hucre("sinif", sonuc.sinif_toplam, sonuc.sinif_sirasi)
+
+    return {
+        "ad_soyad": tr_buyuk(sonuc.talebe.ad_soyad or ""),
+        "okul_no": (sonuc.talebe.talebe_no or "").strip() or "—",
+        "sinif_etiket": _sinif_etiket(sonuc.talebe),
+        "sinif_rozet": _sinif_rozet(deneme.sinif_seviyesi),
+        "sinav_tarihi": deneme.sinav_tarihi,
+        "sinav_adi": deneme.ad,
+        "dersler": dersler,
+        "toplam": {
+            "soru": int(sonuc.toplam_dogru or 0)
+            + int(sonuc.toplam_yanlis or 0)
+            + int(sonuc.toplam_bos or 0),
+            "dogru": int(sonuc.toplam_dogru or 0),
+            "yanlis": int(sonuc.toplam_yanlis or 0),
+            "bos": int(sonuc.toplam_bos or 0),
+            "net": tr_ondalik(sonuc.toplam_net),
+            "ort": tr_ondalik(ortalamalar.get("toplam"))
+            if ortalamalar.get("toplam") is not None
+            else "—",
+        },
+        "siralama": [
+            {"ad": "GENEL", "giren": genel_giren, "sira": genel_sira},
+            {"ad": "KURUM", "giren": kurum_giren, "sira": kurum_sira},
+            {"ad": "ŞUBE", "giren": sube_giren, "sira": sube_sira},
+            {"ad": "SINIF", "giren": sinif_giren, "sira": sinif_sira},
+        ],
+        "harici_not": " · ".join(artik),
+        "puan": tr_ondalik(sonuc.puan),
+    }
+
+
+def deneme_karne_pdf_adi(ad_soyad: str) -> str:
+    ad = re.sub(r'[\\/:*?"<>|\r\n]+', " ", (ad_soyad or "").strip())
+    ad = re.sub(r"\s+", " ", ad).strip() or "Talebe"
+    return f"{ad}.pdf"
+
+
+def deneme_karne_zip_adi(deneme: DenemeSinavi) -> str:
+    from django.utils.text import slugify
+
+    govde = slugify(deneme.ad) or f"deneme-{deneme.pk}"
+    return f"deneme-karneleri_{govde}.zip"
 
 
 def deneme_sonuc_ozeti(sonuclar) -> dict:

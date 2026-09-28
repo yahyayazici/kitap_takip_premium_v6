@@ -1,9 +1,14 @@
 """Deneme — personel görüntüleme."""
 
+import io
+import zipfile
+
 from django.contrib import messages
 from django.db.models import Avg
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.utils.text import slugify
 from django.utils.timezone import localdate, now
 from django.views.decorators.http import require_POST
@@ -11,7 +16,11 @@ from django.views.decorators.http import require_POST
 from takip.deneme_service import (
     BRANS_ETIKETLERI,
     DENEME_DETAY_BRANSLAR,
+    deneme_bireysel_karne,
     deneme_detay_satirlari,
+    deneme_karne_ortalamalari,
+    deneme_karne_pdf_adi,
+    deneme_karne_zip_adi,
     deneme_silebilir,
     deneme_sinavini_sil,
     deneme_sonuc_ozeti,
@@ -230,6 +239,80 @@ def deneme_excel_indir(request, pk):
 
     dosya = slugify(deneme.ad) or f"deneme_{deneme.pk}"
     return excel_http_yanit(icerik, f"deneme_{dosya}_{localdate():%Y%m%d}.xlsx")
+
+
+def _deneme_karne_html(request, deneme, sonuc, ortalamalar):
+    return render_to_string(
+        "deneme_bireysel_pdf.html",
+        {
+            "deneme": deneme,
+            "sonuc": sonuc,
+            "karne": deneme_bireysel_karne(deneme, sonuc, ortalamalar),
+            "olusturma_tarihi": now(),
+        },
+        request=request,
+    )
+
+
+def _deneme_karne_pdf_bayt(request, deneme, sonuc, ortalamalar):
+    html = _deneme_karne_html(request, deneme, sonuc, ortalamalar)
+    return html_to_pdf(html, base_url=request.build_absolute_uri("/")), html
+
+
+@login_required
+@require_permission("deneme", "export_pdf")
+def deneme_bireysel_pdf(request, pk, talebe_id):
+    deneme = get_object_or_404(yetkili_denemeler(request.user), pk=pk)
+    sonuc = get_object_or_404(
+        deneme_sonuclari(request.user, deneme).filter(talebe_id=talebe_id)
+    )
+    ortalamalar = deneme_karne_ortalamalari(deneme)
+    pdf_verisi, _html = _deneme_karne_pdf_bayt(request, deneme, sonuc, ortalamalar)
+    if not pdf_verisi:
+        return pdf_error_response(
+            f"PDF oluşturulamadı. (Motor: {pdf_engine_status()})",
+        )
+    return make_pdf_response(pdf_verisi, deneme_karne_pdf_adi(sonuc.talebe.ad_soyad))
+
+
+@login_required
+@require_permission("deneme", "export_pdf")
+def deneme_karne_zip(request, pk):
+    deneme = get_object_or_404(yetkili_denemeler(request.user), pk=pk)
+    sonuclar = list(deneme_sonuclari(request.user, deneme))
+    if not sonuclar:
+        messages.warning(request, "İndirilecek bireysel karne yok.")
+        return redirect("deneme_detay", pk=pk)
+
+    ortalamalar = deneme_karne_ortalamalari(deneme)
+    buffer = io.BytesIO()
+    yazilan = 0
+    kullanilan: set[str] = set()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as arsiv:
+        for sonuc in sonuclar:
+            pdf_verisi, _html = _deneme_karne_pdf_bayt(
+                request, deneme, sonuc, ortalamalar
+            )
+            if not pdf_verisi:
+                continue
+            ad = deneme_karne_pdf_adi(sonuc.talebe.ad_soyad)
+            if ad in kullanilan:
+                ad = deneme_karne_pdf_adi(f"{sonuc.talebe.ad_soyad} {sonuc.talebe_id}")
+            kullanilan.add(ad)
+            arsiv.writestr(ad, pdf_verisi)
+            yazilan += 1
+
+    if not yazilan:
+        return pdf_error_response(
+            f"PDF oluşturulamadı. (Motor: {pdf_engine_status()})",
+        )
+
+    response = HttpResponse(buffer.getvalue(), content_type="application/zip")
+    dosya = deneme_karne_zip_adi(deneme)
+    response["Content-Disposition"] = f'attachment; filename="{dosya}"'
+    response["X-Content-Type-Options"] = "nosniff"
+    response["Cache-Control"] = "no-store"
+    return response
 
 
 def _deneme_liste_ctx(sonuclar, *, kicker, baslik):

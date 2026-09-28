@@ -28,6 +28,9 @@
         </div>
         <div class="yonetim-page-head-actions">
             <a href="{% url 'yonetim:deneme_listesi' %}" class="ghost-btn">Liste</a>
+            {% if pdf_yetkisi and sonuclar %}
+            <a href="{% url 'deneme_karne_zip' deneme.pk %}" class="ghost-btn">Bireysel Karneler</a>
+            {% endif %}
             {% if sil_yetkisi %}
             <form method="post" action="{% url 'yonetim:deneme_sil' deneme.pk %}" onsubmit="return confirm('«{{ deneme.ad|escapejs }}» arşive alınsın mı? Sonuçlar ve kazanımlar silinmez, listeden kalkar.');">
                 {% csrf_token %}
@@ -83,6 +86,7 @@
                         <th class="num-col">Sınıf sırası</th>
                         {% endif %}
                         <th>Harici sıralama</th>
+                        {% if pdf_yetkisi %}<th>Karne</th>{% endif %}
                     </tr>
                 </thead>
                 <tbody>
@@ -101,6 +105,9 @@
                         <td class="num-col">{% if sonuc.sinif_sirasi %}{{ sonuc.sinif_sirasi }} / {{ sonuc.sinif_toplam }}{% else %}—{% endif %}</td>
                         {% endif %}
                         <td class="muted">{{ sonuc.dis_siralama_metni|default:"—" }}</td>
+                        {% if pdf_yetkisi %}
+                        <td><a class="ghost-btn" href="{% url 'deneme_bireysel_pdf' deneme.pk sonuc.talebe_id %}">Karne</a></td>
+                        {% endif %}
                     </tr>
                     {% endfor %}
                 </tbody>
