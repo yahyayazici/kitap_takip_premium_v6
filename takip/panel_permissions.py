@@ -295,22 +295,6 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         nav_group="Kitaplar",
     ),
     PanelNavItem(
-        key="olcme",
-        label="Ölçme ve Değerlendirme",
-        url_name="olcme_hub",
-        roller=EGITIM_MODULU_ROLLER,
-        active_names=(
-            "olcme_hub",
-            "olcme_sinav_listesi",
-            "olcme_sinav_wizard_yeni",
-            "olcme_sinav_wizard",
-            "olcme_sinav_detay",
-            "olcme_sinav_zimmet",
-            "olcme_sablon_listesi",
-        ),
-        nav_group="Eğitim",
-    ),
-    PanelNavItem(
         key="ktt",
         label="KTT",
         url_name="ktt_listesi",
