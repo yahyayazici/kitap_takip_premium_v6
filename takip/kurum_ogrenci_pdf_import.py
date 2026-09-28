@@ -128,7 +128,6 @@ def _hoca_sinif_atamalarini_guncelle() -> None:
 
 def _korunan_kayitlari_temizle(talebe: Talebe) -> None:
     from takip.models import (
-        DisiplinKurulu,
         ImamMuezzinAtama,
         TemizlikAtama,
         YemekciAtama,
@@ -139,7 +138,6 @@ def _korunan_kayitlari_temizle(talebe: Talebe) -> None:
     YemekciAtama.objects.filter(yardimci=talebe).delete()
     ImamMuezzinAtama.objects.filter(imam=talebe).delete()
     ImamMuezzinAtama.objects.filter(muezzin=talebe).delete()
-    DisiplinKurulu.objects.filter(talebe=talebe).delete()
 
 
 @transaction.atomic

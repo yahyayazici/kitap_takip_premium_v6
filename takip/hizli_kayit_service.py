@@ -118,7 +118,6 @@ def talebe_kalici_sil(talebe: Talebe) -> None:
 def _personel_kalici_sil_on_hazirlik(personel: PersonelProfili) -> None:
     """PROTECT ve etüt CASCADE engellerini kaldırır."""
     personel.veli_randevulari.all().delete()
-    personel.disiplin_kurul_katilimlari.all().delete()
     if personel.etut_hocasi_id:
         PersonelProfili.objects.filter(pk=personel.pk).update(etut_hocasi_id=None)
         personel.etut_hocasi_id = None

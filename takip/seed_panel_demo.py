@@ -875,14 +875,9 @@ def seed_rehberlik_guvence() -> None:
 
 
 def seed_disiplin_kurul_ve_lazy() -> None:
-    from takip.disiplin_kurul_service import seed_demo_kurul, seed_kurul_sablonlari
     from takip.etut_plan_service import seed_havuz_kartlari
 
     seed_havuz_kartlari()
-    seed_kurul_sablonlari()
-    admin = User.objects.filter(username="admin").first()
-    if admin:
-        seed_demo_kurul(admin)
 
 
 @transaction.atomic

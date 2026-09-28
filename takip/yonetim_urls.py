@@ -22,8 +22,6 @@ from . import veli_anketi_yonetim_views
 from . import yonetim_hizli_kayit_views
 from . import idareci_views
 from . import personel_toplanti_views
-from . import iletisim_yonetim_views
-
 app_name = "yonetim"
 
 urlpatterns = [
@@ -342,26 +340,6 @@ urlpatterns = [
         "bildirim-gonder/",
         yonetim_views.bildirim_gonder_view,
         name="bildirim_gonder",
-    ),
-    path(
-        "iletisim/sablonlar/",
-        iletisim_yonetim_views.iletisim_sablon_listesi,
-        name="iletisim_sablon_listesi",
-    ),
-    path(
-        "iletisim/sablonlar/ekle/",
-        iletisim_yonetim_views.iletisim_sablon_ekle,
-        name="iletisim_sablon_ekle",
-    ),
-    path(
-        "iletisim/sablonlar/<int:pk>/duzenle/",
-        iletisim_yonetim_views.iletisim_sablon_duzenle,
-        name="iletisim_sablon_duzenle",
-    ),
-    path(
-        "iletisim/kurum-ayar/",
-        iletisim_yonetim_views.iletisim_kurum_ayar_kaydet,
-        name="iletisim_kurum_ayar_kaydet",
     ),
     path(
         "sohbet-mevzuu/",
