@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static filter_tags %}
 {% block title %}Talebeler · {{ hoca.ad_soyad }}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek36">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek42">{% endblock %}
 {% block content %}
 <div class="ek-page">
   <header class="ek-head">
@@ -50,7 +50,7 @@
       <div class="ek-person-top">
         <span class="ek-avatar"></span>
         <div>
-          <strong>{{ k.talebe.ad_soyad }}</strong>
+          <strong>{{ k.talebe.ad_soyad|tr_baslik }}</strong>
           <em>{% if k.talebe.sinif_sube %}{{ k.talebe.sinif_sube.sinif }}-{{ k.talebe.sinif_sube.sube }}{% else %}sınıf{% endif %}</em>
         </div>
       </div>
