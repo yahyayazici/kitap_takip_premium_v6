@@ -1,0 +1,244 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>{{ karne.ad_soyad }} — {{ deneme.ad }}</title>
+    {% include "includes/pdf_karne_fonts.html" %}
+    <style>
+        @page { size: A4 portrait; margin: 10mm 12mm 9mm; }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "PdfTurkish", sans-serif;
+            font-size: 11px;
+            color: #173f78;
+            background: #fff;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        .ust td { border: 1px solid #8eb4d6; vertical-align: middle; }
+        .logo-hucre {
+            width: 78px;
+            text-align: center;
+            background: #fff;
+            padding: 6px;
+        }
+        .logo-hucre img { width: 58px; height: 58px; }
+        .ad-hucre {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            color: #14386e;
+            background: #f7fbff;
+            padding: 10px 8px;
+        }
+        .rozet-hucre {
+            width: 92px;
+            text-align: center;
+            background: #f08a1a;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            padding: 8px 4px;
+        }
+        .meta { margin-top: 0; }
+        .meta th, .meta td {
+            border: 1px solid #8eb4d6;
+            padding: 5px 8px;
+            font-size: 11px;
+        }
+        .meta th {
+            width: 22%;
+            background: #e7f1fa;
+            color: #14386e;
+            font-weight: 700;
+            text-align: left;
+        }
+        .meta td { background: #fffdf3; color: #1d3f73; }
+        .bosluk { height: 10px; }
+        .analiz th, .analiz td {
+            border: 1px solid #7eadd4;
+            padding: 5px 6px;
+            text-align: center;
+            font-size: 11px;
+        }
+        .analiz .baslik {
+            background: #3d7eb8;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            padding: 7px 6px;
+        }
+        .analiz .kolon {
+            background: #d7ebf8;
+            color: #14386e;
+            font-weight: 700;
+            font-size: 10px;
+        }
+        .analiz .ders {
+            text-align: left;
+            font-weight: 700;
+            background: #fff6c9;
+            color: #14386e;
+            padding-left: 8px;
+        }
+        .analiz .sayi { background: #fff6c9; color: #1a3d72; }
+        .analiz .toplam td {
+            background: #eef5fb;
+            font-weight: 700;
+            color: #102a52;
+        }
+        .alt { margin-top: 12px; }
+        .alt > tbody > tr > td { vertical-align: top; border: 0; padding: 0; }
+        .alt .sol { width: 68%; padding-right: 10px; }
+        .sira th, .sira td, .puan th, .puan td {
+            border: 1px solid #7eadd4;
+            padding: 5px 6px;
+            text-align: center;
+            font-size: 11px;
+        }
+        .sira .ust-baslik, .puan .ust-baslik {
+            background: #3d7eb8;
+            color: #fff;
+            font-weight: 700;
+            font-size: 10px;
+            letter-spacing: 0.2px;
+        }
+        .sira .etiket {
+            background: #fff6c9;
+            color: #14386e;
+            font-weight: 700;
+            text-align: left;
+            padding-left: 8px;
+            width: 28%;
+        }
+        .sira .deger, .puan .deger { background: #fffdf6; font-weight: 700; color: #1a3d72; }
+        .puan .etiket {
+            background: #fff6c9;
+            width: 40%;
+            font-weight: 700;
+            color: #14386e;
+        }
+        .puan .puan-deger {
+            font-size: 16px;
+            font-weight: 700;
+            color: #14386e;
+            background: #fffdf6;
+        }
+        .not {
+            margin: 6px 0 0;
+            font-size: 9px;
+            color: #5d7190;
+        }
+        .altbilgi {
+            margin-top: 14px;
+            font-size: 9px;
+            color: #7b8ba3;
+        }
+    </style>
+</head>
+<body>
+    <table class="ust">
+        <tr>
+            <td class="logo-hucre">
+                <img src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="{{ panel_short }}">
+            </td>
+            <td class="ad-hucre">{{ karne.ad_soyad }}</td>
+            <td class="rozet-hucre">{{ karne.sinif_rozet }}</td>
+        </tr>
+    </table>
+    <table class="meta">
+        <tr>
+            <th>Okul</th>
+            <td colspan="3">{{ panel_org }}</td>
+        </tr>
+        <tr>
+            <th>Okul No / Sınıf</th>
+            <td>{{ karne.okul_no }} / {{ karne.sinif_etiket }}</td>
+            <th>Sınav Tarihi</th>
+            <td>{{ karne.sinav_tarihi|date:"d.m.Y" }}</td>
+        </tr>
+        <tr>
+            <th>Sınav Adı</th>
+            <td colspan="3">{{ karne.sinav_adi }}</td>
+        </tr>
+    </table>
+
+    <div class="bosluk"></div>
+
+    <table class="analiz">
+        <tr>
+            <th class="baslik" colspan="7">DERS ANALİZİ</th>
+        </tr>
+        <tr>
+            <th class="kolon">Ders</th>
+            <th class="kolon">Soru Sayısı</th>
+            <th class="kolon">Doğru</th>
+            <th class="kolon">Yanlış</th>
+            <th class="kolon">Boş</th>
+            <th class="kolon">Net</th>
+            <th class="kolon">Genel Ort.</th>
+        </tr>
+        {% for ders in karne.dersler %}
+        <tr>
+            <td class="ders">{{ ders.ad }}</td>
+            <td class="sayi">{{ ders.soru }}</td>
+            <td class="sayi">{{ ders.dogru }}</td>
+            <td class="sayi">{{ ders.yanlis }}</td>
+            <td class="sayi">{{ ders.bos }}</td>
+            <td class="sayi">{{ ders.net }}</td>
+            <td class="sayi">{{ ders.ort }}</td>
+        </tr>
+        {% endfor %}
+        <tr class="toplam">
+            <td class="ders">Toplam</td>
+            <td>{{ karne.toplam.soru }}</td>
+            <td>{{ karne.toplam.dogru }}</td>
+            <td>{{ karne.toplam.yanlis }}</td>
+            <td>{{ karne.toplam.bos }}</td>
+            <td>{{ karne.toplam.net }}</td>
+            <td>{{ karne.toplam.ort }}</td>
+        </tr>
+    </table>
+
+    <table class="alt">
+        <tr>
+            <td class="sol">
+                <table class="sira">
+                    <tr>
+                        <th class="ust-baslik"></th>
+                        <th class="ust-baslik">SINAVA GİREN<br>ÖĞRENCİ SAYISI</th>
+                        <th class="ust-baslik">SIRANIZ</th>
+                    </tr>
+                    {% for satir in karne.siralama %}
+                    <tr>
+                        <td class="etiket">{{ satir.ad }}</td>
+                        <td class="deger">{{ satir.giren }}</td>
+                        <td class="deger">{{ satir.sira }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                {% if karne.harici_not %}
+                <p class="not">{{ karne.harici_not }}</p>
+                {% endif %}
+            </td>
+            <td>
+                <table class="puan">
+                    <tr>
+                        <th class="ust-baslik" colspan="2">PUAN</th>
+                    </tr>
+                    <tr>
+                        <td class="etiket">LGS</td>
+                        <td class="puan-deger">{{ karne.puan }}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <p class="altbilgi">{{ panel_org }} · {{ olusturma_tarihi|date:"d.m.Y H:i" }}</p>
+</body>
+</html>

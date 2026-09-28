@@ -165,6 +165,7 @@ def deneme_detay(request, pk):
             "detay_brans_basliklari": [BRANS_ETIKETLERI[k] for k in DENEME_DETAY_BRANSLAR],
             "yukleyebilir": deneme_yukleyebilir(request.user),
             "sil_yetkisi": deneme_silebilir(request.user),
+            "pdf_yetkisi": can(request.user, "deneme", "export_pdf"),
             "kazanim_satir": DenemeKazanimSonucu.objects.filter(deneme=deneme).count(),
             "kazanim_talebe": (
                 DenemeKazanimSonucu.objects.filter(deneme=deneme)

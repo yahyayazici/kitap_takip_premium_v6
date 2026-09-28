@@ -327,7 +327,12 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         label="Deneme",
         url_name="deneme_listesi",
         roller=EGITIM_MODULU_ROLLER,
-        active_names=("deneme_listesi", "deneme_detay"),
+        active_names=(
+            "deneme_listesi",
+            "deneme_detay",
+            "deneme_bireysel_pdf",
+            "deneme_karne_zip",
+        ),
         nav_group="Eğitim",
     ),
     PanelNavItem(

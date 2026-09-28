@@ -3,7 +3,7 @@
 {% block title %}{{ deneme.ad }}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek41">
-<link rel="stylesheet" href="{% static 'css/deneme-detay.css' %}?v=dd3">
+<link rel="stylesheet" href="{% static 'css/deneme-detay.css' %}?v=dd4">
 {% endblock %}
 {% block content %}
 <div class="result-entry-page deneme-detail-page">
@@ -21,6 +21,9 @@
             {% if pdf_yetkisi %}
             {% url 'deneme_detay_pdf' deneme.pk as deneme_pdf_href %}
             {% include "includes/pdf_sayfa_secici.html" with pdf_href=deneme_pdf_href pdf_sayfa=pdf_sayfa pdf_btn_class="result-secondary-button" pdf_btn_label="PDF İndir" %}
+            {% if sonuclar %}
+            <a href="{% url 'deneme_karne_zip' deneme.pk %}" class="result-secondary-button">Bireysel Karneler</a>
+            {% endif %}
             {% endif %}
             {% if excel_yetkisi %}
             <a href="{% url 'deneme_excel_indir' deneme.pk %}" class="result-secondary-button">Excel İndir</a>
@@ -50,6 +53,7 @@
                         <th class="num-col">Net</th>
                         <th class="num-col">Puan</th>
                         <th>Harici sıralama</th>
+                        {% if pdf_yetkisi %}<th>Karne</th>{% endif %}
                     </tr>
                 </thead>
                 <tbody>
@@ -64,9 +68,12 @@
                         <td class="num-col profile-score" data-label="Net">{{ sonuc.toplam_net }}</td>
                         <td class="num-col" data-label="Puan">{{ sonuc.puan }}</td>
                         <td data-label="Harici sıralama">{{ sonuc.dis_siralama_metni|default:"—" }}</td>
+                        {% if pdf_yetkisi %}
+                        <td data-label="Karne"><a class="deneme-karne-link" href="{% url 'deneme_bireysel_pdf' deneme.pk sonuc.talebe_id %}">Karne</a></td>
+                        {% endif %}
                     </tr>
                     {% empty %}
-                    <tr><td colspan="9" class="report-empty">Sonuç bulunamadı.</td></tr>
+                    <tr><td colspan="{% if pdf_yetkisi %}10{% else %}9{% endif %}" class="report-empty">Sonuç bulunamadı.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
