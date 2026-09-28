@@ -11,7 +11,6 @@ from . import mezun_views
 from . import finans_views
 from . import rehberlik_views
 from . import disiplin_views
-from . import disiplin_kurul_views
 from . import gunluk_takip_views
 from . import deneme_views
 from . import etut_kontrol_views
@@ -730,67 +729,6 @@ urlpatterns = [
         "disiplin/<int:pk>/duzenle/",
         disiplin_views.disiplin_duzenle,
         name="disiplin_duzenle",
-    ),
-
-    path(
-        "disiplin-kurulu/",
-        disiplin_kurul_views.disiplin_kurul_panel,
-        name="disiplin_kurul_panel",
-    ),
-    path(
-        "disiplin-kurulu/olustur/",
-        disiplin_kurul_views.disiplin_kurul_olustur,
-        name="disiplin_kurul_olustur",
-    ),
-    path(
-        "disiplin-kurulu/ayarlar/",
-        disiplin_kurul_views.disiplin_kurul_ayarlar,
-        name="disiplin_kurul_ayarlar",
-    ),
-    path(
-        "disiplin-kurulu/ayarlar/gundem-pdf/",
-        disiplin_kurul_views.disiplin_kurul_gundem_pdf,
-        name="disiplin_kurul_gundem_pdf",
-    ),
-    path(
-        "disiplin-kurulu/rapor/",
-        disiplin_kurul_views.disiplin_kurul_rapor,
-        name="disiplin_kurul_rapor",
-    ),
-    path(
-        "disiplin-kurulu/arsiv/",
-        disiplin_kurul_views.disiplin_kurul_arsiv,
-        name="disiplin_kurul_arsiv",
-    ),
-    path(
-        "disiplin-kurulu/excel/",
-        disiplin_kurul_views.disiplin_kurul_excel,
-        name="disiplin_kurul_excel",
-    ),
-    path(
-        "disiplin-kurulu/<int:pk>/",
-        disiplin_kurul_views.disiplin_kurul_detay,
-        name="disiplin_kurul_detay",
-    ),
-    path(
-        "disiplin-kurulu/<int:pk>/pdf/",
-        disiplin_kurul_views.disiplin_kurul_pdf,
-        name="disiplin_kurul_pdf",
-    ),
-    path(
-        "disiplin-kurulu/<int:pk>/karar/",
-        disiplin_kurul_views.disiplin_kurul_karar_ekle,
-        name="disiplin_kurul_karar_ekle",
-    ),
-    path(
-        "disiplin-kurulu/<int:pk>/karar/<int:karar_pk>/durum/",
-        disiplin_kurul_views.disiplin_kurul_karar_durum,
-        name="disiplin_kurul_karar_durum",
-    ),
-    path(
-        "disiplin-kurulu/<int:pk>/durum/",
-        disiplin_kurul_views.disiplin_kurul_durum_ilerlet,
-        name="disiplin_kurul_durum_ilerlet",
     ),
 
     path(
