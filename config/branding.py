@@ -57,12 +57,12 @@ PANEL_MODULES = {
     },
     "disiplin": {
         "label": "Disiplin Kurulu",
-        "enabled": True,
+        "enabled": False,
         "nav_group": "Disiplin",
     },
     "disiplin_kurulu": {
         "label": "İstişare ve Disiplin Kurulu",
-        "enabled": True,
+        "enabled": False,
         "nav_group": "Disiplin",
     },
     "gunluk_takip": {
