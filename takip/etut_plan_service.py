@@ -11,7 +11,7 @@ from django.db.models import Q, QuerySet
 from django.utils.timezone import localdate, make_aware, now
 
 from takip.dershane_program_models import DershaneDersAtamasi, DershaneSaatBloku
-from takip.dershane_program_service import GUN_ADLARI, aktif_program
+from takip.dershane_program_service import GUN_ADLARI
 from takip.models import (
     EtutFaaliyetHavuzu,
     EtutGrupSaatBloku,
@@ -548,21 +548,16 @@ def plan_ozet(plan: EtutHaftaPlani, hoca: EtutHocasi | None = None) -> dict:
     }
 
 
-def dershane_hafta_onizleme(user: User, hoca: EtutHocasi) -> list[dict[str, Any]]:
-    program = aktif_program(user)
-    if not program:
+def _onizleme_gunleri(program, gruplar: list) -> list[dict[str, Any]]:
+    if not gruplar:
         return []
-
-    grup = program.etut_gruplari.filter(etut_hocasi=hoca).first()
-    if not grup:
-        return []
-
+    grup_ids = [grup.pk for grup in gruplar]
     gunler = []
     for gun, label in EtutPlanFaaliyet.Gun.choices:
         atamalar = (
             DershaneDersAtamasi.objects.filter(
                 program=program,
-                etut_grubu=grup,
+                etut_grubu_id__in=grup_ids,
                 saat_bloku__gun=gun,
                 saat_bloku__tur__in=[
                     DershaneSaatBloku.Tur.DERS,
@@ -575,12 +570,40 @@ def dershane_hafta_onizleme(user: User, hoca: EtutHocasi) -> list[dict[str, Any]
         )
         dersler = []
         for atama in atamalar:
-            ad = atama.ders.ad if atama.ders else atama.saat_bloku.aciklama
+            ad = (atama.gorunen_ders or "").strip()
+            if not ad or ad == "—":
+                ad = (atama.saat_bloku.aciklama or "").strip()
             if ad and ad not in dersler:
                 dersler.append(ad)
         if dersler:
             gunler.append({"gun": gun, "label": label, "dersler": dersler})
     return gunler
+
+
+def dershane_hafta_onizleme(user: User, hoca: EtutHocasi) -> list[dict[str, Any]]:
+    """Hocanın sınıfına verilmiş aktif dershane programının haftalık özeti."""
+    from django.utils import timezone
+
+    from takip.dershane_program_service import (
+        hoca_dershane_gruplari,
+        yetkili_programlar,
+    )
+
+    bugun = timezone.localdate()
+    programlar = list(
+        yetkili_programlar(user).filter(
+            baslangic_tarihi__lte=bugun,
+            bitis_tarihi__gte=bugun,
+        )
+    )
+    if not programlar:
+        programlar = list(yetkili_programlar(user)[:1])
+
+    for program in programlar:
+        gunler = _onizleme_gunleri(program, hoca_dershane_gruplari(program, hoca))
+        if gunler:
+            return gunler
+    return []
 
 
 def _slot_datetime(plan: EtutHaftaPlani, faaliyet: EtutPlanFaaliyet) -> datetime | None:

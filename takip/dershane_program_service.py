@@ -1453,6 +1453,73 @@ def _sube_etiketten(grup: DershaneEtutGrubu) -> str:
     return ""
 
 
+def _grup_sube_harfi(grup: DershaneEtutGrubu) -> str:
+    bulunan = _sube_etiketten(grup)
+    if bulunan:
+        return bulunan
+    sik = (grup.etiket or "").upper().replace(" ", "")
+    for ayrac in ("-", "/"):
+        if ayrac not in sik:
+            continue
+        son = sik.rsplit(ayrac, 1)[-1]
+        if len(son) == 1 and son.isalpha():
+            return son
+    return ""
+
+
+def _grup_sinifa_uyar(grup: DershaneEtutGrubu, sinif) -> bool:
+    """Etüt grubu, hocanın sorumlu olduğu sınıf-şube ile aynı mı."""
+    sinif_no = str(getattr(sinif, "sinif", "") or "").strip()
+    sube = str(getattr(sinif, "sube", "") or "").strip().upper()
+    seviye = str(grup.sinif_seviye or "").strip()
+    etiket = (grup.etiket or "").upper().replace(" ", "")
+    if sinif_no and sube:
+        for kod in (f"{sinif_no}-{sube}", f"{sinif_no}/{sube}"):
+            if kod in etiket and (not seviye or seviye == sinif_no):
+                return True
+    if seviye != sinif_no:
+        return False
+    grup_sube = _grup_sube_harfi(grup)
+    if not sube:
+        return True
+    return bool(grup_sube) and grup_sube == sube
+
+
+def hoca_dershane_gruplari(program: DershaneProgrami, hoca) -> list[DershaneEtutGrubu]:
+    """Hocanın göreceği etüt grupları.
+
+    Grup kaydında hoca seçiliyse o bağ kullanılır. Seçili değilse — program
+    bütün sınıflara şubeyle verildiyse — sorumlu olduğu sınıf ve şube
+    etiketten bulunur.
+    """
+    bagli = list(
+        program.etut_gruplari.filter(etut_hocasi=hoca).order_by("sira", "id")
+    )
+    if bagli:
+        return bagli
+
+    from takip.etut_zimmet_service import hoca_talebe_q, mesul_zimmet_sinif_ids
+    from takip.models import SinifSube, Talebe
+
+    sinif_ids = set(mesul_zimmet_sinif_ids(hoca))
+    if not sinif_ids:
+        sinif_ids = set(
+            Talebe.objects.filter(aktif=True)
+            .filter(hoca_talebe_q(hoca))
+            .exclude(sinif_sube_id=None)
+            .values_list("sinif_sube_id", flat=True)
+        )
+    siniflar = list(SinifSube.objects.filter(pk__in=sinif_ids, aktif=True))
+    if not siniflar:
+        return []
+
+    eslesen = []
+    for grup in program.etut_gruplari.order_by("sira", "id"):
+        if any(_grup_sinifa_uyar(grup, sinif) for sinif in siniflar):
+            eslesen.append(grup)
+    return eslesen
+
+
 def _ogretmen_sinif_zimmetinden(
     grup: DershaneEtutGrubu, ders_obj: Ders
 ) -> tuple[int | None, str]:
