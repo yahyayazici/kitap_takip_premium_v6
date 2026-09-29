@@ -2,17 +2,17 @@
 {% load static %}
 {% block title %}Soru Takip Rapor · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/soru-takip-premium.css' %}?v=nizam6">
+<link rel="stylesheet" href="{% static 'css/soru-takip-premium.css' %}?v=st-pv1">
 {% endblock %}
 {% block content %}
 <div class="library-page st-report-page">
-    <header class="page-head patterned-page-head library-page-head">
+    <header class="page-head patterned-page-head library-page-head st-page-head">
         <div>
-            <p class="kicker">GÜNLÜK SORU TAKİP</p>
+            <p class="kicker">Günlük soru takip</p>
             <h1>Rapor</h1>
             <p class="muted">{{ donem_baslik }} · {{ baslangic|date:"d.m.Y" }} – {{ bitis|date:"d.m.Y" }}</p>
         </div>
-        <div class="result-header-actions">
+        <div class="result-header-actions st-actions st-head-actions">
             <a href="{% url 'soru_takip_panel' %}" class="result-back-button">Soru Takip</a>
         </div>
     </header>
