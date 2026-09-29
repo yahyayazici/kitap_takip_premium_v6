@@ -267,27 +267,41 @@
     }
 }
 
-/* Liste — lacivert hero yerine kurum kartı */
+/* Liste — ana sayfa: lacivert kutu, altın çizgi, aynı boşluk */
 .atm-page.atm-list-page {
-    gap: var(--cs-section-gap);
+    gap: 24px;
+    font-family: "Poppins", "Segoe UI", sans-serif;
+    color: var(--pv4-text, var(--cs-text-primary));
 }
 
 .atm-page > header.atm-head.patterned-page-head {
-    align-items: flex-start !important;
+    align-items: center !important;
     height: auto !important;
     max-height: none !important;
-    padding: 22px 26px !important;
+    padding: 32px 24px !important;
     margin: 0 !important;
-    border: 1px solid var(--cs-border) !important;
-    border-radius: var(--cs-radius-xl) !important;
-    background: var(--cs-surface) !important;
-    background-image: none !important;
+    border: 0 !important;
+    border-bottom: 3px solid var(--pv4-gold, #c39a3d) !important;
+    border-radius: 16px !important;
+    background: linear-gradient(122deg, var(--pv4-navy, #0c1a3a) 0%, var(--pv4-navy-2, #132a56) 55%, var(--pv4-navy-3, #1c3b70) 100%) !important;
+    background-image: linear-gradient(122deg, var(--pv4-navy, #0c1a3a) 0%, var(--pv4-navy-2, #132a56) 55%, var(--pv4-navy-3, #1c3b70) 100%) !important;
     animation: none !important;
-    box-shadow: var(--cs-shadow-sm) !important;
-    color: var(--cs-text-primary) !important;
+    box-shadow: 0 10px 24px -6px rgba(16, 24, 43, .12) !important;
+    color: #fff !important;
 }
 
-.atm-page > header.atm-head.patterned-page-head::before,
+.atm-page > header.atm-head.patterned-page-head::before {
+    display: block !important;
+    content: "" !important;
+    animation: none !important;
+    opacity: .35;
+    background:
+        linear-gradient(rgba(255, 255, 255, .5) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .5) 1px, transparent 1px) !important;
+    background-size: 32px 32px !important;
+    mask-image: linear-gradient(120deg, transparent 15%, #000 65%);
+}
+
 .atm-page > header.atm-head.patterned-page-head::after {
     display: none !important;
     content: none !important;
@@ -295,46 +309,52 @@
 }
 
 .atm-page > header.atm-head.patterned-page-head h1 {
-    margin: 4px 0 0 !important;
-    color: var(--cs-primary-dark) !important;
-    font-family: var(--cs-font) !important;
-    font-size: clamp(1.35rem, 2.2vw, 1.75rem) !important;
-    font-weight: 600 !important;
-    letter-spacing: 0 !important;
-    line-height: 1.2 !important;
+    margin: 0 !important;
+    color: #fff !important;
+    font-family: "Poppins", "Segoe UI", sans-serif !important;
+    font-size: clamp(22px, 2.6vw, 30px) !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.01em !important;
+    line-height: 1.15 !important;
 }
 
 .atm-page > header.atm-head.patterned-page-head .kicker {
-    color: var(--cs-text-muted) !important;
-    letter-spacing: 0.04em !important;
-    text-transform: none !important;
+    margin: 0 0 8px !important;
+    color: var(--pv4-gold-light, #e3c479) !important;
+    font-size: 11px !important;
     font-weight: 600 !important;
+    letter-spacing: .18em !important;
+    text-transform: uppercase !important;
 }
 
 .atm-page > header.atm-head.patterned-page-head .muted {
-    margin: 6px 0 0 !important;
-    color: var(--cs-text-secondary) !important;
+    margin: 8px 0 0 !important;
+    color: rgba(255, 255, 255, .72) !important;
     font-size: 14px !important;
     font-weight: 400 !important;
 }
 
-.atm-page > header.atm-head .ghost-btn,
-.atm-page > header.atm-head .primary-btn {
-    min-height: var(--cs-btn-h);
-    color: var(--cs-text-primary);
+body.v3-body .atm-page > header.atm-head .primary-btn {
+    min-height: var(--cs-btn-h) !important;
+    padding: 0 16px !important;
+    border: 0 !important;
+    border-radius: 6px !important;
+    background: var(--pv4-gold, #c39a3d) !important;
+    background-image: none !important;
+    color: var(--pv4-navy, #0c1a3a) !important;
+    box-shadow: none !important;
+    font-weight: 600 !important;
 }
 
-.atm-page > header.atm-head .primary-btn {
-    color: var(--cs-text-inverse);
-    background: var(--cs-primary);
-    border-radius: var(--cs-radius-sm);
-}
-
-.atm-page > header.atm-head .ghost-btn {
-    background: var(--cs-surface);
-    border: 1px solid var(--cs-border);
-    border-radius: var(--cs-radius-sm);
-    box-shadow: none;
+body.v3-body .atm-page > header.atm-head .ghost-btn {
+    min-height: var(--cs-btn-h) !important;
+    padding: 0 16px !important;
+    border: 1px solid rgba(227, 196, 121, .7) !important;
+    border-radius: 6px !important;
+    background: transparent !important;
+    color: #fff !important;
+    box-shadow: none !important;
+    font-weight: 600 !important;
 }
 
 .atm-filters {
@@ -344,17 +364,53 @@
     align-items: end;
 }
 
-.atm-filter-actions {
-    display: flex;
-    align-items: flex-end;
+.atm-list-page .atm-card {
+    background: var(--pv4-surface, #fff);
+    border: 1px solid var(--pv4-line, #e2e4e9);
+    border-radius: 16px;
+    box-shadow: 0 1px 2px rgba(16, 24, 43, .04);
 }
 
-.atm-filter-actions .primary-btn {
-    min-height: var(--cs-btn-h);
-    padding: 0 18px;
-    border-radius: var(--cs-radius-sm);
-    background: var(--cs-primary);
-    color: var(--cs-text-inverse);
+.atm-filters .atm-field {
+    color: var(--pv4-muted, #5c6478);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.atm-filters .input,
+.atm-filters select,
+.atm-filters input {
+    border: 1px solid var(--pv4-line, #e2e4e9);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--pv4-text, #10182b);
+    box-shadow: none;
+}
+
+.atm-filters .input:focus,
+.atm-filters select:focus,
+.atm-filters input:focus {
+    outline: none;
+    border-color: var(--pv4-gold, #c39a3d);
+    box-shadow: 0 0 0 3px rgba(195, 154, 61, .22);
+}
+
+.atm-filter-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+}
+
+body.v3-body .atm-list-page .atm-filter-actions .primary-btn {
+    min-height: var(--cs-btn-h) !important;
+    padding: 0 18px !important;
+    border: 0 !important;
+    border-radius: 6px !important;
+    background: var(--pv4-navy, #0c1a3a) !important;
+    background-image: none !important;
+    color: #fff !important;
 }
 
 .atm-table-card {
@@ -366,31 +422,31 @@
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
-    gap: var(--cs-space-4);
-    padding: var(--cs-space-5) var(--cs-space-5) var(--cs-space-4);
-    border-bottom: 1px solid var(--cs-border);
+    gap: 16px;
+    padding: 20px 24px 16px;
+    border-bottom: 2px solid var(--pv4-gold, #c39a3d);
 }
 
 .atm-table-head .kicker {
     margin: 0;
-    color: var(--cs-text-muted);
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    text-transform: none;
+    color: var(--pv4-gold-dim, #8a6d2a);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
 }
 
 .atm-table-head h2 {
     margin: 4px 0 0;
-    color: var(--cs-primary-dark);
-    font-family: var(--cs-font);
+    color: var(--pv4-navy, #0c1a3a);
+    font-family: "Poppins", "Segoe UI", sans-serif;
     font-size: 1.25rem;
     font-weight: 600;
-    letter-spacing: 0;
+    letter-spacing: -0.01em;
 }
 
 .atm-count {
-    color: var(--cs-text-muted);
+    color: var(--pv4-muted, #5c6478);
     font-size: 13px;
     font-weight: 600;
     white-space: nowrap;
@@ -408,21 +464,22 @@
 }
 
 .atm-table thead th {
-    padding: 12px 14px;
-    border-bottom: 1px solid var(--cs-border);
-    background: var(--cs-surface-muted);
-    color: var(--cs-text-muted);
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.02em;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--pv4-line, #e2e4e9);
+    background: var(--pv4-bg, #f4f5f7);
+    color: var(--pv4-muted, #5c6478);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
     text-align: left;
+    text-transform: uppercase;
     white-space: nowrap;
 }
 
 .atm-table tbody td {
-    padding: 14px;
-    border-bottom: 1px solid var(--cs-border);
-    color: var(--cs-text-primary);
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--pv4-line, #e2e4e9);
+    color: var(--pv4-text, #10182b);
     font-size: 14px;
     vertical-align: middle;
 }
@@ -455,8 +512,8 @@
 }
 
 .atm-status-ok {
-    background: var(--cs-success-bg);
-    color: var(--cs-success);
+    background: var(--pv4-green-bg, #e9f4ee);
+    color: var(--pv4-green, #186b4c);
 }
 
 .atm-status-wait {
@@ -486,10 +543,10 @@
     justify-content: center;
     min-height: var(--cs-btn-h) !important;
     padding: 0 12px !important;
-    border: 1px solid var(--cs-border) !important;
-    border-radius: var(--cs-radius-sm) !important;
-    background: var(--cs-surface) !important;
-    color: var(--cs-primary) !important;
+    border: 1px solid var(--pv4-line, #e2e4e9) !important;
+    border-radius: 6px !important;
+    background: #fff !important;
+    color: var(--pv4-navy, #0c1a3a) !important;
     font-family: var(--cs-font);
     font-size: 13px !important;
     font-weight: 600 !important;
@@ -499,9 +556,9 @@
 }
 
 .atm-list-page .yonetim-action-btn-danger {
-    color: var(--cs-danger) !important;
-    background: var(--cs-danger-bg) !important;
-    border-color: var(--cs-border) !important;
+    color: var(--pv4-red, #a23b30) !important;
+    background: #fff !important;
+    border-color: var(--pv4-line, #e2e4e9) !important;
 }
 
 @media (max-width: 900px) {
