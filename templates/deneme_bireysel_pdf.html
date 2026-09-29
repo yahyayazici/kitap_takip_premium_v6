@@ -180,31 +180,30 @@
                 margin: 0 auto;
             }
         }
-        .pdf-karne.deneme-bireysel .basari-alan td {
-            height: 58mm;
-            vertical-align: bottom;
-            padding: 0 0 1mm;
-            overflow: visible;
+        .pdf-karne.deneme-bireysel .pdf-sheet.basari-var {
+            min-height: 275mm;
+            display: flex;
+            flex-direction: column;
         }
         .pdf-karne.deneme-bireysel .basari {
-            position: relative;
-            height: 52mm;
-            margin: 0;
-            overflow: visible;
+            margin-top: auto;
+            padding: 12mm 0 8mm;
+            text-align: center;
         }
         .pdf-karne.deneme-bireysel .basari span {
-            position: absolute;
+            display: inline-block;
             font-family: "Great Vibes", "PdfTurkish", cursive;
-            font-size: 22mm;
-            line-height: 0.85;
+            font-size: 20mm;
+            line-height: 1;
             color: #173B73;
             white-space: nowrap;
-            transform-origin: left center;
+            transform: rotate(-9deg);
+            transform-origin: center center;
         }
     </style>
 </head>
 <body class="pdf-karne deneme-bireysel">
-<div class="pdf-sheet">
+<div class="pdf-sheet{% if karne.deneme_rozet == 1 %} basari-var{% endif %}">
 <table class="layout">
     <tr>
         <td>
@@ -379,28 +378,16 @@
     </tr>
     {% endif %}
 
-    {% if karne.deneme_rozet == 1 %}
-    <tr class="basari-alan">
-        <td>
-            <div class="basari" aria-label="Başarılar dileriz">
-                <span class="basari-soz" style="left:8mm;top:28mm;transform:rotate(-20deg);">Başarılar</span>
-                <span class="basari-soz" style="left:88mm;top:4mm;transform:rotate(-5deg);">dileriz</span>
-            </div>
-        </td>
-    </tr>
-    {% endif %}
-
-    <tr><td class="gap8"></td></tr>
-
+</table>
+{% if karne.deneme_rozet == 1 %}
+<div class="basari" aria-label="Başarılar dileriz">
+    <span class="basari-soz">Başarılar dileriz</span>
+</div>
+{% endif %}
+<table class="footer-table">
     <tr>
-        <td>
-            <table class="footer-table">
-                <tr>
-                    <td class="footer-left">{{ panel_org }} · {{ olusturma_tarihi|date:"d.m.Y H:i" }}</td>
-                    <td class="footer-right"></td>
-                </tr>
-            </table>
-        </td>
+        <td class="footer-left">{{ panel_org }} · {{ olusturma_tarihi|date:"d.m.Y H:i" }}</td>
+        <td class="footer-right"></td>
     </tr>
 </table>
 </div>
