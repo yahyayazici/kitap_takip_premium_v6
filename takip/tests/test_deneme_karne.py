@@ -177,6 +177,30 @@ class DenemeBireyselKarneTests(TestCase):
         )
         self.assertEqual(ucuncu["deneme_sirasi"], "3")
         self.assertEqual(ucuncu["deneme_rozet"], 3)
+        from datetime import datetime
+
+        from django.template.loader import render_to_string
+
+        html = render_to_string(
+            "deneme_bireysel_pdf.html",
+            {
+                "karne": karne,
+                "panel_org": "Çinili Saray Proje",
+                "olusturma_tarihi": datetime(2026, 9, 29, 15, 19),
+            },
+        )
+        self.assertLess(html.find("Toplam net"), html.find("Deneme sıralaması : 1"))
+        self.assertLess(html.find("Ders Analizi"), html.find("Deneme sıralaması : 1"))
+        self.assertLess(html.find("Deneme sıralaması : 1"), html.find("Başarılar dileriz"))
+        ikinci_html = render_to_string(
+            "deneme_bireysel_pdf.html",
+            {
+                "karne": ikinci,
+                "panel_org": "Çinili Saray Proje",
+                "olusturma_tarihi": datetime(2026, 9, 29, 15, 19),
+            },
+        )
+        self.assertNotIn("Başarılar dileriz", ikinci_html)
         diger = (
             DenemeSonucu.objects.filter(talebe=self.diger)
             .select_related("talebe", "talebe__sinif_sube", "deneme")
@@ -219,6 +243,8 @@ class DenemeBireyselKarneTests(TestCase):
         self.assertNotIn("SIRANIZ", html)
         self.assertNotIn("SINAVA GİREN", html)
         self.assertIn("Deneme sıralaması : 40", html)
+        self.assertNotIn("Başarılar dileriz", html)
+        self.assertLess(html.find("Ders Analizi"), html.find("Deneme sıralaması : 40"))
         self.assertNotIn("Şube", html)
         self.assertNotIn('class="muhur', html)
         self.assertIn("box-shadow: none", html)

@@ -7,6 +7,12 @@
     <style>
         {% include "includes/pdf_karne_fonts.html" %}
         {% include "includes/pdf_karne_a4_css.html" %}
+        @font-face {
+            font-family: "Great Vibes";
+            src: url("{% static 'fonts/GreatVibes-Regular.ttf' %}") format("truetype");
+            font-weight: 400;
+            font-style: normal;
+        }
         @page { size: A4 portrait; margin: 12mm 14mm 10mm; }
         .pdf-karne.deneme-bireysel { font-size: 10px; color: #33425a; }
         .pdf-karne.deneme-bireysel .brand-logo-wrap,
@@ -168,6 +174,33 @@
             white-space: nowrap;
             font-family: "Poppins", "PdfTurkish", sans-serif;
         }
+        @media screen {
+            .pdf-karne.deneme-bireysel .pdf-sheet {
+                width: 182mm;
+                margin: 0 auto;
+            }
+        }
+        .pdf-karne.deneme-bireysel .basari-alan td {
+            height: 58mm;
+            vertical-align: bottom;
+            padding: 0 0 1mm;
+            overflow: visible;
+        }
+        .pdf-karne.deneme-bireysel .basari {
+            position: relative;
+            height: 52mm;
+            margin: 0;
+            overflow: visible;
+        }
+        .pdf-karne.deneme-bireysel .basari span {
+            position: absolute;
+            font-family: "Great Vibes", "PdfTurkish", cursive;
+            font-size: 22mm;
+            line-height: 0.85;
+            color: #173B73;
+            white-space: nowrap;
+            transform-origin: left center;
+        }
     </style>
 </head>
 <body class="pdf-karne deneme-bireysel">
@@ -242,31 +275,6 @@
             </div>
         </td>
     </tr>
-
-    {% if karne.deneme_sirasi %}
-    <tr><td class="gap8"></td></tr>
-    <tr>
-        <td class="deneme-sira">
-            <table class="deneme-sira-table" align="center" cellpadding="0" cellspacing="0">
-                <tr>
-                    {% if karne.deneme_rozet %}
-                    <td class="deneme-rozet-cell">
-                        <div class="muhur muhur-{{ karne.deneme_rozet }}">
-                            {% if karne.deneme_rozet == 1 %}
-                            <svg class="muhur-yildiz" viewBox="0 0 12 12" aria-hidden="true">
-                                <path d="M6 0.6l1.35 2.74 3.02.44-2.18 2.13.52 3.01L6 7.5 3.29 8.92l.52-3.01L1.63 3.78l3.02-.44z" fill="#e3c479"/>
-                            </svg>
-                            {% endif %}
-                            <span>{{ karne.deneme_rozet }}</span>
-                        </div>
-                    </td>
-                    {% endif %}
-                    <td class="deneme-sira-yazi">Deneme sıralaması : {{ karne.deneme_sirasi }}</td>
-                </tr>
-            </table>
-        </td>
-    </tr>
-    {% endif %}
 
     <tr><td class="gap8"></td></tr>
 
@@ -345,6 +353,42 @@
             </div>
         </td>
     </tr>
+
+    {% if karne.deneme_sirasi %}
+    <tr><td class="gap8"></td></tr>
+    <tr>
+        <td class="deneme-sira">
+            <table class="deneme-sira-table" align="center" cellpadding="0" cellspacing="0">
+                <tr>
+                    {% if karne.deneme_rozet %}
+                    <td class="deneme-rozet-cell">
+                        <div class="muhur muhur-{{ karne.deneme_rozet }}">
+                            {% if karne.deneme_rozet == 1 %}
+                            <svg class="muhur-yildiz" viewBox="0 0 12 12" aria-hidden="true">
+                                <path d="M6 0.6l1.35 2.74 3.02.44-2.18 2.13.52 3.01L6 7.5 3.29 8.92l.52-3.01L1.63 3.78l3.02-.44z" fill="#e3c479"/>
+                            </svg>
+                            {% endif %}
+                            <span>{{ karne.deneme_rozet }}</span>
+                        </div>
+                    </td>
+                    {% endif %}
+                    <td class="deneme-sira-yazi">Deneme sıralaması : {{ karne.deneme_sirasi }}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    {% endif %}
+
+    {% if karne.deneme_rozet == 1 %}
+    <tr class="basari-alan">
+        <td>
+            <div class="basari" aria-label="Başarılar dileriz">
+                <span class="basari-soz" style="left:8mm;top:28mm;transform:rotate(-20deg);">Başarılar</span>
+                <span class="basari-soz" style="left:88mm;top:4mm;transform:rotate(-5deg);">dileriz</span>
+            </div>
+        </td>
+    </tr>
+    {% endif %}
 
     <tr><td class="gap8"></td></tr>
 
