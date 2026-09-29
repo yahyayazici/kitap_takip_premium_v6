@@ -6,9 +6,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}?v=dash-c2">
+<link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}?v=dash-c3">
 <link rel="stylesheet" href="{% static 'css/vazife-premium.css' %}">
-{% if etut_plani_onizleme or dershane_onizleme %}
+{% if dershane_onizleme %}
 <link rel="stylesheet" href="{% static 'css/etut-plan-premium.css' %}">
 {% endif %}
 {% endblock %}
@@ -225,61 +225,8 @@
 
 {% if egitim_modulu %}
 
-{# 4) Haftalık etüt planı + dershane programı #}
+{# 4) Dershane programı #}
 <div class="personel-plan-split">
-    <section class="dash-panel dash-panel-lined dash-etut-widget personel-plan-card">
-        <div class="dash-panel-head">
-            <div>
-                <p class="dash-eyebrow dash-accent-eyebrow-indigo">Etüt</p>
-                <h2>Haftalık etüt planı</h2>
-            </div>
-            <a href="{% url 'etut_plan_panel' %}" class="dash-text-btn">Planı aç</a>
-        </div>
-        {% if etut_plani_onizleme and etut_plani_onizleme.plan %}
-        <div class="dash-etut-stats">
-            <span>Planlanan<strong>{{ etut_plani_onizleme.ozet.planlanan }}</strong></span>
-            <span>Tamamlanan<strong>{{ etut_plani_onizleme.ozet.tamamlandi }}</strong></span>
-            <span>Bekleyen<strong>{{ etut_plani_onizleme.ozet.bekliyor }}</strong></span>
-            <span>Boş saat<strong>{{ etut_plani_onizleme.ozet.bos_saat }}</strong></span>
-        </div>
-        <div class="personel-plan-table-wrap">
-            <table class="personel-plan-table">
-                <thead>
-                    <tr>
-                        <th>Gün</th>
-                        <th>Saat</th>
-                        <th>Faaliyet</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for gun in etut_plani_onizleme.gunler %}
-                        {% for satir in gun.satirlar %}
-                        <tr class="{{ satir.ton }}">
-                            {% if forloop.first %}
-                            <td rowspan="{{ gun.satirlar|length }}">{{ gun.label }}</td>
-                            {% endif %}
-                            <td>{% if satir.saat %}{{ satir.saat }}{% else %}—{% endif %}</td>
-                            <td>{% if satir.ton == 'tamam' %}✓ {% endif %}{{ satir.baslik }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td>{{ gun.label }}</td>
-                            <td colspan="2" class="is-muted">Plan yok</td>
-                        </tr>
-                        {% endfor %}
-                    {% empty %}
-                    <tr><td colspan="3" class="is-muted">Bu hafta henüz etkinlik planlanmadı.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% elif etut_plani_onizleme %}
-        <p class="dash-empty-note" style="padding:0 16px 16px;">Bu hafta için plan oluşturulmadı veya saatler tanımlanmadı.</p>
-        {% else %}
-        <p class="dash-empty-note" style="padding:0 16px 16px;">Etüt planı modülüne erişiminiz yok.</p>
-        {% endif %}
-    </section>
-
     <section class="dash-panel dash-panel-lined personel-plan-card">
         <div class="dash-panel-head">
             <div>
@@ -313,7 +260,7 @@
             </table>
         </div>
         {% else %}
-        <p class="dash-empty-note" style="padding:0 16px 16px;">Bu hafta için dershane programı önizlemesi yok veya grubunuz atanmamış.</p>
+        <p class="dash-empty-note" style="padding:0 16px 16px;">Bu hafta için dershane dersi yok.</p>
         {% endif %}
     </section>
 </div>
