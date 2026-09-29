@@ -628,6 +628,12 @@ def deneme_bireysel_karne(deneme: DenemeSinavi, sonuc: DenemeSonucu, ortalamalar
     kurum_giren, kurum_sira = _hucre("kurum", sonuc.kurum_toplam, sonuc.kurum_sirasi)
     sube_giren, sube_sira = _hucre("sube", None, None)
     sinif_giren, sinif_sira = _hucre("sinif", sonuc.sinif_toplam, sonuc.sinif_sirasi)
+    deneme_sirasi = sube_sira if sube_sira and sube_sira != "—" else ""
+    deneme_rozet = (
+        int(deneme_sirasi)
+        if deneme_sirasi.isdigit() and int(deneme_sirasi) in (1, 2, 3)
+        else 0
+    )
 
     return {
         "ad_soyad": tr_buyuk(sonuc.talebe.ad_soyad or ""),
@@ -657,6 +663,8 @@ def deneme_bireysel_karne(deneme: DenemeSinavi, sonuc: DenemeSonucu, ortalamalar
         ],
         "harici_not": " · ".join(artik),
         "puan": tr_ondalik(sonuc.puan),
+        "deneme_sirasi": deneme_sirasi,
+        "deneme_rozet": deneme_rozet,
     }
 
 

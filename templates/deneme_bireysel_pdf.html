@@ -7,6 +7,12 @@
     <style>
         {% include "includes/pdf_karne_fonts.html" %}
         {% include "includes/pdf_karne_a4_css.html" %}
+        @font-face {
+            font-family: "Great Vibes";
+            src: url("{% static 'fonts/GreatVibes-Regular.ttf' %}") format("truetype");
+            font-weight: 400;
+            font-style: normal;
+        }
         @page { size: A4 portrait; margin: 12mm 14mm 10mm; }
         .pdf-karne.deneme-bireysel { font-size: 10px; color: #33425a; }
         .pdf-karne.deneme-bireysel .brand-logo-wrap,
@@ -116,6 +122,77 @@
         }
         .pdf-karne.deneme-bireysel .footer-table td { font-size: 8px; }
         .pdf-karne.deneme-bireysel .footer-right { display: none; }
+        .pdf-karne.deneme-bireysel .deneme-sira { text-align: center; padding: 1px 0 0; }
+        .pdf-karne.deneme-bireysel .deneme-sira-table { margin: 0 auto; border-collapse: collapse; }
+        .pdf-karne.deneme-bireysel .deneme-sira-table td {
+            border: 0;
+            padding: 0;
+            vertical-align: middle;
+        }
+        .pdf-karne.deneme-bireysel .deneme-rozet-cell { width: 34px; padding-right: 8px; }
+        .pdf-karne.deneme-bireysel .muhur {
+            position: relative;
+            width: 26px;
+            height: 26px;
+            border-radius: 13px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: "Poppins", "PdfTurkish", sans-serif;
+            box-sizing: border-box;
+        }
+        .pdf-karne.deneme-bireysel .muhur span {
+            display: block;
+            line-height: 22px;
+        }
+        .pdf-karne.deneme-bireysel .muhur-1 {
+            background: #173B73;
+            color: #e3c479;
+            border: 2px solid #e3c479;
+        }
+        .pdf-karne.deneme-bireysel .muhur-2 {
+            background: #fff;
+            color: #173B73;
+            border: 2px solid #9aa3b2;
+        }
+        .pdf-karne.deneme-bireysel .muhur-3 {
+            background: #173B73;
+            color: #fff;
+            border: 2px solid #ee8a24;
+        }
+        .pdf-karne.deneme-bireysel .muhur-yildiz {
+            position: absolute;
+            left: 8px;
+            top: -6px;
+            width: 10px;
+            height: 10px;
+        }
+        .pdf-karne.deneme-bireysel .deneme-sira-yazi {
+            font-size: 12px;
+            font-weight: 600;
+            color: #14213d;
+            white-space: nowrap;
+            font-family: "Poppins", "PdfTurkish", sans-serif;
+        }
+        @media screen {
+            .pdf-karne.deneme-bireysel .pdf-sheet {
+                width: 182mm;
+                margin: 0 auto;
+            }
+        }
+        .pdf-karne.deneme-bireysel .basari {
+            margin: 8mm 0 0;
+            padding: 4mm 0 2mm;
+            text-align: center;
+        }
+        .pdf-karne.deneme-bireysel .basari span {
+            display: inline-block;
+            font-family: "Great Vibes", "PdfTurkish", cursive;
+            font-size: 18mm;
+            line-height: 1;
+            color: #173B73;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body class="pdf-karne deneme-bireysel">
@@ -269,17 +346,41 @@
         </td>
     </tr>
 
+    {% if karne.deneme_sirasi %}
     <tr><td class="gap8"></td></tr>
-
     <tr>
-        <td>
-            <table class="footer-table">
+        <td class="deneme-sira">
+            <table class="deneme-sira-table" align="center" cellpadding="0" cellspacing="0">
                 <tr>
-                    <td class="footer-left">{{ panel_org }} · {{ olusturma_tarihi|date:"d.m.Y H:i" }}</td>
-                    <td class="footer-right"></td>
+                    {% if karne.deneme_rozet %}
+                    <td class="deneme-rozet-cell">
+                        <div class="muhur muhur-{{ karne.deneme_rozet }}">
+                            {% if karne.deneme_rozet == 1 %}
+                            <svg class="muhur-yildiz" viewBox="0 0 12 12" aria-hidden="true">
+                                <path d="M6 0.6l1.35 2.74 3.02.44-2.18 2.13.52 3.01L6 7.5 3.29 8.92l.52-3.01L1.63 3.78l3.02-.44z" fill="#e3c479"/>
+                            </svg>
+                            {% endif %}
+                            <span>{{ karne.deneme_rozet }}</span>
+                        </div>
+                    </td>
+                    {% endif %}
+                    <td class="deneme-sira-yazi">Deneme sıralaması : {{ karne.deneme_sirasi }}</td>
                 </tr>
             </table>
         </td>
+    </tr>
+    {% endif %}
+
+</table>
+{% if karne.deneme_rozet == 1 %}
+<div class="basari" aria-label="Başarılar dileriz">
+    <span class="basari-soz">Başarılar dileriz</span>
+</div>
+{% endif %}
+<table class="footer-table">
+    <tr>
+        <td class="footer-left">{{ panel_org }} · {{ olusturma_tarihi|date:"d.m.Y H:i" }}</td>
+        <td class="footer-right"></td>
     </tr>
 </table>
 </div>
