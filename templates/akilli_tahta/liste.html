@@ -1,67 +1,86 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Akıllı Tahta Dosya Merkezi{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/akilli-tahta-premium.css' %}?v=atm4">
+{% endblock %}
 
 {% block content %}
-<header class="page-head patterned-page-head">
+<div class="atm-page atm-list-page">
+<header class="page-head patterned-page-head atm-head">
     <div>
-        <p class="kicker">KURUM</p>
+        <p class="kicker">Akıllı tahta</p>
         <h1>Akıllı Tahta Dosya Merkezi</h1>
         <p class="muted">Sınıf seviyelerine gönderilen deneme, test, çalışma kâğıdı, görsel ve videolar.</p>
+    </div>
+    <div class="page-head-actions atm-head-actions">
+        {% if tam_yetkili %}
+        <a href="{% url 'akilli_tahta_yonetim:hesap_listesi' %}" class="ghost-btn">Tahta Hesapları</a>
+        {% endif %}
+        <a href="{% url 'akilli_tahta:yukle' %}" class="primary-btn">Dosya Yükle</a>
     </div>
 </header>
 
 {% if tam_yetkili %}
-<section class="dashboard-card">
-    <form method="get" class="filter-row">
-        <select name="sinif" class="input">
-            <option value="">Tüm sınıflar</option>
-            {% for deger, etiket in sinif_seviyeleri %}
-            <option value="{{ deger }}" {% if secili.sinif == deger %}selected{% endif %}>{{ etiket }}</option>
-            {% endfor %}
-        </select>
-        <select name="ders" class="input">
-            <option value="">Tüm dersler</option>
-            {% for ders in dersler %}
-            <option value="{{ ders.pk }}" {% if secili.ders == ders.pk|stringformat:"s" %}selected{% endif %}>{{ ders.ad }}</option>
-            {% endfor %}
-        </select>
-        <select name="dosya_turu" class="input">
-            <option value="">Tüm dosya türleri</option>
-            {% for deger, etiket in sinif_secenekleri %}
-            <option value="{{ deger }}" {% if secili.dosya_turu == deger %}selected{% endif %}>{{ etiket }}</option>
-            {% endfor %}
-        </select>
-        <select name="yukleyen" class="input">
-            <option value="">Tüm yükleyenler</option>
-            {% for kullanici in yukleyenler %}
-            <option value="{{ kullanici.pk }}" {% if secili.yukleyen == kullanici.pk|stringformat:"s" %}selected{% endif %}>{{ kullanici.get_full_name|default:kullanici.username }}</option>
-            {% endfor %}
-        </select>
-        <input type="date" name="baslangic" class="input" value="{{ secili.baslangic }}">
-        <input type="date" name="bitis" class="input" value="{{ secili.bitis }}">
-        <button type="submit" class="primary-btn">Filtrele</button>
+<section class="atm-card">
+    <form method="get" class="atm-filters">
+        <label class="atm-field">Sınıf
+            <select name="sinif" class="input">
+                <option value="">Tüm sınıflar</option>
+                {% for deger, etiket in sinif_seviyeleri %}
+                <option value="{{ deger }}" {% if secili.sinif == deger %}selected{% endif %}>{{ etiket }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label class="atm-field">Ders
+            <select name="ders" class="input">
+                <option value="">Tüm dersler</option>
+                {% for ders in dersler %}
+                <option value="{{ ders.pk }}" {% if secili.ders == ders.pk|stringformat:"s" %}selected{% endif %}>{{ ders.ad }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label class="atm-field">Dosya türü
+            <select name="dosya_turu" class="input">
+                <option value="">Tüm dosya türleri</option>
+                {% for deger, etiket in sinif_secenekleri %}
+                <option value="{{ deger }}" {% if secili.dosya_turu == deger %}selected{% endif %}>{{ etiket }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label class="atm-field">Yükleyen
+            <select name="yukleyen" class="input">
+                <option value="">Tüm yükleyenler</option>
+                {% for kullanici in yukleyenler %}
+                <option value="{{ kullanici.pk }}" {% if secili.yukleyen == kullanici.pk|stringformat:"s" %}selected{% endif %}>{{ kullanici.get_full_name|default:kullanici.username }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label class="atm-field">Başlangıç
+            <input type="date" name="baslangic" class="input" value="{{ secili.baslangic }}">
+        </label>
+        <label class="atm-field">Bitiş
+            <input type="date" name="bitis" class="input" value="{{ secili.bitis }}">
+        </label>
+        <div class="atm-filter-actions">
+            <button type="submit" class="primary-btn">Filtrele</button>
+        </div>
     </form>
 </section>
 {% endif %}
 
-<section class="report-table-card">
-    <div class="card-heading">
+<section class="atm-card atm-table-card">
+    <div class="atm-table-head">
         <div>
-            <p class="card-kicker">{% if tam_yetkili %}TÜM DOSYALAR{% else %}KENDİ DOSYALARIM{% endif %}</p>
+            <p class="kicker">{% if tam_yetkili %}Tüm dosyalar{% else %}Kendi dosyalarım{% endif %}</p>
             <h2>Yüklenen Dosyalar</h2>
         </div>
-        <div class="page-head-actions">
-            {% if tam_yetkili %}
-            <a href="{% url 'akilli_tahta_yonetim:hesap_listesi' %}" class="ghost-btn">Tahta Hesapları</a>
-            {% endif %}
-            <a href="{% url 'akilli_tahta:yukle' %}" class="primary-btn">Dosya Yükle</a>
-        </div>
-        <span class="report-record-count">{{ dosyalar|length }} dosya</span>
+        <span class="atm-count">{{ dosyalar|length }} dosya</span>
     </div>
 
-    <div class="responsive-table">
-        <table class="report-data-table">
+    <div class="responsive-table cs-table-wrap">
+        <table class="atm-table">
             <thead>
                 <tr>
                     <th>Başlık</th>
@@ -87,11 +106,11 @@
                         {% endif %}
                     </td>
                     <td>
-                        {% if dosya.gorunur_durum == "yayinda" %}<span class="status-pill status-okunuyor">Yayında</span>
-                        {% elif dosya.gorunur_durum == "planlanmis" %}<span class="status-pill status-yarim">Planlanmış</span>
-                        {% elif dosya.gorunur_durum == "suresi_dolmus" %}<span class="status-pill status-iade">Süresi dolmuş</span>
-                        {% elif dosya.gorunur_durum == "arsivlendi" %}<span class="status-pill status-iade">Arşivlendi</span>
-                        {% else %}<span class="status-pill">Taslak</span>
+                        {% if dosya.gorunur_durum == "yayinda" %}<span class="atm-status atm-status-ok">Yayında</span>
+                        {% elif dosya.gorunur_durum == "planlanmis" %}<span class="atm-status atm-status-wait">Planlanmış</span>
+                        {% elif dosya.gorunur_durum == "suresi_dolmus" %}<span class="atm-status atm-status-muted">Süresi dolmuş</span>
+                        {% elif dosya.gorunur_durum == "arsivlendi" %}<span class="atm-status atm-status-muted">Arşivlendi</span>
+                        {% else %}<span class="atm-status">Taslak</span>
                         {% endif %}
                     </td>
                     <td>{{ dosya.olusturulma|date:"d.m.Y H:i" }}</td>
@@ -119,10 +138,11 @@
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="8" class="report-empty">Henüz dosya yüklenmemiş.</td></tr>
+                <tr><td colspan="8" class="atm-empty">Henüz dosya yüklenmemiş.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </section>
+</div>
 {% endblock %}

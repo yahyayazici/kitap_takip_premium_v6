@@ -266,3 +266,274 @@
         font-size: 16px;
     }
 }
+
+/* Liste — lacivert hero yerine kurum kartı */
+.atm-page.atm-list-page {
+    gap: var(--cs-section-gap);
+}
+
+.atm-page > header.atm-head.patterned-page-head {
+    align-items: flex-start !important;
+    height: auto !important;
+    max-height: none !important;
+    padding: 22px 26px !important;
+    margin: 0 !important;
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-xl) !important;
+    background: var(--cs-surface) !important;
+    background-image: none !important;
+    animation: none !important;
+    box-shadow: var(--cs-shadow-sm) !important;
+    color: var(--cs-text-primary) !important;
+}
+
+.atm-page > header.atm-head.patterned-page-head::before,
+.atm-page > header.atm-head.patterned-page-head::after {
+    display: none !important;
+    content: none !important;
+    animation: none !important;
+}
+
+.atm-page > header.atm-head.patterned-page-head h1 {
+    margin: 4px 0 0 !important;
+    color: var(--cs-primary-dark) !important;
+    font-family: var(--cs-font) !important;
+    font-size: clamp(1.35rem, 2.2vw, 1.75rem) !important;
+    font-weight: 600 !important;
+    letter-spacing: 0 !important;
+    line-height: 1.2 !important;
+}
+
+.atm-page > header.atm-head.patterned-page-head .kicker {
+    color: var(--cs-text-muted) !important;
+    letter-spacing: 0.04em !important;
+    text-transform: none !important;
+    font-weight: 600 !important;
+}
+
+.atm-page > header.atm-head.patterned-page-head .muted {
+    margin: 6px 0 0 !important;
+    color: var(--cs-text-secondary) !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+}
+
+.atm-page > header.atm-head .ghost-btn,
+.atm-page > header.atm-head .primary-btn {
+    min-height: var(--cs-btn-h);
+    color: var(--cs-text-primary);
+}
+
+.atm-page > header.atm-head .primary-btn {
+    color: var(--cs-text-inverse);
+    background: var(--cs-primary);
+    border-radius: var(--cs-radius-sm);
+}
+
+.atm-page > header.atm-head .ghost-btn {
+    background: var(--cs-surface);
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-sm);
+    box-shadow: none;
+}
+
+.atm-filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--cs-space-4);
+    align-items: end;
+}
+
+.atm-filter-actions {
+    display: flex;
+    align-items: flex-end;
+}
+
+.atm-filter-actions .primary-btn {
+    min-height: var(--cs-btn-h);
+    padding: 0 18px;
+    border-radius: var(--cs-radius-sm);
+    background: var(--cs-primary);
+    color: var(--cs-text-inverse);
+}
+
+.atm-table-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+.atm-table-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--cs-space-4);
+    padding: var(--cs-space-5) var(--cs-space-5) var(--cs-space-4);
+    border-bottom: 1px solid var(--cs-border);
+}
+
+.atm-table-head .kicker {
+    margin: 0;
+    color: var(--cs-text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: none;
+}
+
+.atm-table-head h2 {
+    margin: 4px 0 0;
+    color: var(--cs-primary-dark);
+    font-family: var(--cs-font);
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: 0;
+}
+
+.atm-count {
+    color: var(--cs-text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.atm-list-page .responsive-table {
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+.atm-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--cs-font);
+}
+
+.atm-table thead th {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--cs-border);
+    background: var(--cs-surface-muted);
+    color: var(--cs-text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.atm-table tbody td {
+    padding: 14px;
+    border-bottom: 1px solid var(--cs-border);
+    color: var(--cs-text-primary);
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.atm-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.atm-table tbody td strong {
+    font-weight: 600;
+}
+
+.atm-empty {
+    padding: 28px 14px !important;
+    color: var(--cs-text-muted);
+    text-align: center;
+}
+
+.atm-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: var(--cs-radius-sm);
+    background: var(--cs-surface-muted);
+    color: var(--cs-text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.atm-status-ok {
+    background: var(--cs-success-bg);
+    color: var(--cs-success);
+}
+
+.atm-status-wait {
+    background: var(--cs-warning-bg);
+    color: var(--cs-warning);
+}
+
+.atm-status-muted {
+    background: var(--cs-surface-muted);
+    color: var(--cs-text-muted);
+}
+
+.atm-list-page .yonetim-action-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.atm-list-page .yonetim-inline-action {
+    margin: 0;
+}
+
+.atm-list-page .yonetim-action-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--cs-btn-h) !important;
+    padding: 0 12px !important;
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-sm) !important;
+    background: var(--cs-surface) !important;
+    color: var(--cs-primary) !important;
+    font-family: var(--cs-font);
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
+    text-decoration: none !important;
+    box-shadow: none !important;
+}
+
+.atm-list-page .yonetim-action-btn-danger {
+    color: var(--cs-danger) !important;
+    background: var(--cs-danger-bg) !important;
+    border-color: var(--cs-border) !important;
+}
+
+@media (max-width: 900px) {
+    .atm-page > header.atm-head.patterned-page-head {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 640px) {
+    .atm-page > header.atm-head.patterned-page-head {
+        padding: 16px !important;
+    }
+
+    .atm-filters {
+        grid-template-columns: 1fr;
+    }
+
+    .atm-filter-actions .primary-btn,
+    .atm-head-actions .ghost-btn,
+    .atm-head-actions .primary-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .atm-filters select,
+    .atm-filters input {
+        font-size: 16px;
+    }
+
+    .atm-table-head {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: var(--cs-space-4);
+    }
+}
