@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}?v=dash-c3">
+<link rel="stylesheet" href="{% static 'css/dashboard-home.css' %}?v=dash-c4">
 <link rel="stylesheet" href="{% static 'css/vazife-premium.css' %}">
 {% if dershane_onizleme %}
 <link rel="stylesheet" href="{% static 'css/etut-plan-premium.css' %}">
@@ -236,28 +236,21 @@
             <a href="{% url 'dershane_program_panel' %}" class="dash-text-btn">Programı aç</a>
         </div>
         {% if dershane_onizleme %}
-        <div class="personel-plan-table-wrap">
-            <table class="personel-plan-table">
-                <thead>
-                    <tr>
-                        <th>Gün</th>
-                        <th>Dersler</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for gun in dershane_onizleme %}
-                    <tr>
-                        <td>{{ gun.label }}</td>
-                        <td>
-                            {% for ders in gun.dersler %}
-                            <span class="personel-ders-tag">{{ ders }}</span>
-                            {% empty %}—
-                            {% endfor %}
-                        </td>
-                    </tr>
+        {% now "l" as dh_bugun %}
+        <div class="dh-week">
+            {% for gun in dershane_onizleme %}
+            <article class="dh-day{% if gun.label == dh_bugun %} is-today{% endif %}">
+                <header class="dh-day-head">
+                    <h3>{{ gun.label }}</h3>
+                    {% if gun.label == dh_bugun %}<span class="dh-today">Bugün</span>{% endif %}
+                </header>
+                <ul>
+                    {% for ders in gun.dersler %}
+                    <li>{{ ders }}</li>
                     {% endfor %}
-                </tbody>
-            </table>
+                </ul>
+            </article>
+            {% endfor %}
         </div>
         {% else %}
         <p class="dash-empty-note" style="padding:0 16px 16px;">Bu hafta için dershane dersi yok.</p>
