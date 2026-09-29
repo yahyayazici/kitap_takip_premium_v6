@@ -148,6 +148,46 @@ class DenemeBireyselKarneTests(TestCase):
         self.assertEqual(siralar["KURUM"], {"ad": "KURUM", "giren": "80", "sira": "12"})
         self.assertEqual(siralar["ŞUBE"], {"ad": "ŞUBE", "giren": "120", "sira": "40"})
         self.assertEqual(siralar["SINIF"], {"ad": "SINIF", "giren": "27", "sira": "3"})
+        self.assertEqual(karne["deneme_sirasi"], "40")
+        self.assertEqual(karne["deneme_rozet"], 0)
+
+    def test_excel_sube_sirasi_deneme_sirasi_olur_sinif_sirasi_degil(self):
+        sonuc = (
+            DenemeSonucu.objects.filter(pk=self.talha_sonuc.pk)
+            .select_related("talebe", "talebe__sinif_sube", "deneme")
+            .prefetch_related("brans_satirlari")
+            .get()
+        )
+        sonuc.dis_siralama_metni = (
+            "Türkiye Geneli: 10 / 500 · Şube Sıralaması: 1 / 28 · Kurum Sıralaması: 4 / 90"
+        )
+        karne = deneme_bireysel_karne(
+            self.deneme, sonuc, deneme_karne_ortalamalari(self.deneme)
+        )
+        self.assertEqual(karne["deneme_sirasi"], "1")
+        self.assertEqual(karne["deneme_rozet"], 1)
+        sonuc.dis_siralama_metni = "Şube Sıralaması: 2 / 28"
+        ikinci = deneme_bireysel_karne(
+            self.deneme, sonuc, deneme_karne_ortalamalari(self.deneme)
+        )
+        self.assertEqual(ikinci["deneme_rozet"], 2)
+        sonuc.dis_siralama_metni = "Şube Sıralaması: 3"
+        ucuncu = deneme_bireysel_karne(
+            self.deneme, sonuc, deneme_karne_ortalamalari(self.deneme)
+        )
+        self.assertEqual(ucuncu["deneme_sirasi"], "3")
+        self.assertEqual(ucuncu["deneme_rozet"], 3)
+        diger = (
+            DenemeSonucu.objects.filter(talebe=self.diger)
+            .select_related("talebe", "talebe__sinif_sube", "deneme")
+            .prefetch_related("brans_satirlari")
+            .get()
+        )
+        bos = deneme_bireysel_karne(
+            self.deneme, diger, deneme_karne_ortalamalari(self.deneme)
+        )
+        self.assertEqual(bos["deneme_sirasi"], "")
+        self.assertEqual(bos["deneme_rozet"], 0)
 
     def test_detayda_karne_baglantisi_var(self):
         resp = self.client.get(reverse("deneme_detay", args=[self.deneme.pk]))
@@ -178,6 +218,9 @@ class DenemeBireyselKarneTests(TestCase):
         self.assertLess(html.find("<style>"), html.find("@font-face"))
         self.assertNotIn("SIRANIZ", html)
         self.assertNotIn("SINAVA GİREN", html)
+        self.assertIn("Deneme sıralaması : 40", html)
+        self.assertNotIn("Şube", html)
+        self.assertNotIn('class="muhur', html)
         self.assertIn("box-shadow: none", html)
         self.assertIn("border-bottom: 1px solid #d5deea", html)
         self.assertIn(".pdf-karne.deneme-bireysel .meta-panel", html)

@@ -116,6 +116,58 @@
         }
         .pdf-karne.deneme-bireysel .footer-table td { font-size: 8px; }
         .pdf-karne.deneme-bireysel .footer-right { display: none; }
+        .pdf-karne.deneme-bireysel .deneme-sira { text-align: center; padding: 1px 0 0; }
+        .pdf-karne.deneme-bireysel .deneme-sira-table { margin: 0 auto; border-collapse: collapse; }
+        .pdf-karne.deneme-bireysel .deneme-sira-table td {
+            border: 0;
+            padding: 0;
+            vertical-align: middle;
+        }
+        .pdf-karne.deneme-bireysel .deneme-rozet-cell { width: 34px; padding-right: 8px; }
+        .pdf-karne.deneme-bireysel .muhur {
+            position: relative;
+            width: 26px;
+            height: 26px;
+            border-radius: 13px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: "Poppins", "PdfTurkish", sans-serif;
+            box-sizing: border-box;
+        }
+        .pdf-karne.deneme-bireysel .muhur span {
+            display: block;
+            line-height: 22px;
+        }
+        .pdf-karne.deneme-bireysel .muhur-1 {
+            background: #173B73;
+            color: #e3c479;
+            border: 2px solid #e3c479;
+        }
+        .pdf-karne.deneme-bireysel .muhur-2 {
+            background: #fff;
+            color: #173B73;
+            border: 2px solid #9aa3b2;
+        }
+        .pdf-karne.deneme-bireysel .muhur-3 {
+            background: #173B73;
+            color: #fff;
+            border: 2px solid #ee8a24;
+        }
+        .pdf-karne.deneme-bireysel .muhur-yildiz {
+            position: absolute;
+            left: 8px;
+            top: -6px;
+            width: 10px;
+            height: 10px;
+        }
+        .pdf-karne.deneme-bireysel .deneme-sira-yazi {
+            font-size: 12px;
+            font-weight: 600;
+            color: #14213d;
+            white-space: nowrap;
+            font-family: "Poppins", "PdfTurkish", sans-serif;
+        }
     </style>
 </head>
 <body class="pdf-karne deneme-bireysel">
@@ -190,6 +242,31 @@
             </div>
         </td>
     </tr>
+
+    {% if karne.deneme_sirasi %}
+    <tr><td class="gap8"></td></tr>
+    <tr>
+        <td class="deneme-sira">
+            <table class="deneme-sira-table" align="center" cellpadding="0" cellspacing="0">
+                <tr>
+                    {% if karne.deneme_rozet %}
+                    <td class="deneme-rozet-cell">
+                        <div class="muhur muhur-{{ karne.deneme_rozet }}">
+                            {% if karne.deneme_rozet == 1 %}
+                            <svg class="muhur-yildiz" viewBox="0 0 12 12" aria-hidden="true">
+                                <path d="M6 0.6l1.35 2.74 3.02.44-2.18 2.13.52 3.01L6 7.5 3.29 8.92l.52-3.01L1.63 3.78l3.02-.44z" fill="#e3c479"/>
+                            </svg>
+                            {% endif %}
+                            <span>{{ karne.deneme_rozet }}</span>
+                        </div>
+                    </td>
+                    {% endif %}
+                    <td class="deneme-sira-yazi">Deneme sıralaması : {{ karne.deneme_sirasi }}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    {% endif %}
 
     <tr><td class="gap8"></td></tr>
 
