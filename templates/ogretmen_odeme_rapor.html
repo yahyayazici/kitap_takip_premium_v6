@@ -4,22 +4,23 @@
 {% block title %}Ödeme Raporları{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ogretmen-odeme.css' %}">
+<link rel="stylesheet" href="{% static 'css/ogretmen-odeme.css' %}?v=oo3">
 {% endblock %}
 
 {% block content %}
-<header class="page-head patterned-page-head">
+<div class="oo-page oo-report-page">
+<header class="page-head patterned-page-head oo-head">
     <div>
-        <p class="kicker">ADMIN RAPOR</p>
+        <p class="kicker">Admin rapor</p>
         <h1>Ödeme Raporları</h1>
         <p class="muted">Tüm ödeme kayıtları — filtrele, incele, dışa aktar.</p>
     </div>
-    <div class="page-head-actions">
+    <div class="page-head-actions oo-head-actions">
         <a href="{% url 'ogretmen_odeme_listesi' %}" class="ghost-btn">Ödeme Girişi</a>
     </div>
 </header>
 
-<section class="report-filter-card">
+<section class="report-filter-card oo-card">
     <form method="get" class="oo-report-filter">
         <label>Tarih Başlangıç<input type="date" name="baslangic" value="{{ filtre.baslangic }}"></label>
         <label>Tarih Bitiş<input type="date" name="bitis" value="{{ filtre.bitis }}"></label>
@@ -55,9 +56,11 @@
                 {% endfor %}
             </select>
         </label>
-        <button type="submit" class="primary-btn">Filtrele</button>
-        <a href="?{{ request.GET.urlencode }}&format=pdf" class="ghost-btn" target="_blank">PDF</a>
-        <a href="?{{ request.GET.urlencode }}&format=excel" class="ghost-btn">Excel</a>
+        <div class="oo-report-actions">
+            <button type="submit" class="primary-btn">Filtrele</button>
+            <a href="?{{ request.GET.urlencode }}&format=pdf" class="ghost-btn" target="_blank">PDF</a>
+            <a href="?{{ request.GET.urlencode }}&format=excel" class="ghost-btn">Excel</a>
+        </div>
     </form>
 </section>
 
@@ -69,9 +72,15 @@
     {% endif %}
 </section>
 
-<section class="report-table-card">
-    <div class="responsive-table">
-        <table class="report-data-table">
+<section class="report-table-card oo-card oo-table-card">
+    <div class="card-heading">
+        <div>
+            <p class="card-kicker">Rapor</p>
+            <h2>Kayıtlar</h2>
+        </div>
+    </div>
+    <div class="responsive-table cs-table-wrap">
+        <table class="report-data-table oo-table">
             <thead>
                 <tr>
                     <th>Dönem / Grup</th>
@@ -102,4 +111,5 @@
         </table>
     </div>
 </section>
+</div>
 {% endblock %}

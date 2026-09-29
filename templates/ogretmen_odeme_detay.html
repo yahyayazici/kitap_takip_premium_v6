@@ -4,17 +4,18 @@
 {% block title %}Ödeme Dönemi · {{ donem.etut_hocasi.ad_soyad }}{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ogretmen-odeme.css' %}?v=box3-rowfix">
+<link rel="stylesheet" href="{% static 'css/ogretmen-odeme.css' %}?v=oo3">
 {% endblock %}
 
 {% block content %}
-<header class="page-head patterned-page-head">
+<div class="oo-page oo-detail-page">
+<header class="page-head patterned-page-head oo-head">
     <div>
-        <p class="kicker">ÖDEME GİRİŞİ</p>
+        <p class="kicker">Ödeme girişi</p>
         <h1>{{ donem.etut_hocasi.ad_soyad }}</h1>
         <p class="muted">{{ donem.baslangic|date:"d.m.Y" }} – {{ donem.bitis|date:"d.m.Y" }} · {{ brans_etiket }}</p>
     </div>
-    <div class="page-head-actions">
+    <div class="page-head-actions oo-head-actions">
         <a href="{% url 'ogretmen_odeme_listesi' %}" class="ghost-btn">Listeye Dön</a>
         <a href="{% url 'ogretmen_odeme_pdf' donem.pk %}" class="ghost-btn" target="_blank">PDF</a>
         {% if girebilir %}
@@ -122,6 +123,7 @@
     <button type="submit" class="ghost-btn oo-delete">Dönemi Sil</button>
 </form>
 {% endif %}
+</div>
 {% endblock %}
 
 {% block extra_js %}
