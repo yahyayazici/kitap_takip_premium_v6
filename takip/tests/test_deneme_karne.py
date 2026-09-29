@@ -179,6 +179,8 @@ class DenemeBireyselKarneTests(TestCase):
         self.assertNotIn("SIRANIZ", html)
         self.assertNotIn("SINAVA GİREN", html)
         self.assertIn("box-shadow: none", html)
+        self.assertIn("border-bottom: 1px solid #d5deea", html)
+        self.assertIn(".pdf-karne.deneme-bireysel .meta-panel", html)
 
     @patch("takip.deneme_views.html_to_pdf", return_value=b"%PDF-1.4 fake")
     def test_zip_her_talebe_icin_karne_icerir(self, mock_pdf):
