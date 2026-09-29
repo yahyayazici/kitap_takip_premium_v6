@@ -1,24 +1,29 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Akıllı Tahta Hesapları{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/akilli-tahta-premium.css' %}?v=atm8">
+{% endblock %}
 
 {% block content %}
-<header class="page-head patterned-page-head">
+<div class="atm-page atm-list-page">
+<header class="page-head patterned-page-head atm-head">
     <div>
-        <p class="kicker">AKILLI TAHTA</p>
+        <p class="kicker">Akıllı tahta</p>
         <h1>Akıllı Tahta Hesapları</h1>
         <p class="muted">Her sınıf seviyesi için tek bir kısıtlı hesap.</p>
     </div>
-    <div class="page-head-actions">
+    <div class="page-head-actions atm-head-actions">
         <a href="{% url 'akilli_tahta:liste' %}" class="ghost-btn">Dosyalar</a>
         <a href="{% url 'akilli_tahta_yonetim:islem_gecmisi' %}" class="ghost-btn">İşlem Geçmişi</a>
         <a href="{% url 'akilli_tahta_yonetim:hesap_olustur' %}" class="primary-btn">Yeni Hesap</a>
     </div>
 </header>
 
-<section class="report-table-card">
-    <div class="responsive-table">
-        <table class="report-data-table">
+<section class="atm-card atm-table-card">
+    <div class="responsive-table cs-table-wrap">
+        <table class="atm-table">
             <thead>
                 <tr>
                     <th>Sınıf Seviyesi</th>
@@ -33,8 +38,8 @@
                     <td>{{ hesap.get_sinif_seviyesi_display }}</td>
                     <td>{{ hesap.user.username }}</td>
                     <td>
-                        {% if hesap.aktif %}<span class="status-pill status-okunuyor">Aktif</span>
-                        {% else %}<span class="status-pill status-iade">Pasif</span>{% endif %}
+                        {% if hesap.aktif %}<span class="atm-status atm-status-ok">Aktif</span>
+                        {% else %}<span class="atm-status atm-status-muted">Pasif</span>{% endif %}
                     </td>
                     <td class="yonetim-table-actions">
                         <div class="yonetim-action-group">
@@ -48,10 +53,11 @@
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="4" class="report-empty">Henüz akıllı tahta hesabı oluşturulmadı.</td></tr>
+                <tr><td colspan="4" class="atm-empty">Henüz akıllı tahta hesabı oluşturulmadı.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </section>
+</div>
 {% endblock %}

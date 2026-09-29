@@ -27,8 +27,11 @@
 
 .atm-head-actions {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--cs-space-2);
+    align-items: center;
+    justify-content: flex-end;
+    flex: 0 0 auto;
+    margin-left: auto;
+    gap: 10px;
 }
 
 .atm-card {
@@ -36,7 +39,7 @@
     border: 1px solid var(--atm-line);
     border-radius: var(--cs-radius-lg);
     background: var(--cs-surface);
-    box-shadow: var(--cs-shadow-sm);
+    box-shadow: inset 0 3px 0 var(--pv4-gold, #c39a3d), var(--cs-shadow-sm);
     min-width: 0;
 }
 
@@ -264,5 +267,348 @@
     .atm-field select,
     .atm-field textarea {
         font-size: 16px;
+    }
+}
+
+/* Liste — ana sayfa: lacivert kutu, altın çizgi, aynı boşluk */
+.atm-page.atm-list-page {
+    gap: 24px;
+    font-family: "Poppins", "Segoe UI", sans-serif;
+    color: var(--pv4-text, var(--cs-text-primary));
+}
+
+.atm-page > header.atm-head.patterned-page-head {
+    align-items: center !important;
+    height: auto !important;
+    max-height: none !important;
+    padding: 32px 24px !important;
+    margin: 0 !important;
+    border: 0 !important;
+    border-bottom: 3px solid var(--pv4-gold, #c39a3d) !important;
+    border-radius: 16px !important;
+    background: linear-gradient(122deg, var(--pv4-navy, #0c1a3a) 0%, var(--pv4-navy-2, #132a56) 55%, var(--pv4-navy-3, #1c3b70) 100%) !important;
+    background-image: linear-gradient(122deg, var(--pv4-navy, #0c1a3a) 0%, var(--pv4-navy-2, #132a56) 55%, var(--pv4-navy-3, #1c3b70) 100%) !important;
+    animation: none !important;
+    box-shadow: 0 10px 24px -6px rgba(16, 24, 43, .12) !important;
+    color: #fff !important;
+}
+
+.atm-page > header.atm-head.patterned-page-head::before {
+    display: block !important;
+    content: "" !important;
+    animation: none !important;
+    opacity: .35;
+    background:
+        linear-gradient(rgba(255, 255, 255, .5) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .5) 1px, transparent 1px) !important;
+    background-size: 32px 32px !important;
+    mask-image: linear-gradient(120deg, transparent 15%, #000 65%);
+}
+
+.atm-page > header.atm-head.patterned-page-head::after {
+    display: none !important;
+    content: none !important;
+    animation: none !important;
+}
+
+.atm-page > header.atm-head.patterned-page-head h1 {
+    margin: 0 !important;
+    color: #fff !important;
+    font-family: "Poppins", "Segoe UI", sans-serif !important;
+    font-size: clamp(22px, 2.6vw, 30px) !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.01em !important;
+    line-height: 1.15 !important;
+}
+
+.atm-page > header.atm-head.patterned-page-head .kicker {
+    margin: 0 0 8px !important;
+    color: var(--pv4-gold-light, #e3c479) !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    letter-spacing: .18em !important;
+    text-transform: uppercase !important;
+}
+
+.atm-page > header.atm-head.patterned-page-head .muted {
+    margin: 8px 0 0 !important;
+    color: rgba(255, 255, 255, .72) !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+}
+
+.atm-page > header.atm-head .atm-head-actions {
+    margin-left: auto !important;
+    align-self: center !important;
+}
+
+body.v3-body .atm-page > header.atm-head .atm-head-actions .primary-btn,
+body.v3-body .atm-page > header.atm-head .atm-head-actions .ghost-btn {
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 168px !important;
+    min-width: 168px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    margin: 0 !important;
+    padding: 0 12px !important;
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
+}
+
+body.v3-body .atm-page > header.atm-head .primary-btn {
+    border: 0 !important;
+    background: var(--pv4-gold, #c39a3d) !important;
+    background-image: none !important;
+    color: var(--pv4-navy, #0c1a3a) !important;
+    box-shadow: none !important;
+}
+
+body.v3-body .atm-page > header.atm-head .ghost-btn {
+    border: 1px solid rgba(227, 196, 121, .75) !important;
+    background: transparent !important;
+    color: #fff !important;
+    box-shadow: none !important;
+}
+
+.atm-filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--cs-space-4);
+    align-items: end;
+}
+
+.atm-list-page .atm-card {
+    background: var(--pv4-surface, #fff);
+    border: 1px solid var(--pv4-line, #e2e4e9);
+    border-radius: 16px;
+    box-shadow: inset 0 3px 0 var(--pv4-gold, #c39a3d), 0 1px 2px rgba(16, 24, 43, .04);
+}
+
+.atm-filters .atm-field {
+    color: var(--pv4-muted, #5c6478);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.atm-filters .input,
+.atm-filters select,
+.atm-filters input {
+    border: 1px solid var(--pv4-line, #e2e4e9);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--pv4-text, #10182b);
+    box-shadow: none;
+}
+
+.atm-filters .input:focus,
+.atm-filters select:focus,
+.atm-filters input:focus {
+    outline: none;
+    border-color: var(--pv4-gold, #c39a3d);
+    box-shadow: 0 0 0 3px rgba(195, 154, 61, .22);
+}
+
+.atm-filter-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+}
+
+body.v3-body .atm-list-page .atm-filter-actions .primary-btn {
+    min-height: var(--cs-btn-h) !important;
+    padding: 0 18px !important;
+    border: 0 !important;
+    border-radius: 6px !important;
+    background: var(--pv4-navy, #0c1a3a) !important;
+    background-image: none !important;
+    color: #fff !important;
+}
+
+.atm-table-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+.atm-table-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--pv4-line, #e2e4e9);
+}
+
+.atm-table-head .kicker {
+    margin: 0;
+    color: var(--pv4-gold-dim, #8a6d2a);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+
+.atm-table-head h2 {
+    margin: 4px 0 0;
+    color: var(--pv4-navy, #0c1a3a);
+    font-family: "Poppins", "Segoe UI", sans-serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.atm-count {
+    color: var(--pv4-muted, #5c6478);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.atm-list-page .responsive-table {
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+.atm-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--cs-font);
+}
+
+.atm-table thead th {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--pv4-line, #e2e4e9);
+    background: var(--pv4-bg, #f4f5f7);
+    color: var(--pv4-muted, #5c6478);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.atm-table tbody td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--pv4-line, #e2e4e9);
+    color: var(--pv4-text, #10182b);
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.atm-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.atm-table tbody td strong {
+    font-weight: 600;
+}
+
+.atm-empty {
+    padding: 28px 14px !important;
+    color: var(--cs-text-muted);
+    text-align: center;
+}
+
+.atm-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: var(--cs-radius-sm);
+    background: var(--cs-surface-muted);
+    color: var(--cs-text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.atm-status-ok {
+    background: var(--pv4-green-bg, #e9f4ee);
+    color: var(--pv4-green, #186b4c);
+}
+
+.atm-status-wait {
+    background: var(--cs-warning-bg);
+    color: var(--cs-warning);
+}
+
+.atm-status-muted {
+    background: var(--cs-surface-muted);
+    color: var(--cs-text-muted);
+}
+
+.atm-list-page .yonetim-action-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.atm-list-page .yonetim-inline-action {
+    margin: 0;
+}
+
+.atm-list-page .yonetim-action-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--cs-btn-h) !important;
+    padding: 0 12px !important;
+    border: 1px solid var(--pv4-line, #e2e4e9) !important;
+    border-radius: 6px !important;
+    background: #fff !important;
+    color: var(--pv4-navy, #0c1a3a) !important;
+    font-family: var(--cs-font);
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
+    text-decoration: none !important;
+    box-shadow: none !important;
+}
+
+.atm-list-page .yonetim-action-btn-danger {
+    color: var(--pv4-red, #a23b30) !important;
+    background: #fff !important;
+    border-color: var(--pv4-line, #e2e4e9) !important;
+}
+
+@media (max-width: 900px) {
+    .atm-page > header.atm-head.patterned-page-head {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 640px) {
+    .atm-page > header.atm-head.patterned-page-head {
+        padding: 16px !important;
+    }
+
+    .atm-filters {
+        grid-template-columns: 1fr;
+    }
+
+    .atm-filter-actions .primary-btn,
+    .atm-head-actions .ghost-btn,
+    .atm-head-actions .primary-btn {
+        width: 100% !important;
+        min-width: 0 !important;
+        justify-content: center;
+    }
+
+    .atm-filters select,
+    .atm-filters input {
+        font-size: 16px;
+    }
+
+    .atm-table-head {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: var(--cs-space-4);
     }
 }

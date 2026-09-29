@@ -1,22 +1,27 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Akıllı Tahta İşlem Geçmişi{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/akilli-tahta-premium.css' %}?v=atm8">
+{% endblock %}
 
 {% block content %}
-<header class="page-head patterned-page-head">
+<div class="atm-page atm-list-page">
+<header class="page-head patterned-page-head atm-head">
     <div>
-        <p class="kicker">AKILLI TAHTA</p>
+        <p class="kicker">Akıllı tahta</p>
         <h1>İşlem Geçmişi</h1>
-        <p class="muted">Kim, ne zaman, ne yaptı — denetim izi.</p>
+        <p class="muted">Kim, ne zaman, ne yaptı.</p>
     </div>
-    <div class="page-head-actions">
+    <div class="page-head-actions atm-head-actions">
         <a href="{% url 'akilli_tahta:liste' %}" class="ghost-btn">Dosyalar</a>
     </div>
 </header>
 
-<section class="report-table-card">
-    <div class="responsive-table">
-        <table class="report-data-table">
+<section class="atm-card atm-table-card">
+    <div class="responsive-table cs-table-wrap">
+        <table class="atm-table">
             <thead>
                 <tr><th>Tarih</th><th>Kullanıcı</th><th>Aksiyon</th><th>Dosya/Hesap</th><th>Detay</th></tr>
             </thead>
@@ -30,10 +35,11 @@
                     <td>{{ kayit.detay }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="5" class="report-empty">Henüz işlem kaydı yok.</td></tr>
+                <tr><td colspan="5" class="atm-empty">Henüz işlem kaydı yok.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </section>
+</div>
 {% endblock %}
