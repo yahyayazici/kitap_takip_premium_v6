@@ -39,7 +39,9 @@
         </button>
         <nav class="cs-v6-nav" id="ogretmen-nav">
             <a href="{% url 'ogretmen_dashboard' %}" class="{% if request.resolver_match.url_name == 'ogretmen_dashboard' %}active{% endif %}">Ana Sayfa</a>
+            {% if ogretmen_not_girisi_var %}
             <a href="{% url 'ogretmen_not_girisi' %}" class="{% if 'ogretmen_not' in request.resolver_match.url_name %}active{% endif %}">Not Girişi</a>
+            {% endif %}
             <a href="{% url 'ogretmen_degerlendirmeler' %}" class="{% if request.resolver_match.url_name == 'ogretmen_degerlendirmeler' or request.resolver_match.url_name == 'ogretmen_talebe_karne_pdf' %}active{% endif %}">Değerlendirmeler</a>
             <a href="{% url 'ogretmen_deneme_kontrol_merkezi' %}" class="{% if 'ogretmen_deneme_kontrol' in request.resolver_match.url_name %}active{% endif %}">Deneme Kontrol</a>
             <a href="{% url 'ogretmen_ders_programi' %}" class="{% if 'ogretmen_ders' in request.resolver_match.url_name %}active{% endif %}">Ders Programı</a>
