@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% load static %}
+{% load l10n static %}
 {% block title %}Deneme Kontrol Merkezi{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk2">
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk4">
 {% endblock %}
 
 {% block content %}
-<div class="dash-home ogretmen-dash">
+<div class="dash-home ogretmen-dash dk-page">
 {% include "ogretmen/hero.html" with title="Deneme Kontrol Merkezi" eyebrow="Etüt" meta="Sorumlu olduğunuz sınıfların deneme durumu — tek ekranda" show_date=True %}
 
 {% if not siniflar %}
@@ -147,13 +147,13 @@
         {% for nokta in veri.grup_analizi.seri %}
         <div class="dk-grup-bar" title="{{ nokta.ad }}">
             <strong>{{ nokta.ortalama }}</strong>
-            <div class="bar" style="height:{{ nokta.ortalama_yuzde }}%;"></div>
+            <div class="bar" style="height:{{ nokta.ortalama_yuzde|unlocalize }}%;"></div>
             <small>{% if nokta.sira_no %}{{ nokta.sira_no }}. D{% else %}{{ nokta.tarih|date:"d.m" }}{% endif %}</small>
         </div>
         {% endfor %}
     </div>
     {% if veri.grup_analizi.genel_degisim is not None %}
-    <p style="margin:10px 0 0;font-size:13px;color:#173b80;">
+    <p class="dk-grup-degisim">
         Genel değişim: {% if veri.grup_analizi.genel_degisim > 0 %}+{% endif %}{{ veri.grup_analizi.genel_degisim }}
     </p>
     {% endif %}

@@ -1,4 +1,4 @@
-{% load static %}
+{% load l10n static %}
 {% if deneme_gelisim and deneme_gelisim.grup_seri %}
 <link rel="stylesheet" href="{% static 'css/deneme-gelisim.css' %}">
 <div class="profile-card dg-wrap" data-dg-root>
@@ -31,7 +31,7 @@
             {% for nokta in deneme_gelisim.grup_seri %}
             <div class="dg-chart-bar" title="{{ nokta.ad }}">
                 <strong>{{ nokta.puan }}</strong>
-                <div class="bar" style="height:{{ nokta.puan_yuzde }}%;"></div>
+                <div class="bar" style="height:{{ nokta.puan_yuzde|unlocalize }}%;"></div>
                 <small>{% if nokta.sira_no %}{{ nokta.sira_no }}. D{% else %}{{ nokta.tarih|date:"d.m" }}{% endif %}</small>
             </div>
             {% endfor %}
