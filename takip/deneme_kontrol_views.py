@@ -9,6 +9,8 @@ from takip.deneme_gelisim_service import talebe_deneme_gelisim_paketi
 from takip.deneme_kontrol_service import (
     deneme_kontrol_erisimi_var,
     hoca_sinif_secenekleri,
+    kazanim_ortalamalari,
+    kazanimlari_derse_gore,
     satirlari_sirala,
     sinif_deneme_kontrol_verisi,
 )
@@ -73,9 +75,12 @@ def deneme_kontrol_ogrenci_detay(request, sinif_id: int, talebe_id: int):
     if not talebe:
         return redirect("ogretmen_deneme_kontrol_merkezi")
 
+    kazanimlar = kazanim_ortalamalari([talebe.id])
     ctx = {
         "sinif": sinif,
         "talebe": talebe,
         "deneme_gelisim": talebe_deneme_gelisim_paketi(talebe),
+        "kazanimlar": kazanimlar,
+        "kazanim_gruplari": kazanimlari_derse_gore(kazanimlar),
     }
     return render(request, "ogretmen/deneme_kontrol_ogrenci_detay.html", ctx)
