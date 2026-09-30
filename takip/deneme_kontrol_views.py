@@ -7,17 +7,27 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from takip.deneme_gelisim_service import talebe_deneme_gelisim_paketi
 from takip.deneme_kontrol_service import (
+    deneme_kontrol_erisimi_var,
     hoca_sinif_secenekleri,
     satirlari_sirala,
     sinif_deneme_kontrol_verisi,
 )
-from takip.models import SinifSube, Talebe
+from takip.models import SinifSube
 from takip.ogretmen_not_service import ogretmen_sinif_ogrencileri
-from takip.ogretmen_service import kullanici_ogretmen_mi, ogretmen_hocasi_for_user
+from takip.ogretmen_service import kullanici_ogretmen_mi
+from takip.user_helpers import etut_mesul_for_user
 
 
 def _hoca_yukle(request):
-    return ogretmen_hocasi_for_user(request.user)
+    if not deneme_kontrol_erisimi_var(request.user):
+        return None
+    return etut_mesul_for_user(request.user)
+
+
+def _erisim_yok(request):
+    if kullanici_ogretmen_mi(request.user):
+        return redirect("ogretmen_dashboard")
+    return redirect("dashboard")
 
 
 def _secili_sinif(siniflar, sinif_id: int | None):
@@ -28,12 +38,9 @@ def _secili_sinif(siniflar, sinif_id: int | None):
 
 @login_required
 def deneme_kontrol_merkezi(request, sinif_id: int | None = None):
-    if not kullanici_ogretmen_mi(request.user):
-        return redirect("dashboard")
-
     hoca = _hoca_yukle(request)
     if not hoca:
-        return redirect("logout")
+        return _erisim_yok(request)
 
     siniflar = hoca_sinif_secenekleri(hoca)
     secili = _secili_sinif(siniflar, sinif_id)
@@ -56,12 +63,9 @@ def deneme_kontrol_merkezi(request, sinif_id: int | None = None):
 
 @login_required
 def deneme_kontrol_ogrenci_detay(request, sinif_id: int, talebe_id: int):
-    if not kullanici_ogretmen_mi(request.user):
-        return redirect("dashboard")
-
     hoca = _hoca_yukle(request)
     if not hoca:
-        return redirect("logout")
+        return _erisim_yok(request)
 
     sinif = get_object_or_404(SinifSube, pk=sinif_id)
     ogrenciler = ogretmen_sinif_ogrencileri(hoca, sinif)

@@ -1,17 +1,17 @@
-{% extends "ogretmen/base.html" %}
+{% extends "base.html" %}
 {% load static %}
-{% block title %}Deneme Kontrol Merkezi · Öğretmen Paneli{% endblock %}
+{% block title %}Deneme Kontrol Merkezi{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="dash-home ogretmen-dash">
-{% include "ogretmen/hero.html" with title="Deneme Kontrol Merkezi" eyebrow="Öğretmen" meta="Sorumlu sınıflarınızın deneme durumu — tek ekranda" show_date=True %}
+{% include "ogretmen/hero.html" with title="Deneme Kontrol Merkezi" eyebrow="Etüt" meta="Sorumlu olduğunuz sınıfların deneme durumu — tek ekranda" show_date=True %}
 
 {% if not siniflar %}
 <div class="dk-card">
-    <p class="dk-empty">Henüz sorumlu bir sınıfınız atanmamış. Yönetim → Öğretmenler ekranından sınıf ataması yapılmalı.</p>
+    <p class="dk-empty">Henüz sorumlu bir sınıfınız atanmamış.</p>
 </div>
 {% else %}
 

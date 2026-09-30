@@ -54,6 +54,16 @@ def hoca_sinif_secenekleri(hoca: EtutHocasi):
     return _hoca_sinif_kartlari(hoca)
 
 
+def deneme_kontrol_erisimi_var(user) -> bool:
+    """Yalnızca sorumlu sınıfı olan etüt / sınıf mesulü görür."""
+    from takip.user_helpers import etut_mesul_for_user
+
+    hoca = etut_mesul_for_user(user)
+    if not hoca:
+        return False
+    return hoca.sorumlu_sinif_subeler.filter(aktif=True).exists()
+
+
 def _oncelik_esik() -> dict:
     esik = dict(_VARSAYILAN_ONCELIK_ESIK)
     esik.update(getattr(settings, "DENEME_ONCELIKLI_TAKIP", {}) or {})
