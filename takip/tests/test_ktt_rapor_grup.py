@@ -11,6 +11,7 @@ from django.urls import reverse
 from takip.ktt_models import KttSinav, KttSonucu
 from takip.ktt_service import (
     ktt_hafta_cozulen_soru,
+    ktt_hafta_ders_sorulari,
     ktt_rapor_filtrele,
     ktt_rapor_grupla,
     ktt_rapor_istatistik,
@@ -79,6 +80,84 @@ class KttRaporGrupTests(TestCase):
         user = User.objects.create_superuser("ktt-rapor-super", password="x")
         self.assertEqual(ktt_hafta_cozulen_soru(user, date(2026, 9, 26)), 30)
         self.assertEqual(ktt_hafta_cozulen_soru(user, date(2026, 10, 5)), 0)
+
+    @patch("takip.ktt_service.can", return_value=True)
+    def test_bu_hafta_ders_ders_soru(self, _can):
+        user = User.objects.create_superuser("ktt-rapor-super-ders", password="x")
+        paragraf = Ders.objects.create(ad="Paragraf", sira=2, aktif=True)
+        matematik = Ders.objects.create(ad="Matematik", sira=3, aktif=True)
+        fen = Ders.objects.create(ad="Fen Bilimleri", sira=4, aktif=True)
+        ingilizce = Ders.objects.create(ad="İngilizce", sira=5, aktif=True)
+        din = Ders.objects.create(ad="Din Kültürü", sira=6, aktif=True)
+        geometri = Ders.objects.create(ad="Geometri", sira=7, aktif=True)
+        gun = date(2026, 9, 26)
+        ktt_paragraf = KttSinav.objects.create(
+            ad="Paragraf KTT",
+            ders=paragraf,
+            sinif_seviyesi="5",
+            hedef_siniflar="5-A",
+            sinav_tarihi=date(2026, 9, 23),
+            soru_sayisi=45,
+            etut_hocasi=self.hoca,
+        )
+        KttSonucu.objects.create(ktt=ktt_paragraf, talebe=self.talebe_a, dogru=30, yanlis=10, bos=5)
+        KttSonucu.objects.create(ktt=ktt_paragraf, talebe=self.talebe_b, dogru=20, yanlis=15, bos=10)
+        for ad, ders, soru, tarih in (
+            ("Mat KTT", matematik, 12, date(2026, 9, 24)),
+            ("Fen KTT", fen, 8, date(2026, 9, 25)),
+            ("İng KTT", ingilizce, 6, date(2026, 9, 21)),
+            ("Din KTT", din, 4, date(2026, 9, 27)),
+            ("Geo KTT", geometri, 3, date(2026, 9, 22)),
+        ):
+            sinav = KttSinav.objects.create(
+                ad=ad,
+                ders=ders,
+                sinif_seviyesi="5",
+                hedef_siniflar="5-A",
+                sinav_tarihi=tarih,
+                soru_sayisi=soru,
+                etut_hocasi=self.hoca,
+            )
+            KttSonucu.objects.create(
+                ktt=sinav,
+                talebe=self.talebe_a,
+                dogru=soru,
+                yanlis=0,
+                bos=0,
+            )
+
+        satirlar = ktt_hafta_ders_sorulari(user, gun)
+        sayilar = {satir["etiket"]: satir["soru"] for satir in satirlar}
+        self.assertEqual(
+            [satir["etiket"] for satir in satirlar[:7]],
+            ["Türkçe", "Paragraf", "Matematik", "Fen", "Sosyal", "Din", "İngilizce"],
+        )
+        self.assertEqual(sayilar["Türkçe"], 30)
+        self.assertEqual(sayilar["Paragraf"], 45)
+        self.assertEqual(sayilar["Matematik"], 12)
+        self.assertEqual(sayilar["Fen"], 8)
+        self.assertEqual(sayilar["Sosyal"], 0)
+        self.assertEqual(sayilar["Din"], 4)
+        self.assertEqual(sayilar["İngilizce"], 6)
+        self.assertEqual(sayilar["Geometri"], 3)
+        self.assertEqual(sum(satir["soru"] for satir in satirlar), ktt_hafta_cozulen_soru(user, gun))
+        self.assertEqual(ktt_hafta_cozulen_soru(user, gun), 108)
+
+        bos_hafta = ktt_hafta_ders_sorulari(user, date(2026, 10, 5))
+        self.assertEqual([satir["soru"] for satir in bos_hafta], [0, 0, 0, 0, 0, 0, 0])
+
+        self.client.force_login(user)
+        sayfa = self.client.get(reverse("ktt_listesi"))
+        self.assertEqual(sayfa.status_code, 200)
+        html = sayfa.content.decode()
+        cizgi = html.find("ktt-hafta-cizgi")
+        dikkat = html.find("Bugün dikkat gerektirenler")
+        self.assertIn("ktt-hafta-dersler", html)
+        self.assertGreater(cizgi, html.find("ktt-hafta-dersler"))
+        self.assertIn("Paragraf", html)
+        self.assertIn("İngilizce", html)
+        if dikkat != -1:
+            self.assertLess(cizgi, dikkat)
 
     def test_sonuclar_teste_gore_kapali_gruplanir(self):
         sonuclar = KttSonucu.objects.select_related("ktt").order_by(
