@@ -345,6 +345,8 @@ class DenemeSoruNoktaTests(TestCase):
         self.client.force_login(self.user)
         sayfa = self.client.get(reverse("ogretmen_deneme_kontrol_merkezi_sinif", args=[self.sinif.id]))
         self.assertContains(sayfa, "Nokta atışı")
+        self.assertContains(sayfa, '<details class="dk-card dk-fold">')
+        self.assertNotContains(sayfa, 'dk-fold" open')
         self.assertContains(sayfa, "Türkçe 5. soru %75 yanlış yapmış")
         self.assertContains(sayfa, "Paragraf")
         self.assertNotContains(sayfa, "Türkçe 2. soru")

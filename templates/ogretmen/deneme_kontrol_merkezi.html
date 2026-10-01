@@ -2,7 +2,7 @@
 {% load l10n static %}
 {% block title %}Deneme Kontrol Merkezi{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk5">
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk6">
 {% endblock %}
 
 {% block content %}
@@ -44,8 +44,8 @@
     </div>
 </div>
 
-<div class="dk-card">
-    <div class="dk-card-head"><h2>Nokta atışı</h2></div>
+<details class="dk-card dk-fold">
+    <summary class="dk-card-head"><h2>Nokta atışı</h2><span class="dk-fold-chevron" aria-hidden="true"></span></summary>
     {% if veri.nokta.deneme %}
     <p class="dk-note">{{ veri.nokta.deneme.ad }} · {{ veri.nokta.karne_sayisi }} karne. Aynı soruyu sınıfın yüzde 33’ü ve fazlası yanlış yaptıysa burada durur.</p>
     {% if veri.nokta.satirlar %}
@@ -63,11 +63,11 @@
     {% else %}
     <p class="dk-empty">Sınıf karneleri yüklenince, yüzde 33 ve üzeri yanlış yapılan sorular burada görünür. Örnek: Türkçe 5. soru %40 yanlış yapmış.</p>
     {% endif %}
-</div>
+</details>
 
 {% if veri.oncelikli_takip %}
-<div class="dk-card">
-    <div class="dk-card-head"><h2>Öncelikli Takip</h2></div>
+<details class="dk-card dk-fold">
+    <summary class="dk-card-head"><h2>Öncelikli Takip</h2><span class="dk-fold-chevron" aria-hidden="true"></span></summary>
     <div class="dk-oncelik-list">
         {% for satir in veri.oncelikli_takip %}
         <div class="dk-oncelik-item{% if satir.kritik %} kritik{% endif %}">
@@ -83,13 +83,14 @@
         </div>
         {% endfor %}
     </div>
-</div>
+</details>
 {% endif %}
 
-<div class="dk-card">
-    <div class="dk-card-head">
+<details class="dk-card dk-fold">
+    <summary class="dk-card-head">
         <h2>1 · Yükseliş sıralaması</h2>
-    </div>
+        <span class="dk-fold-chevron" aria-hidden="true"></span>
+    </summary>
     <p class="dk-note">Tüm talebeler, ilk denemeden son denemeye puan artışına göre. Satıra dokununca talebenin kazanımları açılır.</p>
     {% if veri.yukselis_satirlari %}
     <div class="responsive-table cs-table-wrap">
@@ -123,12 +124,13 @@
     {% else %}
     <p class="dk-empty">Bu sınıfta talebe yok.</p>
     {% endif %}
-</div>
+</details>
 
-<div class="dk-card">
-    <div class="dk-card-head">
+<details class="dk-card dk-fold">
+    <summary class="dk-card-head">
         <h2>2 · Kazanımlar</h2>
-    </div>
+        <span class="dk-fold-chevron" aria-hidden="true"></span>
+    </summary>
     <p class="dk-note">Yüklenen denemelerde çıkan konular burada birikir. Yeni konu eklenir, çıkan konu silinmez. Aynı konu tekrar gelirse başarı oranı ortalamaya katılır.</p>
     {% if veri.kazanim_gruplari %}
         {% for ders in veri.kazanim_gruplari %}
@@ -159,11 +161,11 @@
     {% else %}
     <p class="dk-empty">Henüz kazanım yüklenmedi. Deneme konu kazanımı yüklendikçe konular burada birikecek.</p>
     {% endif %}
-</div>
+</details>
 
 {% if veri.grup_analizi.seri %}
-<div class="dk-card">
-    <div class="dk-card-head"><h2>Grup Analizi — Sınıf Ortalaması</h2></div>
+<details class="dk-card dk-fold">
+    <summary class="dk-card-head"><h2>Grup Analizi — Sınıf Ortalaması</h2><span class="dk-fold-chevron" aria-hidden="true"></span></summary>
     <div class="dk-grup-chart">
         {% for nokta in veri.grup_analizi.seri %}
         <div class="dk-grup-bar" title="{{ nokta.ad }}">
@@ -188,7 +190,7 @@
         {% endfor %}
     </div>
     {% endif %}
-</div>
+</details>
 {% endif %}
 
 {% else %}

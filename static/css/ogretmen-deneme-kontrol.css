@@ -93,6 +93,49 @@ body.v3-body .dk-page .dk-card-head {
     margin: 0 0 12px;
 }
 
+body.v3-body .dk-page details.dk-fold > summary.dk-card-head {
+    list-style: none;
+    cursor: pointer;
+    min-height: var(--cs-touch-min, 44px);
+    margin: 0;
+}
+
+body.v3-body .dk-page details.dk-fold > summary.dk-card-head::-webkit-details-marker {
+    display: none;
+}
+
+body.v3-body .dk-page details.dk-fold > summary.dk-card-head::marker {
+    content: "";
+}
+
+body.v3-body .dk-page details.dk-fold > summary.dk-card-head h2 {
+    flex: 1;
+}
+
+body.v3-body .dk-page details.dk-fold[open] > summary.dk-card-head {
+    margin-bottom: 12px;
+}
+
+body.v3-body .dk-page details.dk-fold > summary.dk-card-head:focus-visible {
+    outline: 2px solid var(--dk-gold);
+    outline-offset: 2px;
+}
+
+body.v3-body .dk-page .dk-fold-chevron {
+    width: 9px;
+    height: 9px;
+    border-right: 2px solid var(--dk-gold-dim);
+    border-bottom: 2px solid var(--dk-gold-dim);
+    transform: rotate(45deg);
+    flex: none;
+    margin-top: -4px;
+}
+
+body.v3-body .dk-page details.dk-fold[open] .dk-fold-chevron {
+    transform: rotate(-135deg);
+    margin-top: 4px;
+}
+
 body.v3-body .dk-page .dk-stat-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
