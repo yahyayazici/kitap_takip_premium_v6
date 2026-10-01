@@ -67,6 +67,20 @@
             <button type="submit" class="primary-btn" style="margin-top:12px;">Kazanım Excel yükle</button>
         </form>
     </section>
+    <section class="yonetim-card" style="margin-bottom:20px;">
+        <h2>Soru karnesi yükle</h2>
+        <p style="margin:0 0 12px;color:#64748b;font-size:13px;">
+            Karnenin 2. sayfası: hangi sorunun yanlış olduğu. Eksi yanlış sayılır.
+            PDF, Excel veya zip yükleyin. Sınıfın yüzde 33 ve üzeri aynı soruyu yanlış yaptıysa
+            Deneme Kontrol’de görünür. Örnek: Türkçe 5. soru %40 yanlış yapmış.
+            {% if soru_satir %}Şu an {{ soru_satir }} soru · {{ soru_talebe }} talebe kayıtlı.{% endif %}
+        </p>
+        <form method="post" action="{% url 'yonetim:deneme_soru_yukle' deneme.pk %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="file" name="soru_karne" accept=".pdf,.xlsx,.xlsm,.zip" class="input" required multiple>
+            <button type="submit" class="primary-btn" style="margin-top:12px;">Soru karnesi yükle</button>
+        </form>
+    </section>
     {% endif %}
 
     <section class="yonetim-card">

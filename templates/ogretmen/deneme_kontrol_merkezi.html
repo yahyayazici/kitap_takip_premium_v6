@@ -2,7 +2,7 @@
 {% load l10n static %}
 {% block title %}Deneme Kontrol Merkezi{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk4">
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk5">
 {% endblock %}
 
 {% block content %}
@@ -42,6 +42,27 @@
         <div class="dk-stat"><span>Sabit</span><strong>{{ veri.sabit }}</strong></div>
         <div class="dk-stat"><span>Takip Gereken</span><strong class="{% if veri.takip_gereken %}neg{% endif %}">{{ veri.takip_gereken }}</strong></div>
     </div>
+</div>
+
+<div class="dk-card">
+    <div class="dk-card-head"><h2>Nokta atışı</h2></div>
+    {% if veri.nokta.deneme %}
+    <p class="dk-note">{{ veri.nokta.deneme.ad }} · {{ veri.nokta.karne_sayisi }} karne. Aynı soruyu sınıfın yüzde 33’ü ve fazlası yanlış yaptıysa burada durur.</p>
+    {% if veri.nokta.satirlar %}
+    <ul class="dk-nokta-list">
+        {% for s in veri.nokta.satirlar %}
+        <li class="dk-nokta-item">
+            <div class="dk-nokta-cumle">{{ s.cumle }}</div>
+            {% if s.konu %}<div class="dk-nokta-konu">{{ s.konu }}</div>{% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="dk-empty">Bu denemede yüzde 33 ve üzerine çıkan ortak yanlış yok.</p>
+    {% endif %}
+    {% else %}
+    <p class="dk-empty">Sınıf karneleri yüklenince, yüzde 33 ve üzeri yanlış yapılan sorular burada görünür. Örnek: Türkçe 5. soru %40 yanlış yapmış.</p>
+    {% endif %}
 </div>
 
 {% if veri.oncelikli_takip %}

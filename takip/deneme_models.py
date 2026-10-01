@@ -310,6 +310,60 @@ class DenemeKazanimSonucu(models.Model):
         return f"{self.talebe_id} · {self.konu_ad} ({self.yuzde}%)"
 
 
+class DenemeSoruSonucu(models.Model):
+    """Karne 2. sayfası — dersteki soru numarasına göre doğru / yanlış / boş."""
+
+    class Sonuc(models.TextChoices):
+        DOGRU = "dogru", "Doğru"
+        YANLIS = "yanlis", "Yanlış"
+        BOS = "bos", "Boş"
+
+    deneme = models.ForeignKey(
+        DenemeSinavi,
+        on_delete=models.CASCADE,
+        related_name="soru_sonuclari",
+        verbose_name="Deneme",
+    )
+    talebe = models.ForeignKey(
+        "Talebe",
+        on_delete=models.CASCADE,
+        related_name="deneme_soru_sonuclari",
+        verbose_name="Talebe",
+    )
+    ders_ad = models.CharField(max_length=120, verbose_name="Ders")
+    ders_key = models.CharField(max_length=120, db_index=True)
+    soru_no = models.PositiveSmallIntegerField(verbose_name="Soru no")
+    konu_ad = models.CharField(max_length=300, blank=True, verbose_name="Konu")
+    sonuc = models.CharField(
+        max_length=10,
+        choices=Sonuc.choices,
+        verbose_name="Sonuç",
+    )
+    sira = models.PositiveIntegerField(default=0)
+    olusturulma = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Deneme soru sonucu"
+        verbose_name_plural = "Deneme soru sonuçları"
+        ordering = ["sira", "ders_ad", "soru_no", "id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["deneme", "talebe", "ders_key", "soru_no"],
+                name="deneme_soru_benzersiz",
+            )
+        ]
+        indexes = [
+            models.Index(fields=["deneme", "talebe"], name="takip_denem_deneme__soru_t_idx"),
+            models.Index(
+                fields=["deneme", "ders_key", "soru_no"],
+                name="takip_denem_deneme__soru_d_idx",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.talebe_id} · {self.ders_ad} {self.soru_no} ({self.sonuc})"
+
+
 class DenemeExcelYukleme(models.Model):
     """Aynı Excel'in yanlışlıkla iki kez yüklenmesini tespit etmek için log."""
 
