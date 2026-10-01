@@ -503,7 +503,51 @@ def kazanimlari_derse_gore(ozetler: list[dict]) -> list[dict]:
 
 
 def _bos_nokta() -> dict:
-    return {"deneme": None, "satirlar": [], "karne_sayisi": 0}
+    return {"deneme": None, "satirlar": [], "dersler": [], "karne_sayisi": 0}
+
+
+_NOKTA_DERS_SIRASI = (
+    "turkce",
+    "paragraf",
+    "matematik",
+    "fen",
+    "sosyal",
+    "din",
+    "ingiliz",
+)
+
+
+def _nokta_ders_sirasi(ad: str) -> tuple[int, str]:
+    ham = (ad or "").casefold()
+    for eski, yeni in (
+        ("ı", "i"),
+        ("i̇", "i"),
+        ("ş", "s"),
+        ("ğ", "g"),
+        ("ü", "u"),
+        ("ö", "o"),
+        ("ç", "c"),
+    ):
+        ham = ham.replace(eski, yeni)
+    for sira, kok in enumerate(_NOKTA_DERS_SIRASI):
+        if kok in ham:
+            return (sira, ad or "")
+    return (len(_NOKTA_DERS_SIRASI), ad or "")
+
+
+def _nokta_dersleri(satirlar: list[dict]) -> list[dict]:
+    gruplar: list[dict] = []
+    indeks: dict[str, dict] = {}
+    for satir in satirlar:
+        ad = satir.get("ders_ad") or "Diğer"
+        grup = indeks.get(ad)
+        if grup is None:
+            grup = {"ad": ad, "satirlar": []}
+            indeks[ad] = grup
+            gruplar.append(grup)
+        grup["satirlar"].append(satir)
+    gruplar.sort(key=lambda grup: _nokta_ders_sirasi(grup["ad"]))
+    return gruplar
 
 
 def _nokta_yuzde(yanlis: int, katilim: int) -> int | None:
@@ -578,7 +622,12 @@ def sinif_nokta_atisi(talebe_ids: list[int]) -> dict:
             }
         )
     satirlar.sort(key=lambda s: (-s["yuzde"], s["sira"], s["soru_no"], s["ders_ad"]))
-    return {"deneme": deneme, "satirlar": satirlar, "karne_sayisi": karne_sayisi}
+    return {
+        "deneme": deneme,
+        "satirlar": satirlar,
+        "dersler": _nokta_dersleri(satirlar),
+        "karne_sayisi": karne_sayisi,
+    }
 
 
 def sinif_deneme_kontrol_verisi(hoca: EtutHocasi, sinif: SinifSube) -> dict:

@@ -322,6 +322,11 @@ class DenemeSoruNoktaTests(TestCase):
         self.assertFalse(any("Fen Bilgisi 1" in c for c in cumleler))
         turkce = next(s for s in nokta["satirlar"] if s["soru_no"] == 5)
         self.assertEqual(turkce["konu"], "Paragraf")
+        self.assertEqual(
+            [ders["ad"] for ders in nokta["dersler"]],
+            ["Türkçe", "Matematik", "Fen Bilgisi"],
+        )
+        self.assertEqual(len(nokta["dersler"][0]["satirlar"]), 1)
 
     def test_yalniz_arsiv_gorunmez(self):
         arsiv = _deneme("Sadece arşiv", 21, durum=DenemeSinavi.Durum.ARSIV)
@@ -358,6 +363,8 @@ class DenemeSoruNoktaTests(TestCase):
         self.assertNotContains(sayfa, 'dk-fold" open')
         self.assertContains(sayfa, "Türkçe 5. soru %75 yanlış yapmış")
         self.assertContains(sayfa, "Paragraf")
+        self.assertContains(sayfa, 'class="dk-nokta-sekme"')
+        self.assertContains(sayfa, "dk-nokta-radyo")
         self.assertNotContains(sayfa, "Türkçe 2. soru")
 
     def test_karne_yoksa_ornek_cumle(self):

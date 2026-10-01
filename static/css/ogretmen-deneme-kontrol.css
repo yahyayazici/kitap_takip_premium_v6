@@ -389,6 +389,74 @@ body.v3-body .dk-page .dk-oncelik-sinyal {
     color: var(--dk-muted);
 }
 
+body.v3-body .dk-page .dk-nokta-secim {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--cs-space-2);
+    margin-top: var(--cs-space-3);
+}
+
+body.v3-body .dk-page .dk-nokta-radyo {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+body.v3-body .dk-page .dk-nokta-sekme {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-sizing: border-box;
+    min-height: var(--cs-touch-min, 44px);
+    padding: 0 14px;
+    border-radius: var(--cs-radius-md, 14px);
+    background: var(--cs-surface-muted, #f8fafc);
+    color: var(--cs-text-secondary, #546173);
+    font-family: var(--cs-font), Poppins, "Segoe UI", sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+body.v3-body .dk-page .dk-nokta-sekme span {
+    font-size: 12px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--cs-text-muted, #8491a3);
+}
+
+body.v3-body .dk-page .dk-nokta-radyo:checked + .dk-nokta-sekme {
+    background: var(--cs-surface, #fff);
+    color: var(--cs-primary, #15427f);
+    box-shadow: var(--cs-shadow-sm);
+}
+
+body.v3-body .dk-page .dk-nokta-radyo:focus-visible + .dk-nokta-sekme {
+    box-shadow: var(--cs-shadow-focus);
+}
+
+body.v3-body .dk-page .dk-nokta-radyo:nth-of-type(1):checked ~ .dk-nokta-panel:nth-of-type(1),
+body.v3-body .dk-page .dk-nokta-radyo:nth-of-type(2):checked ~ .dk-nokta-panel:nth-of-type(2),
+body.v3-body .dk-page .dk-nokta-radyo:nth-of-type(3):checked ~ .dk-nokta-panel:nth-of-type(3),
+body.v3-body .dk-page .dk-nokta-radyo:nth-of-type(4):checked ~ .dk-nokta-panel:nth-of-type(4),
+body.v3-body .dk-page .dk-nokta-radyo:nth-of-type(5):checked ~ .dk-nokta-panel:nth-of-type(5),
+body.v3-body .dk-page .dk-nokta-radyo:nth-of-type(6):checked ~ .dk-nokta-panel:nth-of-type(6),
+body.v3-body .dk-page .dk-nokta-radyo:nth-of-type(7):checked ~ .dk-nokta-panel:nth-of-type(7),
+body.v3-body .dk-page .dk-nokta-radyo:nth-of-type(8):checked ~ .dk-nokta-panel:nth-of-type(8),
+body.v3-body .dk-page .dk-nokta-radyo:nth-of-type(9):checked ~ .dk-nokta-panel:nth-of-type(9),
+body.v3-body .dk-page .dk-nokta-radyo:nth-of-type(10):checked ~ .dk-nokta-panel:nth-of-type(10),
+body.v3-body .dk-page .dk-nokta-radyo:nth-of-type(11):checked ~ .dk-nokta-panel:nth-of-type(11),
+body.v3-body .dk-page .dk-nokta-radyo:nth-of-type(12):checked ~ .dk-nokta-panel:nth-of-type(12) {
+    display: flex;
+}
+
 body.v3-body .dk-page .dk-nokta-list {
     list-style: none;
     margin: 12px 0 0;
@@ -396,6 +464,12 @@ body.v3-body .dk-page .dk-nokta-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
+}
+
+body.v3-body .dk-page .dk-nokta-list.dk-nokta-panel {
+    display: none;
+    flex: 1 0 100%;
+    margin-top: var(--cs-space-2);
 }
 
 body.v3-body .dk-page .dk-nokta-item {
