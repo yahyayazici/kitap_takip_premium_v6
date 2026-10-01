@@ -3,7 +3,7 @@
 {% block title %}{{ deneme.ad }}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek41">
-<link rel="stylesheet" href="{% static 'css/deneme-detay.css' %}?v=dd4">
+<link rel="stylesheet" href="{% static 'css/deneme-detay.css' %}?v=dd5">
 {% endblock %}
 {% block content %}
 <div class="result-entry-page deneme-detail-page">
@@ -85,13 +85,15 @@
         <div class="deneme-branches-head">
             <div>
                 <h2 class="deneme-section-title">Detaylı Başarı Listesi</h2>
-                <p class="deneme-section-desc">Türkçe, Matematik, Fen, Sosyal, Din Kültürü ve İngilizce — ders ders doğru / yanlış / boş</p>
+                <p class="deneme-section-desc">Sınıfın ders ders net ortalaması, doğru / yanlış / boş. Altta talebe listesi.</p>
             </div>
             {% if pdf_yetkisi %}
             {% url 'deneme_detayli_pdf' deneme.pk as deneme_detayli_pdf_href %}
             {% include "includes/pdf_sayfa_secici.html" with pdf_href=deneme_detayli_pdf_href pdf_sayfa=pdf_sayfa_yatay pdf_btn_class="result-secondary-button" pdf_btn_label="PDF İndir" %}
             {% endif %}
         </div>
+
+        {% include "partials/deneme_ders_netleri.html" %}
 
         <div class="responsive-table deneme-branches-table deneme-branches-desktop">
             <table class="report-data-table">
@@ -126,6 +128,18 @@
                     </tr>
                     {% endfor %}
                 </tbody>
+                {% if ders_net_var %}
+                <tfoot>
+                    <tr class="deneme-net-foot">
+                        <td colspan="3">Sınıf ortalaması</td>
+                        {% for b in ders_netleri %}
+                        <td class="num-col">{{ b.dogru }}</td>
+                        <td class="num-col">{{ b.yanlis }}</td>
+                        <td class="num-col">{{ b.bos }}</td>
+                        {% endfor %}
+                    </tr>
+                </tfoot>
+                {% endif %}
             </table>
         </div>
 
@@ -160,7 +174,8 @@
     {% if alt.kazanimlar %}
     <section class="result-card">
         <h2 class="deneme-section-title">Kazanımlar</h2>
-        <p class="deneme-section-desc">KonuKazanimDetay. %70 altı zayıf.</p>
+        <p class="deneme-section-desc">Bu denemenin ders neti ve konu ortalaması. %70 altı zayıf.</p>
+        {% include "partials/deneme_ders_netleri.html" %}
         <div class="ek-table-wrap">
             <table class="ek-table">
                 <thead><tr><th>Ders</th><th>Kazanım</th><th>Ortalama</th><th>Katılan</th></tr></thead>

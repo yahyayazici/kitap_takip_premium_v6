@@ -17,6 +17,7 @@ from takip.deneme_service import (
     BRANS_ETIKETLERI,
     DENEME_DETAY_BRANSLAR,
     deneme_bireysel_karne,
+    deneme_ders_net_ozeti,
     deneme_detay_satirlari,
     deneme_karne_ortalamalari,
     deneme_karne_pdf_adi,
@@ -42,10 +43,14 @@ from takip.pdf_utils import (
 def _deneme_detay_verisi(request, deneme):
     sonuclar = deneme_sonuclari(request.user, deneme)
     detay_satirlari = deneme_detay_satirlari(sonuclar)
+    net_ozeti = deneme_ders_net_ozeti(detay_satirlari)
     return {
         "deneme": deneme,
         "sonuclar": sonuclar,
         "detay_satirlari": detay_satirlari,
+        "ders_netleri": net_ozeti["genel"],
+        "sinif_netleri": net_ozeti["siniflar"],
+        "ders_net_var": net_ozeti["var"],
         "brans_etiketleri": BRANS_ETIKETLERI,
         "detay_branslar": DENEME_DETAY_BRANSLAR,
         "detay_brans_basliklari": [BRANS_ETIKETLERI[k] for k in DENEME_DETAY_BRANSLAR],
