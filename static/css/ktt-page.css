@@ -1515,6 +1515,7 @@ body.v3-body .ktt-page.ktt-list-page .ktt-hafta-dersler {
 }
 
 body.v3-body .ktt-page.ktt-list-page .ktt-hafta-ders {
+    --ktt-cizgi: var(--cs-accent);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1522,17 +1523,44 @@ body.v3-body .ktt-page.ktt-list-page .ktt-hafta-ders {
     gap: 2px;
     min-height: var(--cs-touch-min, 44px);
     padding: var(--cs-space-2) var(--cs-space-1);
-    border: 1px solid transparent;
+    border: 2px solid transparent;
     border-radius: var(--cs-radius-md, 14px);
     background:
         linear-gradient(180deg, var(--cs-surface, #fff), var(--cs-surface-muted, #f8fafc)) padding-box,
         linear-gradient(
             120deg,
-            color-mix(in srgb, var(--cs-accent) 62%, var(--cs-surface, #fff)),
-            var(--cs-border, #d2dce8) 52%,
-            color-mix(in srgb, var(--cs-primary-light) 40%, var(--cs-surface, #fff))
+            var(--ktt-cizgi),
+            color-mix(in srgb, var(--ktt-cizgi) 42%, var(--cs-surface, #fff))
         ) border-box;
     box-shadow: var(--cs-shadow-sm);
+}
+
+body.v3-body .ktt-page.ktt-list-page .ktt-hafta-ders:nth-child(7n + 1) {
+    --ktt-cizgi: var(--cs-accent);
+}
+
+body.v3-body .ktt-page.ktt-list-page .ktt-hafta-ders:nth-child(7n + 2) {
+    --ktt-cizgi: color-mix(in srgb, var(--cs-accent) 38%, var(--cs-danger));
+}
+
+body.v3-body .ktt-page.ktt-list-page .ktt-hafta-ders:nth-child(7n + 3) {
+    --ktt-cizgi: var(--cs-warning);
+}
+
+body.v3-body .ktt-page.ktt-list-page .ktt-hafta-ders:nth-child(7n + 4) {
+    --ktt-cizgi: var(--cs-success);
+}
+
+body.v3-body .ktt-page.ktt-list-page .ktt-hafta-ders:nth-child(7n + 5) {
+    --ktt-cizgi: var(--pv4-gold, #c39a3d);
+}
+
+body.v3-body .ktt-page.ktt-list-page .ktt-hafta-ders:nth-child(7n + 6) {
+    --ktt-cizgi: color-mix(in srgb, var(--cs-success) 62%, var(--cs-accent));
+}
+
+body.v3-body .ktt-page.ktt-list-page .ktt-hafta-ders:nth-child(7n + 7) {
+    --ktt-cizgi: color-mix(in srgb, var(--cs-danger) 70%, var(--cs-primary));
 }
 
 body.v3-body .ktt-page.ktt-list-page .ktt-hafta-ders b {
