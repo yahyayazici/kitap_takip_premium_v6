@@ -103,18 +103,25 @@
             border-top: 1px solid #f0f3f7;
         }
         .pdf-karne.deneme-detayli-pdf table.detayli-results tbody tr:first-child td { border-top: none; }
-        .pdf-karne.deneme-detayli-pdf table.detayli-results tfoot td {
-            padding: 3px 3px;
+        .pdf-karne.deneme-detayli-pdf tr.sinif-net-row td {
+            padding: 4px 2px;
             font-size: 7px;
             font-weight: 700;
             text-align: center;
             color: #173f78;
-            border-top: 1px solid #d5e0ee;
             background: #f4f7fb;
+            border-top: 1px solid #d5e0ee;
+            line-height: 1.2;
         }
-        .pdf-karne.deneme-detayli-pdf table.ders-net-ozet td {
-            padding: 4px 3px;
-            line-height: 1.25;
+        .pdf-karne.deneme-detayli-pdf tr.sinif-net-row .net-cell {
+            font-size: 8.5px;
+            font-weight: 700;
+        }
+        .pdf-karne.deneme-detayli-pdf tr.sinif-net-row .dyb {
+            margin-top: 1px;
+            font-size: 6px;
+            font-weight: 600;
+            color: #5c6b82;
         }
         .pdf-karne.deneme-detayli-pdf table.detayli-results tbody td.left {
             text-align: left;
@@ -214,54 +221,6 @@
 
     <tr><td class="gap8"></td></tr>
 
-    {% if ders_net_var %}
-    <tr>
-        <td>
-            <div class="table-panel">
-                <div class="table-panel-head">
-                    <div class="section-kicker">Sınıf neti</div>
-                    <div class="section-title">Her dersin toplu net ortalaması</div>
-                </div>
-                <div class="results-wrap">
-                    <table class="detayli-results ders-net-ozet">
-                        <thead>
-                            <tr class="brans-head">
-                                <th class="left">Sınıf</th>
-                                {% for b in ders_netleri %}
-                                <th>{{ b.etiket }}</th>
-                                {% endfor %}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="left">Bu deneme</td>
-                                {% for b in ders_netleri %}
-                                <td>
-                                    <div class="net-cell">{{ b.net }}</div>
-                                    <div>{{ b.dogru }} D · {{ b.yanlis }} Y · {{ b.bos }} B</div>
-                                </td>
-                                {% endfor %}
-                            </tr>
-                            {% for sinif in sinif_netleri %}
-                            <tr>
-                                <td class="left">{{ sinif.etiket }}</td>
-                                {% for b in sinif.branslar %}
-                                <td>
-                                    <div class="net-cell">{{ b.net }}</div>
-                                    <div>{{ b.dogru }} D · {{ b.yanlis }} Y · {{ b.bos }} B</div>
-                                </td>
-                                {% endfor %}
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </td>
-    </tr>
-    <tr><td class="gap8"></td></tr>
-    {% endif %}
-
     <tr>
         <td>
             <div class="table-panel">
@@ -322,21 +281,33 @@
                                 <td colspan="{{ detay_branslar|length|add:5 }}" class="left" style="padding:8px;">—</td>
                             </tr>
                             {% endfor %}
-                        </tbody>
-                        {% if ders_net_var %}
-                        <tfoot>
-                            <tr>
-                                <td colspan="3" class="left">Sınıf ortalaması</td>
+                            {% if ders_net_var %}
+                            {% for sinif in sinif_netleri %}
+                            <tr class="sinif-net-row">
+                                <td colspan="3" class="left">{{ sinif.etiket }} net</td>
+                                {% for b in sinif.branslar %}
+                                <td colspan="3" class="ders-net">
+                                    <div class="net-cell">{{ b.net }}</div>
+                                    <div class="dyb">{{ b.dogru }} D · {{ b.yanlis }} Y · {{ b.bos }} B</div>
+                                </td>
+                                {% endfor %}
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            {% endfor %}
+                            <tr class="sinif-net-row">
+                                <td colspan="3" class="left">Sınıf neti</td>
                                 {% for b in ders_netleri %}
-                                <td class="d-cell">{{ b.dogru }}</td>
-                                <td class="y-cell">{{ b.yanlis }}</td>
-                                <td class="b-cell">{{ b.bos }}</td>
+                                <td colspan="3" class="ders-net">
+                                    <div class="net-cell">{{ b.net }}</div>
+                                    <div class="dyb">{{ b.dogru }} D · {{ b.yanlis }} Y · {{ b.bos }} B</div>
+                                </td>
                                 {% endfor %}
                                 <td class="net-cell">{{ ozet.ortalama_net }}</td>
                                 <td class="puan-cell">{{ ozet.ortalama_puan }}</td>
                             </tr>
-                        </tfoot>
-                        {% endif %}
+                            {% endif %}
+                        </tbody>
                     </table>
                 </div>
             </div>

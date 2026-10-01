@@ -631,6 +631,7 @@ class DenemeDersNetOrtalamaTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         html = mock_pdf.call_args[0][0]
         self.assertIn("7,50", html)
-        self.assertIn("Sınıf ortalaması", html)
-        self.assertIn("8-A", html)
+        self.assertIn("Sınıf neti", html)
+        self.assertIn("8-A net", html)
+        self.assertIn('colspan="3"', html)
         self.assertIn("10,0 D", html)
