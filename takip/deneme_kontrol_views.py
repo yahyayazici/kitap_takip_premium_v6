@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -12,7 +14,9 @@ from takip.deneme_kontrol_service import (
     kazanim_ortalamalari,
     kazanimlari_derse_gore,
     satirlari_sirala,
+    seviye_etiketi,
     sinif_deneme_kontrol_verisi,
+    siniflar_deneme_kontrol_verisi,
 )
 from takip.models import SinifSube
 from takip.ogretmen_not_service import ogretmen_sinif_ogrencileri
@@ -28,6 +32,37 @@ def _sinif_hocasi(hocalar, sinif_id: int):
         if hoca.sorumlu_sinif_subeler.filter(pk=sinif_id, aktif=True).exists():
             return hoca
     return None
+
+
+def _seviye_gruplari(gruplar: list[dict], sirala: str) -> list[dict]:
+    """Tümü: aynı sınıf seviyesindeki şubeler tek özet olur."""
+    kovalar: dict[str, list[dict]] = {}
+    for grup in gruplar:
+        kovalar.setdefault(grup["sinif"].sinif, []).append(grup)
+
+    sonuc = []
+    for seviye, uyeler in kovalar.items():
+        if len(uyeler) == 1:
+            sonuc.append(uyeler[0])
+            continue
+        sinif_listesi = [uye["sinif"] for uye in uyeler]
+        ogrenciler = []
+        gorulen: set[int] = set()
+        for uye in uyeler:
+            for talebe in ogretmen_sinif_ogrencileri(uye["hoca"], uye["sinif"]):
+                if talebe.id in gorulen:
+                    continue
+                gorulen.add(talebe.id)
+                ogrenciler.append(talebe)
+        veri = siniflar_deneme_kontrol_verisi(ogrenciler, sinif_listesi)
+        veri["satirlar"] = satirlari_sirala(veri["satirlar"], sirala)
+        kart = SimpleNamespace(
+            id=None,
+            etiket=seviye_etiketi(seviye),
+            ogrenci_sayisi=len(ogrenciler),
+        )
+        sonuc.append({"kart": kart, "veri": veri})
+    return sonuc
 
 
 def _erisim_yok(request):
@@ -55,8 +90,10 @@ def deneme_kontrol_merkezi(request, sinif_id: int | None = None):
             veri = sinif_deneme_kontrol_verisi(hoca, sinif)
             veri["satirlar"] = satirlari_sirala(veri["satirlar"], sirala)
             siniflar.append(kart)
-            gruplar.append({"kart": kart, "veri": veri})
+            gruplar.append({"kart": kart, "veri": veri, "hoca": hoca, "sinif": sinif})
     gosterilen_id = sinif_id if any(kart.id == sinif_id for kart in siniflar) else None
+    if not gosterilen_id and len(siniflar) > 1:
+        gruplar = _seviye_gruplari(gruplar, sirala)
 
     return render(
         request,
