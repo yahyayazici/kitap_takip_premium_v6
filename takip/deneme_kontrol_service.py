@@ -241,17 +241,19 @@ def _ogrenci_satiri(talebe: Talebe, esik: dict) -> OgrenciDenemeSatiri:
     )
 
 
-def _sinif_denemeleri(sinif: SinifSube) -> list[DenemeSinavi]:
-    """Bu sınıfı kapsayan grup denemeleri (hedefli veya seviye geneli), kronolojik."""
+def _siniflar_denemeleri(siniflar: list[SinifSube]) -> list[DenemeSinavi]:
+    """Bu şubeleri kapsayan grup denemeleri (hedefli veya seviye geneli), kronolojik."""
+    if not siniflar:
+        return []
     hedefli = DenemeSinavi.objects.filter(
         tur=DenemeSinavi.Tur.GRUP,
         durum=DenemeSinavi.Durum.AKTIF,
-        hedef_sinif_subeler=sinif,
-    )
+        hedef_sinif_subeler__in=siniflar,
+    ).distinct()
     genel = DenemeSinavi.objects.filter(
         tur=DenemeSinavi.Tur.GRUP,
         durum=DenemeSinavi.Durum.AKTIF,
-        sinif_seviyesi=sinif.sinif,
+        sinif_seviyesi__in={sinif.sinif for sinif in siniflar},
         hedef_sinif_subeler__isnull=True,
     )
     denemeler = {d.pk: d for d in hedefli}
@@ -259,20 +261,30 @@ def _sinif_denemeleri(sinif: SinifSube) -> list[DenemeSinavi]:
     return sorted(denemeler.values(), key=lambda d: (d.sinav_tarihi, d.id))
 
 
-def _sinif_deneme_ortalamasi(deneme: DenemeSinavi, sinif: SinifSube) -> tuple[Decimal | None, int]:
-    agg = DenemeSonucu.objects.filter(deneme=deneme, talebe__sinif_sube=sinif).aggregate(
+def _sinif_denemeleri(sinif: SinifSube) -> list[DenemeSinavi]:
+    return _siniflar_denemeleri([sinif])
+
+
+def _siniflar_deneme_ortalamasi(
+    deneme: DenemeSinavi, siniflar: list[SinifSube]
+) -> tuple[Decimal | None, int]:
+    agg = DenemeSonucu.objects.filter(deneme=deneme, talebe__sinif_sube__in=siniflar).aggregate(
         ort=Avg("puan"), n=Count("id")
     )
     ort = agg["ort"]
     return (round(Decimal(ort), 2) if ort is not None else None), int(agg["n"] or 0)
 
 
-def sinif_grup_analizi(sinif: SinifSube) -> dict:
-    """Madde 20: deneme bazlı sınıf ortalaması + ders bazlı grup gelişim oku."""
-    denemeler = _sinif_denemeleri(sinif)
+def _sinif_deneme_ortalamasi(deneme: DenemeSinavi, sinif: SinifSube) -> tuple[Decimal | None, int]:
+    return _siniflar_deneme_ortalamasi(deneme, [sinif])
+
+
+def siniflar_grup_analizi(siniflar: list[SinifSube]) -> dict:
+    """Deneme bazlı ortak ortalama. Birden fazla şube varsa hepsinin sonucu birlikte sayılır."""
+    denemeler = _siniflar_denemeleri(siniflar)
     seri = []
     for deneme in denemeler:
-        ort, n = _sinif_deneme_ortalamasi(deneme, sinif)
+        ort, n = _siniflar_deneme_ortalamasi(deneme, siniflar)
         if ort is None:
             continue
         seri.append(
@@ -300,7 +312,7 @@ def sinif_grup_analizi(sinif: SinifSube) -> dict:
         ort_onceki = {
             r["brans"]: r["ort_net"]
             for r in DenemeBransSonucu.objects.filter(
-                sonuc__deneme=son_iki[0], sonuc__talebe__sinif_sube=sinif
+                sonuc__deneme=son_iki[0], sonuc__talebe__sinif_sube__in=siniflar
             )
             .values("brans")
             .annotate(ort_net=Avg("net"))
@@ -308,7 +320,7 @@ def sinif_grup_analizi(sinif: SinifSube) -> dict:
         ort_son = {
             r["brans"]: r["ort_net"]
             for r in DenemeBransSonucu.objects.filter(
-                sonuc__deneme=son_iki[1], sonuc__talebe__sinif_sube=sinif
+                sonuc__deneme=son_iki[1], sonuc__talebe__sinif_sube__in=siniflar
             )
             .values("brans")
             .annotate(ort_net=Avg("net"))
@@ -334,7 +346,15 @@ def sinif_grup_analizi(sinif: SinifSube) -> dict:
     }
 
 
-def sinif_kontrol_verisi_hesapla(ogrenciler: list[Talebe], sinif: SinifSube) -> dict:
+def sinif_grup_analizi(sinif: SinifSube) -> dict:
+    return siniflar_grup_analizi([sinif])
+
+
+def sinif_kontrol_verisi_hesapla(
+    ogrenciler: list[Talebe],
+    sinif: SinifSube,
+    siniflar: list[SinifSube] | None = None,
+) -> dict:
     """Üst özet + üç sıralama + grup analizi — verilen öğrenci listesi üzerinden.
 
     Etüt hocası ekranı (hoca'ya sorumlu öğrenciler) ve yönetici özeti
@@ -349,12 +369,15 @@ def sinif_kontrol_verisi_hesapla(ogrenciler: list[Talebe], sinif: SinifSube) -> 
     sabit = sum(1 for s in satirlar if s.durum_ok == "sabit")
     takip_gereken = sum(1 for s in satirlar if s.takip_gerekli)
 
-    denemeler = _sinif_denemeleri(sinif)
+    kapsam = siniflar or [sinif]
+    denemeler = _siniflar_denemeleri(kapsam)
     son_deneme = denemeler[-1] if denemeler else None
     onceki_deneme = denemeler[-2] if len(denemeler) >= 2 else None
-    son_ortalama, _ = _sinif_deneme_ortalamasi(son_deneme, sinif) if son_deneme else (None, 0)
+    son_ortalama, _ = (
+        _siniflar_deneme_ortalamasi(son_deneme, kapsam) if son_deneme else (None, 0)
+    )
     onceki_ortalama, _ = (
-        _sinif_deneme_ortalamasi(onceki_deneme, sinif) if onceki_deneme else (None, 0)
+        _siniflar_deneme_ortalamasi(onceki_deneme, kapsam) if onceki_deneme else (None, 0)
     )
     ort_degisim = (
         round(son_ortalama - onceki_ortalama, 2)
@@ -390,7 +413,7 @@ def sinif_kontrol_verisi_hesapla(ogrenciler: list[Talebe], sinif: SinifSube) -> 
         "basari_siralamasi": basari_siralamasi,
         "gelisim_siralamasi": gelisim_siralamasi,
         "oncelikli_takip": oncelikli_takip,
-        "grup_analizi": sinif_grup_analizi(sinif),
+        "grup_analizi": siniflar_grup_analizi(kapsam),
     }
 
 
@@ -630,16 +653,33 @@ def sinif_nokta_atisi(talebe_ids: list[int]) -> dict:
     }
 
 
-def sinif_deneme_kontrol_verisi(hoca: EtutHocasi, sinif: SinifSube) -> dict:
-    """Etüt hocası ekranı — hocanın sorumlu olduğu öğrencilerle sınırlı."""
-    ogrenciler = ogretmen_sinif_ogrencileri(hoca, sinif)
-    veri = sinif_kontrol_verisi_hesapla(ogrenciler, sinif)
+def _kontrol_verisini_tamamla(veri: dict, ogrenciler: list[Talebe]) -> dict:
     veri["yukselis_satirlari"] = _yukselis_sirala(veri["satirlar"])
     kazanimlar = kazanim_ortalamalari([t.id for t in ogrenciler])
     veri["kazanimlar"] = kazanimlar
     veri["kazanim_gruplari"] = kazanimlari_derse_gore(kazanimlar)
     veri["nokta"] = sinif_nokta_atisi([t.id for t in ogrenciler])
     return veri
+
+
+def sinif_deneme_kontrol_verisi(hoca: EtutHocasi, sinif: SinifSube) -> dict:
+    """Etüt hocası ekranı — hocanın sorumlu olduğu öğrencilerle sınırlı."""
+    ogrenciler = ogretmen_sinif_ogrencileri(hoca, sinif)
+    veri = sinif_kontrol_verisi_hesapla(ogrenciler, sinif)
+    return _kontrol_verisini_tamamla(veri, ogrenciler)
+
+
+def siniflar_deneme_kontrol_verisi(ogrenciler: list[Talebe], siniflar: list[SinifSube]) -> dict:
+    """Aynı seviyedeki şubelerin ortak deneme özeti."""
+    veri = sinif_kontrol_verisi_hesapla(ogrenciler, siniflar[0], siniflar)
+    return _kontrol_verisini_tamamla(veri, ogrenciler)
+
+
+def seviye_etiketi(seviye: str) -> str:
+    ham = (seviye or "").strip()
+    if ham.isdigit():
+        return f"{ham}. Sınıf"
+    return ham
 
 
 def satirlari_sirala(satirlar: list[OgrenciDenemeSatiri], sirala: str) -> list[OgrenciDenemeSatiri]:

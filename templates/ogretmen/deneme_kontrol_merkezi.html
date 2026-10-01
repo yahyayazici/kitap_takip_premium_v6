@@ -130,7 +130,7 @@
             </thead>
             <tbody>
                 {% for satir in veri.yukselis_satirlari %}
-                <tr class="dk-row" onclick="location.href='{% url 'ogretmen_deneme_kontrol_ogrenci_detay' secili.id satir.talebe.id %}'">
+                <tr class="dk-row" onclick="location.href='{% url 'ogretmen_deneme_kontrol_ogrenci_detay' satir.talebe.sinif_sube_id satir.talebe.id %}'">
                     <td>{{ forloop.counter }}</td>
                     <td>{{ satir.talebe.ad_soyad }}</td>
                     <td>{% if satir.metrikler %}{{ satir.metrikler.ilk_puan }}{% else %}—{% endif %}</td>

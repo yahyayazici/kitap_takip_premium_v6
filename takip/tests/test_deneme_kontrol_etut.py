@@ -268,3 +268,60 @@ class DenemeKontrolKazanimTests(TestCase):
         self.assertNotIn("Kuvvet", ayse_html)
         self.assertNotIn("Paragraf", ayse_html)
         self.assertNotIn("Uzay", ayse_html)
+
+
+class DenemeKontrolTumuTests(TestCase):
+    def test_tumu_ayni_seviyeyi_tek_ozette_toplar(self):
+        user = User.objects.create_user("etut-tumu", password="x")
+        hoca = EtutHocasi.objects.create(ad_soyad="Etüt Tümü", user=user, aktif=True)
+        PersonelProfili.objects.create(
+            user=user,
+            ad_soyad="Etüt Tümü",
+            ana_rol=PersonelProfili.Rol.ETUT_MESUL,
+            etut_hocasi=hoca,
+        )
+        sinif_a = SinifSube.objects.create(sinif="5", sube="A")
+        sinif_b = SinifSube.objects.create(sinif="5", sube="B")
+        hoca.sorumlu_sinif_subeler.add(sinif_a, sinif_b)
+        ali = Talebe.objects.create(
+            ad_soyad="Ali Besa", sinif_sube=sinif_a, etut_hocasi=hoca, dini_ders_hocasi=hoca
+        )
+        veli = Talebe.objects.create(
+            ad_soyad="Veli Besa", sinif_sube=sinif_a, etut_hocasi=hoca, dini_ders_hocasi=hoca
+        )
+        ayse = Talebe.objects.create(
+            ad_soyad="Ayse Besbe", sinif_sube=sinif_b, etut_hocasi=hoca, dini_ders_hocasi=hoca
+        )
+        deneme = DenemeSinavi.objects.create(
+            ad="4. Deneme",
+            sinav_tarihi=date(2026, 10, 1),
+            sinif_seviyesi="5",
+            durum=DenemeSinavi.Durum.AKTIF,
+            tur=DenemeSinavi.Tur.GRUP,
+            sira_no=4,
+        )
+        DenemeSonucu.objects.create(deneme=deneme, talebe=ali, puan=Decimal("100"))
+        DenemeSonucu.objects.create(deneme=deneme, talebe=veli, puan=Decimal("100"))
+        DenemeSonucu.objects.create(deneme=deneme, talebe=ayse, puan=Decimal("40"))
+
+        self.client.force_login(user)
+        tumu = self.client.get(reverse("ogretmen_deneme_kontrol_merkezi"))
+        self.assertEqual(tumu.status_code, 200)
+        html = tumu.content.decode()
+        self.assertEqual(html.count('class="dk-grup-baslik"'), 1)
+        self.assertIn(">5. Sınıf<", html)
+        self.assertIn("3 talebe", html)
+        self.assertIn("Ali Besa", html)
+        self.assertIn("Ayse Besbe", html)
+        self.assertTrue("80.00" in html or "80,00" in html)
+        self.assertIn(">5-A<", html)
+        self.assertIn(">5-B<", html)
+
+        sadece_a = self.client.get(
+            reverse("ogretmen_deneme_kontrol_merkezi_sinif", args=[sinif_a.id])
+        )
+        a_html = sadece_a.content.decode()
+        self.assertIn(">5-A<", a_html)
+        self.assertNotIn("Ayse Besbe", a_html)
+        self.assertNotIn(">5. Sınıf<", a_html)
+        self.assertTrue("100.00" in a_html or "100,00" in a_html)
