@@ -13,7 +13,15 @@ from openpyxl import Workbook
 
 from takip.deneme_kontrol_service import _nokta_yuzde, sinif_nokta_atisi
 from takip.deneme_models import DenemeSinavi, DenemeSoruSonucu
-from takip.deneme_soru_karne import _ders_adi, _satir_soru, _tr_baslik, import_soru_karneleri
+from takip.deneme_soru_karne import (
+    _Parca,
+    _ders_adi,
+    _satir_soru,
+    _soru_satirini_birlestir,
+    _sutun_sorulari,
+    _tr_baslik,
+    import_soru_karneleri,
+)
 from takip.models import EtutHocasi, PersonelProfili, SinifSube, Talebe
 
 
@@ -24,8 +32,39 @@ class SoruSatirParserTests(SimpleTestCase):
         no, konu, sonuc = _satir_soru("2 Sözcükte Anlam A A +")
         self.assertEqual(sonuc, "dogru")
         self.assertEqual(_satir_soru("4 Konu B C")[2], "yanlis")
-        self.assertIsNone(_satir_soru("4 Konu B"))
+        no, konu, sonuc = _satir_soru("10 Paragrafın Anlam Yönü C")
+        self.assertEqual((no, konu, sonuc), (10, "Paragrafın Anlam Yönü", "bos"))
         self.assertEqual(_satir_soru("3 Konu B-")[2], "yanlis")
+        self.assertIsNone(_satir_soru("2 GÜNAY - 5.SINIF SÜREÇ İZLEME SINAVI -"))
+
+    def test_cevap_sutunu_konuya_yapisir(self):
+        segmentler = [
+            _Parca("TÜRKÇE", 94, 140, 740),
+            _Parca("1 Sözcükte Anlam", 30, 130, 712),
+            _Parca("C C +", 174, 210, 711),
+            _Parca("3 Paragrafın Anlam Yönü", 30, 150, 694),
+            _Parca("B D -", 174, 210, 693),
+            _Parca("MATEMATİK", 272, 340, 703),
+            _Parca("3 Açılar", 220, 280, 694),
+            _Parca("D C -", 363, 400, 693),
+            _Parca("10 Paragrafın Anlam Yönü", 29, 92, 632),
+            _Parca("C", 174, 178, 632),
+            _Parca("10 Hello", 406, 426, 632),
+            _Parca("B", 551, 554, 632),
+            _Parca("İNGİLİZCE", 466, 520, 740),
+        ]
+        satirlar = _sutun_sorulari(_soru_satirini_birlestir(segmentler), 595)
+        bulunan = {(s.ders, s.soru_no, s.sonuc) for s in satirlar}
+        self.assertEqual(
+            bulunan,
+            {
+                ("Türkçe", 1, "dogru"),
+                ("Türkçe", 3, "yanlis"),
+                ("Türkçe", 10, "bos"),
+                ("Matematik", 3, "yanlis"),
+                ("İngilizce", 10, "bos"),
+            },
+        )
 
     def test_ders_basligi(self):
         self.assertEqual(_ders_adi("TÜRKÇE"), "Türkçe")

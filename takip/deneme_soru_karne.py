@@ -233,7 +233,11 @@ def _satir_soru(metin: str) -> tuple[int, str, str] | None:
         harfler.append(kalan.pop().upper())
     if sonuc is None and len(harfler) == 2:
         sonuc = DOGRU if harfler[0] == harfler[1] else YANLIS
-    if sonuc is None:
+    # Boş: yalnız doğru cevap harfi kalır, öğrenci cevabı ve işaret basılmaz.
+    if sonuc is None and len(harfler) == 1:
+        sonuc = BOS
+    # Cevap harfi yoksa satır soru değildir. Sınav adındaki tire yanlış sayılmaz.
+    if sonuc is None or not harfler:
         return None
     return no, " ".join(kalan)[:300], sonuc
 
@@ -728,10 +732,61 @@ def _segmentler(kelimeler: list[_Parca]) -> list[_Parca]:
     return satirlar
 
 
+_CEVAP_RE = re.compile(r"^(?:[A-Ea-e]\s+){1,2}[+\-−–—]$")
+_TEK_HARF_RE = re.compile(r"^[A-Ea-e]$")
+
+
+def _cevap_parcasi(metin: str) -> bool:
+    temiz = " ".join((metin or "").split())
+    return bool(_CEVAP_RE.match(temiz) or _TEK_HARF_RE.match(temiz))
+
+
+def _soru_govdesi(metin: str) -> bool:
+    parcalar = (metin or "").split()
+    return bool(parcalar) and _soru_no(parcalar[0]) is not None
+
+
+def _soru_satirini_birlestir(segmentler: list[_Parca]) -> list[_Parca]:
+    """Konu ile sağdaki cevap sütununu (C C +) aynı satırda birleştirir."""
+    if not segmentler:
+        return []
+    sirali = sorted(segmentler, key=lambda s: (-s.y, s.x0))
+    gruplar: list[list[_Parca]] = []
+    for parca in sirali:
+        if not gruplar or abs(gruplar[-1][-1].y - parca.y) > 3.5:
+            gruplar.append([parca])
+        else:
+            gruplar[-1].append(parca)
+    cikti: list[_Parca] = []
+    for grup in gruplar:
+        grup.sort(key=lambda s: s.x0)
+        i = 0
+        while i < len(grup):
+            bu = grup[i]
+            if i + 1 < len(grup) and _cevap_parcasi(grup[i + 1].text):
+                diger = grup[i + 1]
+                gap = diger.x0 - bu.x1
+                tek = bool(_TEK_HARF_RE.match(diger.text.strip()))
+                if -2 <= gap <= 160 and (not tek or _soru_govdesi(bu.text)):
+                    cikti.append(
+                        _Parca(
+                            f"{bu.text} {diger.text}",
+                            min(bu.x0, diger.x0),
+                            max(bu.x1, diger.x1),
+                            max(bu.y, diger.y),
+                        )
+                    )
+                    i += 2
+                    continue
+            cikti.append(bu)
+            i += 1
+    return cikti
+
+
 def _sayfa_oku(page, ad: str, sinif: str) -> tuple[list[_SoruSatiri], str, str]:
     textpage = page.get_textpage()
     try:
-        segmentler = _segmentler(_kelimeler(textpage))
+        segmentler = _soru_satirini_birlestir(_segmentler(_kelimeler(textpage)))
     finally:
         textpage.close()
     ad, sinif = _kimlik_ust(segmentler, ad, sinif)
