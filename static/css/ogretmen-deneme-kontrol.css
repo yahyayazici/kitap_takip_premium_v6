@@ -79,7 +79,12 @@ body.v3-body .dk-page .dk-grup + .dk-grup::before {
     display: block;
     height: 1px;
     margin: 6px 12px 16px;
-    background: linear-gradient(90deg, transparent, var(--cs-border), transparent);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        color-mix(in srgb, var(--cs-accent) 42%, var(--cs-border)),
+        transparent
+    );
 }
 
 body.v3-body .dk-page .dk-grup-head {
@@ -128,7 +133,13 @@ body.v3-body .dk-page .dg-metrik::after {
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(165deg, rgba(255, 255, 255, 0.96) 0%, var(--cs-border) 46%, rgba(255, 255, 255, 0.2) 100%);
+    background: linear-gradient(
+        100deg,
+        color-mix(in srgb, var(--cs-accent) 72%, var(--cs-surface)) 0%,
+        color-mix(in srgb, var(--cs-primary-light) 38%, var(--cs-surface)) 32%,
+        color-mix(in srgb, var(--cs-accent-soft) 24%, var(--cs-border)) 58%,
+        color-mix(in srgb, var(--cs-primary-mid) 52%, var(--cs-surface)) 100%
+    );
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
     mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
@@ -192,7 +203,12 @@ body.v3-body .dk-page details.dk-fold > summary.dk-card-head h2 {
 body.v3-body .dk-page details.dk-fold[open] > summary.dk-card-head {
     margin-bottom: 14px;
     padding-bottom: 12px;
-    background-image: linear-gradient(90deg, transparent, var(--cs-border), transparent);
+    background-image: linear-gradient(
+        90deg,
+        transparent,
+        color-mix(in srgb, var(--cs-primary-light) 50%, var(--cs-border)),
+        transparent
+    );
     background-repeat: no-repeat;
     background-size: 100% 1px;
     background-position: left bottom;
@@ -279,7 +295,12 @@ body.v3-body .dk-page .dk-table th {
     text-align: left;
     color: var(--dk-muted);
     background-color: transparent;
-    background-image: linear-gradient(90deg, transparent, var(--cs-border), transparent);
+    background-image: linear-gradient(
+        90deg,
+        transparent,
+        color-mix(in srgb, var(--cs-primary-light) 46%, var(--cs-border)),
+        transparent
+    );
     background-repeat: no-repeat;
     background-size: 100% 1px;
     background-position: left bottom;
@@ -290,7 +311,12 @@ body.v3-body .dk-page .dk-table td {
     padding: 10px 8px;
     color: var(--dk-text);
     border-bottom: 0;
-    background-image: linear-gradient(90deg, transparent, var(--cs-border-subtle), transparent);
+    background-image: linear-gradient(
+        90deg,
+        transparent,
+        color-mix(in srgb, var(--cs-accent) 22%, var(--cs-border-subtle)),
+        transparent
+    );
     background-repeat: no-repeat;
     background-size: 100% 1px;
     background-position: left bottom;
