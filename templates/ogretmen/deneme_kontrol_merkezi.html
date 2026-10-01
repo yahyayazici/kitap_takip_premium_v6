@@ -1,17 +1,17 @@
-{% extends "ogretmen/base.html" %}
-{% load static %}
-{% block title %}Deneme Kontrol Merkezi · Öğretmen Paneli{% endblock %}
+{% extends "base.html" %}
+{% load l10n static %}
+{% block title %}Deneme Kontrol Merkezi{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}">
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk4">
 {% endblock %}
 
 {% block content %}
-<div class="dash-home ogretmen-dash">
-{% include "ogretmen/hero.html" with title="Deneme Kontrol Merkezi" eyebrow="Öğretmen" meta="Sorumlu sınıflarınızın deneme durumu — tek ekranda" show_date=True %}
+<div class="dash-home ogretmen-dash dk-page">
+{% include "ogretmen/hero.html" with title="Deneme Kontrol Merkezi" eyebrow="Etüt" meta="Sorumlu olduğunuz sınıfların deneme durumu — tek ekranda" show_date=True %}
 
 {% if not siniflar %}
 <div class="dk-card">
-    <p class="dk-empty">Henüz sorumlu bir sınıfınız atanmamış. Yönetim → Öğretmenler ekranından sınıf ataması yapılmalı.</p>
+    <p class="dk-empty">Henüz sorumlu bir sınıfınız atanmamış.</p>
 </div>
 {% else %}
 
@@ -21,11 +21,7 @@
     {% endfor %}
 </div>
 
-{% if not veri or not veri.satirlar %}
-<div class="dk-card">
-    <p class="dk-empty">{{ secili.etiket }} için henüz grup denemesi sonucu bulunmuyor.</p>
-</div>
-{% else %}
+{% if veri and veri.satirlar %}
 
 <div class="dk-summary-card">
     <h2 class="dk-summary-title">{{ secili.etiket }} — Deneme Durumu</h2>
@@ -71,47 +67,77 @@
 
 <div class="dk-card">
     <div class="dk-card-head">
-        <h2>
-            {% if sirala == 'gelisim' %}Gelişim Sıralaması (ilk → son puan farkı){% elif sirala == 'isim' %}Öğrenciler (isme göre){% else %}Başarı Sıralaması (son deneme puanı){% endif %}
-        </h2>
-        <div class="dk-sort-links">
-            <a href="?sirala=puan" class="dk-sort-link{% if sirala == 'puan' %} is-active{% endif %}">Puan</a>
-            <a href="?sirala=gelisim" class="dk-sort-link{% if sirala == 'gelisim' %} is-active{% endif %}">Gelişim</a>
-            <a href="?sirala=isim" class="dk-sort-link{% if sirala == 'isim' %} is-active{% endif %}">İsim</a>
-        </div>
+        <h2>1 · Yükseliş sıralaması</h2>
     </div>
-    <div class="responsive-table">
+    <p class="dk-note">Tüm talebeler, ilk denemeden son denemeye puan artışına göre. Satıra dokununca talebenin kazanımları açılır.</p>
+    {% if veri.yukselis_satirlari %}
+    <div class="responsive-table cs-table-wrap">
         <table class="dk-table">
             <thead>
                 <tr>
                     <th>#</th>
                     <th>Öğrenci</th>
-                    <th>Puan</th>
-                    <th>Net</th>
-                    <th>Önceki Puan</th>
-                    <th>Değişim</th>
-                    <th>Durum</th>
+                    <th>İlk puan</th>
+                    <th>Son puan</th>
+                    <th>Yükseliş</th>
                 </tr>
             </thead>
             <tbody>
-                {% for satir in veri.satirlar %}
+                {% for satir in veri.yukselis_satirlari %}
                 <tr class="dk-row" onclick="location.href='{% url 'ogretmen_deneme_kontrol_ogrenci_detay' secili.id satir.talebe.id %}'">
                     <td>{{ forloop.counter }}</td>
                     <td>{{ satir.talebe.ad_soyad }}</td>
+                    <td>{% if satir.metrikler %}{{ satir.metrikler.ilk_puan }}{% else %}—{% endif %}</td>
                     <td>{{ satir.son_puan|default:"—" }}</td>
-                    <td>{{ satir.son_net|default:"—" }}</td>
-                    <td>{{ satir.onceki_puan|default:"—" }}</td>
                     <td class="dk-durum-{{ satir.durum_ok }}">
-                        {% if satir.degisim > 0 %}+{{ satir.degisim }}{% elif satir.degisim < 0 %}{{ satir.degisim }}{% else %}—{% endif %}
-                    </td>
-                    <td class="dk-durum-ok dk-durum-{{ satir.durum_ok }}">
-                        {% if satir.durum_ok == 'yukseliyor' %}↑{% elif satir.durum_ok == 'dusuyor' %}↓{% elif satir.durum_ok == 'sabit' %}→{% else %}—{% endif %}
+                        {% if satir.metrikler %}
+                            {% if satir.metrikler.genel_degisim > 0 %}+{% endif %}{{ satir.metrikler.genel_degisim }}
+                        {% else %}—{% endif %}
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+    {% else %}
+    <p class="dk-empty">Bu sınıfta talebe yok.</p>
+    {% endif %}
+</div>
+
+<div class="dk-card">
+    <div class="dk-card-head">
+        <h2>2 · Kazanımlar</h2>
+    </div>
+    <p class="dk-note">Yüklenen denemelerde çıkan konular burada birikir. Yeni konu eklenir, çıkan konu silinmez. Aynı konu tekrar gelirse başarı oranı ortalamaya katılır.</p>
+    {% if veri.kazanim_gruplari %}
+        {% for ders in veri.kazanim_gruplari %}
+        <h3 class="dk-kazanim-ders">{{ ders.ders_ad }}</h3>
+        <div class="responsive-table cs-table-wrap">
+            <table class="dk-table">
+                <thead>
+                    <tr>
+                        <th>Kazanım</th>
+                        <th>Ortalama</th>
+                        <th>Deneme</th>
+                        <th>Son</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for konu in ders.konular %}
+                    <tr>
+                        <td>{{ konu.konu_ad }}</td>
+                        <td>{% if konu.ortalama is not None %}%{{ konu.ortalama|floatformat:"-2" }}{% else %}—{% endif %}</td>
+                        <td>{{ konu.deneme_sayisi }}</td>
+                        <td>{% if konu.son_yuzde is not None %}%{{ konu.son_yuzde|floatformat:"-2" }}{% else %}—{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endfor %}
+    {% else %}
+    <p class="dk-empty">Henüz kazanım yüklenmedi. Deneme konu kazanımı yüklendikçe konular burada birikecek.</p>
+    {% endif %}
 </div>
 
 {% if veri.grup_analizi.seri %}
@@ -121,13 +147,13 @@
         {% for nokta in veri.grup_analizi.seri %}
         <div class="dk-grup-bar" title="{{ nokta.ad }}">
             <strong>{{ nokta.ortalama }}</strong>
-            <div class="bar" style="height:{{ nokta.ortalama_yuzde }}%;"></div>
+            <div class="bar" style="height:{{ nokta.ortalama_yuzde|unlocalize }}%;"></div>
             <small>{% if nokta.sira_no %}{{ nokta.sira_no }}. D{% else %}{{ nokta.tarih|date:"d.m" }}{% endif %}</small>
         </div>
         {% endfor %}
     </div>
     {% if veri.grup_analizi.genel_degisim is not None %}
-    <p style="margin:10px 0 0;font-size:13px;color:#173b80;">
+    <p class="dk-grup-degisim">
         Genel değişim: {% if veri.grup_analizi.genel_degisim > 0 %}+{% endif %}{{ veri.grup_analizi.genel_degisim }}
     </p>
     {% endif %}
@@ -144,6 +170,10 @@
 </div>
 {% endif %}
 
+{% else %}
+<div class="dk-card">
+    <p class="dk-empty">{{ secili.etiket }} için henüz grup denemesi sonucu bulunmuyor.</p>
+</div>
 {% endif %}
 {% endif %}
 </div>

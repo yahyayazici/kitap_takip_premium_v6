@@ -401,6 +401,18 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         nav_group="Eğitim",
     ),
     PanelNavItem(
+        key="deneme_kontrol",
+        label="Deneme Kontrol",
+        url_name="ogretmen_deneme_kontrol_merkezi",
+        roller=frozenset({ROL_ETUT_MESUL, ROL_SINIF_MESUL}),
+        active_names=(
+            "ogretmen_deneme_kontrol_merkezi",
+            "ogretmen_deneme_kontrol_merkezi_sinif",
+            "ogretmen_deneme_kontrol_ogrenci_detay",
+        ),
+        nav_group="Eğitim",
+    ),
+    PanelNavItem(
         key="etut_haftalik_karne",
         label="Haftalık Karneler",
         url_name="etut_haftalik_karneler",
@@ -890,6 +902,11 @@ def panel_nav_items(user: User) -> list[PanelNavItem]:
             continue
         if item.key == "etut_takip" and not deneme_modulu_erisimi_var(user):
             continue
+        if item.key == "deneme_kontrol":
+            from takip.deneme_kontrol_service import deneme_kontrol_erisimi_var
+
+            if not deneme_kontrol_erisimi_var(user):
+                continue
         if item.key == "soru_takip" and not soru_takip_modulu_erisimi_var(user):
             continue
         if item.key == "akademik_mudahale" and not akademik_mudahale_modulu_erisimi_var(

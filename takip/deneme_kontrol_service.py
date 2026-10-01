@@ -54,6 +54,16 @@ def hoca_sinif_secenekleri(hoca: EtutHocasi):
     return _hoca_sinif_kartlari(hoca)
 
 
+def deneme_kontrol_erisimi_var(user) -> bool:
+    """Yalnızca sorumlu sınıfı olan etüt / sınıf mesulü görür."""
+    from takip.user_helpers import etut_mesul_for_user
+
+    hoca = etut_mesul_for_user(user)
+    if not hoca:
+        return False
+    return hoca.sorumlu_sinif_subeler.filter(aktif=True).exists()
+
+
 def _oncelik_esik() -> dict:
     esik = dict(_VARSAYILAN_ONCELIK_ESIK)
     esik.update(getattr(settings, "DENEME_ONCELIKLI_TAKIP", {}) or {})
@@ -340,10 +350,120 @@ def sinif_kontrol_verisi_hesapla(ogrenciler: list[Talebe], sinif: SinifSube) -> 
     }
 
 
+def _yukselis_sirala(satirlar: list[OgrenciDenemeSatiri]) -> list[OgrenciDenemeSatiri]:
+    """İlk denemeden son denemeye puan artışı. Artışı olmayanlar listenin sonunda."""
+
+    def anahtar(satir: OgrenciDenemeSatiri):
+        degisim = None
+        if satir.metrikler:
+            degisim = satir.metrikler.get("genel_degisim")
+        return (
+            degisim is None,
+            -(degisim if degisim is not None else 0),
+            satir.talebe.ad_soyad or "",
+        )
+
+    return sorted(satirlar, key=anahtar)
+
+
+def kazanim_ortalamalari(talebe_ids: list[int]) -> list[dict]:
+    """Yüklenen denemelerden biriken kazanımlar.
+
+    Konu bir kez görününce listede kalır. Aynı konu sonraki denemede
+    tekrar gelirse, deneme deneme sınıf (veya talebe) ortalaması alınır.
+    """
+    if not talebe_ids:
+        return []
+
+    from takip.deneme_models import DenemeKazanimSonucu
+
+    kayitlar = (
+        DenemeKazanimSonucu.objects.filter(
+            talebe_id__in=talebe_ids,
+            deneme__durum__in=(DenemeSinavi.Durum.AKTIF, DenemeSinavi.Durum.ARSIV),
+        )
+        .select_related("deneme")
+        .order_by("deneme__sinav_tarihi", "deneme_id", "id")
+    )
+
+    kovalar: dict[tuple[str, str], dict] = {}
+    for kayit in kayitlar:
+        anahtar = (kayit.ders_key, kayit.konu_key)
+        kova = kovalar.get(anahtar)
+        if kova is None:
+            kova = {
+                "ders_ad": kayit.ders_ad,
+                "konu_ad": kayit.konu_ad,
+                "ders_key": kayit.ders_key,
+                "konu_key": kayit.konu_key,
+                "ilk": (kayit.deneme.sinav_tarihi, kayit.deneme_id),
+                "sira": len(kovalar),
+                "sinavlar": {},
+            }
+            kovalar[anahtar] = kova
+        sinav = kova["sinavlar"].setdefault(
+            kayit.deneme_id,
+            {"tarih": kayit.deneme.sinav_tarihi, "yuzdeler": []},
+        )
+        if kayit.yuzde is not None:
+            sinav["yuzdeler"].append(Decimal(kayit.yuzde))
+
+    ozetler = []
+    for kova in kovalar.values():
+        sinav_ortalamalari = []
+        son = None
+        for sinav in kova["sinavlar"].values():
+            if not sinav["yuzdeler"]:
+                continue
+            ort = sum(sinav["yuzdeler"], Decimal("0")) / Decimal(len(sinav["yuzdeler"]))
+            sinav_ortalamalari.append(ort)
+            if son is None or sinav["tarih"] >= son[0]:
+                son = (sinav["tarih"], ort)
+        ortalama = None
+        if sinav_ortalamalari:
+            ortalama = (
+                sum(sinav_ortalamalari, Decimal("0")) / Decimal(len(sinav_ortalamalari))
+            ).quantize(Decimal("0.01"))
+        ozetler.append(
+            {
+                "ders_ad": kova["ders_ad"],
+                "konu_ad": kova["konu_ad"],
+                "ders_key": kova["ders_key"],
+                "konu_key": kova["konu_key"],
+                "ortalama": ortalama,
+                "deneme_sayisi": len(sinav_ortalamalari),
+                "son_yuzde": son[1].quantize(Decimal("0.01")) if son else None,
+                "ilk": kova["ilk"],
+                "sira": kova["sira"],
+            }
+        )
+
+    ozetler.sort(key=lambda o: o["sira"])
+    return ozetler
+
+
+def kazanimlari_derse_gore(ozetler: list[dict]) -> list[dict]:
+    gruplar: list[dict] = []
+    indeks: dict[str, dict] = {}
+    for ozet in ozetler:
+        grup = indeks.get(ozet["ders_key"])
+        if grup is None:
+            grup = {"ders_ad": ozet["ders_ad"], "ders_key": ozet["ders_key"], "konular": []}
+            indeks[ozet["ders_key"]] = grup
+            gruplar.append(grup)
+        grup["konular"].append(ozet)
+    return gruplar
+
+
 def sinif_deneme_kontrol_verisi(hoca: EtutHocasi, sinif: SinifSube) -> dict:
     """Etüt hocası ekranı — hocanın sorumlu olduğu öğrencilerle sınırlı."""
     ogrenciler = ogretmen_sinif_ogrencileri(hoca, sinif)
-    return sinif_kontrol_verisi_hesapla(ogrenciler, sinif)
+    veri = sinif_kontrol_verisi_hesapla(ogrenciler, sinif)
+    veri["yukselis_satirlari"] = _yukselis_sirala(veri["satirlar"])
+    kazanimlar = kazanim_ortalamalari([t.id for t in ogrenciler])
+    veri["kazanimlar"] = kazanimlar
+    veri["kazanim_gruplari"] = kazanimlari_derse_gore(kazanimlar)
+    return veri
 
 
 def satirlari_sirala(satirlar: list[OgrenciDenemeSatiri], sirala: str) -> list[OgrenciDenemeSatiri]:
