@@ -39,11 +39,16 @@ class DenemeKontrolEtutTests(TestCase):
         self.client.force_login(user)
 
         panel = self.client.get(reverse("dashboard"))
-        self.assertContains(panel, "Deneme Kontrol")
+        self.assertContains(panel, ">Deneme</a>")
+        self.assertNotContains(panel, ">Deneme Kontrol</a>")
+        self.assertNotContains(panel, ">Etüt Takip</a>")
+        self.assertContains(panel, reverse("ogretmen_deneme_kontrol_merkezi"))
 
         sayfa = self.client.get(reverse("ogretmen_deneme_kontrol_merkezi"))
         self.assertEqual(sayfa.status_code, 200)
-        self.assertContains(sayfa, "Deneme Kontrol Merkezi")
+        self.assertContains(sayfa, "Deneme Kontrol")
+        self.assertContains(sayfa, "Etüt Kontrol")
+        self.assertContains(sayfa, "Denemeler")
         self.assertContains(sayfa, f"{sinif.sinif}-{sinif.sube}")
 
     def test_sinifsiz_etut_hocasi_menude_gormez(self):

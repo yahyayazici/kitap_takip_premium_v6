@@ -1,13 +1,14 @@
 {% extends "base.html" %}
-{% load l10n static %}
+{% load l10n static deneme_panel %}
 {% block title %}Deneme Kontrol Merkezi{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk10">
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk11">
 {% endblock %}
 
 {% block content %}
 <div class="dash-home ogretmen-dash dk-page">
-{% include "ogretmen/hero.html" with title="Deneme Kontrol Merkezi" eyebrow="Etüt" meta="Sorumlu olduğunuz sınıfların deneme durumu — tek ekranda" show_date=True %}
+{% include "ogretmen/hero.html" with title="Deneme" eyebrow="Etüt" meta="Kontrol, etüt takibi ve deneme listesi — tek panel" show_date=True %}
+{% deneme_panel_switch "kontrol" %}
 
 {% if not siniflar %}
 <div class="dk-card">

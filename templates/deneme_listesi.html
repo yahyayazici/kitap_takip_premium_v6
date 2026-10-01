@@ -1,7 +1,11 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static deneme_panel %}
 {% block title %}Denemeler · {{ panel_short }}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek40">{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek40">
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk11">
+{% endblock %}
 {% block content %}
+{% deneme_panel_switch "denemeler" %}
 {% include "partials/deneme_listesi_content.html" %}
 {% endblock %}

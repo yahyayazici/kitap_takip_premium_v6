@@ -1,12 +1,13 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static deneme_panel %}
 {% block title %}{{ talebe.ad_soyad }} · Deneme Kontrol{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk4">
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk11">
 {% endblock %}
 {% block content %}
 <div class="dash-home ogretmen-dash dk-page">
 {% include "ogretmen/hero.html" with title=talebe.ad_soyad eyebrow="Deneme" meta=sinif.etiket|add:" · Deneme gelişimi" show_date=True %}
+{% deneme_panel_switch "kontrol" %}
 
 <div class="dk-back">
     <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' sinif.id %}" class="ghost-btn">← {{ sinif.etiket }} listesine dön</a>
