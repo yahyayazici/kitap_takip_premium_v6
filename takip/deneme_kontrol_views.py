@@ -46,6 +46,7 @@ def deneme_kontrol_merkezi(request, sinif_id: int | None = None):
         veri = sinif_deneme_kontrol_verisi(hoca, sinif)
         veri["satirlar"] = satirlari_sirala(veri["satirlar"], sirala)
         gruplar.append({"kart": kart, "veri": veri})
+    gosterilen_id = sinif_id if any(kart.id == sinif_id for kart in siniflar) else None
 
     return render(
         request,
@@ -54,7 +55,7 @@ def deneme_kontrol_merkezi(request, sinif_id: int | None = None):
             "siniflar": siniflar,
             "gruplar": gruplar,
             "sirala": sirala,
-            "secili_id": sinif_id,
+            "gosterilen_id": gosterilen_id,
         },
     )
 

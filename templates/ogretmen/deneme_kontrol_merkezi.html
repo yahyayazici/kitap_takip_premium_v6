@@ -2,7 +2,7 @@
 {% load l10n static %}
 {% block title %}Deneme Kontrol Merkezi{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk9">
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk10">
 {% endblock %}
 
 {% block content %}
@@ -15,9 +15,19 @@
 </div>
 {% else %}
 
+{% if siniflar|length > 1 %}
+<nav class="dk-switch" aria-label="Sınıf">
+    <a href="{% url 'ogretmen_deneme_kontrol_merkezi' %}" class="dk-switch-btn{% if not gosterilen_id %} is-active{% endif %}">Tümü</a>
+    {% for s in siniflar %}
+    <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' s.id %}" class="dk-switch-btn{% if gosterilen_id == s.id %} is-active{% endif %}">{{ s.etiket }}</a>
+    {% endfor %}
+</nav>
+{% endif %}
+
 {% for grup in gruplar %}
+{% if not gosterilen_id or gosterilen_id == grup.kart.id %}
 {% with veri=grup.veri secili=grup.kart %}
-<section class="dk-grup"{% if secili_id == secili.id %} id="dk-secili-grup"{% endif %}>
+<section class="dk-grup">
     <header class="dk-grup-head">
         <h2 class="dk-grup-baslik">{{ secili.etiket }}</h2>
         <p class="dk-grup-sayi">{{ secili.ogrenci_sayisi }} talebe</p>
@@ -202,6 +212,7 @@
 {% endif %}
 </section>
 {% endwith %}
+{% endif %}
 {% endfor %}
 {% endif %}
 </div>
