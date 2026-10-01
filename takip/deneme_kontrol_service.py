@@ -57,14 +57,55 @@ def hoca_sinif_secenekleri(hoca: EtutHocasi):
     return _hoca_sinif_kartlari(hoca)
 
 
-def deneme_kontrol_erisimi_var(user) -> bool:
-    """Yalnızca sorumlu sınıfı olan etüt / sınıf mesulü görür."""
+def _sinifi_var(hoca: EtutHocasi) -> bool:
+    return hoca.sorumlu_sinif_subeler.filter(aktif=True).exists()
+
+
+def deneme_kontrol_hocalari(user) -> list[EtutHocasi]:
+    """Sorumlu sınıfı olan etüt mesulü, yoksa personel panelindeki etüt hocaları.
+
+    Branş öğretmeni girmez. Etüt mesulü yalnız kendi sınıfını görür.
+    Eğitim mesulü ve idare, etüt kontrolde baktığı hocaların sınıflarını görür.
+    """
+    if not getattr(user, "is_authenticated", False):
+        return []
+
+    from takip.ogretmen_service import ogretmen_paneli_kullanicisi_mi
+
+    if ogretmen_paneli_kullanicisi_mi(user):
+        return []
+
     from takip.user_helpers import etut_mesul_for_user
 
-    hoca = etut_mesul_for_user(user)
-    if not hoca:
-        return False
-    return hoca.sorumlu_sinif_subeler.filter(aktif=True).exists()
+    kendi = etut_mesul_for_user(user)
+    if kendi:
+        return [kendi] if _sinifi_var(kendi) else []
+
+    from takip.panel_permissions import deneme_modulu_erisimi_var
+
+    if not deneme_modulu_erisimi_var(user) and not user.is_staff:
+        return []
+
+    from takip.etut_kontrol_service import kullanici_etut_hocalari
+    from takip.etut_zimmet_service import etut_mesul_queryset
+
+    adaylar = [h for h in kullanici_etut_hocalari(user) if h.aktif and _sinifi_var(h)]
+    if not adaylar:
+        adaylar = [h for h in etut_mesul_queryset() if _sinifi_var(h)]
+
+    gorulen: set[int] = set()
+    sonuc: list[EtutHocasi] = []
+    for hoca in adaylar:
+        if hoca.pk in gorulen:
+            continue
+        gorulen.add(hoca.pk)
+        sonuc.append(hoca)
+    return sonuc
+
+
+def deneme_kontrol_erisimi_var(user) -> bool:
+    """Sorumlu sınıfı olan etüt / sınıf mesulü, ya da o sınıfları gören personel."""
+    return bool(deneme_kontrol_hocalari(user))
 
 
 def _oncelik_esik() -> dict:
