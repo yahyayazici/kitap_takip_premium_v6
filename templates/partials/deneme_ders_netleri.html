@@ -1,0 +1,47 @@
+{% if ders_net_var %}
+<div class="deneme-net-strip" aria-label="Ders net ortalaması">
+    {% for b in ders_netleri %}
+    {% if b.adet %}
+    <article class="deneme-net-card">
+        <span class="deneme-net-ders">{{ b.etiket }}</span>
+        <strong class="deneme-net-sayi">{{ b.net }}</strong>
+        <span class="deneme-net-birim">net</span>
+        <span class="deneme-net-dyb">
+            <span><b>{{ b.dogru }}</b> D</span>
+            <span><b>{{ b.yanlis }}</b> Y</span>
+            <span><b>{{ b.bos }}</b> B</span>
+        </span>
+    </article>
+    {% endif %}
+    {% endfor %}
+</div>
+{% if sinif_netleri %}
+<div class="responsive-table deneme-sinif-net-wrap">
+    <table class="report-data-table deneme-sinif-net">
+        <thead>
+            <tr>
+                <th>Sınıf</th>
+                {% for b in ders_netleri %}
+                <th>{{ b.etiket }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for sinif in sinif_netleri %}
+            <tr>
+                <td><strong>{{ sinif.etiket }}</strong></td>
+                {% for b in sinif.branslar %}
+                <td>
+                    {% if b.adet %}
+                    <strong class="deneme-net-sayi">{{ b.net }}</strong>
+                    <span class="deneme-net-dyb">{{ b.dogru }} D · {{ b.yanlis }} Y · {{ b.bos }} B</span>
+                    {% else %}—{% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endif %}

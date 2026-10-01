@@ -19,7 +19,8 @@ from takip.deneme_excel import (
     DenemeImportOnizleme,
 )
 from takip.deneme_kazanim_excel import import_kazanim_excel
-from takip.deneme_models import DenemeKazanimSonucu
+from takip.deneme_models import DenemeKazanimSonucu, DenemeSoruSonucu
+from takip.deneme_soru_karne import import_soru_karneleri
 from takip.deneme_service import (
     BRANS_ETIKETLERI,
     DENEME_DETAY_BRANSLAR,
@@ -173,6 +174,13 @@ def deneme_detay(request, pk):
                 .distinct()
                 .count()
             ),
+            "soru_satir": DenemeSoruSonucu.objects.filter(deneme=deneme).count(),
+            "soru_talebe": (
+                DenemeSoruSonucu.objects.filter(deneme=deneme)
+                .values("talebe_id")
+                .distinct()
+                .count()
+            ),
             "talebeler": (
                 Talebe.objects.filter(aktif=True).order_by("ad_soyad")
                 if deneme.durum == DenemeSinavi.Durum.AKTIF
@@ -242,6 +250,44 @@ def deneme_kazanim_yukle(request, pk):
         deneme_zekasi_analizi(request.user, deneme, sonuclar, yenile=True)
     except Exception:  # noqa: BLE001
         pass
+    return redirect("yonetim:deneme_detay", pk=pk)
+
+
+@yonetici_gerekli
+def deneme_soru_yukle(request, pk):
+    if not deneme_yukleyebilir(request.user):
+        messages.error(request, "Soru karnesi yükleme yetkiniz yok.")
+        return redirect("yonetim:deneme_listesi")
+
+    deneme = get_object_or_404(DenemeSinavi, pk=pk)
+    if deneme.durum != DenemeSinavi.Durum.AKTIF:
+        messages.error(request, "Soru karnesi yalnızca aktif denemelere yüklenebilir.")
+        return redirect("yonetim:deneme_detay", pk=pk)
+    if request.method != "POST":
+        return redirect("yonetim:deneme_detay", pk=pk)
+
+    dosyalar = request.FILES.getlist("soru_karne")
+    if not dosyalar:
+        messages.error(request, "Karne dosyası seçin.")
+        return redirect("yonetim:deneme_detay", pk=pk)
+    for dosya in dosyalar:
+        if not (dosya.name or "").lower().endswith((".pdf", ".xlsx", ".xlsm", ".zip")):
+            messages.error(request, "PDF, Excel (.xlsx) veya zip yükleyin.")
+            return redirect("yonetim:deneme_detay", pk=pk)
+
+    try:
+        stats = import_soru_karneleri(dosyalar, deneme=deneme)
+    except Exception as exc:  # noqa: BLE001
+        messages.error(request, f"Soru karnesi işlenemedi: {exc}")
+        return redirect("yonetim:deneme_detay", pk=pk)
+
+    messages.success(
+        request,
+        f"Soru karnesi yüklendi: {stats.soru_yazilan} soru, "
+        f"{stats.eslesen_talebe} talebe, {stats.ders_sayisi} ders.",
+    )
+    for uyari in stats.uyari[:3]:
+        messages.warning(request, uyari)
     return redirect("yonetim:deneme_detay", pk=pk)
 
 

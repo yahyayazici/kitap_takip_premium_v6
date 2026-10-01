@@ -141,6 +141,91 @@
     gap: var(--cs-space-3);
 }
 
+.deneme-detail-page .deneme-net-strip {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: var(--cs-space-3);
+    margin: 0 0 var(--cs-space-4);
+}
+
+.deneme-detail-page .deneme-net-card {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-height: var(--cs-touch-min);
+    padding: var(--cs-space-3);
+    border: 1px solid transparent;
+    border-radius: var(--cs-radius-md);
+    background:
+        linear-gradient(180deg, var(--cs-surface), var(--cs-surface-muted)) padding-box,
+        linear-gradient(
+            120deg,
+            color-mix(in srgb, var(--cs-accent) 70%, var(--cs-surface)),
+            var(--cs-border) 55%,
+            color-mix(in srgb, var(--cs-primary-light) 45%, var(--cs-surface))
+        ) border-box;
+    box-shadow: var(--cs-shadow-sm);
+}
+
+.deneme-detail-page .deneme-net-ders {
+    font-family: var(--cs-font);
+    font-size: var(--cs-font-caption);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--cs-text-secondary);
+}
+
+.deneme-detail-page .deneme-net-sayi {
+    font-family: var(--cs-font);
+    font-size: 22px;
+    font-weight: 650;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    color: var(--cs-primary);
+}
+
+.deneme-detail-page .deneme-net-birim {
+    font-size: var(--cs-font-caption);
+    color: var(--cs-text-muted);
+}
+
+.deneme-detail-page .deneme-net-dyb {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--cs-space-2);
+    margin-top: var(--cs-space-1);
+    font-size: var(--cs-font-caption);
+    font-variant-numeric: tabular-nums;
+    color: var(--cs-text-muted);
+}
+
+.deneme-detail-page .deneme-net-dyb b {
+    color: var(--cs-text-primary);
+    font-weight: 650;
+}
+
+.deneme-detail-page .deneme-sinif-net-wrap {
+    margin: 0 0 var(--cs-space-4);
+}
+
+.deneme-detail-page .deneme-sinif-net td .deneme-net-sayi {
+    display: block;
+    font-size: 16px;
+}
+
+.deneme-detail-page .deneme-sinif-net td .deneme-net-dyb {
+    display: block;
+    margin-top: 2px;
+}
+
+.deneme-detail-page .deneme-net-foot td {
+    font-weight: 650;
+    color: var(--cs-primary);
+    background: var(--cs-surface-muted);
+    border-top: 1px solid var(--cs-border);
+}
+
 .deneme-detail-page .deneme-branches-mobile {
     display: none;
 }
@@ -316,6 +401,10 @@
         letter-spacing: var(--cs-letter-kicker);
         text-transform: uppercase;
         color: var(--cs-text-muted);
+    }
+
+    .deneme-detail-page .deneme-net-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .deneme-detail-page .deneme-branches-desktop {

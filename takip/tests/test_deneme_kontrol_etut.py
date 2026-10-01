@@ -39,11 +39,16 @@ class DenemeKontrolEtutTests(TestCase):
         self.client.force_login(user)
 
         panel = self.client.get(reverse("dashboard"))
-        self.assertContains(panel, "Deneme Kontrol")
+        self.assertContains(panel, ">Deneme</a>")
+        self.assertNotContains(panel, ">Deneme Kontrol</a>")
+        self.assertNotContains(panel, ">Etüt Takip</a>")
+        self.assertContains(panel, reverse("ogretmen_deneme_kontrol_merkezi"))
 
         sayfa = self.client.get(reverse("ogretmen_deneme_kontrol_merkezi"))
         self.assertEqual(sayfa.status_code, 200)
-        self.assertContains(sayfa, "Deneme Kontrol Merkezi")
+        self.assertContains(sayfa, "Deneme Kontrol")
+        self.assertContains(sayfa, "Etüt Kontrol")
+        self.assertContains(sayfa, "Denemeler")
         self.assertContains(sayfa, f"{sinif.sinif}-{sinif.sube}")
 
     def test_sinifsiz_etut_hocasi_menude_gormez(self):
@@ -55,6 +60,37 @@ class DenemeKontrolEtutTests(TestCase):
 
         sayfa = self.client.get(reverse("ogretmen_deneme_kontrol_merkezi"))
         self.assertRedirects(sayfa, reverse("dashboard"))
+
+    def test_egitim_mesulu_deneme_kontrol_sekmesini_gorur(self):
+        user, hoca = self._etut(
+            "egitim-deneme",
+            rol=PersonelProfili.Rol.EGITIM_MESUL,
+        )
+        sinif = hoca.sorumlu_sinif_subeler.get()
+        self.client.force_login(user)
+
+        liste = self.client.get(reverse("deneme_listesi"))
+        self.assertEqual(liste.status_code, 200)
+        self.assertContains(liste, "Deneme Kontrol")
+        self.assertContains(liste, "Etüt Kontrol")
+        self.assertContains(liste, "Denemeler")
+
+        sayfa = self.client.get(reverse("ogretmen_deneme_kontrol_merkezi"))
+        self.assertEqual(sayfa.status_code, 200)
+        self.assertContains(sayfa, f"{sinif.sinif}-{sinif.sube}")
+
+    def test_personelsiz_demo_hocasi_kendi_sinifini_gorur(self):
+        user = User.objects.create_superuser("demo-deneme", "demo@example.com", "x")
+        hoca = EtutHocasi.objects.create(ad_soyad="Demo", user=user, aktif=True)
+        sinif = SinifSube.objects.create(sinif="8", sube="A")
+        hoca.sorumlu_sinif_subeler.add(sinif)
+        self.client.force_login(user)
+
+        liste = self.client.get(reverse("deneme_listesi"))
+        self.assertContains(liste, "Deneme Kontrol")
+        sayfa = self.client.get(reverse("ogretmen_deneme_kontrol_merkezi"))
+        self.assertEqual(sayfa.status_code, 200)
+        self.assertContains(sayfa, "8-A")
 
     def test_brans_ogretmeninde_yok(self):
         user = User.objects.create_user("brans-deneme", password="x")

@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from takip.deneme_gelisim_service import talebe_deneme_gelisim_paketi
 from takip.deneme_kontrol_service import (
-    deneme_kontrol_erisimi_var,
+    deneme_kontrol_hocalari,
     hoca_sinif_secenekleri,
     kazanim_ortalamalari,
     kazanimlari_derse_gore,
@@ -17,13 +17,17 @@ from takip.deneme_kontrol_service import (
 from takip.models import SinifSube
 from takip.ogretmen_not_service import ogretmen_sinif_ogrencileri
 from takip.ogretmen_service import kullanici_ogretmen_mi
-from takip.user_helpers import etut_mesul_for_user
 
 
-def _hoca_yukle(request):
-    if not deneme_kontrol_erisimi_var(request.user):
-        return None
-    return etut_mesul_for_user(request.user)
+def _hocalar(request):
+    return deneme_kontrol_hocalari(request.user)
+
+
+def _sinif_hocasi(hocalar, sinif_id: int):
+    for hoca in hocalar:
+        if hoca.sorumlu_sinif_subeler.filter(pk=sinif_id, aktif=True).exists():
+            return hoca
+    return None
 
 
 def _erisim_yok(request):
@@ -32,42 +36,48 @@ def _erisim_yok(request):
     return redirect("dashboard")
 
 
-def _secili_sinif(siniflar, sinif_id: int | None):
-    if sinif_id:
-        return next((s for s in siniflar if s.id == sinif_id), None)
-    return siniflar[0] if siniflar else None
-
-
 @login_required
 def deneme_kontrol_merkezi(request, sinif_id: int | None = None):
-    hoca = _hoca_yukle(request)
-    if not hoca:
+    hocalar = _hocalar(request)
+    if not hocalar:
         return _erisim_yok(request)
 
-    siniflar = hoca_sinif_secenekleri(hoca)
-    secili = _secili_sinif(siniflar, sinif_id)
+    sirala = (request.GET.get("sirala") or "puan").strip()
+    siniflar = []
+    gruplar = []
+    gorulen: set[int] = set()
+    for hoca in hocalar:
+        for kart in hoca_sinif_secenekleri(hoca):
+            if kart.id in gorulen:
+                continue
+            gorulen.add(kart.id)
+            sinif = get_object_or_404(SinifSube, pk=kart.id)
+            veri = sinif_deneme_kontrol_verisi(hoca, sinif)
+            veri["satirlar"] = satirlari_sirala(veri["satirlar"], sirala)
+            siniflar.append(kart)
+            gruplar.append({"kart": kart, "veri": veri})
+    gosterilen_id = sinif_id if any(kart.id == sinif_id for kart in siniflar) else None
 
-    ctx = {
-        "siniflar": siniflar,
-        "secili": secili,
-        "sirala": (request.GET.get("sirala") or "puan").strip(),
-        "veri": None,
-    }
-
-    if secili:
-        sinif = get_object_or_404(SinifSube, pk=secili.id)
-        veri = sinif_deneme_kontrol_verisi(hoca, sinif)
-        veri["satirlar"] = satirlari_sirala(veri["satirlar"], ctx["sirala"])
-        ctx["veri"] = veri
-
-    return render(request, "ogretmen/deneme_kontrol_merkezi.html", ctx)
+    return render(
+        request,
+        "ogretmen/deneme_kontrol_merkezi.html",
+        {
+            "siniflar": siniflar,
+            "gruplar": gruplar,
+            "sirala": sirala,
+            "gosterilen_id": gosterilen_id,
+        },
+    )
 
 
 @login_required
 def deneme_kontrol_ogrenci_detay(request, sinif_id: int, talebe_id: int):
-    hoca = _hoca_yukle(request)
-    if not hoca:
+    hocalar = _hocalar(request)
+    if not hocalar:
         return _erisim_yok(request)
+    hoca = _sinif_hocasi(hocalar, sinif_id)
+    if not hoca:
+        return redirect("ogretmen_deneme_kontrol_merkezi")
 
     sinif = get_object_or_404(SinifSube, pk=sinif_id)
     ogrenciler = ogretmen_sinif_ogrencileri(hoca, sinif)

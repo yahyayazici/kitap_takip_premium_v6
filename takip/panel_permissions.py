@@ -102,6 +102,22 @@ SABAH_BESLENME_ROLLER = frozenset(
 )
 
 
+_DENEME_PANEL_ACTIVE = (
+    "deneme_listesi",
+    "deneme_detay",
+    "deneme_bireysel_pdf",
+    "deneme_karne_zip",
+    "etut_kontrol_panel",
+    "etut_kontrol",
+    "etut_kontrol_deneme",
+    "etut_kontrol_talebeler",
+    "etut_kontrol_talebe",
+    "ogretmen_deneme_kontrol_merkezi",
+    "ogretmen_deneme_kontrol_merkezi_sinif",
+    "ogretmen_deneme_kontrol_ogrenci_detay",
+)
+
+
 @dataclass(frozen=True)
 class PanelNavItem:
     key: str
@@ -898,15 +914,25 @@ def panel_nav_items(user: User) -> list[PanelNavItem]:
             continue
         if item.key == "ss_deneme" and not ktt_modulu_erisimi_var(user):
             continue
-        if item.key == "deneme" and not deneme_modulu_erisimi_var(user):
+        if item.key in {"etut_takip", "deneme_kontrol"}:
             continue
-        if item.key == "etut_takip" and not deneme_modulu_erisimi_var(user):
-            continue
-        if item.key == "deneme_kontrol":
+        if item.key == "deneme":
+            from dataclasses import replace
+
             from takip.deneme_kontrol_service import deneme_kontrol_erisimi_var
 
-            if not deneme_kontrol_erisimi_var(user):
+            kontrol = deneme_kontrol_erisimi_var(user)
+            if not deneme_modulu_erisimi_var(user) and not kontrol:
                 continue
+            item = replace(
+                item,
+                url_name=(
+                    "ogretmen_deneme_kontrol_merkezi"
+                    if kontrol
+                    else item.url_name
+                ),
+                active_names=_DENEME_PANEL_ACTIVE,
+            )
         if item.key == "soru_takip" and not soru_takip_modulu_erisimi_var(user):
             continue
         if item.key == "akademik_mudahale" and not akademik_mudahale_modulu_erisimi_var(

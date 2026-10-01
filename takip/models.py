@@ -2103,6 +2103,7 @@ from takip.deneme_models import (  # noqa: E402,F401
     DenemeKazanimSonucu,
     DenemeSinavi,
     DenemeSonucu,
+    DenemeSoruSonucu,
 )
 
 from takip.etut_plan_models import (  # noqa: E402,F401

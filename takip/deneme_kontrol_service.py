@@ -1,10 +1,11 @@
 """Etüt Hocası — Deneme Kontrol Merkezi.
 
 Etüt hocasının sorumlu olduğu sınıfın deneme durumunu tek ekranda,
-birkaç saniyede anlaşılır şekilde özetler. Var olan deneme/deneme
-gelişim verilerinin üstüne kurulur; yeni bir deneme modeli veya soru
-çözüm sistemi açmaz. LLM kullanılmaz — tüm sinyaller deterministiktir,
-nihai pedagojik değerlendirme etüt hocasına bırakılır.
+birkaç saniyede anlaşılır şekilde özetler. Var olan deneme sonuçlarının
+üstüne kurulur. Soru karnesi (2. sayfa) ayrıca tutulur; sınıfta aynı
+soruyu yüzde 33 ve üzeri yanlış yapanlar burada listelenir. LLM
+kullanılmaz — tüm sinyaller deterministiktir, nihai pedagojik
+değerlendirme etüt hocasına bırakılır.
 
 Üç ayrı kavram birbirine karıştırılmaz:
 - Başarı sıralaması: son grup denemesindeki puana göre.
@@ -14,8 +15,9 @@ nihai pedagojik değerlendirme etüt hocasına bırakılır.
 
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass, field
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 from django.conf import settings
 from django.db.models import Avg, Count
@@ -26,6 +28,7 @@ from takip.deneme_gelisim_service import (
     talebe_grup_deneme_gelisimi,
     talebe_trend_sinifla,
 )
+from takip.deneme_models import DenemeSoruSonucu
 from takip.deneme_service import BRANS_ETIKETLERI, DENEME_BRANS_DERS_MAP
 from takip.models import (
     DenemeBransSonucu,
@@ -54,14 +57,55 @@ def hoca_sinif_secenekleri(hoca: EtutHocasi):
     return _hoca_sinif_kartlari(hoca)
 
 
-def deneme_kontrol_erisimi_var(user) -> bool:
-    """Yalnızca sorumlu sınıfı olan etüt / sınıf mesulü görür."""
+def _sinifi_var(hoca: EtutHocasi) -> bool:
+    return hoca.sorumlu_sinif_subeler.filter(aktif=True).exists()
+
+
+def deneme_kontrol_hocalari(user) -> list[EtutHocasi]:
+    """Sorumlu sınıfı olan etüt mesulü, yoksa personel panelindeki etüt hocaları.
+
+    Branş öğretmeni girmez. Etüt mesulü yalnız kendi sınıfını görür.
+    Eğitim mesulü ve idare, etüt kontrolde baktığı hocaların sınıflarını görür.
+    """
+    if not getattr(user, "is_authenticated", False):
+        return []
+
+    from takip.ogretmen_service import ogretmen_paneli_kullanicisi_mi
+
+    if ogretmen_paneli_kullanicisi_mi(user):
+        return []
+
     from takip.user_helpers import etut_mesul_for_user
 
-    hoca = etut_mesul_for_user(user)
-    if not hoca:
-        return False
-    return hoca.sorumlu_sinif_subeler.filter(aktif=True).exists()
+    kendi = etut_mesul_for_user(user)
+    if kendi:
+        return [kendi] if _sinifi_var(kendi) else []
+
+    from takip.panel_permissions import deneme_modulu_erisimi_var
+
+    if not deneme_modulu_erisimi_var(user) and not user.is_staff:
+        return []
+
+    from takip.etut_kontrol_service import kullanici_etut_hocalari
+    from takip.etut_zimmet_service import etut_mesul_queryset
+
+    adaylar = [h for h in kullanici_etut_hocalari(user) if h.aktif and _sinifi_var(h)]
+    if not adaylar:
+        adaylar = [h for h in etut_mesul_queryset() if _sinifi_var(h)]
+
+    gorulen: set[int] = set()
+    sonuc: list[EtutHocasi] = []
+    for hoca in adaylar:
+        if hoca.pk in gorulen:
+            continue
+        gorulen.add(hoca.pk)
+        sonuc.append(hoca)
+    return sonuc
+
+
+def deneme_kontrol_erisimi_var(user) -> bool:
+    """Sorumlu sınıfı olan etüt / sınıf mesulü, ya da o sınıfları gören personel."""
+    return bool(deneme_kontrol_hocalari(user))
 
 
 def _oncelik_esik() -> dict:
@@ -458,6 +502,85 @@ def kazanimlari_derse_gore(ozetler: list[dict]) -> list[dict]:
     return gruplar
 
 
+def _bos_nokta() -> dict:
+    return {"deneme": None, "satirlar": [], "karne_sayisi": 0}
+
+
+def _nokta_yuzde(yanlis: int, katilim: int) -> int | None:
+    """Ham oran 33'ün altındaysa gizle; görünen yüzde yuvarlanır."""
+    if katilim <= 0:
+        return None
+    oran = (Decimal(yanlis) * Decimal(100)) / Decimal(katilim)
+    if oran < 33:
+        return None
+    return int(oran.quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
+
+def sinif_nokta_atisi(talebe_ids: list[int]) -> dict:
+    """Son aktif grup denemesinde sınıfın yüzde 33+ yanlış yaptığı sorular."""
+    if not talebe_ids:
+        return _bos_nokta()
+    deneme = (
+        DenemeSinavi.objects.filter(
+            tur=DenemeSinavi.Tur.GRUP,
+            durum=DenemeSinavi.Durum.AKTIF,
+            soru_sonuclari__talebe_id__in=talebe_ids,
+        )
+        .distinct()
+        .order_by("-sinav_tarihi", "-id")
+        .first()
+    )
+    if deneme is None:
+        return _bos_nokta()
+
+    kayitlar = DenemeSoruSonucu.objects.filter(
+        deneme=deneme,
+        talebe_id__in=talebe_ids,
+    ).only("talebe_id", "ders_ad", "ders_key", "soru_no", "konu_ad", "sonuc", "sira")
+    karne_sayisi = kayitlar.values("talebe_id").distinct().count()
+    kovalar: dict[tuple, dict] = {}
+    for kayit in kayitlar:
+        anahtar = (kayit.ders_key, kayit.soru_no)
+        kova = kovalar.get(anahtar)
+        if kova is None:
+            kova = {
+                "ders_ad": kayit.ders_ad,
+                "soru_no": kayit.soru_no,
+                "sira": kayit.sira,
+                "yanlis": 0,
+                "katilim": 0,
+                "konular": Counter(),
+            }
+            kovalar[anahtar] = kova
+        kova["katilim"] += 1
+        kova["sira"] = min(kova["sira"], kayit.sira)
+        if kayit.sonuc == DenemeSoruSonucu.Sonuc.YANLIS:
+            kova["yanlis"] += 1
+        if kayit.konu_ad:
+            kova["konular"][kayit.konu_ad] += 1
+
+    satirlar = []
+    for kova in kovalar.values():
+        yuzde = _nokta_yuzde(kova["yanlis"], kova["katilim"])
+        if yuzde is None:
+            continue
+        konu = kova["konular"].most_common(1)[0][0] if kova["konular"] else ""
+        satirlar.append(
+            {
+                "cumle": f"{kova['ders_ad']} {kova['soru_no']}. soru %{yuzde} yanlış yapmış",
+                "konu": konu,
+                "yuzde": yuzde,
+                "yanlis": kova["yanlis"],
+                "katilim": kova["katilim"],
+                "sira": kova["sira"],
+                "soru_no": kova["soru_no"],
+                "ders_ad": kova["ders_ad"],
+            }
+        )
+    satirlar.sort(key=lambda s: (-s["yuzde"], s["sira"], s["soru_no"], s["ders_ad"]))
+    return {"deneme": deneme, "satirlar": satirlar, "karne_sayisi": karne_sayisi}
+
+
 def sinif_deneme_kontrol_verisi(hoca: EtutHocasi, sinif: SinifSube) -> dict:
     """Etüt hocası ekranı — hocanın sorumlu olduğu öğrencilerle sınırlı."""
     ogrenciler = ogretmen_sinif_ogrencileri(hoca, sinif)
@@ -466,6 +589,7 @@ def sinif_deneme_kontrol_verisi(hoca: EtutHocasi, sinif: SinifSube) -> dict:
     kazanimlar = kazanim_ortalamalari([t.id for t in ogrenciler])
     veri["kazanimlar"] = kazanimlar
     veri["kazanim_gruplari"] = kazanimlari_derse_gore(kazanimlar)
+    veri["nokta"] = sinif_nokta_atisi([t.id for t in ogrenciler])
     return veri
 
 

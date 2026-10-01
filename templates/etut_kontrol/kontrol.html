@@ -1,9 +1,13 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static deneme_panel %}
 {% block title %}Etüt Takip · {{ hoca.ad_soyad }}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek41">{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek41">
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk13">
+{% endblock %}
 {% block content %}
 <div class="ek-page">
+  {% deneme_panel_switch "takip" %}
   <header class="ek-head">
     <div>
       <p class="ek-kicker">Etüt Takip · {{ talebe_sayisi }} talebe</p>

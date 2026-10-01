@@ -347,6 +347,7 @@ def deneme_detay_satirlari(sonuclar) -> list[dict]:
                 {
                     "kod": kod,
                     "etiket": BRANS_ETIKETLERI[kod],
+                    "var": b is not None,
                     "dogru": int(b.dogru or 0) if b else 0,
                     "yanlis": int(b.yanlis or 0) if b else 0,
                     "bos": int(b.bos or 0) if b else 0,
@@ -355,6 +356,72 @@ def deneme_detay_satirlari(sonuclar) -> list[dict]:
             )
         rows.append({"sira": sira, "sonuc": sonuc, "branslar": branslar})
     return rows
+
+
+def _tr_ondalik(deger: Decimal, basamak: int) -> str:
+    q = Decimal("1").scaleb(-basamak)
+    metin = f"{deger.quantize(q, rounding=ROUND_HALF_UP):.{basamak}f}"
+    return metin.replace(".", ",")
+
+
+def _brans_ortalamasi(satirlar: list[dict]) -> list[dict]:
+    """Listedeki talebelerin ders ders ortalama D / Y / B ve neti."""
+    kovalar: dict[str, list[dict]] = {kod: [] for kod in DENEME_DETAY_BRANSLAR}
+    for satir in satirlar:
+        for brans in satir.get("branslar") or []:
+            if brans.get("var"):
+                kovalar[brans["kod"]].append(brans)
+    ozet = []
+    for kod in DENEME_DETAY_BRANSLAR:
+        grup = kovalar[kod]
+        adet = len(grup)
+        if not adet:
+            ozet.append(
+                {
+                    "kod": kod,
+                    "etiket": BRANS_ETIKETLERI[kod],
+                    "adet": 0,
+                    "dogru": "—",
+                    "yanlis": "—",
+                    "bos": "—",
+                    "net": "—",
+                }
+            )
+            continue
+        def _ort(alan: str) -> Decimal:
+            return sum(Decimal(str(satir[alan] or 0)) for satir in grup) / Decimal(adet)
+
+        ozet.append(
+            {
+                "kod": kod,
+                "etiket": BRANS_ETIKETLERI[kod],
+                "adet": adet,
+                "dogru": _tr_ondalik(_ort("dogru"), 1),
+                "yanlis": _tr_ondalik(_ort("yanlis"), 1),
+                "bos": _tr_ondalik(_ort("bos"), 1),
+                "net": _tr_ondalik(_ort("net"), 2),
+            }
+        )
+    return ozet
+
+
+def deneme_ders_net_ozeti(detay_satirlari: list[dict]) -> dict:
+    """Bu denemedeki toplu ders neti. Birden fazla şube varsa sınıf sınıf da."""
+    genel = _brans_ortalamasi(detay_satirlari)
+    gruplar: dict[str, list[dict]] = {}
+    for satir in detay_satirlari:
+        sinif = getattr(satir["sonuc"].talebe, "sinif_sube", None)
+        etiket = sinif.etiket if sinif is not None and hasattr(sinif, "etiket") else "—"
+        gruplar.setdefault(etiket, []).append(satir)
+    siniflar = [
+        {"etiket": etiket, "branslar": _brans_ortalamasi(satirlar)}
+        for etiket, satirlar in gruplar.items()
+    ]
+    return {
+        "genel": genel,
+        "siniflar": siniflar if len(siniflar) > 1 else [],
+        "var": any(satir["adet"] for satir in genel),
+    }
 
 
 def deneme_silebilir(user: User) -> bool:

@@ -567,3 +567,71 @@ class DenemeEtutSiraTests(TestCase):
         self.assertEqual(dikkat["deneme"].goster_sira, 1)
         talebe_kutu = talebe_deneme_kutulari(self.talebe)
         self.assertEqual(talebe_kutu[0]["deneme"].goster_sira, 1)
+
+
+class DenemeDersNetOrtalamaTests(TestCase):
+    def test_sinif_ders_neti_ayri_ve_toplu(self):
+        from takip.deneme_service import deneme_ders_net_ozeti, deneme_detay_satirlari
+
+        user = User.objects.create_user("net-ort", password="x")
+        hoca = EtutHocasi.objects.create(ad_soyad="Net Hoca", user=user, aktif=True)
+        a = SinifSube.objects.create(sinif="8", sube="A")
+        b = SinifSube.objects.create(sinif="8", sube="B")
+        hoca.sorumlu_sinif_subeler.add(a, b)
+        ali = Talebe.objects.create(
+            ad_soyad="Ali Net", sinif_sube=a, etut_hocasi=hoca, dini_ders_hocasi=hoca
+        )
+        ayse = Talebe.objects.create(
+            ad_soyad="Ayse Net", sinif_sube=b, etut_hocasi=hoca, dini_ders_hocasi=hoca
+        )
+        deneme = DenemeSinavi.objects.create(
+            ad="Net Deneme",
+            sinav_tarihi=date(2026, 4, 1),
+            sinif_seviyesi="8",
+            durum=DenemeSinavi.Durum.AKTIF,
+        )
+        s1 = DenemeSonucu.objects.create(
+            deneme=deneme, talebe=ali, toplam_net=Decimal("10.00"), puan=Decimal("400")
+        )
+        s2 = DenemeSonucu.objects.create(
+            deneme=deneme, talebe=ayse, toplam_net=Decimal("5.00"), puan=Decimal("300")
+        )
+        DenemeBransSonucu.objects.create(
+            sonuc=s1, brans="turkce", dogru=10, yanlis=0, bos=0, net=Decimal("10.00")
+        )
+        DenemeBransSonucu.objects.create(
+            sonuc=s2, brans="turkce", dogru=6, yanlis=4, bos=2, net=Decimal("5.00")
+        )
+        satirlar = deneme_detay_satirlari(
+            DenemeSonucu.objects.filter(deneme=deneme)
+            .select_related("talebe__sinif_sube")
+            .prefetch_related("brans_satirlari")
+            .order_by("talebe__ad_soyad")
+        )
+        ozet = deneme_ders_net_ozeti(satirlar)
+        turkce = next(item for item in ozet["genel"] if item["kod"] == "turkce")
+        self.assertEqual(turkce["net"], "7,50")
+        self.assertEqual(turkce["dogru"], "8,0")
+        self.assertEqual(turkce["yanlis"], "2,0")
+        self.assertEqual(turkce["bos"], "1,0")
+        matematik = next(item for item in ozet["genel"] if item["kod"] == "matematik")
+        self.assertEqual(matematik["net"], "—")
+        self.assertEqual([s["etiket"] for s in ozet["siniflar"]], ["8-A", "8-B"])
+        a_net = next(item for item in ozet["siniflar"][0]["branslar"] if item["kod"] == "turkce")
+        self.assertEqual(a_net["net"], "10,00")
+
+        admin = User.objects.create_superuser("net-admin", "a@b.com", "x")
+        self.client.force_login(admin)
+        sayfa = self.client.get(reverse("deneme_detay", args=[deneme.pk]))
+        self.assertContains(sayfa, "7,50")
+        self.assertContains(sayfa, "Sınıf ortalaması")
+        self.assertContains(sayfa, "8-A")
+        with patch("takip.deneme_views.html_to_pdf", return_value=b"%PDF-1.4 fake") as mock_pdf:
+            resp = self.client.get(reverse("deneme_detayli_pdf", args=[deneme.pk]))
+        self.assertEqual(resp.status_code, 200)
+        html = mock_pdf.call_args[0][0]
+        self.assertIn("7,50", html)
+        self.assertIn("Sınıf neti", html)
+        self.assertIn("8-A net", html)
+        self.assertIn('colspan="3"', html)
+        self.assertIn("10,0 D", html)

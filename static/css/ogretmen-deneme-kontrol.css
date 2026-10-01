@@ -1,11 +1,8 @@
-/* Deneme Kontrol — lacivert + altın (panel ile aynı dil) */
+/* Deneme Kontrol — beyaz, ışıklı kart, sönen çizgi */
 
 body.v3-body .dk-page {
     --dk-navy: var(--pv4-navy, #0c1a3a);
     --dk-navy-2: var(--pv4-navy-2, #132a56);
-    --dk-gold: var(--pv4-gold, #c39a3d);
-    --dk-gold-light: var(--pv4-gold-light, #e3c479);
-    --dk-gold-dim: var(--pv4-gold-dim, #8a6d2a);
     --dk-line: var(--pv4-line, #e2e4e9);
     --dk-surface: var(--pv4-surface, #fff);
     --dk-text: var(--pv4-text, #10182b);
@@ -23,45 +20,136 @@ body.v3-body .dk-page .pv4-hero-row {
     margin: 0;
 }
 
-body.v3-body .dk-page .dk-sinif-tabs {
+body.v3-body .dk-page .pv4-date-kicker {
+    color: var(--dk-muted) !important;
+}
+
+body.v3-body .dk-switch {
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+    gap: 4px;
+    padding: 4px;
+    margin: 0 0 16px;
+    border-radius: var(--cs-radius-lg, 18px);
+    background: var(--cs-surface-muted, #f8fafc);
+    box-shadow: var(--cs-shadow-card);
+}
+
+body.v3-body .dk-page .dk-switch {
     margin: 0;
 }
 
-body.v3-body.v3-body .dk-page .dk-sinif-tab {
+body.v3-body.v3-body .dk-switch-btn {
+    flex: 1 1 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
-    min-height: var(--cs-btn-h, 44px);
-    padding: 0 16px;
-    border-radius: var(--pv4-r-sm, 6px);
-    border: 1px solid var(--dk-navy);
-    background: var(--dk-surface);
+    min-height: var(--cs-touch-min, 44px);
+    padding: 0 14px;
+    border: 0;
+    border-radius: var(--cs-radius-md, 14px);
+    background: transparent;
     background-image: none;
-    color: var(--dk-navy);
-    font-size: 13px;
+    color: var(--dk-muted, var(--cs-text-muted, #8491a3));
+    font-family: var(--cs-font), Poppins, "Segoe UI", sans-serif;
+    font-size: 14px;
     font-weight: 600;
     text-decoration: none;
 }
 
-body.v3-body.v3-body .dk-page .dk-sinif-tab.is-active {
-    background: var(--dk-gold);
-    border-color: var(--dk-gold);
+body.v3-body.v3-body .dk-switch-btn.is-active {
+    background: var(--cs-surface, #fff);
+    color: var(--dk-navy, var(--cs-text-primary, #0f203c));
+    box-shadow: var(--cs-shadow-sm);
+}
+
+body.v3-body .dk-page .dk-grup {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cs-section-gap, 18px);
+    min-width: 0;
+}
+
+body.v3-body .dk-page .dk-grup + .dk-grup {
+    margin-top: 8px;
+}
+
+body.v3-body .dk-page .dk-grup + .dk-grup::before {
+    content: "";
+    display: block;
+    height: 1px;
+    margin: 6px 12px 16px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        color-mix(in srgb, var(--cs-accent) 42%, var(--cs-border)),
+        transparent
+    );
+}
+
+body.v3-body .dk-page .dk-grup-head {
+    margin: 0;
+    padding: 2px 2px 0;
+}
+
+body.v3-body .dk-page .dk-grup-baslik {
+    margin: 0;
+    font-family: var(--cs-font), Poppins, "Segoe UI", sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
     color: var(--dk-navy);
+}
+
+body.v3-body .dk-page .dk-grup-sayi {
+    margin: 2px 0 0;
+    font-size: 13px;
+    color: var(--dk-muted);
+}
+
+body.v3-body .dk-page .dk-summary-card,
+body.v3-body .dk-page .dk-card,
+body.v3-body.v3-body .dk-page .dg-wrap.profile-card,
+body.v3-body .dk-page .pv4-date-card,
+body.v3-body .dk-page .dk-stat,
+body.v3-body .dk-page .dg-metrik {
+    position: relative;
+    background-color: var(--cs-surface, #fff) !important;
+    background-image: linear-gradient(180deg, var(--cs-surface, #fff) 0%, var(--cs-surface-muted, #f8fafc) 100%) !important;
+    border: 1px solid transparent !important;
+    border-radius: var(--cs-radius-lg, 18px) !important;
+    box-shadow: var(--cs-shadow-card) !important;
+    color: var(--dk-text);
+}
+
+body.v3-body .dk-page .dk-summary-card::after,
+body.v3-body .dk-page .dk-card::after,
+body.v3-body.v3-body .dk-page .dg-wrap.profile-card::after,
+body.v3-body .dk-page .pv4-date-card::after,
+body.v3-body .dk-page .dk-stat::after,
+body.v3-body .dk-page .dg-metrik::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+        100deg,
+        color-mix(in srgb, var(--cs-accent) 72%, var(--cs-surface)) 0%,
+        color-mix(in srgb, var(--cs-primary-light) 38%, var(--cs-surface)) 32%,
+        color-mix(in srgb, var(--cs-accent-soft) 24%, var(--cs-border)) 58%,
+        color-mix(in srgb, var(--cs-primary-mid) 52%, var(--cs-surface)) 100%
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
 }
 
 body.v3-body .dk-page .dk-summary-card,
 body.v3-body .dk-page .dk-card,
 body.v3-body.v3-body .dk-page .dg-wrap.profile-card {
-    background: var(--dk-surface) !important;
-    background-image: none !important;
-    border: 1px solid var(--dk-line) !important;
-    border-radius: var(--pv4-r-lg, 16px) !important;
-    box-shadow: inset 0 3px 0 var(--dk-gold), var(--pv4-shadow-md, 0 4px 6px -1px rgba(16, 24, 43, .06)) !important;
-    color: var(--dk-text);
     padding: 18px 20px;
     margin: 0;
 }
@@ -93,6 +181,59 @@ body.v3-body .dk-page .dk-card-head {
     margin: 0 0 12px;
 }
 
+body.v3-body .dk-page details.dk-fold > summary.dk-card-head {
+    list-style: none;
+    cursor: pointer;
+    min-height: var(--cs-touch-min, 44px);
+    margin: 0;
+}
+
+body.v3-body .dk-page details.dk-fold > summary.dk-card-head::-webkit-details-marker {
+    display: none;
+}
+
+body.v3-body .dk-page details.dk-fold > summary.dk-card-head::marker {
+    content: "";
+}
+
+body.v3-body .dk-page details.dk-fold > summary.dk-card-head h2 {
+    flex: 1;
+}
+
+body.v3-body .dk-page details.dk-fold[open] > summary.dk-card-head {
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    background-image: linear-gradient(
+        90deg,
+        transparent,
+        color-mix(in srgb, var(--cs-primary-light) 50%, var(--cs-border)),
+        transparent
+    );
+    background-repeat: no-repeat;
+    background-size: 100% 1px;
+    background-position: left bottom;
+}
+
+body.v3-body .dk-page details.dk-fold > summary.dk-card-head:focus-visible {
+    outline: 2px solid var(--dk-navy);
+    outline-offset: 2px;
+}
+
+body.v3-body .dk-page .dk-fold-chevron {
+    width: 9px;
+    height: 9px;
+    border-right: 2px solid var(--dk-muted);
+    border-bottom: 2px solid var(--dk-muted);
+    transform: rotate(45deg);
+    flex: none;
+    margin-top: -4px;
+}
+
+body.v3-body .dk-page details.dk-fold[open] .dk-fold-chevron {
+    transform: rotate(-135deg);
+    margin-top: 4px;
+}
+
 body.v3-body .dk-page .dk-stat-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
@@ -100,11 +241,10 @@ body.v3-body .dk-page .dk-stat-row {
     margin-top: 16px;
 }
 
-body.v3-body .dk-page .dk-stat {
-    background: var(--pv4-bg, #f4f5f7);
-    border: 1px solid var(--dk-line);
-    border-radius: var(--pv4-r-sm, 6px);
-    padding: 10px 12px;
+body.v3-body .dk-page .dk-stat,
+body.v3-body .dk-page .dg-metrik {
+    border-radius: var(--cs-radius-md, 14px) !important;
+    padding: 12px 14px;
 }
 
 body.v3-body .dk-page .dk-stat span {
@@ -114,7 +254,7 @@ body.v3-body .dk-page .dk-stat span {
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--dk-gold-dim);
+    color: var(--dk-muted);
 }
 
 body.v3-body .dk-page .dk-stat strong {
@@ -154,14 +294,32 @@ body.v3-body .dk-page .dk-table th {
     text-transform: uppercase;
     text-align: left;
     color: var(--dk-muted);
-    background: var(--pv4-bg, #f4f5f7);
-    border-bottom: 1px solid var(--dk-line);
+    background-color: transparent;
+    background-image: linear-gradient(
+        90deg,
+        transparent,
+        color-mix(in srgb, var(--cs-primary-light) 46%, var(--cs-border)),
+        transparent
+    );
+    background-repeat: no-repeat;
+    background-size: 100% 1px;
+    background-position: left bottom;
+    border-bottom: 0;
 }
 
 body.v3-body .dk-page .dk-table td {
     padding: 10px 8px;
     color: var(--dk-text);
-    border-bottom: 1px solid var(--dk-line);
+    border-bottom: 0;
+    background-image: linear-gradient(
+        90deg,
+        transparent,
+        color-mix(in srgb, var(--cs-accent) 22%, var(--cs-border-subtle)),
+        transparent
+    );
+    background-repeat: no-repeat;
+    background-size: 100% 1px;
+    background-position: left bottom;
     font-variant-numeric: tabular-nums;
 }
 
@@ -179,7 +337,7 @@ body.v3-body .dk-page .dk-kazanim-ders {
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--dk-gold-dim);
+    color: var(--dk-muted);
 }
 
 body.v3-body .dk-page .dk-oncelik-list {
@@ -222,13 +380,43 @@ body.v3-body .dk-page .dk-oncelik-etiket {
 }
 
 body.v3-body .dk-page .dk-oncelik-item:not(.kritik) .dk-oncelik-etiket {
-    background: color-mix(in srgb, var(--dk-gold) 18%, white);
-    color: var(--dk-gold-dim);
+    background: var(--pv4-bg, #f4f5f7);
+    color: var(--dk-muted);
 }
 
 body.v3-body .dk-page .dk-oncelik-sinyal {
     font-size: 12px;
     color: var(--dk-muted);
+}
+
+body.v3-body .dk-page .dk-nokta-list {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+body.v3-body .dk-page .dk-nokta-item {
+    border-left: 3px solid var(--dk-red);
+    background: var(--cs-danger-bg, #fff3f3);
+    border-radius: var(--pv4-r-sm, 6px);
+    padding: 10px 12px;
+}
+
+body.v3-body .dk-page .dk-nokta-cumle {
+    font-family: var(--cs-font), Poppins, "Segoe UI", sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--dk-navy);
+    line-height: 1.35;
+}
+
+body.v3-body .dk-page .dk-nokta-konu {
+    font-size: 12px;
+    color: var(--dk-muted);
+    margin-top: 2px;
 }
 
 body.v3-body .dk-page .dk-grup-chart,
@@ -360,8 +548,8 @@ body.v3-body .dk-page .dg-trend-duseste {
 }
 
 body.v3-body .dk-page .dg-trend-dalgali {
-    background: color-mix(in srgb, var(--dk-gold) 18%, white);
-    color: var(--dk-gold-dim);
+    background: var(--pv4-bg, #f4f5f7);
+    color: var(--dk-muted);
 }
 
 body.v3-body .dk-page .dg-trend-stabil,
@@ -371,9 +559,7 @@ body.v3-body .dk-page .dg-trend-yetersiz {
 }
 
 body.v3-body .dk-page .dg-metrik {
-    background: var(--pv4-bg, #f4f5f7);
-    border: 1px solid var(--dk-line);
-    border-radius: var(--pv4-r-sm, 6px);
+    border-radius: var(--cs-radius-md, 14px) !important;
 }
 
 body.v3-body .dk-page .dg-metrik span {
@@ -381,7 +567,7 @@ body.v3-body .dk-page .dg-metrik span {
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--dk-gold-dim);
+    color: var(--dk-muted);
 }
 
 body.v3-body .dk-page .dg-metrik strong {
@@ -395,7 +581,14 @@ body.v3-body .dk-page .dg-metrik strong {
 }
 
 @media (max-width: 640px) {
-    body.v3-body.v3-body .dk-page .dk-sinif-tab,
+    body.v3-body .dk-panel-switch {
+        flex-wrap: wrap;
+    }
+
+    body.v3-body.v3-body .dk-panel-switch .dk-switch-btn {
+        flex: 1 1 140px;
+    }
+
     body.v3-body.v3-body .dk-page .dk-back .ghost-btn {
         width: 100%;
     }
@@ -407,9 +600,10 @@ body.v3-body .dk-page .dg-metrik strong {
     }
 
     body.v3-body .dk-page .dk-table.cs-mobile-ready tbody tr {
-        border: 1px solid var(--dk-line);
-        border-radius: var(--pv4-r-lg, 16px);
-        box-shadow: inset 0 3px 0 var(--dk-gold);
-        background: var(--dk-surface);
+        border: 1px solid transparent;
+        border-radius: var(--cs-radius-lg, 18px);
+        box-shadow: var(--cs-shadow-card);
+        background-color: var(--cs-surface, #fff);
+        background-image: linear-gradient(180deg, var(--cs-surface, #fff), var(--cs-surface-muted, #f8fafc));
     }
 }
