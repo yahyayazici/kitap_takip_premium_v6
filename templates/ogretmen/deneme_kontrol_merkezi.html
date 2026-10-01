@@ -39,7 +39,7 @@
 <div class="dk-summary-card">
     <h2 class="dk-summary-title">Deneme durumu</h2>
     <p class="dk-summary-sub">
-        {% if veri.son_deneme %}Son Deneme: {% if veri.son_deneme.sira_no %}{{ veri.son_deneme.sira_no }}. Deneme{% else %}{{ veri.son_deneme.ad }}{% endif %}{% endif %}
+        {% if veri.son_deneme %}Son Deneme: {% if veri.son_deneme.goster_sira %}{{ veri.son_deneme.goster_sira }}. Deneme{% elif veri.son_deneme.sira_no %}{{ veri.son_deneme.sira_no }}. Deneme{% else %}{{ veri.son_deneme.ad }}{% endif %}{% endif %}
     </p>
     <div class="dk-stat-row">
         <div class="dk-stat"><span>Sınıf Ortalaması</span><strong>{{ veri.sinif_ortalamasi|default:"—" }}</strong></div>
@@ -195,7 +195,7 @@
         <div class="dk-grup-bar" title="{{ nokta.ad }}">
             <strong>{{ nokta.ortalama }}</strong>
             <div class="bar" style="height:{{ nokta.ortalama_yuzde|unlocalize }}%;"></div>
-            <small>{% if nokta.sira_no %}{{ nokta.sira_no }}. D{% else %}{{ nokta.tarih|date:"d.m" }}{% endif %}</small>
+            <small>{% if nokta.goster_sira %}{{ nokta.goster_sira }}. D{% elif nokta.sira_no %}{{ nokta.sira_no }}. D{% else %}{{ nokta.tarih|date:"d.m" }}{% endif %}</small>
         </div>
         {% endfor %}
     </div>

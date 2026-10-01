@@ -29,7 +29,11 @@ from takip.deneme_gelisim_service import (
     talebe_trend_sinifla,
 )
 from takip.deneme_models import DenemeSoruSonucu
-from takip.deneme_service import BRANS_ETIKETLERI, DENEME_BRANS_DERS_MAP
+from takip.deneme_service import (
+    BRANS_ETIKETLERI,
+    DENEME_BRANS_DERS_MAP,
+    deneme_sira_haritasi_talebeler,
+)
 from takip.models import (
     DenemeBransSonucu,
     DenemeSinavi,
@@ -241,56 +245,123 @@ def _ogrenci_satiri(talebe: Talebe, esik: dict) -> OgrenciDenemeSatiri:
     )
 
 
-def _siniflar_denemeleri(siniflar: list[SinifSube]) -> list[DenemeSinavi]:
-    """Bu şubeleri kapsayan grup denemeleri (hedefli veya seviye geneli), kronolojik."""
-    if not siniflar:
-        return []
-    hedefli = DenemeSinavi.objects.filter(
-        tur=DenemeSinavi.Tur.GRUP,
-        durum=DenemeSinavi.Durum.AKTIF,
-        hedef_sinif_subeler__in=siniflar,
-    ).distinct()
-    genel = DenemeSinavi.objects.filter(
-        tur=DenemeSinavi.Tur.GRUP,
-        durum=DenemeSinavi.Durum.AKTIF,
-        sinif_seviyesi__in={sinif.sinif for sinif in siniflar},
-        hedef_sinif_subeler__isnull=True,
+def _talebe_idleri(ogrenciler: list[Talebe]) -> list[int]:
+    return [talebe.id for talebe in ogrenciler if getattr(talebe, "id", None)]
+
+
+def _goster_sira_bagla(denemeler: list[DenemeSinavi], talebe_ids: list[int]) -> None:
+    """Kurum sıra numarasını ezmeden, bu talebelerin kendi sırasını yazar."""
+    if not denemeler:
+        return
+    harita = deneme_sira_haritasi_talebeler(talebe_ids)
+    for deneme in denemeler:
+        deneme.goster_sira = harita.get(deneme.pk, deneme.sira_no)
+
+
+def _her_subenin_girdigi(
+    denemeler: list[DenemeSinavi],
+    ogrenciler: list[Talebe],
+    siniflar: list[SinifSube],
+) -> list[DenemeSinavi]:
+    """Tümü özetinde yalnız her şubeden en az bir sonucu olan denemeler kalır.
+
+    5-A'nın tek başına girdiği sonraki deneme, 5-B ile ortak olan son
+    denemenin yerine geçmez. Hiç ortak deneme yoksa kart boş kalmasın diye
+    sonucu olan listeye dönülür.
+    """
+    if len(siniflar) <= 1 or not denemeler:
+        return denemeler
+    sinif_ids = {sinif.id for sinif in siniflar}
+    beklenen = {
+        talebe.sinif_sube_id
+        for talebe in ogrenciler
+        if getattr(talebe, "sinif_sube_id", None) in sinif_ids
+    }
+    if len(beklenen) <= 1:
+        return denemeler
+    kapsanan: dict[int, set[int]] = {}
+    ciftler = (
+        DenemeSonucu.objects.filter(
+            deneme_id__in=[deneme.pk for deneme in denemeler],
+            talebe_id__in=_talebe_idleri(ogrenciler),
+        )
+        .values_list("deneme_id", "talebe__sinif_sube_id")
+        .distinct()
     )
-    denemeler = {d.pk: d for d in hedefli}
-    denemeler.update({d.pk: d for d in genel})
-    return sorted(denemeler.values(), key=lambda d: (d.sinav_tarihi, d.id))
+    for deneme_id, sinif_id in ciftler:
+        if sinif_id in beklenen:
+            kapsanan.setdefault(deneme_id, set()).add(sinif_id)
+    ortak = [deneme for deneme in denemeler if beklenen <= kapsanan.get(deneme.pk, set())]
+    return ortak or denemeler
 
 
-def _sinif_denemeleri(sinif: SinifSube) -> list[DenemeSinavi]:
-    return _siniflar_denemeleri([sinif])
+def _ogrencilerin_denemeleri(
+    ogrenciler: list[Talebe], siniflar: list[SinifSube]
+) -> list[DenemeSinavi]:
+    """Aktif talebelerin sonucu olan grup denemeleri, tarihe göre.
+
+    Hedefi bu seviyeye yazılmış ama bu talebelerin girmediği deneme
+    son deneme sayılmaz. ``sira_no`` değişmez.
+    """
+    ids = _talebe_idleri(ogrenciler)
+    if not ids:
+        return []
+    denemeler = list(
+        DenemeSinavi.objects.filter(
+            tur=DenemeSinavi.Tur.GRUP,
+            durum=DenemeSinavi.Durum.AKTIF,
+            sonuclar__talebe_id__in=ids,
+        )
+        .distinct()
+        .order_by("sinav_tarihi", "id")
+    )
+    denemeler = _her_subenin_girdigi(denemeler, ogrenciler, siniflar)
+    _goster_sira_bagla(denemeler, ids)
+    return denemeler
 
 
 def _siniflar_deneme_ortalamasi(
-    deneme: DenemeSinavi, siniflar: list[SinifSube]
+    deneme: DenemeSinavi,
+    siniflar: list[SinifSube],
+    talebe_ids: list[int] | None = None,
 ) -> tuple[Decimal | None, int]:
-    agg = DenemeSonucu.objects.filter(deneme=deneme, talebe__sinif_sube__in=siniflar).aggregate(
-        ort=Avg("puan"), n=Count("id")
-    )
+    qs = DenemeSonucu.objects.filter(deneme=deneme)
+    if talebe_ids is not None:
+        if not talebe_ids:
+            return None, 0
+        qs = qs.filter(talebe_id__in=talebe_ids)
+    else:
+        qs = qs.filter(talebe__sinif_sube__in=siniflar)
+    agg = qs.aggregate(ort=Avg("puan"), n=Count("id"))
     ort = agg["ort"]
     return (round(Decimal(ort), 2) if ort is not None else None), int(agg["n"] or 0)
 
 
-def _sinif_deneme_ortalamasi(deneme: DenemeSinavi, sinif: SinifSube) -> tuple[Decimal | None, int]:
-    return _siniflar_deneme_ortalamasi(deneme, [sinif])
-
-
-def siniflar_grup_analizi(siniflar: list[SinifSube]) -> dict:
+def siniflar_grup_analizi(
+    siniflar: list[SinifSube],
+    ogrenciler: list[Talebe] | None = None,
+    denemeler: list[DenemeSinavi] | None = None,
+) -> dict:
     """Deneme bazlı ortak ortalama. Birden fazla şube varsa hepsinin sonucu birlikte sayılır."""
-    denemeler = _siniflar_denemeleri(siniflar)
+    if ogrenciler is None:
+        ogrenciler = list(
+            Talebe.objects.filter(
+                sinif_sube__in=siniflar, durum=Talebe.Durum.AKTIF
+            ).order_by("ad_soyad")
+        )
+    talebe_ids = _talebe_idleri(ogrenciler)
+    if denemeler is None:
+        denemeler = _ogrencilerin_denemeleri(ogrenciler, siniflar)
     seri = []
     for deneme in denemeler:
-        ort, n = _siniflar_deneme_ortalamasi(deneme, siniflar)
+        ort, n = _siniflar_deneme_ortalamasi(deneme, siniflar, talebe_ids)
         if ort is None:
             continue
         seri.append(
             {
                 "deneme_id": deneme.pk,
                 "sira_no": deneme.sira_no,
+                "goster_sira": getattr(deneme, "goster_sira", None) or deneme.sira_no,
                 "ad": deneme.ad,
                 "tarih": deneme.sinav_tarihi,
                 "ortalama": float(ort),
@@ -307,12 +378,12 @@ def siniflar_grup_analizi(siniflar: list[SinifSube]) -> dict:
         genel_degisim = round(seri[-1]["ortalama"] - seri[0]["ortalama"], 2)
 
     ders_okları = []
-    if len(denemeler) >= 2:
+    if len(denemeler) >= 2 and talebe_ids:
         son_iki = denemeler[-2:]
         ort_onceki = {
             r["brans"]: r["ort_net"]
             for r in DenemeBransSonucu.objects.filter(
-                sonuc__deneme=son_iki[0], sonuc__talebe__sinif_sube__in=siniflar
+                sonuc__deneme=son_iki[0], sonuc__talebe_id__in=talebe_ids
             )
             .values("brans")
             .annotate(ort_net=Avg("net"))
@@ -320,7 +391,7 @@ def siniflar_grup_analizi(siniflar: list[SinifSube]) -> dict:
         ort_son = {
             r["brans"]: r["ort_net"]
             for r in DenemeBransSonucu.objects.filter(
-                sonuc__deneme=son_iki[1], sonuc__talebe__sinif_sube__in=siniflar
+                sonuc__deneme=son_iki[1], sonuc__talebe_id__in=talebe_ids
             )
             .values("brans")
             .annotate(ort_net=Avg("net"))
@@ -370,14 +441,17 @@ def sinif_kontrol_verisi_hesapla(
     takip_gereken = sum(1 for s in satirlar if s.takip_gerekli)
 
     kapsam = siniflar or [sinif]
-    denemeler = _siniflar_denemeleri(kapsam)
+    talebe_ids = _talebe_idleri(ogrenciler)
+    denemeler = _ogrencilerin_denemeleri(ogrenciler, kapsam)
     son_deneme = denemeler[-1] if denemeler else None
     onceki_deneme = denemeler[-2] if len(denemeler) >= 2 else None
     son_ortalama, _ = (
-        _siniflar_deneme_ortalamasi(son_deneme, kapsam) if son_deneme else (None, 0)
+        _siniflar_deneme_ortalamasi(son_deneme, kapsam, talebe_ids) if son_deneme else (None, 0)
     )
     onceki_ortalama, _ = (
-        _siniflar_deneme_ortalamasi(onceki_deneme, kapsam) if onceki_deneme else (None, 0)
+        _siniflar_deneme_ortalamasi(onceki_deneme, kapsam, talebe_ids)
+        if onceki_deneme
+        else (None, 0)
     )
     ort_degisim = (
         round(son_ortalama - onceki_ortalama, 2)
@@ -413,7 +487,7 @@ def sinif_kontrol_verisi_hesapla(
         "basari_siralamasi": basari_siralamasi,
         "gelisim_siralamasi": gelisim_siralamasi,
         "oncelikli_takip": oncelikli_takip,
-        "grup_analizi": siniflar_grup_analizi(kapsam),
+        "grup_analizi": siniflar_grup_analizi(kapsam, ogrenciler, denemeler),
     }
 
 
