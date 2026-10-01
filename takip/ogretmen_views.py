@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
@@ -26,6 +28,7 @@ from takip.ogretmen_service import (
     kullanici_ogretmen_mi,
     ogretmen_dashboard_verisi,
     ogretmen_hocasi_for_user,
+    ogretmen_not_girisi_var_mi,
     ogretmen_program_verisi,
 )
 from takip.pdf_utils import html_to_pdf, make_pdf_response, pdf_engine_status, pdf_error_response
@@ -59,8 +62,8 @@ def ogretmen_dashboard(request):
     from takip.dashboard_service import dashboard_kisayollari, dashboard_metrikleri
 
     ctx = ogretmen_dashboard_verisi(hoca)
-    ctx["kisayollar"] = dashboard_kisayollari(request.user, hedef="ogretmen")
-    ctx["metrikler"] = dashboard_metrikleri(
+    kisayollar = dashboard_kisayollari(request.user, hedef="ogretmen")
+    metrikler = dashboard_metrikleri(
         request.user,
         hedef="ogretmen",
         baglam={
@@ -69,6 +72,13 @@ def ogretmen_dashboard(request):
             "hafta_no": ctx.get("hafta_no"),
         },
     )
+    if not ogretmen_not_girisi_var_mi(request.user):
+        kisayollar = [k for k in kisayollar if k.key != "ogretmen_not"]
+        metrikler = [
+            replace(m, url="") if m.key == "aktif_hafta" else m for m in metrikler
+        ]
+    ctx["kisayollar"] = kisayollar
+    ctx["metrikler"] = metrikler
     return render(request, "ogretmen/dashboard.html", ctx)
 
 
@@ -76,6 +86,8 @@ def ogretmen_dashboard(request):
 def ogretmen_not_girisi(request, sinif_id: int | None = None):
     if not kullanici_ogretmen_mi(request.user):
         return redirect("dashboard")
+    if not ogretmen_not_girisi_var_mi(request.user):
+        return redirect("ogretmen_dashboard")
 
     hoca = _hoca_yukle(request)
     if not hoca:

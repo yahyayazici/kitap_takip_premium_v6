@@ -86,6 +86,11 @@ def ogretmen_ekstra_rolu_var_mi(user: User) -> bool:
     return bool(ogretmen_ekstra_rol_slugleri(user))
 
 
+def ogretmen_not_girisi_var_mi(user: User) -> bool:
+    """Rehber öğretmenin panelinde rehberlik vardır; not girişi yoktur."""
+    return "rehber_ogretmeni" not in ogretmen_ekstra_rol_slugleri(user)
+
+
 def ogretmen_giris_url_adi(user: User) -> str:
     """Panel açılışı ana sayfadır. Not girişi menüden açılır."""
     return "ogretmen_dashboard"
