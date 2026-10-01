@@ -2,7 +2,7 @@
 {% load l10n static %}
 {% block title %}Deneme Kontrol Merkezi{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk6">
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk7">
 {% endblock %}
 
 {% block content %}
@@ -15,16 +15,18 @@
 </div>
 {% else %}
 
-<div class="dk-sinif-tabs">
-    {% for s in siniflar %}
-    <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' s.id %}" class="dk-sinif-tab{% if secili and secili.id == s.id %} is-active{% endif %}">{{ s.etiket }} ({{ s.ogrenci_sayisi }})</a>
-    {% endfor %}
-</div>
+{% for grup in gruplar %}
+{% with veri=grup.veri secili=grup.kart %}
+<section class="dk-grup"{% if secili_id == secili.id %} id="dk-secili-grup"{% endif %}>
+    <header class="dk-grup-head">
+        <h2 class="dk-grup-baslik">{{ secili.etiket }}</h2>
+        <p class="dk-grup-sayi">{{ secili.ogrenci_sayisi }} talebe</p>
+    </header>
 
 {% if veri and veri.satirlar %}
 
 <div class="dk-summary-card">
-    <h2 class="dk-summary-title">{{ secili.etiket }} — Deneme Durumu</h2>
+    <h2 class="dk-summary-title">Deneme durumu</h2>
     <p class="dk-summary-sub">
         {% if veri.son_deneme %}Son Deneme: {% if veri.son_deneme.sira_no %}{{ veri.son_deneme.sira_no }}. Deneme{% else %}{{ veri.son_deneme.ad }}{% endif %}{% endif %}
     </p>
@@ -198,6 +200,9 @@
     <p class="dk-empty">{{ secili.etiket }} için henüz grup denemesi sonucu bulunmuyor.</p>
 </div>
 {% endif %}
+</section>
+{% endwith %}
+{% endfor %}
 {% endif %}
 </div>
 {% endblock %}

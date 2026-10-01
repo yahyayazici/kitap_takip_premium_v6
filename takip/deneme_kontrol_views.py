@@ -32,12 +32,6 @@ def _erisim_yok(request):
     return redirect("dashboard")
 
 
-def _secili_sinif(siniflar, sinif_id: int | None):
-    if sinif_id:
-        return next((s for s in siniflar if s.id == sinif_id), None)
-    return siniflar[0] if siniflar else None
-
-
 @login_required
 def deneme_kontrol_merkezi(request, sinif_id: int | None = None):
     hoca = _hoca_yukle(request)
@@ -45,22 +39,24 @@ def deneme_kontrol_merkezi(request, sinif_id: int | None = None):
         return _erisim_yok(request)
 
     siniflar = hoca_sinif_secenekleri(hoca)
-    secili = _secili_sinif(siniflar, sinif_id)
-
-    ctx = {
-        "siniflar": siniflar,
-        "secili": secili,
-        "sirala": (request.GET.get("sirala") or "puan").strip(),
-        "veri": None,
-    }
-
-    if secili:
-        sinif = get_object_or_404(SinifSube, pk=secili.id)
+    sirala = (request.GET.get("sirala") or "puan").strip()
+    gruplar = []
+    for kart in siniflar:
+        sinif = get_object_or_404(SinifSube, pk=kart.id)
         veri = sinif_deneme_kontrol_verisi(hoca, sinif)
-        veri["satirlar"] = satirlari_sirala(veri["satirlar"], ctx["sirala"])
-        ctx["veri"] = veri
+        veri["satirlar"] = satirlari_sirala(veri["satirlar"], sirala)
+        gruplar.append({"kart": kart, "veri": veri})
 
-    return render(request, "ogretmen/deneme_kontrol_merkezi.html", ctx)
+    return render(
+        request,
+        "ogretmen/deneme_kontrol_merkezi.html",
+        {
+            "siniflar": siniflar,
+            "gruplar": gruplar,
+            "sirala": sirala,
+            "secili_id": sinif_id,
+        },
+    )
 
 
 @login_required

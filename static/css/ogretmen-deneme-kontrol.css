@@ -3,9 +3,6 @@
 body.v3-body .dk-page {
     --dk-navy: var(--pv4-navy, #0c1a3a);
     --dk-navy-2: var(--pv4-navy-2, #132a56);
-    --dk-gold: var(--pv4-gold, #c39a3d);
-    --dk-gold-light: var(--pv4-gold-light, #e3c479);
-    --dk-gold-dim: var(--pv4-gold-dim, #8a6d2a);
     --dk-line: var(--pv4-line, #e2e4e9);
     --dk-surface: var(--pv4-surface, #fff);
     --dk-text: var(--pv4-text, #10182b);
@@ -23,34 +20,35 @@ body.v3-body .dk-page .pv4-hero-row {
     margin: 0;
 }
 
-body.v3-body .dk-page .dk-sinif-tabs {
+body.v3-body .dk-page .dk-grup {
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+    flex-direction: column;
+    gap: var(--cs-section-gap, 18px);
+    min-width: 0;
+}
+
+body.v3-body .dk-page .dk-grup + .dk-grup {
+    margin-top: 10px;
+}
+
+body.v3-body .dk-page .dk-grup-head {
     margin: 0;
+    padding: 2px 2px 0;
 }
 
-body.v3-body.v3-body .dk-page .dk-sinif-tab {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
-    min-height: var(--cs-btn-h, 44px);
-    padding: 0 16px;
-    border-radius: var(--pv4-r-sm, 6px);
-    border: 1px solid var(--dk-navy);
-    background: var(--dk-surface);
-    background-image: none;
-    color: var(--dk-navy);
-    font-size: 13px;
+body.v3-body .dk-page .dk-grup-baslik {
+    margin: 0;
+    font-family: var(--cs-font), Poppins, "Segoe UI", sans-serif;
+    font-size: 22px;
     font-weight: 600;
-    text-decoration: none;
+    letter-spacing: -0.03em;
+    color: var(--dk-navy);
 }
 
-body.v3-body.v3-body .dk-page .dk-sinif-tab.is-active {
-    background: var(--dk-gold);
-    border-color: var(--dk-gold);
-    color: var(--dk-navy);
+body.v3-body .dk-page .dk-grup-sayi {
+    margin: 2px 0 0;
+    font-size: 13px;
+    color: var(--dk-muted);
 }
 
 body.v3-body .dk-page .dk-summary-card,
@@ -60,7 +58,7 @@ body.v3-body.v3-body .dk-page .dg-wrap.profile-card {
     background-image: none !important;
     border: 1px solid var(--dk-line) !important;
     border-radius: var(--pv4-r-lg, 16px) !important;
-    box-shadow: inset 0 3px 0 var(--dk-gold), var(--pv4-shadow-md, 0 4px 6px -1px rgba(16, 24, 43, .06)) !important;
+    box-shadow: var(--pv4-shadow-md, 0 4px 6px -1px rgba(16, 24, 43, .06)) !important;
     color: var(--dk-text);
     padding: 18px 20px;
     margin: 0;
@@ -117,15 +115,15 @@ body.v3-body .dk-page details.dk-fold[open] > summary.dk-card-head {
 }
 
 body.v3-body .dk-page details.dk-fold > summary.dk-card-head:focus-visible {
-    outline: 2px solid var(--dk-gold);
+    outline: 2px solid var(--dk-navy);
     outline-offset: 2px;
 }
 
 body.v3-body .dk-page .dk-fold-chevron {
     width: 9px;
     height: 9px;
-    border-right: 2px solid var(--dk-gold-dim);
-    border-bottom: 2px solid var(--dk-gold-dim);
+    border-right: 2px solid var(--dk-muted);
+    border-bottom: 2px solid var(--dk-muted);
     transform: rotate(45deg);
     flex: none;
     margin-top: -4px;
@@ -157,7 +155,7 @@ body.v3-body .dk-page .dk-stat span {
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--dk-gold-dim);
+    color: var(--dk-muted);
 }
 
 body.v3-body .dk-page .dk-stat strong {
@@ -222,7 +220,7 @@ body.v3-body .dk-page .dk-kazanim-ders {
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--dk-gold-dim);
+    color: var(--dk-muted);
 }
 
 body.v3-body .dk-page .dk-oncelik-list {
@@ -265,8 +263,8 @@ body.v3-body .dk-page .dk-oncelik-etiket {
 }
 
 body.v3-body .dk-page .dk-oncelik-item:not(.kritik) .dk-oncelik-etiket {
-    background: color-mix(in srgb, var(--dk-gold) 18%, white);
-    color: var(--dk-gold-dim);
+    background: var(--pv4-bg, #f4f5f7);
+    color: var(--dk-muted);
 }
 
 body.v3-body .dk-page .dk-oncelik-sinyal {
@@ -433,8 +431,8 @@ body.v3-body .dk-page .dg-trend-duseste {
 }
 
 body.v3-body .dk-page .dg-trend-dalgali {
-    background: color-mix(in srgb, var(--dk-gold) 18%, white);
-    color: var(--dk-gold-dim);
+    background: var(--pv4-bg, #f4f5f7);
+    color: var(--dk-muted);
 }
 
 body.v3-body .dk-page .dg-trend-stabil,
@@ -454,7 +452,7 @@ body.v3-body .dk-page .dg-metrik span {
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--dk-gold-dim);
+    color: var(--dk-muted);
 }
 
 body.v3-body .dk-page .dg-metrik strong {
@@ -468,7 +466,6 @@ body.v3-body .dk-page .dg-metrik strong {
 }
 
 @media (max-width: 640px) {
-    body.v3-body.v3-body .dk-page .dk-sinif-tab,
     body.v3-body.v3-body .dk-page .dk-back .ghost-btn {
         width: 100%;
     }
@@ -482,7 +479,7 @@ body.v3-body .dk-page .dg-metrik strong {
     body.v3-body .dk-page .dk-table.cs-mobile-ready tbody tr {
         border: 1px solid var(--dk-line);
         border-radius: var(--pv4-r-lg, 16px);
-        box-shadow: inset 0 3px 0 var(--dk-gold);
+        box-shadow: none;
         background: var(--dk-surface);
     }
 }
