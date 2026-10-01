@@ -47,10 +47,15 @@ def deneme_kontrol_merkezi(request, sinif_id: int | None = None):
     siniflar = hoca_sinif_secenekleri(hoca)
     secili = _secili_sinif(siniflar, sinif_id)
 
+    ekran = (request.GET.get("ekran") or "").strip()
+    if ekran != "kazanim":
+        ekran = "yukselis"
+
     ctx = {
         "siniflar": siniflar,
         "secili": secili,
         "sirala": (request.GET.get("sirala") or "puan").strip(),
+        "ekran": ekran,
         "veri": None,
     }
 

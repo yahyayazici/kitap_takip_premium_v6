@@ -180,16 +180,26 @@ class DenemeKontrolKazanimTests(TestCase):
         self.assertEqual(sayfa.status_code, 200)
         html = sayfa.content.decode()
         self.assertIn("Yükseliş sıralaması", html)
+        self.assertNotIn("Sözcükte Anlam", html)
         self.assertLess(html.index("Ali Yukselen"), html.index("Ayse Azartan"))
         self.assertLess(html.index("Ayse Azartan"), html.index("Can Tekdeneme"))
-        self.assertLess(html.index("Sözcükte Anlam"), html.index("Tam Sayılar"))
-        self.assertLess(html.index("Tam Sayılar"), html.index("Uzay"))
-        self.assertLess(html.index("Sözcükte Anlam"), html.index("Paragraf"))
-        self.assertLess(html.index("Paragraf"), html.index("Tam Sayılar"))
-        self.assertIn("Kuvvet", html)
-        self.assertNotIn("Gizli Konu", html)
-        self.assertIn("%70", html)
         self.assertNotIn("grup denemesi sonucu bulunmuyor", html)
+
+        kazanim = self.client.get(
+            reverse("ogretmen_deneme_kontrol_merkezi_sinif", args=[self.sinif.id]),
+            {"ekran": "kazanim"},
+        )
+        self.assertEqual(kazanim.status_code, 200)
+        kazanim_html = kazanim.content.decode()
+        self.assertIn("Kazanımlar", kazanim_html)
+        self.assertNotIn("Yükseliş sıralaması", kazanim_html)
+        self.assertLess(kazanim_html.index("Sözcükte Anlam"), kazanim_html.index("Tam Sayılar"))
+        self.assertLess(kazanim_html.index("Tam Sayılar"), kazanim_html.index("Uzay"))
+        self.assertLess(kazanim_html.index("Sözcükte Anlam"), kazanim_html.index("Paragraf"))
+        self.assertLess(kazanim_html.index("Paragraf"), kazanim_html.index("Tam Sayılar"))
+        self.assertIn("Kuvvet", kazanim_html)
+        self.assertNotIn("Gizli Konu", kazanim_html)
+        self.assertIn("%70", kazanim_html)
 
     def test_sinif_ortalamasi_deneme_deneme(self):
         ozet = {o["konu_ad"]: o for o in kazanim_ortalamalari([self.ali.id, self.ayse.id, self.can.id])}

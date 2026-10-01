@@ -1,0 +1,37 @@
+{% if gruplar %}
+<div class="dk-kazanim-wrap cs-table-wrap">
+    <table class="dk-table dk-kazanim-tablo">
+        <colgroup>
+            <col>
+            <col class="dk-col-ort">
+            <col class="dk-col-deneme">
+            <col class="dk-col-son">
+        </colgroup>
+        <thead>
+            <tr>
+                <th>Kazanım</th>
+                <th class="dk-num">Ortalama</th>
+                <th class="dk-num">Deneme</th>
+                <th class="dk-num">Son</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ders in gruplar %}
+            <tr class="dk-ders-baslik">
+                <th colspan="4">{{ ders.ders_ad }}</th>
+            </tr>
+            {% for konu in ders.konular %}
+            <tr>
+                <td>{{ konu.konu_ad }}</td>
+                <td class="dk-num">{% if konu.ortalama is not None %}%{{ konu.ortalama|floatformat:"-2" }}{% else %}—{% endif %}</td>
+                <td class="dk-num">{{ konu.deneme_sayisi }}</td>
+                <td class="dk-num">{% if konu.son_yuzde is not None %}%{{ konu.son_yuzde|floatformat:"-2" }}{% else %}—{% endif %}</td>
+            </tr>
+            {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="dk-empty">{{ bos_metin }}</p>
+{% endif %}
