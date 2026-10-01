@@ -1,13 +1,17 @@
 {% extends "base.html" %}
 {% load l10n static %}
-{% block title %}Deneme Kontrol Merkezi{% endblock %}
+{% block title %}{% if ekran == 'kazanim' %}Kazanımlar{% else %}Deneme Kontrol Merkezi{% endif %}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk4">
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk7">
 {% endblock %}
 
 {% block content %}
 <div class="dash-home ogretmen-dash dk-page">
+{% if ekran == 'kazanim' %}
+{% include "ogretmen/hero.html" with title="Kazanımlar" eyebrow="Etüt" meta="Yüklenen denemelerde biriken konular — tek ekran" show_date=True %}
+{% else %}
 {% include "ogretmen/hero.html" with title="Deneme Kontrol Merkezi" eyebrow="Etüt" meta="Sorumlu olduğunuz sınıfların deneme durumu — tek ekranda" show_date=True %}
+{% endif %}
 
 {% if not siniflar %}
 <div class="dk-card">
@@ -15,13 +19,29 @@
 </div>
 {% else %}
 
-<div class="dk-sinif-tabs">
-    {% for s in siniflar %}
-    <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' s.id %}" class="dk-sinif-tab{% if secili and secili.id == s.id %} is-active{% endif %}">{{ s.etiket }} ({{ s.ogrenci_sayisi }})</a>
-    {% endfor %}
+<div class="dk-toolbar">
+    <div class="dk-segment dk-sinif-segment" role="tablist" aria-label="Sınıflar">
+        {% for s in siniflar %}
+        <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' s.id %}{% if ekran == 'kazanim' %}?ekran=kazanim{% endif %}" class="dk-segment-item{% if secili and secili.id == s.id %} is-active{% endif %}" {% if secili and secili.id == s.id %}aria-current="page"{% endif %}>
+            <span>{{ s.etiket }}</span>
+            <span class="dk-count">{{ s.ogrenci_sayisi }}</span>
+        </a>
+        {% endfor %}
+    </div>
+    {% if secili %}
+    <div class="dk-segment dk-ekran-segment" role="tablist" aria-label="Ekran">
+        <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' secili.id %}" class="dk-segment-item{% if ekran != 'kazanim' %} is-active{% endif %}">Yükseliş</a>
+        <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' secili.id %}?ekran=kazanim" class="dk-segment-item{% if ekran == 'kazanim' %} is-active{% endif %}">Kazanımlar</a>
+    </div>
+    {% endif %}
 </div>
 
-{% if veri and veri.satirlar %}
+{% if ekran == 'kazanim' %}
+<div class="dk-card dk-kazanim-ekran">
+    <p class="dk-note">Yeni konu eklenir, çıkan konu silinmez. Aynı konu tekrar gelirse başarı oranı ortalamaya katılır.</p>
+    {% include "ogretmen/deneme_kazanim_tablo.html" with gruplar=veri.kazanim_gruplari bos_metin="Henüz kazanım yüklenmedi. Deneme konu kazanımı yüklendikçe konular burada birikecek." %}
+</div>
+{% elif veri and veri.satirlar %}
 
 <div class="dk-summary-card">
     <h2 class="dk-summary-title">{{ secili.etiket }} — Deneme Durumu</h2>
@@ -67,7 +87,7 @@
 
 <div class="dk-card">
     <div class="dk-card-head">
-        <h2>1 · Yükseliş sıralaması</h2>
+        <h2>Yükseliş sıralaması</h2>
     </div>
     <p class="dk-note">Tüm talebeler, ilk denemeden son denemeye puan artışına göre. Satıra dokununca talebenin kazanımları açılır.</p>
     {% if veri.yukselis_satirlari %}
@@ -101,42 +121,6 @@
     </div>
     {% else %}
     <p class="dk-empty">Bu sınıfta talebe yok.</p>
-    {% endif %}
-</div>
-
-<div class="dk-card">
-    <div class="dk-card-head">
-        <h2>2 · Kazanımlar</h2>
-    </div>
-    <p class="dk-note">Yüklenen denemelerde çıkan konular burada birikir. Yeni konu eklenir, çıkan konu silinmez. Aynı konu tekrar gelirse başarı oranı ortalamaya katılır.</p>
-    {% if veri.kazanim_gruplari %}
-        {% for ders in veri.kazanim_gruplari %}
-        <h3 class="dk-kazanim-ders">{{ ders.ders_ad }}</h3>
-        <div class="responsive-table cs-table-wrap">
-            <table class="dk-table">
-                <thead>
-                    <tr>
-                        <th>Kazanım</th>
-                        <th>Ortalama</th>
-                        <th>Deneme</th>
-                        <th>Son</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for konu in ders.konular %}
-                    <tr>
-                        <td>{{ konu.konu_ad }}</td>
-                        <td>{% if konu.ortalama is not None %}%{{ konu.ortalama|floatformat:"-2" }}{% else %}—{% endif %}</td>
-                        <td>{{ konu.deneme_sayisi }}</td>
-                        <td>{% if konu.son_yuzde is not None %}%{{ konu.son_yuzde|floatformat:"-2" }}{% else %}—{% endif %}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% endfor %}
-    {% else %}
-    <p class="dk-empty">Henüz kazanım yüklenmedi. Deneme konu kazanımı yüklendikçe konular burada birikecek.</p>
     {% endif %}
 </div>
 
