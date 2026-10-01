@@ -2,7 +2,7 @@
 {% load l10n static deneme_panel %}
 {% block title %}Deneme Kontrol Merkezi{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk13">
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk14">
 {% endblock %}
 
 {% block content %}
@@ -61,15 +61,26 @@
     <summary class="dk-card-head"><h2>Nokta atışı</h2><span class="dk-fold-chevron" aria-hidden="true"></span></summary>
     {% if veri.nokta.deneme %}
     <p class="dk-note">{{ veri.nokta.deneme.ad }} · {{ veri.nokta.karne_sayisi }} karne. Aynı soruyu sınıfın yüzde 33’ü ve fazlası yanlış yaptıysa burada durur.</p>
-    {% if veri.nokta.satirlar %}
-    <ul class="dk-nokta-list">
-        {% for s in veri.nokta.satirlar %}
-        <li class="dk-nokta-item">
-            <div class="dk-nokta-cumle">{{ s.cumle }}</div>
-            {% if s.konu %}<div class="dk-nokta-konu">{{ s.konu }}</div>{% endif %}
-        </li>
+    {% if veri.nokta.dersler %}
+    <div class="dk-nokta-secim">
+        {% for ders in veri.nokta.dersler %}
+        <input class="dk-nokta-radyo" type="radio" name="nokta-{{ forloop.parentloop.counter }}" id="nokta-{{ forloop.parentloop.counter }}-{{ forloop.counter0 }}">
+        <label class="dk-nokta-sekme" for="nokta-{{ forloop.parentloop.counter }}-{{ forloop.counter0 }}">
+            {{ ders.ad }}
+            <span>{{ ders.satirlar|length }}</span>
+        </label>
         {% endfor %}
-    </ul>
+        {% for ders in veri.nokta.dersler %}
+        <ul class="dk-nokta-list dk-nokta-panel">
+            {% for s in ders.satirlar %}
+            <li class="dk-nokta-item">
+                <div class="dk-nokta-cumle">{{ s.cumle }}</div>
+                {% if s.konu %}<div class="dk-nokta-konu">{{ s.konu }}</div>{% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% endfor %}
+    </div>
     {% else %}
     <p class="dk-empty">Bu denemede yüzde 33 ve üzerine çıkan ortak yanlış yok.</p>
     {% endif %}
