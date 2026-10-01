@@ -325,3 +325,77 @@ class DenemeKontrolTumuTests(TestCase):
         self.assertNotIn("Ayse Besbe", a_html)
         self.assertNotIn(">5. Sınıf<", a_html)
         self.assertTrue("100.00" in a_html or "100,00" in a_html)
+
+    def test_tumu_ortak_denemenin_ortalamasini_ve_sirasini_gosterir(self):
+        user = User.objects.create_user("etut-ort", password="x")
+        hoca = EtutHocasi.objects.create(ad_soyad="Etüt Ort", user=user, aktif=True)
+        PersonelProfili.objects.create(
+            user=user,
+            ad_soyad="Etüt Ort",
+            ana_rol=PersonelProfili.Rol.ETUT_MESUL,
+            etut_hocasi=hoca,
+        )
+        sinif_a = SinifSube.objects.create(sinif="5", sube="A")
+        sinif_b = SinifSube.objects.create(sinif="5", sube="B")
+        hoca.sorumlu_sinif_subeler.add(sinif_a, sinif_b)
+        ali = Talebe.objects.create(
+            ad_soyad="Ali Orta", sinif_sube=sinif_a, etut_hocasi=hoca, dini_ders_hocasi=hoca
+        )
+        veli = Talebe.objects.create(
+            ad_soyad="Veli Orta", sinif_sube=sinif_a, etut_hocasi=hoca, dini_ders_hocasi=hoca
+        )
+        ayse = Talebe.objects.create(
+            ad_soyad="Ayse Orta", sinif_sube=sinif_b, etut_hocasi=hoca, dini_ders_hocasi=hoca
+        )
+        ayrilan = Talebe.objects.create(
+            ad_soyad="Eski Orta",
+            sinif_sube=sinif_a,
+            etut_hocasi=hoca,
+            dini_ders_hocasi=hoca,
+            durum=Talebe.Durum.AYRILDI,
+        )
+        ortak = DenemeSinavi.objects.create(
+            ad="Ortak Son",
+            sinav_tarihi=date(2026, 9, 15),
+            sinif_seviyesi="5",
+            durum=DenemeSinavi.Durum.AKTIF,
+            tur=DenemeSinavi.Tur.GRUP,
+            sira_no=2,
+        )
+        DenemeSonucu.objects.create(deneme=ortak, talebe=ali, puan=Decimal("400"))
+        DenemeSonucu.objects.create(deneme=ortak, talebe=veli, puan=Decimal("424.20"))
+        DenemeSonucu.objects.create(deneme=ortak, talebe=ayse, puan=Decimal("412.10"))
+        DenemeSonucu.objects.create(deneme=ortak, talebe=ayrilan, puan=Decimal("500"))
+        yalniz_a = DenemeSinavi.objects.create(
+            ad="4. Deneme",
+            sinav_tarihi=date(2026, 10, 1),
+            sinif_seviyesi="5",
+            durum=DenemeSinavi.Durum.AKTIF,
+            tur=DenemeSinavi.Tur.GRUP,
+            sira_no=4,
+        )
+        DenemeSonucu.objects.create(deneme=yalniz_a, talebe=ali, puan=Decimal("416"))
+        DenemeSonucu.objects.create(deneme=yalniz_a, talebe=veli, puan=Decimal("416"))
+
+        self.client.force_login(user)
+        tumu = self.client.get(reverse("ogretmen_deneme_kontrol_merkezi"))
+        html = tumu.content.decode()
+        self.assertIn("Son Deneme: 1. Deneme", html)
+        self.assertNotIn("Son Deneme: 4. Deneme", html)
+        self.assertTrue(
+            "Sınıf Ortalaması</span><strong>412.10" in html
+            or "Sınıf Ortalaması</span><strong>412,10" in html
+        )
+        self.assertNotIn("Sınıf Ortalaması</span><strong>416", html)
+        self.assertNotIn("Eski Orta", html)
+
+        sadece_a = self.client.get(
+            reverse("ogretmen_deneme_kontrol_merkezi_sinif", args=[sinif_a.id])
+        )
+        a_html = sadece_a.content.decode()
+        self.assertIn("Son Deneme: 2. Deneme", a_html)
+        self.assertTrue(
+            "Sınıf Ortalaması</span><strong>416.00" in a_html
+            or "Sınıf Ortalaması</span><strong>416,00" in a_html
+            or "Sınıf Ortalaması</span><strong>416<" in a_html
+        )
