@@ -168,6 +168,7 @@ class DenemeKontrolKazanimTests(TestCase):
 
         arsiv = _deneme("Eski", 2, durum=DenemeSinavi.Durum.ARSIV)
         _kazanim(arsiv, self.ayse, "Fen", "Kuvvet", "55")
+        _kazanim(arsiv, self.ali, "Fen", "Uzay", "10")
         taslak = _deneme("Taslak", 3, durum=DenemeSinavi.Durum.TASLAK)
         _kazanim(taslak, self.ali, "Fen", "Gizli Konu", "99")
 
@@ -186,7 +187,7 @@ class DenemeKontrolKazanimTests(TestCase):
         self.assertLess(html.index("Tam Sayılar"), html.index("Uzay"))
         self.assertLess(html.index("Sözcükte Anlam"), html.index("Paragraf"))
         self.assertLess(html.index("Paragraf"), html.index("Tam Sayılar"))
-        self.assertIn("Kuvvet", html)
+        self.assertNotIn("Kuvvet", html)
         self.assertNotIn("Gizli Konu", html)
         self.assertIn("%70", html)
         self.assertNotIn("grup denemesi sonucu bulunmuyor", html)
@@ -198,7 +199,7 @@ class DenemeKontrolKazanimTests(TestCase):
         self.assertEqual(ozet["Uzay"]["son_yuzde"], Decimal("80.00"))
         self.assertEqual(ozet["Sözcükte Anlam"]["ortalama"], Decimal("60.00"))
         self.assertEqual(ozet["Sözcükte Anlam"]["deneme_sayisi"], 1)
-        self.assertIn("Kuvvet", ozet)
+        self.assertNotIn("Kuvvet", ozet)
         self.assertNotIn("Gizli Konu", ozet)
         gruplar = kazanimlari_derse_gore(list(ozet.values()))
         self.assertEqual([g["ders_ad"] for g in gruplar], ["Türkçe", "Matematik", "Fen"])
@@ -228,6 +229,6 @@ class DenemeKontrolKazanimTests(TestCase):
         )
         ayse_html = ayse.content.decode()
         self.assertIn("%50", ayse_html)
-        self.assertIn("Kuvvet", ayse_html)
+        self.assertNotIn("Kuvvet", ayse_html)
         self.assertNotIn("Paragraf", ayse_html)
         self.assertNotIn("Uzay", ayse_html)

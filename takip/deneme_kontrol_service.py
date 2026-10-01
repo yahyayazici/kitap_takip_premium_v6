@@ -371,6 +371,8 @@ def kazanim_ortalamalari(talebe_ids: list[int]) -> list[dict]:
 
     Konu bir kez görününce listede kalır. Aynı konu sonraki denemede
     tekrar gelirse, deneme deneme sınıf (veya talebe) ortalaması alınır.
+    Sayı ve ortalama yalnız listede duran grup denemelerinden gelir;
+    silinip arşive alınan deneme sayıya katılmaz.
     """
     if not talebe_ids:
         return []
@@ -380,7 +382,8 @@ def kazanim_ortalamalari(talebe_ids: list[int]) -> list[dict]:
     kayitlar = (
         DenemeKazanimSonucu.objects.filter(
             talebe_id__in=talebe_ids,
-            deneme__durum__in=(DenemeSinavi.Durum.AKTIF, DenemeSinavi.Durum.ARSIV),
+            deneme__tur=DenemeSinavi.Tur.GRUP,
+            deneme__durum=DenemeSinavi.Durum.AKTIF,
         )
         .select_related("deneme")
         .order_by("deneme__sinav_tarihi", "deneme_id", "id")
