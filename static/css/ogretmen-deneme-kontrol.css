@@ -1,4 +1,4 @@
-/* Deneme Kontrol — lacivert + altın (panel ile aynı dil) */
+/* Deneme Kontrol — beyaz, ışıklı kart, sönen çizgi */
 
 body.v3-body .dk-page {
     --dk-navy: var(--pv4-navy, #0c1a3a);
@@ -20,10 +20,6 @@ body.v3-body .dk-page .pv4-hero-row {
     margin: 0;
 }
 
-body.v3-body .dk-page .pv4-date-card {
-    border-color: var(--dk-line) !important;
-}
-
 body.v3-body .dk-page .pv4-date-kicker {
     color: var(--dk-muted) !important;
 }
@@ -36,7 +32,15 @@ body.v3-body .dk-page .dk-grup {
 }
 
 body.v3-body .dk-page .dk-grup + .dk-grup {
-    margin-top: 10px;
+    margin-top: 8px;
+}
+
+body.v3-body .dk-page .dk-grup + .dk-grup::before {
+    content: "";
+    display: block;
+    height: 1px;
+    margin: 6px 12px 16px;
+    background: linear-gradient(90deg, transparent, var(--cs-border), transparent);
 }
 
 body.v3-body .dk-page .dk-grup-head {
@@ -61,13 +65,41 @@ body.v3-body .dk-page .dk-grup-sayi {
 
 body.v3-body .dk-page .dk-summary-card,
 body.v3-body .dk-page .dk-card,
-body.v3-body.v3-body .dk-page .dg-wrap.profile-card {
-    background: var(--dk-surface) !important;
-    background-image: none !important;
-    border: 1px solid var(--dk-line) !important;
-    border-radius: var(--pv4-r-lg, 16px) !important;
-    box-shadow: var(--pv4-shadow-md, 0 4px 6px -1px rgba(16, 24, 43, .06)) !important;
+body.v3-body.v3-body .dk-page .dg-wrap.profile-card,
+body.v3-body .dk-page .pv4-date-card,
+body.v3-body .dk-page .dk-stat,
+body.v3-body .dk-page .dg-metrik {
+    position: relative;
+    background-color: var(--cs-surface, #fff) !important;
+    background-image: linear-gradient(180deg, var(--cs-surface, #fff) 0%, var(--cs-surface-muted, #f8fafc) 100%) !important;
+    border: 1px solid transparent !important;
+    border-radius: var(--cs-radius-lg, 18px) !important;
+    box-shadow: var(--cs-shadow-card) !important;
     color: var(--dk-text);
+}
+
+body.v3-body .dk-page .dk-summary-card::after,
+body.v3-body .dk-page .dk-card::after,
+body.v3-body.v3-body .dk-page .dg-wrap.profile-card::after,
+body.v3-body .dk-page .pv4-date-card::after,
+body.v3-body .dk-page .dk-stat::after,
+body.v3-body .dk-page .dg-metrik::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.96) 0%, var(--cs-border) 46%, rgba(255, 255, 255, 0.2) 100%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+body.v3-body .dk-page .dk-summary-card,
+body.v3-body .dk-page .dk-card,
+body.v3-body.v3-body .dk-page .dg-wrap.profile-card {
     padding: 18px 20px;
     margin: 0;
 }
@@ -119,7 +151,12 @@ body.v3-body .dk-page details.dk-fold > summary.dk-card-head h2 {
 }
 
 body.v3-body .dk-page details.dk-fold[open] > summary.dk-card-head {
-    margin-bottom: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    background-image: linear-gradient(90deg, transparent, var(--cs-border), transparent);
+    background-repeat: no-repeat;
+    background-size: 100% 1px;
+    background-position: left bottom;
 }
 
 body.v3-body .dk-page details.dk-fold > summary.dk-card-head:focus-visible {
@@ -149,11 +186,10 @@ body.v3-body .dk-page .dk-stat-row {
     margin-top: 16px;
 }
 
-body.v3-body .dk-page .dk-stat {
-    background: var(--pv4-bg, #f4f5f7);
-    border: 1px solid var(--dk-line);
-    border-radius: var(--pv4-r-sm, 6px);
-    padding: 10px 12px;
+body.v3-body .dk-page .dk-stat,
+body.v3-body .dk-page .dg-metrik {
+    border-radius: var(--cs-radius-md, 14px) !important;
+    padding: 12px 14px;
 }
 
 body.v3-body .dk-page .dk-stat span {
@@ -203,14 +239,22 @@ body.v3-body .dk-page .dk-table th {
     text-transform: uppercase;
     text-align: left;
     color: var(--dk-muted);
-    background: var(--pv4-bg, #f4f5f7);
-    border-bottom: 1px solid var(--dk-line);
+    background-color: transparent;
+    background-image: linear-gradient(90deg, transparent, var(--cs-border), transparent);
+    background-repeat: no-repeat;
+    background-size: 100% 1px;
+    background-position: left bottom;
+    border-bottom: 0;
 }
 
 body.v3-body .dk-page .dk-table td {
     padding: 10px 8px;
     color: var(--dk-text);
-    border-bottom: 1px solid var(--dk-line);
+    border-bottom: 0;
+    background-image: linear-gradient(90deg, transparent, var(--cs-border-subtle), transparent);
+    background-repeat: no-repeat;
+    background-size: 100% 1px;
+    background-position: left bottom;
     font-variant-numeric: tabular-nums;
 }
 
@@ -450,9 +494,7 @@ body.v3-body .dk-page .dg-trend-yetersiz {
 }
 
 body.v3-body .dk-page .dg-metrik {
-    background: var(--pv4-bg, #f4f5f7);
-    border: 1px solid var(--dk-line);
-    border-radius: var(--pv4-r-sm, 6px);
+    border-radius: var(--cs-radius-md, 14px) !important;
 }
 
 body.v3-body .dk-page .dg-metrik span {
@@ -485,9 +527,10 @@ body.v3-body .dk-page .dg-metrik strong {
     }
 
     body.v3-body .dk-page .dk-table.cs-mobile-ready tbody tr {
-        border: 1px solid var(--dk-line);
-        border-radius: var(--pv4-r-lg, 16px);
-        box-shadow: none;
-        background: var(--dk-surface);
+        border: 1px solid transparent;
+        border-radius: var(--cs-radius-lg, 18px);
+        box-shadow: var(--cs-shadow-card);
+        background-color: var(--cs-surface, #fff);
+        background-image: linear-gradient(180deg, var(--cs-surface, #fff), var(--cs-surface-muted, #f8fafc));
     }
 }
