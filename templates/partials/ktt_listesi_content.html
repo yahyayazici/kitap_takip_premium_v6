@@ -1,7 +1,7 @@
 {% load static %}
 {% if request.htmx %}
 <title hx-swap-oob="true">KTT</title>
-<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=ktt-list5" hx-swap-oob="true">
+<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=ktt-list7" hx-swap-oob="true">
 {% endif %}
 {% if request.htmx %}<div id="main-content" class="page-content">{% endif %}
 <div class="ktt-page ktt-list-page" data-page-title="KTT">
@@ -20,6 +20,8 @@
             </div>
         </div>
     </header>
+
+    {% include "includes/ktt_hafta_dersler.html" %}
 
     {% include "includes/ktt_akilli_strip.html" %}
 

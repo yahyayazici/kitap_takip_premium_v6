@@ -628,6 +628,73 @@ def ktt_hafta_cozulen_soru(user: User, gun=None) -> int:
     return ktt_test_soru_toplami(qs)
 
 
+_KTT_HAFTA_DERSLERI: tuple[str, ...] = (
+    "Türkçe",
+    "Paragraf",
+    "Matematik",
+    "Fen",
+    "Sosyal",
+    "Din",
+    "İngilizce",
+)
+
+
+def _ktt_ders_kovasi(ad: str) -> str:
+    """KTT ders adını haftalık şeridin kovasına bağlar."""
+    ham = (ad or "").casefold()
+    for eski, yeni in (
+        ("ı", "i"),
+        ("i̇", "i"),
+        ("ş", "s"),
+        ("ğ", "g"),
+        ("ü", "u"),
+        ("ö", "o"),
+        ("ç", "c"),
+    ):
+        ham = ham.replace(eski, yeni)
+    if "paragraf" in ham:
+        return "Paragraf"
+    if "ingiliz" in ham:
+        return "İngilizce"
+    if "turkce" in ham:
+        return "Türkçe"
+    if "matematik" in ham:
+        return "Matematik"
+    if "fen" in ham:
+        return "Fen"
+    if "sosyal" in ham:
+        return "Sosyal"
+    if ham.startswith("din"):
+        return "Din"
+    return ""
+
+
+def ktt_hafta_ders_sorulari(user: User, gun=None) -> list[dict]:
+    """Bu hafta çözülen soru, ders ders. Toplam, başlıktaki hafta sayısıyla aynıdır."""
+    gun = gun or localdate()
+    baslangic = gun - timedelta(days=gun.weekday())
+    bitis = baslangic + timedelta(days=6)
+    qs = yetkili_ktt_sonuclari(user).filter(
+        ktt__sinav_tarihi__gte=baslangic,
+        ktt__sinav_tarihi__lte=bitis,
+    )
+    kovalar = {etiket: 0 for etiket in _KTT_HAFTA_DERSLERI}
+    diger: dict[str, int] = {}
+    sinavlar = KttSinav.objects.filter(pk__in=qs.values("ktt_id")).select_related("ders")
+    for sinav in sinavlar:
+        ad = sinav.ders.ad if sinav.ders_id else ""
+        kova = _ktt_ders_kovasi(ad)
+        soru = int(sinav.soru_sayisi or 0)
+        if kova:
+            kovalar[kova] += soru
+        else:
+            diger[ad or "Diğer"] = diger.get(ad or "Diğer", 0) + soru
+    satirlar = [{"etiket": etiket, "soru": kovalar[etiket]} for etiket in _KTT_HAFTA_DERSLERI]
+    for etiket, soru in diger.items():
+        satirlar.append({"etiket": etiket, "soru": soru})
+    return satirlar
+
+
 def ktt_rapor_grupla(sonuclar) -> list[dict]:
     """Sonuç satırlarını teste göre toplar. Sıra, gelen listenin tarih sırasını korur."""
     gruplar: list[dict] = []

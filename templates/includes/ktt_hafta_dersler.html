@@ -1,0 +1,9 @@
+<section class="ktt-hafta-dersler" aria-label="Bu hafta ders ders çözülen soru">
+    {% for ders in hafta_dersleri %}
+    <article class="ktt-hafta-ders{% if ders.soru %} is-dolu{% endif %}">
+        <b>{{ ders.soru }}</b>
+        <span>{{ ders.etiket }}</span>
+    </article>
+    {% endfor %}
+</section>
+<div class="ktt-hafta-cizgi" aria-hidden="true"></div>
