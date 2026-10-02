@@ -205,6 +205,8 @@ class KttRaporGrupTests(TestCase):
         self.assertIn(cumle, html)
         self.assertIn("A4 portrait", html)
         self.assertNotIn("hero-total", html)
+        self.assertIn("Great Vibes", html)
+        self.assertLess(html.index("Great Vibes"), html.index("toplam-sayi"))
         self.assertLess(html.index("hero-title"), html.index("toplam-sayi"))
         self.assertLess(html.index("toplam-sayi"), html.index(cumle))
         blok = html[html.index(cumle):]
