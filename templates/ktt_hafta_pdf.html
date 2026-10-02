@@ -8,8 +8,14 @@
         {% include "includes/pdf_karne_fonts.html" %}
         {% include "includes/pdf_karne_a4_css.html" %}
         @font-face {
-            font-family: "Great Vibes";
-            src: url("{% static 'fonts/GreatVibes-Regular.ttf' %}") format("truetype");
+            font-family: "LemonMilk";
+            src: url("{% static 'fonts/LemonMilk.otf' %}") format("opentype");
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: "CaviarDreams";
+            src: url("{% static 'fonts/CaviarDreams.ttf' %}") format("truetype");
             font-weight: 400;
             font-style: normal;
         }
@@ -25,11 +31,11 @@
             text-align: center;
         }
         .pdf-karne.ktt-hafta-pdf .toplam-sayi {
-            font-family: "Great Vibes", "Poppins", cursive;
-            font-size: 84px;
+            font-family: "LemonMilk", "Poppins", sans-serif;
+            font-size: 58px;
             font-weight: 400;
             line-height: 1;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
             color: #173f78;
         }
         .pdf-karne.ktt-hafta-pdf .toplam-etiket {
@@ -42,17 +48,20 @@
         }
         .pdf-karne.ktt-hafta-pdf .sinif-blok { margin-top: 16px; }
         .pdf-karne.ktt-hafta-pdf .sinif-baslik {
-            font-size: 14px;
+            font-family: "Poppins", sans-serif;
+            font-size: 20px;
             font-weight: 700;
             color: #173f78;
             text-align: center;
+            letter-spacing: 0;
         }
         .pdf-karne.ktt-hafta-pdf .cumle {
             margin: 6px 0 10px;
-            font-size: 12px;
-            font-weight: 600;
+            font-family: "CaviarDreams", "Poppins", sans-serif;
+            font-size: 15px;
+            font-weight: 400;
             line-height: 1.45;
-            color: #173f78;
+            color: #334155;
             text-align: center;
         }
         .pdf-karne.ktt-hafta-pdf table.ders-serit {
@@ -83,17 +92,24 @@
         .pdf-karne.ktt-hafta-pdf td.t6 { border-top-color: #0f766e; }
         .pdf-karne.ktt-hafta-pdf td.t7 { border-top-color: #b91c1c; }
         .pdf-karne.ktt-hafta-pdf .ders-sayi {
+            font-family: "LemonMilk", "Poppins", sans-serif;
             font-size: 26px;
-            font-weight: 700;
+            font-weight: 400;
             line-height: 1;
+            letter-spacing: 0.5px;
             color: #173f78;
         }
         .pdf-karne.ktt-hafta-pdf .ders-sayi.is-bos { color: #94a3b8; }
         .pdf-karne.ktt-hafta-pdf .ders-ad {
             margin-top: 5px;
-            font-size: 11px;
-            font-weight: 600;
+            font-family: "CaviarDreams", "Poppins", sans-serif;
+            font-size: 13px;
+            font-weight: 400;
             color: #64748b;
+        }
+        .pdf-karne.ktt-hafta-pdf .footer-left {
+            color: #94a3b8;
+            font-size: 9px;
         }
         .pdf-karne.ktt-hafta-pdf .apple-cizgi-bar {
             height: 4px;
@@ -167,7 +183,6 @@
             <table class="footer-table" cellpadding="0" cellspacing="0">
                 <tr>
                     <td class="footer-left">{{ panel_org }} · {{ olusturma_tarihi|date:"d.m.Y H:i" }}</td>
-                    <td class="footer-right">{{ panel_footer }}</td>
                 </tr>
             </table>
         </td>
