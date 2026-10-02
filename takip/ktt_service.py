@@ -723,15 +723,17 @@ def _seviye_sirasi(seviye: str) -> tuple:
 
 
 def _ktt_hafta_cumle(baslik: str, dersler: list[dict]) -> str:
+    """Sınıf adı başlıkta durur; cümle yalnız ders ve adet söyler."""
+    del baslik
     dolu = [ders for ders in dersler if ders["soru"]]
     if not dolu:
-        return f"{baslik} bu hafta soru çözmedi."
-    parcalar = [f"{ders['etiket']} dersinden {ders['soru']}" for ders in dolu]
+        return "Bu hafta soru çözülmedi."
+    parcalar = [f"{ders['etiket']} {ders['soru']}" for ders in dolu]
     if len(parcalar) == 1:
         liste = parcalar[0]
     else:
         liste = ", ".join(parcalar[:-1]) + " ve " + parcalar[-1]
-    return f"{baslik} bu hafta {liste} soru çözdü."
+    return f"{liste} çözüldü."
 
 
 def ktt_hafta_sinif_ozeti(user: User, gun=None) -> dict:

@@ -181,11 +181,12 @@ class KttRaporGrupTests(TestCase):
         self.assertEqual(yedi["toplam"], 163)
         self.assertEqual(
             yedi["cumle"],
-            "7. sınıflar bu hafta Türkçe dersinden 30, Matematik dersinden 62 ve Fen dersinden 71 soru çözdü.",
+            "Türkçe 30, Matematik 62 ve Fen 71 çözüldü.",
         )
+        self.assertNotIn("7. sınıflar", yedi["cumle"])
         self.assertNotIn("Sosyal", yedi["cumle"])
         self.assertEqual(bes["toplam"], 30)
-        self.assertEqual(bes["cumle"], "5. sınıflar bu hafta Türkçe dersinden 30 soru çözdü.")
+        self.assertEqual(bes["cumle"], "Türkçe 30 çözüldü.")
         duz = {satir["etiket"]: satir["soru"] for satir in ktt_hafta_ders_sorulari(user, gun)}
         self.assertEqual(duz["Türkçe"], 60)
         self.assertEqual(duz["Matematik"], 62)
@@ -201,12 +202,13 @@ class KttRaporGrupTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertIn("ktt-hafta-2026-09-21.pdf", resp["Content-Disposition"])
         html = mock_pdf.call_args[0][0]
-        cumle = "7. sınıflar bu hafta Türkçe dersinden 30, Matematik dersinden 62 ve Fen dersinden 71 soru çözdü."
+        cumle = "Türkçe 30, Matematik 62 ve Fen 71 çözüldü."
         self.assertIn(cumle, html)
+        self.assertEqual(html.count("7. sınıflar"), 1)
+        self.assertNotIn('class="footer-right"', html)
         self.assertIn("A4 portrait", html)
         self.assertNotIn("hero-total", html)
-        self.assertIn("Great Vibes", html)
-        self.assertLess(html.index("Great Vibes"), html.index("toplam-sayi"))
+        self.assertIn("LemonMilk", html)
         self.assertLess(html.index("hero-title"), html.index("toplam-sayi"))
         self.assertLess(html.index("toplam-sayi"), html.index(cumle))
         blok = html[html.index(cumle):]
