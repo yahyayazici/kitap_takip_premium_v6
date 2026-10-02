@@ -2,14 +2,19 @@
 
 from datetime import date
 from decimal import Decimal
+from types import SimpleNamespace
 
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from takip.deneme_kontrol_service import kazanim_ortalamalari, kazanimlari_derse_gore
+from takip.deneme_kontrol_service import (
+    _oncelik_metinleri,
+    kazanim_ortalamalari,
+    kazanimlari_derse_gore,
+)
 from takip.deneme_models import DenemeKazanimSonucu, DenemeSinavi, DenemeSonucu
-from takip.models import EtutHocasi, PersonelProfili, SinifSube, Talebe
+from takip.models import DenemeBransSonucu, EtutHocasi, PersonelProfili, SinifSube, Talebe
 
 
 class DenemeKontrolEtutTests(TestCase):
@@ -399,3 +404,108 @@ class DenemeKontrolTumuTests(TestCase):
             or "Sınıf Ortalaması</span><strong>416,00" in a_html
             or "Sınıf Ortalaması</span><strong>416<" in a_html
         )
+
+
+def _brans(kod, net, yanlis, bos, dogru=10):
+    return SimpleNamespace(
+        brans=kod,
+        net=Decimal(str(net)),
+        yanlis=yanlis,
+        bos=bos,
+        dogru=dogru,
+    )
+
+
+def _sonuc(*branslar):
+    return SimpleNamespace(brans_satirlari=SimpleNamespace(all=lambda: list(branslar)))
+
+
+class OncelikAnalizTests(TestCase):
+    def test_dususu_ders_yanlis_ve_sinifla_acar(self):
+        matematik_eski = _brans("matematik", 16, 2, 1)
+        matematik_yeni = _brans("matematik", 8, 10, 1)
+        seri = [
+            {"deneme_id": 1, "puan": 400, "net": 50, "sonuc": _sonuc(matematik_eski)},
+            {"deneme_id": 2, "puan": 380, "net": 42, "sonuc": _sonuc(matematik_yeni)},
+        ]
+        sinif_ort = {1: (400.0, 8), 2: (397.0, 8)}
+        calisma = [{"kod": "matematik", "etiket": "Matematik", "son_30_gun_soru": 149, "durum": "uyari"}]
+        metinler, kritik = _oncelik_metinleri(seri, {
+            "puan_dususu": 15.0,
+            "net_dususu": 3.0,
+            "bos_orani_artis_esik": 0.10,
+            "soru_yuksek_esik": 80,
+            "ardisik_negatif": 2,
+        }, calisma, sinif_ort)
+        self.assertTrue(kritik)
+        birlesik = " ".join(metinler)
+        self.assertIn("Son denemede puan -20,00, net -8,00.", birlesik)
+        self.assertIn("Matematik -8,00 net, yanlış 2→10", birlesik)
+        self.assertIn("düşüş bu talebeye ait", birlesik)
+        self.assertIn("149 soru", birlesik)
+        self.assertNotIn("net artmıyor", birlesik)
+
+    def test_sinif_da_dustuyse_deneme_geneli_der(self):
+        seri = [
+            {"deneme_id": 1, "puan": 400, "net": 40, "sonuc": _sonuc()},
+            {"deneme_id": 2, "puan": 380, "net": 36, "sonuc": _sonuc()},
+        ]
+        metinler, _kritik = _oncelik_metinleri(
+            seri,
+            {"puan_dususu": 15, "net_dususu": 3, "bos_orani_artis_esik": 0.10, "soru_yuksek_esik": 80, "ardisik_negatif": 2},
+            [],
+            {1: (410.0, 10), 2: (392.0, 10)},
+        )
+        self.assertIn("Sınıf ortalaması da -18,0 puan geriledi.", metinler)
+
+    def test_sayfa_kaybin_dersini_ve_kazanimi_yazar(self):
+        user = User.objects.create_user("etut-oncelik", password="x")
+        hoca = EtutHocasi.objects.create(ad_soyad="Etüt Öncelik", user=user, aktif=True)
+        PersonelProfili.objects.create(
+            user=user,
+            ad_soyad="Etüt Öncelik",
+            ana_rol=PersonelProfili.Rol.ETUT_MESUL,
+            etut_hocasi=hoca,
+        )
+        sinif = SinifSube.objects.create(sinif="8", sube="P")
+        hoca.sorumlu_sinif_subeler.add(sinif)
+        ali = Talebe.objects.create(
+            ad_soyad="Ali Dusen", sinif_sube=sinif, etut_hocasi=hoca, dini_ders_hocasi=hoca
+        )
+        digerler = [
+            Talebe.objects.create(
+                ad_soyad=f"Sabit {n}",
+                sinif_sube=sinif,
+                etut_hocasi=hoca,
+                dini_ders_hocasi=hoca,
+            )
+            for n in range(3)
+        ]
+        ilk = _deneme("İlk", 1)
+        son = _deneme("Son", 20)
+        DenemeSonucu.objects.create(deneme=ilk, talebe=ali, puan=Decimal("400"), toplam_net=Decimal("50"))
+        ali_son = DenemeSonucu.objects.create(
+            deneme=son, talebe=ali, puan=Decimal("380"), toplam_net=Decimal("42")
+        )
+        DenemeBransSonucu.objects.create(
+            sonuc=DenemeSonucu.objects.get(deneme=ilk, talebe=ali),
+            brans="matematik", dogru=16, yanlis=2, bos=1, net=Decimal("15.50"),
+        )
+        DenemeBransSonucu.objects.create(
+            sonuc=ali_son, brans="matematik", dogru=10, yanlis=10, bos=1, net=Decimal("7.50")
+        )
+        for talebe in digerler:
+            DenemeSonucu.objects.create(deneme=ilk, talebe=talebe, puan=Decimal("400"), toplam_net=Decimal("50"))
+            DenemeSonucu.objects.create(deneme=son, talebe=talebe, puan=Decimal("400"), toplam_net=Decimal("50"))
+        _kazanim(son, ali, "Matematik", "Üslü İfadeler", "22")
+        _kazanim(son, ali, "Türkçe", "Sözcükte Anlam", "18")
+
+        self.client.force_login(user)
+        sayfa = self.client.get(reverse("ogretmen_deneme_kontrol_merkezi_sinif", args=[sinif.id]))
+        html = sayfa.content.decode()
+        self.assertIn("Ali Dusen", html)
+        self.assertIn("Asıl kayıp", html)
+        self.assertIn("yanlış 2→10", html)
+        self.assertIn("Zayıf kazanım: Üslü İfadeler %22.", html)
+        self.assertNotIn("Zayıf kazanım: Sözcükte Anlam", html)
+        self.assertIn("düşüş bu talebeye ait", html)
