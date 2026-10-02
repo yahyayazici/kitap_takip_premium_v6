@@ -695,6 +695,84 @@ def ktt_hafta_ders_sorulari(user: User, gun=None) -> list[dict]:
     return satirlar
 
 
+def _hafta_ders_satirlari(kovalar: dict[str, int]) -> list[dict]:
+    satirlar = [
+        {"etiket": etiket, "soru": int(kovalar.get(etiket, 0))}
+        for etiket in _KTT_HAFTA_DERSLERI
+    ]
+    for etiket, soru in kovalar.items():
+        if etiket not in _KTT_HAFTA_DERSLERI:
+            satirlar.append({"etiket": etiket, "soru": int(soru)})
+    return satirlar
+
+
+def _sinif_basligi(seviye: str) -> str:
+    if not seviye:
+        return "Sınıf belirtilmemiş"
+    if seviye.isdigit():
+        return f"{seviye}. sınıflar"
+    return seviye
+
+
+def _seviye_sirasi(seviye: str) -> tuple:
+    if seviye.isdigit():
+        return (0, int(seviye), seviye)
+    if not seviye:
+        return (2, 0, "")
+    return (1, 0, seviye)
+
+
+def _ktt_hafta_cumle(baslik: str, dersler: list[dict]) -> str:
+    dolu = [ders for ders in dersler if ders["soru"]]
+    if not dolu:
+        return f"{baslik} bu hafta soru çözmedi."
+    parcalar = [f"{ders['etiket']} dersinden {ders['soru']}" for ders in dolu]
+    if len(parcalar) == 1:
+        liste = parcalar[0]
+    else:
+        liste = ", ".join(parcalar[:-1]) + " ve " + parcalar[-1]
+    return f"{baslik} bu hafta {liste} soru çözdü."
+
+
+def ktt_hafta_sinif_ozeti(user: User, gun=None) -> dict:
+    """Bu haftanın soru toplamı, sınıf seviyesine göre. Her test bir kez sayılır."""
+    gun = gun or localdate()
+    baslangic = gun - timedelta(days=gun.weekday())
+    bitis = baslangic + timedelta(days=6)
+    qs = yetkili_ktt_sonuclari(user).filter(
+        ktt__sinav_tarihi__gte=baslangic,
+        ktt__sinav_tarihi__lte=bitis,
+    )
+    gruplar: dict[str, dict[str, int]] = {}
+    sinavlar = KttSinav.objects.filter(pk__in=qs.values("ktt_id")).select_related("ders")
+    for sinav in sinavlar:
+        seviye = (sinav.sinif_seviyesi or "").strip()
+        kovalar = gruplar.setdefault(seviye, {})
+        ad = sinav.ders.ad if sinav.ders_id else ""
+        kova = _ktt_ders_kovasi(ad) or (ad or "Diğer")
+        kovalar[kova] = kovalar.get(kova, 0) + int(sinav.soru_sayisi or 0)
+
+    siniflar = []
+    for seviye in sorted(gruplar, key=_seviye_sirasi):
+        dersler = _hafta_ders_satirlari(gruplar[seviye])
+        baslik = _sinif_basligi(seviye)
+        siniflar.append(
+            {
+                "seviye": seviye,
+                "baslik": baslik,
+                "toplam": sum(ders["soru"] for ders in dersler),
+                "dersler": dersler,
+                "cumle": _ktt_hafta_cumle(baslik, dersler),
+            }
+        )
+    return {
+        "baslangic": baslangic,
+        "bitis": bitis,
+        "toplam": sum(sinif["toplam"] for sinif in siniflar),
+        "siniflar": siniflar,
+    }
+
+
 def ktt_rapor_grupla(sonuclar) -> list[dict]:
     """Sonuç satırlarını teste göre toplar. Sıra, gelen listenin tarih sırasını korur."""
     gruplar: list[dict] = []
