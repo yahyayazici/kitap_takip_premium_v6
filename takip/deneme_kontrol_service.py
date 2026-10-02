@@ -20,7 +20,7 @@ from dataclasses import dataclass, field
 from decimal import ROUND_HALF_UP, Decimal
 
 from django.conf import settings
-from django.db.models import Avg, Count
+from django.db.models import Avg, Count, Q
 
 from takip.deneme_gelisim_service import (
     talebe_calisma_karsilik_analizi,
@@ -28,7 +28,7 @@ from takip.deneme_gelisim_service import (
     talebe_grup_deneme_gelisimi,
     talebe_trend_sinifla,
 )
-from takip.deneme_models import DenemeSoruSonucu
+from takip.deneme_models import DenemeKazanimSonucu, DenemeSoruSonucu
 from takip.deneme_service import (
     BRANS_ETIKETLERI,
     DENEME_BRANS_DERS_MAP,
@@ -128,8 +128,146 @@ def _durum_ok(degisim: float | None) -> str:
     return "sabit"
 
 
-def _talebe_dususe_sinyalleri(grup_seri: list[dict], esik: dict) -> tuple[list[str], bool]:
-    """Puan/net düşüşü ve art arda negatif trend sinyalleri (madde 18)."""
+def _tr_sayi(deger: float, basamak: int = 2) -> str:
+    return f"{deger:.{basamak}f}".replace(".", ",")
+
+
+def _yuzde_yazi(yuzde) -> str:
+    deger = float(yuzde)
+    if abs(deger - round(deger)) < 0.05:
+        return str(int(round(deger)))
+    return _tr_sayi(deger, 1)
+
+
+def _brans_haritasi(sonuc) -> dict:
+    if sonuc is None:
+        return {}
+    return {satir.brans: satir for satir in sonuc.brans_satirlari.all()}
+
+
+def _ders_kayiplari(grup_seri: list[dict]) -> list[dict]:
+    """Son iki denemede neti en çok düşen dersler, büyük kayıptan küçüğe."""
+    if len(grup_seri) < 2:
+        return []
+    onceki = _brans_haritasi(grup_seri[-2].get("sonuc"))
+    son = _brans_haritasi(grup_seri[-1].get("sonuc"))
+    kayiplar = []
+    for kod in DENEME_BRANS_DERS_MAP:
+        eski = onceki.get(kod)
+        yeni = son.get(kod)
+        if eski is None or yeni is None:
+            continue
+        fark = float(yeni.net or 0) - float(eski.net or 0)
+        if fark > -1:
+            continue
+        kayiplar.append(
+            {
+                "kod": kod,
+                "etiket": BRANS_ETIKETLERI[kod],
+                "net_fark": fark,
+                "onceki_net": float(eski.net or 0),
+                "son_net": float(yeni.net or 0),
+                "onceki_yanlis": int(eski.yanlis or 0),
+                "son_yanlis": int(yeni.yanlis or 0),
+                "onceki_bos": int(eski.bos or 0),
+                "son_bos": int(yeni.bos or 0),
+            }
+        )
+    kayiplar.sort(key=lambda kayit: kayit["net_fark"])
+    return kayiplar[:3]
+
+
+def _kayip_parcasi(kayip: dict) -> str:
+    yanlis_fark = kayip["son_yanlis"] - kayip["onceki_yanlis"]
+    bos_fark = kayip["son_bos"] - kayip["onceki_bos"]
+    neden = ""
+    if yanlis_fark >= 2 and yanlis_fark >= bos_fark:
+        neden = f", yanlış {kayip['onceki_yanlis']}→{kayip['son_yanlis']}"
+    elif bos_fark >= 2:
+        neden = f", boş {kayip['onceki_bos']}→{kayip['son_bos']}"
+    return f"{kayip['etiket']} {_tr_sayi(kayip['net_fark'])} net{neden}"
+
+
+def _sinif_karsilastirma_cumlesi(
+    grup_seri: list[dict],
+    esik: dict,
+    sinif_ort: dict[int, tuple[float, int]] | None,
+) -> str | None:
+    """Aynı iki denemede sınıf da düştüyse deneme geneli, değilse talebeye özel."""
+    if len(grup_seri) < 2 or not sinif_ort:
+        return None
+    onceki = grup_seri[-2]
+    son = grup_seri[-1]
+    eski = sinif_ort.get(onceki["deneme_id"])
+    yeni = sinif_ort.get(son["deneme_id"])
+    if not eski or not yeni or eski[1] < 4 or yeni[1] < 4:
+        return None
+    sinif_fark = yeni[0] - eski[0]
+    talebe_fark = son["puan"] - onceki["puan"]
+    if talebe_fark > -esik["puan_dususu"]:
+        return None
+    if sinif_fark >= -5:
+        return (
+            f"Sınıf ortalaması {_tr_sayi(sinif_fark, 1)} puan değişirken "
+            "düşüş bu talebeye ait."
+        )
+    if talebe_fark <= sinif_fark - 10:
+        return (
+            f"Sınıf ortalaması {_tr_sayi(sinif_fark, 1)} puan, "
+            f"bu talebe {_tr_sayi(talebe_fark, 1)} puan."
+        )
+    return f"Sınıf ortalaması da {_tr_sayi(sinif_fark, 1)} puan geriledi."
+
+
+def _bos_artis_cumleleri(grup_seri: list[dict], esik: dict) -> list[str]:
+    """Son denemelerde boş oranı belirgin yükselen ders."""
+    if len(grup_seri) < 2:
+        return []
+    mesajlar = []
+    for kod in DENEME_BRANS_DERS_MAP:
+        oranlar = []
+        for nokta in grup_seri[-3:]:
+            brans = _brans_haritasi(nokta.get("sonuc")).get(kod)
+            if brans is None:
+                continue
+            toplam = int(brans.dogru or 0) + int(brans.yanlis or 0) + int(brans.bos or 0)
+            if toplam <= 0:
+                continue
+            oranlar.append(int(brans.bos or 0) / toplam)
+        if len(oranlar) < 2:
+            continue
+        artis = oranlar[-1] - oranlar[0]
+        if artis < esik["bos_orani_artis_esik"]:
+            continue
+        mesajlar.append(
+            f"{BRANS_ETIKETLERI[kod]} boş oranı "
+            f"%{_yuzde_yazi(oranlar[0] * 100)}’den %{_yuzde_yazi(oranlar[-1] * 100)}’e çıktı."
+        )
+    return mesajlar
+
+
+def _calisma_cumleleri(calisma_karsilik: list[dict], kayiplar: list[dict], esik: dict) -> list[str]:
+    """Yalnız son denemede neti düşen ve çok soru çözülen ders."""
+    kayip_kod = {kayip["kod"]: kayip for kayip in kayiplar}
+    mesajlar = []
+    for satir in calisma_karsilik:
+        kayip = kayip_kod.get(satir["kod"])
+        if kayip is None or satir["son_30_gun_soru"] < esik["soru_yuksek_esik"]:
+            continue
+        mesajlar.append(
+            f"{satir['etiket']}: son 30 günde {satir['son_30_gun_soru']} soru çözülmüş, "
+            f"net {_tr_sayi(kayip['onceki_net'])} → {_tr_sayi(kayip['son_net'])}."
+        )
+    return mesajlar
+
+
+def _oncelik_metinleri(
+    grup_seri: list[dict],
+    esik: dict,
+    calisma_karsilik: list[dict] | None = None,
+    sinif_ort: dict[int, tuple[float, int]] | None = None,
+) -> tuple[list[str], bool]:
+    """Düşüşün dersini, yanlış/boş ayrımını ve sınıfa göre yerini yazar."""
     sinyaller: list[str] = []
     kritik = False
     if len(grup_seri) < 2:
@@ -137,57 +275,91 @@ def _talebe_dususe_sinyalleri(grup_seri: list[dict], esik: dict) -> tuple[list[s
 
     son2 = grup_seri[-2:]
     puan_degisim = son2[-1]["puan"] - son2[0]["puan"]
-    if puan_degisim <= -esik["puan_dususu"]:
-        sinyaller.append(f"Puan düşüşü: {puan_degisim:.2f}")
+    net_degisim = son2[-1]["net"] - son2[0]["net"]
+    puan_dustu = puan_degisim <= -esik["puan_dususu"]
+    net_dustu = net_degisim <= -esik["net_dususu"]
+    if puan_dustu or net_dustu:
+        sinyaller.append(
+            f"Son denemede puan {_tr_sayi(puan_degisim)}, net {_tr_sayi(net_degisim)}."
+        )
+    if puan_dustu:
         kritik = True
 
-    net_degisim = son2[-1]["net"] - son2[0]["net"]
-    if net_degisim <= -esik["net_dususu"]:
-        sinyaller.append(f"Net düşüşü: {net_degisim:.2f}")
+    kayiplar = _ders_kayiplari(grup_seri)
+    if kayiplar and (puan_dustu or net_dustu or kritik):
+        sinyaller.append("Asıl kayıp: " + "; ".join(_kayip_parcasi(k) for k in kayiplar) + ".")
+
+    sinif_cumlesi = _sinif_karsilastirma_cumlesi(grup_seri, esik, sinif_ort)
+    if sinif_cumlesi and (puan_dustu or net_dustu):
+        sinyaller.append(sinif_cumlesi)
 
     ardisik = int(esik["ardisik_negatif"])
     if len(grup_seri) >= ardisik + 1:
         son_n = grup_seri[-(ardisik + 1):]
         farklar = [son_n[i + 1]["puan"] - son_n[i]["puan"] for i in range(len(son_n) - 1)]
-        if farklar and all(f < 0 for f in farklar):
-            sinyaller.append(f"Art arda {ardisik} denemede düşüş")
+        if farklar and all(fark < 0 for fark in farklar):
+            sinyaller.append(f"Art arda {ardisik} denemede puan düşüyor.")
             kritik = True
+            if kayiplar and not any(satir.startswith("Asıl kayıp") for satir in sinyaller):
+                sinyaller.append(
+                    "Asıl kayıp: " + "; ".join(_kayip_parcasi(k) for k in kayiplar) + "."
+                )
 
+    sinyaller += _bos_artis_cumleleri(grup_seri, esik)
+    if puan_dustu or net_dustu or kritik:
+        sinyaller += _calisma_cumleleri(calisma_karsilik or [], kayiplar, esik)
     return sinyaller, kritik
 
 
-def _talebe_bos_yanlis_sinyalleri(grup_seri: list[dict], esik: dict) -> list[str]:
-    """Ders bazında boş bırakma oranı artışı — yanlıştan ayrı bir sinyal (madde 21)."""
-    if len(grup_seri) < 2:
-        return []
-    mesajlar = []
-    for kod, ders_ad in DENEME_BRANS_DERS_MAP.items():
-        oranlar = []
-        for nokta in grup_seri[-3:]:
-            sonuc: DenemeSonucu = nokta["sonuc"]
-            brans = next((b for b in sonuc.brans_satirlari.all() if b.brans == kod), None)
-            if not brans:
-                continue
-            toplam = int(brans.dogru or 0) + int(brans.yanlis or 0) + int(brans.bos or 0)
-            if toplam <= 0:
-                continue
-            oranlar.append(int(brans.bos or 0) / toplam)
-        if len(oranlar) >= 2 and (oranlar[-1] - oranlar[0]) >= esik["bos_orani_artis_esik"]:
-            mesajlar.append(
-                f"{BRANS_ETIKETLERI[kod]}te boş bırakma oranı son denemelerde artıyor."
-            )
-    return mesajlar
+def _fold_ders(ad: str) -> str:
+    metin = (ad or "").replace("İ", "i").replace("I", "ı")
+    return metin.translate(str.maketrans("çğıöşüâîû", "cgiosuaiu")).casefold()
 
 
-def _talebe_calisma_sinyalleri(calisma_karsilik: list[dict], esik: dict) -> list[str]:
-    mesajlar = []
-    for c in calisma_karsilik:
-        if c["durum"] == "uyari" and c["son_30_gun_soru"] >= esik["soru_yuksek_esik"]:
-            mesajlar.append(
-                f"{c['etiket']}: yüksek çalışmaya rağmen ({c['son_30_gun_soru']} soru) "
-                "net artmıyor."
-            )
-    return mesajlar
+def _ders_eslesir(ders_ad: str, etiketler: list[str]) -> bool:
+    if not etiketler:
+        return True
+    ad = _fold_ders(ders_ad)
+    for etiket in etiketler:
+        diger = _fold_ders(etiket)
+        if ad == diger or ad.startswith(diger) or diger.startswith(ad):
+            return True
+    return False
+
+
+def _zayif_kazanim_ekle(satirlar: list) -> None:
+    """Son denemede, düşen derslerin en zayıf bir-iki kazanımı."""
+    hedefler = []
+    for satir in satirlar:
+        if not satir.sinyaller or not satir.grup_seri:
+            continue
+        if not any(metin.startswith("Son denemede") for metin in satir.sinyaller):
+            continue
+        hedefler.append(satir)
+    if not hedefler:
+        return
+    ciftler = {(satir.talebe.id, satir.grup_seri[-1]["deneme_id"]) for satir in hedefler}
+    kosul = Q()
+    for talebe_id, deneme_id in ciftler:
+        kosul |= Q(talebe_id=talebe_id, deneme_id=deneme_id)
+    kayitlar = DenemeKazanimSonucu.objects.filter(kosul, yuzde__isnull=False, yuzde__lt=50)
+    kovalar: dict[tuple[int, int], list] = {}
+    for kayit in kayitlar:
+        kovalar.setdefault((kayit.talebe_id, kayit.deneme_id), []).append(kayit)
+    for satir in hedefler:
+        anahtar = (satir.talebe.id, satir.grup_seri[-1]["deneme_id"])
+        etiketler = [kayip["etiket"] for kayip in _ders_kayiplari(satir.grup_seri)]
+        adaylar = [
+            kayit
+            for kayit in kovalar.get(anahtar, [])
+            if _ders_eslesir(kayit.ders_ad, etiketler)
+        ]
+        adaylar.sort(key=lambda kayit: (float(kayit.yuzde), kayit.konu_ad or ""))
+        secilen = adaylar[:2]
+        if not secilen:
+            continue
+        parcalar = [f"{kayit.konu_ad} %{_yuzde_yazi(kayit.yuzde)}" for kayit in secilen]
+        satir.sinyaller.append("Zayıf kazanım: " + ", ".join(parcalar) + ".")
 
 
 @dataclass
@@ -210,7 +382,31 @@ class OgrenciDenemeSatiri:
         return bool(self.sinyaller)
 
 
-def _ogrenci_satiri(talebe: Talebe, esik: dict) -> OgrenciDenemeSatiri:
+def _sinif_deneme_ortalamalari(talebe_ids: list[int]) -> dict[int, tuple[float, int]]:
+    if not talebe_ids:
+        return {}
+    rows = (
+        DenemeSonucu.objects.filter(
+            talebe_id__in=talebe_ids,
+            deneme__tur=DenemeSinavi.Tur.GRUP,
+            deneme__durum=DenemeSinavi.Durum.AKTIF,
+        )
+        .values("deneme_id")
+        .annotate(ort=Avg("puan"), n=Count("id"))
+    )
+    ortalamalar = {}
+    for row in rows:
+        if row["ort"] is None:
+            continue
+        ortalamalar[row["deneme_id"]] = (float(row["ort"]), int(row["n"] or 0))
+    return ortalamalar
+
+
+def _ogrenci_satiri(
+    talebe: Talebe,
+    esik: dict,
+    sinif_ort: dict[int, tuple[float, int]] | None = None,
+) -> OgrenciDenemeSatiri:
     grup_seri = talebe_grup_deneme_gelisimi(talebe)
     metrikler = talebe_gelisim_metrikleri(grup_seri)
     trend = talebe_trend_sinifla(grup_seri)
@@ -225,9 +421,7 @@ def _ogrenci_satiri(talebe: Talebe, esik: dict) -> OgrenciDenemeSatiri:
         else None
     )
 
-    sinyaller, kritik = _talebe_dususe_sinyalleri(grup_seri, esik)
-    sinyaller += _talebe_bos_yanlis_sinyalleri(grup_seri, esik)
-    sinyaller += _talebe_calisma_sinyalleri(calisma, esik)
+    sinyaller, kritik = _oncelik_metinleri(grup_seri, esik, calisma, sinif_ort)
 
     return OgrenciDenemeSatiri(
         talebe=talebe,
@@ -433,7 +627,9 @@ def sinif_kontrol_verisi_hesapla(
     (hangi öğrenciler) çağıran tarafından belirlenir.
     """
     esik = _oncelik_esik()
-    satirlar = [_ogrenci_satiri(t, esik) for t in ogrenciler]
+    sinif_ort = _sinif_deneme_ortalamalari(_talebe_idleri(ogrenciler))
+    satirlar = [_ogrenci_satiri(t, esik, sinif_ort) for t in ogrenciler]
+    _zayif_kazanim_ekle(satirlar)
 
     yukselen = sum(1 for s in satirlar if s.durum_ok == "yukseliyor")
     dusen = sum(1 for s in satirlar if s.durum_ok == "dusuyor")
