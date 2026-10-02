@@ -68,6 +68,19 @@ Kök domain'i Namecheap **URL Redirect Record** ile `https://www.cinilisarayproj
 
 `render.yaml` bu değerleri Blueprint ile otomatik ayarlar; elle değiştirdiysen yukarıdakilerle eşleştir.
 
+### Yapay zeka (Claude API)
+
+Analizler (Gelişim/Deneme/Kurum Zekası, KTT değerlendirmesi, veli özetleri) ve panel asistanı Claude API kullanır.
+
+| Değişken | Değer |
+|----------|--------|
+| `ANTHROPIC_API_KEY` | Claude Console'dan alınan anahtar — **yalnızca** Render Environment'a girilir (`sync: false`), repoya yazılmaz |
+| `AI_ANALIZ_MODEL` / `AI_SOHBET_MODEL` | Varsayılan `claude-opus-5-5` |
+
+Anahtar boşsa site çalışmaya devam eder; analizler ve asistan kural tabanlı modda kalır.
+Diğer sınır ve zaman aşımı ayarları için `.env.example` dosyasındaki `AI_*` değişkenlerine bakın.
+Eski `OPENAI_API_KEY` ve `AI_ASSISTANT_MODEL` değişkenleri artık kullanılmıyor; Render'dan silinebilir.
+
 ## 5. SSL (HTTPS)
 
 Render, DNS doğrulandıktan sonra Let's Encrypt sertifikasını otomatik verir. Custom Domains ekranında **Verified** yeşil olmalı.

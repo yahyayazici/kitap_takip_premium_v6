@@ -150,14 +150,13 @@ def kurum_baglam(user: User) -> dict[str, Any]:
     bugun = localdate()
     ay_bas = bugun.replace(day=1)
 
-    soru_toplam = (
-        GunlukSoruKaydi.objects.filter(
-            talebe__in=qs,
-            tarih__gte=ay_bas,
-            tarih__lte=bugun,
-        ).aggregate(t=models.Sum("ders_satirlari__toplam_soru"))["t"]
-        or 0
+    ay_kayitlari = GunlukSoruKaydi.objects.filter(
+        talebe__in=qs,
+        tarih__gte=ay_bas,
+        tarih__lte=bugun,
     )
+    soru_toplam = ay_kayitlari.aggregate(t=models.Sum("ders_satirlari__toplam_soru"))["t"] or 0
+    soru_kaydi_olan = ay_kayitlari.values("talebe_id").distinct().count()
 
     risk_adaylari = _mudahale_adaylari(user, limit=8)
 
@@ -166,6 +165,9 @@ def kurum_baglam(user: User) -> dict[str, Any]:
         "sinif_dagilim": sinif_dagilim,
         "aktif_zimmet": aktif_zimmet,
         "bu_ay_soru_toplam": int(soru_toplam),
+        "bu_ay_baslangic": ay_bas.isoformat(),
+        # Veri kapsamı: soru kaydı girilen talebe sayısı (oranları yorumlarken kullanılır)
+        "bu_ay_soru_kaydi_olan_talebe": soru_kaydi_olan,
         "risk_adaylari": risk_adaylari,
     }
 

@@ -51,6 +51,13 @@ services:
       # container'ın geçici diskine yazılır ve her deploy'da silinir.
       - key: AKILLI_TAHTA_MEDIA_ROOT
         value: "/var/ekran-medya/akilli-tahta-medya"
+      # Claude API anahtarı — değer Render panelinden elle girilir, repoda tutulmaz.
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: AI_ANALIZ_MODEL
+        value: "claude-opus-5-5"
+      - key: AI_SOHBET_MODEL
+        value: "claude-opus-5-5"
       - key: DATABASE_URL
         fromDatabase:
           name: kitap-takip-db

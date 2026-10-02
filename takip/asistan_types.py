@@ -27,10 +27,17 @@ class AsistanYanit:
     reply: str
     actions: list[AsistanAction] = field(default_factory=list)
     suggestions: list[str] = field(default_factory=list)
+    # Yapay zeka kullanılamadığında kullanıcıya gösterilen açıklama
+    uyari: str = ""
+    yapay_zeka: bool = False
 
     def as_dict(self) -> dict[str, Any]:
-        return {
+        data = {
             "reply": self.reply,
             "actions": [a.as_dict() for a in self.actions],
             "suggestions": self.suggestions,
+            "ai": self.yapay_zeka,
         }
+        if self.uyari:
+            data["uyari"] = self.uyari
+        return data

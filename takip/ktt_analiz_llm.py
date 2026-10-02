@@ -1,115 +1,115 @@
-"""KTT raporları — yapay zeka destekli akademik değerlendirme."""
+"""KTT raporları — Claude destekli akademik değerlendirme."""
 
 from __future__ import annotations
 
+import hashlib
 import json
-import re
 from typing import Any
 
 from django.conf import settings
+from django.utils.timezone import localdate
 
-from takip.asistan_llm import _openai_chat, openai_yapilandirildi_mi
+from takip.ai_gateway import ai_json_istek, ai_platform_aktif_mi, onbellege_yaz, onbellekten_al
+from takip.claude_client import claude_yapilandirildi_mi
+
+KTT_ALANLARI = (
+    "ozet",
+    "olcum_bulgulari",
+    "pedagojik_yorum",
+    "risk_ve_firsatlar",
+    "mudahale_onerileri",
+    "veli_iletisimi",
+)
 
 
 def ktt_analiz_llm_aktif_mi() -> bool:
-    if not getattr(settings, "AI_ASSISTANT_ENABLED", True):
+    if not ai_platform_aktif_mi():
         return False
     if getattr(settings, "AI_KTT_ANALYSIS_ENABLED", True) is False:
         return False
-    return openai_yapilandirildi_mi()
+    return claude_yapilandirildi_mi()
 
 
-_AKADEMIK_SISTEM = """Sen Türkiye'deki bir eğitim kurumunda görev yapan kıdemli bir ölçme-değerlendirme uzmanı,
-eğitim bilimleri akademisyeni ve pedagojik danışmansın. KTT (Kazanım Tarama Testi) sonuçlarını
-MEB ölçme-değerlendirme ilkeleri, Bloom taksonomisi ve sınıf içi öğrenme psikolojisi çerçevesinde yorumlarsın.
+_AKADEMIK_SISTEM = """Sen Türkiye'deki bir eğitim kurumunda görev yapan kıdemli bir ölçme-değerlendirme uzmanı
+ve pedagojik danışmansın. KTT (Kazanım Tarama Testi) sonuçlarını MEB ölçme-değerlendirme ilkeleri ve
+sınıf içi öğrenme bilgisi çerçevesinde yorumlarsın. Okuyucu: öğretmenler kurulu ve etüt hocaları.
 
 Yazım dili:
-- Resmi ama anlaşılır akademik Türkçe; günlük konuşma dili kullanma.
-- "Veriler şunu göstermektedir", "bu bulgu", "pedagojik müdahale", "kazanım düzeyi", "heterojenlik",
-  "madde güçlüğü", "işlem hatası / bilgi eksikliği ayrımı" gibi ölçme-değerlendirme terminolojisi kullan.
-- Somut sayılara atıf yap; veri setinde olmayan öğrenci adı, sınav adı veya istatistik uydurma.
-- Doğru/yanlış/boş sayılarını tekrarlama — bunlar sonuç tablosunda zaten var.
-- Odak: güçlü konular, zayıf konular, ne yapmalı (etüt/müdahale önerisi).
-- Her KTT kaydının "ktt" alanı konu adını taşır — mutlaka «konu adı» şeklinde tırnak içinde yaz.
-- Her bölüm en az 2–4 cümle; genel toplam metin kapsamlı ve derinlikli olsun (yüzeysel özet yazma).
+- Resmi ama anlaşılır Türkçe; gereksiz jargon kullanma.
+- Doğru/yanlış/boş sayılarını tablo gibi tekrarlama — bunlar sonuç tablosunda zaten var; bunun yerine
+  ortalama, dağılım (en düşük/en yüksek, standart sapma varsa) ve sınıf farklarını yorumla.
+- Her KTT kaydının "ktt" / "ad" alanı konu adını taşır — mutlaka «konu adı» şeklinde yaz.
+- Öğrenci sayısı azsa (ör. 5'ten az) genelleme yapma ve bunu belirt.
+- Her paragrafta veriden en az bir ders adı ve bir KTT/konu adı geçsin.
 
-Yanıtı yalnızca geçerli JSON olarak ver — markdown code fence kullanma:
-{
-  "ozet": "Kısa genel tablo — 2-3 cümle, puan ortalaması ve ana mesaj",
-  "olcum_bulgulari": "Güçlü konular — ders + «konu adı» ve ne korunmalı",
-  "pedagojik_yorum": "Zayıf konular — ders + «konu adı» ve gelişim alanı",
-  "risk_ve_firsatlar": "Risk: acil müdahale gereken konular",
-  "mudahale_onerileri": "Ne yapmalı — somut etüt ve çalışma önerileri (D/Y/B sayma)",
-  "veli_iletisimi": "Veliye aktarılacak 1-2 cümle"
-}"""
+JSON alanları:
+- "ozet": Genel tablo — 2-4 cümle, puan ortalaması, katılım ve ana mesaj
+- "olcum_bulgulari": Güçlü konular — ders + «konu adı», dayanağıyla ve ne korunmalı
+- "pedagojik_yorum": Geliştirilmesi gereken konular — ders + «konu adı» ve gelişim alanı
+- "risk_ve_firsatlar": Acil müdahale gereken konular / öğrenci grupları
+- "mudahale_onerileri": Ne yapmalı — somut etüt planı (kim, ne sıklıkla, hangi hedef)
+- "veli_iletisimi": Veliye aktarılacak 1-2 cümle"""
 
-
-def _json_cek(metin: str) -> dict[str, str] | None:
-    if not metin:
-        return None
-    metin = metin.strip()
-    fence = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", metin, re.DOTALL)
-    if fence:
-        metin = fence.group(1)
-    else:
-        bas = metin.find("{")
-        son = metin.rfind("}")
-        if bas >= 0 and son > bas:
-            metin = metin[bas : son + 1]
-    try:
-        veri = json.loads(metin)
-    except json.JSONDecodeError:
-        return None
-    if not isinstance(veri, dict):
-        return None
-    alanlar = (
-        "ozet",
-        "olcum_bulgulari",
-        "pedagojik_yorum",
-        "risk_ve_firsatlar",
-        "mudahale_onerileri",
-        "veli_iletisimi",
-    )
-    return {
-        alan: str(veri.get(alan) or "").strip()
-        for alan in alanlar
-        if str(veri.get(alan) or "").strip()
-    }
+_TUR_ETIKET = {
+    "sinav_grup": "Tek KTT sınavının sınıf/grup düzeyinde değerlendirmesi",
+    "rapor_grup": "Filtrelenmiş KTT kayıtlarının grup/kohort düzeyinde değerlendirmesi",
+    "rapor_bireysel": "Tek öğrencinin KTT geçmişinin bireysel değerlendirmesi",
+}
 
 
-def ktt_analiz_llm_uret(payload: dict[str, Any], *, tur: str) -> dict[str, str] | None:
-    """tur: sinav_grup | rapor_grup | rapor_bireysel"""
+def _payload_json(payload: dict[str, Any]) -> str:
+    return json.dumps(payload, ensure_ascii=False, sort_keys=True, default=str)
+
+
+def ktt_analiz_llm_uret(
+    payload: dict[str, Any],
+    *,
+    tur: str,
+    yenile: bool = False,
+) -> tuple[dict[str, str] | None, str]:
+    """(bölümler, hata_mesajı) döner. tur: sinav_grup | rapor_grup | rapor_bireysel.
+
+    Aynı veri seti için sonuç önbellekten gelir; veri değişince (yeni sonuç girilince) yeniden üretilir.
+    """
     if not ktt_analiz_llm_aktif_mi():
-        return None
+        return None, ""
 
-    tur_etiket = {
-        "sinav_grup": "Tek KTT sınavının sınıf/grup düzeyinde değerlendirmesi",
-        "rapor_grup": "Filtrelenmiş KTT kayıtlarının grup/kohort düzeyinde değerlendirmesi",
-        "rapor_bireysel": "Tek öğrencinin KTT geçmişinin bireysel değerlendirmesi",
-    }.get(tur, "KTT değerlendirmesi")
+    veri_json = _payload_json(payload)
+    anahtar = f"ktt:{tur}:" + hashlib.sha256(veri_json.encode("utf-8")).hexdigest()[:40]
+    from takip.ai_models import AiUretimKaydi
 
-    kullanici_istegi = f"""Analiz türü: {tur_etiket}
+    onbellek = onbellekten_al(AiUretimKaydi.Tur.KTT_ANALIZ, anahtar, yenile=yenile)
+    if onbellek and isinstance(onbellek.get("bolumler"), dict):
+        return onbellek["bolumler"], ""
 
-Aşağıdaki JSON veri setini kullanarak kapsamlı bir ölçme-değerlendirme raporu yaz.
-Tüm bölümleri doldur; kısa kesme. Öğretmen kurulunda okunabilecek düzeyde geniş ve düşünceli ol.
-Her paragrafta en az bir ders adı ve bir KTT/konu adı (ktt_gecmisi veya detay_kayitlar içinden) somut olarak geçsin.
-
-VERİ:
-{json.dumps(payload, ensure_ascii=False, indent=2)}"""
-
-    cevap = _openai_chat(
-        [
-            {"role": "system", "content": _AKADEMIK_SISTEM},
-            {"role": "user", "content": kullanici_istegi},
-        ],
-        temperature=0.35,
-        max_tokens=int(getattr(settings, "AI_KTT_ANALYSIS_MAX_TOKENS", 2200)),
+    kullanici_istegi = (
+        f"Analiz türü: {_TUR_ETIKET.get(tur, 'KTT değerlendirmesi')}\n"
+        f"Rapor tarihi: {localdate().isoformat()}\n\n"
+        "Aşağıdaki veri setini kullanarak ölçme-değerlendirme raporu yaz.\n\n"
+        f"VERİ:\n{json.dumps(payload, ensure_ascii=False, indent=2, default=str)}"
     )
-    if not cevap:
-        return None
 
-    parsed = _json_cek(cevap)
-    if parsed and len(parsed) >= 2:
-        return parsed
+    cevap = ai_json_istek(
+        system=_AKADEMIK_SISTEM,
+        user_prompt=kullanici_istegi,
+        alanlar=KTT_ALANLARI,
+        max_tokens=int(getattr(settings, "AI_KTT_ANALYSIS_MAX_TOKENS", 8000)),
+    )
+    if not cevap.veri:
+        return None, cevap.hata_mesaji
 
-    return {"ozet": cevap.strip()}
+    bolumler = {
+        alan: str(deger).strip()
+        for alan, deger in cevap.veri.items()
+        if isinstance(deger, str) and deger.strip()
+    }
+    if len(bolumler) < 2:
+        return None, "Yapay zeka yanıtı eksik geldi."
+
+    onbellege_yaz(
+        tur=AiUretimKaydi.Tur.KTT_ANALIZ,
+        anahtar=anahtar,
+        icerik={"bolumler": bolumler},
+        yapay_zeka=True,
+    )
+    return bolumler, ""

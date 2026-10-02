@@ -16,7 +16,8 @@ from takip.asistan_analyzer import (
     genel_sohbet_mi,
     net_panel_komutu_mu,
 )
-from takip.asistan_llm import llm_sohbet_cevabi, openai_yapilandirildi_mi
+from takip.asistan_llm import llm_ozel_panel_cevabi, llm_sohbet_cevabi
+from takip.claude_client import claude_yapilandirildi_mi
 from takip.asistan_types import AsistanAction, AsistanYanit
 from takip.models import (
     ImamMuezzinListesi,
@@ -429,7 +430,7 @@ def _gunsel_selam() -> str:
 
 
 def genel_sohbet_yanit(user: User, message: str) -> AsistanYanit:
-    """Selamlaşma ve günlük sohbete sıcak, doğal yanıt (OpenAI olmadan)."""
+    """Selamlaşma ve günlük sohbete sıcak, doğal yanıt (yapay zeka olmadan)."""
     norm = (message or "").lower()
     hitap = _kullanici_hitap(user)
     selam = f"{hitap}, " if hitap else ""
@@ -608,6 +609,56 @@ def _normalize_asistan(text: str) -> str:
         text = text.replace(src, dst)
     return text
 
+def _ai_uyari_metni(hata: str) -> str:
+    if not hata:
+        return ""
+    return f"Yapay zeka yanıtı alınamadı: {hata} Temel asistan yanıtı gösteriliyor."
+
+
+def _ozel_rol_metni(user: User) -> str:
+    if kullanici_talebe_mi(user):
+        return "talebe paneli kullanıcısı (öğrenci)"
+    if kullanici_veli_mi(user):
+        return "veli paneli kullanıcısı"
+    return "öğretmen paneli kullanıcısı"
+
+
+def _ozel_panel_rehberi(user: User) -> str:
+    """Veli/öğretmen/talebe sohbeti için panel rehberi (+ talebe ise kendi haftalık özeti)."""
+    if kullanici_talebe_mi(user):
+        satirlar = [
+            "Talebe paneli menüleri: Ana Sayfa (haftalık soru ve okuma durumu), Gelişim Özeti, Program, Görevler.",
+            "Asistan talebenin kendi haftalık soru özetini ve gelişim özetini gösterebilir.",
+        ]
+        from takip.soru_takip_service import haftalik_ozet
+        from takip.talebe_panel_service import talebe_hesabi_for_user
+
+        hesap = talebe_hesabi_for_user(user)
+        if hesap and hesap.talebe:
+            hafta = haftalik_ozet(hesap.talebe)
+            satirlar.append(
+                "Talebenin son 7 günlük soru kaydı: "
+                f"{hafta.get('toplam_soru', 0)} soru, net {hafta.get('toplam_net', 0)}, "
+                f"başarı %{hafta.get('basari_orani', 0)}, kayıt girilen gün {hafta.get('gun_sayisi', 0)}."
+            )
+        return "\n".join(satirlar)
+    if ogretmen_paneli_kullanicisi_mi(user):
+        return (
+            "Öğretmen paneli menüleri:\n"
+            "- Not Girişi: sınıf seçilir; haftalık katılım / takip / disiplin notları ve açıklama girilir.\n"
+            "- Değerlendirmeler: öğretmenin girdiği kayıtlar listelenir.\n"
+            "- Ders Programı: haftalık plan; PDF indir butonu vardır."
+        )
+    return (
+        "Veli paneli menüleri:\n"
+        "- Ana Sayfa: deneme, KTT, ders ve soru özetleri.\n"
+        "- Ders Notları: aktif hafta notları; geçmiş haftalar için sayfadaki Haftalar düğmesi.\n"
+        "- Soru, Yoklama (son 30 gün katılım), Namaz (namaz yoklaması) sayfaları.\n"
+        "- Dini Ders ve Sohbet Mevzuu: yönetimin girdiği haftalık içerikler.\n"
+        "Veli öğretmenle iletişim için kurumun belirlediği kanalları kullanır; asistan mesaj iletemez."
+    )
+
+
 def mesaj_isle(user: User, message: str, history: list[dict] | None = None) -> dict[str, Any]:
     history = history or []
     message = (message or "").strip()
@@ -656,16 +707,31 @@ def mesaj_isle(user: User, message: str, history: list[dict] | None = None) -> d
                     suggestions=["Gelişim özetim", "Ne yapmalıyım?"],
                 ).as_dict()
         yanit = _ozel_panel_asistan_yanit(user, message)
-        if kullanici_talebe_mi(user) and not yanit:
+        if kullanici_talebe_mi(user):
+            hata = ""
+            if claude_yapilandirildi_mi():
+                ai, hata = llm_ozel_panel_cevabi(
+                    user,
+                    message,
+                    history,
+                    rol_metni=_ozel_rol_metni(user),
+                    panel_rehberi=_ozel_panel_rehberi(user),
+                    suggestions=["Gelişim özetim", "Bu hafta kaç soru çözdüm?"],
+                )
+                if ai:
+                    ai.yapay_zeka = True
+                    return ai.as_dict()
             return AsistanYanit(
                 reply=(
                     "Sana yardımcı olabilirim! **Gelişim özetim**, **bu hafta kaç soru çözdüm** "
                     "veya **bugün ne yapmalıyım** diye sorabilirsin."
                 ),
                 suggestions=["Gelişim özetim", "Bu hafta kaç soru çözdüm?"],
+                uyari=_ai_uyari_metni(hata),
             ).as_dict()
         if yanit:
             # Kısa yönlendirme; mesaja göre ufak uyarlama
+            genel_menu = yanit
             norm = _normalize_asistan(message)
             if ogretmen_paneli_kullanicisi_mi(user):
                 if any(k in norm for k in ("not", "degerlendirme", "puan")):
@@ -710,6 +776,20 @@ def mesaj_isle(user: User, message: str, history: list[dict] | None = None) -> d
                         ),
                         suggestions=["Haftalık notlar nerede?"],
                     )
+            # Hazır yönlendirmeyle eşleşmeyen serbest sorular yapay zekaya gider
+            if yanit is genel_menu and claude_yapilandirildi_mi():
+                ai, hata = llm_ozel_panel_cevabi(
+                    user,
+                    message,
+                    history,
+                    rol_metni=_ozel_rol_metni(user),
+                    panel_rehberi=_ozel_panel_rehberi(user),
+                    suggestions=genel_menu.suggestions,
+                )
+                if ai:
+                    ai.yapay_zeka = True
+                    return ai.as_dict()
+                yanit.uyari = _ai_uyari_metni(hata)
             return yanit.as_dict()
 
     if not message:
@@ -725,31 +805,30 @@ def mesaj_isle(user: User, message: str, history: list[dict] | None = None) -> d
         ).as_dict()
 
     analiz = analiz_et(user, message, history)
+
+    # Claude yapılandırılmışsa: araçlarla panel verisine erişen doğal sohbet
+    hata = ""
+    if claude_yapilandirildi_mi():
+        sohbet, hata = llm_sohbet_cevabi(user, message, history, analiz)
+        if sohbet:
+            sohbet.yapay_zeka = True
+            return sohbet.as_dict()
+
+    yanit = _kural_tabanli_yanit(user, message, analiz)
+    yanit.uyari = _ai_uyari_metni(hata)
+    return yanit.as_dict()
+
+
+def _kural_tabanli_yanit(user: User, message: str, analiz: AnalizSonuc) -> AsistanYanit:
+    """Yapay zeka yokken veya hata verdiğinde kullanılan kural tabanlı yanıt."""
     panel_yanit = _yanit_uret(user, analiz)
     panel_komutu = net_panel_komutu_mu(message)
 
-    # Net panel komutu + yüksek güven → doğrudan eylem (LLM yokken)
-    if (
-        panel_komutu
-        and panel_yanit
-        and analiz.guven >= 0.78
-        and analiz.niyet.startswith(("pdf_", "veri_", "talebe_bilgi", "yardim"))
-        and not openai_yapilandirildi_mi()
-    ):
-        return panel_yanit.as_dict()
-
-    # OpenAI varsa doğal sohbet + varsa panel eylemleri
-    if openai_yapilandirildi_mi():
-        sohbet = llm_sohbet_cevabi(user, message, history, analiz, panel_yanit)
-        if sohbet:
-            return sohbet.as_dict()
-
-    # Net panel komutu → panel yanıtı
     if panel_komutu and panel_yanit:
-        return panel_yanit.as_dict()
+        return panel_yanit
 
     if panel_yanit and analiz.guven >= 0.78 and analiz.niyet.startswith(("pdf_", "veri_", "talebe_bilgi", "yardim")):
-        return panel_yanit.as_dict()
+        return panel_yanit
 
     # Geri kalan her şey sohbet — varsayılan açık
-    return konusma_yanit(user, message, analiz).as_dict()
+    return konusma_yanit(user, message, analiz)

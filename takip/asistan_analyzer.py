@@ -2,19 +2,11 @@
 
 from __future__ import annotations
 
-import json
 import re
-import urllib.error
-import urllib.request
 from dataclasses import dataclass, field
-from typing import Any
-
-from django.conf import settings
 from django.contrib.auth.models import User
 
-from config.branding import PANEL_NAME
-
-from takip.models import SinifSube, Talebe
+from takip.models import SinifSube
 from takip.permissions.scope import yetkili_talebeler
 from takip.permissions.service import can, kullanici_birincil_rol_slug
 from takip.panel_permissions import rol_etiketi
@@ -173,14 +165,17 @@ def site_bilgisi_ozeti(user: User) -> str:
 
     moduller = []
     for kod, ad in (
-        ("raporlar", "Okuma raporları — PDF: okuma_raporu_pdf, filtre: ?sinif=SINIF_ID"),
-        ("egitim_kitap", "Kitap/zimmet, kitap karnesi PDF"),
-        ("deneme", "Sınav sonuçları, sıralı sonuç PDF, bireysel karne PDF"),
-        ("program", "Kurum programı PDF"),
-        ("imam_muezzin", "İmam müezzin görev PDF"),
-        ("temizlik", "Temizlik görev PDF"),
-        ("yemekcilik", "Yemekçilik PDF"),
-        ("egitim_kitap", "Talebe listesi PDF — ?tur=kurum veya ?tur=sinif&sinif_sube=ID"),
+        ("raporlar", "Raporlar — okuma raporu (kurum geneli veya sınıf bazında PDF)"),
+        ("egitim_kitap", "Kitaplar — kitap/zimmet takibi, talebe kitap karnesi PDF, talebe listesi PDF"),
+        ("deneme", "Deneme — sınav sonuçları, sıralı sonuç PDF, bireysel sınav karnesi PDF"),
+        ("ktt", "KTT — kazanım tarama testleri ve KTT raporu"),
+        ("soru_takip", "Soru Takip — günlük çözülen soru kayıtları ve raporları"),
+        ("program", "Program — kurum programı PDF"),
+        ("imam_muezzin", "Görevler — imam/müezzin listesi PDF"),
+        ("temizlik", "Görevler — temizlik listesi PDF"),
+        ("yemekcilik", "Görevler — yemekçilik listesi PDF"),
+        ("rehberlik", "Rehberlik — öğrenci görüşmeleri"),
+        ("veli_iletisim", "İletişim — veli randevuları ve veli takip"),
     ):
         if can(user, kod, "view"):
             moduller.append(f"- {ad}")
@@ -189,9 +184,7 @@ def site_bilgisi_ozeti(user: User) -> str:
         f"Rol: {rol_etiketi(user) or kullanici_birincil_rol_slug(user) or 'personel'}\n"
         f"Aktif talebe (yetki kapsamı): {talebe_say}\n"
         f"Sınıf/şubeler: {sinif_metni}\n"
-        f"Sınıf filtresi okuma PDF: /raporlar/pdf/?sinif=SINIF_ID\n"
-        f"Raporlar sayfası: /raporlar/?sinif=SINIF_ID\n"
-        f"Modüller:\n" + "\n".join(moduller)
+        f"Erişebildiği modüller:\n" + ("\n".join(moduller) or "- (modül yetkisi yok)")
     )
 
 
@@ -510,98 +503,24 @@ def niyet_analizi(text: str) -> AnalizSonuc:
     return sonuc
 
 
-def llm_analiz(user: User, message: str, history: list[dict], kural: AnalizSonuc) -> AnalizSonuc | None:
-    api_key = getattr(settings, "OPENAI_API_KEY", "")
-    if not api_key:
-        return None
-
-    site = site_bilgisi_ozeti(user)
+def siniflari_coz(user: User, etiketler: list[str]) -> list[SinifSube]:
+    """'5-A', '5/A', '5' gibi etiketleri kullanıcının yetkili sınıflarıyla eşleştirir."""
     siniflar = _yetkili_siniflar(user)
-    sinif_json = [
-        {"id": s.pk, "etiket": sinif_etiketi_goster(s), "sinif": s.sinif, "sube": s.sube}
-        for s in siniflar
-    ]
-
-    system = f"""Sen {PANEL_NAME} eğitim paneli asistanının analiz motorusun.
-Kullanıcı mesajını ve sohbet geçmişini okuyup JSON döndür. Türkçe doğal dili anla; kelime komutu şart değil.
-Takip mesajlarını (ör. "5.sınıfların sadece") önceki istekle birleştir.
-
-Site bilgisi:
-{site}
-
-Sınıf listesi (JSON): {json.dumps(sinif_json, ensure_ascii=False)}
-
-Geçerli niyetler:
-pdf_okuma, pdf_talebe_liste, pdf_profil, pdf_sinav, pdf_program, pdf_imam, pdf_temizlik, pdf_yemek,
-veri_talebe_say, veri_okuma, talebe_bilgi, yardim, sohbet_danisman, bilinmiyor
-
-Yanıt formatı (sadece JSON):
-{{
-  "niyet": "...",
-  "sinif_etiketleri": ["5-A"] veya ["5-A","5-B"] veya [],
-  "sinif_seviye": "5" veya null,
-  "talebe_adi": null,
-  "dogal_yanit": "Kullanıcıya söylenecek kısa Türkçe cümle"
-}}"""
-
-    messages = [{"role": "system", "content": system}]
-    for item in history[-8:]:
-        role = item.get("role")
-        content = (item.get("content") or "").strip()
-        if role in {"user", "assistant"} and content:
-            messages.append({"role": role, "content": content})
-    messages.append({"role": "user", "content": message})
-
-    payload = {
-        "model": getattr(settings, "AI_ASSISTANT_MODEL", "gpt-4o-mini"),
-        "messages": messages,
-        "temperature": 0.2,
-        "max_tokens": 600,
-        "response_format": {"type": "json_object"},
-    }
-
-    req = urllib.request.Request(
-        "https://api.openai.com/v1/chat/completions",
-        data=json.dumps(payload).encode("utf-8"),
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        },
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-        parsed = json.loads(data["choices"][0]["message"]["content"])
-    except (urllib.error.URLError, KeyError, json.JSONDecodeError, IndexError, TypeError):
-        return None
-
-    sonuc = AnalizSonuc(
-        birlesik_mesaj=message,
-        niyet=str(parsed.get("niyet") or kural.niyet),
-        talebe_adi=parsed.get("talebe_adi") or kural.talebe_adi,
-        guven=0.88,
-        aciklama=parsed.get("dogal_yanit") or "",
-    )
-
-    etiketler = parsed.get("sinif_etiketleri") or []
-    seviye = parsed.get("sinif_seviye")
     eslesen: list[SinifSube] = []
-
-    for etiket in etiketler:
-        et = _normalize(str(etiket)).replace(" ", "")
+    for etiket in etiketler or []:
+        et = _normalize(str(etiket)).replace(" ", "").replace("/", "-")
+        if not et:
+            continue
+        if et.isdigit():
+            eslesen.extend(s for s in siniflar if _sinif_numarasi(s.sinif) == et)
+            continue
         for s in siniflar:
-            if _normalize(sinif_etiketi_goster(s)).replace(" ", "") == et:
+            aday = _normalize(sinif_etiketi_goster(s)).replace(" ", "").replace("/", "-")
+            if aday == et:
                 eslesen.append(s)
-
-    if not eslesen and seviye:
-        eslesen = [s for s in siniflar if _sinif_numarasi(s.sinif) == str(seviye)]
-
-    if not eslesen:
-        eslesen = sinif_hedefleri_cikar(user, message) or kural.siniflar
-
-    sonuc.siniflar = eslesen
-    return sonuc
+    if not eslesen and etiketler:
+        eslesen = sinif_hedefleri_cikar(user, " ".join(str(e) for e in etiketler))
+    return list(dict.fromkeys(eslesen))
 
 
 def analiz_et(user: User, message: str, history: list[dict] | None = None) -> AnalizSonuc:
@@ -613,13 +532,5 @@ def analiz_et(user: User, message: str, history: list[dict] | None = None) -> An
 
     if not kural.siniflar:
         kural.siniflar = sinif_hedefleri_cikar(user, message)
-
-    llm = llm_analiz(user, birlesik, history, kural)
-    if llm and llm.niyet != "bilinmiyor":
-        if not llm.siniflar:
-            llm.siniflar = kural.siniflar
-        if not llm.talebe_adi:
-            llm.talebe_adi = kural.talebe_adi
-        return llm
 
     return kural

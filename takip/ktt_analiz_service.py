@@ -39,6 +39,8 @@ _BOLUM_ETIKETLERI = {
     "risk_ve_firsatlar": "Risk Alanları",
     "mudahale_onerileri": "Ne Yapmalı?",
     "veli_iletisimi": "Veli İletişimi",
+    "dayanaklar": "Dayanaklar (Kullanılan Veriler)",
+    "belirsizlikler": "Belirsizlikler ve Eksik Veri",
 }
 
 _BOLUM_TONLARI = {
@@ -48,6 +50,8 @@ _BOLUM_TONLARI = {
     "risk_ve_firsatlar": "dikkat",
     "mudahale_onerileri": "aksiyon",
     "veli_iletisimi": "notr",
+    "dayanaklar": "notr",
+    "belirsizlikler": "dikkat",
 }
 
 _BASLIK_TONLARI = {
@@ -240,6 +244,12 @@ def _llm_bolumleri(llm: dict[str, str]) -> list[KttAnalizBolum]:
                 )
             )
     return bolumler
+
+
+def _uyari_ekle(sonuc: KttAnalizSonuc, hata: str) -> KttAnalizSonuc:
+    if hata:
+        sonuc.uyari = f"Yapay zeka analizi alınamadı: {hata} Aşağıda otomatik özet gösteriliyor."
+    return sonuc
 
 
 def _kayit_sirala(sonuclar: list[KttSonucu]) -> list[KttSonucu]:
@@ -539,7 +549,7 @@ def ktt_sinav_grup_analizi(ktt: KttSinav, sonuclar, ozet: dict) -> KttAnalizSonu
         "ogrenci_sonuclari": _ogrenci_satirlari(kayitlar, limit=50),
     }
 
-    llm = ktt_analiz_llm_uret(payload, tur="sinav_grup")
+    llm, hata = ktt_analiz_llm_uret(payload, tur="sinav_grup")
     if llm:
         return KttAnalizSonuc(
             baslik=f"{ktt.ad} · Akademik Değerlendirme",
@@ -548,7 +558,7 @@ def ktt_sinav_grup_analizi(ktt: KttSinav, sonuclar, ozet: dict) -> KttAnalizSonu
             yapay_zeka=True,
         )
 
-    return _fallback_sinav_grup(ktt, istatistik, kayitlar)
+    return _uyari_ekle(_fallback_sinav_grup(ktt, istatistik, kayitlar), hata)
 
 
 def ktt_rapor_analizi(
@@ -595,7 +605,7 @@ def ktt_rapor_analizi(
             "ktt_gecmisi": _sinav_kirilimi(kayitlar),
             "detay_kayitlar": _ogrenci_satirlari(kayitlar, limit=30),
         }
-        llm = ktt_analiz_llm_uret(payload, tur="rapor_bireysel")
+        llm, hata = ktt_analiz_llm_uret(payload, tur="rapor_bireysel")
         if llm:
             return KttAnalizSonuc(
                 baslik=f"{hedef.ad_soyad} · Bireysel Akademik Değerlendirme",
@@ -603,7 +613,7 @@ def ktt_rapor_analizi(
                 bolumler=_llm_bolumleri(llm),
                 yapay_zeka=True,
             )
-        return _fallback_rapor_bireysel(hedef, kayitlar)
+        return _uyari_ekle(_fallback_rapor_bireysel(hedef, kayitlar), hata)
 
     payload = {
         "filtre": filtre_etiketleri,
@@ -612,7 +622,7 @@ def ktt_rapor_analizi(
         "sinif_kirilimi": _sinif_kirilimi(kayitlar),
         "ornek_kayitlar": _ogrenci_satirlari(kayitlar, limit=40),
     }
-    llm = ktt_analiz_llm_uret(payload, tur="rapor_grup")
+    llm, hata = ktt_analiz_llm_uret(payload, tur="rapor_grup")
     if llm:
         return KttAnalizSonuc(
             baslik="KTT Kohort · Akademik Değerlendirme",
@@ -621,15 +631,10 @@ def ktt_rapor_analizi(
             yapay_zeka=True,
         )
 
-    return _fallback_rapor_grup(kayitlar, filtre_etiketleri, istatistik)
+    return _uyari_ekle(_fallback_rapor_grup(kayitlar, filtre_etiketleri, istatistik), hata)
 
 
 def ktt_analiz_durumu() -> dict[str, Any]:
-    from django.conf import settings
-
-    aktif = ktt_analiz_llm_aktif_mi()
-    if aktif:
+    if ktt_analiz_llm_aktif_mi():
         return {"aktif": True, "etiket": "Yapay Zeka", "uyari": ""}
-    if not getattr(settings, "OPENAI_API_KEY", "").strip():
-        return {"aktif": False, "etiket": "Otomatik Analiz", "uyari": ""}
     return {"aktif": False, "etiket": "Otomatik Analiz", "uyari": ""}

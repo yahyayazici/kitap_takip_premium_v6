@@ -6,7 +6,7 @@
             <h2 class="ktt-analiz-title">{{ analiz.baslik }}</h2>
         </div>
         <span class="ktt-analiz-badge {% if analiz.yapay_zeka %}is-ai{% else %}is-data{% endif %}">
-            {{ analiz_durumu.etiket }}
+            {% if analiz.yapay_zeka %}Yapay Zeka{% else %}{{ analiz_durumu.etiket|default:"Otomatik Analiz" }}{% endif %}
         </span>
     </header>
 

@@ -1,4 +1,4 @@
-"""Kurum zekası — kural tabanlı fallback (OpenAI yokken 500 olmamalı)."""
+"""Kurum zekası — kural tabanlı fallback (Claude anahtarı yokken 500 olmamalı)."""
 
 from django.contrib.auth.models import User
 from django.test import TestCase
@@ -18,7 +18,7 @@ class KurumZekasiFallbackTests(TestCase):
         self.assertIn("bu_ay_soru_toplam", baglam)
         self.assertIsInstance(baglam["bu_ay_soru_toplam"], int)
 
-    def test_kurum_zekasi_ozet_openai_olmadan(self):
+    def test_kurum_zekasi_ozet_api_anahtari_olmadan(self):
         sonuc = kurum_zekasi_ozet(self.user, yenile=True)
         self.assertTrue(sonuc.bolumler)
         self.assertFalse(sonuc.yapay_zeka)

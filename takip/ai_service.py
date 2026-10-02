@@ -19,11 +19,12 @@ from takip.ai_context import (
     _mudahale_adaylari,
 )
 from takip.ai_gateway import (
-    ai_json_uret,
+    ai_json_istek,
     ai_llm_aktif_mi,
     ai_platform_aktif_mi,
     onbellekten_al,
     onbellege_yaz,
+    yenile_izinli_mi,
 )
 from takip.ai_models import AiUretimKaydi
 from takip.ai_types import AiAnalizBolum, AiAnalizSonuc
@@ -47,6 +48,13 @@ _BOLUM_TON = {
     "oncelikli_talebeler": "dikkat",
     "sinif_sinif": "notr",
     "aksiyon": "aksiyon",
+    "dayanaklar": "notr",
+    "belirsizlikler": "dikkat",
+}
+
+_ORTAK_ETIKET = {
+    "dayanaklar": "Dayanaklar (Kullanılan Veriler)",
+    "belirsizlikler": "Belirsizlikler ve Eksik Veri",
 }
 
 
@@ -58,9 +66,37 @@ def ai_durumu() -> dict[str, str]:
     return {"aktif": False, "etiket": "Kapalı", "uyari": "AI platformu devre dışı."}
 
 
+def _veri_kapsami(baglam: dict[str, Any]) -> dict[str, Any]:
+    """Boş gelen veri alanlarını listeler — modelin eksik veriyi açıkça belirtmesi için."""
+    eksik: list[str] = []
+    for anahtar, deger in baglam.items():
+        if deger in (None, "", [], {}):
+            eksik.append(anahtar)
+        elif isinstance(deger, dict):
+            for alt, alt_deger in deger.items():
+                if alt_deger in (None, "", [], {}):
+                    eksik.append(f"{anahtar}.{alt}")
+    return {"eksik_alanlar": eksik}
+
+
+def _llm_istem(aciklama: str, baglam: dict[str, Any]) -> str:
+    paket = {
+        "rapor_tarihi": localdate().isoformat(),
+        "veri_kapsami": _veri_kapsami(baglam),
+        "veri": baglam,
+    }
+    return f"{aciklama}\n\nVERİ:\n{baglam_json(paket)}"
+
+
+def _llm_uyari(hata_mesaji: str) -> str:
+    if not hata_mesaji:
+        return ""
+    return f"Yapay zeka analizi alınamadı: {hata_mesaji} Aşağıda kural tabanlı özet gösteriliyor."
+
+
 def _llm_bolumleri(llm: dict[str, str], etiketler: dict[str, str]) -> list[AiAnalizBolum]:
     bolumler: list[AiAnalizBolum] = []
-    for anahtar, baslik in etiketler.items():
+    for anahtar, baslik in {**etiketler, **_ORTAK_ETIKET}.items():
         icerik = (llm.get(anahtar) or "").strip()
         if icerik:
             bolumler.append(
@@ -81,13 +117,23 @@ def _analiz_getir(
     user: User | None = None,
     yenile: bool = False,
 ) -> AiAnalizSonuc:
+    sinir_uyarisi = ""
+    if yenile and not yenile_izinli_mi(user):
+        yenile = False
+        sinir_uyarisi = "Günlük yenileme sınırına ulaşıldı; kayıtlı analiz gösteriliyor."
+
     if ai_platform_aktif_mi():
         cached = onbellekten_al(tur, anahtar, yenile=yenile)
         if cached:
-            return AiAnalizSonuc.from_dict(cached)
+            sonuc = AiAnalizSonuc.from_dict(cached)
+            if sinir_uyarisi:
+                sonuc.uyari = sinir_uyarisi
+            return sonuc
 
     sonuc = uretici()
-    if ai_platform_aktif_mi():
+    # Yapay zeka hatası nedeniyle üretilen yedek sonuç önbelleğe yazılmaz;
+    # servis düzelince bir sonraki açılışta gerçek analiz denenir.
+    if ai_platform_aktif_mi() and not (sonuc.uyari and ai_llm_aktif_mi()):
         onbellege_yaz(
             tur=tur,
             anahtar=anahtar,
@@ -108,17 +154,20 @@ _GELISIM_ETIKET = {
 }
 
 _GELISIM_SISTEM = f"""Sen {PANEL_NAME} eğitim kurumunun kıdemli gelişim danışmanısın.
-Öğrencinin akademik, okuma, devam, namaz ve soru takip verilerini bütüncül okursun.
-Veri setinde olmayan bilgi uydurma. Resmi ama sıcak Türkçe kullan.
-Yanıtı yalnızca geçerli JSON ver:
-{{
-  "ozet": "2-4 cümle genel tablo",
-  "guclu_yonler": "Madde madde güçlü alanlar",
-  "gelisim_alanlari": "Madde madde gelişim alanları",
-  "risk_sinyalleri": "Varsa erken uyarı sinyalleri",
-  "mudahale_onerileri": "Somut etüt/çalışma önerileri",
-  "veli_mesaji": "Veliye aktarılabilecek 1-2 cümle (disiplin detayı yok)"
-}}"""
+Öğrencinin akademik (deneme, KTT), okuma, devam, namaz ve soru takip verilerini bütüncül okursun.
+Okuyucu: etüt hocası ve idareciler. Resmi ama sıcak Türkçe kullan.
+Değerlendirirken:
+- Deneme/KTT için tek sonuca değil eğilime bak (deneme_trend, son 3-5 kayıt); kayıt sayısı azsa bunu belirt.
+- Branş bazında en zayıf ve en güçlü alanı sayıyla göster.
+- Soru takibinde bu hafta ile bu ayı karşılaştır; kayıt girilmeyen günleri "çalışmadı" diye yorumlama, "kayıt yok" de.
+- Risk sinyalini yalnızca veriyle destekleyebiliyorsan yaz.
+JSON alanları:
+- "ozet": 2-4 cümle genel tablo
+- "guclu_yonler": Madde madde güçlü alanlar
+- "gelisim_alanlari": Madde madde gelişim alanları
+- "risk_sinyalleri": Varsa erken uyarı sinyalleri; yoksa "Veriyle desteklenen risk sinyali yok."
+- "mudahale_onerileri": Somut, ölçülebilir etüt/çalışma önerileri (kim, ne sıklıkla, hangi hedef)
+- "veli_mesaji": Veliye aktarılabilecek 1-2 cümle (disiplin ve rehberlik detayı yok)"""
 
 
 def _fallback_gelisim(talebe: Talebe, baglam: dict) -> AiAnalizSonuc:
@@ -203,11 +252,12 @@ def gelisim_zekasi_analizi(
 
     def uret():
         baglam = talebe_zengin_baglam(talebe)
-        llm = ai_json_uret(
+        cevap = ai_json_istek(
             system=_GELISIM_SISTEM,
-            user_prompt=f"Öğrenci veri seti:\n{baglam_json(baglam)}",
-            max_tokens=2000,
+            user_prompt=_llm_istem("Öğrencinin bütüncül gelişim değerlendirmesini yaz.", baglam),
+            alanlar=list(_GELISIM_ETIKET),
         )
+        llm = cevap.veri
         if llm:
             bolumler = _llm_bolumleri(llm, _GELISIM_ETIKET)
             skor, _ = talebe_risk_skoru(talebe)
@@ -218,7 +268,9 @@ def gelisim_zekasi_analizi(
                 yapay_zeka=True,
                 meta={"risk_skoru": skor},
             )
-        return _fallback_gelisim(talebe, baglam)
+        sonuc = _fallback_gelisim(talebe, baglam)
+        sonuc.uyari = _llm_uyari(cevap.hata_mesaji)
+        return sonuc
 
     return _analiz_getir(
         tur=AiUretimKaydi.Tur.GELISIM_ZEKASI,
@@ -239,13 +291,13 @@ _VELI_ETIKET = {
 _VELI_SISTEM = f"""Sen {PANEL_NAME} veli iletişim uzmanısın.
 Veliye sıcak, anlaşılır Türkçe ile haftalık özet yazarsın.
 Disiplin ve rehberlik detayı verme; sadece paylaşılan KPI'ları kullan.
-JSON yanıt:
-{{
-  "ozet": "2-3 cümle haftalık özet",
-  "akademik": "Deneme/KTT/soru durumu",
-  "aliskanliklar": "Okuma ve katılım",
-  "veli_onerisi": "Evde yapılabilecek 1-2 somut öneri"
-}}"""
+Teknik terim (net, KTT, kazanım) kullanırsan bir kez kısaca açıkla. Suçlayıcı veya etiketleyici dil kullanma.
+"dayanaklar" ve "belirsizlikler" alanlarını da veliye anlaşılır dille yaz.
+JSON alanları:
+- "ozet": 2-3 cümle haftalık özet
+- "akademik": Deneme/KTT/soru durumu
+- "aliskanliklar": Okuma ve katılım
+- "veli_onerisi": Evde yapılabilecek 1-2 somut öneri"""
 
 
 def veli_haftalik_ozet(
@@ -265,10 +317,12 @@ def veli_haftalik_ozet(
         }
         baglam["veli_kpi"] = kpi
 
-        llm = ai_json_uret(
+        cevap = ai_json_istek(
             system=_VELI_SISTEM,
-            user_prompt=f"Veli özeti için veri:\n{baglam_json(baglam)}",
+            user_prompt=_llm_istem("Veliye bu haftanın özetini yaz.", baglam),
+            alanlar=list(_VELI_ETIKET),
         )
+        llm = cevap.veri
         if llm:
             return AiAnalizSonuc(
                 baslik=f"{talebe.ad_soyad} · Haftalık Özet",
@@ -295,6 +349,7 @@ def veli_haftalik_ozet(
                 ),
             ],
             yapay_zeka=False,
+            uyari=_llm_uyari(cevap.hata_mesaji),
         )
 
     return _analiz_getir(
@@ -359,13 +414,11 @@ _VELI_TAKIP_ETIKET = {
 _VELI_TAKIP_SISTEM = f"""Sen {PANEL_NAME} veli iletişim koordinatörüsün.
 Veli paneli görüntüleme verisini sınıf sınıf özetlersin.
 Her sınıf için giriş yapmayan, okumayan ve güncel velileri net listele.
-Öğrenci adı ve veli adını birlikte yaz. Veri uydurma.
-JSON:
-{{
-  "ozet": "Kurum geneli 2-4 cümle özet",
-  "sinif_sinif": "Her sınıf ayrı paragraf; başlık olarak sınıf adını yaz (örn. 5/A). Giriş yok / okunmamış / güncel listeleri madde madde",
-  "aksiyon": "Aranacak veya hatırlatılacak veliler, öncelik sırasıyla"
-}}"""
+Öğrenci adı ve veli adını birlikte yaz. Listeleri kısaltırsan kaç kişinin dışarıda kaldığını belirt.
+JSON alanları:
+- "ozet": Kurum geneli 2-4 cümle özet
+- "sinif_sinif": Her sınıf ayrı paragraf; başlık olarak sınıf adını yaz (örn. 5/A). Giriş yok / okunmamış / güncel listeleri madde madde
+- "aksiyon": Aranacak veya hatırlatılacak veliler, öncelik sırasıyla"""
 
 
 def _fallback_veli_takip(veri: dict) -> AiAnalizSonuc:
@@ -441,11 +494,12 @@ def veli_takip_zekasi_raporu(
         from takip.veli_goruntuleme_service import sinif_bazli_veli_takip_verisi
 
         veri = sinif_bazli_veli_takip_verisi()
-        llm = ai_json_uret(
+        cevap = ai_json_istek(
             system=_VELI_TAKIP_SISTEM,
-            user_prompt=f"Veli takip verisi:\n{baglam_json(veri)}",
-            max_tokens=2500,
+            user_prompt=_llm_istem("Veli paneli takip raporunu sınıf sınıf yaz.", veri),
+            alanlar=list(_VELI_TAKIP_ETIKET),
         )
+        llm = cevap.veri
         if llm:
             return AiAnalizSonuc(
                 baslik="Veli Takip Zekası · Sınıf Raporu",
@@ -454,7 +508,9 @@ def veli_takip_zekasi_raporu(
                 yapay_zeka=True,
                 meta={"sinif_sayisi": veri.get("toplam_sinif", 0)},
             )
-        return _fallback_veli_takip(veri)
+        sonuc = _fallback_veli_takip(veri)
+        sonuc.uyari = _llm_uyari(cevap.hata_mesaji)
+        return sonuc
 
     return _analiz_getir(
         tur=AiUretimKaydi.Tur.VELI_TAKIP,
@@ -483,16 +539,15 @@ Veride şunlar olabilir:
 - kazanim_zayif_konular: sınıf geneli zayıf kazanımlar (ortalama yüzde)
 
 Kazanım detayını esas al. KTT varsa yalnızca örtüşen konuları destek olarak an.
-Konu adı yoksa uydurma; yalnızca verilen listeleri kullan.
-JSON:
-{{
-  "ozet": "Sınıf geneli 2-3 cümle; kazanım varsa konu düzeyine de değin",
-  "brans_analizi": "Türkçe/Mat/Fen/Sos/İng zayıf-güçlü branşlar",
-  "konu_analizi": "Kazanım detayından zayıf ve güçlü konular",
-  "sinif_ozeti": "Üst ve destek gerektiren gruplar",
-  "etut_onerileri": "Somut etüt planı — mümkünse kazanım adı ver",
-  "risk_ve_firsatlar": "Acil müdahale gereken kazanımlar"
-}}"""
+Konu adı yoksa uydurma; yalnızca verilen listeleri kullan. Kazanım detayı yoksa konu_analizi alanında bunu belirt.
+Ortalama yüzdeyi verirken kaç talebenin katıldığını da yaz; az katılımlı kazanımlar için temkinli ol.
+JSON alanları:
+- "ozet": Sınıf geneli 2-3 cümle; kazanım varsa konu düzeyine de değin
+- "brans_analizi": Türkçe/Mat/Fen/Sos/İng zayıf-güçlü branşlar (sayılarla)
+- "konu_analizi": Kazanım detayından zayıf ve güçlü konular
+- "sinif_ozeti": Üst ve destek gerektiren gruplar
+- "etut_onerileri": Somut etüt planı — mümkünse kazanım adı, süre ve hedef ver
+- "risk_ve_firsatlar": Acil müdahale gereken kazanımlar"""
 
 
 def deneme_zekasi_analizi(
@@ -506,11 +561,12 @@ def deneme_zekasi_analizi(
 
     def uret():
         baglam = deneme_baglam(deneme, sonuclar)
-        llm = ai_json_uret(
+        cevap = ai_json_istek(
             system=_DENEME_SISTEM,
-            user_prompt=f"Deneme verisi:\n{baglam_json(baglam)}",
-            max_tokens=2600,
+            user_prompt=_llm_istem("Deneme sınavının sınıf düzeyinde analizini yaz.", baglam),
+            alanlar=list(_DENEME_ETIKET),
         )
+        llm = cevap.veri
         if llm:
             return AiAnalizSonuc(
                 baslik=f"{deneme.ad} · Deneme Zekası",
@@ -570,6 +626,7 @@ def deneme_zekasi_analizi(
             tur="deneme_analiz",
             bolumler=bolumler,
             yapay_zeka=False,
+            uyari=_llm_uyari(cevap.hata_mesaji),
         )
 
     return _analiz_getir(
@@ -589,14 +646,13 @@ _REHBERLIK_ETIKET = {
 }
 
 _REHBERLIK_SISTEM = f"""Sen {PANEL_NAME} rehberlik uzmanısın.
-Görüşme kaydını yapılandırılmış özet haline getir. Karar verme — sadece özetle ve takip öner.
-JSON:
-{{
-  "ozet": "Görüşmenin 2-4 cümle özeti",
-  "temalar": "Ana temalar madde madde",
-  "takip_maddeleri": "Yapılacaklar / takip",
-  "oneri": "Rehber öğretmen için kısa öneri"
-}}"""
+Görüşme kaydını yapılandırılmış özet haline getir. Karar verme, tanı koyma — sadece özetle ve takip öner.
+Kayıtta yazmayan duygu, neden veya aile bilgisi ekleme.
+JSON alanları:
+- "ozet": Görüşmenin 2-4 cümle özeti
+- "temalar": Ana temalar madde madde
+- "takip_maddeleri": Yapılacaklar / takip (kim, ne zaman)
+- "oneri": Rehber öğretmen için kısa öneri"""
 
 
 def rehberlik_gorusme_ozeti(
@@ -618,10 +674,12 @@ def rehberlik_gorusme_ozeti(
             "yapilacaklar": gorusme.yapilacaklar or [],
             "genel_durum": gorusme.get_genel_durum_display(),
         }
-        llm = ai_json_uret(
+        cevap = ai_json_istek(
             system=_REHBERLIK_SISTEM,
-            user_prompt=f"Görüşme kaydı:\n{baglam_json(veri)}",
+            user_prompt=_llm_istem("Rehberlik görüşme kaydını özetle.", veri),
+            alanlar=list(_REHBERLIK_ETIKET),
         )
+        llm = cevap.veri
         if llm:
             return AiAnalizSonuc(
                 baslik=f"{gorusme.tur.ad} · AI Özet",
@@ -642,6 +700,7 @@ def rehberlik_gorusme_ozeti(
                 ),
             ],
             yapay_zeka=False,
+            uyari=_llm_uyari(cevap.hata_mesaji),
         )
 
     return _analiz_getir(
@@ -661,14 +720,14 @@ _KURUM_ETIKET = {
 }
 
 _KURUM_SISTEM = f"""Sen {PANEL_NAME} eğitim kurumu danışmanısın.
-Kurum geneli metrikleri yorumla; somut idari öneriler sun.
-JSON:
-{{
-  "kurum_ozeti": "Genel tablo 2-4 cümle",
-  "oncelikli_talebeler": "Risk adayları hakkında yorum",
-  "sinif_analizi": "Sınıf dağılımı yorumu",
-  "mudahale_onerileri": "Kurumsal aksiyon önerileri"
-}}"""
+Kurum geneli metrikleri yorumla; somut idari öneriler sun. Okuyucu: kurum yöneticisi.
+risk_adaylari listesindeki skor ve nedenler sistemin kural tabanlı hesabıdır; bunları olduğu gibi aktar,
+yeni neden ekleme. Veri kapsamı (kaç talebenin soru kaydı var) düşükse oranları genelleme.
+JSON alanları:
+- "kurum_ozeti": Genel tablo 2-4 cümle
+- "oncelikli_talebeler": Risk adayları hakkında yorum (ad, sınıf, skor, neden)
+- "sinif_analizi": Sınıf dağılımı yorumu
+- "mudahale_onerileri": Kurumsal aksiyon önerileri (sorumlu ve süre ile)"""
 
 
 def kurum_zekasi_ozet(
@@ -681,11 +740,12 @@ def kurum_zekasi_ozet(
 
     def uret():
         baglam = kurum_baglam(user)
-        llm = ai_json_uret(
+        cevap = ai_json_istek(
             system=_KURUM_SISTEM,
-            user_prompt=f"Kurum verisi:\n{baglam_json(baglam)}",
-            max_tokens=1800,
+            user_prompt=_llm_istem("Kurum geneli durum değerlendirmesini yaz.", baglam),
+            alanlar=list(_KURUM_ETIKET),
         )
+        llm = cevap.veri
         if llm:
             return AiAnalizSonuc(
                 baslik="Kurum Zekası",
@@ -714,6 +774,7 @@ def kurum_zekasi_ozet(
                 AiAnalizBolum("Öncelikli Talebeler", risk_metin, "dikkat"),
             ],
             yapay_zeka=False,
+            uyari=_llm_uyari(cevap.hata_mesaji),
             meta={"risk_adaylari": risk},
         )
 
@@ -739,6 +800,31 @@ def mudahale_oneri_listesi(user: User) -> list[dict[str, Any]]:
     return adaylar
 
 
+_SORU_SISTEM = f"""Sen {PANEL_NAME} ölçme-değerlendirme uzmanısın. Günlük soru takip verisini yorumlarsın.
+Kayıt girilmeyen günleri "çalışmadı" diye yorumlama; "kayıt yok" de. Başarı oranını toplam soru sayısıyla birlikte ver.
+JSON alanları:
+- "ozet": 2-3 cümle genel durum
+- "trend": Hafta/ay veya ders bazında karşılaştırma (yalnızca veride varsa)
+- "oneri": Somut, ölçülebilir öneriler"""
+
+
+def _kurum_soru_verisi(user: User) -> dict[str, Any]:
+    """Kurum geneli soru takip içgörüsü için son 30 günün gerçek verisi."""
+    from takip.soru_takip_service import rapor_ders_ozeti, rapor_istatistik, yetkili_soru_kayitlari
+
+    bugun = localdate()
+    baslangic = bugun - timedelta(days=29)
+    kayitlar = yetkili_soru_kayitlari(user).filter(tarih__gte=baslangic, tarih__lte=bugun)
+    hafta_kayit = kayitlar.filter(tarih__gte=bugun - timedelta(days=6))
+    return {
+        "donem": {"baslangic": baslangic.isoformat(), "bitis": bugun.isoformat()},
+        "yetkili_talebe_sayisi": yetkili_talebeler(user).count(),
+        "son_30_gun": rapor_istatistik(kayitlar),
+        "son_7_gun": rapor_istatistik(hafta_kayit),
+        "ders_bazinda_30_gun": rapor_ders_ozeti(kayitlar),
+    }
+
+
 def soru_takip_insight(
     user: User,
     talebe: Talebe | None = None,
@@ -757,13 +843,14 @@ def soru_takip_insight(
             baglam = talebe_zengin_baglam(talebe)
             soru = baglam["soru_takip"]
         else:
-            qs = yetkili_talebeler(user)
-            soru = {"kurum_talebe": qs.count()}
+            soru = _kurum_soru_verisi(user)
 
-        llm = ai_json_uret(
-            system="Günlük soru takip verisini yorumla. JSON: ozet, trend, oneri",
-            user_prompt=baglam_json({"soru": soru}),
+        cevap = ai_json_istek(
+            system=_SORU_SISTEM,
+            user_prompt=_llm_istem("Soru takip verisini yorumla.", {"soru": soru}),
+            alanlar=["ozet", "trend", "oneri"],
         )
+        llm = cevap.veri
         if llm:
             etiket = {"ozet": "Özet", "trend": "Trend", "oneri": "Öneri"}
             return AiAnalizSonuc(
@@ -777,12 +864,19 @@ def soru_takip_insight(
             ay = talebe_zengin_baglam(talebe)["soru_takip"]["bu_ay"]
             icerik = f"Bu ay {ay.get('toplam_soru', 0)} soru, net {ay.get('toplam_net', 0)}."
         else:
-            icerik = "Kurum geneli soru takip özeti için talebe detayına bakın."
+            ay = soru.get("son_30_gun") or {}
+            hafta = soru.get("son_7_gun") or {}
+            icerik = (
+                f"Son 30 günde {ay.get('talebe_sayisi', 0)}/{soru.get('yetkili_talebe_sayisi', 0)} talebe için "
+                f"{ay.get('kayit_sayisi', 0)} günlük kayıt var: {ay.get('toplam_soru', 0)} soru, "
+                f"başarı %{ay.get('basari_orani', 0)}. Son 7 günde {hafta.get('toplam_soru', 0)} soru."
+            )
         return AiAnalizSonuc(
             baslik=baslik,
             tur="soru_takip",
             bolumler=[AiAnalizBolum("Özet", icerik, "notr")],
             yapay_zeka=False,
+            uyari=_llm_uyari(cevap.hata_mesaji),
         )
 
     return _analiz_getir(

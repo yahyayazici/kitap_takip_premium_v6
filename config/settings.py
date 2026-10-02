@@ -249,13 +249,40 @@ CACHES = {
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AI_ASSISTANT_ENABLED = os.environ.get("AI_ASSISTANT_ENABLED", "True").lower() == "true"
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
-AI_ASSISTANT_MODEL = os.environ.get("AI_ASSISTANT_MODEL", "gpt-4o-mini")
 AI_KTT_ANALYSIS_ENABLED = os.environ.get("AI_KTT_ANALYSIS_ENABLED", "True").lower() == "true"
-AI_KTT_ANALYSIS_MAX_TOKENS = int(os.environ.get("AI_KTT_ANALYSIS_MAX_TOKENS", "2200"))
 AI_PLATFORM_ENABLED = os.environ.get("AI_PLATFORM_ENABLED", "True").lower() == "true"
-AI_PLATFORM_MAX_TOKENS = int(os.environ.get("AI_PLATFORM_MAX_TOKENS", "2000"))
 AI_CACHE_HOURS = int(os.environ.get("AI_CACHE_HOURS", "24"))
+
+# —— Claude API (Anthropic) — analizler ve panel asistanı ——
+# Anahtar yalnızca sunucu ortam değişkeninde tutulur; tarayıcıya ve loglara yazılmaz.
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+AI_ANALIZ_MODEL = os.environ.get("AI_ANALIZ_MODEL", "claude-opus-5-5")
+AI_SOHBET_MODEL = os.environ.get("AI_SOHBET_MODEL", "claude-opus-5-5")
+# Konu destek soru üretimi, veli mesaj taslağı gibi art arda çağrı yapan üretim işleri
+AI_URETIM_MODEL = os.environ.get("AI_URETIM_MODEL", "claude-opus-5-5")
+# Düşünme derinliği: low | medium | high (yüksek = daha iyi ama daha yavaş/pahalı)
+AI_ANALIZ_EFFORT = os.environ.get("AI_ANALIZ_EFFORT", "medium")
+AI_SOHBET_EFFORT = os.environ.get("AI_SOHBET_EFFORT", "low")
+AI_URETIM_EFFORT = os.environ.get("AI_URETIM_EFFORT", "low")
+# Çıktı token tavanları (düşünme + yanıt) — maliyetin üst sınırı
+AI_ANALIZ_MAX_TOKENS = int(os.environ.get("AI_ANALIZ_MAX_TOKENS", "8000"))
+AI_KTT_ANALYSIS_MAX_TOKENS = int(os.environ.get("AI_KTT_ANALYSIS_MAX_TOKENS", "8000"))
+AI_SOHBET_MAX_TOKENS = int(os.environ.get("AI_SOHBET_MAX_TOKENS", "3000"))
+# Soru üretimi gibi serbest JSON görevleri için çağıranın istediği çıktıya eklenen düşünme payı
+AI_DUSUNME_PAYI = int(os.environ.get("AI_DUSUNME_PAYI", "3000"))
+# Girdi sınırı (karakter) — aşılırsa istek gönderilmez, kullanıcıya filtre daraltması önerilir
+AI_MAX_GIRDI_KARAKTER = int(os.environ.get("AI_MAX_GIRDI_KARAKTER", "120000"))
+AI_SOHBET_MESAJ_MAX_KARAKTER = int(os.environ.get("AI_SOHBET_MESAJ_MAX_KARAKTER", "2000"))
+# Zaman aşımları (saniye) — gunicorn --timeout 90 değerinin altında kalmalı
+AI_ANALIZ_TIMEOUT = float(os.environ.get("AI_ANALIZ_TIMEOUT", "75"))
+AI_SOHBET_TIMEOUT = float(os.environ.get("AI_SOHBET_TIMEOUT", "40"))
+AI_SOHBET_TOPLAM_SURE = float(os.environ.get("AI_SOHBET_TOPLAM_SURE", "70"))
+# Kullanıcı başına istek sınırları (worker başına sayılır)
+AI_SOHBET_DAKIKA_LIMIT = int(os.environ.get("AI_SOHBET_DAKIKA_LIMIT", "10"))
+AI_SOHBET_GUNLUK_LIMIT = int(os.environ.get("AI_SOHBET_GUNLUK_LIMIT", "150"))
+AI_YENILE_GUNLUK_LIMIT = int(os.environ.get("AI_YENILE_GUNLUK_LIMIT", "30"))
+# Güvenlik sınıflandırıcısı yanlış ret verirse önerilen yedek modelde yeniden dene
+AI_RET_YEDEK = os.environ.get("AI_RET_YEDEK", "True").lower() == "true"
 
 # —— Web Push (VAPID) — yönetimin elle gönderdiği push bildirimleri ——
 # Anahtarlar boşsa özellik sessizce kapalı kalır (push_bildirim_aktif() False döner).
@@ -314,6 +341,10 @@ LOGGING = {
         "takip.bootstrap_views": {
             "handlers": ["console"],
             "level": "ERROR",
+        },
+        "takip.claude_client": {
+            "handlers": ["console"],
+            "level": "INFO",
         },
     },
 }

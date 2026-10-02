@@ -232,7 +232,7 @@
             <span class="ktt-analiz-chevron" aria-hidden="true">▼</span>
         </button>
         <div class="ktt-analiz-panel" id="kttAnalizPanel" hidden>
-            <p class="ktt-analiz-loading" id="kttAnalizLoading" hidden>Analiz hazırlanıyor…</p>
+            <p class="ktt-analiz-loading" id="kttAnalizLoading" hidden role="status">Analiz hazırlanıyor… Yapay zeka değerlendirmesi 1 dakikayı bulabilir.</p>
             <div class="ktt-analiz-content" id="kttAnalizContent"></div>
         </div>
     </section>
@@ -266,16 +266,28 @@
         if (loaded) return;
 
         loading.hidden = false;
+        content.innerHTML = "";
+        const controller = new AbortController();
+        const zamanlayici = setTimeout(function () { controller.abort(); }, 100000);
         try {
             const res = await fetch(btn.dataset.url, {
                 headers: { "X-Requested-With": "XMLHttpRequest" },
+                signal: controller.signal,
             });
+            if (res.status === 502 || res.status === 504) throw new Error("zaman");
             if (!res.ok) throw new Error("HTTP " + res.status);
-            content.innerHTML = await res.text();
+            const html = await res.text();
+            content.innerHTML = html.trim()
+                ? html
+                : '<p class="ktt-analiz-note">Seçilen filtrelerde değerlendirme üretilemedi.</p>';
             loaded = true;
         } catch (err) {
-            content.innerHTML = '<p class="ktt-analiz-note">Analiz yüklenemedi. Sayfayı yenileyip tekrar deneyin.</p>';
+            const zaman = err.name === "AbortError" || err.message === "zaman";
+            content.innerHTML = zaman
+                ? '<p class="ktt-analiz-note">Analiz zamanında tamamlanamadı (zaman aşımı). Biraz sonra tekrar açmayı deneyin.</p>'
+                : '<p class="ktt-analiz-note">Analiz yüklenemedi. Bağlantınızı kontrol edip tekrar deneyin.</p>';
         } finally {
+            clearTimeout(zamanlayici);
             loading.hidden = true;
         }
     });
