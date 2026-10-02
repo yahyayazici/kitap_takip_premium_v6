@@ -12,6 +12,7 @@ from takip.ktt_models import KttSinav, KttSonucu
 from takip.ktt_service import (
     ktt_hafta_cozulen_soru,
     ktt_hafta_ders_sorulari,
+    ktt_hafta_sinif_ozeti,
     ktt_rapor_filtrele,
     ktt_rapor_grupla,
     ktt_rapor_istatistik,
@@ -145,6 +146,69 @@ class KttRaporGrupTests(TestCase):
 
         bos_hafta = ktt_hafta_ders_sorulari(user, date(2026, 10, 5))
         self.assertEqual([satir["soru"] for satir in bos_hafta], [0, 0, 0, 0, 0, 0, 0])
+
+    @patch("takip.ktt_service.can", return_value=True)
+    def test_hafta_pdf_sinif_cumlesi(self, _can):
+        user = User.objects.create_superuser("ktt-hafta-pdf", password="x")
+        matematik = Ders.objects.create(ad="Matematik", sira=3, aktif=True)
+        fen = Ders.objects.create(ad="Fen Bilimleri", sira=4, aktif=True)
+        gun = date(2026, 9, 26)
+        for ad, ders, soru in (
+            ("7 Türkçe", self.ders, 30),
+            ("7 Matematik", matematik, 62),
+            ("7 Fen", fen, 71),
+        ):
+            sinav = KttSinav.objects.create(
+                ad=ad,
+                ders=ders,
+                sinif_seviyesi="7",
+                hedef_siniflar="7-A",
+                sinav_tarihi=gun,
+                soru_sayisi=soru,
+                etut_hocasi=self.hoca,
+            )
+            KttSonucu.objects.create(
+                ktt=sinav, talebe=self.talebe_a, dogru=soru, yanlis=0, bos=0
+            )
+
+        ozet = ktt_hafta_sinif_ozeti(user, gun)
+        self.assertEqual(ozet["baslangic"], date(2026, 9, 21))
+        self.assertEqual(ozet["bitis"], date(2026, 9, 27))
+        self.assertEqual(ozet["toplam"], ktt_hafta_cozulen_soru(user, gun))
+        yedi = next(sinif for sinif in ozet["siniflar"] if sinif["seviye"] == "7")
+        bes = next(sinif for sinif in ozet["siniflar"] if sinif["seviye"] == "5")
+        self.assertEqual(yedi["baslik"], "7. sınıflar")
+        self.assertEqual(yedi["toplam"], 163)
+        self.assertEqual(
+            yedi["cumle"],
+            "7. sınıflar bu hafta Türkçe dersinden 30, Matematik dersinden 62 ve Fen dersinden 71 soru çözdü.",
+        )
+        self.assertNotIn("Sosyal", yedi["cumle"])
+        self.assertEqual(bes["toplam"], 30)
+        self.assertEqual(bes["cumle"], "5. sınıflar bu hafta Türkçe dersinden 30 soru çözdü.")
+        duz = {satir["etiket"]: satir["soru"] for satir in ktt_hafta_ders_sorulari(user, gun)}
+        self.assertEqual(duz["Türkçe"], 60)
+        self.assertEqual(duz["Matematik"], 62)
+        self.assertEqual(duz["Fen"], 71)
+
+        self.client.force_login(user)
+        # PDF ucu gün vermez; bu haftayı localdate() ile alır. Fikstür haftası 21–27 Eylül.
+        with (
+            patch("takip.ktt_views.html_to_pdf", return_value=b"%PDF-1.4 fake") as mock_pdf,
+            patch("takip.ktt_service.localdate", return_value=gun),
+        ):
+            resp = self.client.get(reverse("ktt_hafta_pdf"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("ktt-hafta-2026-09-21.pdf", resp["Content-Disposition"])
+        html = mock_pdf.call_args[0][0]
+        cumle = "7. sınıflar bu hafta Türkçe dersinden 30, Matematik dersinden 62 ve Fen dersinden 71 soru çözdü."
+        self.assertIn(cumle, html)
+        blok = html[html.index(cumle):]
+        cizgi = blok.index('<div class="apple-cizgi-bar">')
+        self.assertLess(blok.index("ders-serit"), cizgi)
+        self.assertLess(blok.index("Matematik"), cizgi)
+        sayfa = self.client.get(reverse("ktt_listesi"))
+        self.assertContains(sayfa, reverse("ktt_hafta_pdf"))
 
         self.client.force_login(user)
         sayfa = self.client.get(reverse("ktt_listesi"))

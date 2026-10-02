@@ -318,6 +318,7 @@ urlpatterns = [
     path("raporlar/pdf/", views.okuma_raporu_pdf, name="okuma_raporu_pdf"),
 
     path("ktt/", ktt_views.ktt_listesi, name="ktt_listesi"),
+    path("ktt/hafta/pdf/", ktt_views.ktt_hafta_pdf, name="ktt_hafta_pdf"),
     path("ktt/akilli/", ktt_akilli_views.ktt_akilli_ozet, name="ktt_akilli_ozet"),
     path("ktt/konu-oneri/", ktt_akilli_views.ktt_konu_oneri, name="ktt_konu_oneri"),
     path(

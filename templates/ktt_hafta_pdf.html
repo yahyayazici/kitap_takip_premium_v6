@@ -1,0 +1,149 @@
+{% load static pdf_extras %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>Bu hafta çözülen soru</title>
+    <style>
+        {% include "includes/pdf_karne_fonts.html" %}
+        {% include "includes/pdf_karne_a4_css.html" %}
+
+        .pdf-karne.ktt-hafta-pdf { font-size: 11px; color: #173f78; }
+        .pdf-karne.ktt-hafta-pdf .top-logo-cell { text-align: center; }
+        .pdf-karne.ktt-hafta-pdf .top-logo { width: 78px; height: auto; }
+        .pdf-karne.ktt-hafta-pdf .hero { padding: 14px 18px; }
+        .pdf-karne.ktt-hafta-pdf .hero-title { font-size: 18px; }
+        .pdf-karne.ktt-hafta-pdf .hero-meta { font-size: 10px; }
+        .pdf-karne.ktt-hafta-pdf .hero-total {
+            margin-top: 8px;
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1;
+            color: #fff;
+        }
+        .pdf-karne.ktt-hafta-pdf .hero-total small {
+            display: block;
+            margin-top: 4px;
+            font-size: 10px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.76);
+        }
+        .pdf-karne.ktt-hafta-pdf .sinif-blok { margin-top: 14px; }
+        .pdf-karne.ktt-hafta-pdf .sinif-baslik {
+            font-size: 14px;
+            font-weight: 700;
+            color: #173f78;
+        }
+        .pdf-karne.ktt-hafta-pdf .cumle {
+            margin: 6px 0 10px;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1.45;
+            color: #173f78;
+        }
+        .pdf-karne.ktt-hafta-pdf table.ders-serit {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 6px 0;
+            margin-left: -6px;
+        }
+        .pdf-karne.ktt-hafta-pdf td.ders-hucre {
+            width: 14%;
+            padding: 8px 4px 7px;
+            text-align: center;
+            background: #f8fafc;
+            border: 1px solid #e7ebf1;
+            border-top: 3px solid #2563eb;
+            border-radius: 8px;
+        }
+        .pdf-karne.ktt-hafta-pdf td.t2 { border-top-color: #6d28d9; }
+        .pdf-karne.ktt-hafta-pdf td.t3 { border-top-color: #d97706; }
+        .pdf-karne.ktt-hafta-pdf td.t4 { border-top-color: #15803d; }
+        .pdf-karne.ktt-hafta-pdf td.t5 { border-top-color: #d4af37; }
+        .pdf-karne.ktt-hafta-pdf td.t6 { border-top-color: #0f766e; }
+        .pdf-karne.ktt-hafta-pdf td.t7 { border-top-color: #b91c1c; }
+        .pdf-karne.ktt-hafta-pdf .ders-sayi {
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1;
+            color: #173f78;
+        }
+        .pdf-karne.ktt-hafta-pdf .ders-sayi.is-bos { color: #94a3b8; }
+        .pdf-karne.ktt-hafta-pdf .ders-ad {
+            margin-top: 4px;
+            font-size: 9px;
+            font-weight: 600;
+            color: #64748b;
+        }
+        .pdf-karne.ktt-hafta-pdf .apple-cizgi-bar {
+            height: 4px;
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 2px;
+            background: linear-gradient(90deg, #1e3a8a, #2563eb, #d4af37);
+        }
+        .pdf-karne.ktt-hafta-pdf .bos-not {
+            margin-top: 12px;
+            font-size: 12px;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body class="pdf-karne ktt-hafta-pdf">
+<div class="pdf-sheet">
+<table class="layout">
+    <tr>
+        <td class="top-logo-cell">
+            <img class="top-logo" src="{% static 'images/cinili-saray-logo.jpeg' %}" alt="{{ panel_short }}">
+        </td>
+    </tr>
+    <tr><td class="gap8"></td></tr>
+    <tr>
+        <td class="hero">
+            <div class="hero-inner">
+                <div class="hero-tag">Konu Tarama Testleri</div>
+                <div class="hero-title">Bu hafta çözülen soru</div>
+                <div class="hero-meta">{{ ozet.baslangic|date:"d.m.Y" }} – {{ ozet.bitis|date:"d.m.Y" }}</div>
+                <div class="hero-total">{{ ozet.toplam }}<small>soru</small></div>
+            </div>
+        </td>
+    </tr>
+    <tr><td class="gap10"></td></tr>
+    <tr>
+        <td>
+            {% for sinif in ozet.siniflar %}
+            <div class="sinif-blok">
+                <div class="sinif-baslik">{{ sinif.baslik }}</div>
+                <p class="cumle">{{ sinif.cumle }}</p>
+                <table class="ders-serit" cellpadding="0" cellspacing="0">
+                    <tr>
+                        {% for ders in sinif.dersler %}
+                        <td class="ders-hucre t{{ forloop.counter }}">
+                            <div class="ders-sayi{% if not ders.soru %} is-bos{% endif %}">{{ ders.soru }}</div>
+                            <div class="ders-ad">{{ ders.etiket }}</div>
+                        </td>
+                        {% endfor %}
+                    </tr>
+                </table>
+                <div class="apple-cizgi-bar"></div>
+            </div>
+            {% empty %}
+            <p class="bos-not">Bu hafta sonucu girilmiş KTT yok.</p>
+            {% endfor %}
+        </td>
+    </tr>
+    <tr><td class="gap10"></td></tr>
+    <tr>
+        <td>
+            <table class="footer-table" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="footer-left">{{ panel_org }} · {{ olusturma_tarihi|date:"d.m.Y H:i" }}</td>
+                    <td class="footer-right">{{ panel_footer }}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</div>
+</body>
+</html>
