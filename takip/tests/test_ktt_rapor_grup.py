@@ -203,10 +203,16 @@ class KttRaporGrupTests(TestCase):
         html = mock_pdf.call_args[0][0]
         cumle = "7. sınıflar bu hafta Türkçe dersinden 30, Matematik dersinden 62 ve Fen dersinden 71 soru çözdü."
         self.assertIn(cumle, html)
+        self.assertIn("A4 portrait", html)
+        self.assertNotIn("hero-total", html)
+        self.assertLess(html.index("hero-title"), html.index("toplam-sayi"))
+        self.assertLess(html.index("toplam-sayi"), html.index(cumle))
         blok = html[html.index(cumle):]
         cizgi = blok.index('<div class="apple-cizgi-bar">')
         self.assertLess(blok.index("ders-serit"), cizgi)
         self.assertLess(blok.index("Matematik"), cizgi)
+        self.assertIn('class="ders-hucre t1"', html)
+        self.assertIn('class="ders-hucre t2"', html)
         sayfa = self.client.get(reverse("ktt_listesi"))
         self.assertContains(sayfa, reverse("ktt_hafta_pdf"))
 

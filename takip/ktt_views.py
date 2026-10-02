@@ -182,7 +182,7 @@ def ktt_listesi(request):
 @require_permission("ktt", "export_pdf")
 def ktt_hafta_pdf(request):
     ozet = ktt_hafta_sinif_ozeti(request.user)
-    pdf_sayfa = coz_pdf_sayfa(request, default="a4_landscape")
+    pdf_sayfa = coz_pdf_sayfa(request, default="a4_portrait")
     html = render(
         request,
         "ktt_hafta_pdf.html",
