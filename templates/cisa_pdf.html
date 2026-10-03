@@ -103,9 +103,19 @@
             font-size: 9px;
         }
         h2 {
-            margin: 5mm 0 2mm;
+            margin: 2mm 0;
             text-align: center;
             font-size: 13px;
+            font-weight: 700;
+        }
+        h2.kayip { color: #c62828; }
+        .ders-sayfa {
+            break-before: page;
+            page-break-before: always;
+        }
+        .ders-baslik {
+            margin: 0 0 4mm;
+            text-align: center;
         }
         table.dokum {
             width: 100%;
@@ -171,7 +181,7 @@
     {% endif %}
 
     {% if rapor.kayiplar %}
-    <h2>Asıl kayıp</h2>
+    <h2 class="kayip">Asıl kayıp</h2>
     <table class="dokum">
         <thead>
             <tr>
@@ -203,7 +213,12 @@
 
     {% if rapor.konular %}
     {% for grup in rapor.konular %}
-    <h2>{{ grup.ders }}</h2>
+    <section class="ders-sayfa">
+    <div class="ders-baslik">
+        <div class="cizgi"></div>
+        <h2>{{ grup.ders }}</h2>
+        <div class="cizgi"></div>
+    </div>
     <table class="dokum">
         <thead>
             <tr>
@@ -230,6 +245,7 @@
             {% endfor %}
         </tbody>
     </table>
+    </section>
     {% endfor %}
     {% else %}
     <p class="bos">Seçilen denemelerde soru karnesi yok. Konu dökümü oluşmadı.</p>

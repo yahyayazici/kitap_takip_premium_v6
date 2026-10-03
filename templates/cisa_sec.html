@@ -6,11 +6,15 @@
 <div class="page-content">
     <header class="page-head patterned-page-head">
         <div>
-            <p class="kicker">ÇİSA</p>
-            <h1>{{ talebe.ad_soyad }}</h1>
-            <p class="profile-meta">İşaretlediğin denemeler rapora girer. Konu dökümü, soru karnesi yüklü denemelerden gelir.</p>
+            <p class="kicker">ÇİSA · {{ talebe.ad_soyad }}</p>
+            <h1>Hangi denemelerin raporunu alalım?</h1>
+            <p class="profile-meta">İşaretlediğin denemeler rapora girer. Silinen denemeler listede yoktur. Konu dökümü, soru karnesi yüklü denemelerden gelir.</p>
         </div>
+        {% if talebe.sinif_sube_id %}
+        <a class="ghost-btn" href="{% url 'ogretmen_deneme_kontrol_ogrenci_detay' talebe.sinif_sube_id talebe.id %}">Deneme kontrole dön</a>
+        {% else %}
         <a class="ghost-btn" href="{% url 'talebe_detay' talebe.id %}">Talebeye dön</a>
+        {% endif %}
     </header>
 
     {% if denemeler %}
