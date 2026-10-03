@@ -81,9 +81,11 @@ body.v3-body .dk-page .dk-grup + .dk-grup::before {
     margin: 6px 12px 16px;
     background: linear-gradient(
         90deg,
-        transparent,
-        color-mix(in srgb, var(--cs-accent) 42%, var(--cs-border)),
-        transparent
+        transparent 0%,
+        var(--cs-primary) 22%,
+        var(--cs-accent) 50%,
+        var(--pv4-gold, #c39a3d) 78%,
+        transparent 100%
     );
 }
 
@@ -134,11 +136,11 @@ body.v3-body .dk-page .dg-metrik::after {
     border-radius: inherit;
     padding: 1px;
     background: linear-gradient(
-        100deg,
-        color-mix(in srgb, var(--cs-accent) 72%, var(--cs-surface)) 0%,
-        color-mix(in srgb, var(--cs-primary-light) 38%, var(--cs-surface)) 32%,
-        color-mix(in srgb, var(--cs-accent-soft) 24%, var(--cs-border)) 58%,
-        color-mix(in srgb, var(--cs-primary-mid) 52%, var(--cs-surface)) 100%
+        145deg,
+        color-mix(in srgb, var(--cs-primary) 18%, var(--cs-border)) 0%,
+        var(--cs-border) 36%,
+        color-mix(in srgb, var(--cs-accent) 14%, var(--cs-border)) 68%,
+        color-mix(in srgb, var(--cs-primary-dark) 12%, var(--cs-border)) 100%
     );
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
@@ -152,6 +154,28 @@ body.v3-body .dk-page .dk-card,
 body.v3-body.v3-body .dk-page .dg-wrap.profile-card {
     padding: 18px 20px;
     margin: 0;
+}
+
+body.v3-body .dk-page .dk-summary-card::before,
+body.v3-body .dk-page .dk-card::before,
+body.v3-body.v3-body .dk-page .dg-wrap.profile-card::before {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    left: 22px;
+    right: 22px;
+    top: 0;
+    height: 2px;
+    border-radius: var(--cs-radius-pill, 999px);
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        var(--cs-primary) 14%,
+        var(--cs-accent) 46%,
+        var(--pv4-gold, #c39a3d) 86%,
+        transparent 100%
+    );
+    pointer-events: none;
 }
 
 body.v3-body .dk-page .dk-summary-title,
@@ -205,9 +229,11 @@ body.v3-body .dk-page details.dk-fold[open] > summary.dk-card-head {
     padding-bottom: 12px;
     background-image: linear-gradient(
         90deg,
-        transparent,
-        color-mix(in srgb, var(--cs-primary-light) 50%, var(--cs-border)),
-        transparent
+        transparent 0%,
+        var(--cs-primary) 16%,
+        var(--cs-accent) 48%,
+        var(--pv4-gold, #c39a3d) 84%,
+        transparent 100%
     );
     background-repeat: no-repeat;
     background-size: 100% 1px;
@@ -297,9 +323,11 @@ body.v3-body .dk-page .dk-table th {
     background-color: transparent;
     background-image: linear-gradient(
         90deg,
-        transparent,
-        color-mix(in srgb, var(--cs-primary-light) 46%, var(--cs-border)),
-        transparent
+        transparent 0%,
+        var(--cs-primary) 16%,
+        var(--cs-accent) 48%,
+        var(--pv4-gold, #c39a3d) 84%,
+        transparent 100%
     );
     background-repeat: no-repeat;
     background-size: 100% 1px;
@@ -313,9 +341,11 @@ body.v3-body .dk-page .dk-table td {
     border-bottom: 0;
     background-image: linear-gradient(
         90deg,
-        transparent,
-        color-mix(in srgb, var(--cs-accent) 22%, var(--cs-border-subtle)),
-        transparent
+        transparent 0%,
+        color-mix(in srgb, var(--cs-primary) 28%, var(--cs-border)) 18%,
+        color-mix(in srgb, var(--cs-accent) 18%, var(--cs-border)) 50%,
+        color-mix(in srgb, var(--pv4-gold, #c39a3d) 34%, var(--cs-border)) 82%,
+        transparent 100%
     );
     background-repeat: no-repeat;
     background-size: 100% 1px;
