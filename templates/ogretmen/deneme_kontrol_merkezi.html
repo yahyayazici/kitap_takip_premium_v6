@@ -2,7 +2,7 @@
 {% load l10n static deneme_panel %}
 {% block title %}Deneme Kontrol Merkezi{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk20">
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk21">
 {% endblock %}
 
 {% block content %}
@@ -16,6 +16,7 @@
 </div>
 {% else %}
 
+<div class="dk-filtre-satir">
 {% if siniflar|length > 1 %}
 <nav class="dk-switch dk-sinif-switch" aria-label="Sınıf">
     <a href="{% url 'ogretmen_deneme_kontrol_merkezi' %}{% if ekran == 'kazanim' %}?ekran=kazanim{% endif %}" class="dk-switch-btn{% if not gosterilen_id %} is-active{% endif %}">Tümü</a>
@@ -34,6 +35,7 @@
     <a href="{% url 'ogretmen_deneme_kontrol_merkezi' %}?ekran=kazanim" class="dk-switch-btn{% if ekran == 'kazanim' %} is-active{% endif %}">Kazanımlar</a>
     {% endif %}
 </nav>
+</div>
 
 {% for grup in gruplar %}
 {% if not gosterilen_id or gosterilen_id == grup.kart.id %}
