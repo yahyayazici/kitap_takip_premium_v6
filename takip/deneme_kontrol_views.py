@@ -80,6 +80,9 @@ def deneme_kontrol_merkezi(request, sinif_id: int | None = None):
         return _erisim_yok(request)
 
     sirala = (request.GET.get("sirala") or "puan").strip()
+    ekran = (request.GET.get("ekran") or "").strip()
+    if ekran != "kazanim":
+        ekran = "yukselis"
     siniflar = []
     gruplar = []
     gorulen: set[int] = set()
@@ -105,6 +108,7 @@ def deneme_kontrol_merkezi(request, sinif_id: int | None = None):
             "gruplar": gruplar,
             "sirala": sirala,
             "gosterilen_id": gosterilen_id,
+            "ekran": ekran,
             "cisa_acik": can(request.user, "deneme", "export_pdf"),
         },
     )
