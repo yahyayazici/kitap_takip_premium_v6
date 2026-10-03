@@ -97,10 +97,37 @@
             line-height: 1.1;
             margin-top: 1mm;
         }
-        .kart-alt {
-            margin-top: 1mm;
+        table.dyb {
+            width: 100%;
+            margin-top: 2mm;
+            border-collapse: collapse;
+        }
+        table.dyb td {
+            width: 33%;
+            text-align: center;
+        }
+        table.dyb b {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1.1;
+            color: #083888;
+        }
+        table.dyb span {
+            display: block;
+            margin-top: 0.4mm;
+            font-size: 8px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            color: #5c6b80;
+        }
+        .kart-yuzde {
+            margin-top: 1.5mm;
+            text-align: center;
             color: #5c6b80;
             font-size: 9px;
+            font-weight: 600;
         }
         h2 {
             margin: 2mm 0;
@@ -109,14 +136,11 @@
             font-weight: 700;
         }
         h2.kayip { color: #c62828; }
-        .ders-sayfa {
+        .sayfa {
             break-before: page;
             page-break-before: always;
         }
-        .ders-baslik {
-            margin: 0 0 4mm;
-            text-align: center;
-        }
+        .cizgi.ara { margin: 6mm 0 4mm; }
         table.dokum {
             width: 100%;
             border-collapse: collapse;
@@ -138,7 +162,6 @@
         }
         table.dokum td.n, table.dokum th.n { text-align: right; }
         .zayif { color: #a15c08; font-weight: 700; }
-        .denemeler { margin: 0 0 3mm; color: #5c6b80; font-size: 9px; text-align: center; }
         .bos { color: #5c6b80; text-align: center; }
     </style>
 </head>
@@ -157,11 +180,6 @@
         <span>ortalama net</span>
     </div>
     <div class="cizgi"></div>
-    <p class="denemeler">
-        {% for deneme in rapor.denemeler %}
-            {{ deneme.ad }} ({{ deneme.tarih|date:"d.m.Y" }}){% if not forloop.last %} · {% endif %}
-        {% endfor %}
-    </p>
 
     {% if rapor.dersler %}
     <table class="kartlar">
@@ -173,7 +191,12 @@
                     <td class="sinif {{ ders.durum }}">sınıf {{ ders.sinif_net }}</td>
                 </tr></table>
                 <div class="kart-net">{{ ders.net }}</div>
-                <div class="kart-alt">D {{ ders.dogru }} · Y {{ ders.yanlis }} · B {{ ders.bos }}{% if ders.dogru_yuzde != None %} · %{{ ders.dogru_yuzde }} doğru{% endif %}</div>
+                <table class="dyb"><tr>
+                    <td><b>{{ ders.dogru }}</b><span>Doğru</span></td>
+                    <td><b>{{ ders.yanlis }}</b><span>Yanlış</span></td>
+                    <td><b>{{ ders.bos }}</b><span>Boş</span></td>
+                </tr></table>
+                {% if ders.dogru_yuzde != None %}<div class="kart-yuzde">%{{ ders.dogru_yuzde }} doğru</div>{% endif %}
             </td>
         {% if forloop.counter|divisibleby:2 or forloop.last %}</tr>{% endif %}
         {% endfor %}
@@ -212,13 +235,26 @@
     {% endif %}
 
     {% if rapor.konular %}
+    <section class="sayfa sayfa-denemeler">
+        <h2>Kazanım alınan denemeler</h2>
+        <div class="cizgi"></div>
+        <table class="dokum">
+            <tbody>
+                {% for deneme in rapor.denemeler %}
+                {% if deneme.soru_karnesi %}
+                <tr>
+                    <td><strong>{{ deneme.ad }}</strong></td>
+                    <td class="n">{{ deneme.tarih|date:"d.m.Y" }}</td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    <section class="sayfa sayfa-kazanim">
     {% for grup in rapor.konular %}
-    <section class="ders-sayfa">
-    <div class="ders-baslik">
-        <div class="cizgi"></div>
-        <h2>{{ grup.ders }}</h2>
-        <div class="cizgi"></div>
-    </div>
+    {% if not forloop.first %}<div class="cizgi ara"></div>{% endif %}
+    <h2>{{ grup.ders }}</h2>
     <table class="dokum">
         <thead>
             <tr>
@@ -245,10 +281,12 @@
             {% endfor %}
         </tbody>
     </table>
-    </section>
     {% endfor %}
+    </section>
     {% else %}
-    <p class="bos">Seçilen denemelerde soru karnesi yok. Konu dökümü oluşmadı.</p>
+    <section class="sayfa sayfa-denemeler">
+        <p class="bos">Seçilen denemelerde soru karnesi yok. Konu dökümü oluşmadı.</p>
+    </section>
     {% endif %}
 </body>
 </html>
