@@ -364,6 +364,7 @@ urlpatterns = [
     ),
 
     path("denemeler/", deneme_views.deneme_listesi, name="deneme_listesi"),
+    path("denemeler/cisa/", cisa_views.cisa_denemeler, name="cisa_denemeler"),
     path("denemeler/<int:pk>/", deneme_views.deneme_detay, name="deneme_detay"),
     path("denemeler/<int:pk>/sil/", deneme_views.deneme_sil, name="deneme_sil"),
     path("denemeler/<int:pk>/excel/", deneme_views.deneme_excel_indir, name="deneme_excel_indir"),

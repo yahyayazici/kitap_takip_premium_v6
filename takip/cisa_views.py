@@ -11,6 +11,7 @@ from django.utils.timezone import now
 from django.views.decorators.http import require_POST
 
 from takip.cisa_service import cisa_deneme_listesi, cisa_rapor
+from takip.deneme_models import DenemeSinavi
 from takip.pdf_utils import (
     html_to_pdf,
     make_pdf_response,
@@ -32,6 +33,36 @@ def _pdf_adi(ad_soyad: str) -> str:
     ad = re.sub(r'[\\/:*?"<>|\r\n]+', " ", (ad_soyad or "").strip())
     ad = re.sub(r"\s+", " ", ad).strip() or "Talebe"
     return f"{ad} CISA.pdf"
+
+
+@login_required
+@require_permission("deneme", "export_pdf")
+def cisa_denemeler(request):
+    """Denemeler sekmesinden giriş. Önce talebe, sonra hangi denemeler."""
+    talebeler = (
+        yetkili_talebeler(request.user, aktif_only=True)
+        .filter(deneme_sonuclari__deneme__durum=DenemeSinavi.Durum.AKTIF)
+        .distinct()
+        .order_by("ad_soyad")
+    )
+    talebe = None
+    denemeler = []
+    ham = request.GET.get("talebe", "")
+    if str(ham).isdigit():
+        talebe = (
+            talebeler.filter(id=int(ham)).select_related("sinif_sube").first()
+        )
+        if talebe is not None:
+            denemeler = cisa_deneme_listesi(talebe)
+    return render(
+        request,
+        "cisa_denemeler.html",
+        {
+            "talebeler": talebeler,
+            "talebe": talebe,
+            "denemeler": denemeler,
+        },
+    )
 
 
 @login_required

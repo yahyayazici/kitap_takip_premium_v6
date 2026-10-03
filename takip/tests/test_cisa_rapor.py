@@ -222,6 +222,20 @@ class CisaRaporTests(TestCase):
         self.assertEqual(kendi.status_code, 200)
         yabanci = self.client.get(reverse("cisa_sec", args=[self.baska.id]))
         self.assertEqual(yabanci.status_code, 404)
+
+    def test_denemeler_sirala_yaninda_cisa(self):
+        self.client.force_login(self.admin)
+        sayfa = self.client.get(reverse("deneme_listesi"))
+        self.assertEqual(sayfa.status_code, 200)
+        html = sayfa.content.decode()
+        self.assertLess(html.index("ÇİSA"), html.index("Sırala"))
+        self.assertIn(reverse("cisa_denemeler"), html)
+        giris = self.client.get(reverse("cisa_denemeler"))
+        self.assertContains(giris, "Hangi denemelerin raporunu alalım?")
+        self.assertContains(giris, "Ali Çisa")
+        secili = self.client.get(reverse("cisa_denemeler"), {"talebe": self.ali.id})
+        self.assertContains(secili, "Ocak Deneme")
+        self.assertNotContains(secili, "Silinen Deneme")
         detay = self.client.get(
             reverse(
                 "ogretmen_deneme_kontrol_ogrenci_detay",
