@@ -332,6 +332,9 @@ class DenemeKontrolTumuTests(TestCase):
         self.assertTrue("80.00" in html or "80,00" in html)
         self.assertIn(">5-A<", html)
         self.assertIn(">5-B<", html)
+        self.assertIn('class="dk-filtre-satir"', html)
+        self.assertLess(html.find("dk-filtre-satir"), html.find(">Yükseliş<"))
+        self.assertLess(html.find(">Yükseliş<"), html.find("dk-grup-baslik"))
 
         kazanim = self.client.get(reverse("ogretmen_deneme_kontrol_merkezi") + "?ekran=kazanim")
         khtml = kazanim.content.decode()

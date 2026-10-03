@@ -178,6 +178,16 @@ body.v3-body .dk-page .dk-ekran-switch .dk-switch-btn.is-active::after {
     box-shadow: 0 0 8px color-mix(in srgb, var(--pv4-gold, #c39a3d) 55%, transparent);
 }
 
+body.v3-body .dk-page .dk-filtre-satir {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: var(--cs-space-5, 20px);
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+}
+
 body.v3-body .dk-page .dk-grup {
     display: flex;
     flex-direction: column;
@@ -231,12 +241,8 @@ body.v3-body .dk-page .pv4-date-card,
 body.v3-body .dk-page .dk-stat,
 body.v3-body .dk-page .dg-metrik {
     position: relative;
-    background-color: color-mix(in srgb, var(--cs-warning-bg) 70%, var(--cs-surface, #fff)) !important;
-    background-image: linear-gradient(
-        165deg,
-        color-mix(in srgb, var(--cs-warning-bg) 82%, var(--cs-surface, #fff)) 0%,
-        color-mix(in srgb, var(--cs-success-bg) 48%, var(--cs-surface, #fff)) 100%
-    ) !important;
+    background-color: var(--cs-surface, #fff) !important;
+    background-image: none !important;
     border: 1px solid transparent !important;
     border-radius: var(--cs-radius-lg, 18px) !important;
     box-shadow: var(--cs-shadow-card) !important;
@@ -255,10 +261,10 @@ body.v3-body .dk-page .dg-metrik::after {
     border-radius: inherit;
     padding: 1px;
     background: linear-gradient(
-        145deg,
-        color-mix(in srgb, var(--pv4-gold, #c39a3d) 46%, var(--cs-border)) 0%,
-        color-mix(in srgb, var(--cs-success) 24%, var(--cs-border)) 46%,
-        color-mix(in srgb, var(--cs-warning) 34%, var(--cs-border)) 100%
+        135deg,
+        var(--cs-primary) 0%,
+        var(--cs-accent) 48%,
+        var(--pv4-gold, #c39a3d) 100%
     );
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
@@ -272,38 +278,6 @@ body.v3-body .dk-page .dk-card,
 body.v3-body.v3-body .dk-page .dg-wrap.profile-card {
     padding: 18px 20px;
     margin: 0;
-}
-
-body.v3-body .dk-page .dk-summary-card::before,
-body.v3-body .dk-page .dk-card::before,
-body.v3-body.v3-body .dk-page .dg-wrap.profile-card::before {
-    content: "";
-    position: absolute;
-    z-index: 1;
-    left: 22px;
-    right: 22px;
-    top: 0;
-    height: 2px;
-    border-radius: var(--cs-radius-pill, 999px);
-    background: linear-gradient(
-        90deg,
-        transparent 0%,
-        var(--pv4-gold, #c39a3d) 18%,
-        var(--cs-success) 50%,
-        var(--cs-warning) 82%,
-        transparent 100%
-    );
-    pointer-events: none;
-}
-
-body.v3-body .dk-page .dk-grup > .dk-card:nth-of-type(odd) {
-    background-color: color-mix(in srgb, var(--cs-success-bg) 72%, var(--cs-surface, #fff)) !important;
-    background-image: none !important;
-}
-
-body.v3-body .dk-page .dk-grup > .dk-card:nth-of-type(even) {
-    background-color: color-mix(in srgb, var(--cs-warning-bg) 84%, var(--cs-surface, #fff)) !important;
-    background-image: none !important;
 }
 
 body.v3-body .dk-page .dk-summary-title,
@@ -399,18 +373,8 @@ body.v3-body .dk-page .dk-stat,
 body.v3-body .dk-page .dg-metrik {
     border-radius: var(--cs-radius-md, 14px) !important;
     padding: 12px 14px;
-    background-color: color-mix(in srgb, var(--cs-surface, #fff) 48%, var(--cs-warning-bg)) !important;
+    background-color: var(--cs-surface, #fff) !important;
     background-image: none !important;
-}
-
-body.v3-body .dk-page .dk-stat:has(strong.pos),
-body.v3-body .dk-page .dg-metrik:has(strong.pos) {
-    background-color: color-mix(in srgb, var(--cs-success-bg) 78%, var(--cs-surface, #fff)) !important;
-}
-
-body.v3-body .dk-page .dk-stat:has(strong.neg),
-body.v3-body .dk-page .dg-metrik:has(strong.neg) {
-    background-color: color-mix(in srgb, var(--cs-danger-bg) 80%, var(--cs-surface, #fff)) !important;
 }
 
 body.v3-body .dk-page .dk-stat span {
@@ -892,9 +856,14 @@ body.v3-body .dk-page .dg-metrik strong {
 }
 
 @media (max-width: 640px) {
-    body.v3-body .dk-panel-switch,
-    body.v3-body .dk-page .dk-sinif-switch {
+    body.v3-body .dk-panel-switch {
         flex-wrap: wrap;
+    }
+
+    body.v3-body .dk-page .dk-filtre-satir .dk-sinif-switch,
+    body.v3-body .dk-page .dk-filtre-satir .dk-ekran-switch {
+        flex-wrap: nowrap;
+        flex: 0 0 auto;
     }
 
     body.v3-body.v3-body .dk-panel-switch .dk-switch-btn,
