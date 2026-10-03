@@ -34,9 +34,15 @@
             font-size: 11px;
         }
         .logo { display: block; width: 78mm; margin: 0 auto 4mm; }
-        .kim {
+        table.kapak-satir {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+        }
+        td.kim {
             text-align: left;
-            margin: 0 0 3mm;
+            vertical-align: bottom;
+            padding: 0 4mm 0 0;
         }
         .kim h1 {
             margin: 0;
@@ -44,9 +50,12 @@
             font-weight: 700;
         }
         .kim p { margin: 1mm 0 0; color: #5c6b80; font-size: 10px; }
-        .net {
-            text-align: center;
-            margin: 2mm 0 1mm;
+        td.net {
+            text-align: right;
+            vertical-align: bottom;
+            white-space: nowrap;
+            width: 1%;
+            padding: 0 0 0 4mm;
         }
         .net b {
             display: block;
@@ -67,43 +76,81 @@
         }
         .cizgi {
             height: 3px;
-            margin: 2mm 0 4mm;
+            margin: 1.2mm 0 4mm;
             background: linear-gradient(90deg, #083888, #18A8D8, #B0A030);
         }
         table.kartlar {
             width: 100%;
             border-collapse: separate;
             border-spacing: 3mm 3mm;
-            margin: 0 -1.5mm 2mm;
+            margin: 1mm -1.5mm 2mm;
         }
         td.kart {
             width: 50%;
-            background: #f7f8fb;
+            background: #fff;
             border: 1px solid #e4e8ef;
-            border-top: 3px solid #083888;
-            padding: 3mm 3mm 2.5mm;
+            border-radius: 3.2mm;
+            padding: 3.2mm 3.2mm 2.8mm;
             vertical-align: top;
         }
-        td.t1 { border-top-color: #18A8D8; }
-        td.t2 { border-top-color: #B0A030; }
+        table.kart-bas, table.kart-orta {
+            width: 100%;
+            border-collapse: collapse;
+        }
         .ders {
-            font-weight: 600;
-            font-size: 11px;
-            text-align: center;
+            font-weight: 700;
+            font-size: 12px;
+            text-align: left;
+            color: #083888;
         }
-        .sinif { font-size: 9px; color: #5c6b80; text-align: right; }
-        .sinif.iyi { color: #0f7a4a; }
-        .sinif.geri { color: #a15c08; }
+        .rozet { text-align: right; vertical-align: middle; }
+        .rozet span {
+            display: inline-block;
+            background: #e8f0ff;
+            color: #15427f;
+            font-size: 8px;
+            font-weight: 700;
+            padding: 0.7mm 2mm;
+            border-radius: 3mm;
+        }
         .kart-net {
-            font-family: "LemonMilk", "Poppins", sans-serif;
-            font-size: 16px;
-            line-height: 1.1;
-            margin-top: 1mm;
-            text-align: center;
+            margin-top: 1.6mm;
+            text-align: left;
+            line-height: 1;
         }
+        .kart-net b {
+            font-size: 22px;
+            font-weight: 700;
+            color: #083888;
+            vertical-align: middle;
+        }
+        .kart-net span {
+            margin-left: 1.2mm;
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #5c6b80;
+            vertical-align: middle;
+        }
+        .sinif {
+            padding-top: 1.4mm;
+            font-size: 8px;
+            color: #5c6b80;
+            text-align: left;
+        }
+        .fark { padding-top: 1.2mm; text-align: right; }
+        .fark span {
+            display: inline-block;
+            font-size: 8px;
+            font-weight: 700;
+            padding: 0.6mm 1.8mm;
+            border-radius: 3mm;
+        }
+        .fark.geri span { background: #fff0df; color: #a15c08; }
+        .fark.iyi span { background: #e9f7f1; color: #0f7a4a; }
         table.dyb {
             width: 100%;
-            margin-top: 2mm;
+            margin-top: 2.2mm;
             border-collapse: collapse;
         }
         table.dyb td {
@@ -124,16 +171,18 @@
             margin-top: 0.4mm;
             font-size: 8px;
             font-weight: 600;
-            letter-spacing: 0.3px;
-            text-transform: uppercase;
             color: #5c6b80;
         }
-        .kart-yuzde {
-            margin-top: 1.5mm;
-            text-align: center;
-            color: #5c6b80;
-            font-size: 9px;
-            font-weight: 600;
+        .cubuk {
+            height: 2.2mm;
+            margin-top: 2.4mm;
+            background: #e8f0ff;
+            border-radius: 2mm;
+        }
+        .dolu {
+            height: 2.2mm;
+            background: #2f6ff3;
+            border-radius: 2mm;
         }
         h2 {
             margin: 2mm 0;
@@ -173,34 +222,44 @@
 </head>
 <body>
     <img class="logo" src="{% static 'images/cisa-logo.png' %}" alt="ÇİSA">
-    <div class="kim">
-        <h1>{{ rapor.ad_soyad }}</h1>
-        <p>
-            {{ rapor.sinif }}{% if rapor.no %} · No {{ rapor.no }}{% endif %}
-            · {{ rapor.denemeler|length }} deneme
-            · {{ rapor.baslangic|date:"d.m.Y" }} – {{ rapor.bitis|date:"d.m.Y" }}
-        </p>
-    </div>
-    <div class="net">
-        <b>{{ rapor.ortalama_net }}</b>
-        <span>ortalama net</span>
-    </div>
+    <table class="kapak-satir">
+        <tr>
+            <td class="kim">
+                <h1>{{ rapor.ad_soyad }}</h1>
+                <p>
+                    {{ rapor.sinif }}{% if rapor.no %} · No {{ rapor.no }}{% endif %}
+                    · {{ rapor.denemeler|length }} deneme
+                    · {{ rapor.baslangic|date:"d.m.Y" }} – {{ rapor.bitis|date:"d.m.Y" }}
+                </p>
+            </td>
+            <td class="net">
+                <b>{{ rapor.ortalama_net }}</b>
+                <span>ortalama net</span>
+            </td>
+        </tr>
+    </table>
     <div class="cizgi"></div>
 
     {% if rapor.dersler %}
     <table class="kartlar">
         {% for ders in rapor.dersler %}
         {% if forloop.counter0|divisibleby:2 %}<tr>{% endif %}
-            <td class="kart {% cycle 't0' 't1' 't2' %}">
-                <div class="sinif {{ ders.durum }}">sınıf {{ ders.sinif_net }}</div>
-                <div class="ders">{{ ders.ad }}</div>
-                <div class="kart-net">{{ ders.net }}</div>
+            <td class="kart">
+                <table class="kart-bas"><tr>
+                    <td class="ders">{{ ders.ad }}</td>
+                    <td class="rozet">{% if ders.dogru_yuzde != None %}<span>%{{ ders.dogru_yuzde }} doğruluk</span>{% endif %}</td>
+                </tr></table>
+                <div class="kart-net"><b>{{ ders.net }}</b><span>NET</span></div>
+                <table class="kart-orta"><tr>
+                    <td class="sinif">Sınıf ort. {{ ders.sinif_net }}</td>
+                    <td class="fark {{ ders.durum }}">{% if ders.fark %}<span>{{ ders.fark }} net {{ ders.fark_yazi }}</span>{% endif %}</td>
+                </tr></table>
                 <table class="dyb"><tr>
                     <td class="dogru"><b>{{ ders.dogru }}</b><span>Doğru</span></td>
                     <td class="yanlis"><b>{{ ders.yanlis }}</b><span>Yanlış</span></td>
                     <td><b>{{ ders.bos }}</b><span>Boş</span></td>
                 </tr></table>
-                {% if ders.dogru_yuzde != None %}<div class="kart-yuzde">%{{ ders.dogru_yuzde }} doğru</div>{% endif %}
+                <div class="cubuk"><div class="dolu" style="width: {{ ders.dogru_yuzde|default:0 }}%;"></div></div>
             </td>
         {% if forloop.counter|divisibleby:2 or forloop.last %}</tr>{% endif %}
         {% endfor %}
