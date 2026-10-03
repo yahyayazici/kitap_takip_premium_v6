@@ -63,12 +63,119 @@ body.v3-body.v3-body .dk-switch-btn.is-active {
     box-shadow: var(--cs-shadow-sm);
 }
 
+body.v3-body .dk-panel-switch,
+body.v3-body .dk-page .dk-sinif-switch,
 body.v3-body .dk-page .dk-ekran-switch {
-    max-width: 420px;
+    width: max-content;
+    max-width: 100%;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
 }
 
-body.v3-body.v3-body .dk-page .dk-switch-btn.is-active {
-    box-shadow: inset 0 -2px 0 var(--pv4-gold, #c39a3d), var(--cs-shadow-sm);
+body.v3-body .dk-panel-switch {
+    gap: var(--cs-space-1, 4px);
+}
+
+body.v3-body.v3-body .dk-panel-switch .dk-switch-btn,
+body.v3-body.v3-body .dk-page .dk-sinif-switch .dk-switch-btn,
+body.v3-body.v3-body .dk-page .dk-ekran-switch .dk-switch-btn {
+    flex: 0 0 auto;
+    position: relative;
+    border-radius: 0;
+    background: transparent;
+}
+
+body.v3-body.v3-body .dk-panel-switch .dk-switch-btn.is-active,
+body.v3-body.v3-body .dk-page .dk-sinif-switch .dk-switch-btn.is-active,
+body.v3-body.v3-body .dk-page .dk-ekran-switch .dk-switch-btn.is-active {
+    background: transparent;
+    box-shadow: none;
+    color: var(--cs-text-primary, #0f203c);
+}
+
+body.v3-body .dk-panel-switch .dk-switch-btn::after,
+body.v3-body .dk-page .dk-sinif-switch .dk-switch-btn::after,
+body.v3-body .dk-page .dk-ekran-switch .dk-switch-btn::after {
+    content: "";
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: 7px;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        var(--cs-primary) 18%,
+        var(--cs-accent) 50%,
+        var(--pv4-gold, #c39a3d) 82%,
+        transparent 100%
+    );
+    opacity: 0.28;
+}
+
+body.v3-body .dk-panel-switch .dk-switch-btn.is-active::after,
+body.v3-body .dk-page .dk-sinif-switch .dk-switch-btn.is-active::after {
+    opacity: 1;
+    box-shadow: 0 0 10px color-mix(in srgb, var(--cs-accent) 65%, transparent);
+}
+
+body.v3-body .dk-page .dk-sinif-switch {
+    gap: var(--cs-space-1, 4px);
+    padding: 0 6px;
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-md, 14px);
+    background: var(--cs-surface, #fff);
+}
+
+body.v3-body.v3-body .dk-page .dk-sinif-switch .dk-switch-btn {
+    min-height: var(--cs-touch-min, 44px);
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+
+body.v3-body .dk-page .dk-sinif-switch .dk-switch-btn::after {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    height: 1px;
+}
+
+body.v3-body .dk-page .dk-sinif-switch .dk-switch-btn.is-active::after {
+    height: 2px;
+}
+
+body.v3-body .dk-page .dk-ekran-switch {
+    gap: var(--cs-space-5, 20px);
+}
+
+body.v3-body.v3-body .dk-page .dk-ekran-switch .dk-switch-btn {
+    min-height: var(--cs-touch-min, 44px);
+    padding: 0 2px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+}
+
+body.v3-body.v3-body .dk-page .dk-ekran-switch .dk-switch-btn.is-active {
+    font-weight: 600;
+}
+
+body.v3-body .dk-page .dk-ekran-switch .dk-switch-btn::after {
+    left: 0;
+    right: 0;
+    bottom: 10px;
+    height: 1px;
+    opacity: 0;
+}
+
+body.v3-body .dk-page .dk-ekran-switch .dk-switch-btn.is-active::after {
+    opacity: 1;
+    box-shadow: 0 0 8px color-mix(in srgb, var(--pv4-gold, #c39a3d) 55%, transparent);
 }
 
 body.v3-body .dk-page .dk-grup {
@@ -760,12 +867,14 @@ body.v3-body .dk-page .dg-metrik strong {
 }
 
 @media (max-width: 640px) {
-    body.v3-body .dk-panel-switch {
+    body.v3-body .dk-panel-switch,
+    body.v3-body .dk-page .dk-sinif-switch {
         flex-wrap: wrap;
     }
 
-    body.v3-body.v3-body .dk-panel-switch .dk-switch-btn {
-        flex: 1 1 140px;
+    body.v3-body.v3-body .dk-panel-switch .dk-switch-btn,
+    body.v3-body.v3-body .dk-page .dk-sinif-switch .dk-switch-btn {
+        flex: 0 0 auto;
     }
 
     body.v3-body.v3-body .dk-page .dk-back .ghost-btn {

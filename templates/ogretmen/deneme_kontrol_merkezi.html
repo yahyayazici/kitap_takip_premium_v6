@@ -2,13 +2,13 @@
 {% load l10n static deneme_panel %}
 {% block title %}Deneme Kontrol Merkezi{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk18">
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk19">
 {% endblock %}
 
 {% block content %}
 <div class="dash-home ogretmen-dash dk-page">
-{% include "ogretmen/hero.html" with title="Deneme" eyebrow="Etüt" meta="Kontrol, etüt takibi ve deneme listesi — tek panel" show_date=True %}
 {% deneme_panel_switch "kontrol" %}
+{% include "ogretmen/hero.html" with title="Deneme" eyebrow="Etüt" meta="Kontrol, etüt takibi ve deneme listesi — tek panel" show_date=True %}
 
 {% if not siniflar %}
 <div class="dk-card">
@@ -17,7 +17,7 @@
 {% else %}
 
 {% if siniflar|length > 1 %}
-<nav class="dk-switch" aria-label="Sınıf">
+<nav class="dk-switch dk-sinif-switch" aria-label="Sınıf">
     <a href="{% url 'ogretmen_deneme_kontrol_merkezi' %}{% if ekran == 'kazanim' %}?ekran=kazanim{% endif %}" class="dk-switch-btn{% if not gosterilen_id %} is-active{% endif %}">Tümü</a>
     {% for s in siniflar %}
     <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' s.id %}{% if ekran == 'kazanim' %}?ekran=kazanim{% endif %}" class="dk-switch-btn{% if gosterilen_id == s.id %} is-active{% endif %}">{{ s.etiket }}</a>
