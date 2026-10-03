@@ -462,10 +462,11 @@ class OncelikAnalizTests(TestCase):
         }, calisma, sinif_ort)
         self.assertTrue(kritik)
         birlesik = " ".join(metinler)
-        self.assertIn("Son denemede puan -20,00, net -8,00.", birlesik)
-        self.assertIn("Matematik -8,00 net, yanlış 2→10", birlesik)
-        self.assertIn("düşüş bu talebeye ait", birlesik)
-        self.assertIn("149 soru", birlesik)
+        self.assertIn("Son denemede puanı belirgin düştü.", birlesik)
+        self.assertIn("Matematik dersinde neti düştü, yanlışları arttı.", birlesik)
+        self.assertIn("Sınıf yerinde dururken bu talebe düştü.", birlesik)
+        self.assertNotIn("-20,00", birlesik)
+        self.assertNotIn("149", birlesik)
         self.assertNotIn("net artmıyor", birlesik)
 
     def test_sinif_da_dustuyse_deneme_geneli_der(self):
@@ -479,7 +480,8 @@ class OncelikAnalizTests(TestCase):
             [],
             {1: (410.0, 10), 2: (392.0, 10)},
         )
-        self.assertIn("Sınıf ortalaması da -18,0 puan geriledi.", metinler)
+        self.assertIn("Sınıfın geneli de düştü.", metinler)
+        self.assertIn("Son denemede puanı belirgin düştü.", metinler)
 
     def test_sayfa_kaybin_dersini_ve_kazanimi_yazar(self):
         user = User.objects.create_user("etut-oncelik", password="x")
@@ -527,8 +529,8 @@ class OncelikAnalizTests(TestCase):
         sayfa = self.client.get(reverse("ogretmen_deneme_kontrol_merkezi_sinif", args=[sinif.id]))
         html = sayfa.content.decode()
         self.assertIn("Ali Dusen", html)
-        self.assertIn("Asıl kayıp", html)
-        self.assertIn("yanlış 2→10", html)
-        self.assertIn("Zayıf kazanım: Üslü İfadeler %22.", html)
-        self.assertNotIn("Zayıf kazanım: Sözcükte Anlam", html)
-        self.assertIn("düşüş bu talebeye ait", html)
+        self.assertIn("Matematik dersinde neti düştü, yanlışları arttı.", html)
+        self.assertIn("Zayıf konu: Üslü İfadeler.", html)
+        self.assertNotIn("Sözcükte Anlam", html)
+        self.assertIn("Sınıf yerinde dururken bu talebe düştü.", html)
+        self.assertNotIn("Asıl kayıp", html)
