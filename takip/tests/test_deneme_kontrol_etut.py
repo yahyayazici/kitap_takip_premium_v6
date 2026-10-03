@@ -222,6 +222,8 @@ class DenemeKontrolKazanimTests(TestCase):
         self.assertEqual(sayfa.status_code, 200)
         html = sayfa.content.decode()
         self.assertIn("Yükseliş sıralaması", html)
+        self.assertIn("Sınıfın gelişimi", html)
+        self.assertIn("Yükselişe göre", html)
         self.assertLess(html.index("Ali Yukselen"), html.index("Ayse Azartan"))
         self.assertLess(html.index("Ayse Azartan"), html.index("Can Tekdeneme"))
         self.assertNotIn("Sözcükte Anlam", html)
@@ -236,6 +238,7 @@ class DenemeKontrolKazanimTests(TestCase):
         self.assertIn("Kazanımlar", khtml)
         self.assertNotIn("Yükseliş sıralaması", khtml)
         self.assertNotIn("Nokta atışı", khtml)
+        self.assertNotIn("Sınıfın gelişimi", khtml)
         self.assertLess(khtml.index("Sözcükte Anlam"), khtml.index("Tam Sayılar"))
         self.assertLess(khtml.index("Tam Sayılar"), khtml.index("Uzay"))
         self.assertLess(khtml.index("Sözcükte Anlam"), khtml.index("Paragraf"))
@@ -243,6 +246,9 @@ class DenemeKontrolKazanimTests(TestCase):
         self.assertNotIn("Kuvvet", khtml)
         self.assertNotIn("Gizli Konu", khtml)
         self.assertIn("%70", khtml)
+        self.assertIn("Kazanım analizi", khtml)
+        self.assertIn("Ortalama başarı", khtml)
+        self.assertIn("puan", khtml)
 
     def test_sinif_ortalamasi_deneme_deneme(self):
         ozet = {o["konu_ad"]: o for o in kazanim_ortalamalari([self.ali.id, self.ayse.id, self.can.id])}
@@ -326,7 +332,7 @@ class DenemeKontrolTumuTests(TestCase):
         html = tumu.content.decode()
         self.assertEqual(html.count('class="dk-grup-baslik"'), 1)
         self.assertIn(">5. Sınıf<", html)
-        self.assertIn("3 talebe", html)
+        self.assertIn("3 öğrenci", html)
         self.assertIn("Ali Besa", html)
         self.assertIn("Ayse Besbe", html)
         self.assertTrue("80.00" in html or "80,00" in html)
@@ -408,8 +414,8 @@ class DenemeKontrolTumuTests(TestCase):
         self.client.force_login(user)
         tumu = self.client.get(reverse("ogretmen_deneme_kontrol_merkezi"))
         html = tumu.content.decode()
-        self.assertIn("Son Deneme: 1. Deneme", html)
-        self.assertNotIn("Son Deneme: 4. Deneme", html)
+        self.assertIn("· 1. Deneme", html)
+        self.assertNotIn("4. Deneme", html)
         self.assertRegex(html, r'dk-metrik-sayi">\s*412[,.]10')
         self.assertNotRegex(html, r'dk-metrik-sayi">\s*416')
         self.assertNotIn("Eski Orta", html)
@@ -418,7 +424,8 @@ class DenemeKontrolTumuTests(TestCase):
             reverse("ogretmen_deneme_kontrol_merkezi_sinif", args=[sinif_a.id])
         )
         a_html = sadece_a.content.decode()
-        self.assertIn("Son Deneme: 2. Deneme", a_html)
+        self.assertIn("· 2. Deneme", a_html)
+        self.assertNotIn("4. Deneme", a_html)
         self.assertRegex(a_html, r'dk-metrik-sayi">\s*416')
 
 

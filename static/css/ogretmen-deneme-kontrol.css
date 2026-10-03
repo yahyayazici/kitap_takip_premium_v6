@@ -928,7 +928,8 @@ body.v3-body .dk-page .dk-pill {
 }
 
 body.v3-body .dk-page .dk-pill.is-active {
-    background: var(--cs-primary);
+    background-color: var(--cs-primary) !important;
+    background-image: none !important;
     border-color: var(--cs-primary);
     color: var(--cs-text-inverse, #f0f4fc);
 }
@@ -1024,9 +1025,9 @@ body.v3-body .dk-page .dk-gelisim span {
 
 body.v3-body .dk-page .dk-split {
     display: grid;
-    grid-template-columns: minmax(0, 1.45fr) minmax(260px, 0.8fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--cs-space-4, 16px);
-    align-items: start;
+    align-items: stretch;
 }
 
 body.v3-body .dk-page .dk-panel-head {
@@ -1127,6 +1128,10 @@ body.v3-body .dk-page .dk-board .dk-card::after {
     display: none;
 }
 
+body.v3-body .dk-page details.dk-fold:not([open]) {
+    display: none;
+}
+
 @media (max-width: 1100px) {
     body.v3-body .dk-page .dk-ozet-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1145,7 +1150,556 @@ body.v3-body .dk-page .dk-board .dk-card::after {
 }
 
 @media (max-width: 640px) {
-    body.v3-body .dk-page .dk-ozet-grid {
+    body.v3-body .dk-page .dk-ozet-grid,
+    body.v3-body .dk-page .dk-ozet-uc {
         grid-template-columns: 1fr;
+    }
+
+    body.v3-body .dk-page .dk-kazanim-ara,
+    body.v3-body .dk-page .dk-kazanim-ders,
+    body.v3-body .dk-page .dk-yukselis-ara,
+    body.v3-body .dk-page .dk-yukselis-sirala {
+        font-size: 16px;
+    }
+
+    body.v3-body .dk-page .dk-nokta-kutular {
+        grid-template-columns: 1fr;
+    }
+}
+
+body.v3-body .dk-page .dk-ozet-uc {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    background: var(--cs-surface, #fff);
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-lg, 18px);
+    box-shadow: var(--cs-shadow-sm);
+    overflow: hidden;
+}
+
+body.v3-body .dk-page .dk-ozet-uc .dk-metrik {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    border-right: 1px solid var(--cs-border);
+}
+
+body.v3-body .dk-page .dk-ozet-uc .dk-metrik:last-child {
+    border-right: 0;
+}
+
+body.v3-body .dk-page .dk-ozet-uc .dk-metrik-sayi small {
+    font-size: 0.55em;
+    font-weight: 600;
+    color: var(--cs-text-muted, #8491a3);
+}
+
+body.v3-body .dk-page .dk-kirinti {
+    margin: 0 0 4px;
+    font-size: 13px;
+    color: var(--cs-text-muted, #8491a3);
+}
+
+body.v3-body .dk-page .dk-kazanim-araclar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--cs-space-2, 8px);
+    margin: 12px 0;
+}
+
+body.v3-body .dk-page .dk-kazanim-ara,
+body.v3-body .dk-page .dk-kazanim-ders,
+body.v3-body .dk-page .dk-yukselis-ara,
+body.v3-body .dk-page .dk-yukselis-sirala {
+    box-sizing: border-box;
+    min-height: var(--cs-input-h, 44px);
+    padding: 0 12px;
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-md, 14px);
+    background-color: var(--cs-surface, #fff);
+    color: var(--cs-text-primary, #0f203c);
+    font-family: var(--cs-font), Poppins, "Segoe UI", sans-serif;
+    font-size: 14px;
+}
+
+body.v3-body .dk-page .dk-kazanim-ara,
+body.v3-body .dk-page .dk-yukselis-ara {
+    flex: 1 1 220px;
+    max-width: 280px;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%238491a3' stroke-width='1.6' stroke-linecap='round'%3E%3Ccircle cx='7' cy='7' r='4.5'/%3E%3Cpath d='M10.5 10.5 14 14'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 12px center;
+    padding-left: 36px;
+}
+
+body.v3-body .dk-page .dk-kazanim-ara::-webkit-search-decoration,
+body.v3-body .dk-page .dk-kazanim-ara::-webkit-search-cancel-button,
+body.v3-body .dk-page .dk-kazanim-ara::-webkit-search-results-button,
+body.v3-body .dk-page .dk-yukselis-ara::-webkit-search-decoration,
+body.v3-body .dk-page .dk-yukselis-ara::-webkit-search-cancel-button,
+body.v3-body .dk-page .dk-yukselis-ara::-webkit-search-results-button {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+body.v3-body .dk-page .dk-kazanim-ara:focus,
+body.v3-body .dk-page .dk-kazanim-ders:focus,
+body.v3-body .dk-page .dk-yukselis-ara:focus,
+body.v3-body .dk-page .dk-yukselis-sirala:focus {
+    outline: none;
+    border-color: var(--cs-accent) !important;
+    box-shadow: var(--cs-shadow-focus);
+}
+
+body.v3-body .dk-page .dk-kazanim-ders,
+body.v3-body .dk-page .dk-yukselis-sirala {
+    flex: 0 0 auto;
+}
+
+body.v3-body.v3-body .dk-page table.dk-kazanim-performans th,
+body.v3-body.v3-body .dk-page table.dk-kazanim-performans td {
+    width: auto !important;
+    text-align: left !important;
+    white-space: normal;
+    background-image: none;
+    border-bottom: 1px solid var(--cs-border);
+}
+
+body.v3-body.v3-body .dk-page table.dk-kazanim-performans th {
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cs-text-muted, #8491a3);
+}
+
+body.v3-body.v3-body .dk-page table.dk-kazanim-performans th.n,
+body.v3-body.v3-body .dk-page table.dk-kazanim-performans td.n {
+    text-align: right !important;
+    white-space: nowrap;
+}
+
+body.v3-body .dk-page .dk-kazanim-ad {
+    font-weight: 700;
+    color: var(--cs-text-primary, #0f203c);
+}
+
+body.v3-body .dk-page .dk-kazanim-performans .pos {
+    color: var(--cs-success);
+    font-weight: 600;
+}
+
+body.v3-body .dk-page .dk-kazanim-performans .neg {
+    color: var(--cs-danger);
+    font-weight: 600;
+}
+
+body.v3-body .dk-page .dk-panel:has(> .dk-kazanim-performans) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: var(--cs-space-4, 16px);
+    align-items: center;
+}
+
+body.v3-body .dk-page .dk-panel:has(> .dk-kazanim-performans) > .dk-kazanim-performans {
+    display: contents;
+}
+
+body.v3-body .dk-page .dk-panel:has(> .dk-kazanim-performans) > .dk-panel-head {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+body.v3-body .dk-page .dk-panel:has(> .dk-kazanim-performans) .dk-kazanim-araclar {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+    justify-content: flex-end;
+}
+
+body.v3-body .dk-page .dk-panel:has(> .dk-kazanim-performans) .dk-kazanim-wrap,
+body.v3-body .dk-page .dk-panel:has(> .dk-kazanim-performans) .dk-kazanim-sayac,
+body.v3-body .dk-page .dk-panel:has(> .dk-kazanim-performans) > .dk-kazanim-dipnot {
+    grid-column: 1 / -1;
+}
+
+body.v3-body .dk-page .dk-basari {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+body.v3-body .dk-page .dk-cubuk {
+    display: inline-block;
+    width: 72px;
+    height: 6px;
+    border-radius: var(--cs-radius-pill, 999px);
+    background: var(--cs-soft-blue, #e8f0ff);
+    overflow: hidden;
+    vertical-align: middle;
+}
+
+body.v3-body .dk-page .dk-cubuk span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    max-width: 100%;
+    background: var(--cs-accent);
+}
+
+body.v3-body .dk-page .dk-kazanim-sayac {
+    margin: 10px 0 0;
+    font-size: 12px;
+    color: var(--cs-text-muted, #8491a3);
+}
+
+body.v3-body .dk-page .dk-kazanim-dipnot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--cs-border);
+}
+
+body.v3-body .dk-page .dk-kazanim-dipnot p {
+    margin: 0;
+    flex: 1 1 240px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--cs-text-muted, #8491a3);
+}
+
+body.v3-body .dk-page .dk-kazanim-dipnot p:first-child {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+body.v3-body .dk-page .dk-kazanim-dipnot p:first-child::before,
+body.v3-body .dk-page .dk-mini-not::before {
+    content: "i";
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    margin-top: 1px;
+    border: 1.5px solid var(--cs-accent);
+    border-radius: 50%;
+    color: var(--cs-accent);
+    font-size: 11px;
+    font-weight: 700;
+    font-style: italic;
+    line-height: 14px;
+    text-align: center;
+}
+
+body.v3-body .dk-page .dk-gelisim-satir {
+    margin: 14px 0 0;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.45;
+    color: var(--cs-text-primary, #0f203c);
+}
+
+body.v3-body .dk-page .dk-gelisim-satir strong.pos { color: var(--cs-success); }
+body.v3-body .dk-page .dk-gelisim-satir strong.neg { color: var(--cs-danger); }
+
+body.v3-body .dk-page .dk-gelisim-satir > span {
+    margin: 0 4px;
+    color: var(--cs-text-muted, #8491a3);
+    font-weight: 500;
+}
+
+body.v3-body .dk-page .dk-grafik-ozet {
+    text-align: right;
+}
+
+body.v3-body .dk-page .dk-grafik-ozet strong {
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--cs-text-primary, #0f203c);
+}
+
+body.v3-body .dk-page .dk-grafik-ozet strong.pos { color: var(--cs-success); }
+body.v3-body .dk-page .dk-grafik-ozet strong.neg { color: var(--cs-danger); }
+
+body.v3-body .dk-page .dk-grafik-ozet span {
+    font-size: 12px;
+    color: var(--cs-text-muted, #8491a3);
+}
+
+body.v3-body .dk-page .dk-grafik-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-top: 8px;
+}
+
+body.v3-body .dk-page .dk-grafik .izgara {
+    stroke: var(--cs-border);
+    stroke-width: 1;
+}
+
+body.v3-body .dk-page .dk-grafik .cizgi {
+    fill: none;
+    stroke: var(--cs-accent);
+    stroke-width: 2;
+}
+
+body.v3-body .dk-page .dk-grafik .nokta {
+    fill: var(--cs-surface, #fff);
+    stroke: var(--cs-accent);
+    stroke-width: 2;
+}
+
+body.v3-body .dk-page .dk-grafik text {
+    fill: var(--cs-text-muted, #8491a3);
+    font-size: 12px;
+    font-family: var(--cs-font), Poppins, "Segoe UI", sans-serif;
+}
+
+body.v3-body .dk-page .dk-grafik text.eksen {
+    dominant-baseline: middle;
+}
+
+body.v3-body .dk-page .dk-grafik text.deger {
+    fill: var(--cs-text-secondary, #546173);
+    font-weight: 600;
+    text-anchor: middle;
+    transform: translateY(-12px);
+}
+
+body.v3-body .dk-page .dk-grafik text.alt {
+    text-anchor: middle;
+}
+
+body.v3-body .dk-page .dk-sayac.sakin {
+    background: var(--cs-surface-muted, #f8fafc);
+    color: var(--cs-text-secondary, #546173);
+}
+
+body.v3-body .dk-page .dk-oncelik-bos {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 160px;
+    padding: 20px 8px;
+    text-align: center;
+}
+
+body.v3-body .dk-page .dk-oncelik-bos strong {
+    margin-top: 8px;
+    font-size: 15px;
+    color: var(--cs-text-primary, #0f203c);
+}
+
+body.v3-body .dk-page .dk-oncelik-bos p {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--cs-text-muted, #8491a3);
+}
+
+body.v3-body .dk-page .dk-onay {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--cs-success-bg);
+    color: var(--cs-success);
+}
+
+body.v3-body .dk-page .dk-onay::before {
+    content: "";
+    width: 9px;
+    height: 5px;
+    border-left: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(-45deg) translateY(-1px);
+}
+
+body.v3-body .dk-page .dk-nokta-kutular {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+}
+
+body.v3-body .dk-page .dk-nokta-kutular .dk-menu-satir {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    margin-top: 0;
+}
+
+body.v3-body .dk-page .dk-mini-ikon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--cs-soft-blue, #e8f0ff);
+    color: var(--cs-accent);
+    flex: 0 0 auto;
+}
+
+body.v3-body .dk-page .dk-menu-yazi {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 2px;
+}
+
+body.v3-body .dk-page .dk-nokta-kutular .dk-menu-satir small {
+    font-weight: 400;
+}
+
+body.v3-body .dk-page .dk-ok {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-left: auto;
+    border-top: 1.5px solid var(--cs-text-muted, #8491a3);
+    border-right: 1.5px solid var(--cs-text-muted, #8491a3);
+    transform: rotate(45deg);
+    flex: 0 0 auto;
+}
+
+body.v3-body .dk-page .dk-mini-not {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 14px 0 0;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--cs-text-muted, #8491a3);
+}
+
+body.v3-body .dk-page .dk-yukselis {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: var(--cs-space-4, 16px);
+    align-items: center;
+}
+
+body.v3-body .dk-page .dk-yukselis > .dk-panel-head {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+body.v3-body .dk-page .dk-yukselis-araclar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--cs-space-2, 8px);
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+}
+
+body.v3-body .dk-page .dk-yukselis > .dk-kazanim-wrap,
+body.v3-body .dk-page .dk-yukselis > .dk-tablo-alt,
+body.v3-body .dk-page .dk-yukselis > .dk-empty {
+    grid-column: 1 / -1;
+}
+
+body.v3-body.v3-body .dk-page table.dk-yukselis-tablo th {
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cs-text-muted, #8491a3);
+    background-image: none;
+    border-bottom: 1px solid var(--cs-border);
+}
+
+body.v3-body.v3-body .dk-page table.dk-yukselis-tablo td {
+    background-image: none;
+    border-bottom: 1px solid var(--cs-border);
+}
+
+body.v3-body.v3-body .dk-page table.dk-yukselis-tablo th.n,
+body.v3-body.v3-body .dk-page table.dk-yukselis-tablo td.n {
+    text-align: right !important;
+    white-space: nowrap;
+}
+
+body.v3-body .dk-page .dk-yukselis .pos { color: var(--cs-success); font-weight: 600; }
+body.v3-body .dk-page .dk-yukselis .neg { color: var(--cs-danger); font-weight: 600; }
+
+body.v3-body .dk-page .dk-yukselis .dk-row { cursor: pointer; }
+
+body.v3-body .dk-page .dk-yukselis .dk-row:hover td {
+    background: var(--cs-surface-muted, #f8fafc);
+}
+
+body.v3-body .dk-page .dk-cisa {
+    margin-right: 12px;
+    color: var(--cs-accent);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+body.v3-body .dk-page .dk-islem .dk-ok {
+    margin-left: 0;
+    vertical-align: middle;
+}
+
+body.v3-body .dk-page .dk-tablo-alt {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 12px 0 0;
+    font-size: 12px;
+    color: var(--cs-text-muted, #8491a3);
+}
+
+@media (max-width: 900px) {
+    body.v3-body .dk-page .dk-ozet-uc {
+        grid-template-columns: 1fr;
+    }
+
+    body.v3-body .dk-page .dk-ozet-uc .dk-metrik {
+        border-right: 0;
+        border-bottom: 1px solid var(--cs-border);
+    }
+
+    body.v3-body .dk-page .dk-ozet-uc .dk-metrik:last-child {
+        border-bottom: 0;
+    }
+
+    body.v3-body .dk-page .dk-panel:has(> .dk-kazanim-performans) {
+        grid-template-columns: 1fr;
+    }
+
+    body.v3-body .dk-page .dk-panel:has(> .dk-kazanim-performans) .dk-kazanim-araclar {
+        grid-column: 1;
+        grid-row: auto;
+        margin-top: 12px;
+    }
+
+    body.v3-body .dk-page .dk-kazanim-ara,
+    body.v3-body .dk-page .dk-yukselis-ara,
+    body.v3-body .dk-page .dk-kazanim-ders,
+    body.v3-body .dk-page .dk-yukselis-sirala {
+        max-width: none;
+        font-size: 16px;
+    }
+
+    body.v3-body .dk-page .dk-yukselis {
+        grid-template-columns: 1fr;
+    }
+
+    body.v3-body .dk-page .dk-yukselis > .dk-yukselis-araclar {
+        grid-column: 1;
+        grid-row: auto;
+        margin-top: 12px;
     }
 }
