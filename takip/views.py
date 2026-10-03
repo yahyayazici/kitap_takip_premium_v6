@@ -954,6 +954,11 @@ def _talebe_profil_verisi(user, talebe):
     deneme_performans = (
         talebe_deneme_performans_ozeti(talebe) if deneme_erisim else None
     )
+    cisa_url = (
+        reverse("cisa_sec", args=[talebe.id])
+        if can(user, "deneme", "export_pdf")
+        else ""
+    )
     dini_ders_ozet = talebe_ilerleme_ozeti(talebe)
 
     toplam_okunan = sum(kayit.okunan_miktar for kayit in kayitlar)
@@ -986,6 +991,7 @@ def _talebe_profil_verisi(user, talebe):
         "deneme_sonuclari": deneme_sonuclari,
         "deneme_performans": deneme_performans,
         "deneme_erisim": deneme_erisim,
+        "cisa_url": cisa_url,
         "deneme_brans_etiketleri": BRANS_ETIKETLERI,
         "dini_ders_ozet": dini_ders_ozet,
         "toplam_okunan": toplam_okunan,

@@ -390,7 +390,7 @@
     {% endif %}
 
     {% if deneme_performans %}
-    {% include "includes/deneme_performans_karti.html" with deneme_detay_goster=True %}
+    {% include "includes/deneme_performans_karti.html" with deneme_detay_goster=True cisa_url=cisa_url %}
     {% elif deneme_sonuclari %}
     <section class="profile-card profile-exam-card">
         <div class="card-heading">
@@ -398,7 +398,12 @@
                 <p class="card-kicker">DENEME ARŞİVİ</p>
                 <h2>Deneme Sonuçları</h2>
             </div>
-            <span class="report-record-count">{{ deneme_sonuclari|length }} kayıt</span>
+            <div>
+                {% if cisa_url %}
+                <a class="primary-btn" href="{{ cisa_url }}">ÇİSA</a>
+                {% endif %}
+                <span class="report-record-count">{{ deneme_sonuclari|length }} kayıt</span>
+            </div>
         </div>
         <div class="responsive-table">
             <table class="report-data-table profile-data-table">
