@@ -159,6 +159,7 @@ def cisa_denemeler(request):
             "gorunen": gorunen,
             "sinif_id": sinif_id,
             "denemeler": denemeler,
+            "ogrenci_sayisi": len(talebeler),
         },
     )
 

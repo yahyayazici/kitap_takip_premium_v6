@@ -3,18 +3,16 @@
 
 {% block title %}ÇİSA{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek42">
+<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek50">
 {% endblock %}
 
 {% block content %}
-<div class="page-content cisa-secim">
-    <header class="page-head patterned-page-head">
-        <div>
-            <p class="kicker">ÇİSA</p>
-            <h1>Hangi denemelerin raporunu alalım?</h1>
-            <p class="profile-meta">Denemeleri yukarıdan işaretle. Her talebenin yanında kendi PDF’i var. Toplu PDF, görünen sınıfın raporlarını birlikte indirir. Silinen denemeler listede yoktur.</p>
-        </div>
-        <a class="ghost-btn" href="{% url 'deneme_listesi' %}">Denemelere dön</a>
+<div class="cisa-rapor">
+    <a class="cisa-geri" href="{% url 'deneme_listesi' %}">← Denemelere dön</a>
+    <header class="cisa-baslik">
+        <p>ÇİSA</p>
+        <h1>Deneme raporları</h1>
+        <span>Denemeleri seçin, öğrenci raporlarını indirin.</span>
     </header>
 
     {% if gruplar|length > 1 %}
@@ -30,57 +28,127 @@
         {% csrf_token %}
         {% if sinif_id %}<input type="hidden" name="sinif" value="{{ sinif_id }}">{% endif %}
 
-        <section class="profile-card">
-            <h2>Denemeler</h2>
-            {% if denemeler %}
-            <ul class="cisa-deneme-list">
-                {% for deneme in denemeler %}
-                <li>
-                    <label class="cisa-deneme">
-                        <input type="checkbox" name="deneme" value="{{ deneme.id }}" checked>
-                        <span>
-                            <strong>{{ deneme.ad }}</strong>
-                            <small>{{ deneme.tarih|date:"d.m.Y" }} · {{ deneme.talebe_sayisi }} talebe</small>
-                        </span>
+        <div class="cisa-iki">
+            <section class="cisa-kart">
+                <div class="cisa-kart-ust">
+                    <div>
+                        <h2>Deneme seçimi</h2>
+                        <small data-cisa-secili>{{ denemeler|length }} deneme seçili</small>
+                    </div>
+                    {% if denemeler %}
+                    <label class="cisa-tumu">
+                        <input type="checkbox" id="cisaTumunu" checked>
+                        Tümünü seç
                     </label>
-                </li>
-                {% endfor %}
-            </ul>
-            {% else %}
-            <p>Bu sınıfta rapora girecek deneme yok.</p>
-            {% endif %}
-        </section>
+                    {% endif %}
+                </div>
+                {% if denemeler %}
+                <ul class="cisa-deneme-list">
+                    {% for deneme in denemeler %}
+                    <li>
+                        <label class="cisa-deneme">
+                            <input type="checkbox" name="deneme" value="{{ deneme.id }}" checked>
+                            <span>
+                                <strong>{{ deneme.ad }}</strong>
+                                <small>{{ deneme.tarih|date:"j F Y" }} · {{ deneme.talebe_sayisi }} öğrenci</small>
+                            </span>
+                        </label>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="cisa-bos">Bu sınıfta rapora girecek deneme yok.</p>
+                {% endif %}
+                <p class="cisa-not">Raporlar seçtiğiniz denemeleri kapsar.</p>
+            </section>
 
-        <section class="profile-card cisa-toplu">
-            <h2>Toplu PDF</h2>
-            <p>İşaretli denemelerle listedeki talebelerin raporları tek pakette iner.</p>
-            <button class="primary-btn" type="submit" name="toplu" value="1">Sınıf PDF’lerini indir</button>
-        </section>
+            <section class="cisa-kart">
+                <div class="cisa-kart-ust">
+                    <div>
+                        <h2>Öğrenci raporları</h2>
+                        <small>
+                            {% if gorunen|length == 1 %}{{ gorunen.0.etiket }} · {{ gorunen.0.talebeler|length }} öğrenci{% else %}{{ ogrenci_sayisi }} öğrenci{% endif %}
+                        </small>
+                    </div>
+                    <label class="cisa-ara">
+                        <input type="search" id="cisaAra" placeholder="Öğrenci ara..." autocomplete="off">
+                    </label>
+                </div>
 
-        {% for grup in gorunen %}
-        <section class="profile-card">
-            <h2>{{ grup.etiket }}</h2>
-            {% if grup.talebeler %}
-            <ul class="cisa-talebe-list">
-                {% for talebe in grup.talebeler %}
-                <li class="cisa-talebe-satir">
-                    <span>
-                        <strong>{{ talebe.ad_soyad }}</strong>
-                        {% if talebe.talebe_no %}<small>{{ talebe.talebe_no }}</small>{% endif %}
+                <div class="cisa-paket">
+                    <span class="cisa-paket-ikon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M7 3.5h7.2L19 8.2V20a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 6 20V5a1.5 1.5 0 0 1 1.5-1.5Z" stroke="currentColor" stroke-width="1.6"/><path d="M14 3.8V8h4.2" stroke="currentColor" stroke-width="1.6"/></svg>
                     </span>
-                    <button class="primary-btn" type="submit" name="talebe" value="{{ talebe.id }}">PDF</button>
-                </li>
+                    <span>
+                        <strong>Sınıf raporları</strong>
+                        <small><span data-cisa-secili-kisa>{{ denemeler|length }} seçili deneme</span> · {{ ogrenci_sayisi }} öğrenci</small>
+                    </span>
+                    <button class="primary-btn cisa-indir" type="submit" name="toplu" value="1">Sınıf PDF'lerini indir</button>
+                </div>
+
+                <div class="cisa-tablo-ust">
+                    <span>Öğrenci</span>
+                    <span>Rapor</span>
+                </div>
+                {% for grup in gorunen %}
+                {% if gorunen|length > 1 %}<p class="cisa-grup-ad">{{ grup.etiket }}</p>{% endif %}
+                {% if grup.talebeler %}
+                <ul class="cisa-talebe-list">
+                    {% for talebe in grup.talebeler %}
+                    <li class="cisa-talebe-satir cisa-ogrenci" data-ad="{{ talebe.ad_soyad }}">
+                        <span>
+                            <strong>{{ talebe.ad_soyad }}</strong>
+                            <small>Seçili denemelerin raporu</small>
+                        </span>
+                        <button class="ghost-btn cisa-pdf" type="submit" name="talebe" value="{{ talebe.id }}">PDF indir</button>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="cisa-bos">Bu sınıfta aktif öğrenci yok.</p>
+                {% endif %}
+                {% empty %}
+                <p class="cisa-bos">Sorumlu olduğun sınıfta gösterilecek öğrenci yok.</p>
                 {% endfor %}
-            </ul>
-            {% else %}
-            <p>Bu sınıfta aktif talebe yok.</p>
-            {% endif %}
-        </section>
-        {% empty %}
-        <section class="profile-card">
-            <p>Sorumlu olduğun sınıfta gösterilecek talebe yok.</p>
-        </section>
-        {% endfor %}
+                <p class="cisa-not">Toplu indirme, bu sınıfta listelenen öğrencilerin raporlarını tek pakette indirir.</p>
+            </section>
+        </div>
     </form>
 </div>
+<script>
+(function () {
+  var form = document.querySelector(".cisa-rapor form");
+  if (!form) return;
+  var kutular = form.querySelectorAll('input[name="deneme"]');
+  var tumu = document.getElementById("cisaTumunu");
+  var ara = document.getElementById("cisaAra");
+  function secili() {
+    var n = 0;
+    kutular.forEach(function (k) { if (k.checked) n += 1; });
+    document.querySelectorAll("[data-cisa-secili]").forEach(function (el) {
+      el.textContent = n + " deneme seçili";
+    });
+    document.querySelectorAll("[data-cisa-secili-kisa]").forEach(function (el) {
+      el.textContent = n + " seçili deneme";
+    });
+    if (tumu) tumu.checked = n === kutular.length && kutular.length > 0;
+  }
+  kutular.forEach(function (k) { k.addEventListener("change", secili); });
+  if (tumu) {
+    tumu.addEventListener("change", function () {
+      kutular.forEach(function (k) { k.checked = tumu.checked; });
+      secili();
+    });
+  }
+  if (ara) {
+    ara.addEventListener("input", function () {
+      var sorgu = ara.value.toLocaleLowerCase("tr");
+      document.querySelectorAll(".cisa-ogrenci").forEach(function (satir) {
+        var ad = (satir.dataset.ad || "").toLocaleLowerCase("tr");
+        satir.hidden = sorgu !== "" && ad.indexOf(sorgu) === -1;
+      });
+    });
+  }
+})();
+</script>
 {% endblock %}
