@@ -2,13 +2,12 @@
 {% load l10n static deneme_panel %}
 {% block title %}Deneme Kontrol Merkezi{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk21">
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk23">
 {% endblock %}
 
 {% block content %}
 <div class="dash-home ogretmen-dash dk-page">
 {% deneme_panel_switch "kontrol" %}
-{% include "ogretmen/hero.html" with title="Deneme" eyebrow="Etüt" meta="Kontrol, etüt takibi ve deneme listesi — tek panel" show_date=True %}
 
 {% if not siniflar %}
 <div class="dk-card">
@@ -16,34 +15,35 @@
 </div>
 {% else %}
 
-<div class="dk-filtre-satir">
 {% if siniflar|length > 1 %}
+<div class="dk-filtre-satir">
 <nav class="dk-switch dk-sinif-switch" aria-label="Sınıf">
     <a href="{% url 'ogretmen_deneme_kontrol_merkezi' %}{% if ekran == 'kazanim' %}?ekran=kazanim{% endif %}" class="dk-switch-btn{% if not gosterilen_id %} is-active{% endif %}">Tümü</a>
     {% for s in siniflar %}
     <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' s.id %}{% if ekran == 'kazanim' %}?ekran=kazanim{% endif %}" class="dk-switch-btn{% if gosterilen_id == s.id %} is-active{% endif %}">{{ s.etiket }}</a>
     {% endfor %}
 </nav>
-{% endif %}
-
-<nav class="dk-switch dk-ekran-switch" aria-label="Ekran">
-    {% if gosterilen_id %}
-    <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' gosterilen_id %}" class="dk-switch-btn{% if ekran != 'kazanim' %} is-active{% endif %}">Yükseliş</a>
-    <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' gosterilen_id %}?ekran=kazanim" class="dk-switch-btn{% if ekran == 'kazanim' %} is-active{% endif %}">Kazanımlar</a>
-    {% else %}
-    <a href="{% url 'ogretmen_deneme_kontrol_merkezi' %}" class="dk-switch-btn{% if ekran != 'kazanim' %} is-active{% endif %}">Yükseliş</a>
-    <a href="{% url 'ogretmen_deneme_kontrol_merkezi' %}?ekran=kazanim" class="dk-switch-btn{% if ekran == 'kazanim' %} is-active{% endif %}">Kazanımlar</a>
-    {% endif %}
-</nav>
 </div>
+{% endif %}
 
 {% for grup in gruplar %}
 {% if not gosterilen_id or gosterilen_id == grup.kart.id %}
 {% with veri=grup.veri secili=grup.kart %}
-<section class="dk-grup">
-    <header class="dk-grup-head">
-        <h2 class="dk-grup-baslik">{{ secili.etiket }}</h2>
-        <p class="dk-grup-sayi">{{ secili.ogrenci_sayisi }} talebe</p>
+<section class="dk-grup dk-board">
+    <header class="dk-board-head">
+        <div class="dk-grup-head">
+            <h2 class="dk-grup-baslik">{{ secili.etiket }}</h2>
+            <p class="dk-grup-sayi">{{ secili.ogrenci_sayisi }} talebe</p>
+        </div>
+        <nav class="dk-pill-nav" aria-label="Ekran">
+            {% if gosterilen_id %}
+            <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' gosterilen_id %}" class="dk-pill{% if ekran != 'kazanim' %} is-active{% endif %}">Yükseliş</a>
+            <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' gosterilen_id %}?ekran=kazanim" class="dk-pill{% if ekran == 'kazanim' %} is-active{% endif %}">Kazanımlar</a>
+            {% else %}
+            <a href="{% url 'ogretmen_deneme_kontrol_merkezi' %}" class="dk-pill{% if ekran != 'kazanim' %} is-active{% endif %}">Yükseliş</a>
+            <a href="{% url 'ogretmen_deneme_kontrol_merkezi' %}?ekran=kazanim" class="dk-pill{% if ekran == 'kazanim' %} is-active{% endif %}">Kazanımlar</a>
+            {% endif %}
+        </nav>
     </header>
 
 {% if ekran == 'kazanim' %}
@@ -53,28 +53,88 @@
 </div>
 {% elif veri and veri.satirlar %}
 
-<div class="dk-summary-card">
-    <h2 class="dk-summary-title">Deneme durumu</h2>
-    <p class="dk-summary-sub">
-        {% if veri.son_deneme %}Son Deneme: {% if veri.son_deneme.goster_sira %}{{ veri.son_deneme.goster_sira }}. Deneme{% elif veri.son_deneme.sira_no %}{{ veri.son_deneme.sira_no }}. Deneme{% else %}{{ veri.son_deneme.ad }}{% endif %}{% endif %}
-    </p>
-    <div class="dk-stat-row">
-        <div class="dk-stat"><span>Sınıf Ortalaması</span><strong>{{ veri.sinif_ortalamasi|default:"—" }}</strong></div>
-        <div class="dk-stat"><span>Önceki Deneme</span><strong>{{ veri.onceki_ortalama|default:"—" }}</strong></div>
-        <div class="dk-stat">
-            <span>Değişim</span>
-            <strong class="{% if veri.ortalama_degisim > 0 %}pos{% elif veri.ortalama_degisim < 0 %}neg{% endif %}">
-                {% if veri.ortalama_degisim > 0 %}↑ +{{ veri.ortalama_degisim }}{% elif veri.ortalama_degisim < 0 %}↓ {{ veri.ortalama_degisim }}{% else %}—{% endif %}
-            </strong>
+<div class="dk-ozet-grid">
+    <article class="dk-metrik">
+        <p class="dk-metrik-kicker">Sınıf ortalaması</p>
+        <strong class="dk-metrik-sayi">{{ veri.sinif_ortalamasi|default:"—" }}</strong>
+        <p class="dk-metrik-alt">{% if veri.son_deneme %}Son Deneme: {% if veri.son_deneme.goster_sira %}{{ veri.son_deneme.goster_sira }}. Deneme{% elif veri.son_deneme.sira_no %}{{ veri.son_deneme.sira_no }}. Deneme{% else %}{{ veri.son_deneme.ad }}{% endif %}{% endif %}{% if veri.onceki_ortalama %} · önceki {{ veri.onceki_ortalama }}{% endif %}</p>
+    </article>
+    <article class="dk-metrik">
+        <p class="dk-metrik-kicker">Ortalama değişimi</p>
+        <strong class="dk-metrik-sayi {% if veri.ortalama_degisim > 0 %}pos{% elif veri.ortalama_degisim < 0 %}neg{% endif %}">
+            {% if veri.ortalama_degisim > 0 %}+{{ veri.ortalama_degisim }}{% elif veri.ortalama_degisim < 0 %}{{ veri.ortalama_degisim }}{% else %}—{% endif %}
+        </strong>
+        <p class="dk-metrik-alt">Önceki denemeye göre</p>
+    </article>
+    <article class="dk-metrik">
+        <p class="dk-metrik-kicker">Öğrenci gelişimi</p>
+        <div class="dk-gelisim">
+            <div><strong class="pos">{{ veri.yukselen }}</strong><span>Yükselen</span></div>
+            <div><strong class="neg">{{ veri.dusen }}</strong><span>Düşen</span></div>
+            <div><strong>{{ veri.sabit }}</strong><span>Sabit</span></div>
         </div>
-        <div class="dk-stat"><span>Yükselen</span><strong class="pos">{{ veri.yukselen }}</strong></div>
-        <div class="dk-stat"><span>Düşen</span><strong class="neg">{{ veri.dusen }}</strong></div>
-        <div class="dk-stat"><span>Sabit</span><strong>{{ veri.sabit }}</strong></div>
-        <div class="dk-stat"><span>Takip Gereken</span><strong class="{% if veri.takip_gereken %}neg{% endif %}">{{ veri.takip_gereken }}</strong></div>
-    </div>
+    </article>
+    <article class="dk-metrik dk-metrik-uyari">
+        <p class="dk-metrik-kicker">Takip gereken</p>
+        <strong class="dk-metrik-sayi">{{ veri.takip_gereken }} <small>öğrenci</small></strong>
+        <a class="dk-metrik-link" href="#dk-oncelik-{{ forloop.counter }}">Listeyi gör</a>
+    </article>
 </div>
 
-<details class="dk-card dk-fold">
+<div class="dk-split">
+    <section class="dk-panel" id="dk-oncelik-{{ forloop.counter }}">
+        <header class="dk-panel-head">
+            <h2>Öncelikli Takip</h2>
+            <span class="dk-sayac">{{ veri.takip_gereken }} öğrenci</span>
+        </header>
+        <p class="dk-note">Önce bu öğrencilerin sonuçlarını inceleyin.</p>
+        {% if veri.oncelikli_takip %}
+        <div class="cs-table-wrap">
+            <table class="dk-table dk-oncelik-tablo">
+                <thead>
+                    <tr><th>Öğrenci</th><th>Durum</th><th>İşlem</th></tr>
+                </thead>
+                <tbody>
+                    {% for satir in veri.oncelikli_takip %}
+                    <tr>
+                        <td>
+                            <div class="dk-ogrenci-ad"><span>{{ forloop.counter|stringformat:"02d" }}</span>{{ satir.talebe.ad_soyad }}</div>
+                            {% for s in satir.sinyaller %}<div class="dk-oncelik-sinyal">{{ s }}</div>{% endfor %}
+                        </td>
+                        <td><span class="dk-durum-rozet{% if satir.kritik %} kritik{% endif %}">{% if satir.kritik %}Kritik{% else %}Takip gerekiyor{% endif %}</span></td>
+                        <td><a class="dk-incele" href="{% url 'ogretmen_deneme_kontrol_ogrenci_detay' satir.talebe.sinif_sube_id satir.talebe.id %}">İncele</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="dk-empty">Takip gereken talebe yok.</p>
+        {% endif %}
+    </section>
+
+    <section class="dk-panel dk-nokta-menu">
+        <header class="dk-panel-head">
+            <h2>Nokta atışı</h2>
+        </header>
+        <p class="dk-note">Ders ve kazanım bazında inceleme.</p>
+        <a class="dk-menu-satir" href="#dk-nokta-{{ forloop.counter }}" onclick="document.getElementById('dk-nokta-{{ forloop.counter }}').open=true">
+            <span>Ders analizi</span>
+            <small>Aynı soruyu sınıfça yanlış yapılan dersler.</small>
+        </a>
+        {% if gosterilen_id %}
+        <a class="dk-menu-satir" href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' gosterilen_id %}?ekran=kazanim">
+        {% else %}
+        <a class="dk-menu-satir" href="{% url 'ogretmen_deneme_kontrol_merkezi' %}?ekran=kazanim">
+        {% endif %}
+            <span>Kazanım analizi</span>
+            <small>Biriken konu kazanımları.</small>
+        </a>
+        <a class="primary-btn dk-analiz-btn" href="#dk-nokta-{{ forloop.counter }}" onclick="document.getElementById('dk-nokta-{{ forloop.counter }}').open=true">Analizi aç</a>
+    </section>
+</div>
+
+<details class="dk-card dk-fold" id="dk-nokta-{{ forloop.counter }}">
     <summary class="dk-card-head"><h2>Nokta atışı</h2><span class="dk-fold-chevron" aria-hidden="true"></span></summary>
     {% if veri.nokta.deneme %}
     <p class="dk-note">{{ veri.nokta.deneme.ad }} · {{ veri.nokta.karne_sayisi }} karne. Aynı soruyu sınıfın yüzde 33’ü ve fazlası yanlış yaptıysa burada durur.</p>
@@ -106,33 +166,12 @@
     {% endif %}
 </details>
 
-{% if veri.oncelikli_takip %}
-<details class="dk-card dk-fold">
-    <summary class="dk-card-head"><h2>Öncelikli Takip</h2><span class="dk-fold-chevron" aria-hidden="true"></span></summary>
-    <div class="dk-oncelik-list">
-        {% for satir in veri.oncelikli_takip %}
-        <div class="dk-oncelik-item{% if satir.kritik %} kritik{% endif %}">
-            <div>
-                <div class="dk-oncelik-baslik">
-                    {{ satir.talebe.ad_soyad }}
-                    <span class="dk-oncelik-etiket">{% if satir.kritik %}KRİTİK{% else %}TAKİP{% endif %}</span>
-                </div>
-                {% for s in satir.sinyaller %}
-                <div class="dk-oncelik-sinyal">{{ s }}</div>
-                {% endfor %}
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-</details>
-{% endif %}
-
 <details class="dk-card dk-fold">
     <summary class="dk-card-head">
-        <h2>1 · Yükseliş sıralaması</h2>
+        <h2>Yükseliş sıralaması</h2>
         <span class="dk-fold-chevron" aria-hidden="true"></span>
     </summary>
-    <p class="dk-note">Tüm talebeler, ilk denemeden son denemeye puan artışına göre. Satıra dokununca talebenin kazanımları açılır.</p>
+    <p class="dk-note">Öğrencilerin denemeler arasındaki gelişimi. Satıra dokununca talebenin sayfası açılır.</p>
     {% if veri.yukselis_satirlari %}
     <div class="responsive-table cs-table-wrap">
         <table class="dk-table">

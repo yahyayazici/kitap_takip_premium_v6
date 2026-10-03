@@ -333,8 +333,9 @@ class DenemeKontrolTumuTests(TestCase):
         self.assertIn(">5-A<", html)
         self.assertIn(">5-B<", html)
         self.assertIn('class="dk-filtre-satir"', html)
-        self.assertLess(html.find("dk-filtre-satir"), html.find(">Yükseliş<"))
-        self.assertLess(html.find(">Yükseliş<"), html.find("dk-grup-baslik"))
+        self.assertLess(html.find("dk-filtre-satir"), html.find("dk-grup-baslik"))
+        self.assertLess(html.find("dk-grup-baslik"), html.find(">Yükseliş<"))
+        self.assertLess(html.find(">Yükseliş<"), html.find("dk-ozet-grid"))
 
         kazanim = self.client.get(reverse("ogretmen_deneme_kontrol_merkezi") + "?ekran=kazanim")
         khtml = kazanim.content.decode()
@@ -409,11 +410,8 @@ class DenemeKontrolTumuTests(TestCase):
         html = tumu.content.decode()
         self.assertIn("Son Deneme: 1. Deneme", html)
         self.assertNotIn("Son Deneme: 4. Deneme", html)
-        self.assertTrue(
-            "Sınıf Ortalaması</span><strong>412.10" in html
-            or "Sınıf Ortalaması</span><strong>412,10" in html
-        )
-        self.assertNotIn("Sınıf Ortalaması</span><strong>416", html)
+        self.assertRegex(html, r'dk-metrik-sayi">\s*412[,.]10')
+        self.assertNotRegex(html, r'dk-metrik-sayi">\s*416')
         self.assertNotIn("Eski Orta", html)
 
         sadece_a = self.client.get(
@@ -421,11 +419,7 @@ class DenemeKontrolTumuTests(TestCase):
         )
         a_html = sadece_a.content.decode()
         self.assertIn("Son Deneme: 2. Deneme", a_html)
-        self.assertTrue(
-            "Sınıf Ortalaması</span><strong>416.00" in a_html
-            or "Sınıf Ortalaması</span><strong>416,00" in a_html
-            or "Sınıf Ortalaması</span><strong>416<" in a_html
-        )
+        self.assertRegex(a_html, r'dk-metrik-sayi">\s*416')
 
 
 def _brans(kod, net, yanlis, bos, dogru=10):
