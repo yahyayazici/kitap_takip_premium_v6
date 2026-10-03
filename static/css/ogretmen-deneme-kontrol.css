@@ -1282,6 +1282,11 @@ body.v3-body.v3-body .dk-page table.dk-kazanim-performans td.n {
     white-space: nowrap;
 }
 
+body.v3-body.v3-body .dk-page table.dk-kazanim-performans th:nth-child(3),
+body.v3-body.v3-body .dk-page table.dk-kazanim-performans td:nth-child(3) {
+    text-align: center !important;
+}
+
 body.v3-body .dk-page .dk-kazanim-ad {
     font-weight: 700;
     color: var(--cs-text-primary, #0f203c);
@@ -1301,7 +1306,7 @@ body.v3-body .dk-page .dk-panel:has(> .dk-kazanim-performans) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     column-gap: var(--cs-space-4, 16px);
-    align-items: center;
+    align-items: start;
 }
 
 body.v3-body .dk-page .dk-panel:has(> .dk-kazanim-performans) > .dk-kazanim-performans {
@@ -1311,6 +1316,26 @@ body.v3-body .dk-page .dk-panel:has(> .dk-kazanim-performans) > .dk-kazanim-perf
 body.v3-body .dk-page .dk-panel:has(> .dk-kazanim-performans) > .dk-panel-head {
     grid-column: 1;
     grid-row: 1;
+    align-self: start;
+    justify-self: start;
+}
+
+body.v3-body .dk-page .dk-panel:has(> .dk-kazanim-performans) > .dk-panel-head h2 {
+    margin: 0 !important;
+    font-family: var(--cs-font), Poppins, "Segoe UI", sans-serif !important;
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.03em !important;
+    line-height: 1.15 !important;
+    color: var(--cs-text-primary, #0f203c) !important;
+}
+
+body.v3-body .dk-page .dk-panel:has(> .dk-kazanim-performans) > .dk-panel-head .dk-note {
+    margin: 6px 0 0;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.35;
+    color: var(--cs-text-secondary, #546173);
 }
 
 body.v3-body .dk-page .dk-panel:has(> .dk-kazanim-performans) .dk-kazanim-araclar {
@@ -1329,7 +1354,8 @@ body.v3-body .dk-page .dk-panel:has(> .dk-kazanim-performans) > .dk-kazanim-dipn
 body.v3-body .dk-page .dk-basari {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+    width: 100%;
     gap: 6px;
 }
 
