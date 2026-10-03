@@ -210,6 +210,13 @@ class CisaRaporTests(TestCase):
         self.assertNotIn("ders-sayfa", html)
         self.assertNotIn("Şubat Deneme", html)
         self.assertIn("dyb", html)
+        self.assertRegex(html, r"\.kim\s*\{[^}]*text-align:\s*left")
+        self.assertIn('class="dogru"', html)
+        self.assertIn('class="yanlis"', html)
+        self.assertIn("td.dogru b { color: #0f7a4a; }", html)
+        self.assertIn("td.yanlis b { color: #c62828; }", html)
+        self.assertRegex(html, r"\.ders\s*\{[^}]*text-align:\s*center")
+        self.assertRegex(html, r"\.kart-net\s*\{[^}]*text-align:\s*center")
         self.assertNotIn("Mart Deneme", html)
         self.assertNotIn("Silinen Deneme", html)
 

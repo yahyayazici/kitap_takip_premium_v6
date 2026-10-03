@@ -35,7 +35,7 @@
         }
         .logo { display: block; width: 78mm; margin: 0 auto 4mm; }
         .kim {
-            text-align: center;
+            text-align: left;
             margin: 0 0 3mm;
         }
         .kim h1 {
@@ -86,8 +86,11 @@
         }
         td.t1 { border-top-color: #18A8D8; }
         td.t2 { border-top-color: #B0A030; }
-        .kart-ust { width: 100%; }
-        .ders { font-weight: 600; font-size: 11px; }
+        .ders {
+            font-weight: 600;
+            font-size: 11px;
+            text-align: center;
+        }
         .sinif { font-size: 9px; color: #5c6b80; text-align: right; }
         .sinif.iyi { color: #0f7a4a; }
         .sinif.geri { color: #a15c08; }
@@ -96,6 +99,7 @@
             font-size: 16px;
             line-height: 1.1;
             margin-top: 1mm;
+            text-align: center;
         }
         table.dyb {
             width: 100%;
@@ -113,6 +117,8 @@
             line-height: 1.1;
             color: #083888;
         }
+        table.dyb td.dogru b { color: #0f7a4a; }
+        table.dyb td.yanlis b { color: #c62828; }
         table.dyb span {
             display: block;
             margin-top: 0.4mm;
@@ -186,14 +192,12 @@
         {% for ders in rapor.dersler %}
         {% if forloop.counter0|divisibleby:2 %}<tr>{% endif %}
             <td class="kart {% cycle 't0' 't1' 't2' %}">
-                <table class="kart-ust"><tr>
-                    <td class="ders">{{ ders.ad }}</td>
-                    <td class="sinif {{ ders.durum }}">sınıf {{ ders.sinif_net }}</td>
-                </tr></table>
+                <div class="sinif {{ ders.durum }}">sınıf {{ ders.sinif_net }}</div>
+                <div class="ders">{{ ders.ad }}</div>
                 <div class="kart-net">{{ ders.net }}</div>
                 <table class="dyb"><tr>
-                    <td><b>{{ ders.dogru }}</b><span>Doğru</span></td>
-                    <td><b>{{ ders.yanlis }}</b><span>Yanlış</span></td>
+                    <td class="dogru"><b>{{ ders.dogru }}</b><span>Doğru</span></td>
+                    <td class="yanlis"><b>{{ ders.yanlis }}</b><span>Yanlış</span></td>
                     <td><b>{{ ders.bos }}</b><span>Boş</span></td>
                 </tr></table>
                 {% if ders.dogru_yuzde != None %}<div class="kart-yuzde">%{{ ders.dogru_yuzde }} doğru</div>{% endif %}
