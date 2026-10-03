@@ -92,7 +92,12 @@ def _arsiv_kartlarini_hazirla(user, denemeler):
     if talebe_ids is not None:
         kazanim = kazanim.filter(talebe_id__in=talebe_ids)
     sayilar = {}
-    for row in kazanim.values("deneme_id", "ders_key", "konu_key").distinct():
+    satirlar = (
+        kazanim.order_by()
+        .values("deneme_id", "ders_key", "konu_key")
+        .distinct()
+    )
+    for row in satirlar:
         sayilar[row["deneme_id"]] = sayilar.get(row["deneme_id"], 0) + 1
     for d in denemeler:
         d.zayif_konu = sayilar.get(d.pk, 0)
