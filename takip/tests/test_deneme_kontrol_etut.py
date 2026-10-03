@@ -222,7 +222,7 @@ class DenemeKontrolKazanimTests(TestCase):
         self.assertEqual(sayfa.status_code, 200)
         html = sayfa.content.decode()
         self.assertIn("Yükseliş sıralaması", html)
-        self.assertIn("Sınıfın gelişimi", html)
+        self.assertNotIn("Sınıfın gelişimi", html)
         self.assertIn("Yükselişe göre", html)
         self.assertLess(html.index("Ali Yukselen"), html.index("Ayse Azartan"))
         self.assertLess(html.index("Ayse Azartan"), html.index("Can Tekdeneme"))

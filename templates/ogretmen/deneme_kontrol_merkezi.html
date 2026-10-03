@@ -2,7 +2,7 @@
 {% load l10n static deneme_panel %}
 {% block title %}Deneme Kontrol Merkezi{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk26">
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk27">
 {% endblock %}
 
 {% block content %}
@@ -111,32 +111,6 @@
         <p class="dk-metrik-alt">{% if veri.takip_gereken %}Önce bu öğrencilerin sonuçlarını inceleyin.{% else %}Takip gerektiren öğrenci yok{% endif %}</p>
     </article>
 </div>
-
-{% if veri.grup_analizi.grafik %}
-<section class="dk-panel dk-grafik">
-    <header class="dk-panel-head">
-        <h2>Sınıfın gelişimi</h2>
-        {% if veri.grup_analizi.genel_degisim is not None %}
-        <div class="dk-grafik-ozet">
-            <strong class="{% if veri.grup_analizi.genel_degisim > 0 %}pos{% elif veri.grup_analizi.genel_degisim < 0 %}neg{% endif %}">{% if veri.grup_analizi.genel_degisim > 0 %}+{% endif %}{{ veri.grup_analizi.genel_degisim|floatformat:1 }} puan</strong>
-            <span>İlk denemeden bugüne</span>
-        </div>
-        {% endif %}
-    </header>
-    <svg class="dk-grafik-svg" viewBox="0 0 {{ veri.grup_analizi.grafik.genislik }} {{ veri.grup_analizi.grafik.yukseklik }}" role="img" aria-label="Sınıf ortalamasının deneme deneme değişimi">
-        {% for cizgi in veri.grup_analizi.grafik.yatay %}
-        <line class="izgara" x1="{{ veri.grup_analizi.grafik.sol }}" x2="{{ veri.grup_analizi.grafik.sag }}" y1="{{ cizgi.y }}" y2="{{ cizgi.y }}"></line>
-        <text class="eksen" x="4" y="{{ cizgi.y }}">{{ cizgi.etiket }}</text>
-        {% endfor %}
-        <polyline class="cizgi" points="{{ veri.grup_analizi.grafik.cizgi }}"></polyline>
-        {% for nokta in veri.grup_analizi.grafik.noktalar %}
-        <text class="deger" x="{{ nokta.x }}" y="{{ nokta.y }}">{{ nokta.deger }}</text>
-        <circle class="nokta" cx="{{ nokta.x }}" cy="{{ nokta.y }}" r="4.5"></circle>
-        <text class="alt" x="{{ nokta.x }}" y="{{ veri.grup_analizi.grafik.alt_y }}">{{ nokta.etiket }}</text>
-        {% endfor %}
-    </svg>
-</section>
-{% endif %}
 
 <div class="dk-split">
     <section class="dk-panel" id="dk-oncelik-{{ forloop.counter }}">

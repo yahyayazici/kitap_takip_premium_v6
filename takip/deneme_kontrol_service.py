@@ -33,7 +33,6 @@ from takip.deneme_service import (
     BRANS_ETIKETLERI,
     DENEME_BRANS_DERS_MAP,
     deneme_sira_haritasi_talebeler,
-    tr_ondalik,
 )
 from takip.models import (
     DenemeBransSonucu,
@@ -616,63 +615,6 @@ def sinif_grup_analizi(sinif: SinifSube) -> dict:
     return siniflar_grup_analizi([sinif])
 
 
-def _grafik_tavan(tepe: float) -> int:
-    if tepe <= 50:
-        adim = 10
-    elif tepe <= 200:
-        adim = 50
-    else:
-        adim = 100
-    if tepe <= 0:
-        return adim
-    kova = int(tepe // adim) * adim
-    if kova <= tepe:
-        kova += adim
-    return kova
-
-
-def _sinif_gelisim_grafigi(seri: list[dict]) -> dict | None:
-    """Sınıf ortalamasının deneme deneme çizgisi. Koordinatlar şablon içindir."""
-    if not seri:
-        return None
-    degerler = [float(nokta["ortalama"]) for nokta in seri]
-    tavan = _grafik_tavan(max(degerler))
-    genislik, yukseklik = 720, 248
-    sol, sag, ust, alt = 52, 64, 28, 36
-    ic_gen = genislik - sol - sag
-    ic_yuk = yukseklik - ust - alt
-    adet = len(seri)
-    noktalar = []
-    for i, nokta in enumerate(seri):
-        x = sol if adet == 1 else sol + ic_gen * i / (adet - 1)
-        y = ust + ic_yuk * (1 - float(nokta["ortalama"]) / tavan)
-        sira = nokta.get("goster_sira") or nokta.get("sira_no")
-        etiket = f"{sira}. Deneme" if sira else (nokta.get("ad") or "")
-        noktalar.append(
-            {
-                "x": f"{x:.1f}",
-                "y": f"{y:.1f}",
-                "etiket": etiket,
-                "deger": tr_ondalik(nokta["ortalama"], 1),
-            }
-        )
-    yatay = []
-    for k in range(5, -1, -1):
-        deger = tavan * k / 5
-        y = ust + ic_yuk * (1 - k / 5)
-        yatay.append({"y": f"{y:.1f}", "etiket": tr_ondalik(deger, 0)})
-    return {
-        "noktalar": noktalar,
-        "cizgi": " ".join(f"{n['x']},{n['y']}" for n in noktalar),
-        "yatay": yatay,
-        "genislik": genislik,
-        "yukseklik": yukseklik,
-        "sol": sol,
-        "sag": genislik - sag,
-        "alt_y": f"{yukseklik - 12:.1f}",
-    }
-
-
 def sinif_kontrol_verisi_hesapla(
     ogrenciler: list[Talebe],
     sinif: SinifSube,
@@ -1009,9 +951,6 @@ def _kontrol_verisini_tamamla(veri: dict, ogrenciler: list[Talebe]) -> dict:
     veri["kazanim_gruplari"] = kazanimlari_derse_gore(kazanimlar)
     veri["kazanim_ozet"] = kazanim_ozeti(kazanimlar)
     veri["nokta"] = sinif_nokta_atisi([t.id for t in ogrenciler])
-    analiz = veri.get("grup_analizi") or {}
-    analiz["grafik"] = _sinif_gelisim_grafigi(analiz.get("seri") or [])
-    veri["grup_analizi"] = analiz
     return veri
 
 
