@@ -433,10 +433,93 @@
   .ek-arsiv-form-foot > div { flex-direction: column; }
   .ek-arsiv-band { padding: var(--cs-space-4); }
 }
+.cisa-secim {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cs-section-gap);
+}
+.cisa-secim .profile-card h2 {
+  margin: 0 0 var(--cs-space-3);
+  font-size: 1.05rem;
+}
+.cisa-deneme-list,
+.cisa-talebe-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.cisa-deneme,
+.cisa-talebe-satir {
+  display: flex;
+  align-items: center;
+  gap: var(--cs-space-3);
+  min-height: var(--cs-touch-min);
+  padding: var(--cs-space-2) 0;
+  border-bottom: 1px solid var(--cs-border);
+}
+.cisa-deneme input {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+.cisa-deneme span,
+.cisa-talebe-satir > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.cisa-deneme small,
+.cisa-talebe-satir small {
+  color: var(--cs-text-muted);
+}
+.cisa-talebe-satir {
+  justify-content: space-between;
+}
+.cisa-talebe-satir .primary-btn,
+.cisa-toplu .primary-btn {
+  min-height: var(--cs-btn-h);
+  min-width: 72px;
+}
+.cisa-sinif {
+  display: flex;
+  gap: 4px;
+  margin: 0;
+  padding: 4px;
+  border-radius: var(--cs-radius-lg);
+  background: var(--cs-surface-muted);
+  box-shadow: var(--cs-shadow-card);
+}
+.cisa-sinif .dk-switch-btn {
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--cs-touch-min);
+  padding: 0 14px;
+  border-radius: var(--cs-radius-md);
+  color: var(--cs-text-muted);
+  font-weight: 600;
+  text-decoration: none;
+}
+.cisa-sinif .dk-switch-btn.is-active {
+  background: var(--cs-surface);
+  color: var(--cs-text-primary);
+  box-shadow: inset 0 -2px 0 var(--pv4-gold, #c39a3d), var(--cs-shadow-sm);
+}
+
 @media (max-width: 640px) {
   .ek-head h1 { font-size: 1.35rem; }
   .ek-grid, .ek-exam-grid, .ek-people { grid-template-columns: 1fr; }
   .ek-hero { padding: var(--cs-space-4); }
   .ek-hero-stats { flex-direction: column; gap: var(--cs-space-3); }
   .ek-hero-stats div { border-left: 0; padding: 0; }
+  .cisa-talebe-satir {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .cisa-talebe-satir .primary-btn,
+  .cisa-toplu .primary-btn {
+    width: 100%;
+  }
 }

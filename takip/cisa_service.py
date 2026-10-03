@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections import defaultdict
 from decimal import Decimal, ROUND_HALF_UP
 
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import Count, Exists, OuterRef, Q
 
 from takip.deneme_models import (
     DenemeBransSonucu,
@@ -113,6 +113,37 @@ def cisa_deneme_listesi(talebe: Talebe) -> list[dict]:
             "soru_karnesi": bool(kayit.soru_karnesi),
         }
         for kayit in kayitlar
+    ]
+
+
+def cisa_sinif_denemeleri(talebe_ids: list[int]) -> list[dict]:
+    """Sınıftaki talebelerin ortak deneme listesi. Taslak ve arşiv yok."""
+    if not talebe_ids:
+        return []
+    sayilar = {
+        satir["deneme_id"]: satir["talebe_sayisi"]
+        for satir in (
+            DenemeSonucu.objects.filter(
+                talebe_id__in=talebe_ids,
+                deneme__durum=DenemeSinavi.Durum.AKTIF,
+            )
+            .values("deneme_id")
+            .annotate(talebe_sayisi=Count("talebe_id", distinct=True))
+        )
+    }
+    if not sayilar:
+        return []
+    denemeler = DenemeSinavi.objects.filter(pk__in=sayilar).order_by(
+        "-sinav_tarihi", "-id"
+    )
+    return [
+        {
+            "id": deneme.id,
+            "ad": deneme.ad,
+            "tarih": deneme.sinav_tarihi,
+            "talebe_sayisi": sayilar[deneme.id],
+        }
+        for deneme in denemeler
     ]
 
 
