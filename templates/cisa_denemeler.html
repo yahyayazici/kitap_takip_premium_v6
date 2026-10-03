@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}ÇİSA{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    <header class="page-head patterned-page-head">
+        <div>
+            <p class="kicker">ÇİSA</p>
+            <h1>Hangi denemelerin raporunu alalım?</h1>
+            <p class="profile-meta">Talebeyi seç. İşaretlediğin denemeler rapora girer. Silinen denemeler listede yoktur.</p>
+        </div>
+        <a class="ghost-btn" href="{% url 'deneme_listesi' %}">Denemelere dön</a>
+    </header>
+
+    <section class="profile-card">
+        <form method="get" action="{% url 'cisa_denemeler' %}">
+            <label for="cisa-talebe">Talebe</label>
+            <select class="input" id="cisa-talebe" name="talebe">
+                <option value="">Seç</option>
+                {% for t in talebeler %}
+                <option value="{{ t.id }}" {% if talebe and talebe.id == t.id %}selected{% endif %}>{{ t.ad_soyad }}</option>
+                {% endfor %}
+            </select>
+            <div style="margin-top:16px;">
+                <button class="primary-btn" type="submit">Denemeleri göster</button>
+            </div>
+        </form>
+    </section>
+
+    {% if talebe %}
+    {% if denemeler %}
+    <form method="post" action="{% url 'cisa_pdf' talebe.id %}">
+        {% csrf_token %}
+        <section class="profile-card">
+            <div class="responsive-table">
+                <table class="report-data-table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Tarih</th>
+                            <th>Deneme</th>
+                            <th class="num-col">Net</th>
+                            <th>Konu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for deneme in denemeler %}
+                        <tr>
+                            <td>
+                                <label style="display:flex;align-items:center;min-height:44px;min-width:44px;">
+                                    <input type="checkbox" name="deneme" value="{{ deneme.id }}" checked>
+                                </label>
+                            </td>
+                            <td>{{ deneme.tarih|date:"d.m.Y" }}</td>
+                            <td><strong>{{ deneme.ad }}</strong></td>
+                            <td class="num-col">{{ deneme.net }}</td>
+                            <td>{% if deneme.soru_karnesi %}Soru karnesi var{% else %}Yalnız net{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div style="margin-top:16px;">
+                <button class="primary-btn" type="submit">ÇİSA indir</button>
+            </div>
+        </section>
+    </form>
+    {% else %}
+    <section class="profile-card">
+        <p>Bu talebenin rapora girecek deneme sonucu yok.</p>
+    </section>
+    {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

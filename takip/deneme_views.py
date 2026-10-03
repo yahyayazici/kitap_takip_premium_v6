@@ -102,6 +102,7 @@ def deneme_listesi(request):
             "fark": fark,
         },
         "sil_yetkisi": deneme_silebilir(request.user),
+        "cisa_acik": can(request.user, "deneme", "export_pdf"),
         "filtre": filtre,
         **deneme_arsiv_filtre_secenekleri(),
     }

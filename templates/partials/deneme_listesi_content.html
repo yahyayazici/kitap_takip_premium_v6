@@ -81,12 +81,17 @@
         {% if denemeler %}
         <div class="ek-arsiv-tools">
             <span>{{ arsiv_ozet.sayi }} deneme</span>
+            <div class="ek-arsiv-actions">
+            {% if cisa_acik %}
+            <a class="primary-btn" href="{% url 'cisa_denemeler' %}">ÇİSA</a>
+            {% endif %}
             <label class="ek-sort">Sırala
                 <select id="ekArsivSort">
                     <option value="new">Yeniden eskiye</option>
                     <option value="old">Eskiden yeniye</option>
                 </select>
             </label>
+            </div>
         </div>
         <div class="ek-exam-grid" id="ekArsivGrid">
             {% for d in denemeler %}
