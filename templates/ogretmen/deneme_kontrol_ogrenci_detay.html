@@ -2,7 +2,7 @@
 {% load static deneme_panel %}
 {% block title %}{{ talebe.ad_soyad }} · Deneme Kontrol{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk17">
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk18">
 {% endblock %}
 {% block content %}
 <div class="dash-home ogretmen-dash dk-page">
@@ -30,35 +30,7 @@
         <h2>Kazanımlar</h2>
     </div>
     <p class="dk-note">Sınıf listesindeki kazanımların bu talebedeki hali. Konu bir kez düşünce listede kalır. Aynı konu sonraki denemede tekrar gelirse yalnız bu talebenin başarı oranı yenilenir.</p>
-    {% if kazanim_gruplari %}
-        {% for ders in kazanim_gruplari %}
-        <h3 class="dk-kazanim-ders">{{ ders.ders_ad }}</h3>
-        <div class="responsive-table cs-table-wrap">
-            <table class="dk-table">
-                <thead>
-                    <tr>
-                        <th>Kazanım</th>
-                        <th>Ortalama</th>
-                        <th>Deneme</th>
-                        <th>Son</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for konu in ders.konular %}
-                    <tr>
-                        <td>{{ konu.konu_ad }}</td>
-                        <td>{% if konu.ortalama is not None %}%{{ konu.ortalama|floatformat:"-2" }}{% else %}—{% endif %}</td>
-                        <td>{{ konu.deneme_sayisi }}</td>
-                        <td>{% if konu.son_yuzde is not None %}%{{ konu.son_yuzde|floatformat:"-2" }}{% else %}—{% endif %}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% endfor %}
-    {% else %}
-    <p class="dk-empty">Bu talebe için henüz kazanım yok.</p>
-    {% endif %}
+    {% include "ogretmen/deneme_kazanim_tablo.html" with gruplar=kazanim_gruplari bos_metin="Bu talebe için henüz kazanım yok." %}
 </div>
 
 {% if not deneme_gelisim.grup_seri and not deneme_gelisim.bireysel_denemeler %}

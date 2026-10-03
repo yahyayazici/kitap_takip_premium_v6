@@ -224,14 +224,25 @@ class DenemeKontrolKazanimTests(TestCase):
         self.assertIn("Yükseliş sıralaması", html)
         self.assertLess(html.index("Ali Yukselen"), html.index("Ayse Azartan"))
         self.assertLess(html.index("Ayse Azartan"), html.index("Can Tekdeneme"))
-        self.assertLess(html.index("Sözcükte Anlam"), html.index("Tam Sayılar"))
-        self.assertLess(html.index("Tam Sayılar"), html.index("Uzay"))
-        self.assertLess(html.index("Sözcükte Anlam"), html.index("Paragraf"))
-        self.assertLess(html.index("Paragraf"), html.index("Tam Sayılar"))
-        self.assertNotIn("Kuvvet", html)
-        self.assertNotIn("Gizli Konu", html)
-        self.assertIn("%70", html)
+        self.assertNotIn("Sözcükte Anlam", html)
         self.assertNotIn("grup denemesi sonucu bulunmuyor", html)
+
+        kazanim = self.client.get(
+            reverse("ogretmen_deneme_kontrol_merkezi_sinif", args=[self.sinif.id])
+            + "?ekran=kazanim"
+        )
+        self.assertEqual(kazanim.status_code, 200)
+        khtml = kazanim.content.decode()
+        self.assertIn("Kazanımlar", khtml)
+        self.assertNotIn("Yükseliş sıralaması", khtml)
+        self.assertNotIn("Nokta atışı", khtml)
+        self.assertLess(khtml.index("Sözcükte Anlam"), khtml.index("Tam Sayılar"))
+        self.assertLess(khtml.index("Tam Sayılar"), khtml.index("Uzay"))
+        self.assertLess(khtml.index("Sözcükte Anlam"), khtml.index("Paragraf"))
+        self.assertLess(khtml.index("Paragraf"), khtml.index("Tam Sayılar"))
+        self.assertNotIn("Kuvvet", khtml)
+        self.assertNotIn("Gizli Konu", khtml)
+        self.assertIn("%70", khtml)
 
     def test_sinif_ortalamasi_deneme_deneme(self):
         ozet = {o["konu_ad"]: o for o in kazanim_ortalamalari([self.ali.id, self.ayse.id, self.can.id])}
@@ -321,6 +332,14 @@ class DenemeKontrolTumuTests(TestCase):
         self.assertTrue("80.00" in html or "80,00" in html)
         self.assertIn(">5-A<", html)
         self.assertIn(">5-B<", html)
+
+        kazanim = self.client.get(reverse("ogretmen_deneme_kontrol_merkezi") + "?ekran=kazanim")
+        khtml = kazanim.content.decode()
+        self.assertIn("?ekran=kazanim", khtml)
+        self.assertIn(">5-A<", khtml)
+        self.assertIn(">5-B<", khtml)
+        self.assertNotIn("Ali Besa", khtml)
+        self.assertNotIn("Yükseliş sıralaması", khtml)
 
         sadece_a = self.client.get(
             reverse("ogretmen_deneme_kontrol_merkezi_sinif", args=[sinif_a.id])
