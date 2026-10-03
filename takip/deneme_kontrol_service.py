@@ -751,12 +751,14 @@ def kazanim_ortalamalari(talebe_ids: list[int]) -> list[dict]:
     ozetler = []
     for kova in kovalar.values():
         sinav_ortalamalari = []
+        deneme_idler = []
         son = None
-        for sinav in kova["sinavlar"].values():
+        for sinav_id, sinav in kova["sinavlar"].items():
             if not sinav["yuzdeler"]:
                 continue
             ort = sum(sinav["yuzdeler"], Decimal("0")) / Decimal(len(sinav["yuzdeler"]))
             sinav_ortalamalari.append(ort)
+            deneme_idler.append(sinav_id)
             if son is None or sinav["tarih"] >= son[0]:
                 son = (sinav["tarih"], ort)
         ortalama = None
@@ -764,6 +766,10 @@ def kazanim_ortalamalari(talebe_ids: list[int]) -> list[dict]:
             ortalama = (
                 sum(sinav_ortalamalari, Decimal("0")) / Decimal(len(sinav_ortalamalari))
             ).quantize(Decimal("0.01"))
+        son_yuzde = son[1].quantize(Decimal("0.01")) if son else None
+        fark = None
+        if son_yuzde is not None and ortalama is not None:
+            fark = (son_yuzde - ortalama).quantize(Decimal("0.01"))
         ozetler.append(
             {
                 "ders_ad": kova["ders_ad"],
@@ -772,7 +778,9 @@ def kazanim_ortalamalari(talebe_ids: list[int]) -> list[dict]:
                 "konu_key": kova["konu_key"],
                 "ortalama": ortalama,
                 "deneme_sayisi": len(sinav_ortalamalari),
-                "son_yuzde": son[1].quantize(Decimal("0.01")) if son else None,
+                "deneme_idler": deneme_idler,
+                "son_yuzde": son_yuzde,
+                "fark": fark,
                 "ilk": kova["ilk"],
                 "sira": kova["sira"],
             }
@@ -780,6 +788,19 @@ def kazanim_ortalamalari(talebe_ids: list[int]) -> list[dict]:
 
     ozetler.sort(key=lambda o: o["sira"])
     return ozetler
+
+
+def kazanim_ozeti(ozetler: list[dict]) -> dict:
+    """İzlenen konu, bu konuların geldiği deneme ve ortalamayı aşan son sonuç."""
+    denemeler: set[int] = set()
+    asan = 0
+    for ozet in ozetler:
+        denemeler.update(ozet.get("deneme_idler") or [])
+        son = ozet.get("son_yuzde")
+        ortalama = ozet.get("ortalama")
+        if son is not None and ortalama is not None and son > ortalama:
+            asan += 1
+    return {"konu": len(ozetler), "deneme": len(denemeler), "asan": asan}
 
 
 def kazanimlari_derse_gore(ozetler: list[dict]) -> list[dict]:
@@ -928,6 +949,7 @@ def _kontrol_verisini_tamamla(veri: dict, ogrenciler: list[Talebe]) -> dict:
     kazanimlar = kazanim_ortalamalari([t.id for t in ogrenciler])
     veri["kazanimlar"] = kazanimlar
     veri["kazanim_gruplari"] = kazanimlari_derse_gore(kazanimlar)
+    veri["kazanim_ozet"] = kazanim_ozeti(kazanimlar)
     veri["nokta"] = sinif_nokta_atisi([t.id for t in ogrenciler])
     return veri
 

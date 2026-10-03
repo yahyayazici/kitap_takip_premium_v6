@@ -240,10 +240,10 @@ class CisaRaporTests(TestCase):
         self.assertLess(html.index("ÇİSA"), html.index("Sırala"))
         self.assertIn(reverse("cisa_denemeler"), html)
         giris = self.client.get(reverse("cisa_denemeler"))
-        self.assertContains(giris, "Hangi denemelerin raporunu alalım?")
+        self.assertContains(giris, "Deneme raporları")
         self.assertContains(giris, "Ali Çisa")
         self.assertContains(giris, "Ocak Deneme")
-        self.assertContains(giris, "Toplu PDF")
+        self.assertContains(giris, "Sınıf PDF")
         self.assertNotContains(giris, "Silinen Deneme")
 
     def test_etut_kendi_sinifinda_pdf_ve_toplu_paket(self):
@@ -254,7 +254,7 @@ class CisaRaporTests(TestCase):
         self.assertIn("Ayşe Çisa", html)
         self.assertNotIn("Başka Talebe", html)
         self.assertIn("Ocak Deneme", html)
-        self.assertIn("Toplu PDF", html)
+        self.assertIn("Sınıf PDF", html)
         self.assertIn(f'name="talebe" value="{self.ali.id}"', html)
         self.assertNotIn("Silinen Deneme", html)
         self.assertNotIn("Taslak Deneme", html)
