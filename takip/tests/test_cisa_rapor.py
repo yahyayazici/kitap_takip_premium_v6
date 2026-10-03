@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import io
+import zipfile
 from datetime import date
 from decimal import Decimal
 from unittest.mock import patch
@@ -233,9 +235,45 @@ class CisaRaporTests(TestCase):
         giris = self.client.get(reverse("cisa_denemeler"))
         self.assertContains(giris, "Hangi denemelerin raporunu alalım?")
         self.assertContains(giris, "Ali Çisa")
-        secili = self.client.get(reverse("cisa_denemeler"), {"talebe": self.ali.id})
-        self.assertContains(secili, "Ocak Deneme")
-        self.assertNotContains(secili, "Silinen Deneme")
+        self.assertContains(giris, "Ocak Deneme")
+        self.assertContains(giris, "Toplu PDF")
+        self.assertNotContains(giris, "Silinen Deneme")
+
+    def test_etut_kendi_sinifinda_pdf_ve_toplu_paket(self):
+        self.client.force_login(self.etut_user)
+        sayfa = self.client.get(reverse("cisa_denemeler"))
+        html = sayfa.content.decode()
+        self.assertIn("Ali Çisa", html)
+        self.assertIn("Ayşe Çisa", html)
+        self.assertNotIn("Başka Talebe", html)
+        self.assertIn("Ocak Deneme", html)
+        self.assertIn("Toplu PDF", html)
+        self.assertIn(f'name="talebe" value="{self.ali.id}"', html)
+        self.assertNotIn("Silinen Deneme", html)
+        self.assertNotIn("Taslak Deneme", html)
+        self.assertNotIn("Yabancı Deneme", html)
+
+        with patch("takip.cisa_views.html_to_pdf", return_value=b"%PDF-1.4 fake"):
+            tek = self.client.post(
+                reverse("cisa_denemeler"),
+                {"deneme": [self.ocak.id], "talebe": self.ali.id},
+            )
+            paket = self.client.post(
+                reverse("cisa_denemeler"),
+                {"deneme": [self.ocak.id], "toplu": "1"},
+            )
+            yabanci = self.client.post(
+                reverse("cisa_denemeler"),
+                {"deneme": [self.yabanci.id], "talebe": self.baska.id},
+            )
+        self.assertEqual(tek.status_code, 200)
+        self.assertEqual(tek["Content-Type"], "application/pdf")
+        self.assertIn("Ali", tek["Content-Disposition"])
+        self.assertEqual(paket.status_code, 200)
+        self.assertEqual(paket["Content-Type"], "application/zip")
+        with zipfile.ZipFile(io.BytesIO(paket.content)) as arsiv:
+            self.assertEqual(len(arsiv.namelist()), 2)
+        self.assertEqual(yabanci.status_code, 302)
         detay = self.client.get(
             reverse(
                 "ogretmen_deneme_kontrol_ogrenci_detay",

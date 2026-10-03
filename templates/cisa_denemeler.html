@@ -1,76 +1,86 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}ÇİSA{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek42">
+{% endblock %}
 
 {% block content %}
-<div class="page-content">
+<div class="page-content cisa-secim">
     <header class="page-head patterned-page-head">
         <div>
             <p class="kicker">ÇİSA</p>
             <h1>Hangi denemelerin raporunu alalım?</h1>
-            <p class="profile-meta">Talebeyi seç. İşaretlediğin denemeler rapora girer. Silinen denemeler listede yoktur.</p>
+            <p class="profile-meta">Denemeleri yukarıdan işaretle. Her talebenin yanında kendi PDF’i var. Toplu PDF, görünen sınıfın raporlarını birlikte indirir. Silinen denemeler listede yoktur.</p>
         </div>
         <a class="ghost-btn" href="{% url 'deneme_listesi' %}">Denemelere dön</a>
     </header>
 
-    <section class="profile-card">
-        <form method="get" action="{% url 'cisa_denemeler' %}">
-            <label for="cisa-talebe">Talebe</label>
-            <select class="input" id="cisa-talebe" name="talebe">
-                <option value="">Seç</option>
-                {% for t in talebeler %}
-                <option value="{{ t.id }}" {% if talebe and talebe.id == t.id %}selected{% endif %}>{{ t.ad_soyad }}</option>
-                {% endfor %}
-            </select>
-            <div style="margin-top:16px;">
-                <button class="primary-btn" type="submit">Denemeleri göster</button>
-            </div>
-        </form>
-    </section>
+    {% if gruplar|length > 1 %}
+    <nav class="dk-switch cisa-sinif" aria-label="Sınıf">
+        <a href="{% url 'cisa_denemeler' %}" class="dk-switch-btn{% if not sinif_id %} is-active{% endif %}">Tümü</a>
+        {% for grup in gruplar %}
+        <a href="{% url 'cisa_denemeler' %}?sinif={{ grup.id }}" class="dk-switch-btn{% if sinif_id == grup.id %} is-active{% endif %}">{{ grup.etiket }}</a>
+        {% endfor %}
+    </nav>
+    {% endif %}
 
-    {% if talebe %}
-    {% if denemeler %}
-    <form method="post" action="{% url 'cisa_pdf' talebe.id %}">
+    <form method="post" action="{% url 'cisa_denemeler' %}">
         {% csrf_token %}
+        {% if sinif_id %}<input type="hidden" name="sinif" value="{{ sinif_id }}">{% endif %}
+
         <section class="profile-card">
-            <div class="responsive-table">
-                <table class="report-data-table">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>Tarih</th>
-                            <th>Deneme</th>
-                            <th class="num-col">Net</th>
-                            <th>Konu</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for deneme in denemeler %}
-                        <tr>
-                            <td>
-                                <label style="display:flex;align-items:center;min-height:44px;min-width:44px;">
-                                    <input type="checkbox" name="deneme" value="{{ deneme.id }}" checked>
-                                </label>
-                            </td>
-                            <td>{{ deneme.tarih|date:"d.m.Y" }}</td>
-                            <td><strong>{{ deneme.ad }}</strong></td>
-                            <td class="num-col">{{ deneme.net }}</td>
-                            <td>{% if deneme.soru_karnesi %}Soru karnesi var{% else %}Yalnız net{% endif %}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div style="margin-top:16px;">
-                <button class="primary-btn" type="submit">ÇİSA indir</button>
-            </div>
+            <h2>Denemeler</h2>
+            {% if denemeler %}
+            <ul class="cisa-deneme-list">
+                {% for deneme in denemeler %}
+                <li>
+                    <label class="cisa-deneme">
+                        <input type="checkbox" name="deneme" value="{{ deneme.id }}" checked>
+                        <span>
+                            <strong>{{ deneme.ad }}</strong>
+                            <small>{{ deneme.tarih|date:"d.m.Y" }} · {{ deneme.talebe_sayisi }} talebe</small>
+                        </span>
+                    </label>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>Bu sınıfta rapora girecek deneme yok.</p>
+            {% endif %}
         </section>
+
+        <section class="profile-card cisa-toplu">
+            <h2>Toplu PDF</h2>
+            <p>İşaretli denemelerle listedeki talebelerin raporları tek pakette iner.</p>
+            <button class="primary-btn" type="submit" name="toplu" value="1">Sınıf PDF’lerini indir</button>
+        </section>
+
+        {% for grup in gorunen %}
+        <section class="profile-card">
+            <h2>{{ grup.etiket }}</h2>
+            {% if grup.talebeler %}
+            <ul class="cisa-talebe-list">
+                {% for talebe in grup.talebeler %}
+                <li class="cisa-talebe-satir">
+                    <span>
+                        <strong>{{ talebe.ad_soyad }}</strong>
+                        {% if talebe.talebe_no %}<small>{{ talebe.talebe_no }}</small>{% endif %}
+                    </span>
+                    <button class="primary-btn" type="submit" name="talebe" value="{{ talebe.id }}">PDF</button>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>Bu sınıfta aktif talebe yok.</p>
+            {% endif %}
+        </section>
+        {% empty %}
+        <section class="profile-card">
+            <p>Sorumlu olduğun sınıfta gösterilecek talebe yok.</p>
+        </section>
+        {% endfor %}
     </form>
-    {% else %}
-    <section class="profile-card">
-        <p>Bu talebenin rapora girecek deneme sonucu yok.</p>
-    </section>
-    {% endif %}
-    {% endif %}
 </div>
 {% endblock %}
