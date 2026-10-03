@@ -231,14 +231,24 @@ def cisa_rapor(talebe: Talebe, deneme_ids: list[int]) -> dict | None:
         sinif_net = _ort(kova["sinif_netler"])
         toplam = kova["dogru"] + kova["yanlis"] + kova["bos"]
         durum = ""
+        fark = ""
+        fark_yazi = ""
         if net is not None and sinif_net is not None and net != sinif_net:
-            durum = "iyi" if net > sinif_net else "geri"
+            if net > sinif_net:
+                durum = "iyi"
+                fark_yazi = "üstünde"
+            else:
+                durum = "geri"
+                fark_yazi = "altında"
+            fark = tr_ondalik(abs(net - sinif_net))
         dersler.append(
             {
                 "ad": kova["ad"],
                 "net": tr_ondalik(net) if net is not None else "—",
                 "sinif_net": tr_ondalik(sinif_net) if sinif_net is not None else "—",
                 "durum": durum,
+                "fark": fark,
+                "fark_yazi": fark_yazi,
                 "dogru": kova["dogru"],
                 "yanlis": kova["yanlis"],
                 "bos": kova["bos"],
