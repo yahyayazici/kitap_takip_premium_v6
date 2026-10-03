@@ -1639,3 +1639,88 @@ body.v3-body .dk-page .dk-tablo-alt {
         margin-top: 12px;
     }
 }
+
+body.v3-body .dk-panel-switch {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 100%;
+    min-height: var(--cs-touch-min, 44px);
+    margin: 0 0 var(--cs-space-4, 16px);
+    padding: 0;
+    gap: 0;
+    flex-wrap: nowrap;
+}
+
+body.v3-body .dk-panel-switch::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--cs-primary) 12%,
+        var(--cs-accent) 50%,
+        var(--pv4-gold, #c39a3d) 88%,
+        transparent
+    );
+}
+
+body.v3-body.v3-body .dk-panel-switch .dk-switch-btn {
+    position: relative;
+    z-index: 1;
+    flex: 0 0 auto;
+    min-height: var(--cs-touch-min, 44px);
+    padding: 0 12px;
+    background: var(--pv4-bg, var(--cs-background));
+    background-image: none;
+    color: var(--cs-text-secondary);
+    font-family: "Montserrat", var(--cs-font), sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    line-height: 1;
+}
+
+body.v3-body.v3-body .dk-panel-switch .dk-switch-btn.is-edge-start {
+    padding-left: 0;
+}
+
+body.v3-body.v3-body .dk-panel-switch .dk-switch-btn.is-edge-end {
+    padding-right: 0;
+}
+
+body.v3-body .dk-panel-switch .dk-switch-btn.is-edge-mid {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+body.v3-body.v3-body .dk-panel-switch .dk-switch-btn.is-active {
+    color: var(--cs-text-primary);
+    font-weight: 600;
+    background: var(--pv4-bg, var(--cs-background));
+    background-image: none;
+    box-shadow: none;
+}
+
+body.v3-body .dk-panel-switch .dk-switch-btn::after,
+body.v3-body .dk-panel-switch .dk-switch-btn.is-active::after {
+    display: none;
+}
+
+@media (max-width: 640px) {
+    body.v3-body .dk-panel-switch {
+        flex-wrap: nowrap;
+    }
+
+    body.v3-body.v3-body .dk-panel-switch .dk-switch-btn {
+        padding: 0 8px;
+        font-size: 13px;
+    }
+}
