@@ -13,6 +13,16 @@
     <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' sinif.id %}" class="ghost-btn">← {{ sinif.etiket }} listesine dön</a>
 </div>
 
+{% if cisa_url %}
+<div class="dk-card">
+    <div class="dk-card-head">
+        <h2>Denemeler</h2>
+        <a class="primary-btn" href="{{ cisa_url }}">ÇİSA</a>
+    </div>
+    <p class="dk-note">ÇİSA, hangi denemelerin rapora gireceğini sorar. Silinen denemeler listede yoktur.</p>
+</div>
+{% endif %}
+
 {% include "includes/deneme_gelisim_karti.html" %}
 
 <div class="dk-card">

@@ -98,10 +98,7 @@ def cisa_deneme_listesi(talebe: Talebe) -> list[dict]:
     kayitlar = (
         DenemeSonucu.objects.filter(
             talebe=talebe,
-            deneme__durum__in=(
-                DenemeSinavi.Durum.AKTIF,
-                DenemeSinavi.Durum.ARSIV,
-            ),
+            deneme__durum=DenemeSinavi.Durum.AKTIF,
         )
         .select_related("deneme")
         .annotate(soru_karnesi=Exists(soru))
@@ -140,10 +137,7 @@ def cisa_rapor(talebe: Talebe, deneme_ids: list[int]) -> dict | None:
         DenemeSonucu.objects.filter(
             talebe=talebe,
             deneme_id__in=istenen,
-            deneme__durum__in=(
-                DenemeSinavi.Durum.AKTIF,
-                DenemeSinavi.Durum.ARSIV,
-            ),
+            deneme__durum=DenemeSinavi.Durum.AKTIF,
         )
         .select_related("deneme", "talebe", "talebe__sinif_sube")
         .prefetch_related("brans_satirlari")

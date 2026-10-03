@@ -67,7 +67,8 @@ class CisaRaporTests(TestCase):
         )
 
         self.ocak = self._deneme("Ocak Deneme", date(2026, 1, 10), DenemeSinavi.Durum.AKTIF)
-        self.subat = self._deneme("Şubat Deneme", date(2026, 2, 10), DenemeSinavi.Durum.ARSIV)
+        self.subat = self._deneme("Şubat Deneme", date(2026, 2, 10), DenemeSinavi.Durum.AKTIF)
+        self.silinen = self._deneme("Silinen Deneme", date(2026, 4, 1), DenemeSinavi.Durum.ARSIV)
         self.mart = self._deneme("Mart Deneme", date(2026, 3, 10), DenemeSinavi.Durum.AKTIF)
         self.taslak = self._deneme("Taslak Deneme", date(2026, 4, 10), DenemeSinavi.Durum.TASLAK)
         self.yabanci = self._deneme("Yabancı Deneme", date(2026, 1, 20), DenemeSinavi.Durum.AKTIF)
@@ -76,6 +77,7 @@ class CisaRaporTests(TestCase):
         self.ali_subat = self._sonuc(self.subat, self.ali, "60.00", "6.00", 6, 0, 2)
         self._sonuc(self.mart, self.ali, "100.00", "20.00", 20, 0, 0)
         self._sonuc(self.taslak, self.ali, "50.00", "5.00", 5, 0, 0)
+        self._sonuc(self.silinen, self.ali, "30.00", "3.00", 3, 0, 0)
         self._sonuc(self.ocak, self.ayse, "40.00", "4.00", 4, 0, 0)
         self._sonuc(self.subat, self.ayse, "70.00", "8.00", 8, 0, 0)
         self._sonuc(self.yabanci, self.baska, "90.00", "15.00", 15, 0, 0)
@@ -126,7 +128,9 @@ class CisaRaporTests(TestCase):
         )
 
     def test_secilen_denemelerin_ortalamasi_ve_konusu(self):
-        rapor = cisa_rapor(self.ali, [self.ocak.id, self.subat.id, self.yabanci.id])
+        rapor = cisa_rapor(
+            self.ali, [self.ocak.id, self.subat.id, self.yabanci.id, self.silinen.id]
+        )
         self.assertEqual(rapor["ortalama_net"], "70,00")
         self.assertEqual([d["ad"] for d in rapor["denemeler"]], ["Ocak Deneme", "Şubat Deneme"])
         self.assertEqual(rapor["denemeler"][0]["soru_karnesi"], True)
@@ -159,6 +163,8 @@ class CisaRaporTests(TestCase):
         adlar = [d["ad"] for d in liste]
         self.assertEqual(adlar, ["Mart Deneme", "Şubat Deneme", "Ocak Deneme"])
         self.assertNotIn("Taslak Deneme", adlar)
+        self.assertNotIn("Silinen Deneme", adlar)
+        self.assertIsNone(cisa_rapor(self.ali, [self.silinen.id]))
         yalniz = cisa_rapor(self.ali, [self.subat.id])
         self.assertEqual(yalniz["konular"], [])
         self.assertEqual(yalniz["ortalama_net"], "60,00")
@@ -170,16 +176,18 @@ class CisaRaporTests(TestCase):
         self.assertContains(profil, reverse("cisa_sec", args=[self.ali.id]))
         sayfa = self.client.get(reverse("cisa_sec", args=[self.ali.id]))
         self.assertEqual(sayfa.status_code, 200)
+        self.assertContains(sayfa, "Hangi denemelerin raporunu alalım?")
         self.assertContains(sayfa, "Ocak Deneme")
         self.assertContains(sayfa, "Şubat Deneme")
         self.assertContains(sayfa, "Soru karnesi var")
         self.assertContains(sayfa, "Yalnız net")
         self.assertNotContains(sayfa, "Taslak Deneme")
+        self.assertNotContains(sayfa, "Silinen Deneme")
 
         with patch("takip.cisa_views.html_to_pdf", return_value=b"%PDF-1.4 fake") as mock_pdf:
             resp = self.client.post(
                 reverse("cisa_pdf", args=[self.ali.id]),
-                {"deneme": [self.ocak.id, self.subat.id]},
+                {"deneme": [self.ocak.id, self.subat.id, self.silinen.id]},
             )
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp["Content-Type"], "application/pdf")
@@ -190,7 +198,11 @@ class CisaRaporTests(TestCase):
         self.assertIn("Paragraf", html)
         self.assertIn("yanlıştan", html)
         self.assertIn("cisa-logo.png", html)
+        self.assertIn('class="kayip"', html)
+        self.assertIn("ders-sayfa", html)
+        self.assertIn("page-break-before: always", html)
         self.assertNotIn("Mart Deneme", html)
+        self.assertNotIn("Silinen Deneme", html)
 
         bos = self.client.post(reverse("cisa_pdf", args=[self.ali.id]), {})
         self.assertRedirects(bos, reverse("cisa_sec", args=[self.ali.id]))
@@ -201,3 +213,10 @@ class CisaRaporTests(TestCase):
         self.assertEqual(kendi.status_code, 200)
         yabanci = self.client.get(reverse("cisa_sec", args=[self.baska.id]))
         self.assertEqual(yabanci.status_code, 404)
+        detay = self.client.get(
+            reverse(
+                "ogretmen_deneme_kontrol_ogrenci_detay",
+                args=[self.sinif.id, self.ali.id],
+            )
+        )
+        self.assertContains(detay, reverse("cisa_sec", args=[self.ali.id]))

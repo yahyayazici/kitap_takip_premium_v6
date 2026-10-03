@@ -126,6 +126,7 @@
                     <th>İlk puan</th>
                     <th>Son puan</th>
                     <th>Yükseliş</th>
+                    {% if cisa_acik %}<th></th>{% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -140,6 +141,11 @@
                             {% if satir.metrikler.genel_degisim > 0 %}+{% endif %}{{ satir.metrikler.genel_degisim }}
                         {% else %}—{% endif %}
                     </td>
+                    {% if cisa_acik %}
+                    <td>
+                        <a class="primary-btn" href="{% url 'cisa_sec' satir.talebe.id %}" onclick="event.stopPropagation()">ÇİSA</a>
+                    </td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>

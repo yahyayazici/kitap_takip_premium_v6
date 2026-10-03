@@ -6,6 +6,7 @@ from types import SimpleNamespace
 
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from takip.deneme_gelisim_service import talebe_deneme_gelisim_paketi
 from takip.deneme_kontrol_service import (
@@ -20,6 +21,7 @@ from takip.deneme_kontrol_service import (
 )
 from takip.models import SinifSube
 from takip.ogretmen_not_service import ogretmen_sinif_ogrencileri
+from takip.permissions.service import can
 from takip.ogretmen_service import kullanici_ogretmen_mi
 
 
@@ -103,6 +105,7 @@ def deneme_kontrol_merkezi(request, sinif_id: int | None = None):
             "gruplar": gruplar,
             "sirala": sirala,
             "gosterilen_id": gosterilen_id,
+            "cisa_acik": can(request.user, "deneme", "export_pdf"),
         },
     )
 
@@ -129,5 +132,10 @@ def deneme_kontrol_ogrenci_detay(request, sinif_id: int, talebe_id: int):
         "deneme_gelisim": talebe_deneme_gelisim_paketi(talebe),
         "kazanimlar": kazanimlar,
         "kazanim_gruplari": kazanimlari_derse_gore(kazanimlar),
+        "cisa_url": (
+            reverse("cisa_sec", args=[talebe.id])
+            if can(request.user, "deneme", "export_pdf")
+            else ""
+        ),
     }
     return render(request, "ogretmen/deneme_kontrol_ogrenci_detay.html", ctx)
