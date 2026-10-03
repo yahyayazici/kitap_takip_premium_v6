@@ -1,10 +1,13 @@
 {% load static %}
 {% if deneme_performans %}
-<link rel="stylesheet" href="{% static 'css/deneme-performans.css' %}">
+<link rel="stylesheet" href="{% static 'css/deneme-performans.css' %}?v=cisa1">
 <div class="dp-wrap" data-dp-root>
     <section class="dp-summary">
         <div class="dp-summary-head">
             <h3>{{ deneme_performans.baslik }}</h3>
+            {% if cisa_url %}
+            <a class="primary-btn dp-cisa" href="{{ cisa_url }}">ÇİSA</a>
+            {% endif %}
         </div>
 
         <div class="dp-meta-row">

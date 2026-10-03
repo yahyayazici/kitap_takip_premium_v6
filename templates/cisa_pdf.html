@@ -1,0 +1,238 @@
+{% load static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>ÇİSA · {{ rapor.ad_soyad }}</title>
+    <style>
+        @page { size: A4 portrait; margin: 12mm 12mm 12mm; }
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-Regular.ttf' %}") format("truetype");
+            font-weight: 400;
+        }
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-SemiBold.ttf' %}") format("truetype");
+            font-weight: 600;
+        }
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-Bold.ttf' %}") format("truetype");
+            font-weight: 700;
+        }
+        @font-face {
+            font-family: "LemonMilk";
+            src: url("{% static 'fonts/LemonMilk.otf' %}") format("opentype");
+            font-weight: 400;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Poppins", sans-serif;
+            color: #083888;
+            font-size: 11px;
+        }
+        .logo { display: block; width: 78mm; margin: 0 auto 4mm; }
+        .kim {
+            text-align: center;
+            margin: 0 0 3mm;
+        }
+        .kim h1 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .kim p { margin: 1mm 0 0; color: #5c6b80; font-size: 10px; }
+        .net {
+            text-align: center;
+            margin: 2mm 0 1mm;
+        }
+        .net b {
+            display: block;
+            font-family: "LemonMilk", "Poppins", sans-serif;
+            font-weight: 400;
+            font-size: 28px;
+            letter-spacing: 0.5px;
+            line-height: 1;
+        }
+        .net span {
+            display: block;
+            margin-top: 1mm;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            color: #5c6b80;
+        }
+        .cizgi {
+            height: 3px;
+            margin: 2mm 0 4mm;
+            background: linear-gradient(90deg, #083888, #18A8D8, #B0A030);
+        }
+        table.kartlar {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 3mm 3mm;
+            margin: 0 -1.5mm 2mm;
+        }
+        td.kart {
+            width: 50%;
+            background: #f7f8fb;
+            border: 1px solid #e4e8ef;
+            border-top: 3px solid #083888;
+            padding: 3mm 3mm 2.5mm;
+            vertical-align: top;
+        }
+        td.t1 { border-top-color: #18A8D8; }
+        td.t2 { border-top-color: #B0A030; }
+        .kart-ust { width: 100%; }
+        .ders { font-weight: 600; font-size: 11px; }
+        .sinif { font-size: 9px; color: #5c6b80; text-align: right; }
+        .sinif.iyi { color: #0f7a4a; }
+        .sinif.geri { color: #a15c08; }
+        .kart-net {
+            font-family: "LemonMilk", "Poppins", sans-serif;
+            font-size: 16px;
+            line-height: 1.1;
+            margin-top: 1mm;
+        }
+        .kart-alt {
+            margin-top: 1mm;
+            color: #5c6b80;
+            font-size: 9px;
+        }
+        h2 {
+            margin: 5mm 0 2mm;
+            text-align: center;
+            font-size: 13px;
+        }
+        table.dokum {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0 0 4mm;
+        }
+        table.dokum th {
+            text-align: left;
+            font-size: 8px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            color: #5c6b80;
+            border-bottom: 1px solid #d5deea;
+            padding: 1.5mm 1.5mm;
+        }
+        table.dokum td {
+            padding: 1.6mm 1.5mm;
+            border-bottom: 1px solid #eef2f6;
+            vertical-align: top;
+        }
+        table.dokum td.n, table.dokum th.n { text-align: right; }
+        .zayif { color: #a15c08; font-weight: 700; }
+        .denemeler { margin: 0 0 3mm; color: #5c6b80; font-size: 9px; text-align: center; }
+        .bos { color: #5c6b80; text-align: center; }
+    </style>
+</head>
+<body>
+    <img class="logo" src="{% static 'images/cisa-logo.png' %}" alt="ÇİSA">
+    <div class="kim">
+        <h1>{{ rapor.ad_soyad }}</h1>
+        <p>
+            {{ rapor.sinif }}{% if rapor.no %} · No {{ rapor.no }}{% endif %}
+            · {{ rapor.denemeler|length }} deneme
+            · {{ rapor.baslangic|date:"d.m.Y" }} – {{ rapor.bitis|date:"d.m.Y" }}
+        </p>
+    </div>
+    <div class="net">
+        <b>{{ rapor.ortalama_net }}</b>
+        <span>ortalama net</span>
+    </div>
+    <div class="cizgi"></div>
+    <p class="denemeler">
+        {% for deneme in rapor.denemeler %}
+            {{ deneme.ad }} ({{ deneme.tarih|date:"d.m.Y" }}){% if not forloop.last %} · {% endif %}
+        {% endfor %}
+    </p>
+
+    {% if rapor.dersler %}
+    <table class="kartlar">
+        {% for ders in rapor.dersler %}
+        {% if forloop.counter0|divisibleby:2 %}<tr>{% endif %}
+            <td class="kart {% cycle 't0' 't1' 't2' %}">
+                <table class="kart-ust"><tr>
+                    <td class="ders">{{ ders.ad }}</td>
+                    <td class="sinif {{ ders.durum }}">sınıf {{ ders.sinif_net }}</td>
+                </tr></table>
+                <div class="kart-net">{{ ders.net }}</div>
+                <div class="kart-alt">D {{ ders.dogru }} · Y {{ ders.yanlis }} · B {{ ders.bos }}{% if ders.dogru_yuzde != None %} · %{{ ders.dogru_yuzde }} doğru{% endif %}</div>
+            </td>
+        {% if forloop.counter|divisibleby:2 or forloop.last %}</tr>{% endif %}
+        {% endfor %}
+    </table>
+    {% endif %}
+
+    {% if rapor.kayiplar %}
+    <h2>Asıl kayıp</h2>
+    <table class="dokum">
+        <thead>
+            <tr>
+                <th>Konu</th>
+                <th class="n">Soru</th>
+                <th class="n">Yanlış</th>
+                <th class="n">Boş</th>
+                <th class="n">%</th>
+                <th class="n">Sınıf</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for satir in rapor.kayiplar %}
+            <tr>
+                <td>
+                    <strong>{{ satir.konu }}</strong><br>
+                    <span style="color:#5c6b80;">{{ satir.ders }} · kayıp {{ satir.kaynak }}</span>
+                </td>
+                <td class="n">{{ satir.soru }}</td>
+                <td class="n">{{ satir.yanlis }}</td>
+                <td class="n">{{ satir.bos }}</td>
+                <td class="n zayif">{% if satir.yuzde != None %}%{{ satir.yuzde }}{% else %}—{% endif %}</td>
+                <td class="n">{% if satir.sinif_yuzde != None %}%{{ satir.sinif_yuzde }}{% else %}—{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if rapor.konular %}
+    {% for grup in rapor.konular %}
+    <h2>{{ grup.ders }}</h2>
+    <table class="dokum">
+        <thead>
+            <tr>
+                <th>Konu</th>
+                <th class="n">Soru</th>
+                <th class="n">Doğru</th>
+                <th class="n">Yanlış</th>
+                <th class="n">Boş</th>
+                <th class="n">%</th>
+                <th class="n">Sınıf</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for satir in grup.satirlar %}
+            <tr>
+                <td>{{ satir.konu }}</td>
+                <td class="n">{{ satir.soru }}</td>
+                <td class="n">{{ satir.dogru }}</td>
+                <td class="n">{{ satir.yanlis }}</td>
+                <td class="n">{{ satir.bos }}</td>
+                <td class="n{% if satir.yuzde != None and satir.yuzde < 50 %} zayif{% endif %}">{% if satir.yuzde != None %}%{{ satir.yuzde }}{% else %}—{% endif %}</td>
+                <td class="n">{% if satir.sinif_yuzde != None %}%{{ satir.sinif_yuzde }}{% else %}—{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endfor %}
+    {% else %}
+    <p class="bos">Seçilen denemelerde soru karnesi yok. Konu dökümü oluşmadı.</p>
+    {% endif %}
+</body>
+</html>

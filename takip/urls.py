@@ -12,6 +12,7 @@ from . import finans_views
 from . import rehberlik_views
 from . import disiplin_views
 from . import gunluk_takip_views
+from . import cisa_views
 from . import deneme_views
 from . import etut_kontrol_views
 from . import yazili_takip_views
@@ -282,6 +283,8 @@ urlpatterns = [
         name="talebe_liste_excel",
     ),
     path("talebe/<int:talebe_id>/", views.talebe_detay, name="talebe_detay"),
+    path("talebe/<int:talebe_id>/cisa/", cisa_views.cisa_sec, name="cisa_sec"),
+    path("talebe/<int:talebe_id>/cisa.pdf", cisa_views.cisa_pdf, name="cisa_pdf"),
     path(
         "talebe/<int:talebe_id>/profil-karne-pdf/",
         views.talebe_profil_karne_pdf,
