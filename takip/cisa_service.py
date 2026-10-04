@@ -243,6 +243,7 @@ def cisa_rapor(talebe: Talebe, deneme_ids: list[int]) -> dict | None:
             fark = tr_ondalik(abs(net - sinif_net))
         dersler.append(
             {
+                "kod": kod,
                 "ad": kova["ad"],
                 "net": tr_ondalik(net) if net is not None else "—",
                 "sinif_net": tr_ondalik(sinif_net) if sinif_net is not None else "—",
