@@ -943,12 +943,22 @@ body.v3-body .dk-page .dk-ozet-grid {
 body.v3-body .dk-page .dk-metrik,
 body.v3-body .dk-page .dk-panel {
     background: var(--cs-surface, #fff);
-    border: 1px solid var(--cs-border);
+    border: 1px solid color-mix(in srgb, var(--cs-primary) 68%, #fff);
     border-radius: var(--cs-radius-lg, 18px);
     box-shadow: var(--cs-shadow-sm);
     padding: 16px 16px 14px;
     min-width: 0;
 }
+
+body.v3-body .dk-page .dk-ozet-grid > .dk-metrik:nth-child(1) { border-color: #7f96bd; }
+body.v3-body .dk-page .dk-ozet-grid > .dk-metrik:nth-child(2) { border-color: #c2ae86; }
+body.v3-body .dk-page .dk-ozet-grid > .dk-metrik:nth-child(3) { border-color: #86b09a; }
+body.v3-body .dk-page .dk-ozet-grid > .dk-metrik:nth-child(4) { border-color: #b59a8c; }
+body.v3-body .dk-page .dk-split > .dk-panel:nth-child(1) { border-color: #c4a3a8; }
+body.v3-body .dk-page .dk-nokta-menu { border-color: #8aafb8; }
+body.v3-body .dk-page .dk-yukselis { border-color: #9aa3bd; }
+body.v3-body .dk-page .dk-nokta-kutular .dk-menu-satir:nth-child(1) { border-color: #6f93c4; }
+body.v3-body .dk-page .dk-nokta-kutular .dk-menu-satir:nth-child(2) { border-color: #6ea890; }
 
 body.v3-body .dk-page .dk-metrik-uyari {
     background: var(--cs-warning-bg);
@@ -1032,9 +1042,10 @@ body.v3-body .dk-page .dk-split {
 
 body.v3-body .dk-page .dk-panel-head {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    gap: 8px;
+    gap: 12px;
+    margin-bottom: 16px;
 }
 
 body.v3-body .dk-page .dk-sayac {
@@ -1090,9 +1101,9 @@ body.v3-body .dk-page .dk-menu-satir {
     min-height: var(--cs-touch-min, 44px);
     margin-top: 8px;
     padding: 10px 12px;
-    border: 1px solid var(--cs-border);
+    border: 1px solid color-mix(in srgb, var(--cs-primary) 68%, #fff);
     border-radius: var(--cs-radius-md, 14px);
-    background: var(--cs-surface-muted, #f8fafc);
+    background: var(--cs-surface, #fff);
     color: var(--cs-text-primary, #0f203c);
     text-decoration: none;
 }
@@ -1171,7 +1182,7 @@ body.v3-body .dk-page .dk-ozet-uc {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0;
     background: var(--cs-surface, #fff);
-    border: 1px solid var(--cs-border);
+    border: 1px solid color-mix(in srgb, var(--cs-primary) 68%, #fff);
     border-radius: var(--cs-radius-lg, 18px);
     box-shadow: var(--cs-shadow-sm);
     overflow: hidden;
@@ -1423,7 +1434,7 @@ body.v3-body .dk-page .dk-mini-not::before {
 }
 
 body.v3-body .dk-page .dk-gelisim-satir {
-    margin: 14px 0 0;
+    margin: 8px 0 0;
     font-size: 15px;
     font-weight: 600;
     line-height: 1.45;
@@ -1490,7 +1501,7 @@ body.v3-body .dk-page .dk-nokta-kutular {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
-    margin-top: 14px;
+    margin-top: 0;
 }
 
 body.v3-body .dk-page .dk-nokta-kutular .dk-menu-satir {
@@ -1548,22 +1559,48 @@ body.v3-body .dk-page .dk-yukselis {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     column-gap: var(--cs-space-4, 16px);
+    row-gap: 24px;
     align-items: center;
 }
 
-body.v3-body .dk-page .dk-yukselis > .dk-panel-head {
+body.v3-body .dk-page .dk-panel.dk-yukselis > .dk-panel-head {
     grid-column: 1;
     grid-row: 1;
+    margin-bottom: 0;
+    align-self: center;
+}
+
+body.v3-body .dk-page .dk-panel.dk-yukselis > .dk-panel-head h2 {
+    margin: 0 !important;
+    font-family: var(--cs-font), Poppins, "Segoe UI", sans-serif !important;
+    font-size: 1.35rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
+    line-height: 1.2 !important;
+    color: var(--cs-text-primary, #0f203c) !important;
+}
+
+body.v3-body .dk-page .dk-panel.dk-yukselis > .dk-panel-head .dk-note {
+    margin: 4px 0 0;
 }
 
 body.v3-body .dk-page .dk-yukselis-araclar {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    align-items: center;
     justify-content: flex-end;
     gap: var(--cs-space-2, 8px);
     grid-column: 2;
     grid-row: 1;
     margin: 0;
+    align-self: center;
+}
+
+body.v3-body .dk-page .dk-yukselis-araclar .dk-yukselis-ara {
+    flex: 0 1 240px;
+    width: 240px;
+    min-width: 160px;
+    max-width: 240px;
 }
 
 body.v3-body .dk-page .dk-yukselis > .dk-kazanim-wrap,
@@ -1662,7 +1699,17 @@ body.v3-body .dk-page .dk-tablo-alt {
     body.v3-body .dk-page .dk-yukselis > .dk-yukselis-araclar {
         grid-column: 1;
         grid-row: auto;
-        margin-top: 12px;
+        justify-content: flex-start;
+        width: 100%;
+        min-width: 0;
+        margin-top: 0;
+    }
+
+    body.v3-body .dk-page .dk-yukselis-araclar .dk-yukselis-ara {
+        flex: 1 1 auto;
+        width: auto;
+        min-width: 0;
+        max-width: none;
     }
 }
 
