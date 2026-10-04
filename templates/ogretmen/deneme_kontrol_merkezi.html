@@ -130,7 +130,7 @@
                     <input type="search" class="dk-cisa-ara" placeholder="Talebe ara..." aria-label="Talebe ara" autocomplete="off">
                 </div>
                 {% if grup.cisa_denemeler %}
-                <button class="primary-btn dk-cisa-sinif" type="submit" name="toplu" value="1">{{ secili.etiket }} raporlarını indir</button>
+                <button class="primary-btn dk-cisa-sinif" type="submit" name="sinif_rapor" value="{{ grup.sinif.id }}">{{ secili.etiket }} raporunu indir</button>
                 {% endif %}
                 <ul class="dk-cisa-liste">
                     {% for talebe in grup.cisa_talebeler %}
@@ -183,9 +183,9 @@
                 {% if grup.cisa_denemeler %}
                 <div class="dk-cisa-siniflar">
                     {% for uye in grup.uyeler %}
-                    <button class="primary-btn dk-cisa-sinif" type="submit" name="sinif" value="{{ uye.id }}">{{ uye.sube }} grubu raporunu indir</button>
+                    <button class="primary-btn dk-cisa-sinif" type="submit" name="sinif_rapor" value="{{ uye.id }}">{{ uye.sube }} grubu raporunu indir</button>
                     {% endfor %}
-                    <button class="primary-btn dk-cisa-sinif" type="submit" name="sinif" value="{{ grup.cisa_sinif_idleri }}">Tüm sınıf raporunu indir</button>
+                    <button class="primary-btn dk-cisa-sinif" type="submit" name="sinif_rapor" value="{{ grup.cisa_sinif_idleri }}">Tüm sınıf raporunu indir</button>
                 </div>
                 {% endif %}
                 <div class="dk-cisa-ust">

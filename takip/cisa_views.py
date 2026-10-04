@@ -14,7 +14,12 @@ from django.urls import reverse
 from django.utils.timezone import now
 from django.views.decorators.http import require_POST
 
-from takip.cisa_service import cisa_deneme_listesi, cisa_rapor, cisa_sinif_denemeleri
+from takip.cisa_service import (
+    cisa_deneme_listesi,
+    cisa_rapor,
+    cisa_sinif_denemeleri,
+    cisa_sinif_raporu,
+)
 from takip.deneme_kontrol_service import (
     deneme_kontrol_hocalari,
     hoca_sinif_secenekleri,
@@ -54,6 +59,7 @@ def _cisa_gruplar(request) -> list[dict]:
                 {
                     "id": sinif.id,
                     "etiket": kart.etiket,
+                    "seviye": sinif.sinif,
                     "talebeler": ogretmen_sinif_ogrencileri(hoca, sinif),
                 }
             )
@@ -164,6 +170,10 @@ def cisa_denemeler(request):
                 f"PDF oluşturulamadı. (Motor: {pdf_engine_status()})",
             )
 
+        ham_rapor = request.POST.get("sinif_rapor", "")
+        if str(ham_rapor).strip():
+            return _sinif_raporu_pdf(request, gruplar, ham_rapor, secilen, sinif_id)
+
         return _toplu_pdf(request, talebeler, secilen, sinif_id)
 
     return render(
@@ -219,6 +229,50 @@ def _benzersiz_ad(ad: str, kullanilan: set[str]) -> str:
             kullanilan.add(aday)
             return aday
         sira += 1
+
+
+def _rapor_basligi(secili: list[dict]) -> str:
+    if len(secili) == 1:
+        return secili[0]["etiket"]
+    seviyeler = []
+    for grup in secili:
+        seviye = grup.get("seviye") or ""
+        if seviye not in seviyeler:
+            seviyeler.append(seviye)
+    if len(seviyeler) == 1:
+        ham = seviyeler[0]
+        return f"{ham}. Sınıf" if str(ham).isdigit() else (ham or "Sınıf")
+    return " · ".join(grup["etiket"] for grup in secili)
+
+
+def _sinif_raporu_pdf(request, gruplar, ham_rapor: str, secilen: list[int], sinif_id: int | None):
+    istenen = []
+    for parca in str(ham_rapor).split(","):
+        parca = parca.strip()
+        if parca.isdigit():
+            istenen.append(int(parca))
+    izinli = {grup["id"]: grup for grup in gruplar}
+    secili = [izinli[sinif] for sinif in istenen if sinif in izinli]
+    if not secili:
+        messages.warning(request, "Bu sınıf senin sorumluluğunda değil.")
+        return redirect(_cisa_adres(sinif_id))
+    talebeler = _talebe_listesi(secili)
+    baslik = _rapor_basligi(secili)
+    rapor = cisa_sinif_raporu(talebeler, secilen, baslik)
+    if rapor is None:
+        messages.warning(request, "Seçilen denemelerde sınıf raporu oluşmadı.")
+        return redirect(_cisa_adres(sinif_id))
+    html = render(
+        request,
+        "cisa_sinif_pdf.html",
+        {"rapor": rapor},
+    ).content.decode("utf-8")
+    pdf_verisi = html_to_pdf(html, base_url=request.build_absolute_uri("/"))
+    if not pdf_verisi:
+        return pdf_error_response(
+            f"PDF oluşturulamadı. (Motor: {pdf_engine_status()})",
+        )
+    return make_pdf_response(pdf_verisi, _pdf_adi(baslik))
 
 
 @login_required
