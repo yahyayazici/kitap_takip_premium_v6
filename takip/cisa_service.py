@@ -372,3 +372,237 @@ def _konu_dokumu(talebe: Talebe, ids: list[int], sinif: Q):
         kayiplar.append({**satir, "kaynak": kaynak, "kacirilan": kacirilan})
     kayiplar.sort(key=lambda s: (-s["kacirilan"], s["yuzde"] if s["yuzde"] is not None else 0))
     return konular, kayiplar[:5]
+
+
+def _yuzde_ort(yuzdeler: list[int]) -> int | None:
+    if not yuzdeler:
+        return None
+    return int(
+        (Decimal(sum(yuzdeler)) / Decimal(len(yuzdeler))).quantize(
+            Decimal("1"), rounding=ROUND_HALF_UP
+        )
+    )
+
+
+def _yuzde_renk(yuzde: int | None) -> str:
+    """Düşük toz kiremit, orta haki, yüksek toz yeşil."""
+    if yuzde is None:
+        return "#5c6b80"
+    durak = (
+        (30, 4, 48, 40),
+        (55, 36, 26, 36),
+        (80, 152, 40, 31),
+    )
+    y = min(80, max(30, int(yuzde)))
+    for (alt, ah, ass, al), (ust, uh, us, ul) in zip(durak, durak[1:]):
+        if y <= ust:
+            pay = Decimal(y - alt) / Decimal(ust - alt)
+            h = float(Decimal(ah) + (Decimal(uh) - Decimal(ah)) * pay)
+            s = float(Decimal(ass) + (Decimal(us) - Decimal(ass)) * pay)
+            l = float(Decimal(al) + (Decimal(ul) - Decimal(al)) * pay)
+            return f"hsl({h:.0f} {s:.0f}% {l:.0f}%)"
+    return "hsl(152 40% 31%)"
+
+
+def cisa_sinif_raporu(talebeler: list[Talebe], deneme_ids: list[int], baslik: str) -> dict | None:
+    """Seçilen denemelerin sınıf raporu. Doğru, yanlış ve boş öğrenci ortalamasıdır."""
+    istenen = {int(i) for i in deneme_ids if str(i).isdigit() or isinstance(i, int)}
+    talebe_ids = [t.id for t in talebeler]
+    if not istenen or not talebe_ids:
+        return None
+    sonuclar = list(
+        DenemeSonucu.objects.filter(
+            talebe_id__in=talebe_ids,
+            deneme_id__in=istenen,
+            deneme__durum=DenemeSinavi.Durum.AKTIF,
+        )
+        .select_related("deneme", "talebe")
+        .prefetch_related("brans_satirlari")
+        .order_by("deneme__sinav_tarihi", "deneme_id", "talebe_id")
+    )
+    if not sonuclar:
+        return None
+
+    sinavlar = []
+    gorulen_sinav: set[int] = set()
+    for sonuc in sonuclar:
+        if sonuc.deneme_id in gorulen_sinav:
+            continue
+        gorulen_sinav.add(sonuc.deneme_id)
+        sinavlar.append(sonuc.deneme)
+
+    adlar = {t.id: t.ad_soyad or "" for t in talebeler}
+    toplam_net: dict[int, list[Decimal]] = defaultdict(list)
+    brans: dict[int, dict[str, dict]] = defaultdict(dict)
+    for sonuc in sonuclar:
+        adlar[sonuc.talebe_id] = sonuc.talebe.ad_soyad or adlar.get(sonuc.talebe_id, "")
+        toplam_net[sonuc.talebe_id].append(Decimal(sonuc.toplam_net or 0))
+        for satir in sonuc.brans_satirlari.all():
+            kova = brans[sonuc.talebe_id].get(satir.brans)
+            if kova is None:
+                kova = {"net": [], "d": [], "y": [], "b": [], "sinav": {}}
+                brans[sonuc.talebe_id][satir.brans] = kova
+            kova["net"].append(Decimal(satir.net or 0))
+            kova["d"].append(Decimal(int(satir.dogru or 0)))
+            kova["y"].append(Decimal(int(satir.yanlis or 0)))
+            kova["b"].append(Decimal(int(satir.bos or 0)))
+            kova["sinav"][sonuc.deneme_id] = Decimal(satir.net or 0)
+
+    okunur = {
+        "turkce": "Türkçe",
+        "sosyal": "Sosyal Bilgiler",
+        "din": "Din Kültürü",
+        "ingilizce": "İngilizce",
+        "matematik": "Matematik",
+        "fen": "Fen Bilimleri",
+    }
+    dersler = []
+    siralamalar = []
+    son_id = sinavlar[-1].id if sinavlar else None
+    onceki_id = sinavlar[-2].id if len(sinavlar) >= 2 else None
+    for kod, _etiket in DENEME_KARNE_DERSLERI:
+        ort_netler = []
+        ort_dogru = []
+        ort_yanlis = []
+        ort_bos = []
+        yuzdeler = []
+        sira = []
+        son_netler = []
+        onceki_netler = []
+        for tid, ders_map in brans.items():
+            kova = ders_map.get(kod)
+            if not kova or not kova["net"]:
+                continue
+            net = _ort(kova["net"])
+            ort_netler.append(net)
+            ort_dogru.append(_ort(kova["d"]))
+            ort_yanlis.append(_ort(kova["y"]))
+            ort_bos.append(_ort(kova["b"]))
+            dogru_toplam = sum(kova["d"], Decimal("0"))
+            yanlis_toplam = sum(kova["y"], Decimal("0"))
+            bos_toplam = sum(kova["b"], Decimal("0"))
+            yuzde = _yuzde(int(dogru_toplam), int(dogru_toplam + yanlis_toplam + bos_toplam))
+            if yuzde is not None:
+                yuzdeler.append(yuzde)
+            sira.append({"ad": adlar.get(tid, ""), "net": net, "net_yazi": tr_ondalik(net)})
+            if son_id in kova["sinav"]:
+                son_netler.append(kova["sinav"][son_id])
+            if onceki_id in kova["sinav"]:
+                onceki_netler.append(kova["sinav"][onceki_id])
+        if not ort_netler:
+            continue
+        sira.sort(key=lambda satir: (-satir["net"], satir["ad"]))
+        cumle = "Tek deneme"
+        yon = ""
+        son = _ort(son_netler)
+        onceki = _ort(onceki_netler)
+        if son is not None and onceki is not None:
+            cumle = f"Son deneme {tr_ondalik(son)} · önceki {tr_ondalik(onceki)}"
+            if son > onceki:
+                yon = "iyi"
+            elif son < onceki:
+                yon = "geri"
+        dogru_yuzde = _yuzde_ort(yuzdeler)
+        dersler.append(
+            {
+                "kod": kod,
+                "ad": okunur.get(kod, kod),
+                "net": tr_ondalik(_ort(ort_netler)),
+                "dogru": tr_ondalik(_ort(ort_dogru)),
+                "yanlis": tr_ondalik(_ort(ort_yanlis)),
+                "bos": tr_ondalik(_ort(ort_bos)),
+                "dogru_yuzde": dogru_yuzde,
+                "renk": _yuzde_renk(dogru_yuzde),
+                "cumle": cumle,
+                "yon": yon,
+            }
+        )
+        siralamalar.append({"kod": kod, "ad": okunur.get(kod, kod), "talebeler": sira})
+
+    konu_ogrenci: dict[tuple, dict] = {}
+    for kayit in DenemeSoruSonucu.objects.filter(
+        deneme_id__in=gorulen_sinav,
+        talebe_id__in=list(toplam_net),
+    ).only("talebe_id", "ders_key", "ders_ad", "konu_ad", "sonuc"):
+        kod = _ders_kodu(kayit.ders_key, kayit.ders_ad)
+        konu = (kayit.konu_ad or "").strip() or "Belirtilmemiş"
+        anahtar = (kod, konu.casefold())
+        kova = konu_ogrenci.get(anahtar)
+        if kova is None:
+            kova = {
+                "kod": kod,
+                "ders": _ders_baslik(kod, kayit.ders_ad),
+                "konu": konu,
+                "talebe": {},
+            }
+            konu_ogrenci[anahtar] = kova
+        sayac = kova["talebe"].get(kayit.talebe_id)
+        if sayac is None:
+            sayac = {"dogru": 0, "yanlis": 0, "bos": 0}
+            kova["talebe"][kayit.talebe_id] = sayac
+        if kayit.sonuc == DenemeSoruSonucu.Sonuc.DOGRU:
+            sayac["dogru"] += 1
+        elif kayit.sonuc == DenemeSoruSonucu.Sonuc.YANLIS:
+            sayac["yanlis"] += 1
+        else:
+            sayac["bos"] += 1
+
+    sinif_n = len(toplam_net)
+    satirlar = []
+    for kova in konu_ogrenci.values():
+        goren = len(kova["talebe"])
+        dogru = yanlis = bos = 0
+        zayif = 0
+        for sayac in kova["talebe"].values():
+            dogru += sayac["dogru"]
+            yanlis += sayac["yanlis"]
+            bos += sayac["bos"]
+            kişisel = _yuzde(sayac["dogru"], sayac["dogru"] + sayac["yanlis"] + sayac["bos"])
+            if kişisel is not None and kişisel < 50:
+                zayif += 1
+        yuzde = _yuzde(dogru, dogru + yanlis + bos)
+        satirlar.append(
+            {
+                "kod": kova["kod"],
+                "ders": kova["ders"],
+                "konu": kova["konu"],
+                "yuzde": yuzde,
+                "renk": _yuzde_renk(yuzde),
+                "zayif": zayif,
+                "goren": goren,
+                "yarisi": Decimal(goren) * 2 >= Decimal(sinif_n),
+                "kaynak": "yanlıştan" if yanlis >= bos else "boştan",
+                "kacirilan": yanlis + bos,
+            }
+        )
+
+    kayiplar = [s for s in satirlar if s["yarisi"] and s["kacirilan"] > 0]
+    kayiplar.sort(key=lambda s: (s["yuzde"] if s["yuzde"] is not None else 0, -s["kacirilan"], s["konu"]))
+    kayiplar = kayiplar[:5]
+
+    gruplar: dict[str, dict] = {}
+    for satir in satirlar:
+        grup = gruplar.get(satir["kod"])
+        if grup is None:
+            grup = {"kod": satir["kod"], "ders": satir["ders"], "satirlar": []}
+            gruplar[satir["kod"]] = grup
+        grup["satirlar"].append(satir)
+    for grup in gruplar.values():
+        grup["satirlar"].sort(
+            key=lambda s: (s["yuzde"] is None, s["yuzde"] if s["yuzde"] is not None else 0, s["konu"])
+        )
+    konular = sorted(gruplar.values(), key=lambda g: (_DERS_SIRA.get(g["kod"], 50), g["ders"]))
+
+    ogrenci_ort = [_ort(netler) for netler in toplam_net.values()]
+    return {
+        "baslik": baslik,
+        "ogrenci": sinif_n,
+        "deneme_sayisi": len(sinavlar),
+        "baslangic": sinavlar[0].sinav_tarihi,
+        "bitis": sinavlar[-1].sinav_tarihi,
+        "ortalama_net": tr_ondalik(_ort(ogrenci_ort)),
+        "dersler": dersler,
+        "kayiplar": kayiplar,
+        "konular": konular,
+        "siralamalar": siralamalar,
+    }

@@ -12,7 +12,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from takip.cisa_service import cisa_deneme_listesi, cisa_rapor
+from takip.cisa_service import cisa_deneme_listesi, cisa_rapor, cisa_sinif_raporu
 from takip.deneme_models import (
     DenemeBransSonucu,
     DenemeSinavi,
@@ -320,47 +320,65 @@ class CisaRaporTests(TestCase):
         self.assertContains(sayfa, "A grubu raporunu indir")
         self.assertContains(sayfa, "B grubu raporunu indir")
         self.assertContains(sayfa, "Tüm sınıf raporunu indir")
-        self.assertIn(f'name="sinif" value="{self.sinif.id}"', html)
-        self.assertIn(f'name="sinif" value="{self.diger_sinif.id}"', html)
+        self.assertIn(f'name="sinif_rapor" value="{self.sinif.id}"', html)
+        self.assertIn(f'name="sinif_rapor" value="{self.diger_sinif.id}"', html)
         self.assertIn(
-            f'name="sinif" value="{self.sinif.id},{self.diger_sinif.id}"',
+            f'name="sinif_rapor" value="{self.sinif.id},{self.diger_sinif.id}"',
             html,
         )
         self.assertIn(f'name="talebe" value="{self.ali.id}"', html)
         self.assertIn(f'name="talebe" value="{self.baska.id}"', html)
         self.assertNotIn(reverse("cisa_sec", args=[self.ali.id]), html)
 
-        with patch("takip.cisa_views.html_to_pdf", return_value=b"%PDF-1.4 fake"):
+        rapor = cisa_sinif_raporu(
+            [self.ali, self.ayse],
+            [self.ocak.id, self.subat.id],
+            "8-A",
+        )
+        turkce = rapor["dersler"][0]
+        self.assertEqual(rapor["baslik"], "8-A")
+        self.assertEqual(rapor["ortalama_net"], "62,50")
+        self.assertEqual(turkce["net"], "7,00")
+        self.assertEqual(turkce["dogru"], "6,50")
+        self.assertNotEqual(turkce["dogru"], "26")
+        self.assertEqual(rapor["siralamalar"][0]["talebeler"][0]["ad"], "Ali Çisa")
+        self.assertEqual(rapor["siralamalar"][0]["talebeler"][0]["net_yazi"], "8,00")
+        self.assertEqual(rapor["siralamalar"][0]["talebeler"][1]["ad"], "Ayşe Çisa")
+        konular = [s["konu"] for g in rapor["konular"] for s in g["satirlar"]]
+        self.assertIn("Paragraf", konular)
+        kayip_konu = [s["konu"] for s in rapor["kayiplar"]]
+        self.assertIn("Paragraf", kayip_konu)
+        self.assertNotIn("Sözcükte anlam", kayip_konu)
+
+        with patch("takip.cisa_views.html_to_pdf", return_value=b"%PDF-1.4 fake") as mock_pdf:
             a_grubu = self.client.post(
                 reverse("cisa_denemeler"),
-                {"deneme": [self.ocak.id], "sinif": str(self.sinif.id)},
+                {"deneme": [self.ocak.id, self.subat.id], "sinif_rapor": str(self.sinif.id)},
             )
             tum = self.client.post(
                 reverse("cisa_denemeler"),
                 {
                     "deneme": [self.ocak.id, self.yabanci.id],
-                    "sinif": f"{self.sinif.id},{self.diger_sinif.id}",
+                    "sinif_rapor": f"{self.sinif.id},{self.diger_sinif.id}",
                 },
             )
-            yabanci_karisik = self.client.post(
+            paket = self.client.post(
                 reverse("cisa_denemeler"),
-                {
-                    "deneme": [self.yabanci.id],
-                    "sinif": f"{self.diger_sinif.id},999999",
-                },
+                {"deneme": [self.ocak.id], "toplu": "1", "sinif": str(self.sinif.id)},
             )
         self.assertEqual(a_grubu.status_code, 200)
-        self.assertEqual(a_grubu["Content-Type"], "application/zip")
-        with zipfile.ZipFile(io.BytesIO(a_grubu.content)) as arsiv:
-            self.assertEqual(len(arsiv.namelist()), 2)
-            self.assertTrue(any("Ali" in ad for ad in arsiv.namelist()))
-            self.assertFalse(any("Başka" in ad for ad in arsiv.namelist()))
-        self.assertEqual(tum.status_code, 200)
-        with zipfile.ZipFile(io.BytesIO(tum.content)) as arsiv:
-            adlar = arsiv.namelist()
-            self.assertEqual(len(adlar), 3)
-            self.assertTrue(any("Başka" in ad for ad in adlar))
-        self.assertEqual(yabanci_karisik.status_code, 200)
-        with zipfile.ZipFile(io.BytesIO(yabanci_karisik.content)) as arsiv:
-            self.assertEqual(len(arsiv.namelist()), 1)
-            self.assertIn("Başka", arsiv.namelist()[0])
+        self.assertEqual(a_grubu["Content-Type"], "application/pdf")
+        self.assertNotEqual(a_grubu["Content-Type"], "application/zip")
+        a_html = mock_pdf.call_args_list[0][0][0]
+        self.assertIn("8-A", a_html)
+        self.assertIn("Ali Çisa", a_html)
+        self.assertIn("Ayşe Çisa", a_html)
+        self.assertNotIn("Başka Talebe", a_html)
+        self.assertIn("Konu dökümü", a_html)
+        self.assertIn("Asıl kayıp", a_html)
+        self.assertIn('class="kayip"', a_html)
+        tum_html = mock_pdf.call_args_list[1][0][0]
+        self.assertIn("8. Sınıf", tum_html)
+        self.assertIn("Başka Talebe", tum_html)
+        self.assertEqual(paket.status_code, 200)
+        self.assertEqual(paket["Content-Type"], "application/zip")
