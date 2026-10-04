@@ -33,7 +33,7 @@
             color: #083888;
             font-size: 11px;
         }
-        .logo { display: block; width: 78mm; margin: 0 auto 4mm; }
+        .logo { display: block; width: 78mm; margin: 0 auto 8mm; }
         table.kapak-satir {
             width: 100%;
             border-collapse: collapse;
@@ -87,12 +87,30 @@
         }
         td.kart {
             width: 50%;
-            background: #fff;
-            border: 1px solid #e4e8ef;
+            background: #fbfcfe;
+            border: 0.25mm solid #d5deea;
             border-radius: 3.2mm;
             padding: 3.2mm 3.2mm 2.8mm;
             vertical-align: top;
         }
+        td.kart.turkce { background: #f5f7fb; border-color: #c5d2e4; }
+        td.kart.sosyal { background: #faf8f3; border-color: #e0d6be; }
+        td.kart.din { background: #f8f6f4; border-color: #ddd4cc; }
+        td.kart.ingilizce { background: #f4f8f9; border-color: #c7d8df; }
+        td.kart.matematik { background: #f7f6f4; border-color: #ddd6c8; }
+        td.kart.fen { background: #f4f8f5; border-color: #c8ddd0; }
+        td.kart.turkce .cubuk { background: #e6edf6; }
+        td.kart.sosyal .cubuk { background: #f3eee4; }
+        td.kart.din .cubuk { background: #efeae6; }
+        td.kart.ingilizce .cubuk { background: #e6eef1; }
+        td.kart.matematik .cubuk { background: #efebe4; }
+        td.kart.fen .cubuk { background: #e6f1ea; }
+        td.kart.turkce .dolu { background: #8aa4c4; }
+        td.kart.sosyal .dolu { background: #c4b48e; }
+        td.kart.din .dolu { background: #b7a79e; }
+        td.kart.ingilizce .dolu { background: #8aafb8; }
+        td.kart.matematik .dolu { background: #b3a890; }
+        td.kart.fen .dolu { background: #8fb5a0; }
         table.kart-bas, table.kart-orta {
             width: 100%;
             border-collapse: collapse;
@@ -190,7 +208,7 @@
             font-size: 13px;
             font-weight: 700;
         }
-        h2.kayip { color: #c62828; }
+        h2.kayip { color: #c62828; margin-top: 6mm; }
         .sayfa {
             break-before: page;
             page-break-before: always;
@@ -244,7 +262,7 @@
     <table class="kartlar">
         {% for ders in rapor.dersler %}
         {% if forloop.counter0|divisibleby:2 %}<tr>{% endif %}
-            <td class="kart">
+            <td class="kart {{ ders.kod }}">
                 <table class="kart-bas"><tr>
                     <td class="ders">{{ ders.ad }}</td>
                     <td class="rozet">{% if ders.dogru_yuzde != None %}<span>%{{ ders.dogru_yuzde }} doğruluk</span>{% endif %}</td>
