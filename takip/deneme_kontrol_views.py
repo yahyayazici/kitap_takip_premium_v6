@@ -6,7 +6,6 @@ from types import SimpleNamespace
 
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
 
 from takip.deneme_gelisim_service import talebe_deneme_gelisim_paketi
 from takip.deneme_kontrol_service import (
@@ -63,7 +62,16 @@ def _seviye_gruplari(gruplar: list[dict], sirala: str) -> list[dict]:
             etiket=seviye_etiketi(seviye),
             ogrenci_sayisi=len(ogrenciler),
         )
-        sonuc.append({"kart": kart, "veri": veri})
+        sonuc.append(
+            {
+                "kart": kart,
+                "veri": veri,
+                "uyeler": [
+                    {"id": uye["sinif"].id, "etiket": uye["kart"].etiket}
+                    for uye in uyeler
+                ],
+            }
+        )
     return sonuc
 
 
@@ -81,7 +89,8 @@ def deneme_kontrol_merkezi(request, sinif_id: int | None = None):
 
     sirala = (request.GET.get("sirala") or "puan").strip()
     ekran = (request.GET.get("ekran") or "").strip()
-    if ekran != "kazanim":
+    cisa_acik = can(request.user, "deneme", "export_pdf")
+    if ekran not in ("kazanim", "cisa") or (ekran == "cisa" and not cisa_acik):
         ekran = "yukselis"
     siniflar = []
     gruplar = []
@@ -99,6 +108,16 @@ def deneme_kontrol_merkezi(request, sinif_id: int | None = None):
     gosterilen_id = sinif_id if any(kart.id == sinif_id for kart in siniflar) else None
     if not gosterilen_id and len(siniflar) > 1:
         gruplar = _seviye_gruplari(gruplar, sirala)
+    if ekran == "cisa":
+        from takip.cisa_service import cisa_sinif_denemeleri
+
+        for grup in gruplar:
+            talebeler = sorted(
+                (satir.talebe for satir in grup["veri"]["satirlar"]),
+                key=lambda talebe: talebe.ad_soyad or "",
+            )
+            grup["cisa_talebeler"] = talebeler
+            grup["cisa_denemeler"] = cisa_sinif_denemeleri([t.id for t in talebeler])
 
     return render(
         request,
@@ -109,7 +128,8 @@ def deneme_kontrol_merkezi(request, sinif_id: int | None = None):
             "sirala": sirala,
             "gosterilen_id": gosterilen_id,
             "ekran": ekran,
-            "cisa_acik": can(request.user, "deneme", "export_pdf"),
+            "ekran_sorgu": f"?ekran={ekran}" if ekran in ("kazanim", "cisa") else "",
+            "cisa_acik": cisa_acik,
         },
     )
 
@@ -136,10 +156,5 @@ def deneme_kontrol_ogrenci_detay(request, sinif_id: int, talebe_id: int):
         "deneme_gelisim": talebe_deneme_gelisim_paketi(talebe),
         "kazanimlar": kazanimlar,
         "kazanim_gruplari": kazanimlari_derse_gore(kazanimlar),
-        "cisa_url": (
-            reverse("cisa_sec", args=[talebe.id])
-            if can(request.user, "deneme", "export_pdf")
-            else ""
-        ),
     }
     return render(request, "ogretmen/deneme_kontrol_ogrenci_detay.html", ctx)

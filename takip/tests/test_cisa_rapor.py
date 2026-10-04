@@ -295,4 +295,11 @@ class CisaRaporTests(TestCase):
                 args=[self.sinif.id, self.ali.id],
             )
         )
-        self.assertContains(detay, reverse("cisa_sec", args=[self.ali.id]))
+        self.assertNotContains(detay, reverse("cisa_sec", args=[self.ali.id]))
+        masa = self.client.get(
+            reverse("ogretmen_deneme_kontrol_merkezi_sinif", args=[self.sinif.id])
+            + "?ekran=cisa"
+        )
+        self.assertContains(masa, "cisa-logo.png")
+        self.assertContains(masa, f'name="talebe" value="{self.ali.id}"')
+        self.assertNotContains(masa, "ÇİSA →")

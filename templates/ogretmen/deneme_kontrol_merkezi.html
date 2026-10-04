@@ -2,7 +2,7 @@
 {% load l10n static deneme_panel %}
 {% block title %}Deneme Kontrol Merkezi{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk37">
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk41">
 {% endblock %}
 
 {% block content %}
@@ -18,9 +18,9 @@
 {% if siniflar|length > 1 %}
 <div class="dk-filtre-satir">
 <nav class="dk-switch dk-sinif-switch" aria-label="Sınıf">
-    <a href="{% url 'ogretmen_deneme_kontrol_merkezi' %}{% if ekran == 'kazanim' %}?ekran=kazanim{% endif %}" class="dk-switch-btn{% if not gosterilen_id %} is-active{% endif %}">Tümü</a>
+    <a href="{% url 'ogretmen_deneme_kontrol_merkezi' %}{{ ekran_sorgu }}" class="dk-switch-btn{% if not gosterilen_id %} is-active{% endif %}">Tümü</a>
     {% for s in siniflar %}
-    <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' s.id %}{% if ekran == 'kazanim' %}?ekran=kazanim{% endif %}" class="dk-switch-btn{% if gosterilen_id == s.id %} is-active{% endif %}">{{ s.etiket }}</a>
+    <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' s.id %}{{ ekran_sorgu }}" class="dk-switch-btn{% if gosterilen_id == s.id %} is-active{% endif %}">{{ s.etiket }}</a>
     {% endfor %}
 </nav>
 </div>
@@ -43,11 +43,17 @@
         </div>
         <nav class="dk-pill-nav" aria-label="Ekran">
             {% if gosterilen_id %}
-            <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' gosterilen_id %}" class="dk-pill{% if ekran != 'kazanim' %} is-active{% endif %}">Yükseliş</a>
+            <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' gosterilen_id %}" class="dk-pill{% if ekran == 'yukselis' %} is-active{% endif %}">Yükseliş</a>
             <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' gosterilen_id %}?ekran=kazanim" class="dk-pill{% if ekran == 'kazanim' %} is-active{% endif %}">Kazanımlar</a>
+            {% if cisa_acik %}
+            <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' gosterilen_id %}?ekran=cisa" class="dk-pill dk-pill-cisa{% if ekran == 'cisa' %} is-active{% endif %}" aria-label="ÇİSA"><img src="{% static 'images/cisa-logo.png' %}" alt="ÇİSA"></a>
+            {% endif %}
             {% else %}
-            <a href="{% url 'ogretmen_deneme_kontrol_merkezi' %}" class="dk-pill{% if ekran != 'kazanim' %} is-active{% endif %}">Yükseliş</a>
+            <a href="{% url 'ogretmen_deneme_kontrol_merkezi' %}" class="dk-pill{% if ekran == 'yukselis' %} is-active{% endif %}">Yükseliş</a>
             <a href="{% url 'ogretmen_deneme_kontrol_merkezi' %}?ekran=kazanim" class="dk-pill{% if ekran == 'kazanim' %} is-active{% endif %}">Kazanımlar</a>
+            {% if cisa_acik %}
+            <a href="{% url 'ogretmen_deneme_kontrol_merkezi' %}?ekran=cisa" class="dk-pill dk-pill-cisa{% if ekran == 'cisa' %} is-active{% endif %}" aria-label="ÇİSA"><img src="{% static 'images/cisa-logo.png' %}" alt="ÇİSA"></a>
+            {% endif %}
             {% endif %}
         </nav>
     </header>
@@ -79,6 +85,101 @@
         <p>Yeni kazanımlar eklenir, önceki kazanımlar korunur. Tekrarlanan kazanımların başarı oranı ortalamaya katılır.</p>
         <p>Karşılaştırma, son sonuç ile genel ortalama arasındaki yüzde puan farkını gösterir.</p>
     </div>
+</section>
+{% elif ekran == 'cisa' and cisa_acik %}
+<section class="dk-panel dk-cisa" data-dk-cisa>
+    <header class="dk-panel-head">
+        <div>
+            <h2>ÇİSA</h2>
+            <p class="dk-note">Sınıfı ya da talebeyi seçin. Girilenin raporu alınır.</p>
+        </div>
+    </header>
+    {% if grup.sinif %}
+    <form method="post" action="{% url 'cisa_denemeler' %}">
+        {% csrf_token %}
+        <input type="hidden" name="sinif" value="{{ grup.sinif.id }}">
+        <div class="dk-cisa-iki">
+            <div>
+                <div class="dk-cisa-ust">
+                    <h3>Denemeler</h3>
+                    {% if grup.cisa_denemeler %}
+                    <label class="dk-cisa-tumu"><input type="checkbox" data-dk-cisa-tumu checked> Tümünü seç</label>
+                    {% endif %}
+                </div>
+                {% if grup.cisa_denemeler %}
+                <ul class="dk-cisa-liste">
+                    {% for deneme in grup.cisa_denemeler %}
+                    <li>
+                        <label class="dk-cisa-deneme">
+                            <input type="checkbox" name="deneme" value="{{ deneme.id }}" checked>
+                            <span>
+                                <strong>{{ deneme.ad }}</strong>
+                                <small>{{ deneme.tarih|date:"j F Y" }} · {{ deneme.talebe_sayisi }} öğrenci</small>
+                            </span>
+                        </label>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="dk-empty">Bu sınıfta rapora girecek deneme yok.</p>
+                {% endif %}
+            </div>
+            <div>
+                <div class="dk-cisa-ust">
+                    <h3>Talebeler</h3>
+                    <input type="search" class="dk-cisa-ara" placeholder="Talebe ara..." aria-label="Talebe ara" autocomplete="off">
+                </div>
+                {% if grup.cisa_denemeler %}
+                <button class="primary-btn dk-cisa-sinif" type="submit" name="toplu" value="1">{{ secili.etiket }} raporlarını indir</button>
+                {% endif %}
+                <ul class="dk-cisa-liste">
+                    {% for talebe in grup.cisa_talebeler %}
+                    <li data-ad="{{ talebe.ad_soyad }}">
+                        <button class="ghost-btn dk-cisa-talebe" type="submit" name="talebe" value="{{ talebe.id }}">
+                            <span>{{ talebe.ad_soyad }}</span>
+                            <span class="dk-cisa-git">Rapor</span>
+                        </button>
+                    </li>
+                    {% empty %}
+                    <li><p class="dk-empty">Bu sınıfta talebe yok.</p></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </form>
+    {% else %}
+    <div class="dk-cisa-iki">
+        <div>
+            <h3>Sınıf</h3>
+            <ul class="dk-cisa-liste">
+                {% for uye in grup.uyeler %}
+                <li>
+                    <a class="ghost-btn dk-cisa-talebe" href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' uye.id %}?ekran=cisa">
+                        <span>{{ uye.etiket }}</span>
+                        <span class="dk-cisa-git">Rapor</span>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div>
+            <div class="dk-cisa-ust">
+                <h3>Talebeler</h3>
+                <input type="search" class="dk-cisa-ara" placeholder="Talebe ara..." aria-label="Talebe ara" autocomplete="off">
+            </div>
+            <ul class="dk-cisa-liste">
+                {% for talebe in grup.cisa_talebeler %}
+                <li data-ad="{{ talebe.ad_soyad }}">
+                    <a class="ghost-btn dk-cisa-talebe" href="{% url 'cisa_sec' talebe.id %}">
+                        <span>{{ talebe.ad_soyad }}</span>
+                        <span class="dk-cisa-git">Rapor</span>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
 </section>
 {% elif veri and veri.satirlar %}
 
@@ -248,9 +349,6 @@
                         {% else %}—{% endif %}
                     </td>
                     <td class="n dk-islem">
-                        {% if cisa_acik %}
-                        <a class="dk-cisa" href="{% url 'cisa_sec' satir.talebe.id %}" onclick="event.stopPropagation()">ÇİSA →</a>
-                        {% endif %}
                         <span class="dk-ok" aria-hidden="true"></span>
                     </td>
                 </tr>
@@ -278,6 +376,32 @@
 {% endfor %}
 <script>
 (function () {
+    document.querySelectorAll("[data-dk-cisa]").forEach(function (kok) {
+        var tumu = kok.querySelector("[data-dk-cisa-tumu]");
+        var kutular = kok.querySelectorAll('input[name="deneme"]');
+        var ara = kok.querySelector(".dk-cisa-ara");
+        if (tumu) {
+            tumu.addEventListener("change", function () {
+                kutular.forEach(function (kutu) { kutu.checked = tumu.checked; });
+            });
+            kutular.forEach(function (kutu) {
+                kutu.addEventListener("change", function () {
+                    var n = 0;
+                    kutular.forEach(function (k) { if (k.checked) n += 1; });
+                    tumu.checked = n === kutular.length && kutular.length > 0;
+                });
+            });
+        }
+        if (ara) {
+            ara.addEventListener("input", function () {
+                var sorgu = (ara.value || "").toLocaleLowerCase("tr");
+                kok.querySelectorAll("[data-ad]").forEach(function (satir) {
+                    var ad = (satir.getAttribute("data-ad") || "").toLocaleLowerCase("tr");
+                    satir.hidden = sorgu !== "" && ad.indexOf(sorgu) === -1;
+                });
+            });
+        }
+    });
     document.querySelectorAll("[data-dk-yukselis]").forEach(function (kok) {
         var ara = kok.querySelector(".dk-yukselis-ara");
         var sirala = kok.querySelector(".dk-yukselis-sirala");
