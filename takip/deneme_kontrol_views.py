@@ -67,7 +67,11 @@ def _seviye_gruplari(gruplar: list[dict], sirala: str) -> list[dict]:
                 "kart": kart,
                 "veri": veri,
                 "uyeler": [
-                    {"id": uye["sinif"].id, "etiket": uye["kart"].etiket}
+                    {
+                        "id": uye["sinif"].id,
+                        "etiket": uye["kart"].etiket,
+                        "sube": uye["sinif"].sube,
+                    }
                     for uye in uyeler
                 ],
             }
@@ -118,6 +122,9 @@ def deneme_kontrol_merkezi(request, sinif_id: int | None = None):
             )
             grup["cisa_talebeler"] = talebeler
             grup["cisa_denemeler"] = cisa_sinif_denemeleri([t.id for t in talebeler])
+            uyeler = grup.get("uyeler") or []
+            if uyeler:
+                grup["cisa_sinif_idleri"] = ",".join(str(uye["id"]) for uye in uyeler)
 
     return render(
         request,

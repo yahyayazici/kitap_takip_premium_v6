@@ -303,3 +303,64 @@ class CisaRaporTests(TestCase):
         self.assertContains(masa, "cisa-logo.png")
         self.assertContains(masa, f'name="talebe" value="{self.ali.id}"')
         self.assertNotContains(masa, "ÇİSA →")
+
+    def test_tum_sinifta_grup_ve_tum_sinif_paketi(self):
+        user = User.objects.create_user("cisa-grup", password="x")
+        hoca = EtutHocasi.objects.create(ad_soyad="Grup Çisa", user=user, aktif=True)
+        PersonelProfili.objects.create(
+            user=user,
+            ad_soyad="Grup Çisa",
+            ana_rol=PersonelProfili.Rol.ETUT_MESUL,
+            etut_hocasi=hoca,
+        )
+        hoca.sorumlu_sinif_subeler.add(self.sinif, self.diger_sinif)
+        self.client.force_login(user)
+        sayfa = self.client.get(reverse("ogretmen_deneme_kontrol_merkezi") + "?ekran=cisa")
+        html = sayfa.content.decode()
+        self.assertContains(sayfa, "A grubu raporunu indir")
+        self.assertContains(sayfa, "B grubu raporunu indir")
+        self.assertContains(sayfa, "Tüm sınıf raporunu indir")
+        self.assertIn(f'name="sinif" value="{self.sinif.id}"', html)
+        self.assertIn(f'name="sinif" value="{self.diger_sinif.id}"', html)
+        self.assertIn(
+            f'name="sinif" value="{self.sinif.id},{self.diger_sinif.id}"',
+            html,
+        )
+        self.assertIn(f'name="talebe" value="{self.ali.id}"', html)
+        self.assertIn(f'name="talebe" value="{self.baska.id}"', html)
+        self.assertNotIn(reverse("cisa_sec", args=[self.ali.id]), html)
+
+        with patch("takip.cisa_views.html_to_pdf", return_value=b"%PDF-1.4 fake"):
+            a_grubu = self.client.post(
+                reverse("cisa_denemeler"),
+                {"deneme": [self.ocak.id], "sinif": str(self.sinif.id)},
+            )
+            tum = self.client.post(
+                reverse("cisa_denemeler"),
+                {
+                    "deneme": [self.ocak.id, self.yabanci.id],
+                    "sinif": f"{self.sinif.id},{self.diger_sinif.id}",
+                },
+            )
+            yabanci_karisik = self.client.post(
+                reverse("cisa_denemeler"),
+                {
+                    "deneme": [self.yabanci.id],
+                    "sinif": f"{self.diger_sinif.id},999999",
+                },
+            )
+        self.assertEqual(a_grubu.status_code, 200)
+        self.assertEqual(a_grubu["Content-Type"], "application/zip")
+        with zipfile.ZipFile(io.BytesIO(a_grubu.content)) as arsiv:
+            self.assertEqual(len(arsiv.namelist()), 2)
+            self.assertTrue(any("Ali" in ad for ad in arsiv.namelist()))
+            self.assertFalse(any("Başka" in ad for ad in arsiv.namelist()))
+        self.assertEqual(tum.status_code, 200)
+        with zipfile.ZipFile(io.BytesIO(tum.content)) as arsiv:
+            adlar = arsiv.namelist()
+            self.assertEqual(len(adlar), 3)
+            self.assertTrue(any("Başka" in ad for ad in adlar))
+        self.assertEqual(yabanci_karisik.status_code, 200)
+        with zipfile.ZipFile(io.BytesIO(yabanci_karisik.content)) as arsiv:
+            self.assertEqual(len(arsiv.namelist()), 1)
+            self.assertIn("Başka", arsiv.namelist()[0])

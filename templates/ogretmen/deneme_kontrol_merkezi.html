@@ -2,7 +2,7 @@
 {% load l10n static deneme_panel %}
 {% block title %}Deneme Kontrol Merkezi{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk41">
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk42">
 {% endblock %}
 
 {% block content %}
@@ -148,37 +148,63 @@
         </div>
     </form>
     {% else %}
-    <div class="dk-cisa-iki">
-        <div>
-            <h3>Sınıf</h3>
-            <ul class="dk-cisa-liste">
-                {% for uye in grup.uyeler %}
-                <li>
-                    <a class="ghost-btn dk-cisa-talebe" href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' uye.id %}?ekran=cisa">
-                        <span>{{ uye.etiket }}</span>
-                        <span class="dk-cisa-git">Rapor</span>
-                    </a>
-                </li>
-                {% endfor %}
-            </ul>
-        </div>
-        <div>
-            <div class="dk-cisa-ust">
-                <h3>Talebeler</h3>
-                <input type="search" class="dk-cisa-ara" placeholder="Talebe ara..." aria-label="Talebe ara" autocomplete="off">
+    <form method="post" action="{% url 'cisa_denemeler' %}">
+        {% csrf_token %}
+        <div class="dk-cisa-iki">
+            <div>
+                <div class="dk-cisa-ust">
+                    <h3>Denemeler</h3>
+                    {% if grup.cisa_denemeler %}
+                    <label class="dk-cisa-tumu"><input type="checkbox" data-dk-cisa-tumu checked> Tümünü seç</label>
+                    {% endif %}
+                </div>
+                {% if grup.cisa_denemeler %}
+                <ul class="dk-cisa-liste">
+                    {% for deneme in grup.cisa_denemeler %}
+                    <li>
+                        <label class="dk-cisa-deneme">
+                            <input type="checkbox" name="deneme" value="{{ deneme.id }}" checked>
+                            <span>
+                                <strong>{{ deneme.ad }}</strong>
+                                <small>{{ deneme.tarih|date:"j F Y" }} · {{ deneme.talebe_sayisi }} öğrenci</small>
+                            </span>
+                        </label>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="dk-empty">Bu sınıfta rapora girecek deneme yok.</p>
+                {% endif %}
             </div>
-            <ul class="dk-cisa-liste">
-                {% for talebe in grup.cisa_talebeler %}
-                <li data-ad="{{ talebe.ad_soyad }}">
-                    <a class="ghost-btn dk-cisa-talebe" href="{% url 'cisa_sec' talebe.id %}">
-                        <span>{{ talebe.ad_soyad }}</span>
-                        <span class="dk-cisa-git">Rapor</span>
-                    </a>
-                </li>
-                {% endfor %}
-            </ul>
+            <div>
+                <div class="dk-cisa-ust">
+                    <h3>Sınıf</h3>
+                </div>
+                {% if grup.cisa_denemeler %}
+                <div class="dk-cisa-siniflar">
+                    {% for uye in grup.uyeler %}
+                    <button class="primary-btn dk-cisa-sinif" type="submit" name="sinif" value="{{ uye.id }}">{{ uye.sube }} grubu raporunu indir</button>
+                    {% endfor %}
+                    <button class="primary-btn dk-cisa-sinif" type="submit" name="sinif" value="{{ grup.cisa_sinif_idleri }}">Tüm sınıf raporunu indir</button>
+                </div>
+                {% endif %}
+                <div class="dk-cisa-ust">
+                    <h3>Talebeler</h3>
+                    <input type="search" class="dk-cisa-ara" placeholder="Talebe ara..." aria-label="Talebe ara" autocomplete="off">
+                </div>
+                <ul class="dk-cisa-liste">
+                    {% for talebe in grup.cisa_talebeler %}
+                    <li data-ad="{{ talebe.ad_soyad }}">
+                        <button class="ghost-btn dk-cisa-talebe" type="submit" name="talebe" value="{{ talebe.id }}">
+                            <span>{{ talebe.ad_soyad }}</span>
+                            <span class="dk-cisa-git">Rapor</span>
+                        </button>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
-    </div>
+    </form>
     {% endif %}
 </section>
 {% elif veri and veri.satirlar %}
