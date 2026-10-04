@@ -250,6 +250,25 @@ class DenemeKontrolKazanimTests(TestCase):
         self.assertIn("Ortalama başarı", khtml)
         self.assertIn("puan", khtml)
 
+    def test_yukselis_onceki_deneme_puanini_gosterir(self):
+        ucuncu = _deneme("3. Deneme", 30)
+        DenemeSonucu.objects.create(deneme=ucuncu, talebe=self.ali, puan=Decimal("390"))
+        DenemeSonucu.objects.create(deneme=ucuncu, talebe=self.ayse, puan=Decimal("405"))
+        sayfa = self.client.get(
+            reverse("ogretmen_deneme_kontrol_merkezi_sinif", args=[self.sinif.id])
+        )
+        html = sayfa.content.decode()
+        self.assertIn("Önceki puan", html)
+        self.assertNotIn(">İlk puan<", html)
+        ali = html.index("Ali Yukselen")
+        ayse = html.index("Ayse Azartan")
+        self.assertLess(ali, ayse)
+        ali_satir = html[ali:ayse]
+        self.assertIn("360,0", ali_satir)
+        self.assertIn("390,0", ali_satir)
+        self.assertNotIn("300,0", ali_satir)
+        self.assertIn("+30,0", ali_satir)
+
     def test_sinif_ortalamasi_deneme_deneme(self):
         ozet = {o["konu_ad"]: o for o in kazanim_ortalamalari([self.ali.id, self.ayse.id, self.can.id])}
         self.assertEqual(ozet["Uzay"]["ortalama"], Decimal("70.00"))

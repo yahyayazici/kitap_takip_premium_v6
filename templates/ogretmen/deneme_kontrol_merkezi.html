@@ -2,7 +2,7 @@
 {% load l10n static deneme_panel %}
 {% block title %}Deneme Kontrol Merkezi{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk35">
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk37">
 {% endblock %}
 
 {% block content %}
@@ -211,7 +211,7 @@
     <header class="dk-panel-head">
         <div>
             <h2>Yükseliş sıralaması</h2>
-            <p class="dk-note">İlk ve son deneme arasındaki puan değişimi</p>
+            <p class="dk-note">Son deneme ile bir önceki deneme arasındaki puan değişimi</p>
         </div>
     </header>
     {% if veri.yukselis_satirlari %}
@@ -229,7 +229,7 @@
                 <tr>
                     <th>Sıra</th>
                     <th>Öğrenci</th>
-                    <th class="n">İlk puan</th>
+                    <th class="n">Önceki puan</th>
                     <th class="n">Son puan</th>
                     <th class="n">Yükseliş</th>
                     <th class="n">İşlem</th>
@@ -237,14 +237,14 @@
             </thead>
             <tbody>
                 {% for satir in veri.yukselis_satirlari %}
-                <tr class="dk-row" data-ad="{{ satir.talebe.ad_soyad }}" data-yukselis="{% if satir.metrikler %}{{ satir.metrikler.genel_degisim|unlocalize }}{% endif %}" data-son="{% if satir.son_puan is not None %}{{ satir.son_puan|unlocalize }}{% endif %}" onclick="location.href='{% url 'ogretmen_deneme_kontrol_ogrenci_detay' satir.talebe.sinif_sube_id satir.talebe.id %}'">
+                <tr class="dk-row" data-ad="{{ satir.talebe.ad_soyad }}" data-yukselis="{% if satir.metrikler and satir.metrikler.son2_degisim is not None %}{{ satir.metrikler.son2_degisim|unlocalize }}{% endif %}" data-son="{% if satir.son_puan is not None %}{{ satir.son_puan|unlocalize }}{% endif %}" onclick="location.href='{% url 'ogretmen_deneme_kontrol_ogrenci_detay' satir.talebe.sinif_sube_id satir.talebe.id %}'">
                     <td data-dk-sira>{{ forloop.counter }}</td>
                     <td>{{ satir.talebe.ad_soyad }}</td>
-                    <td class="n">{% if satir.metrikler %}{{ satir.metrikler.ilk_puan|floatformat:1 }}{% else %}—{% endif %}</td>
+                    <td class="n">{% if satir.metrikler and satir.metrikler.onceki_puan is not None %}{{ satir.metrikler.onceki_puan|floatformat:1 }}{% else %}—{% endif %}</td>
                     <td class="n">{% if satir.son_puan is not None %}{{ satir.son_puan|floatformat:1 }}{% else %}—{% endif %}</td>
                     <td class="n">
-                        {% if satir.metrikler %}
-                        <span class="{% if satir.metrikler.genel_degisim > 0 %}pos{% elif satir.metrikler.genel_degisim < 0 %}neg{% endif %}">{% if satir.metrikler.genel_degisim > 0 %}↑ +{% elif satir.metrikler.genel_degisim < 0 %}↓ {% endif %}{{ satir.metrikler.genel_degisim|floatformat:1 }}</span>
+                        {% if satir.metrikler and satir.metrikler.son2_degisim is not None %}
+                        <span class="{% if satir.metrikler.son2_degisim > 0 %}pos{% elif satir.metrikler.son2_degisim < 0 %}neg{% endif %}">{% if satir.metrikler.son2_degisim > 0 %}↑ +{% elif satir.metrikler.son2_degisim < 0 %}↓ {% endif %}{{ satir.metrikler.son2_degisim|floatformat:1 }}</span>
                         {% else %}—{% endif %}
                     </td>
                     <td class="n dk-islem">

@@ -695,12 +695,12 @@ def sinif_kontrol_verisi_hesapla(
 
 
 def _yukselis_sirala(satirlar: list[OgrenciDenemeSatiri]) -> list[OgrenciDenemeSatiri]:
-    """İlk denemeden son denemeye puan artışı. Artışı olmayanlar listenin sonunda."""
+    """Son deneme ile bir önceki deneme arasındaki puan artışı."""
 
     def anahtar(satir: OgrenciDenemeSatiri):
         degisim = None
         if satir.metrikler:
-            degisim = satir.metrikler.get("genel_degisim")
+            degisim = satir.metrikler.get("son2_degisim")
         return (
             degisim is None,
             -(degisim if degisim is not None else 0),

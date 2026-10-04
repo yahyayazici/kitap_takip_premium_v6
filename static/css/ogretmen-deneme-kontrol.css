@@ -1559,24 +1559,48 @@ body.v3-body .dk-page .dk-yukselis {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     column-gap: var(--cs-space-4, 16px);
-    row-gap: 16px;
-    align-items: start;
+    row-gap: 24px;
+    align-items: center;
 }
 
 body.v3-body .dk-page .dk-panel.dk-yukselis > .dk-panel-head {
     grid-column: 1;
     grid-row: 1;
     margin-bottom: 0;
+    align-self: center;
+}
+
+body.v3-body .dk-page .dk-panel.dk-yukselis > .dk-panel-head h2 {
+    margin: 0 !important;
+    font-family: var(--cs-font), Poppins, "Segoe UI", sans-serif !important;
+    font-size: 1.35rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
+    line-height: 1.2 !important;
+    color: var(--cs-text-primary, #0f203c) !important;
+}
+
+body.v3-body .dk-page .dk-panel.dk-yukselis > .dk-panel-head .dk-note {
+    margin: 4px 0 0;
 }
 
 body.v3-body .dk-page .dk-yukselis-araclar {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    align-items: center;
     justify-content: flex-end;
     gap: var(--cs-space-2, 8px);
     grid-column: 2;
     grid-row: 1;
     margin: 0;
+    align-self: center;
+}
+
+body.v3-body .dk-page .dk-yukselis-araclar .dk-yukselis-ara {
+    flex: 0 1 240px;
+    width: 240px;
+    min-width: 160px;
+    max-width: 240px;
 }
 
 body.v3-body .dk-page .dk-yukselis > .dk-kazanim-wrap,
@@ -1675,7 +1699,17 @@ body.v3-body .dk-page .dk-tablo-alt {
     body.v3-body .dk-page .dk-yukselis > .dk-yukselis-araclar {
         grid-column: 1;
         grid-row: auto;
-        margin-top: 12px;
+        justify-content: flex-start;
+        width: 100%;
+        min-width: 0;
+        margin-top: 0;
+    }
+
+    body.v3-body .dk-page .dk-yukselis-araclar .dk-yukselis-ara {
+        flex: 1 1 auto;
+        width: auto;
+        min-width: 0;
+        max-width: none;
     }
 }
 
