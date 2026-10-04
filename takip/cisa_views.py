@@ -60,15 +60,30 @@ def _cisa_gruplar(request) -> list[dict]:
     return gruplar
 
 
+def _istenan_sinif_idleri(request) -> list[int]:
+    """Tek şube, ya da virgülle birleşik tüm sınıf. Yalnız kendi sınıfları kalır."""
+    if request.method == "POST":
+        hamlar = request.POST.getlist("sinif")
+    else:
+        ham = request.GET.get("sinif") or ""
+        hamlar = [ham] if ham else []
+    ids: list[int] = []
+    for ham in hamlar:
+        for parca in str(ham).split(","):
+            parca = parca.strip()
+            if parca.isdigit():
+                ids.append(int(parca))
+    return ids
+
+
 def _gorunen_gruplar(request, gruplar: list[dict]) -> tuple[list[dict], int | None]:
-    ham = request.POST.get("sinif") if request.method == "POST" else request.GET.get("sinif")
-    if ham is None:
-        ham = ""
-    if str(ham).isdigit():
-        secili = int(ham)
-        dar = [grup for grup in gruplar if grup["id"] == secili]
-        if dar:
-            return dar, secili
+    ids = _istenan_sinif_idleri(request)
+    if ids:
+        izinli = {grup["id"] for grup in gruplar}
+        secili = [sinif_id for sinif_id in ids if sinif_id in izinli]
+        if secili:
+            dar = [grup for grup in gruplar if grup["id"] in secili]
+            return dar, secili[0] if len(secili) == 1 else None
     return gruplar, None
 
 
