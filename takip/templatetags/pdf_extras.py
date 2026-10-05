@@ -68,6 +68,54 @@ def _pdf_bar_int(value) -> int:
     return max(0, min(100, pct))
 
 
+def deneme_yuz_puan(dogru, yanlis, bos) -> Decimal:
+    """Doğru sayısı / soru sayısı × 100. Kitap sınavıyla aynı 100’lük puan."""
+    toplam = int(dogru or 0) + int(yanlis or 0) + int(bos or 0)
+    if toplam <= 0:
+        return Decimal("0.00")
+    return (
+        Decimal(int(dogru or 0)) * Decimal("100") / Decimal(toplam)
+    ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
+def _puan_metin(sayi: Decimal) -> str:
+    return f"{sayi:.2f}".replace(".", ",")
+
+
+@register.simple_tag
+def deneme_satir_yuz_puan(sonuc):
+    """Satır puanı, 100 üzerinden."""
+    return _puan_metin(
+        deneme_yuz_puan(
+            getattr(sonuc, "toplam_dogru", 0),
+            getattr(sonuc, "toplam_yanlis", 0),
+            getattr(sonuc, "toplam_bos", 0),
+        )
+    )
+
+
+@register.simple_tag
+def deneme_yuz_ozet(sonuclar):
+    """Listenin 100’lük puan ortalaması ve en yükseği."""
+    puanlar = [
+        deneme_yuz_puan(
+            getattr(sonuc, "toplam_dogru", 0),
+            getattr(sonuc, "toplam_yanlis", 0),
+            getattr(sonuc, "toplam_bos", 0),
+        )
+        for sonuc in sonuclar
+    ]
+    if not puanlar:
+        return {"ortalama": "—", "en_yuksek": "—"}
+    ortalama = (sum(puanlar, Decimal("0")) / Decimal(len(puanlar))).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
+    return {
+        "ortalama": _puan_metin(ortalama),
+        "en_yuksek": _puan_metin(max(puanlar)),
+    }
+
+
 @register.filter
 def pdf_puan(value):
     """PDF çıktısı için ondalık ayraç: 96,67"""
