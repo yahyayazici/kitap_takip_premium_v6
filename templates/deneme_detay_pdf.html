@@ -3,11 +3,30 @@
 <html lang="tr">
 <head>
     <meta charset="utf-8">
-    <title>{{ deneme.ad }} · Sıralı Sonuçlar</title>
+    <title>{{ deneme.ad }} · Deneme Sonuç Tablosu</title>
     <style>
         {% include "includes/pdf_karne_fonts.html" %}
         {% include "includes/pdf_karne_a4_css.html" %}
 
+        .pdf-karne.deneme-detay-pdf .deneme-split-layout {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 6px 0;
+            table-layout: fixed;
+        }
+        .pdf-karne.deneme-detay-pdf .deneme-split-col {
+            width: 50%;
+            vertical-align: top;
+        }
+        .pdf-karne.deneme-detay-pdf .results-kompakt tbody td { padding: 2px 2px; }
+        .pdf-karne.deneme-detay-pdf .results-kompakt .student-name { font-size: 6.8px; }
+        .pdf-karne.deneme-detay-pdf .results-kompakt .student-meta { font-size: 5.5px; }
+        .pdf-karne.deneme-detay-pdf .results-kompakt .num-cell,
+        .pdf-karne.deneme-detay-pdf .results-kompakt .score { font-size: 6.8px; }
+        .pdf-karne.deneme-detay-pdf .results-kompakt thead th {
+            padding: 3px 2px;
+            font-size: 5.5px;
+        }
         .pdf-karne.deneme-detay-pdf .pdf-sheet + .pdf-sheet {
             page-break-before: always;
             break-before: page;
@@ -33,7 +52,7 @@
                         <div class="brand-sub">{{ panel_name }}</div>
                     </td>
                     <td class="header-right">
-                        <div class="doc-title">Sıralı Deneme Sonuç Belgesi</div>
+                        <div class="doc-title">Deneme Sonuç Tablosu</div>
                     </td>
                 </tr>
             </table>
@@ -49,11 +68,11 @@
                 <path d="M28 18C28 18 42 16 48 22V62C42 58 28 60 28 60V18Z" fill="#FFFFFF" opacity="0.75"/>
             </svg>
             <div class="hero-inner">
-                <div class="hero-tag">Deneme Sınavı</div>
-                <div class="hero-title">{{ deneme.ad }} Sınav Neticeleri</div>
+                <div class="hero-tag">{{ liste.liste_kicker|default:"Deneme Sınavı" }}</div>
+                <div class="hero-title">{{ deneme.ad }}</div>
                 <div class="hero-meta">
-                    {{ deneme.sinif_seviyesi }}. sınıf · {{ deneme.sinav_tarihi|date:"d.m.Y" }}{% if deneme.toplam_soru %} · {{ deneme.toplam_soru }} soru{% endif %}
-                    · Puan sıralaması
+                    {{ deneme.sinif_seviyesi }}. sınıf · {{ deneme.sinav_tarihi|date:"d.m.Y" }} ·
+                    {{ liste.ozet.ogrenci_sayisi }} öğrenci
                 </div>
             </div>
         </td>
@@ -65,23 +84,29 @@
         <td>
             <table class="stats-table" cellpadding="0">
                 <tr>
-                    <td width="33%" class="stat-cell tone-blue">
+                    <td width="25%" class="stat-cell tone-blue">
                         <div class="stat-accent"></div>
-                        <div class="stat-label">Katılan Talebe</div>
+                        <div class="stat-label">Öğrenci</div>
                         <div class="stat-metric">{{ liste.ozet.ogrenci_sayisi }}</div>
-                        <div class="stat-sub">Toplam talebe</div>
+                        <div class="stat-sub">Katılım</div>
                     </td>
-                    <td width="34%" class="stat-cell tone-green">
+                    <td width="25%" class="stat-cell tone-green">
                         <div class="stat-accent"></div>
-                        <div class="stat-label">Grup Ortalaması</div>
+                        <div class="stat-label">Ort. Net</div>
+                        <div class="stat-metric">{{ liste.ozet.ortalama_net|pdf_puan }}</div>
+                        <div class="stat-sub">Ortalama</div>
+                    </td>
+                    <td width="25%" class="stat-cell tone-orange">
+                        <div class="stat-accent"></div>
+                        <div class="stat-label">Ort. Puan</div>
                         <div class="stat-metric">{{ liste.ozet.ortalama_puan|pdf_puan }}</div>
-                        <div class="stat-sub">500 üzerinden</div>
+                        <div class="stat-sub">Ortalama</div>
                     </td>
-                    <td width="33%" class="stat-cell tone-orange">
+                    <td width="25%" class="stat-cell tone-purple">
                         <div class="stat-accent"></div>
-                        <div class="stat-label">En Yüksek Puan</div>
+                        <div class="stat-label">En Yüksek</div>
                         <div class="stat-metric">{{ liste.ozet.en_yuksek_puan|pdf_puan }}</div>
-                        <div class="stat-sub">puan</div>
+                        <div class="stat-sub">Puan</div>
                     </td>
                 </tr>
             </table>
@@ -95,39 +120,26 @@
             <div class="table-panel">
                 <div class="table-panel-accent"></div>
                 <div class="table-panel-head">
-                    <div class="section-kicker">{{ liste.liste_kicker|default:"Başarı Listesi" }}</div>
-                    <div class="section-title">{{ liste.liste_baslik|default:"Sıralı Sonuç Tablosu" }}</div>
+                    <div class="section-kicker">{{ liste.liste_kicker|default:"Genel Sıralama" }}</div>
+                    <div class="section-title">{{ liste.liste_baslik|default:"Deneme Sonuç Tablosu" }}</div>
                 </div>
                 <div class="results-wrap">
-                    {% include "includes/deneme_pdf_sonuc_kolon.html" with kolon=liste.sonuclar sira_offset=0 %}
+                    {% if liste.sonuc_split %}
+                    <table class="deneme-split-layout" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td class="deneme-split-col">
+                                {% include "includes/deneme_pdf_sonuc_kolon.html" with kolon=liste.sonuclar_sol sira_offset=0 kompakt=True %}
+                            </td>
+                            <td class="deneme-split-col">
+                                {% include "includes/deneme_pdf_sonuc_kolon.html" with kolon=liste.sonuclar_sag sira_offset=liste.split_at kompakt=True %}
+                            </td>
+                        </tr>
+                    </table>
+                    {% else %}
+                    {% include "includes/deneme_pdf_sonuc_kolon.html" with kolon=liste.sonuclar sira_offset=0 kompakt=False %}
+                    {% endif %}
                 </div>
             </div>
-        </td>
-    </tr>
-
-    <tr><td class="gap6"></td></tr>
-
-    <tr>
-        <td>
-            <table class="evaluation-table" cellpadding="0">
-                <tr>
-                    <td width="50%" class="eval-cell">
-                        <div class="eval-title">Genel Değerlendirme</div>
-                        <div class="eval-body">
-                            Grup ortalaması <span class="eval-em">{{ liste.ozet.ortalama_puan|pdf_puan }}</span> puandır.
-                            Ortalama net <span class="eval-em">{{ liste.ozet.ortalama_net|pdf_puan }}</span>.
-                            Sonuçlar talebelerin deneme performansını göstermektedir.
-                        </div>
-                    </td>
-                    <td width="50%" class="eval-cell">
-                        <div class="eval-title">Takip Notu</div>
-                        <div class="eval-body">
-                            Neticeler doğrultusunda çalışmalar sürdürülecek;
-                            sonraki deneme süreci düzenli takip edilecektir.
-                        </div>
-                    </td>
-                </tr>
-            </table>
         </td>
     </tr>
 
@@ -135,7 +147,7 @@
         <td>
             <table class="footer-table" cellpadding="0" cellspacing="0">
                 <tr>
-                    <td class="footer-left">{{ panel_org }}</td>
+                    <td class="footer-left">{{ panel_org }} · {{ olusturma_tarihi|date:"d.m.Y H:i" }}</td>
                     <td class="footer-right">{{ panel_footer }}</td>
                 </tr>
             </table>

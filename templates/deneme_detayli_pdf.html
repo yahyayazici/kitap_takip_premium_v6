@@ -33,10 +33,6 @@
             margin-left: 0;
             border-spacing: 8px 0;
         }
-        .pdf-karne.deneme-detayli-pdf .stat-cell,
-        .pdf-karne.deneme-detayli-pdf .table-panel {
-            box-shadow: none;
-        }
         .pdf-karne.deneme-detayli-pdf .stat-cell { padding: 4px 8px; }
         .pdf-karne.deneme-detayli-pdf .stat-label { font-size: 6.3px; }
         .pdf-karne.deneme-detayli-pdf .stat-metric { margin-top: 1px; font-size: 11.5px; }
@@ -48,8 +44,11 @@
             column-count: 1 !important;
             padding: 3px 8px 4px;
         }
-        .pdf-karne.deneme-detayli-pdf .top-logo-cell { text-align: center; }
-        .pdf-karne.deneme-detayli-pdf .top-logo { width: 78px; height: auto; }
+        .pdf-karne.deneme-detayli-pdf .brand-logo-wrap { width: 22px; height: 22px; }
+        .pdf-karne.deneme-detayli-pdf .brand-logo { width: 22px; height: 22px; }
+        .pdf-karne.deneme-detayli-pdf .brand-name { font-size: 9px; }
+        .pdf-karne.deneme-detayli-pdf .brand-sub { font-size: 5.5px; }
+        .pdf-karne.deneme-detayli-pdf .doc-title { font-size: 5.5px; }
 
         .pdf-karne.deneme-detayli-pdf table.detayli-results {
             width: 100%;
@@ -96,7 +95,6 @@
         .pdf-karne.deneme-detayli-pdf table.detayli-results tbody td {
             padding: 2.6px 3px;
             font-size: 7.4px;
-            font-family: "Poppins", sans-serif;
             font-weight: 600;
             font-variant-numeric: tabular-nums;
             text-align: center;
@@ -141,8 +139,7 @@
             padding-left: 8px;
         }
         .pdf-karne.deneme-detayli-pdf .student-name {
-            font-family: "Montserrat", "Poppins", sans-serif;
-            font-weight: 700;
+            font-weight: 600;
             font-size: 8.1px;
             line-height: 1.15;
             white-space: normal;
@@ -153,14 +150,13 @@
             font-size: 7.6px;
             font-weight: 700;
             font-variant-numeric: tabular-nums;
-            color: #475569;
+            color: #546173;
         }
         .pdf-karne.deneme-detayli-pdf .d-cell { color: #15803d; }
         .pdf-karne.deneme-detayli-pdf .y-cell { color: #b91c1c; }
         .pdf-karne.deneme-detayli-pdf .b-cell { color: #64748b; font-weight: 500; }
         .pdf-karne.deneme-detayli-pdf .net-cell { color: #173f78; font-weight: 700; }
-        .pdf-karne.deneme-detayli-pdf .puan-cell { color: #b45309; font-weight: 700; font-size: 7.8px; }
-        .pdf-karne.deneme-detayli-pdf .footer-right { display: none; }
+        .pdf-karne.deneme-detayli-pdf .puan-cell { color: #173b80; font-weight: 700; font-size: 7.8px; }
         .pdf-karne.deneme-detayli-pdf .pdf-sheet + .pdf-sheet {
             page-break-before: always;
             break-before: page;
@@ -172,8 +168,23 @@
 <div class="pdf-sheet">
 <table class="layout">
     <tr>
-        <td class="top-logo-cell">
-            <img class="top-logo" src="{% static 'images/cinili-saray-logo.jpeg' %}" alt="{{ panel_short }}">
+        <td>
+            <table class="header-table" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td class="header-logo-cell">
+                        <div class="brand-logo-wrap">
+                            <img class="brand-logo" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="{{ panel_short }}">
+                        </div>
+                    </td>
+                    <td class="header-text-cell">
+                        <div class="brand-name">{{ panel_org }}</div>
+                        <div class="brand-sub">{{ panel_name }}</div>
+                    </td>
+                    <td class="header-right">
+                        <div class="doc-title">Detaylı Başarı Listesi</div>
+                    </td>
+                </tr>
+            </table>
         </td>
     </tr>
 
@@ -181,10 +192,9 @@
 
     <tr>
         <td class="hero">
-            <svg class="hero-deco" width="44" height="44" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="11" y="9" width="26" height="32" rx="4" stroke="#FFFFFF" stroke-width="2.2"/>
-                <rect x="17" y="6" width="14" height="7" rx="2" fill="#FFFFFF"/>
-                <path d="M18 22h12M18 28h12M18 34h8" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/>
+            <svg class="hero-deco" width="80" height="48" viewBox="0 0 120 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M72 8C72 8 88 6 96 14V58C88 52 72 54 72 54V8Z" fill="#FFFFFF" opacity="0.9"/>
+                <path d="M28 18C28 18 42 16 48 22V62C42 58 28 60 28 60V18Z" fill="#FFFFFF" opacity="0.75"/>
             </svg>
             <div class="hero-inner">
                 <div class="hero-tag">Detaylı Başarı Listesi</div>

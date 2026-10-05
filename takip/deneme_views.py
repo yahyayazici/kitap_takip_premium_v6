@@ -394,8 +394,8 @@ def deneme_detay_pdf(request, pk):
     listeler = [
         _deneme_liste_ctx(
             sonuclar,
-            kicker="Başarı Listesi",
-            baslik="Sıralı Sonuç Tablosu",
+            kicker="Genel Sıralama",
+            baslik="Doğru / Yanlış / Boş / Net / Puan",
         )
     ]
 
