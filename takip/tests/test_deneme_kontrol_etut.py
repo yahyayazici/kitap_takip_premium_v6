@@ -370,6 +370,8 @@ class DenemeKontrolKazanimTests(TestCase):
         self.assertIn("Ayse Azartan", html)
         self.assertIn("Türkçe", html)
         self.assertIn("dk-sinif-ders turkce", html)
+        self.assertIn("dk-sinif-baslik", html)
+        self.assertNotIn("dk-kazanim-ders", html)
         self.assertNotIn("Yükseliş sıralaması", html)
         self.assertNotIn("Nokta atışı", html)
         self.assertLess(html.index("Ali Yukselen"), html.index("Ayse Azartan"))
