@@ -20,6 +20,7 @@ from .models import (
     PanelMetrik,
     PersonelProfili,
     ProgramPlan,
+    SinifSeviyeMesulu,
     SinifSube,
     Talebe,
     TemizlikAlani,
@@ -182,7 +183,9 @@ def dashboard(request):
 
 @yonetici_gerekli
 def sinif_listesi(request):
-    siniflar = (
+    from takip.etut_zimmet_service import etut_mesul_queryset, sinif_seviye_etiketi
+
+    siniflar = list(
         SinifSube.objects
         .annotate(
             talebe_sayisi=Count(
@@ -206,12 +209,74 @@ def sinif_listesi(request):
         )
         .order_by("sinif", "sube")
     )
+    mesul_kayitlari = {
+        kayit.sinif: kayit.hoca
+        for kayit in SinifSeviyeMesulu.objects.select_related("hoca")
+    }
+    seviyeler = []
+    gorulen: set[str] = set()
+    for sinif in siniflar:
+        hoca = mesul_kayitlari.get(sinif.sinif)
+        sinif.liste_mesulu = hoca.ad_soyad if hoca else ""
+        if sinif.sinif in gorulen:
+            continue
+        gorulen.add(sinif.sinif)
+        subeler = [grup.etiket for grup in siniflar if grup.sinif == sinif.sinif]
+        seviyeler.append(
+            {
+                "sinif": sinif.sinif,
+                "etiket": sinif_seviye_etiketi(sinif.sinif),
+                "subeler": ", ".join(subeler),
+                "mesul_id": hoca.pk if hoca else None,
+            }
+        )
 
     return render(
         request,
         "yonetim/sinif_listesi.html",
-        {"siniflar": siniflar},
+        {
+            "siniflar": siniflar,
+            "seviyeler": seviyeler,
+            "mesul_hocalar": etut_mesul_queryset(),
+        },
     )
+
+
+@yonetici_gerekli
+@require_POST
+def sinif_mesulu_kaydet(request):
+    from takip.etut_zimmet_service import (
+        etut_mesul_queryset,
+        sinif_mesulunu_kaydet,
+        sinif_seviye_etiketi,
+    )
+
+    sinif = (request.POST.get("sinif") or "").strip()
+    if not sinif or not SinifSube.objects.filter(sinif=sinif).exists():
+        messages.error(request, "Sınıf bulunamadı.")
+        return redirect("yonetim:sinif_listesi")
+
+    hoca_id = (request.POST.get("hoca") or "").strip()
+    hoca = None
+    if hoca_id:
+        if not hoca_id.isdigit():
+            messages.error(request, "Sınıf mesulü seçilemedi.")
+            return redirect("yonetim:sinif_listesi")
+        hoca = etut_mesul_queryset().filter(pk=int(hoca_id)).first()
+        if hoca is None:
+            messages.error(request, "Seçilen hoca sınıf mesulü olarak atanamaz.")
+            return redirect("yonetim:sinif_listesi")
+
+    sinif_mesulunu_kaydet(sinif, hoca)
+    etiket = sinif_seviye_etiketi(sinif)
+    if hoca:
+        messages.success(
+            request,
+            f"{etiket} listelerinde {hoca.ad_soyad} görünecek.",
+        )
+    else:
+        messages.success(request, f"{etiket} için sınıf mesulü kaldırıldı.")
+    return redirect("yonetim:sinif_listesi")
 
 
 @yonetici_gerekli
