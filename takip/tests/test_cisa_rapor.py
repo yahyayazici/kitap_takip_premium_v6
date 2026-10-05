@@ -343,6 +343,8 @@ class CisaRaporTests(TestCase):
         self.assertNotEqual(turkce["dogru"], "26")
         self.assertEqual(rapor["siralamalar"][0]["talebeler"][0]["ad"], "Ali Çisa")
         self.assertEqual(rapor["siralamalar"][0]["talebeler"][0]["net_yazi"], "8,00")
+        self.assertIn("hsl(152", rapor["siralamalar"][0]["talebeler"][0]["renk"])
+        self.assertIn("hsl(4", rapor["siralamalar"][0]["talebeler"][1]["renk"])
         self.assertEqual(rapor["siralamalar"][0]["talebeler"][1]["ad"], "Ayşe Çisa")
         konular = [s["konu"] for g in rapor["konular"] for s in g["satirlar"]]
         self.assertIn("Paragraf", konular)
@@ -375,6 +377,10 @@ class CisaRaporTests(TestCase):
         self.assertIn("Ayşe Çisa", a_html)
         self.assertNotIn("Başka Talebe", a_html)
         self.assertIn("Konu dökümü", a_html)
+        self.assertIn('class="c-dogru"', a_html)
+        self.assertIn('class="c-zayif"', a_html)
+        self.assertIn("hsl(152", a_html)
+        self.assertIn("hsl(4", a_html)
         self.assertIn("Asıl kayıp", a_html)
         self.assertIn('class="kayip"', a_html)
         tum_html = mock_pdf.call_args_list[1][0][0]
