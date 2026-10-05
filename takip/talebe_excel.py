@@ -733,11 +733,11 @@ def talebe_excel_ice_aktar(dosya) -> TalebeExcelSonuc:
             sinif_sube = sinif_haritasi.get((sinif.lower(), sube.lower()))
 
         if not hoca_adi and sinif_sube:
-            zimmet_hocalar = list(
-                sinif_sube.etut_hocalari.filter(aktif=True).order_by("ad_soyad")
-            )
-            if zimmet_hocalar:
-                hoca_adi = zimmet_hocalar[0].ad_soyad
+            from takip.etut_zimmet_service import sinif_liste_hocasi
+
+            liste_hocasi = sinif_liste_hocasi(sinif_sube)
+            if liste_hocasi:
+                hoca_adi = liste_hocasi.ad_soyad
 
         dini_seviye = (
             seviye_haritasi.get(dini_seviye_adi.lower()) if dini_seviye_adi else None

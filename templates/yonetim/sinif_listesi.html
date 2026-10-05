@@ -1,6 +1,11 @@
 {% extends "yonetim/base.html" %}
+{% load static %}
 
 {% block title %}Sınıf ve Şubeler{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/yonetim-sinif-mesul.css' %}?v=1">
+{% endblock %}
 
 {% block content %}
 
@@ -12,6 +17,30 @@
     </div>
     <a href="{% url 'yonetim:sinif_ekle' %}" class="primary-btn">Yeni Sınıf</a>
 </header>
+
+{% if seviyeler %}
+<section class="dashboard-card yonetim-form-card yonetim-mesul-kart">
+    <h2>Sınıf mesulü</h2>
+    <p class="muted">A ve B gruplarına birden fazla hoca atanabilir. Listelerde bu sınıfın mesulünün adı görünür.</p>
+    {% for seviye in seviyeler %}
+    <form method="post" action="{% url 'yonetim:sinif_mesulu_kaydet' %}" class="yonetim-mesul-satir">
+        {% csrf_token %}
+        <input type="hidden" name="sinif" value="{{ seviye.sinif }}">
+        <div>
+            <strong>{{ seviye.etiket }}</strong>
+            <span>{{ seviye.subeler }}</span>
+        </div>
+        <select name="hoca" aria-label="{{ seviye.etiket }} sınıf mesulü">
+            <option value="">Belirlenmedi</option>
+            {% for hoca in mesul_hocalar %}
+            <option value="{{ hoca.pk }}" {% if seviye.mesul_id == hoca.pk %}selected{% endif %}>{{ hoca.ad_soyad }}</option>
+            {% endfor %}
+        </select>
+        <button class="primary-btn" type="submit">Kaydet</button>
+    </form>
+    {% endfor %}
+</section>
+{% endif %}
 
 <div class="yonetim-class-grid">
     {% for sinif in siniflar %}
@@ -25,6 +54,7 @@
         <div class="yonetim-class-meta">
             <span>{{ sinif.talebe_sayisi }} aktif talebe</span>
             <span>{{ sinif.hoca_sayisi }} sorumlu etüt hocası</span>
+            {% if sinif.liste_mesulu %}<span>Sınıf mesulü: {{ sinif.liste_mesulu }}</span>{% endif %}
         </div>
         <div class="yonetim-class-actions">
             {% if sinif.aktif %}

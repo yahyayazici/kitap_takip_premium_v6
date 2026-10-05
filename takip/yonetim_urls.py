@@ -98,6 +98,11 @@ urlpatterns = [
         name="sinif_listesi",
     ),
     path(
+        "siniflar/mesul/",
+        yonetim_views.sinif_mesulu_kaydet,
+        name="sinif_mesulu_kaydet",
+    ),
+    path(
         "siniflar/ekle/",
         yonetim_views.sinif_ekle,
         name="sinif_ekle",

@@ -248,11 +248,9 @@ class HizliTalebeForm(forms.ModelForm):
         dini_hoca = cleaned.get("dini_ders_hocasi")
 
         if sinif_sube and not etut:
-            etut = (
-                sinif_sube.etut_hocalari.filter(aktif=True)
-                .order_by("ad_soyad")
-                .first()
-            )
+            from takip.etut_zimmet_service import sinif_liste_hocasi
+
+            etut = sinif_liste_hocasi(sinif_sube)
             if etut:
                 cleaned["etut_hocasi"] = etut
             else:

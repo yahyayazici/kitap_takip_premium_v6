@@ -5,7 +5,7 @@ from __future__ import annotations
 from django.db import transaction
 from django.db.models import Q
 
-from takip.models import EtutHocasi, Talebe
+from takip.models import EtutHocasi, SinifSeviyeMesulu, SinifSube, Talebe
 from takip.panel_permissions import ROL_ETUT_MESUL, ROL_SINIF_MESUL
 
 _MESUL_ROLLER = frozenset({ROL_ETUT_MESUL, ROL_SINIF_MESUL})
@@ -50,11 +50,73 @@ def hoca_talebe_q(hoca: EtutHocasi) -> Q:
     return Q(etut_hocasi=hoca) | Q(dini_ders_hocasi=hoca)
 
 
+def sinif_seviye_etiketi(sinif: str) -> str:
+    ham = (sinif or "").strip()
+    if ham.isdigit():
+        return f"{ham}. Sınıf"
+    return ham
+
+
+def sinif_seviye_mesulu(sinif: str) -> EtutHocasi | None:
+    """Bu sınıf seviyesinin listelerde görünen mesulü."""
+    kayit = (
+        SinifSeviyeMesulu.objects.filter(sinif=(sinif or "").strip())
+        .select_related("hoca")
+        .first()
+    )
+    if kayit and kayit.hoca_id and kayit.hoca.aktif:
+        return kayit.hoca
+    return None
+
+
+def sinif_liste_hocasi(sinif_sube: SinifSube | None) -> EtutHocasi | None:
+    """Listede ve yeni kayıtta yazılacak hoca. Seviye mesulü varsa o, yoksa ilk zimmet."""
+    if sinif_sube is None:
+        return None
+    mesul = sinif_seviye_mesulu(sinif_sube.sinif)
+    if mesul:
+        return mesul
+    return (
+        sinif_sube.etut_hocalari.filter(aktif=True).order_by("ad_soyad", "pk").first()
+    )
+
+
+@transaction.atomic
+def sinif_mesulunu_kaydet(sinif: str, hoca: EtutHocasi | None) -> int:
+    """Seviyenin liste mesulünü yazar ve o seviyedeki talebelerin etüt hocasını günceller."""
+    sinif = (sinif or "").strip()
+    if not sinif or not SinifSube.objects.filter(sinif=sinif).exists():
+        return 0
+    if hoca is None:
+        SinifSeviyeMesulu.objects.filter(sinif=sinif).delete()
+    else:
+        SinifSeviyeMesulu.objects.update_or_create(sinif=sinif, defaults={"hoca": hoca})
+        for grup in SinifSube.objects.filter(sinif=sinif, aktif=True):
+            if not hoca.sorumlu_sinif_subeler.filter(pk=grup.pk).exists():
+                hoca.sorumlu_sinif_subeler.add(grup)
+    guncellenen = 0
+    for grup in SinifSube.objects.filter(sinif=sinif):
+        hedef = hoca or _sinifin_etut_mesulu(grup.pk)
+        if hedef is None:
+            continue
+        guncellenen += (
+            Talebe.objects.filter(aktif=True, sinif_sube=grup)
+            .exclude(etut_hocasi=hedef)
+            .update(etut_hocasi=hedef)
+        )
+    return guncellenen
+
+
 def _sinifin_etut_mesulu(
     sinif_sube_id: int | None, *, haric: EtutHocasi | None = None
 ) -> EtutHocasi | None:
     if not sinif_sube_id:
         return None
+    grup = SinifSube.objects.filter(pk=sinif_sube_id).only("sinif").first()
+    if grup:
+        mesul = sinif_seviye_mesulu(grup.sinif)
+        if mesul and (haric is None or mesul.pk != haric.pk):
+            return mesul
     qs = EtutHocasi.objects.filter(
         aktif=True,
         sorumlu_sinif_subeler__pk=sinif_sube_id,
@@ -76,11 +138,22 @@ def etut_mesul_sinif_zimmet_senkronize(hoca: EtutHocasi) -> dict[str, int]:
     if not sinif_ids:
         return {"atanan": 0, "cikarilan": 0}
 
-    atanan = (
-        Talebe.objects.filter(aktif=True, sinif_sube_id__in=sinif_ids)
-        .exclude(etut_hocasi=hoca)
-        .update(etut_hocasi=hoca)
-    )
+    gruplar = list(SinifSube.objects.filter(pk__in=sinif_ids))
+    mesul_map = {
+        kayit.sinif: kayit.hoca
+        for kayit in SinifSeviyeMesulu.objects.filter(
+            sinif__in={grup.sinif for grup in gruplar},
+            hoca__aktif=True,
+        ).select_related("hoca")
+    }
+    atanan = 0
+    for grup in gruplar:
+        hedef = mesul_map.get(grup.sinif) or hoca
+        atanan += (
+            Talebe.objects.filter(aktif=True, sinif_sube_id=grup.pk)
+            .exclude(etut_hocasi=hedef)
+            .update(etut_hocasi=hedef)
+        )
 
     cikarilan = 0
     for talebe in Talebe.objects.filter(etut_hocasi=hoca, aktif=True).exclude(
