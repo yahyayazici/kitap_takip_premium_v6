@@ -2,7 +2,7 @@
 {% load l10n static deneme_panel %}
 {% block title %}Deneme Kontrol Merkezi{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk44">
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk45">
 {% endblock %}
 
 {% block content %}
@@ -240,7 +240,7 @@
     </header>
     <div class="dk-sinif-dersler">
         {% for ders in rapor.dersler %}
-        <article class="dk-sinif-ders">
+        <article class="dk-sinif-ders {{ ders.kod }}">
             <header>
                 <strong>{{ ders.ad }}</strong>
                 {% if ders.dogru_yuzde != None %}<span style="color: {{ ders.renk }};">%{{ ders.dogru_yuzde }} doğruluk</span>{% endif %}
