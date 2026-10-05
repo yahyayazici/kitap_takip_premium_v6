@@ -384,6 +384,15 @@ def _yuzde_ort(yuzdeler: list[int]) -> int | None:
     )
 
 
+def _net_renk(net: Decimal, en_yuksek: Decimal, en_dusuk: Decimal) -> str:
+    """Sıralamada yüksek net yeşil, düştükçe kırmızıya gider."""
+    if en_yuksek == en_dusuk:
+        return _yuzde_renk(100)
+    oran = (Decimal(net) - Decimal(en_dusuk)) / (Decimal(en_yuksek) - Decimal(en_dusuk))
+    yuzde = int((oran * Decimal(100)).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+    return _yuzde_renk(yuzde)
+
+
 def _yuzde_renk(yuzde: int | None) -> str:
     """Düşük toz kiremit, orta haki, yüksek toz yeşil."""
     if yuzde is None:
@@ -492,6 +501,11 @@ def cisa_sinif_raporu(talebeler: list[Talebe], deneme_ids: list[int], baslik: st
         if not ort_netler:
             continue
         sira.sort(key=lambda satir: (-satir["net"], satir["ad"]))
+        if sira:
+            en_yuksek = sira[0]["net"]
+            en_dusuk = sira[-1]["net"]
+            for satir in sira:
+                satir["renk"] = _net_renk(satir["net"], en_yuksek, en_dusuk)
         cumle = "Tek deneme"
         yon = ""
         son = _ort(son_netler)

@@ -129,6 +129,12 @@
             vertical-align: middle;
         }
         table.dokum td.n, table.dokum th.n { text-align: right; }
+        table.dokum.konular {
+            table-layout: fixed;
+            width: 100%;
+        }
+        table.dokum.konular col.c-dogru { width: 24mm; }
+        table.dokum.konular col.c-zayif { width: 32mm; }
         .yuzde { font-weight: 700; }
     </style>
 </head>
@@ -200,7 +206,12 @@
         {% for grup in rapor.konular %}
         {% if not forloop.first %}<div class="cizgi ara"></div>{% endif %}
         <h2>{{ grup.ders }}</h2>
-        <table class="dokum">
+        <table class="dokum konular">
+            <colgroup>
+                <col>
+                <col class="c-dogru">
+                <col class="c-zayif">
+            </colgroup>
             <thead>
                 <tr>
                     <th>Konu</th>
@@ -234,7 +245,7 @@
                 {% for talebe in grup.talebeler %}
                 <tr>
                     <td>{{ talebe.ad }}</td>
-                    <td class="n"><strong>{{ talebe.net_yazi }}</strong></td>
+                    <td class="n"><strong style="color: {{ talebe.renk }};">{{ talebe.net_yazi }}</strong></td>
                 </tr>
                 {% endfor %}
             </tbody>
