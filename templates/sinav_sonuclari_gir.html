@@ -828,6 +828,25 @@
     document.addEventListener("DOMContentLoaded", function () {
         const clearButton = document.getElementById("clear-fields");
 
+        function formatPuan(value) {
+            return Number(value || 0).toLocaleString("tr-TR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            });
+        }
+
+        function updateRowScore(row) {
+            const total = Number(row.dataset.total || 0);
+            const correctInput = row.querySelector(".correct-input");
+            const scorePill = row.querySelector(".score-pill");
+            if (!correctInput || !scorePill) {
+                return;
+            }
+            const correct = Number(correctInput.value || 0);
+            const score = total > 0 ? (correct * 100) / total : 0;
+            scorePill.textContent = formatPuan(score);
+        }
+
         if (clearButton) {
             clearButton.addEventListener("click", function () {
                 document
@@ -835,6 +854,9 @@
                     .forEach(function (input) {
                         input.value = "";
                     });
+                document
+                    .querySelectorAll(".result-row")
+                    .forEach(updateRowScore);
             });
         }
 
@@ -854,10 +876,12 @@
                     if (remaining >= 0) {
                         emptyInput.value = remaining;
                     }
+                    updateRowScore(row);
                 }
 
                 correctInput.addEventListener("input", updateEmpty);
                 wrongInput.addEventListener("input", updateEmpty);
+                updateRowScore(row);
             });
     });
 </script>

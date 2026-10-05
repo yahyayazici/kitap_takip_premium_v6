@@ -921,6 +921,11 @@ class SinavSonucu(models.Model):
 
     def save(self, *args, **kwargs):
         self.puan = self.puani_hesapla()
+        # update_or_create yalnızca gönderilen alanları yazar. Puan bu
+        # listede yoksa doğru güncellenir, puan sütunu 0.00 kalır.
+        update_fields = kwargs.get("update_fields")
+        if update_fields is not None:
+            kwargs["update_fields"] = set(update_fields) | {"puan"}
         self.full_clean()
         super().save(*args, **kwargs)
 
