@@ -31,6 +31,36 @@
             page-break-before: always;
             break-before: page;
         }
+
+        /* Kitap sınavı sıralı liste ile aynı punto ve renk */
+        .pdf-karne.deneme-detay-pdf .student-name {
+            font-family: "PdfTurkish", sans-serif;
+            font-weight: 600;
+            color: #17243a;
+            text-transform: none;
+        }
+        .pdf-karne.deneme-detay-pdf .student-meta {
+            font-family: "PdfTurkish", sans-serif;
+            font-weight: 400;
+            color: #9aa5b5;
+        }
+        .pdf-karne.deneme-detay-pdf .num-cell,
+        .pdf-karne.deneme-detay-pdf .rank,
+        .pdf-karne.deneme-detay-pdf .score {
+            font-family: "PdfTurkish", sans-serif;
+        }
+        .pdf-karne.deneme-detay-pdf .num-cell {
+            font-weight: 700;
+            color: #17243a;
+        }
+        .pdf-karne.deneme-detay-pdf .rank {
+            font-weight: 700;
+            color: #546173;
+        }
+        .pdf-karne.deneme-detay-pdf .score {
+            font-weight: 700;
+            color: #173b80;
+        }
     </style>
 </head>
 <body class="pdf-karne deneme-detay-pdf {{ sonuclar|length|pdf_density_class }}">
@@ -96,17 +126,18 @@
                         <div class="stat-metric">{{ liste.ozet.ortalama_net|pdf_puan }}</div>
                         <div class="stat-sub">Ortalama</div>
                     </td>
+                    {% deneme_yuz_ozet liste.sonuclar as yuz %}
                     <td width="25%" class="stat-cell tone-orange">
                         <div class="stat-accent"></div>
                         <div class="stat-label">Ort. Puan</div>
-                        <div class="stat-metric">{{ liste.ozet.ortalama_puan|pdf_puan }}</div>
-                        <div class="stat-sub">Ortalama</div>
+                        <div class="stat-metric">{{ yuz.ortalama }}</div>
+                        <div class="stat-sub">100 üzerinden</div>
                     </td>
                     <td width="25%" class="stat-cell tone-purple">
                         <div class="stat-accent"></div>
                         <div class="stat-label">En Yüksek</div>
-                        <div class="stat-metric">{{ liste.ozet.en_yuksek_puan|pdf_puan }}</div>
-                        <div class="stat-sub">Puan</div>
+                        <div class="stat-metric">{{ yuz.en_yuksek }}</div>
+                        <div class="stat-sub">puan</div>
                     </td>
                 </tr>
             </table>

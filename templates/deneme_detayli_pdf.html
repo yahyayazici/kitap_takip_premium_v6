@@ -139,7 +139,9 @@
             padding-left: 8px;
         }
         .pdf-karne.deneme-detayli-pdf .student-name {
+            font-family: "PdfTurkish", sans-serif;
             font-weight: 600;
+            color: #17243a;
             font-size: 8.1px;
             line-height: 1.15;
             white-space: normal;
@@ -297,7 +299,7 @@
                                 <td class="b-cell">{{ brans.bos }}</td>
                                 {% endfor %}
                                 <td class="net-cell">{{ satir.sonuc.toplam_net }}</td>
-                                <td class="puan-cell">{{ satir.sonuc.puan }}</td>
+                                <td class="puan-cell">{% deneme_satir_yuz_puan satir.sonuc %}</td>
                             </tr>
                             {% empty %}
                             <tr>
@@ -317,7 +319,8 @@
                                 </td>
                                 {% endfor %}
                                 <td class="net-cell">{{ ozet.ortalama_net }}</td>
-                                <td class="puan-cell">{{ ozet.ortalama_puan }}</td>
+                                {% deneme_yuz_ozet sonuclar as yuz_ozet %}
+                                <td class="puan-cell">{{ yuz_ozet.ortalama }}</td>
                             </tr>
                             {% endif %}
                         </tbody>

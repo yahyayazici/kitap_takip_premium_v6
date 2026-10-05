@@ -331,6 +331,9 @@ class DenemeSilVePdfTests(TestCase):
         html = mock_pdf.call_args[0][0]
         self.assertIn("Genel Sıralama", html)
         self.assertIn("Deneme Sonuç Tablosu", html)
+        self.assertIn("100 üzerinden", html)
+        self.assertIn("90,91", html)
+        self.assertNotIn("350,00", html)
         self.assertNotIn("Din Kültürü", html)
 
 
