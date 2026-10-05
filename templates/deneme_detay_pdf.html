@@ -20,7 +20,6 @@
         }
         .pdf-karne.deneme-detay-pdf .results-kompakt tbody td { padding: 2px 2px; }
         .pdf-karne.deneme-detay-pdf .results-kompakt .student-name { font-size: 6.8px; }
-        .pdf-karne.deneme-detay-pdf .results-kompakt .student-meta { font-size: 5.5px; }
         .pdf-karne.deneme-detay-pdf .results-kompakt .num-cell,
         .pdf-karne.deneme-detay-pdf .results-kompakt .score { font-size: 6.8px; }
         .pdf-karne.deneme-detay-pdf .results-kompakt thead th {
@@ -32,35 +31,23 @@
             break-before: page;
         }
 
-        /* Kitap sınavı sıralı liste ile aynı punto ve renk */
-        .pdf-karne.deneme-detay-pdf .student-name {
-            font-family: "PdfTurkish", sans-serif;
-            font-weight: 600;
-            color: #17243a;
-            text-transform: none;
-        }
-        .pdf-karne.deneme-detay-pdf .student-meta {
-            font-family: "PdfTurkish", sans-serif;
-            font-weight: 400;
-            color: #9aa5b5;
-        }
+        /* İsim, D/Y/B/net ve puan aynı normal punto. Sınıf-şube satırı yok. */
+        .pdf-karne.deneme-detay-pdf table.results tbody td,
+        .pdf-karne.deneme-detay-pdf .student-name,
         .pdf-karne.deneme-detay-pdf .num-cell,
         .pdf-karne.deneme-detay-pdf .rank,
         .pdf-karne.deneme-detay-pdf .score {
             font-family: "PdfTurkish", sans-serif;
+            font-weight: 400;
+            font-synthesis: none;
         }
-        .pdf-karne.deneme-detay-pdf .num-cell {
-            font-weight: 700;
+        .pdf-karne.deneme-detay-pdf .student-name {
             color: #17243a;
+            text-transform: none;
         }
-        .pdf-karne.deneme-detay-pdf .rank {
-            font-weight: 700;
-            color: #546173;
-        }
-        .pdf-karne.deneme-detay-pdf .score {
-            font-weight: 700;
-            color: #173b80;
-        }
+        .pdf-karne.deneme-detay-pdf .num-cell { color: #17243a; }
+        .pdf-karne.deneme-detay-pdf .rank { color: #546173; }
+        .pdf-karne.deneme-detay-pdf .score { color: #173b80; }
     </style>
 </head>
 <body class="pdf-karne deneme-detay-pdf {{ sonuclar|length|pdf_density_class }}">
