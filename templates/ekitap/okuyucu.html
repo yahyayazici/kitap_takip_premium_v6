@@ -1,0 +1,51 @@
+{% extends "ekitap/base.html" %}
+{% load static %}
+{% block title %}{{ kitap.ad }} · E-Kitap{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{% static 'ekitap/vendor/page-flip-2.0.7.css' %}">
+{% endblock %}
+{% block body_class %}ek-okuyucu-sayfa{% endblock %}
+{% block body %}
+<div class="ek-okuyucu" id="okuyucu">
+    <header class="ek-arac">
+        <a class="ek-btn ek-btn-hafif" href="{% url 'ekitap:liste' %}" aria-label="Kitap listesine dön">‹ Kitaplar</a>
+        <h1 class="ek-arac-baslik">{{ kitap.ad }}{% if yonetici_onizleme %} <small>(gizli · önizleme)</small>{% endif %}</h1>
+        {% if bolumler|length > 1 %}
+        <nav class="ek-sekmeler" role="tablist" aria-label="Bölümler">
+            {% for b in bolumler %}
+            <button type="button" class="ek-sekme" role="tab" data-bolum="{{ forloop.counter0 }}"
+                    aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">{{ b.ad }}</button>
+            {% endfor %}
+        </nav>
+        {% endif %}
+        <form class="ek-sayfa-git" id="sayfaGit" autocomplete="off">
+            <label for="sayfaNo">Sayfa</label>
+            <input id="sayfaNo" type="number" inputmode="numeric" min="1" value="1">
+            <span id="sayfaToplam">/ –</span>
+            <button class="ek-btn" type="submit">Git</button>
+        </form>
+        <div class="ek-zoom" role="group" aria-label="Yakınlaştırma">
+            <button class="ek-btn ek-btn-kare" type="button" id="zoomAz" aria-label="Uzaklaştır">−</button>
+            <button class="ek-btn ek-zoom-oran" type="button" id="zoomSifirla" title="Yakınlaştırmayı sıfırla">%100</button>
+            <button class="ek-btn ek-btn-kare" type="button" id="zoomCok" aria-label="Yakınlaştır">+</button>
+        </div>
+        <button class="ek-btn ek-btn-ana" type="button" id="tamEkran">⛶ Tam ekran</button>
+    </header>
+
+    <main class="ek-sahne" id="sahne">
+        <button class="ek-yan ek-yan-sol" type="button" id="oncekiSayfa" aria-label="Önceki sayfa">‹</button>
+        <div class="ek-tuval" id="tuval">
+            <div class="ek-zoom-katman" id="zoomKatman">
+                <div class="ek-kitap" id="kitap"></div>
+            </div>
+        </div>
+        <button class="ek-yan ek-yan-sag" type="button" id="sonrakiSayfa" aria-label="Sonraki sayfa">›</button>
+        <p class="ek-ipucu" id="ipucu">Sayfayı çevirmek için köşeden sürükleyin · Yakınlaştırmak için iki parmakla açın</p>
+    </main>
+</div>
+{{ veri|json_script:"ekitapVeri" }}
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'ekitap/vendor/page-flip-2.0.7.browser.js' %}"></script>
+<script src="{% static 'ekitap/okuyucu.js' %}?v=1"></script>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "ekitap/base.html" %}
+{% block title %}E-Kitap · Yönetim{% endblock %}
+{% block body_class %}ek-yonetim{% endblock %}
+{% block head %}{% if isleniyor %}<meta http-equiv="refresh" content="6">{% endif %}{% endblock %}
+{% block body %}
+{% include "ekitap/yonetim/_ust.html" %}
+<main class="ek-icerik ek-dar">
+    <section class="ek-kart">
+        <div class="ek-kart-bas">
+            <h2>Kitaplar</h2>
+            <a class="ek-btn ek-btn-ana" href="{% url 'ekitap:kitap_yeni' %}">+ Yeni kitap</a>
+        </div>
+        {% if kitaplar %}
+        <ul class="ek-yonetim-liste">
+            {% for kitap in kitaplar %}
+            <li class="ek-yonetim-kitap">
+                <div class="ek-yonetim-kitap-bas">
+                    <strong>{{ kitap.ad }}</strong>
+                    <span class="ek-rozet {% if kitap.gorunur %}ek-rozet-acik{% else %}ek-rozet-kapali{% endif %}">
+                        {% if kitap.gorunur %}Gösteriliyor{% else %}Gizli{% endif %}
+                    </span>
+                </div>
+                <ul class="ek-bolumler">
+                    {% for b in kitap.bolumler.all %}
+                    <li>
+                        <span>{{ b.ad }}</span>
+                        {% if b.islem_durumu == "hazir" %}<span class="ek-durum ek-durum-hazir">{{ b.sayfa_sayisi }} sayfa</span>
+                        {% elif b.islem_durumu == "bekliyor" %}<span class="ek-durum ek-durum-bekliyor">Sayfalar hazırlanıyor…</span>
+                        {% else %}<span class="ek-durum ek-durum-hata">Hata: {{ b.islem_notu }}</span>{% endif %}
+                        {% if b.islem_notu and b.islem_durumu == "hazir" %}<small>{{ b.islem_notu }}</small>{% endif %}
+                        {% if b.islem_durumu != "hazir" %}
+                        <form method="post" action="{% url 'ekitap:bolum_yeniden_isle' b.pk %}">{% csrf_token %}
+                            <button class="ek-btn ek-btn-kucuk" type="submit">Yeniden işle</button>
+                        </form>
+                        {% endif %}
+                    </li>
+                    {% empty %}
+                    <li class="ek-alt">Bölüm yok — düzenleyip PDF ekleyin.</li>
+                    {% endfor %}
+                </ul>
+                <div class="ek-eylemler">
+                    <a class="ek-btn" href="{% url 'ekitap:okuyucu' kitap.pk %}" target="_blank" rel="noopener">Aç</a>
+                    <a class="ek-btn" href="{% url 'ekitap:kitap_duzenle' kitap.pk %}">Düzenle</a>
+                    <form method="post" action="{% url 'ekitap:kitap_gorunurluk' kitap.pk %}">{% csrf_token %}
+                        <button class="ek-btn" type="submit">{% if kitap.gorunur %}Gizle{% else %}Göster{% endif %}</button>
+                    </form>
+                    <form method="post" action="{% url 'ekitap:kitap_sil' kitap.pk %}"
+                          onsubmit="return confirm('“{{ kitap.ad|escapejs }}” ve tüm PDF dosyaları kalıcı olarak silinsin mi?');">{% csrf_token %}
+                        <button class="ek-btn ek-btn-tehlike" type="submit">Sil</button>
+                    </form>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="ek-alt">Henüz kitap yok.</p>
+        {% endif %}
+    </section>
+
+    <section class="ek-kart">
+        <h2>Görüntüleme PIN'i</h2>
+        <p class="ek-alt">
+            {% if pin_tanimli %}PIN tanımlı. Değiştirirseniz açık tahtalar yeni PIN'i ister.{% else %}<strong>PIN henüz yok</strong> — belirleyene kadar görüntüleme sayfası açılmaz.{% endif %}
+            Tahtada açılacak adres: <code>{{ goruntuleme_adresi }}</code>
+        </p>
+        <form method="post" action="{% url 'ekitap:yonetim_pin' %}" class="ek-satir" autocomplete="off">
+            {% csrf_token %}
+            <input class="ek-girdi" type="password" name="pin" inputmode="numeric" pattern="[0-9]{4,12}" placeholder="Yeni PIN (4–12 rakam)" required autocomplete="new-password">
+            <input class="ek-girdi" type="password" name="pin_tekrar" inputmode="numeric" pattern="[0-9]{4,12}" placeholder="PIN tekrar" required autocomplete="new-password">
+            <button class="ek-btn ek-btn-ana" type="submit">PIN'i kaydet</button>
+        </form>
+    </section>
+</main>
+{% endblock %}

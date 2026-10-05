@@ -108,3 +108,30 @@ Render Shell:
 ```bash
 python manage.py createsuperuser
 ```
+
+## E-Kitap alt alan adı (`ekitap.cinilisarayproje.com`)
+
+Akıllı tahtada deneme kitapçığını flipbook olarak göstermek için. Aynı Render servisinde çalışır
+(ayrı sunucu/ücret yok) ama ana sitenin kullanıcı sistemine bağlı değildir:
+yönetici girişi `EKITAP_YONETICI_SIFRE` ile, tahta görüntüleme yöneticinin belirlediği PIN ile yapılır.
+Arama motorlarına kapalıdır (`noindex` + `robots.txt`).
+
+1. **Kodu yayınla:** dal `main`'e birleşince Render otomatik deploy eder; `migrate` başlangıçta çalışır.
+2. **Render → Environment:** `EKITAP_YONETICI_SIFRE` ekleyin (uzun, tahmin edilemez bir şifre).
+   `EKITAP_HOST` ve `EKITAP_MEDIA_ROOT` Blueprint (`render.yaml`) ile gelir; Blueprint kullanmıyorsanız elle girin:
+   `EKITAP_HOST=ekitap.cinilisarayproje.com`, `EKITAP_MEDIA_ROOT=/var/ekran-medya/ekitap-medya`
+   (mevcut kalıcı diskin alt klasörü — deploy'da dosyalar silinmez).
+3. **Render → Settings → Custom Domains → Add Custom Domain:** `ekitap.cinilisarayproje.com`.
+4. **Namecheap → Advanced DNS → Add New Record:**
+
+   | Tür | Host | Değer | TTL |
+   |-----|------|-------|-----|
+   | **CNAME** | `ekitap` | `kitap-takip-premium-v6.onrender.com` | Automatic |
+
+5. Render'da domain **Verified** olunca HTTPS sertifikası otomatik gelir (5–30 dk).
+6. `https://ekitap.cinilisarayproje.com/yonetim/` → şifreyle girin → **Görüntüleme PIN'i** belirleyin →
+   **+ Yeni kitap** ile PDF'leri yükleyin. Sayfalar arka planda görsele çevrilir (birkaç saniye–1 dk).
+7. Tahtada `https://ekitap.cinilisarayproje.com/` açılır, PIN girilir. PIN oturumu tarayıcıda kalır;
+   PIN'i değiştirirseniz tüm tahtalar yeniden PIN ister.
+
+Yerelde deneme: `EKITAP_YONETICI_SIFRE=deneme python manage.py runserver` → `http://ekitap.localhost:8000/`.

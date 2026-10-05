@@ -1,0 +1,75 @@
+{% extends "ekitap/base.html" %}
+{% block title %}E-Kitap · {% if yeni %}Yeni kitap{% else %}{{ kitap.ad }}{% endif %}{% endblock %}
+{% block body_class %}ek-yonetim{% endblock %}
+{% block body %}
+{% include "ekitap/yonetim/_ust.html" %}
+<main class="ek-icerik ek-dar">
+    <form method="post" enctype="multipart/form-data" class="ek-kart" id="kitapForm">
+        {% csrf_token %}
+        <h2>{% if yeni %}Yeni kitap{% else %}Kitabı düzenle{% endif %}</h2>
+        {% if hatalar %}
+        <ul class="ek-hata-liste" role="alert">{% for h in hatalar %}<li>{{ h }}</li>{% endfor %}</ul>
+        {% endif %}
+
+        <label class="ek-etiket" for="ad">Kitap adı</label>
+        <input class="ek-girdi" id="ad" name="ad" maxlength="160" value="{{ ad }}" required placeholder="ör. 7. Sınıf Kurumsal Deneme 1">
+        <label class="ek-onay"><input type="checkbox" name="gorunur" {% if yeni or kitap.gorunur %}checked{% endif %}> Görüntüleme sayfasında göster</label>
+
+        {% if not yeni %}
+        <h3>Bölümler (PDF'ler)</h3>
+        {% for b in bolumler %}
+        <fieldset class="ek-bolum-satir">
+            <div class="ek-bolum-alanlar">
+                <label>Ad <input class="ek-girdi" name="ad_{{ b.pk }}" value="{{ b.ad }}" maxlength="80"></label>
+                <label class="ek-sira">Sıra <input class="ek-girdi" type="number" min="0" name="sira_{{ b.pk }}" value="{{ b.sira }}"></label>
+                <label>PDF'i değiştir <input type="file" name="pdf_{{ b.pk }}" accept="application/pdf,.pdf"></label>
+            </div>
+            <p class="ek-alt">{{ b.sayfa_sayisi }} sayfa · {{ b.get_islem_durumu_display }}</p>
+            <button class="ek-btn ek-btn-tehlike ek-btn-kucuk" type="submit" form="bolumSil{{ b.pk }}">Bölümü sil</button>
+        </fieldset>
+        {% empty %}
+        <p class="ek-alt">Bu kitapta bölüm yok.</p>
+        {% endfor %}
+        {% endif %}
+
+        <h3>{% if yeni %}PDF'ler{% else %}Yeni bölüm ekle{% endif %}</h3>
+        <p class="ek-alt">Her PDF tahtada ayrı bir sekme olur (ör. Sayısal, Sözel). Ad boş bırakılırsa dosya adı kullanılır.</p>
+        <div id="yeniSatirlar">
+            {% for i in satir_sayisi %}
+            <div class="ek-yeni-satir" data-satir="{{ i }}"{% if i > 1 %} hidden{% endif %}>
+                <input class="ek-girdi" name="yeni_ad_{{ i }}" maxlength="80"
+                       placeholder="{% if i == 0 %}ör. Sayısal{% elif i == 1 %}ör. Sözel{% else %}Bölüm adı{% endif %}">
+                <input type="file" name="yeni_pdf_{{ i }}" accept="application/pdf,.pdf">
+            </div>
+            {% endfor %}
+        </div>
+        <button class="ek-btn ek-btn-kucuk" type="button" id="satirEkle">+ Bir PDF daha</button>
+
+        <div class="ek-eylemler ek-form-son">
+            <a class="ek-btn" href="{% url 'ekitap:yonetim' %}">Vazgeç</a>
+            <button class="ek-btn ek-btn-ana" type="submit" id="kaydetBtn">{% if yeni %}Yükle ve ekle{% else %}Kaydet{% endif %}</button>
+        </div>
+        <p class="ek-alt" id="yukleniyor" hidden role="status">Yükleniyor… Büyük PDF'lerde bu biraz sürebilir, sayfayı kapatmayın.</p>
+    </form>
+    {% if not yeni %}
+    {% for b in bolumler %}
+    <form id="bolumSil{{ b.pk }}" method="post" action="{% url 'ekitap:bolum_sil' b.pk %}"
+          onsubmit="return confirm('“{{ b.ad|escapejs }}” bölümü ve PDF dosyası silinsin mi?');">{% csrf_token %}</form>
+    {% endfor %}
+    {% endif %}
+</main>
+<script>
+(function () {
+    var ekle = document.getElementById('satirEkle');
+    ekle.addEventListener('click', function () {
+        var gizli = document.querySelector('.ek-yeni-satir[hidden]');
+        if (gizli) gizli.hidden = false;
+        if (!document.querySelector('.ek-yeni-satir[hidden]')) ekle.hidden = true;
+    });
+    document.getElementById('kitapForm').addEventListener('submit', function () {
+        document.getElementById('kaydetBtn').disabled = true;
+        document.getElementById('yukleniyor').hidden = false;
+    });
+})();
+</script>
+{% endblock %}
