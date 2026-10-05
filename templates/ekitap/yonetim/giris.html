@@ -1,0 +1,20 @@
+{% extends "ekitap/base.html" %}
+{% block title %}E-Kitap · Yönetici girişi{% endblock %}
+{% block body_class %}ek-merkez ek-yonetim{% endblock %}
+{% block body %}
+<main class="ek-kart ek-giris">
+    <h1>E-Kitap Yönetimi</h1>
+    {% if sifre_tanimli %}
+    <form method="post" autocomplete="off">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+        <label class="ek-etiket" for="sifre">Yönetici şifresi</label>
+        <input class="ek-girdi" id="sifre" type="password" name="sifre" autocomplete="current-password" autofocus required>
+        {% if hata %}<p class="ek-hata" role="alert">{{ hata }}</p>{% endif %}
+        <button class="ek-btn ek-btn-ana ek-btn-genis" type="submit">Giriş</button>
+    </form>
+    {% else %}
+    <p class="ek-alt">Yönetim kapalı: sunucuda <code>EKITAP_YONETICI_SIFRE</code> ortam değişkeni tanımlı değil.</p>
+    {% endif %}
+</main>
+{% endblock %}

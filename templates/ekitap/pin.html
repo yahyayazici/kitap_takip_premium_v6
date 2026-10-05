@@ -1,0 +1,21 @@
+{% extends "ekitap/base.html" %}
+{% block title %}E-Kitap · Giriş{% endblock %}
+{% block body_class %}ek-merkez{% endblock %}
+{% block body %}
+<main class="ek-kart ek-giris">
+    <h1>E-Kitap</h1>
+    {% if pin_tanimli %}
+    <p class="ek-alt">Devam etmek için PIN girin.</p>
+    <form method="post" autocomplete="off">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+        <input class="ek-pin" type="password" name="pin" inputmode="numeric" pattern="[0-9]*"
+               maxlength="12" autofocus required aria-label="PIN">
+        {% if hata %}<p class="ek-hata" role="alert">{{ hata }}</p>{% endif %}
+        <button class="ek-btn ek-btn-ana ek-btn-genis" type="submit">Aç</button>
+    </form>
+    {% else %}
+    <p class="ek-alt">Görüntüleme PIN'i henüz belirlenmedi. Yöneticinin PIN belirlemesi gerekiyor.</p>
+    {% endif %}
+</main>
+{% endblock %}

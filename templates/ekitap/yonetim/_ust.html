@@ -1,0 +1,14 @@
+<header class="ek-ust">
+    <h1><a href="{% url 'ekitap:yonetim' %}">E-Kitap Yönetimi</a></h1>
+    <div class="ek-ust-sag">
+        <a class="ek-btn ek-btn-hafif" href="{% url 'ekitap:liste' %}" target="_blank" rel="noopener">Görüntüleme sayfası ↗</a>
+        <form method="post" action="{% url 'ekitap:yonetim_cikis' %}">{% csrf_token %}
+            <button class="ek-btn ek-btn-hafif" type="submit">Çıkış</button>
+        </form>
+    </div>
+</header>
+{% if messages %}
+<div class="ek-mesajlar">
+    {% for m in messages %}<p class="ek-mesaj ek-mesaj-{{ m.tags }}" role="status">{{ m }}</p>{% endfor %}
+</div>
+{% endif %}

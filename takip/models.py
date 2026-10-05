@@ -2360,3 +2360,10 @@ from takip.akilli_tahta_models import (  # noqa: E402,F401
     AkilliTahtaIslemKaydi,
     SinifSeviyesi,
 )
+
+from takip.ekitap_models import (  # noqa: E402,F401
+    EKitap,
+    EKitapAyar,
+    EKitapBolum,
+    EKitapSayfa,
+)
