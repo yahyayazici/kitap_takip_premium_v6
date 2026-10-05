@@ -1,40 +1,33 @@
-<table class="results{% if kompakt %} results-kompakt{% endif %}">
-    <colgroup>
-        <col class="col-sira">
-        <col class="col-ad">
-        <col class="col-num">
-        <col class="col-num">
-        <col class="col-num">
-        <col class="col-num">
-        <col class="col-num">
-    </colgroup>
+{% load pdf_extras %}
+<table class="results">
     <thead>
         <tr>
-            <th>Sıra</th>
-            <th class="left">Talebe</th>
-            <th>D</th>
-            <th>Y</th>
-            <th>B</th>
-            <th>Net</th>
-            <th>Puan</th>
+            <th style="width:7%;">Sıra</th>
+            <th class="left" style="width:29%;">Talebe</th>
+            <th style="width:10%;">Doğru</th>
+            <th style="width:10%;">Yanlış</th>
+            <th style="width:9%;">Boş</th>
+            <th style="width:14%;">Net</th>
+            <th style="width:21%;">Puan</th>
         </tr>
     </thead>
     <tbody>
         {% for sonuc in kolon %}
         <tr>
-            <td><span class="rank-no">{{ forloop.counter|add:sira_offset }}</span></td>
+            <td><span class="rank">{% if sonuc.kurum_sirasi %}{{ sonuc.kurum_sirasi }}{% else %}{{ forloop.counter|add:sira_offset }}{% endif %}</span></td>
             <td class="left">
                 <div class="student-name">{{ sonuc.talebe.ad_soyad }}</div>
+                <div class="student-meta">{{ sonuc.talebe.sinif }}{% if sonuc.talebe.sube %} / {{ sonuc.talebe.sube }}{% endif %}</div>
             </td>
             <td class="num-cell">{{ sonuc.toplam_dogru }}</td>
             <td class="num-cell">{{ sonuc.toplam_yanlis }}</td>
             <td class="num-cell">{{ sonuc.toplam_bos }}</td>
-            <td class="num-cell">{{ sonuc.toplam_net }}</td>
-            <td class="num-cell puan-cell">{{ sonuc.puan }}</td>
+            <td class="num-cell">{{ sonuc.toplam_net|pdf_puan }}</td>
+            <td><span class="score">{{ sonuc.puan|pdf_puan }}</span></td>
         </tr>
         {% empty %}
         <tr>
-            <td colspan="7" class="left" style="padding:8px;">—</td>
+            <td colspan="7" class="left" style="padding:10px;">Henüz kaydedilmiş sonuç bulunmamaktadır.</td>
         </tr>
         {% endfor %}
     </tbody>

@@ -329,7 +329,10 @@ class DenemeSilVePdfTests(TestCase):
         self.assertNotIn(".zip", resp["Content-Disposition"].lower())
         self.assertEqual(mock_pdf.call_count, 1)
         html = mock_pdf.call_args[0][0]
-        self.assertIn("Genel Sıralama", html)
+        self.assertIn("Sıralı Deneme Sonuç Belgesi", html)
+        self.assertIn("Başarı Listesi", html)
+        self.assertIn("Sıralı Sonuç Tablosu", html)
+        self.assertIn("Katılan Talebe", html)
         self.assertNotIn("Din Kültürü", html)
 
 
