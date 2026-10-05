@@ -28,6 +28,7 @@ from takip.ktt_service import (
     ktt_rapor_filtre_secenekleri,
     ktt_hafta_cozulen_soru,
     ktt_hafta_ders_sorulari,
+    ktt_hafta_sinif_ozeti,
     ktt_rapor_filtrele,
     ktt_rapor_grupla,
     ktt_rapor_istatistik,
@@ -172,7 +173,33 @@ def ktt_listesi(request):
             "akilli_ozet": akilli_ozet,
             "hafta_soru": ktt_hafta_cozulen_soru(request.user),
             "hafta_dersleri": ktt_hafta_ders_sorulari(request.user),
+            "pdf_yetkisi": can(request.user, "ktt", "export_pdf"),
         },
+    )
+
+
+@login_required
+@require_permission("ktt", "export_pdf")
+def ktt_hafta_pdf(request):
+    ozet = ktt_hafta_sinif_ozeti(request.user)
+    pdf_sayfa = coz_pdf_sayfa(request, default="a4_portrait")
+    html = render(
+        request,
+        "ktt_hafta_pdf.html",
+        {
+            "ozet": ozet,
+            "olusturma_tarihi": now(),
+            "pdf_sayfa": pdf_sayfa,
+        },
+    ).content.decode("utf-8")
+    pdf_verisi = html_to_pdf(html, base_url=request.build_absolute_uri("/"))
+    if not pdf_verisi:
+        return pdf_error_response(
+            f"PDF oluşturulamadı. (Motor: {pdf_engine_status()})",
+        )
+    return make_pdf_response(
+        pdf_verisi,
+        f"ktt-hafta-{ozet['baslangic']:%Y-%m-%d}.pdf",
     )
 
 

@@ -59,6 +59,50 @@ def _deneme_detay_verisi(request, deneme):
     }
 
 
+def _arsiv_kartlarini_hazirla(user, denemeler):
+    """Kutudaki zayıf kazanım sayısı.
+
+    Kapsamı dar kullanıcıda puan ortalaması yalnızca kendi talebelerinin puanıdır.
+    """
+    if not denemeler:
+        return
+    from takip.deneme_models import DenemeKazanimSonucu, DenemeSonucu
+    from takip.etut_kontrol_service import ZAYIF_ESIK
+    from takip.permissions.scope import tum_talebe_kapsami_var, yetkili_talebeler
+
+    ids = [d.pk for d in denemeler]
+    tam = user.is_superuser or tum_talebe_kapsami_var(user)
+    talebe_ids = None
+    if not tam:
+        talebe_ids = list(yetkili_talebeler(user).values_list("id", flat=True))
+        ortlar = (
+            DenemeSonucu.objects.filter(deneme_id__in=ids, talebe_id__in=talebe_ids)
+            .values("deneme_id")
+            .annotate(ort=Avg("puan"))
+        )
+        ort_map = {r["deneme_id"]: r["ort"] for r in ortlar}
+        for d in denemeler:
+            d.puan_ort = ort_map.get(d.pk)
+
+    kazanim = DenemeKazanimSonucu.objects.filter(
+        deneme_id__in=ids,
+        yuzde__isnull=False,
+        yuzde__lt=ZAYIF_ESIK,
+    )
+    if talebe_ids is not None:
+        kazanim = kazanim.filter(talebe_id__in=talebe_ids)
+    sayilar = {}
+    satirlar = (
+        kazanim.order_by()
+        .values("deneme_id", "ders_key", "konu_key")
+        .distinct()
+    )
+    for row in satirlar:
+        sayilar[row["deneme_id"]] = sayilar.get(row["deneme_id"], 0) + 1
+    for d in denemeler:
+        d.zayif_konu = sayilar.get(d.pk, 0)
+
+
 @login_required
 @require_permission("deneme", "view")
 def deneme_listesi(request):
@@ -70,6 +114,7 @@ def deneme_listesi(request):
     denemeler, filtre = deneme_arsiv_filtrele(denemeler, request.GET)
     denemeler = list(denemeler.annotate(puan_ort=Avg("sonuclar__puan")))
     denemelere_goster_sira(request.user, denemeler)
+    _arsiv_kartlarini_hazirla(request.user, denemeler)
     yayinlar = {(d.yayin or "").strip() for d in denemeler if (d.yayin or "").strip()}
     seri = [float(d.puan_ort) for d in reversed(denemeler) if d.puan_ort is not None]
     genel = round(sum(seri) / len(seri)) if seri else None
@@ -102,6 +147,7 @@ def deneme_listesi(request):
             "fark": fark,
         },
         "sil_yetkisi": deneme_silebilir(request.user),
+        "cisa_acik": can(request.user, "deneme", "export_pdf"),
         "filtre": filtre,
         **deneme_arsiv_filtre_secenekleri(),
     }

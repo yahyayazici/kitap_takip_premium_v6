@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% load static deneme_panel %}
+{% load l10n static deneme_panel %}
 {% block title %}Etüt Takip · {{ hoca.ad_soyad }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek41">
-<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk13">
+<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek46">
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk41">
 {% endblock %}
 {% block content %}
 <div class="ek-page">
@@ -131,21 +131,28 @@
     {% if kutular %}
     <div class="ek-exam-grid" id="ekExamGrid">
       {% for k in kutular %}
-      <a class="ek-exam{% if forloop.first %} is-last{% endif %}" href="{% url 'etut_kontrol_deneme' hoca.id k.deneme.id %}?gorunum={{ gorunum }}" data-time="{{ k.deneme.sinav_tarihi|date:'Ymd' }}" data-puan="{% if k.seviye_ortalama %}{{ k.seviye_ortalama|floatformat:1 }}{% endif %}">
+      <a class="ek-exam{% if forloop.first %} is-last{% endif %}" href="{% url 'etut_kontrol_deneme' hoca.id k.deneme.id %}?gorunum={{ gorunum }}" data-time="{{ k.deneme.sinav_tarihi|date:'Ymd' }}" data-puan="{% if k.seviye_ortalama != None %}{{ k.seviye_ortalama|unlocalize }}{% endif %}">
         <div class="ek-exam-top">
           <div>
             <strong>{% if k.deneme.goster_sira %}{{ k.deneme.goster_sira }}. Deneme{% else %}{{ k.deneme.ad }}{% endif %}</strong>
-            {% if forloop.first %}<span class="ek-pill">Son deneme</span><em>{{ k.deneme.sinav_tarihi|date:"j F Y" }}</em>{% endif %}
+            <em>{{ k.deneme.sinav_tarihi|date:"j F Y" }}</em>
           </div>
-          {% if not forloop.first %}<span>{{ k.deneme.sinav_tarihi|date:"j M Y" }}</span>{% endif %}
+          {% if forloop.first %}<span class="ek-pill">Son deneme</span>{% endif %}
         </div>
-        <p class="ek-exam-score"><b>{% if k.seviye_ortalama %}{{ k.seviye_ortalama|floatformat:1 }}{% else %}—{% endif %}</b><small>{{ kirilim.etiket }} / 500</small></p>
-        <div class="ek-meter"><i style="width:{% if k.seviye_ortalama %}{% widthratio k.seviye_ortalama 500 100 %}{% else %}0{% endif %}%"></i></div>
-        <div class="ek-exam-meta">
-          <span class="ek-delta"></span>
-          <span>{% if gorunum == 'ayrim' %}Sınıf ayrımları grafikte{% else %}{{ kirilim.etiket }} geneli{% endif %}</span>
+        <p class="ek-exam-score"><b>{% if k.seviye_ortalama != None %}{{ k.seviye_ortalama|floatformat:1 }}{% else %}—{% endif %}</b><small>/ 500</small></p>
+        <p class="ek-exam-kicker">{% if gorunum == 'ayrim' %}Sınıf ayrımları{% else %}{{ kirilim.etiket }} geneli{% endif %}</p>
+        <div class="ek-meter-row">
+          <div class="ek-meter"><i style="width:{% if k.seviye_ortalama != None %}{% widthratio k.seviye_ortalama 500 100 %}{% else %}0{% endif %}%"></i></div>
+          <span>{% if k.seviye_ortalama != None %}{% widthratio k.seviye_ortalama 500 100 %}%{% else %}—{% endif %}</span>
         </div>
-        <p class="ek-exam-weak">{% if k.zayif_konu %}{{ k.zayif_konu }} zayıf kazanım{% else %}Zayıf kazanım yok{% endif %}</p>
+        <div class="ek-exam-delta">
+          <strong class="ek-delta"></strong>
+          <span class="ek-delta-note">Önceki denemeye göre</span>
+        </div>
+        <div class="ek-exam-foot">
+          <span class="ek-exam-weak">{% if k.zayif_konu %}{{ k.zayif_konu }} kazanım geliştirilmeli{% else %}Geliştirilecek kazanım yok{% endif %}</span>
+          <span class="ek-exam-go">Detaylar →</span>
+        </div>
       </a>
       {% endfor %}
     </div>
@@ -181,13 +188,29 @@ csNavyLine(document.getElementById('gelisimChart'), data.sinif || [], data.tarih
   });
   const cards = Array.prototype.slice.call(document.querySelectorAll(".ek-exam"));
   const chrono = cards.slice().sort(function (a, b) { return a.dataset.time < b.dataset.time ? -1 : 1; });
+  const ondalik = function (n) { return Math.abs(n).toFixed(1).replace(".", ","); };
   chrono.forEach(function (card, i) {
     const el = card.querySelector(".ek-delta");
+    const note = card.querySelector(".ek-delta-note");
     const prev = chrono[i - 1];
-    if (!el || !prev || !card.dataset.puan || !prev.dataset.puan) return;
-    const d = Math.round(Number(card.dataset.puan) - Number(prev.dataset.puan));
-    el.textContent = (d > 0 ? "+" : "") + d + " puan";
-    if (d < 0) el.classList.add("is-down");
+    if (!el) return;
+    if (!prev || card.dataset.puan === "" || prev.dataset.puan === "") {
+      el.textContent = "— Başlangıç denemesi";
+      el.classList.add("is-start");
+      if (note) note.hidden = true;
+      return;
+    }
+    const d = Math.round((Number(card.dataset.puan) - Number(prev.dataset.puan)) * 10) / 10;
+    if (d > 0) {
+      el.textContent = "↑ +" + ondalik(d) + " puan";
+      el.classList.add("is-up");
+    } else if (d < 0) {
+      el.textContent = "↓ " + ondalik(d) + " puan";
+      el.classList.add("is-down");
+    } else {
+      el.textContent = "0,0 puan";
+      el.classList.add("is-start");
+    }
   });
   const sort = document.getElementById("ekSort");
   const grid = document.getElementById("ekExamGrid");

@@ -2,12 +2,11 @@
 {% load l10n static deneme_panel %}
 {% block title %}Deneme Kontrol Merkezi{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk14">
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk46">
 {% endblock %}
 
 {% block content %}
 <div class="dash-home ogretmen-dash dk-page">
-{% include "ogretmen/hero.html" with title="Deneme" eyebrow="Etüt" meta="Kontrol, etüt takibi ve deneme listesi — tek panel" show_date=True %}
 {% deneme_panel_switch "kontrol" %}
 
 {% if not siniflar %}
@@ -17,47 +16,452 @@
 {% else %}
 
 {% if siniflar|length > 1 %}
-<nav class="dk-switch" aria-label="Sınıf">
-    <a href="{% url 'ogretmen_deneme_kontrol_merkezi' %}" class="dk-switch-btn{% if not gosterilen_id %} is-active{% endif %}">Tümü</a>
+<div class="dk-filtre-satir">
+<nav class="dk-switch dk-sinif-switch" aria-label="Sınıf">
+    <a href="{% url 'ogretmen_deneme_kontrol_merkezi' %}{{ ekran_sorgu }}" class="dk-switch-btn{% if not gosterilen_id %} is-active{% endif %}">Tümü</a>
     {% for s in siniflar %}
-    <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' s.id %}" class="dk-switch-btn{% if gosterilen_id == s.id %} is-active{% endif %}">{{ s.etiket }}</a>
+    <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' s.id %}{{ ekran_sorgu }}" class="dk-switch-btn{% if gosterilen_id == s.id %} is-active{% endif %}">{{ s.etiket }}</a>
     {% endfor %}
 </nav>
+</div>
 {% endif %}
 
 {% for grup in gruplar %}
 {% if not gosterilen_id or gosterilen_id == grup.kart.id %}
 {% with veri=grup.veri secili=grup.kart %}
-<section class="dk-grup">
-    <header class="dk-grup-head">
-        <h2 class="dk-grup-baslik">{{ secili.etiket }}</h2>
-        <p class="dk-grup-sayi">{{ secili.ogrenci_sayisi }} talebe</p>
+<section class="dk-grup dk-board">
+    <header class="dk-board-head">
+        <div class="dk-grup-head">
+            {% if ekran == 'kazanim' %}
+            <p class="dk-kirinti">Deneme Kontrol / {{ secili.etiket }} / Kazanımlar</p>
+            <h2 class="dk-grup-baslik">Kazanım analizi</h2>
+            <p class="dk-grup-sayi">{{ secili.etiket }} · {{ secili.ogrenci_sayisi }} öğrenci · {{ veri.kazanim_ozet.deneme }} deneme</p>
+            {% elif ekran == 'sinif' %}
+            <p class="dk-kirinti">Deneme Kontrol / {{ secili.etiket }} / Sınıf analizi</p>
+            <h2 class="dk-grup-baslik">Sınıf analizi</h2>
+            <p class="dk-grup-sayi">{{ secili.etiket }}{% if grup.sinif_raporu %} · {{ grup.sinif_raporu.ogrenci }} öğrenci · {{ grup.sinif_raporu.deneme_sayisi }} deneme{% else %} · {{ secili.ogrenci_sayisi }} öğrenci{% endif %}</p>
+            {% else %}
+            <h2 class="dk-grup-baslik">{{ secili.etiket }}</h2>
+            <p class="dk-grup-sayi">{{ secili.ogrenci_sayisi }} öğrenci{% if veri.son_deneme %} · {% if veri.son_deneme.goster_sira %}{{ veri.son_deneme.goster_sira }}. Deneme{% elif veri.son_deneme.sira_no %}{{ veri.son_deneme.sira_no }}. Deneme{% else %}{{ veri.son_deneme.ad }}{% endif %}{% endif %}</p>
+            {% endif %}
+        </div>
+        <nav class="dk-pill-nav" aria-label="Ekran">
+            {% if gosterilen_id %}
+            <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' gosterilen_id %}" class="dk-pill{% if ekran == 'yukselis' %} is-active{% endif %}">Yükseliş</a>
+            <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' gosterilen_id %}?ekran=kazanim" class="dk-pill{% if ekran == 'kazanim' %} is-active{% endif %}">Kazanımlar</a>
+            {% if cisa_acik %}
+            <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' gosterilen_id %}?ekran=cisa" class="dk-pill dk-pill-cisa{% if ekran == 'cisa' %} is-active{% endif %}" aria-label="ÇİSA"><img src="{% static 'images/cisa-logo.png' %}" alt="ÇİSA"></a>
+            {% endif %}
+            {% else %}
+            <a href="{% url 'ogretmen_deneme_kontrol_merkezi' %}" class="dk-pill{% if ekran == 'yukselis' %} is-active{% endif %}">Yükseliş</a>
+            <a href="{% url 'ogretmen_deneme_kontrol_merkezi' %}?ekran=kazanim" class="dk-pill{% if ekran == 'kazanim' %} is-active{% endif %}">Kazanımlar</a>
+            {% if cisa_acik %}
+            <a href="{% url 'ogretmen_deneme_kontrol_merkezi' %}?ekran=cisa" class="dk-pill dk-pill-cisa{% if ekran == 'cisa' %} is-active{% endif %}" aria-label="ÇİSA"><img src="{% static 'images/cisa-logo.png' %}" alt="ÇİSA"></a>
+            {% endif %}
+            {% endif %}
+        </nav>
     </header>
 
-{% if veri and veri.satirlar %}
-
-<div class="dk-summary-card">
-    <h2 class="dk-summary-title">Deneme durumu</h2>
-    <p class="dk-summary-sub">
-        {% if veri.son_deneme %}Son Deneme: {% if veri.son_deneme.goster_sira %}{{ veri.son_deneme.goster_sira }}. Deneme{% elif veri.son_deneme.sira_no %}{{ veri.son_deneme.sira_no }}. Deneme{% else %}{{ veri.son_deneme.ad }}{% endif %}{% endif %}
-    </p>
-    <div class="dk-stat-row">
-        <div class="dk-stat"><span>Sınıf Ortalaması</span><strong>{{ veri.sinif_ortalamasi|default:"—" }}</strong></div>
-        <div class="dk-stat"><span>Önceki Deneme</span><strong>{{ veri.onceki_ortalama|default:"—" }}</strong></div>
-        <div class="dk-stat">
-            <span>Değişim</span>
-            <strong class="{% if veri.ortalama_degisim > 0 %}pos{% elif veri.ortalama_degisim < 0 %}neg{% endif %}">
-                {% if veri.ortalama_degisim > 0 %}↑ +{{ veri.ortalama_degisim }}{% elif veri.ortalama_degisim < 0 %}↓ {{ veri.ortalama_degisim }}{% else %}—{% endif %}
-            </strong>
+{% if ekran == 'kazanim' %}
+<div class="dk-ozet-grid dk-ozet-uc">
+    <article class="dk-metrik">
+        <p class="dk-metrik-kicker">İzlenen kazanım</p>
+        <strong class="dk-metrik-sayi">{{ veri.kazanim_ozet.konu }}</strong>
+    </article>
+    <article class="dk-metrik">
+        <p class="dk-metrik-kicker">İncelenen deneme</p>
+        <strong class="dk-metrik-sayi">{{ veri.kazanim_ozet.deneme }}</strong>
+    </article>
+    <article class="dk-metrik">
+        <p class="dk-metrik-kicker">Ortalamayı aşan kazanım</p>
+        <strong class="dk-metrik-sayi">{{ veri.kazanim_ozet.asan }} <small>/ {{ veri.kazanim_ozet.konu }}</small></strong>
+    </article>
+</div>
+<section class="dk-panel">
+    <header class="dk-panel-head">
+        <div>
+            <h2>Kazanım performansı</h2>
+            <p class="dk-note">Genel ortalama ve son deneme sonuçları</p>
         </div>
-        <div class="dk-stat"><span>Yükselen</span><strong class="pos">{{ veri.yukselen }}</strong></div>
-        <div class="dk-stat"><span>Düşen</span><strong class="neg">{{ veri.dusen }}</strong></div>
-        <div class="dk-stat"><span>Sabit</span><strong>{{ veri.sabit }}</strong></div>
-        <div class="dk-stat"><span>Takip Gereken</span><strong class="{% if veri.takip_gereken %}neg{% endif %}">{{ veri.takip_gereken }}</strong></div>
+    </header>
+    {% include "ogretmen/deneme_kazanim_tablo.html" with gruplar=veri.kazanim_gruplari bos_metin="Henüz kazanım yüklenmedi. Deneme konu kazanımı yüklendikçe konular burada birikecek." %}
+    <div class="dk-kazanim-dipnot">
+        <p>Yeni kazanımlar eklenir, önceki kazanımlar korunur. Tekrarlanan kazanımların başarı oranı ortalamaya katılır.</p>
+        <p>Karşılaştırma, son sonuç ile genel ortalama arasındaki yüzde puan farkını gösterir.</p>
     </div>
+</section>
+{% elif ekran == 'cisa' and cisa_acik %}
+<section class="dk-panel dk-cisa" data-dk-cisa>
+    <header class="dk-panel-head">
+        <div>
+            <h2>ÇİSA</h2>
+            <p class="dk-note">Sınıfı ya da talebeyi seçin. Girilenin raporu alınır.</p>
+        </div>
+    </header>
+    {% if grup.sinif %}
+    <form method="post" action="{% url 'cisa_denemeler' %}">
+        {% csrf_token %}
+        <input type="hidden" name="sinif" value="{{ grup.sinif.id }}">
+        <div class="dk-cisa-iki">
+            <div>
+                <div class="dk-cisa-ust">
+                    <h3>Denemeler</h3>
+                    {% if grup.cisa_denemeler %}
+                    <label class="dk-cisa-tumu"><input type="checkbox" data-dk-cisa-tumu checked> Tümünü seç</label>
+                    {% endif %}
+                </div>
+                {% if grup.cisa_denemeler %}
+                <ul class="dk-cisa-liste">
+                    {% for deneme in grup.cisa_denemeler %}
+                    <li>
+                        <label class="dk-cisa-deneme">
+                            <input type="checkbox" name="deneme" value="{{ deneme.id }}" checked>
+                            <span>
+                                <strong>{{ deneme.ad }}</strong>
+                                <small>{{ deneme.tarih|date:"j F Y" }} · {{ deneme.talebe_sayisi }} öğrenci</small>
+                            </span>
+                        </label>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="dk-empty">Bu sınıfta rapora girecek deneme yok.</p>
+                {% endif %}
+            </div>
+            <div>
+                <div class="dk-cisa-ust">
+                    <h3>Talebeler</h3>
+                    <input type="search" class="dk-cisa-ara" placeholder="Talebe ara..." aria-label="Talebe ara" autocomplete="off">
+                </div>
+                {% if grup.cisa_denemeler %}
+                <button class="primary-btn dk-cisa-sinif" type="submit" name="sinif_rapor" value="{{ grup.sinif.id }}">{{ secili.etiket }} raporunu indir</button>
+                {% endif %}
+                <ul class="dk-cisa-liste">
+                    {% for talebe in grup.cisa_talebeler %}
+                    <li data-ad="{{ talebe.ad_soyad }}">
+                        <button class="ghost-btn dk-cisa-talebe" type="submit" name="talebe" value="{{ talebe.id }}">
+                            <span>{{ talebe.ad_soyad }}</span>
+                            <span class="dk-cisa-git">Rapor</span>
+                        </button>
+                    </li>
+                    {% empty %}
+                    <li><p class="dk-empty">Bu sınıfta talebe yok.</p></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </form>
+    {% else %}
+    <form method="post" action="{% url 'cisa_denemeler' %}">
+        {% csrf_token %}
+        <div class="dk-cisa-iki">
+            <div>
+                <div class="dk-cisa-ust">
+                    <h3>Denemeler</h3>
+                    {% if grup.cisa_denemeler %}
+                    <label class="dk-cisa-tumu"><input type="checkbox" data-dk-cisa-tumu checked> Tümünü seç</label>
+                    {% endif %}
+                </div>
+                {% if grup.cisa_denemeler %}
+                <ul class="dk-cisa-liste">
+                    {% for deneme in grup.cisa_denemeler %}
+                    <li>
+                        <label class="dk-cisa-deneme">
+                            <input type="checkbox" name="deneme" value="{{ deneme.id }}" checked>
+                            <span>
+                                <strong>{{ deneme.ad }}</strong>
+                                <small>{{ deneme.tarih|date:"j F Y" }} · {{ deneme.talebe_sayisi }} öğrenci</small>
+                            </span>
+                        </label>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="dk-empty">Bu sınıfta rapora girecek deneme yok.</p>
+                {% endif %}
+            </div>
+            <div>
+                <div class="dk-cisa-ust">
+                    <h3>Sınıf</h3>
+                </div>
+                {% if grup.cisa_denemeler %}
+                <div class="dk-cisa-siniflar">
+                    {% for uye in grup.uyeler %}
+                    <button class="primary-btn dk-cisa-sinif" type="submit" name="sinif_rapor" value="{{ uye.id }}">{{ uye.sube }} grubu raporunu indir</button>
+                    {% endfor %}
+                    <button class="primary-btn dk-cisa-sinif" type="submit" name="sinif_rapor" value="{{ grup.cisa_sinif_idleri }}">Tüm sınıf raporunu indir</button>
+                </div>
+                {% endif %}
+                <div class="dk-cisa-ust">
+                    <h3>Talebeler</h3>
+                    <input type="search" class="dk-cisa-ara" placeholder="Talebe ara..." aria-label="Talebe ara" autocomplete="off">
+                </div>
+                <ul class="dk-cisa-liste">
+                    {% for talebe in grup.cisa_talebeler %}
+                    <li data-ad="{{ talebe.ad_soyad }}">
+                        <button class="ghost-btn dk-cisa-talebe" type="submit" name="talebe" value="{{ talebe.id }}">
+                            <span>{{ talebe.ad_soyad }}</span>
+                            <span class="dk-cisa-git">Rapor</span>
+                        </button>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </form>
+    {% endif %}
+</section>
+{% elif ekran == 'sinif' %}
+{% with rapor=grup.sinif_raporu %}
+{% if rapor %}
+<div class="dk-ozet-grid dk-ozet-uc">
+    <article class="dk-metrik">
+        <p class="dk-metrik-kicker">Öğrenci</p>
+        <strong class="dk-metrik-sayi">{{ rapor.ogrenci }}</strong>
+    </article>
+    <article class="dk-metrik">
+        <p class="dk-metrik-kicker">Deneme</p>
+        <strong class="dk-metrik-sayi">{{ rapor.deneme_sayisi }}</strong>
+    </article>
+    <article class="dk-metrik">
+        <p class="dk-metrik-kicker">Ortalama net</p>
+        <strong class="dk-metrik-sayi">{{ rapor.ortalama_net }}</strong>
+    </article>
+</div>
+<p class="dk-note dk-sinif-aralik">{{ rapor.baslangic|date:"j F Y" }} – {{ rapor.bitis|date:"j F Y" }}</p>
+
+{% if rapor.dersler %}
+<section class="dk-panel dk-sinif">
+    <header class="dk-panel-head">
+        <div>
+            <h2>Dersler</h2>
+            <p class="dk-note">Sınıf ortalaması. Son deneme, bir önceki denemeyle yan yana.</p>
+        </div>
+    </header>
+    <div class="dk-sinif-dersler">
+        {% for ders in rapor.dersler %}
+        <article class="dk-sinif-ders {{ ders.kod }}">
+            <header>
+                <strong>{{ ders.ad }}</strong>
+                {% if ders.dogru_yuzde != None %}<span style="color: {{ ders.renk }};">%{{ ders.dogru_yuzde }} doğruluk</span>{% endif %}
+            </header>
+            <p class="dk-sinif-net"><b>{{ ders.net }}</b><span>net</span></p>
+            <p class="dk-sinif-cumle {{ ders.yon }}">{{ ders.cumle }}</p>
+            <ul class="dk-sinif-dyb">
+                <li><b>{{ ders.dogru }}</b><span>Ort. doğru</span></li>
+                <li><b>{{ ders.yanlis }}</b><span>Ort. yanlış</span></li>
+                <li><b>{{ ders.bos }}</b><span>Ort. boş</span></li>
+            </ul>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% if rapor.kayiplar %}
+<section class="dk-panel dk-sinif">
+    <header class="dk-panel-head">
+        <div>
+            <h2 class="dk-sinif-kayip">Asıl kayıp</h2>
+            <p class="dk-note">Sınıfın en az yarısının gördüğü, doğruluğu en düşük konular.</p>
+        </div>
+    </header>
+    <div class="dk-table-wrap">
+        <table class="dk-table dk-sinif-kayip-tablo">
+            <thead>
+                <tr><th>Konu</th><th class="n">Doğruluk</th></tr>
+            </thead>
+            <tbody>
+                {% for satir in rapor.kayiplar %}
+                <tr>
+                    <td>
+                        <strong>{{ satir.konu }}</strong>
+                        <div class="dk-sinif-alt">{{ satir.ders }} · {{ satir.kaynak }}</div>
+                    </td>
+                    <td class="n"><strong style="color: {{ satir.renk }};">{% if satir.yuzde != None %}%{{ satir.yuzde }}{% else %}—{% endif %}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+
+{% if rapor.konular %}
+<section class="dk-panel dk-sinif">
+    <header class="dk-panel-head">
+        <div>
+            <h2>Konu dökümü</h2>
+            <p class="dk-note">Doğruluk ve zayıf öğrenci her derste aynı hizada.</p>
+        </div>
+    </header>
+    {% for grup_konu in rapor.konular %}
+    <h3 class="dk-sinif-baslik">{{ grup_konu.ders }}</h3>
+    <div class="dk-table-wrap">
+        <table class="dk-table dk-sinif-konu">
+            <colgroup>
+                <col>
+                <col class="c-dogru">
+                <col class="c-zayif">
+            </colgroup>
+            <thead>
+                <tr>
+                    <th>Konu</th>
+                    <th class="n">Doğruluk</th>
+                    <th class="n">Zayıf öğrenci</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for satir in grup_konu.satirlar %}
+                <tr>
+                    <td>{{ satir.konu }}</td>
+                    <td class="n"><strong style="color: {{ satir.renk }};">{% if satir.yuzde != None %}%{{ satir.yuzde }}{% else %}—{% endif %}</strong></td>
+                    <td class="n">{{ satir.zayif }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endfor %}
+</section>
+{% endif %}
+
+{% if rapor.siralamalar %}
+<section class="dk-panel dk-sinif">
+    <header class="dk-panel-head">
+        <div>
+            <h2>Ders netleri</h2>
+            <p class="dk-note">Seçilen denemelerin ortalama neti. Yüksek net yeşil, düştükçe kırmızıya gider.</p>
+        </div>
+    </header>
+    {% for grup_sira in rapor.siralamalar %}
+    <h3 class="dk-sinif-baslik">{{ grup_sira.ad }}</h3>
+    <div class="dk-table-wrap">
+        <table class="dk-table dk-sinif-netler">
+            <tbody>
+                {% for talebe in grup_sira.talebeler %}
+                <tr>
+                    <td>{{ talebe.ad }}</td>
+                    <td class="n"><strong style="color: {{ talebe.renk }};">{{ talebe.net_yazi }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endfor %}
+</section>
+{% endif %}
+{% else %}
+<div class="dk-card">
+    <p class="dk-empty">Bu sınıf için henüz sınıf analizi yok. Aktif deneme sonucu geldikçe ders netleri ve konu dökümü burada birikir.</p>
+</div>
+{% endif %}
+{% endwith %}
+{% elif veri and veri.satirlar %}
+
+<div class="dk-ozet-grid">
+    <article class="dk-metrik">
+        <p class="dk-metrik-kicker">Sınıf ortalaması</p>
+        <strong class="dk-metrik-sayi">{{ veri.sinif_ortalamasi|default:"—" }}</strong>
+        <p class="dk-metrik-alt">{% if veri.onceki_ortalama %}Önceki deneme {{ veri.onceki_ortalama }}{% else %}İlk deneme{% endif %}</p>
+    </article>
+    <article class="dk-metrik">
+        <p class="dk-metrik-kicker">Ortalama değişimi</p>
+        <strong class="dk-metrik-sayi {% if veri.ortalama_degisim > 0 %}pos{% elif veri.ortalama_degisim < 0 %}neg{% endif %}">
+            {% if veri.ortalama_degisim > 0 %}+{{ veri.ortalama_degisim }}{% elif veri.ortalama_degisim < 0 %}{{ veri.ortalama_degisim }}{% else %}—{% endif %}
+        </strong>
+        <p class="dk-metrik-alt">Önceki denemeye göre</p>
+    </article>
+    <article class="dk-metrik">
+        <p class="dk-metrik-kicker">Öğrenci gelişimi</p>
+        <p class="dk-gelisim-satir">
+            <strong class="pos">{{ veri.yukselen }}</strong> Yükselen
+            <span aria-hidden="true">·</span>
+            <strong class="neg">{{ veri.dusen }}</strong> Düşen
+            <span aria-hidden="true">·</span>
+            <strong>{{ veri.sabit }}</strong> Sabit
+        </p>
+    </article>
+    <article class="dk-metrik">
+        <p class="dk-metrik-kicker">Takip gereken</p>
+        <strong class="dk-metrik-sayi">{{ veri.takip_gereken }} <small>öğrenci</small></strong>
+        <p class="dk-metrik-alt">{% if veri.takip_gereken %}Önce bu öğrencilerin sonuçlarını inceleyin.{% else %}Takip gerektiren öğrenci yok{% endif %}</p>
+    </article>
 </div>
 
-<details class="dk-card dk-fold">
+<div class="dk-split">
+    <section class="dk-panel" id="dk-oncelik-{{ forloop.counter }}">
+        <header class="dk-panel-head">
+            <h2>Öncelikli takip</h2>
+            <span class="dk-sayac{% if not veri.takip_gereken %} sakin{% endif %}">{{ veri.takip_gereken }} öğrenci</span>
+        </header>
+        {% if veri.oncelikli_takip %}
+        <div class="cs-table-wrap">
+            <table class="dk-table dk-oncelik-tablo">
+                <thead>
+                    <tr><th>Öğrenci</th><th>Durum</th><th>İşlem</th></tr>
+                </thead>
+                <tbody>
+                    {% for satir in veri.oncelikli_takip %}
+                    <tr>
+                        <td>
+                            <div class="dk-ogrenci-ad"><span>{{ forloop.counter|stringformat:"02d" }}</span>{{ satir.talebe.ad_soyad }}</div>
+                            {% for s in satir.sinyaller %}<div class="dk-oncelik-sinyal">{{ s }}</div>{% endfor %}
+                        </td>
+                        <td><span class="dk-durum-rozet{% if satir.kritik %} kritik{% endif %}">{% if satir.kritik %}Kritik{% else %}Takip gerekiyor{% endif %}</span></td>
+                        <td><a class="dk-incele" href="{% url 'ogretmen_deneme_kontrol_ogrenci_detay' satir.talebe.sinif_sube_id satir.talebe.id %}">İncele</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="dk-oncelik-bos">
+            <span class="dk-onay" aria-hidden="true"></span>
+            <strong>Takip gerektiren öğrenci yok</strong>
+            <p>Bu denemede tüm öğrenciler gelişim gösterdi.</p>
+        </div>
+        {% endif %}
+    </section>
+
+    <section class="dk-panel dk-nokta-menu">
+        <header class="dk-panel-head">
+            <div>
+                <h2>Nokta atışı</h2>
+                <p class="dk-note">Ders, kazanım ve sınıf bazında inceleme</p>
+            </div>
+            <a class="dk-metrik-link" href="#dk-nokta-{{ forloop.counter }}" onclick="document.getElementById('dk-nokta-{{ forloop.counter }}').open=true">Analizi aç →</a>
+        </header>
+        <div class="dk-nokta-kutular">
+            <a class="dk-menu-satir" href="#dk-nokta-{{ forloop.counter }}" onclick="document.getElementById('dk-nokta-{{ forloop.counter }}').open=true">
+                <span class="dk-mini-ikon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 3.5h7l4 4V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1z"/><path d="M14 3.5V8h4M8 13h8M8 17h5"/></svg></span>
+                <span class="dk-menu-yazi"><span>Ders analizi</span><small>Ortak yanlışları inceleyin</small></span>
+                <span class="dk-ok" aria-hidden="true"></span>
+            </a>
+            {% if gosterilen_id %}
+            <a class="dk-menu-satir" href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' gosterilen_id %}?ekran=kazanim">
+            {% else %}
+            <a class="dk-menu-satir" href="{% url 'ogretmen_deneme_kontrol_merkezi' %}?ekran=kazanim">
+            {% endif %}
+                <span class="dk-mini-ikon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/></svg></span>
+                <span class="dk-menu-yazi"><span>Kazanım analizi</span><small>Birikimli başarıyı inceleyin</small></span>
+                <span class="dk-ok" aria-hidden="true"></span>
+            </a>
+            {% if gosterilen_id %}
+            <a class="dk-menu-satir" href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' gosterilen_id %}?ekran=sinif">
+            {% else %}
+            <a class="dk-menu-satir" href="{% url 'ogretmen_deneme_kontrol_merkezi' %}?ekran=sinif">
+            {% endif %}
+                <span class="dk-mini-ikon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19.5V4.5M4 19.5h16"/><path d="M8 16v-3.5M12 16V8M16 16v-6"/></svg></span>
+                <span class="dk-menu-yazi"><span>Sınıf analizi</span><small>Sınıf netini ve konu kaybını inceleyin</small></span>
+                <span class="dk-ok" aria-hidden="true"></span>
+            </a>
+        </div>
+        <p class="dk-mini-not">Sınıf karneleri yüklendiğinde, en az %33 yanlış yapılan sorular burada görünür.</p>
+    </section>
+</div>
+
+<details class="dk-card dk-fold" id="dk-nokta-{{ forloop.counter }}">
     <summary class="dk-card-head"><h2>Nokta atışı</h2><span class="dk-fold-chevron" aria-hidden="true"></span></summary>
     {% if veri.nokta.deneme %}
     <p class="dk-note">{{ veri.nokta.deneme.ad }} · {{ veri.nokta.karne_sayisi }} karne. Aynı soruyu sınıfın yüzde 33’ü ve fazlası yanlış yaptıysa burada durur.</p>
@@ -89,133 +493,62 @@
     {% endif %}
 </details>
 
-{% if veri.oncelikli_takip %}
-<details class="dk-card dk-fold">
-    <summary class="dk-card-head"><h2>Öncelikli Takip</h2><span class="dk-fold-chevron" aria-hidden="true"></span></summary>
-    <div class="dk-oncelik-list">
-        {% for satir in veri.oncelikli_takip %}
-        <div class="dk-oncelik-item{% if satir.kritik %} kritik{% endif %}">
-            <div>
-                <div class="dk-oncelik-baslik">
-                    {{ satir.talebe.ad_soyad }}
-                    <span class="dk-oncelik-etiket">{% if satir.kritik %}KRİTİK{% else %}TAKİP{% endif %}</span>
-                </div>
-                {% for s in satir.sinyaller %}
-                <div class="dk-oncelik-sinyal">{{ s }}</div>
-                {% endfor %}
-            </div>
+<section class="dk-panel dk-yukselis" data-dk-yukselis>
+    <header class="dk-panel-head">
+        <div>
+            <h2>Yükseliş sıralaması</h2>
+            <p class="dk-note">Son deneme ile bir önceki deneme arasındaki puan değişimi</p>
         </div>
-        {% endfor %}
-    </div>
-</details>
-{% endif %}
-
-<details class="dk-card dk-fold">
-    <summary class="dk-card-head">
-        <h2>1 · Yükseliş sıralaması</h2>
-        <span class="dk-fold-chevron" aria-hidden="true"></span>
-    </summary>
-    <p class="dk-note">Tüm talebeler, ilk denemeden son denemeye puan artışına göre. Satıra dokununca talebenin kazanımları açılır.</p>
+    </header>
     {% if veri.yukselis_satirlari %}
-    <div class="responsive-table cs-table-wrap">
-        <table class="dk-table">
+    <div class="dk-yukselis-araclar">
+        <input type="search" class="dk-yukselis-ara" placeholder="Öğrenci ara..." aria-label="Öğrenci ara" autocomplete="off">
+        <select class="dk-yukselis-sirala" aria-label="Sıralama">
+            <option value="yukselis">Yükselişe göre</option>
+            <option value="isim">İsme göre</option>
+            <option value="son">Son puana göre</option>
+        </select>
+    </div>
+    <div class="dk-kazanim-wrap cs-table-wrap">
+        <table class="dk-table dk-yukselis-tablo">
             <thead>
                 <tr>
-                    <th>#</th>
+                    <th>Sıra</th>
                     <th>Öğrenci</th>
-                    <th>İlk puan</th>
-                    <th>Son puan</th>
-                    <th>Yükseliş</th>
+                    <th class="n">Önceki puan</th>
+                    <th class="n">Son puan</th>
+                    <th class="n">Yükseliş</th>
+                    <th class="n">İşlem</th>
                 </tr>
             </thead>
             <tbody>
                 {% for satir in veri.yukselis_satirlari %}
-                <tr class="dk-row" onclick="location.href='{% url 'ogretmen_deneme_kontrol_ogrenci_detay' satir.talebe.sinif_sube_id satir.talebe.id %}'">
-                    <td>{{ forloop.counter }}</td>
+                <tr class="dk-row" data-ad="{{ satir.talebe.ad_soyad }}" data-yukselis="{% if satir.metrikler and satir.metrikler.son2_degisim is not None %}{{ satir.metrikler.son2_degisim|unlocalize }}{% endif %}" data-son="{% if satir.son_puan is not None %}{{ satir.son_puan|unlocalize }}{% endif %}" onclick="location.href='{% url 'ogretmen_deneme_kontrol_ogrenci_detay' satir.talebe.sinif_sube_id satir.talebe.id %}'">
+                    <td data-dk-sira>{{ forloop.counter }}</td>
                     <td>{{ satir.talebe.ad_soyad }}</td>
-                    <td>{% if satir.metrikler %}{{ satir.metrikler.ilk_puan }}{% else %}—{% endif %}</td>
-                    <td>{{ satir.son_puan|default:"—" }}</td>
-                    <td class="dk-durum-{{ satir.durum_ok }}">
-                        {% if satir.metrikler %}
-                            {% if satir.metrikler.genel_degisim > 0 %}+{% endif %}{{ satir.metrikler.genel_degisim }}
+                    <td class="n">{% if satir.metrikler and satir.metrikler.onceki_puan is not None %}{{ satir.metrikler.onceki_puan|floatformat:1 }}{% else %}—{% endif %}</td>
+                    <td class="n">{% if satir.son_puan is not None %}{{ satir.son_puan|floatformat:1 }}{% else %}—{% endif %}</td>
+                    <td class="n">
+                        {% if satir.metrikler and satir.metrikler.son2_degisim is not None %}
+                        <span class="{% if satir.metrikler.son2_degisim > 0 %}pos{% elif satir.metrikler.son2_degisim < 0 %}neg{% endif %}">{% if satir.metrikler.son2_degisim > 0 %}↑ +{% elif satir.metrikler.son2_degisim < 0 %}↓ {% endif %}{{ satir.metrikler.son2_degisim|floatformat:1 }}</span>
                         {% else %}—{% endif %}
+                    </td>
+                    <td class="n dk-islem">
+                        <span class="dk-ok" aria-hidden="true"></span>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+    <p class="dk-tablo-alt">
+        <span data-dk-yukselis-sayac>{{ veri.yukselis_satirlari|length }} öğrenci</span>
+        <span>Öğrenci detayını açmak için satıra tıklayın.</span>
+    </p>
     {% else %}
     <p class="dk-empty">Bu sınıfta talebe yok.</p>
     {% endif %}
-</details>
-
-<details class="dk-card dk-fold">
-    <summary class="dk-card-head">
-        <h2>2 · Kazanımlar</h2>
-        <span class="dk-fold-chevron" aria-hidden="true"></span>
-    </summary>
-    <p class="dk-note">Yüklenen denemelerde çıkan konular burada birikir. Yeni konu eklenir, çıkan konu silinmez. Aynı konu tekrar gelirse başarı oranı ortalamaya katılır.</p>
-    {% if veri.kazanim_gruplari %}
-        {% for ders in veri.kazanim_gruplari %}
-        <h3 class="dk-kazanim-ders">{{ ders.ders_ad }}</h3>
-        <div class="responsive-table cs-table-wrap">
-            <table class="dk-table">
-                <thead>
-                    <tr>
-                        <th>Kazanım</th>
-                        <th>Ortalama</th>
-                        <th>Deneme</th>
-                        <th>Son</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for konu in ders.konular %}
-                    <tr>
-                        <td>{{ konu.konu_ad }}</td>
-                        <td>{% if konu.ortalama is not None %}%{{ konu.ortalama|floatformat:"-2" }}{% else %}—{% endif %}</td>
-                        <td>{{ konu.deneme_sayisi }}</td>
-                        <td>{% if konu.son_yuzde is not None %}%{{ konu.son_yuzde|floatformat:"-2" }}{% else %}—{% endif %}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% endfor %}
-    {% else %}
-    <p class="dk-empty">Henüz kazanım yüklenmedi. Deneme konu kazanımı yüklendikçe konular burada birikecek.</p>
-    {% endif %}
-</details>
-
-{% if veri.grup_analizi.seri %}
-<details class="dk-card dk-fold">
-    <summary class="dk-card-head"><h2>Grup Analizi — Sınıf Ortalaması</h2><span class="dk-fold-chevron" aria-hidden="true"></span></summary>
-    <div class="dk-grup-chart">
-        {% for nokta in veri.grup_analizi.seri %}
-        <div class="dk-grup-bar" title="{{ nokta.ad }}">
-            <strong>{{ nokta.ortalama }}</strong>
-            <div class="bar" style="height:{{ nokta.ortalama_yuzde|unlocalize }}%;"></div>
-            <small>{% if nokta.goster_sira %}{{ nokta.goster_sira }}. D{% elif nokta.sira_no %}{{ nokta.sira_no }}. D{% else %}{{ nokta.tarih|date:"d.m" }}{% endif %}</small>
-        </div>
-        {% endfor %}
-    </div>
-    {% if veri.grup_analizi.genel_degisim is not None %}
-    <p class="dk-grup-degisim">
-        Genel değişim: {% if veri.grup_analizi.genel_degisim > 0 %}+{% endif %}{{ veri.grup_analizi.genel_degisim }}
-    </p>
-    {% endif %}
-    {% if veri.grup_analizi.ders_okları %}
-    <div class="dk-ders-ok-row">
-        {% for d in veri.grup_analizi.ders_okları %}
-        <span class="dk-ders-ok-chip">
-            {{ d.etiket }}
-            {% if d.ok == 'yukseliyor' %}<span class="dk-durum-yukseliyor">↑</span>{% elif d.ok == 'dusuyor' %}<span class="dk-durum-dusuyor">↓</span>{% else %}<span class="dk-durum-sabit">→</span>{% endif %}
-        </span>
-        {% endfor %}
-    </div>
-    {% endif %}
-</details>
-{% endif %}
+</section>
 
 {% else %}
 <div class="dk-card">
@@ -226,6 +559,90 @@
 {% endwith %}
 {% endif %}
 {% endfor %}
+<script>
+(function () {
+    document.querySelectorAll("[data-dk-cisa]").forEach(function (kok) {
+        var tumu = kok.querySelector("[data-dk-cisa-tumu]");
+        var kutular = kok.querySelectorAll('input[name="deneme"]');
+        var ara = kok.querySelector(".dk-cisa-ara");
+        if (tumu) {
+            tumu.addEventListener("change", function () {
+                kutular.forEach(function (kutu) { kutu.checked = tumu.checked; });
+            });
+            kutular.forEach(function (kutu) {
+                kutu.addEventListener("change", function () {
+                    var n = 0;
+                    kutular.forEach(function (k) { if (k.checked) n += 1; });
+                    tumu.checked = n === kutular.length && kutular.length > 0;
+                });
+            });
+        }
+        if (ara) {
+            ara.addEventListener("input", function () {
+                var sorgu = (ara.value || "").toLocaleLowerCase("tr");
+                kok.querySelectorAll("[data-ad]").forEach(function (satir) {
+                    var ad = (satir.getAttribute("data-ad") || "").toLocaleLowerCase("tr");
+                    satir.hidden = sorgu !== "" && ad.indexOf(sorgu) === -1;
+                });
+            });
+        }
+    });
+    document.querySelectorAll("[data-dk-yukselis]").forEach(function (kok) {
+        var ara = kok.querySelector(".dk-yukselis-ara");
+        var sirala = kok.querySelector(".dk-yukselis-sirala");
+        var govde = kok.querySelector("tbody");
+        var sayac = kok.querySelector("[data-dk-yukselis-sayac]");
+        if (!ara || !sirala || !govde) return;
+        function sayi(tr, alan) {
+            var ham = tr.getAttribute(alan);
+            if (ham === null || ham === "") return null;
+            var n = parseFloat(ham);
+            return isNaN(n) ? null : n;
+        }
+        function uygula() {
+            var q = (ara.value || "").trim().toLocaleLowerCase("tr");
+            var mod = sirala.value;
+            var satirlar = Array.prototype.slice.call(govde.querySelectorAll("tr"));
+            satirlar.sort(function (a, b) {
+                if (mod === "isim") {
+                    return (a.getAttribute("data-ad") || "").localeCompare(b.getAttribute("data-ad") || "", "tr");
+                }
+                if (mod === "son") {
+                    var ason = sayi(a, "data-son");
+                    var bson = sayi(b, "data-son");
+                    if (ason === null && bson === null) return 0;
+                    if (ason === null) return 1;
+                    if (bson === null) return -1;
+                    return bson - ason;
+                }
+                var ay = sayi(a, "data-yukselis");
+                var by = sayi(b, "data-yukselis");
+                if (ay === null && by === null) {
+                    return (a.getAttribute("data-ad") || "").localeCompare(b.getAttribute("data-ad") || "", "tr");
+                }
+                if (ay === null) return 1;
+                if (by === null) return -1;
+                return by - ay;
+            });
+            var n = 0;
+            satirlar.forEach(function (tr) {
+                var ad = (tr.getAttribute("data-ad") || "").toLocaleLowerCase("tr");
+                var gorun = !q || ad.indexOf(q) !== -1;
+                tr.hidden = !gorun;
+                govde.appendChild(tr);
+                if (gorun) {
+                    n += 1;
+                    var hucre = tr.querySelector("[data-dk-sira]");
+                    if (hucre) hucre.textContent = String(n);
+                }
+            });
+            if (sayac) sayac.textContent = n + " öğrenci";
+        }
+        ara.addEventListener("input", uygula);
+        sirala.addEventListener("change", uygula);
+    });
+})();
+</script>
 {% endif %}
 </div>
 {% endblock %}

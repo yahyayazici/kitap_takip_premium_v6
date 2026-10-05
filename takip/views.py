@@ -954,6 +954,11 @@ def _talebe_profil_verisi(user, talebe):
     deneme_performans = (
         talebe_deneme_performans_ozeti(talebe) if deneme_erisim else None
     )
+    cisa_url = (
+        reverse("cisa_sec", args=[talebe.id])
+        if can(user, "deneme", "export_pdf")
+        else ""
+    )
     dini_ders_ozet = talebe_ilerleme_ozeti(talebe)
 
     toplam_okunan = sum(kayit.okunan_miktar for kayit in kayitlar)
@@ -986,6 +991,7 @@ def _talebe_profil_verisi(user, talebe):
         "deneme_sonuclari": deneme_sonuclari,
         "deneme_performans": deneme_performans,
         "deneme_erisim": deneme_erisim,
+        "cisa_url": cisa_url,
         "deneme_brans_etiketleri": BRANS_ETIKETLERI,
         "dini_ders_ozet": dini_ders_ozet,
         "toplam_okunan": toplam_okunan,
@@ -1880,6 +1886,8 @@ def sinav_sonuclari_gir(request, sinav_id):
                 sinav_id=sinav.id,
             )
 
+    _sinav_puanlarini_tazele(sinav, talebeler)
+
     mevcut_sonuclar = {
         sonuc.talebe_id: sonuc
         for sonuc in SinavSonucu.objects.filter(
@@ -1946,11 +1954,39 @@ def sinav_sonuclari_gir(request, sinav_id):
 # =========================================================
 
 
+def _sinav_puanlarini_tazele(sinav, talebeler):
+    """Kayıtlı doğru sayısına göre puanı yeniden yazar.
+
+    Eski kayıtlar, güncelleme sırasında puan alanı yazılmadığı için
+    0.00 kalmış olabilir. Sayfa ve PDF açılınca düzeltilir.
+    """
+    if not getattr(sinav, "soru_sayisi", None):
+        return
+
+    kayitlar = list(
+        SinavSonucu.objects.filter(
+            sinav=sinav,
+            talebe__in=talebeler,
+        )
+    )
+    degisen = []
+    for sonuc in kayitlar:
+        sonuc.sinav = sinav
+        hesap = sonuc.puani_hesapla()
+        if sonuc.puan != hesap:
+            sonuc.puan = hesap
+            degisen.append(sonuc)
+
+    if degisen:
+        SinavSonucu.objects.bulk_update(degisen, ["puan"])
+
+
 def _sinav_siralamasi(sinav, talebeler):
     """
     Sınav sonuçlarını puana göre sıralar ve eşit puanlara
     aynı dereceyi verir.
     """
+    _sinav_puanlarini_tazele(sinav, talebeler)
     sonuclar = list(
         SinavSonucu.objects.filter(
             sinav=sinav,
@@ -2022,6 +2058,7 @@ def sinav_karne_pdf(request, sinav_id, talebe_id):
 
     talebeler = _yetkili_talebeler(request.user)
     siralama = _sinav_siralamasi(sinav, talebeler)
+    sonuc.refresh_from_db(fields=["puan", "dogru", "yanlis", "bos"])
 
     derece = None
 

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}ÇİSA · {{ talebe.ad_soyad }}{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    <header class="page-head patterned-page-head">
+        <div>
+            <p class="kicker">ÇİSA · {{ talebe.ad_soyad }}</p>
+            <h1>Hangi denemelerin raporunu alalım?</h1>
+            <p class="profile-meta">İşaretlediğin denemeler rapora girer. Silinen denemeler listede yoktur. Konu dökümü, soru karnesi yüklü denemelerden gelir.</p>
+        </div>
+        {% if talebe.sinif_sube_id %}
+        <a class="ghost-btn" href="{% url 'ogretmen_deneme_kontrol_ogrenci_detay' talebe.sinif_sube_id talebe.id %}">Deneme kontrole dön</a>
+        {% else %}
+        <a class="ghost-btn" href="{% url 'talebe_detay' talebe.id %}">Talebeye dön</a>
+        {% endif %}
+    </header>
+
+    {% if denemeler %}
+    <form method="post" action="{% url 'cisa_pdf' talebe.id %}">
+        {% csrf_token %}
+        <section class="profile-card">
+            <div class="responsive-table">
+                <table class="report-data-table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Tarih</th>
+                            <th>Deneme</th>
+                            <th class="num-col">Net</th>
+                            <th>Konu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for deneme in denemeler %}
+                        <tr>
+                            <td>
+                                <label style="display:flex;align-items:center;min-height:44px;min-width:44px;">
+                                    <input type="checkbox" name="deneme" value="{{ deneme.id }}" checked>
+                                </label>
+                            </td>
+                            <td>{{ deneme.tarih|date:"d.m.Y" }}</td>
+                            <td><strong>{{ deneme.ad }}</strong></td>
+                            <td class="num-col">{{ deneme.net }}</td>
+                            <td>{% if deneme.soru_karnesi %}Soru karnesi var{% else %}Yalnız net{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div style="margin-top:16px;">
+                <button class="primary-btn" type="submit">ÇİSA indir</button>
+            </div>
+        </section>
+    </form>
+    {% else %}
+    <section class="profile-card">
+        <p>Bu talebenin rapora girecek deneme sonucu yok.</p>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

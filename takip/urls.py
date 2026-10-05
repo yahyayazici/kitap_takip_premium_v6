@@ -12,6 +12,7 @@ from . import finans_views
 from . import rehberlik_views
 from . import disiplin_views
 from . import gunluk_takip_views
+from . import cisa_views
 from . import deneme_views
 from . import etut_kontrol_views
 from . import yazili_takip_views
@@ -282,6 +283,8 @@ urlpatterns = [
         name="talebe_liste_excel",
     ),
     path("talebe/<int:talebe_id>/", views.talebe_detay, name="talebe_detay"),
+    path("talebe/<int:talebe_id>/cisa/", cisa_views.cisa_sec, name="cisa_sec"),
+    path("talebe/<int:talebe_id>/cisa.pdf", cisa_views.cisa_pdf, name="cisa_pdf"),
     path(
         "talebe/<int:talebe_id>/profil-karne-pdf/",
         views.talebe_profil_karne_pdf,
@@ -318,6 +321,7 @@ urlpatterns = [
     path("raporlar/pdf/", views.okuma_raporu_pdf, name="okuma_raporu_pdf"),
 
     path("ktt/", ktt_views.ktt_listesi, name="ktt_listesi"),
+    path("ktt/hafta/pdf/", ktt_views.ktt_hafta_pdf, name="ktt_hafta_pdf"),
     path("ktt/akilli/", ktt_akilli_views.ktt_akilli_ozet, name="ktt_akilli_ozet"),
     path("ktt/konu-oneri/", ktt_akilli_views.ktt_konu_oneri, name="ktt_konu_oneri"),
     path(
@@ -360,6 +364,7 @@ urlpatterns = [
     ),
 
     path("denemeler/", deneme_views.deneme_listesi, name="deneme_listesi"),
+    path("denemeler/cisa/", cisa_views.cisa_denemeler, name="cisa_denemeler"),
     path("denemeler/<int:pk>/", deneme_views.deneme_detay, name="deneme_detay"),
     path("denemeler/<int:pk>/sil/", deneme_views.deneme_sil, name="deneme_sil"),
     path("denemeler/<int:pk>/excel/", deneme_views.deneme_excel_indir, name="deneme_excel_indir"),

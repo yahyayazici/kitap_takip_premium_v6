@@ -1,0 +1,86 @@
+{% load l10n %}
+{% if gruplar %}
+<div class="dk-kazanim-performans" data-dk-kazanim>
+    <div class="dk-kazanim-araclar">
+        <input type="search" class="dk-kazanim-ara" placeholder="Kazanım ara..." aria-label="Kazanım ara" autocomplete="off">
+        <select class="dk-kazanim-ders" aria-label="Ders">
+            <option value="">Tüm dersler</option>
+            {% for ders in gruplar %}
+            <option value="{{ ders.ders_key }}">{{ ders.ders_ad }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="dk-kazanim-wrap cs-table-wrap">
+        <table class="dk-table dk-kazanim-tablo dk-kazanim-performans">
+            <thead>
+                <tr>
+                    <th>Ders</th>
+                    <th>Kazanım</th>
+                    <th>Ortalama başarı</th>
+                    <th class="n">Deneme sayısı</th>
+                    <th class="n">Son sonuç</th>
+                    <th class="n">Ortalamaya göre</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ders in gruplar %}
+                {% for konu in ders.konular %}
+                <tr data-ders="{{ ders.ders_key }}" data-konu="{{ konu.konu_ad }}">
+                    <td>{{ ders.ders_ad }}</td>
+                    <td class="dk-kazanim-ad">{{ konu.konu_ad }}</td>
+                    <td>
+                        {% if konu.ortalama is not None %}
+                        <div class="dk-basari">
+                            <span>%{{ konu.ortalama|floatformat:2 }}</span>
+                            <span class="dk-cubuk" aria-hidden="true"><span style="width: {{ konu.ortalama|unlocalize }}%;"></span></span>
+                        </div>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td class="n">{{ konu.deneme_sayisi }}</td>
+                    <td class="n">{% if konu.son_yuzde is not None %}%{{ konu.son_yuzde|floatformat:2 }}{% else %}—{% endif %}</td>
+                    <td class="n">
+                        {% if konu.fark > 0 %}
+                        <span class="pos">↑ {{ konu.fark|floatformat:2 }} puan</span>
+                        {% elif konu.fark < 0 %}
+                        <span class="neg">↓ {{ konu.fark|floatformat:2|cut:"-" }} puan</span>
+                        {% else %}—{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p class="dk-kazanim-sayac" data-dk-kazanim-sayac></p>
+</div>
+<script>
+(function () {
+    document.querySelectorAll("[data-dk-kazanim]").forEach(function (kok) {
+        if (kok.dataset.bagli === "1") return;
+        kok.dataset.bagli = "1";
+        var ara = kok.querySelector(".dk-kazanim-ara");
+        var ders = kok.querySelector(".dk-kazanim-ders");
+        var satirlar = kok.querySelectorAll("tbody tr[data-konu]");
+        var sayac = kok.querySelector("[data-dk-kazanim-sayac]");
+        function uygula() {
+            var q = (ara.value || "").trim().toLocaleLowerCase("tr");
+            var secim = ders.value;
+            var n = 0;
+            satirlar.forEach(function (tr) {
+                var konu = (tr.getAttribute("data-konu") || "").toLocaleLowerCase("tr");
+                var dersKey = tr.getAttribute("data-ders") || "";
+                var gorun = (!secim || dersKey === secim) && (!q || konu.indexOf(q) !== -1);
+                tr.hidden = !gorun;
+                if (gorun) n += 1;
+            });
+            if (sayac) sayac.textContent = n + " kazanım gösteriliyor";
+        }
+        ara.addEventListener("input", uygula);
+        ders.addEventListener("change", uygula);
+        uygula();
+    });
+})();
+</script>
+{% else %}
+<p class="dk-empty">{{ bos_metin }}</p>
+{% endif %}

@@ -1,7 +1,7 @@
 {% if sekmeler %}
 <nav class="dk-switch dk-panel-switch" aria-label="Deneme">
     {% for kod, etiket, url_name in sekmeler %}
-    <a href="{% url url_name %}" class="dk-switch-btn{% if sekme == kod %} is-active{% endif %}">{{ etiket }}</a>
+    <a href="{% url url_name %}" class="dk-switch-btn{% if forloop.first %} is-edge-start{% elif forloop.last %} is-edge-end{% else %} is-edge-mid{% endif %}{% if sekme == kod %} is-active{% endif %}">{{ etiket }}</a>
     {% endfor %}
 </nav>
 {% endif %}

@@ -2,14 +2,24 @@
 
 from datetime import date
 from decimal import Decimal
+from types import SimpleNamespace
 
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from takip.deneme_kontrol_service import kazanim_ortalamalari, kazanimlari_derse_gore
-from takip.deneme_models import DenemeKazanimSonucu, DenemeSinavi, DenemeSonucu
-from takip.models import EtutHocasi, PersonelProfili, SinifSube, Talebe
+from takip.deneme_kontrol_service import (
+    _oncelik_metinleri,
+    kazanim_ortalamalari,
+    kazanimlari_derse_gore,
+)
+from takip.deneme_models import (
+    DenemeKazanimSonucu,
+    DenemeSinavi,
+    DenemeSonucu,
+    DenemeSoruSonucu,
+)
+from takip.models import DenemeBransSonucu, EtutHocasi, PersonelProfili, SinifSube, Talebe
 
 
 class DenemeKontrolEtutTests(TestCase):
@@ -217,16 +227,52 @@ class DenemeKontrolKazanimTests(TestCase):
         self.assertEqual(sayfa.status_code, 200)
         html = sayfa.content.decode()
         self.assertIn("Yükseliş sıralaması", html)
+        self.assertNotIn("Sınıfın gelişimi", html)
+        self.assertIn("Yükselişe göre", html)
         self.assertLess(html.index("Ali Yukselen"), html.index("Ayse Azartan"))
         self.assertLess(html.index("Ayse Azartan"), html.index("Can Tekdeneme"))
-        self.assertLess(html.index("Sözcükte Anlam"), html.index("Tam Sayılar"))
-        self.assertLess(html.index("Tam Sayılar"), html.index("Uzay"))
-        self.assertLess(html.index("Sözcükte Anlam"), html.index("Paragraf"))
-        self.assertLess(html.index("Paragraf"), html.index("Tam Sayılar"))
-        self.assertNotIn("Kuvvet", html)
-        self.assertNotIn("Gizli Konu", html)
-        self.assertIn("%70", html)
+        self.assertNotIn("Sözcükte Anlam", html)
         self.assertNotIn("grup denemesi sonucu bulunmuyor", html)
+
+        kazanim = self.client.get(
+            reverse("ogretmen_deneme_kontrol_merkezi_sinif", args=[self.sinif.id])
+            + "?ekran=kazanim"
+        )
+        self.assertEqual(kazanim.status_code, 200)
+        khtml = kazanim.content.decode()
+        self.assertIn("Kazanımlar", khtml)
+        self.assertNotIn("Yükseliş sıralaması", khtml)
+        self.assertNotIn("Nokta atışı", khtml)
+        self.assertNotIn("Sınıfın gelişimi", khtml)
+        self.assertLess(khtml.index("Sözcükte Anlam"), khtml.index("Tam Sayılar"))
+        self.assertLess(khtml.index("Tam Sayılar"), khtml.index("Uzay"))
+        self.assertLess(khtml.index("Sözcükte Anlam"), khtml.index("Paragraf"))
+        self.assertLess(khtml.index("Paragraf"), khtml.index("Tam Sayılar"))
+        self.assertNotIn("Kuvvet", khtml)
+        self.assertNotIn("Gizli Konu", khtml)
+        self.assertIn("%70", khtml)
+        self.assertIn("Kazanım analizi", khtml)
+        self.assertIn("Ortalama başarı", khtml)
+        self.assertIn("puan", khtml)
+
+    def test_yukselis_onceki_deneme_puanini_gosterir(self):
+        ucuncu = _deneme("3. Deneme", 30)
+        DenemeSonucu.objects.create(deneme=ucuncu, talebe=self.ali, puan=Decimal("390"))
+        DenemeSonucu.objects.create(deneme=ucuncu, talebe=self.ayse, puan=Decimal("405"))
+        sayfa = self.client.get(
+            reverse("ogretmen_deneme_kontrol_merkezi_sinif", args=[self.sinif.id])
+        )
+        html = sayfa.content.decode()
+        self.assertIn("Önceki puan", html)
+        self.assertNotIn(">İlk puan<", html)
+        ali = html.index("Ali Yukselen")
+        ayse = html.index("Ayse Azartan")
+        self.assertLess(ali, ayse)
+        ali_satir = html[ali:ayse]
+        self.assertIn("360,0", ali_satir)
+        self.assertIn("390,0", ali_satir)
+        self.assertNotIn("300,0", ali_satir)
+        self.assertIn("+30,0", ali_satir)
 
     def test_sinif_ortalamasi_deneme_deneme(self):
         ozet = {o["konu_ad"]: o for o in kazanim_ortalamalari([self.ali.id, self.ayse.id, self.can.id])}
@@ -269,6 +315,67 @@ class DenemeKontrolKazanimTests(TestCase):
         self.assertNotIn("Paragraf", ayse_html)
         self.assertNotIn("Uzay", ayse_html)
 
+    def test_sinif_analizi_sinif_raporunu_gosterir(self):
+        for deneme, talebe, net, dogru, yanlis in (
+            (self.ilk, self.ali, "8.00", 8, 4),
+            (self.son, self.ali, "6.00", 6, 0),
+            (self.ilk, self.ayse, "4.00", 4, 0),
+            (self.son, self.ayse, "8.00", 8, 0),
+        ):
+            sonuc = DenemeSonucu.objects.get(deneme=deneme, talebe=talebe)
+            sonuc.toplam_net = Decimal(net)
+            sonuc.save(update_fields=["toplam_net"])
+            DenemeBransSonucu.objects.create(
+                sonuc=sonuc,
+                brans="turkce",
+                dogru=dogru,
+                yanlis=yanlis,
+                bos=0,
+                net=Decimal(net),
+            )
+        DenemeSoruSonucu.objects.create(
+            deneme=self.ilk,
+            talebe=self.ali,
+            ders_ad="Türkçe",
+            ders_key="turkce",
+            soru_no=1,
+            konu_ad="Paragraf",
+            sonuc="yanlis",
+        )
+        DenemeSoruSonucu.objects.create(
+            deneme=self.ilk,
+            talebe=self.ayse,
+            ders_ad="Türkçe",
+            ders_key="turkce",
+            soru_no=1,
+            konu_ad="Paragraf",
+            sonuc="dogru",
+        )
+
+        kok = reverse("ogretmen_deneme_kontrol_merkezi_sinif", args=[self.sinif.id])
+        yukselis = self.client.get(kok)
+        self.assertContains(yukselis, "Sınıf analizi")
+        self.assertContains(yukselis, "?ekran=sinif")
+        self.assertContains(yukselis, "Sınıf netini ve konu kaybını inceleyin")
+
+        sayfa = self.client.get(kok + "?ekran=sinif")
+        self.assertEqual(sayfa.status_code, 200)
+        html = sayfa.content.decode()
+        self.assertIn("Sınıf analizi", html)
+        self.assertIn("Asıl kayıp", html)
+        self.assertIn("Konu dökümü", html)
+        self.assertIn("Ders netleri", html)
+        self.assertIn("Paragraf", html)
+        self.assertIn("Ali Yukselen", html)
+        self.assertIn("Ayse Azartan", html)
+        self.assertIn("Türkçe", html)
+        self.assertIn("dk-sinif-ders turkce", html)
+        self.assertIn("dk-sinif-baslik", html)
+        self.assertNotIn("dk-kazanim-ders", html)
+        self.assertNotIn("Yükseliş sıralaması", html)
+        self.assertNotIn("Nokta atışı", html)
+        self.assertLess(html.index("Ali Yukselen"), html.index("Ayse Azartan"))
+
 
 class DenemeKontrolTumuTests(TestCase):
     def test_tumu_ayni_seviyeyi_tek_ozette_toplar(self):
@@ -310,12 +417,24 @@ class DenemeKontrolTumuTests(TestCase):
         html = tumu.content.decode()
         self.assertEqual(html.count('class="dk-grup-baslik"'), 1)
         self.assertIn(">5. Sınıf<", html)
-        self.assertIn("3 talebe", html)
+        self.assertIn("3 öğrenci", html)
         self.assertIn("Ali Besa", html)
         self.assertIn("Ayse Besbe", html)
         self.assertTrue("80.00" in html or "80,00" in html)
         self.assertIn(">5-A<", html)
         self.assertIn(">5-B<", html)
+        self.assertIn('class="dk-filtre-satir"', html)
+        self.assertLess(html.find("dk-filtre-satir"), html.find("dk-grup-baslik"))
+        self.assertLess(html.find("dk-grup-baslik"), html.find(">Yükseliş<"))
+        self.assertLess(html.find(">Yükseliş<"), html.find("dk-ozet-grid"))
+
+        kazanim = self.client.get(reverse("ogretmen_deneme_kontrol_merkezi") + "?ekran=kazanim")
+        khtml = kazanim.content.decode()
+        self.assertIn("?ekran=kazanim", khtml)
+        self.assertIn(">5-A<", khtml)
+        self.assertIn(">5-B<", khtml)
+        self.assertNotIn("Ali Besa", khtml)
+        self.assertNotIn("Yükseliş sıralaması", khtml)
 
         sadece_a = self.client.get(
             reverse("ogretmen_deneme_kontrol_merkezi_sinif", args=[sinif_a.id])
@@ -380,22 +499,123 @@ class DenemeKontrolTumuTests(TestCase):
         self.client.force_login(user)
         tumu = self.client.get(reverse("ogretmen_deneme_kontrol_merkezi"))
         html = tumu.content.decode()
-        self.assertIn("Son Deneme: 1. Deneme", html)
-        self.assertNotIn("Son Deneme: 4. Deneme", html)
-        self.assertTrue(
-            "Sınıf Ortalaması</span><strong>412.10" in html
-            or "Sınıf Ortalaması</span><strong>412,10" in html
-        )
-        self.assertNotIn("Sınıf Ortalaması</span><strong>416", html)
+        self.assertIn("· 1. Deneme", html)
+        self.assertNotIn("4. Deneme", html)
+        self.assertRegex(html, r'dk-metrik-sayi">\s*412[,.]10')
+        self.assertNotRegex(html, r'dk-metrik-sayi">\s*416')
         self.assertNotIn("Eski Orta", html)
 
         sadece_a = self.client.get(
             reverse("ogretmen_deneme_kontrol_merkezi_sinif", args=[sinif_a.id])
         )
         a_html = sadece_a.content.decode()
-        self.assertIn("Son Deneme: 2. Deneme", a_html)
-        self.assertTrue(
-            "Sınıf Ortalaması</span><strong>416.00" in a_html
-            or "Sınıf Ortalaması</span><strong>416,00" in a_html
-            or "Sınıf Ortalaması</span><strong>416<" in a_html
+        self.assertIn("· 2. Deneme", a_html)
+        self.assertNotIn("4. Deneme", a_html)
+        self.assertRegex(a_html, r'dk-metrik-sayi">\s*416')
+
+
+def _brans(kod, net, yanlis, bos, dogru=10):
+    return SimpleNamespace(
+        brans=kod,
+        net=Decimal(str(net)),
+        yanlis=yanlis,
+        bos=bos,
+        dogru=dogru,
+    )
+
+
+def _sonuc(*branslar):
+    return SimpleNamespace(brans_satirlari=SimpleNamespace(all=lambda: list(branslar)))
+
+
+class OncelikAnalizTests(TestCase):
+    def test_dususu_ders_yanlis_ve_sinifla_acar(self):
+        matematik_eski = _brans("matematik", 16, 2, 1)
+        matematik_yeni = _brans("matematik", 8, 10, 1)
+        seri = [
+            {"deneme_id": 1, "puan": 400, "net": 50, "sonuc": _sonuc(matematik_eski)},
+            {"deneme_id": 2, "puan": 380, "net": 42, "sonuc": _sonuc(matematik_yeni)},
+        ]
+        sinif_ort = {1: (400.0, 8), 2: (397.0, 8)}
+        calisma = [{"kod": "matematik", "etiket": "Matematik", "son_30_gun_soru": 149, "durum": "uyari"}]
+        metinler, kritik = _oncelik_metinleri(seri, {
+            "puan_dususu": 15.0,
+            "net_dususu": 3.0,
+            "bos_orani_artis_esik": 0.10,
+            "soru_yuksek_esik": 80,
+            "ardisik_negatif": 2,
+        }, calisma, sinif_ort)
+        self.assertTrue(kritik)
+        birlesik = " ".join(metinler)
+        self.assertIn("Son denemede puanı belirgin düştü.", birlesik)
+        self.assertIn("Matematik dersinde neti düştü, yanlışları arttı.", birlesik)
+        self.assertIn("Sınıf yerinde dururken bu talebe düştü.", birlesik)
+        self.assertNotIn("-20,00", birlesik)
+        self.assertNotIn("149", birlesik)
+        self.assertNotIn("net artmıyor", birlesik)
+
+    def test_sinif_da_dustuyse_deneme_geneli_der(self):
+        seri = [
+            {"deneme_id": 1, "puan": 400, "net": 40, "sonuc": _sonuc()},
+            {"deneme_id": 2, "puan": 380, "net": 36, "sonuc": _sonuc()},
+        ]
+        metinler, _kritik = _oncelik_metinleri(
+            seri,
+            {"puan_dususu": 15, "net_dususu": 3, "bos_orani_artis_esik": 0.10, "soru_yuksek_esik": 80, "ardisik_negatif": 2},
+            [],
+            {1: (410.0, 10), 2: (392.0, 10)},
         )
+        self.assertIn("Sınıfın geneli de düştü.", metinler)
+        self.assertIn("Son denemede puanı belirgin düştü.", metinler)
+
+    def test_sayfa_kaybin_dersini_ve_kazanimi_yazar(self):
+        user = User.objects.create_user("etut-oncelik", password="x")
+        hoca = EtutHocasi.objects.create(ad_soyad="Etüt Öncelik", user=user, aktif=True)
+        PersonelProfili.objects.create(
+            user=user,
+            ad_soyad="Etüt Öncelik",
+            ana_rol=PersonelProfili.Rol.ETUT_MESUL,
+            etut_hocasi=hoca,
+        )
+        sinif = SinifSube.objects.create(sinif="8", sube="P")
+        hoca.sorumlu_sinif_subeler.add(sinif)
+        ali = Talebe.objects.create(
+            ad_soyad="Ali Dusen", sinif_sube=sinif, etut_hocasi=hoca, dini_ders_hocasi=hoca
+        )
+        digerler = [
+            Talebe.objects.create(
+                ad_soyad=f"Sabit {n}",
+                sinif_sube=sinif,
+                etut_hocasi=hoca,
+                dini_ders_hocasi=hoca,
+            )
+            for n in range(3)
+        ]
+        ilk = _deneme("İlk", 1)
+        son = _deneme("Son", 20)
+        DenemeSonucu.objects.create(deneme=ilk, talebe=ali, puan=Decimal("400"), toplam_net=Decimal("50"))
+        ali_son = DenemeSonucu.objects.create(
+            deneme=son, talebe=ali, puan=Decimal("380"), toplam_net=Decimal("42")
+        )
+        DenemeBransSonucu.objects.create(
+            sonuc=DenemeSonucu.objects.get(deneme=ilk, talebe=ali),
+            brans="matematik", dogru=16, yanlis=2, bos=1, net=Decimal("15.50"),
+        )
+        DenemeBransSonucu.objects.create(
+            sonuc=ali_son, brans="matematik", dogru=10, yanlis=10, bos=1, net=Decimal("7.50")
+        )
+        for talebe in digerler:
+            DenemeSonucu.objects.create(deneme=ilk, talebe=talebe, puan=Decimal("400"), toplam_net=Decimal("50"))
+            DenemeSonucu.objects.create(deneme=son, talebe=talebe, puan=Decimal("400"), toplam_net=Decimal("50"))
+        _kazanim(son, ali, "Matematik", "Üslü İfadeler", "22")
+        _kazanim(son, ali, "Türkçe", "Sözcükte Anlam", "18")
+
+        self.client.force_login(user)
+        sayfa = self.client.get(reverse("ogretmen_deneme_kontrol_merkezi_sinif", args=[sinif.id]))
+        html = sayfa.content.decode()
+        self.assertIn("Ali Dusen", html)
+        self.assertIn("Matematik dersinde neti düştü, yanlışları arttı.", html)
+        self.assertIn("Zayıf konu: Üslü İfadeler.", html)
+        self.assertNotIn("Sözcükte Anlam", html)
+        self.assertIn("Sınıf yerinde dururken bu talebe düştü.", html)
+        self.assertNotIn("Asıl kayıp", html)

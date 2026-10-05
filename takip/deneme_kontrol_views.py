@@ -20,6 +20,7 @@ from takip.deneme_kontrol_service import (
 )
 from takip.models import SinifSube
 from takip.ogretmen_not_service import ogretmen_sinif_ogrencileri
+from takip.permissions.service import can
 from takip.ogretmen_service import kullanici_ogretmen_mi
 
 
@@ -61,7 +62,20 @@ def _seviye_gruplari(gruplar: list[dict], sirala: str) -> list[dict]:
             etiket=seviye_etiketi(seviye),
             ogrenci_sayisi=len(ogrenciler),
         )
-        sonuc.append({"kart": kart, "veri": veri})
+        sonuc.append(
+            {
+                "kart": kart,
+                "veri": veri,
+                "uyeler": [
+                    {
+                        "id": uye["sinif"].id,
+                        "etiket": uye["kart"].etiket,
+                        "sube": uye["sinif"].sube,
+                    }
+                    for uye in uyeler
+                ],
+            }
+        )
     return sonuc
 
 
@@ -78,6 +92,10 @@ def deneme_kontrol_merkezi(request, sinif_id: int | None = None):
         return _erisim_yok(request)
 
     sirala = (request.GET.get("sirala") or "puan").strip()
+    ekran = (request.GET.get("ekran") or "").strip()
+    cisa_acik = can(request.user, "deneme", "export_pdf")
+    if ekran not in ("kazanim", "cisa", "sinif") or (ekran == "cisa" and not cisa_acik):
+        ekran = "yukselis"
     siniflar = []
     gruplar = []
     gorulen: set[int] = set()
@@ -94,6 +112,30 @@ def deneme_kontrol_merkezi(request, sinif_id: int | None = None):
     gosterilen_id = sinif_id if any(kart.id == sinif_id for kart in siniflar) else None
     if not gosterilen_id and len(siniflar) > 1:
         gruplar = _seviye_gruplari(gruplar, sirala)
+    if ekran == "cisa":
+        from takip.cisa_service import cisa_sinif_denemeleri
+
+        for grup in gruplar:
+            talebeler = sorted(
+                (satir.talebe for satir in grup["veri"]["satirlar"]),
+                key=lambda talebe: talebe.ad_soyad or "",
+            )
+            grup["cisa_talebeler"] = talebeler
+            grup["cisa_denemeler"] = cisa_sinif_denemeleri([t.id for t in talebeler])
+            uyeler = grup.get("uyeler") or []
+            if uyeler:
+                grup["cisa_sinif_idleri"] = ",".join(str(uye["id"]) for uye in uyeler)
+    if ekran == "sinif":
+        from takip.cisa_service import cisa_sinif_denemeleri, cisa_sinif_raporu
+
+        for grup in gruplar:
+            talebeler = [satir.talebe for satir in grup["veri"]["satirlar"]]
+            denemeler = cisa_sinif_denemeleri([t.id for t in talebeler])
+            grup["sinif_raporu"] = cisa_sinif_raporu(
+                talebeler,
+                [deneme["id"] for deneme in denemeler],
+                grup["kart"].etiket,
+            )
 
     return render(
         request,
@@ -103,6 +145,9 @@ def deneme_kontrol_merkezi(request, sinif_id: int | None = None):
             "gruplar": gruplar,
             "sirala": sirala,
             "gosterilen_id": gosterilen_id,
+            "ekran": ekran,
+            "ekran_sorgu": f"?ekran={ekran}" if ekran in ("kazanim", "cisa", "sinif") else "",
+            "cisa_acik": cisa_acik,
         },
     )
 

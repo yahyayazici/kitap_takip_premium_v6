@@ -121,6 +121,7 @@ def talebe_gelisim_metrikleri(grup_seri: list[dict]) -> dict | None:
     return {
         "ilk_puan": ilk["puan"],
         "son_puan": son["puan"],
+        "onceki_puan": son2[0]["puan"] if len(son2) == 2 else None,
         "genel_degisim": round(son["puan"] - ilk["puan"], 2),
         "son2_degisim": (
             round(son2[-1]["puan"] - son2[0]["puan"], 2) if len(son2) == 2 else None

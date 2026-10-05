@@ -103,14 +103,27 @@
             border-top: 1px solid #f0f3f7;
         }
         .pdf-karne.deneme-detayli-pdf table.detayli-results tbody tr:first-child td { border-top: none; }
-        .pdf-karne.deneme-detayli-pdf tr.sinif-net-row td {
-            padding: 4px 2px;
+        .pdf-karne.deneme-detayli-pdf table.detayli-results tbody tr.apple-cizgi td {
+            padding: 6px 10px 4px;
+            border: none;
+            background: transparent;
+            line-height: 0;
+            font-size: 0;
+        }
+        .pdf-karne.deneme-detayli-pdf .apple-cizgi-bar {
+            height: 4px;
+            width: 100%;
+            border-radius: 2px;
+            background: linear-gradient(90deg, #1e3a8a, #2563eb, #d4af37);
+        }
+        .pdf-karne.deneme-detayli-pdf table.detayli-results tbody tr.sinif-net-row td {
+            padding: 4px 2px 5px;
             font-size: 7px;
             font-weight: 700;
             text-align: center;
             color: #173f78;
             background: #f4f7fb;
-            border-top: 1px solid #d5e0ee;
+            border-top: none;
             line-height: 1.2;
         }
         .pdf-karne.deneme-detayli-pdf tr.sinif-net-row .net-cell {
@@ -282,19 +295,9 @@
                             </tr>
                             {% endfor %}
                             {% if ders_net_var %}
-                            {% for sinif in sinif_netleri %}
-                            <tr class="sinif-net-row">
-                                <td colspan="3" class="left">{{ sinif.etiket }} net</td>
-                                {% for b in sinif.branslar %}
-                                <td colspan="3" class="ders-net">
-                                    <div class="net-cell">{{ b.net }}</div>
-                                    <div class="dyb">{{ b.dogru }} D · {{ b.yanlis }} Y · {{ b.bos }} B</div>
-                                </td>
-                                {% endfor %}
-                                <td></td>
-                                <td></td>
+                            <tr class="apple-cizgi">
+                                <td colspan="23"><div class="apple-cizgi-bar"></div></td>
                             </tr>
-                            {% endfor %}
                             <tr class="sinif-net-row">
                                 <td colspan="3" class="left">Sınıf neti</td>
                                 {% for b in ders_netleri %}

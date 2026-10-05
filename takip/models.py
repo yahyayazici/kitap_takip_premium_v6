@@ -167,6 +167,31 @@ class EtutHocasi(models.Model):
         return ", ".join(str(grup) for grup in gruplar) or "Sınıf atanmamış"
 
 
+class SinifSeviyeMesulu(models.Model):
+    """7-A ve 7-B gibi şubelere birden fazla hoca bakabilir; listede bu isim durur."""
+
+    sinif = models.CharField(
+        max_length=30,
+        unique=True,
+        verbose_name="Sınıf",
+        help_text="Örn. 7. Bu seviyedeki bütün şubelerin listesinde bu hoca görünür.",
+    )
+    hoca = models.ForeignKey(
+        EtutHocasi,
+        on_delete=models.PROTECT,
+        related_name="seviye_mesuliyetleri",
+        verbose_name="Sınıf mesulü",
+    )
+
+    class Meta:
+        verbose_name = "Sınıf mesulü"
+        verbose_name_plural = "Sınıf mesulleri"
+        ordering = ["sinif"]
+
+    def __str__(self):
+        return f"{self.sinif} · {self.hoca}"
+
+
 class Talebe(models.Model):
     class Durum(models.TextChoices):
         AKTIF = "aktif", "Aktif"
@@ -896,6 +921,11 @@ class SinavSonucu(models.Model):
 
     def save(self, *args, **kwargs):
         self.puan = self.puani_hesapla()
+        # update_or_create yalnızca gönderilen alanları yazar. Puan bu
+        # listede yoksa doğru güncellenir, puan sütunu 0.00 kalır.
+        update_fields = kwargs.get("update_fields")
+        if update_fields is not None:
+            kwargs["update_fields"] = set(update_fields) | {"puan"}
         self.full_clean()
         super().save(*args, **kwargs)
 

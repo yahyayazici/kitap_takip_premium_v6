@@ -632,6 +632,9 @@ class DenemeDersNetOrtalamaTests(TestCase):
         html = mock_pdf.call_args[0][0]
         self.assertIn("7,50", html)
         self.assertIn("Sınıf neti", html)
-        self.assertIn("8-A net", html)
+        self.assertIn("apple-cizgi-bar", html)
+        self.assertLess(html.index("apple-cizgi-bar"), html.index("Sınıf neti"))
+        self.assertNotIn("8-A net", html)
+        self.assertNotIn("8-B net", html)
         self.assertIn('colspan="3"', html)
-        self.assertIn("10,0 D", html)
+        self.assertIn("8,0 D", html)
