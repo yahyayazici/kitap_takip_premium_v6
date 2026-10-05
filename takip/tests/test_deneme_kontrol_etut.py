@@ -13,7 +13,12 @@ from takip.deneme_kontrol_service import (
     kazanim_ortalamalari,
     kazanimlari_derse_gore,
 )
-from takip.deneme_models import DenemeKazanimSonucu, DenemeSinavi, DenemeSonucu
+from takip.deneme_models import (
+    DenemeKazanimSonucu,
+    DenemeSinavi,
+    DenemeSonucu,
+    DenemeSoruSonucu,
+)
 from takip.models import DenemeBransSonucu, EtutHocasi, PersonelProfili, SinifSube, Talebe
 
 
@@ -309,6 +314,64 @@ class DenemeKontrolKazanimTests(TestCase):
         self.assertNotIn("Kuvvet", ayse_html)
         self.assertNotIn("Paragraf", ayse_html)
         self.assertNotIn("Uzay", ayse_html)
+
+    def test_sinif_analizi_sinif_raporunu_gosterir(self):
+        for deneme, talebe, net, dogru, yanlis in (
+            (self.ilk, self.ali, "8.00", 8, 4),
+            (self.son, self.ali, "6.00", 6, 0),
+            (self.ilk, self.ayse, "4.00", 4, 0),
+            (self.son, self.ayse, "8.00", 8, 0),
+        ):
+            sonuc = DenemeSonucu.objects.get(deneme=deneme, talebe=talebe)
+            sonuc.toplam_net = Decimal(net)
+            sonuc.save(update_fields=["toplam_net"])
+            DenemeBransSonucu.objects.create(
+                sonuc=sonuc,
+                brans="turkce",
+                dogru=dogru,
+                yanlis=yanlis,
+                bos=0,
+                net=Decimal(net),
+            )
+        DenemeSoruSonucu.objects.create(
+            deneme=self.ilk,
+            talebe=self.ali,
+            ders_ad="Türkçe",
+            ders_key="turkce",
+            soru_no=1,
+            konu_ad="Paragraf",
+            sonuc="yanlis",
+        )
+        DenemeSoruSonucu.objects.create(
+            deneme=self.ilk,
+            talebe=self.ayse,
+            ders_ad="Türkçe",
+            ders_key="turkce",
+            soru_no=1,
+            konu_ad="Paragraf",
+            sonuc="dogru",
+        )
+
+        kok = reverse("ogretmen_deneme_kontrol_merkezi_sinif", args=[self.sinif.id])
+        yukselis = self.client.get(kok)
+        self.assertContains(yukselis, "Sınıf analizi")
+        self.assertContains(yukselis, "?ekran=sinif")
+        self.assertContains(yukselis, "Sınıf netini ve konu kaybını inceleyin")
+
+        sayfa = self.client.get(kok + "?ekran=sinif")
+        self.assertEqual(sayfa.status_code, 200)
+        html = sayfa.content.decode()
+        self.assertIn("Sınıf analizi", html)
+        self.assertIn("Asıl kayıp", html)
+        self.assertIn("Konu dökümü", html)
+        self.assertIn("Ders netleri", html)
+        self.assertIn("Paragraf", html)
+        self.assertIn("Ali Yukselen", html)
+        self.assertIn("Ayse Azartan", html)
+        self.assertIn("Türkçe", html)
+        self.assertNotIn("Yükseliş sıralaması", html)
+        self.assertNotIn("Nokta atışı", html)
+        self.assertLess(html.index("Ali Yukselen"), html.index("Ayse Azartan"))
 
 
 class DenemeKontrolTumuTests(TestCase):

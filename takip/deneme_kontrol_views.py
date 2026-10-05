@@ -94,7 +94,7 @@ def deneme_kontrol_merkezi(request, sinif_id: int | None = None):
     sirala = (request.GET.get("sirala") or "puan").strip()
     ekran = (request.GET.get("ekran") or "").strip()
     cisa_acik = can(request.user, "deneme", "export_pdf")
-    if ekran not in ("kazanim", "cisa") or (ekran == "cisa" and not cisa_acik):
+    if ekran not in ("kazanim", "cisa", "sinif") or (ekran == "cisa" and not cisa_acik):
         ekran = "yukselis"
     siniflar = []
     gruplar = []
@@ -125,6 +125,17 @@ def deneme_kontrol_merkezi(request, sinif_id: int | None = None):
             uyeler = grup.get("uyeler") or []
             if uyeler:
                 grup["cisa_sinif_idleri"] = ",".join(str(uye["id"]) for uye in uyeler)
+    if ekran == "sinif":
+        from takip.cisa_service import cisa_sinif_denemeleri, cisa_sinif_raporu
+
+        for grup in gruplar:
+            talebeler = [satir.talebe for satir in grup["veri"]["satirlar"]]
+            denemeler = cisa_sinif_denemeleri([t.id for t in talebeler])
+            grup["sinif_raporu"] = cisa_sinif_raporu(
+                talebeler,
+                [deneme["id"] for deneme in denemeler],
+                grup["kart"].etiket,
+            )
 
     return render(
         request,
@@ -135,7 +146,7 @@ def deneme_kontrol_merkezi(request, sinif_id: int | None = None):
             "sirala": sirala,
             "gosterilen_id": gosterilen_id,
             "ekran": ekran,
-            "ekran_sorgu": f"?ekran={ekran}" if ekran in ("kazanim", "cisa") else "",
+            "ekran_sorgu": f"?ekran={ekran}" if ekran in ("kazanim", "cisa", "sinif") else "",
             "cisa_acik": cisa_acik,
         },
     )
