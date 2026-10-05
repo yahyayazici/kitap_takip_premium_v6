@@ -80,6 +80,37 @@ if DEBUG:
             if _yerel not in CSRF_TRUSTED_ORIGINS:
                 CSRF_TRUSTED_ORIGINS.append(_yerel)
 
+# —— E-Kitap alt alan adı (akıllı tahtada deneme kitapçığı gösterimi) ——
+# config.middleware.EKitapHostMiddleware bu host'u config.ekitap_urls'e bağlar.
+# Ana sitenin kullanıcı sistemiyle bağlantısı yoktur: yönetici girişi
+# EKITAP_YONETICI_SIFRE ile, görüntüleme yöneticinin belirlediği PIN ile yapılır.
+EKITAP_HOST = os.environ.get("EKITAP_HOST", "ekitap.cinilisarayproje.com").strip().lower()
+EKITAP_EK_HOSTLAR = [
+    h.strip().lower()
+    for h in os.environ.get("EKITAP_EK_HOSTLAR", "ekitap.localhost,ekitap.127.0.0.1").split(",")
+    if h.strip()
+]
+EKITAP_HOSTLARI = frozenset([EKITAP_HOST, *EKITAP_EK_HOSTLAR]) - {""}
+for _ekitap_host in EKITAP_HOSTLARI:
+    if _ekitap_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_ekitap_host)
+    _ekitap_origin = f"https://{_ekitap_host}"
+    if _ekitap_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(_ekitap_origin)
+    if DEBUG:
+        for _port in ("8000", "8001"):
+            _yerel = f"http://{_ekitap_host}:{_port}"
+            if _yerel not in CSRF_TRUSTED_ORIGINS:
+                CSRF_TRUSTED_ORIGINS.append(_yerel)
+# Yönetici şifresi yalnızca ortam değişkeninde tutulur; boşsa yönetim paneli kapalıdır.
+EKITAP_YONETICI_SIFRE = os.environ.get("EKITAP_YONETICI_SIFRE", "")
+EKITAP_MAKS_PDF_MB = int(os.environ.get("EKITAP_MAKS_PDF_MB", "80"))
+EKITAP_MAKS_SAYFA = int(os.environ.get("EKITAP_MAKS_SAYFA", "300"))
+# Sayfa görsel genişliği (px) — tahtada yakınlaştırınca soru net okunsun diye yüksek
+EKITAP_SAYFA_GENISLIK = int(os.environ.get("EKITAP_SAYFA_GENISLIK", "2000"))
+# PDF'ler yüklemeden sonra arka planda görsele çevrilir (testlerde False)
+EKITAP_ARKA_PLAN_ISLEME = os.environ.get("EKITAP_ARKA_PLAN_ISLEME", "True").lower() == "true"
+
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
@@ -113,6 +144,7 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "config.middleware.CanonicalHostMiddleware",
     "config.middleware.EkranHostMiddleware",
+    "config.middleware.EKitapHostMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "config.middleware.SlideSessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -201,6 +233,9 @@ AKILLI_TAHTA_MEDIA_ROOT = Path(
     os.environ.get("AKILLI_TAHTA_MEDIA_ROOT", "") or (MEDIA_ROOT / "akilli-tahta-medya")
 )
 AKILLI_TAHTA_MEDIA_URL = "/akilli-tahta-medya/"
+
+# —— E-Kitap deposu (PDF + sayfa görselleri). Canlıda Render kalıcı diskinin alt klasörü.
+EKITAP_MEDIA_ROOT = Path(os.environ.get("EKITAP_MEDIA_ROOT", "") or (MEDIA_ROOT / "ekitap-medya"))
 
 # Tür bazlı boyut sınırları — ayarlardan değiştirilebilir (madde 4).
 AKILLI_TAHTA_MAKS_GORSEL_MB = int(os.environ.get("AKILLI_TAHTA_MAKS_GORSEL_MB", "20"))

@@ -1,0 +1,28 @@
+{% extends "ekitap/base.html" %}
+{% block title %}E-Kitap{% endblock %}
+{% block body %}
+<header class="ek-ust">
+    <h1>E-Kitaplar</h1>
+    <form method="post" action="{% url 'ekitap:pin_cikis' %}">{% csrf_token %}
+        <button class="ek-btn ek-btn-hafif" type="submit">Kilitle</button>
+    </form>
+</header>
+<main class="ek-icerik">
+    {% if kitaplar %}
+    <ul class="ek-raf">
+        {% for kitap in kitaplar %}
+        <li>
+            <a class="ek-kitap-kart" href="{% url 'ekitap:okuyucu' kitap.pk %}">
+                <span class="ek-kapak">
+                    {% if kitap.kapak %}<img src="{% url 'ekitap:sayfa_kucuk' kitap.kapak.pk %}" alt="" loading="lazy">{% endif %}
+                </span>
+                <span class="ek-kitap-ad">{{ kitap.ad }}</span>
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="ek-bos">Gösterilecek kitap yok.</p>
+    {% endif %}
+</main>
+{% endblock %}
