@@ -309,3 +309,29 @@ class GoruntulemeTests(EKitapTestBase):
         self.pin_gir()
         self.post("/pin/cikis/")
         self.assertEqual(self.get("/").status_code, 302)
+
+
+class KitaplikGorunumTests(EKitapTestBase):
+    def test_insan_adi_filtresi(self):
+        from takip.templatetags.ekitap_etiketleri import insan_adi
+
+        self.assertEqual(insan_adi("1-Sayisal-Bolum_Ogrenci-Kitapcigi_A"), "Sayisal Bolum")
+        self.assertEqual(insan_adi("2_Sozel"), "Sozel")
+        self.assertEqual(insan_adi("Tam sayılarla işlemler"), "Tam sayılarla işlemler")
+        self.assertEqual(insan_adi("Sayısal"), "Sayısal")
+        self.assertEqual(insan_adi(""), "")
+
+    def test_kitaplik_meta_tek_satir_ve_ham_ad_yok(self):
+        self.yonetici_giris()
+        kitap = EKitap.objects.create(ad="Deneme", gorunur=True)
+        for i, ad in enumerate(["1-Sayisal-Bolum_Ogrenci-Kitapcigi_A", "2-Sozel-Bolum_Ogrenci-Kitapcigi_A"]):
+            EKitapBolum.objects.create(kitap=kitap, ad=ad, sira=i, pdf=pdf_dosyasi(f"{i}.pdf", 2))
+        from takip.ekitap_service import bolumleri_isle
+
+        bolumleri_isle(list(kitap.bolumler.values_list("pk", flat=True)))
+        self.post("/yonetim/pin/", {"pin": "2468", "pin_tekrar": "2468"})
+        r = self.get("/")
+        self.assertContains(r, '<span class="ek-eser-meta">Sayisal Bolum +1 · 4 sayfa</span>', html=False)
+        self.assertNotContains(r, "Kitapcigi")
+        self.assertContains(r, "ek-raf-ortala")
+        self.assertContains(r, '<span class="ek-bas-sayi">1 kitap</span>')
