@@ -127,6 +127,11 @@
         if (!btn || !window.EKitapSoru) return;
         e.stopPropagation();
         e.preventDefault();
+        // Ders akışı hazırlanırken rozet soruyu seçer/çıkarır.
+        if (window.EKitapAkis && window.EKitapAkis.seciyor()) {
+            window.EKitapAkis.degistir(parseInt(btn.getAttribute('data-soru'), 10));
+            return;
+        }
         var indeks = window.EKitapSoru.indeksBul(
             parseInt(btn.getAttribute('data-bolum'), 10),
             parseInt(btn.getAttribute('data-soru'), 10)

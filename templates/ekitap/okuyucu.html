@@ -32,6 +32,9 @@
                     <svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12M12 6v12"/></svg>
                 </button>
             </div>
+            <button class="ek-yuvarlak" type="button" id="dersAkisiBtn" aria-expanded="false" aria-controls="akisPaneli" aria-label="Ders akışları" title="Ders akışları: seçtiğiniz soruları sırayla gösterin">
+                <svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>
+            </button>
             <button class="ek-yuvarlak" type="button" id="kitapCizimBtn" aria-pressed="false" aria-label="Kitap üzerinde çiz" title="Kitap üzerinde çiz (sayfa çevirme kilitlenir)">
                 <svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l4-1 11-11-3-3L5 16l-1 4zM14 6l3 3"/></svg>
             </button>
@@ -177,6 +180,32 @@
         </div>
     </div>
 
+    <aside class="ek-akis-paneli ek-cam" id="akisPaneli" hidden aria-label="Ders akışları">
+        <div class="ek-akis-ust">
+            <h2 class="ek-akis-baslik" id="akisBaslik">Ders akışları</h2>
+            <button class="ek-yuvarlak" type="button" id="akisKapat" aria-label="Kapat">
+                <svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+        </div>
+        <div id="akisListeGorunumu">
+            <ul class="ek-akis-liste" id="akisListesi"></ul>
+            <p class="ek-akis-bos" id="akisBos">Henüz ders akışı yok. Derste göstereceğiniz soruları seçip sıralayın; tek dokunuşla sırayla açın.</p>
+            <button class="ek-soru-dugme ek-akis-yeni" type="button" id="akisYeni">
+                <svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Yeni ders akışı</span>
+            </button>
+        </div>
+        <div id="akisDuzenGorunumu" hidden>
+            <label class="ek-akis-ad">Ad<input type="text" id="akisAd" maxlength="80" placeholder="Ör. 7-A · Kesirler tekrarı" autocomplete="off"></label>
+            <p class="ek-akis-ipucu">Kitaptaki büyüteçlere dokunarak soru ekleyin ya da çıkarın. Sıra, seçme sırasıdır.</p>
+            <ol class="ek-akis-secilen" id="akisSecilen"></ol>
+            <p class="ek-akis-hata" id="akisHata" role="alert" hidden></p>
+            <div class="ek-akis-eylem">
+                <button class="ek-soru-dugme" type="button" id="akisVazgec">Vazgeç</button>
+                <button class="ek-soru-dugme ek-soru-kapat" type="button" id="akisKaydet">Kaydet</button>
+            </div>
+        </div>
+    </aside>
+
     <footer class="ek-alt-kapsul ek-cam">
         <form class="ek-sayfa-git" id="sayfaGit" autocomplete="off">
             <label for="sayfaNo">Sayfa</label>
@@ -188,10 +217,13 @@
     </footer>
 </div>
 {{ veri|json_script:"ekitapVeri" }}
+{{ akislar|json_script:"ekitapAkislar" }}
+<form id="akisAyar" hidden data-kaydet="{% url 'ekitap:ders_akisi_kaydet' kitap.pk %}" data-sil="{% url 'ekitap:ders_akisi_sil' kitap.pk 0 %}">{% csrf_token %}</form>
 {% endblock %}
 {% block scripts %}
 <script src="{% static 'ekitap/vendor/page-flip-2.0.7.browser.js' %}"></script>
-<script src="{% static 'ekitap/soru-gorunum.js' %}?v=2"></script>
-<script src="{% static 'ekitap/okuyucu.js' %}?v=5"></script>
-<script src="{% static 'ekitap/cizim.js' %}?v=1"></script>
+<script src="{% static 'ekitap/soru-gorunum.js' %}?v=3"></script>
+<script src="{% static 'ekitap/okuyucu.js' %}?v=6"></script>
+<script src="{% static 'ekitap/cizim.js' %}?v=2"></script>
+<script src="{% static 'ekitap/ders-akisi.js' %}?v=1"></script>
 {% endblock %}

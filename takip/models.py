@@ -2365,6 +2365,8 @@ from takip.ekitap_models import (  # noqa: E402,F401
     EKitap,
     EKitapAyar,
     EKitapBolum,
+    EKitapDersAkisi,
+    EKitapDersAkisiSoru,
     EKitapSayfa,
     EKitapSoru,
     EKitapSoruAlan,

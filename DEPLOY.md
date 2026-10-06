@@ -145,10 +145,18 @@ yanında büyüteç rozeti çıkar.
 - Bu özellikten önce yüklenmiş kitaplar: sunucu açılırken `ekitap_sorulari_bul --eksik` arka planda
   çalışır; ayrıca yönetimdeki **Tümünde soruları bul** düğmesi ya da
   `python manage.py ekitap_sorulari_bul [--kitap ID] [--bolum ID]` kullanılabilir. Tekrar çalıştırmak güvenlidir.
-- Taranmış (yazısız) PDF'ler "Taranmış PDF" olarak işaretlenir; soruları elle işaretlenir.
+- Taranmış (yazısız) PDF'lerde soru numaraları OCR ile aranır (Docker imajındaki `tesseract-ocr`
+  sistem paketi; ek Python bağımlılığı yok). Bulunanlar "OCR ile bulundu · doğrulayın" olarak
+  işaretlenir ve sayfalar kontrol listesine düşer. OCR'ı kapatmak için `EKITAP_OCR=false`.
+  Tesseract yoksa ya da numara okunamazsa bölüm "Taranmış PDF" olarak kalır; sorular düzeltme
+  ekranında elle işaretlenir. Bu sürümden önce yüklenmiş taranmış bölümler için yönetimde
+  **Soruları bul**'a basın.
 - Numara atlaması, sayfa sonunda devam eden soru ya da alan dışında kalan içerik bulunan sayfalar
   yönetimde **Kontrol edin** olarak görünür.
 - Yönetim → bölüm satırındaki **Soruları düzelt**: kutuları taşıma/boyutlandırma, çizerek soru ya da
   (sonraki sayfada devam eden sorular için) ek alan ekleme, silme, numara/test/okuma sırası düzenleme,
   öğretmen görünümünü önizleme ve sayfayı onaylama. Kaydedilen düzeltmeler onaylıdır; otomatik tespit
   yeniden çalışınca korunur. PDF değişirse bu sorular "İnceleyin" olarak işaretlenir.
+- Tahtada **Ders akışları** (üst çubuktaki liste simgesi): öğretmen büyüteçlere dokunarak soru seçer,
+  sıralar ve kaydeder; "Başlat" ile sorular seçilen sırayla açılır. Sunucuda yalnızca akışın adı ve
+  soru kimlikleri/sıraları saklanır; çözüm ve çizimler hiçbir yere kaydedilmez.

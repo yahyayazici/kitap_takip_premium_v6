@@ -166,8 +166,19 @@ def deneme_pdf() -> bytes:
 
 
 def _taranmis_gorsel(sayfa_no: int):
-    from PIL import Image, ImageDraw
+    """Taranmış kitapçık sayfası: yazı katmanı yok, yalnızca piksel (2 px/pt).
 
+    OCR'ın okuyabileceği gerçek yazı (reportlab ile gelen Vera yazı tipi) ve
+    her soruda bir şekil içerir.
+    """
+    import os
+
+    import reportlab
+    from PIL import Image, ImageDraw, ImageFont
+
+    yazi_yolu = os.path.join(os.path.dirname(reportlab.__file__), "fonts")
+    kalin = ImageFont.truetype(os.path.join(yazi_yolu, "VeraBd.ttf"), 26)
+    duz = ImageFont.truetype(os.path.join(yazi_yolu, "Vera.ttf"), 21)
     olcek = 2
     g = Image.new("L", (int(A4_G * olcek), int(A4_Y * olcek)), 250)
     d = ImageDraw.Draw(g)
@@ -175,9 +186,15 @@ def _taranmis_gorsel(sayfa_no: int):
         for k in range(3):
             x = int(SOL_X[sutun] * olcek)
             y = int((90 + k * 240) * olcek)
-            d.text((x, y), f"{(sayfa_no - 1) * 6 + sutun * 3 + k + 1}.", fill=10)
-            for satir in range(6):
-                d.line((x + 40, y + 30 + satir * 28, x + 480, y + 30 + satir * 28), fill=60, width=3)
+            no = (sayfa_no - 1) * 6 + sutun * 3 + k + 1
+            d.text((x, y), f"{no}.", font=kalin, fill=10)
+            for satir in range(3):
+                d.text((x + 44, y + 2 + satir * 30), "Which statement below is correct here"[: 30 + satir],
+                       font=duz, fill=20)
+            d.rectangle((x + 60, y + 100, x + 380, y + 200), outline=40, width=3)
+            d.line((x + 60, y + 200, x + 380, y + 100), fill=40, width=3)
+            for i, harf in enumerate("ABCD"):
+                d.text((x + 44, y + 220 + i * 30), f"{harf}) option {harf.lower()}", font=duz, fill=20)
     tampon = io.BytesIO()
     g.save(tampon, format="PNG")
     tampon.seek(0)

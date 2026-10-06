@@ -4,12 +4,25 @@ from __future__ import annotations
 
 import io
 import json
+import shutil
+import unittest
 from pathlib import Path
+from unittest import mock
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 
-from takip.ekitap_models import EKitap, EKitapBolum, EKitapSayfa, EKitapSoru, EKitapSoruAlan
+from django.test import override_settings
+
+from takip.ekitap_models import (
+    EKitap,
+    EKitapBolum,
+    EKitapDersAkisi,
+    EKitapDersAkisiSoru,
+    EKitapSayfa,
+    EKitapSoru,
+    EKitapSoruAlan,
+)
 from takip.ekitap_soru_tespit import tespit_et
 from takip.tests.ekitap_pdf_ornekleri import deneme_pdf, taranmis_pdf
 from takip.tests.test_ekitap import EKitapTestBase
@@ -27,7 +40,7 @@ class TespitAlgoritmasiTests(EKitapTestBase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.sonuc = tespit_et(_belge(deneme_pdf()))
+        cls.sonuc = tespit_et(_belge(deneme_pdf()), ocr=False)
 
     def soru(self, test_no, no):
         for s in self.sonuc.sorular:
@@ -92,8 +105,8 @@ class TespitAlgoritmasiTests(EKitapTestBase):
         # 11. soru: şıklar sonraki sayfadaki devam alanında
         self.assertEqual(self.soru(1, 11).siklar[0], 1)
 
-    def test_taranmis_pdf(self):
-        sonuc = tespit_et(_belge(taranmis_pdf()))
+    def test_taranmis_pdf_ocr_olmadan(self):
+        sonuc = tespit_et(_belge(taranmis_pdf()), ocr=False)
         self.assertEqual(sonuc.durum, "taranmis")
         self.assertEqual(sonuc.sorular, [])
         self.assertTrue(all(not b.metinli for b in sonuc.sayfalar.values()))
@@ -402,3 +415,108 @@ class DuzeltmeEkraniTests(EKitapTestBase):
         # Yeniden tespit taranmış bölümdeki elle soruyu silmez
         call_command("ekitap_sorulari_bul", "--bolum", str(self.taranmis.pk), stdout=io.StringIO())
         self.assertEqual(self.taranmis.sorular.count(), 1)
+
+
+
+TESSERACT_VAR = shutil.which("tesseract") is not None
+
+
+@unittest.skipUnless(TESSERACT_VAR, "tesseract kurulu değil (Docker imajında kurulu)")
+class OcrTests(EKitapTestBase):
+    def test_taranmis_pdfde_ocr_ile_sorular_bulunur(self):
+        sonuc = tespit_et(_belge(taranmis_pdf()), ocr=True)
+        self.assertEqual(sonuc.durum, "ocr")
+        self.assertEqual([(s.test_no, s.no) for s in sonuc.sorular], [(1, n) for n in range(1, 13)])
+        # İki sütun, sayfa başına 6 soru
+        self.assertEqual([s.alanlar[0][0] for s in sonuc.sorular], [0] * 6 + [1] * 6)
+        self.assertLess(sonuc.sorular[0].alanlar[0][1].x1, 0.5)
+        self.assertGreater(sonuc.sorular[3].alanlar[0][1].x0, 0.5)
+        # Alan şekli ve şıkları kapsar (şıklar ~0.84'e kadar iner)
+        self.assertGreater(sonuc.sorular[2].alanlar[0][1].y1, 0.84)
+        # OCR sonuçları belirsizdir: güven sınırlı ve sayfalar kontrole düşer
+        self.assertTrue(all(s.guven <= 0.85 for s in sonuc.sorular))
+        self.assertTrue(all("OCR" in " ".join(b.notlar) for b in sonuc.sayfalar.values()))
+        self.assertTrue(all(s.siklar for s in sonuc.sorular))
+
+    @override_settings(EKITAP_OCR=True)
+    def test_yuklemede_ocr_ve_panel(self):
+        self.yonetici_giris()
+        self.post("/yonetim/kitap/yeni/", {
+            "ad": "Taranmış Kitap", "gorunur": "on", "yeni_ad_0": "Taranmış",
+            "yeni_pdf_0": SimpleUploadedFile("t.pdf", taranmis_pdf(), content_type="application/pdf"),
+        })
+        bolum = EKitapBolum.objects.get()
+        self.assertEqual(bolum.tespit_durumu, "ocr")
+        self.assertEqual(bolum.sorular.count(), 12)
+        self.assertTrue(all(a.gorsel for a in EKitapSoruAlan.objects.all()))
+        self.assertEqual(bolum.sayfalar.filter(kontrol_gerekli=True).count(), 2)
+        self.assertContains(self.get("/yonetim/"), "OCR ile bulundu · doğrulayın")
+
+
+class OcrYokTests(EKitapTestBase):
+    @override_settings(EKITAP_OCR=True)
+    def test_tesseract_yoksa_taranmis_olarak_kalir(self):
+        with mock.patch("takip.ekitap_ocr.shutil.which", return_value=None):
+            sonuc = tespit_et(_belge(taranmis_pdf()))
+        self.assertEqual(sonuc.durum, "taranmis")
+
+
+class DersAkisiTests(EKitapTestBase):
+    def setUp(self):
+        super().setUp()
+        self.yonetici_giris()
+        self.post("/yonetim/pin/", {"pin": "2468", "pin_tekrar": "2468"})
+        self.post("/yonetim/kitap/yeni/", {
+            "ad": "Akış Kitabı", "gorunur": "on", "yeni_ad_0": "Sayısal",
+            "yeni_pdf_0": SimpleUploadedFile("s.pdf", deneme_pdf(), content_type="application/pdf"),
+        })
+        self.kitap = EKitap.objects.get(ad="Akış Kitabı")
+        self.post("/yonetim/cikis/")
+        self.post("/pin/", {"pin": "2468"})
+        self.sorular = list(EKitapSoru.objects.filter(bolum__kitap=self.kitap).order_by("sira"))
+
+    def akis(self, veri, kitap=None):
+        return self.client.post(
+            f"/kitap/{(kitap or self.kitap).pk}/akis/", data=json.dumps(veri),
+            content_type="application/json", HTTP_HOST="ekitap.localhost",
+        )
+
+    def test_olustur_duzenle_sil_ve_okuyucu_verisi(self):
+        a, b, c = self.sorular[4].pk, self.sorular[1].pk, self.sorular[8].pk
+        r = self.akis({"ad": "7-A Kesirler", "sorular": [a, b, c, a]})
+        self.assertEqual(r.status_code, 200, r.content)
+        akis = EKitapDersAkisi.objects.get()
+        self.assertEqual(list(akis.ogeler.values_list("soru_id", flat=True)), [a, b, c])  # tekrar ayıklanır
+        # Düzenle: sırayı değiştir
+        r = self.akis({"id": akis.pk, "ad": "7-A Tekrar", "sorular": [c, a]})
+        self.assertEqual(r.json()["akislar"], [{"id": akis.pk, "ad": "7-A Tekrar", "sorular": [c, a]}])
+        okuyucu = self.get(f"/kitap/{self.kitap.pk}/")
+        self.assertContains(okuyucu, "7-A Tekrar")
+        self.assertContains(okuyucu, 'id="akisPaneli"')
+        # Soru yönetimde gizlenirse akışta görünmez
+        EKitapSoru.objects.filter(pk=c).update(gizli=True)
+        self.assertEqual(self.get(f"/kitap/{self.kitap.pk}/").context["akislar"][0]["sorular"], [a])
+        r = self.client.post(f"/kitap/{self.kitap.pk}/akis/{akis.pk}/sil/", HTTP_HOST="ekitap.localhost")
+        self.assertEqual(r.json()["akislar"], [])
+        self.assertFalse(EKitapDersAkisiSoru.objects.exists())
+
+    def test_gecersiz_istekler(self):
+        baska = EKitap.objects.create(ad="Başka")
+        self.assertEqual(self.akis({"ad": "", "sorular": [self.sorular[0].pk]}).status_code, 400)
+        self.assertEqual(self.akis({"ad": "x", "sorular": []}).status_code, 400)
+        self.assertEqual(self.akis({"ad": "x", "sorular": ["a"]}).status_code, 400)
+        # Başka kitabın sorusu kabul edilmez
+        r = self.akis({"ad": "x", "sorular": [self.sorular[0].pk]}, kitap=baska)
+        self.assertIn(r.status_code, (400, 404))
+        EKitapSoru.objects.filter(pk=self.sorular[0].pk).update(gizli=True)
+        self.assertEqual(self.akis({"ad": "x", "sorular": [self.sorular[0].pk]}).status_code, 400)
+        self.assertFalse(EKitapDersAkisi.objects.exists())
+        # PIN olmadan yazılamaz
+        self.post("/pin/cikis/")
+        self.assertEqual(self.akis({"ad": "x", "sorular": [self.sorular[1].pk]}).status_code, 403)
+
+    def test_akis_yalnizca_kimlik_ve_sira_saklar(self):
+        alanlar = {f.name for f in EKitapDersAkisi._meta.get_fields()} | {
+            f.name for f in EKitapDersAkisiSoru._meta.get_fields()
+        }
+        self.assertEqual(alanlar, {"id", "kitap", "ad", "olusturulma", "guncellenme", "ogeler", "akis", "soru", "sira"})
