@@ -649,6 +649,59 @@ body.ek-soru-acik .ek-ipucu { display: none; }
     .ek-arac-dugme { min-height: 52px; }
 }
 
+/* —— Ders akışı ————————————————————————————————————————————— */
+.ek-akis-paneli {
+    position: absolute; z-index: 30; top: 92px; right: 16px; bottom: 96px; width: min(400px, calc(100% - 32px));
+    display: flex; flex-direction: column; padding: 16px; border-radius: 26px; overflow: hidden;
+    animation: ek-belir 0.22s var(--yay) both;
+}
+.ek-akis-paneli[hidden] { display: none; }
+.ek-akis-paneli > div { display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; }
+.ek-akis-paneli > div[hidden] { display: none; }
+.ek-akis-ust { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex: 0 0 auto !important; flex-direction: row !important; }
+.ek-akis-baslik { margin: 0; font-family: var(--serif); font-size: 26px; font-weight: 600; }
+.ek-akis-liste, .ek-akis-secilen { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1 1 auto; min-height: 0; }
+.ek-akis-oge { display: flex; flex-direction: column; gap: 10px; padding: 14px; margin-bottom: 10px; border-radius: 18px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); }
+.ek-akis-oge-bilgi { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.ek-akis-oge-bilgi strong { font-size: 18px; font-weight: 600; overflow-wrap: anywhere; }
+.ek-akis-oge-bilgi span { flex: 0 0 auto; font-size: 13px; color: var(--gece-metin-2); }
+.ek-akis-oge-eylem { display: flex; gap: 8px; align-items: center; }
+.ek-akis-baslat { flex: 1 1 auto; min-height: 60px; }
+.ek-akis-kucuk {
+    min-width: 48px; min-height: 48px; padding: 0 14px; border-radius: 14px; cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.06); color: var(--gece-metin);
+    font-size: 15px; font-weight: 600; -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.ek-akis-kucuk:disabled { opacity: 0.3; }
+.ek-akis-tehlike { color: #FFB4BC; }
+.ek-akis-bos { margin: 4px 0 16px; font-size: 15px; line-height: 1.5; color: var(--gece-metin-2); }
+.ek-akis-yeni { width: 100%; margin-top: 8px; flex: 0 0 auto; }
+.ek-akis-ad { display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--altin); }
+.ek-akis-ad input {
+    height: 56px; padding: 0 16px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.06); color: var(--gece-metin); font: 600 18px var(--sans); letter-spacing: 0; text-transform: none;
+}
+.ek-akis-ad input:focus { outline: none; border-color: var(--altin); }
+.ek-akis-ipucu { margin: 10px 0; font-size: 14px; line-height: 1.45; color: var(--gece-metin-2); }
+.ek-akis-secilen li { display: flex; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+.ek-akis-no { flex: 0 0 auto; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--altin); color: var(--gece); font-weight: 700; font-variant-numeric: tabular-nums; }
+.ek-akis-ad-metin { flex: 1 1 auto; min-width: 0; font-size: 15px; font-weight: 500; }
+.ek-akis-bos-satir { color: var(--gece-metin-2); font-size: 14px; border: 0 !important; }
+.ek-akis-hata { margin: 8px 0 0; padding: 10px 12px; border-radius: 12px; background: rgba(194, 31, 50, 0.2); color: #FFD0D5; font-size: 14px; }
+.ek-akis-eylem { display: flex; gap: 10px; margin-top: 12px; flex: 0 0 auto; }
+.ek-akis-eylem .ek-soru-dugme { flex: 1 1 0; }
+#dersAkisiBtn[aria-expanded="true"] { border-color: var(--altin); color: var(--altin-acik); }
+.ek-akis-seciyor .ek-buyutec-ic { opacity: 1; background: rgba(18, 62, 140, 0.75); }
+.ek-akis-seciyor .ek-buyutec { cursor: copy; }
+.ek-buyutec.ek-akista .ek-buyutec-ic { background: var(--altin); color: var(--gece); box-shadow: 0 0 0 2px #fff, 0 2px 8px rgba(10, 23, 48, 0.4); }
+.ek-buyutec.ek-akista::after {
+    content: attr(data-akis-sira); position: absolute; top: -6%; right: -8%; min-width: 22px; height: 22px; padding: 0 5px;
+    border-radius: 999px; background: var(--gece); color: var(--altin-acik); font: 700 12px/22px var(--sans); text-align: center;
+}
+@media (max-width: 1000px) {
+    .ek-akis-paneli { top: 150px; }
+}
+
 /* —— Yönetim ———————————————————————————————————————————— */
 .ek-kurum-bas {
     position: relative; overflow: hidden; color: var(--gece-metin);

@@ -92,6 +92,7 @@ class Aday:
     metin_izliyor: bool
     agirlik: float = 1.0
     sutun: int = 0
+    ocr_guven: float | None = None  # OCR'dan geldiyse Tesseract güveni (0–1)
 
 
 @dataclass
@@ -445,7 +446,35 @@ def _bolgedeki(icerik: list[Kutu], sol: float, sag: float, ust: float, alt: floa
     ]
 
 
-def tespit_et(belge, *, maks_sayfa: int | None = None) -> TespitSonucu:
+def _ocr_sayfasi(belge, s: _SayfaVerisi) -> _SayfaVerisi | None:
+    """Taranmış sayfayı OCR ile okuyup metinli sayfa verisine çevirir."""
+    from takip import ekitap_ocr
+
+    sayfa = belge[s.indeks]
+    try:
+        olcek = ekitap_ocr.OCR_GENISLIK / (s.genislik or 1)
+        gorsel = sayfa.render(scale=olcek, fill_color=(255, 255, 255, 255)).to_pil()
+    finally:
+        sayfa.close()
+    try:
+        okunan = ekitap_ocr.sayfayi_oku(gorsel)
+    except Exception:  # noqa: BLE001
+        return None
+    metin_turu = _ham().FPDF_PAGEOBJ_TEXT
+    adaylar = [
+        Aday(
+            sayfa=s.indeks, no=no, kutu=Kutu(w.x0, w.y0, w.x1, w.y1),
+            kalin=True, ciplak=False, metin_izliyor=izliyor, ocr_guven=w.guven,
+        )
+        for no, w, izliyor in okunan.numaralar
+    ]
+    nesneler = [(metin_turu, Kutu(*k), "") for k in okunan.murekkep]
+    siklar = [Kutu(w.x0, w.y0, w.x1, w.y1) for w in okunan.sik_baslari]
+    return _SayfaVerisi(s.indeks, s.genislik, s.yukseklik, adaylar, nesneler, okunan.karakter, 0.0, siklar)
+
+
+def tespit_et(belge, *, maks_sayfa: int | None = None, ocr: bool | None = None) -> TespitSonucu:
+    """ocr=None: Tesseract kuruluysa taranmış sayfalar OCR ile okunur."""
     toplam = len(belge) if maks_sayfa is None else min(len(belge), maks_sayfa)
     sayfalar = [_sayfa_oku(belge, i) for i in range(toplam)]
     bilgiler = {s.indeks: SayfaBilgisi() for s in sayfalar}
@@ -454,8 +483,22 @@ def tespit_et(belge, *, maks_sayfa: int | None = None) -> TespitSonucu:
     taranmis = [s for s in dolu_sayfalar if s.karakter < 8 and s.gorsel_orani > 0.4]
     for s in taranmis:
         bilgiler[s.indeks].metinli = False
-        bilgiler[s.indeks].uyar("Taranmış sayfa: sorular elle işaretlenmeli.")
-    if dolu_sayfalar and len(taranmis) >= max(1, len(dolu_sayfalar) * 0.5):
+    if ocr is None:
+        from takip.ekitap_ocr import ocr_kullanilabilir
+
+        ocr = ocr_kullanilabilir()
+    ocr_ile = set()
+    if taranmis and ocr:
+        for s in taranmis:
+            yeni = _ocr_sayfasi(belge, s)
+            if yeni is not None and yeni.adaylar:
+                sayfalar[sayfalar.index(s)] = yeni
+                ocr_ile.add(s.indeks)
+    for s in taranmis:
+        if s.indeks not in ocr_ile:
+            bilgiler[s.indeks].uyar("Taranmış sayfa: sorular elle işaretlenmeli.")
+    cogu_taranmis = dolu_sayfalar and len(taranmis) >= max(1, len(dolu_sayfalar) * 0.5)
+    if cogu_taranmis and not ocr_ile:
         return TespitSonucu("taranmis", [], bilgiler, [], "PDF taranmış görünüyor; yazı katmanı yok.")
 
     suslemeler = _susleme_imzalari(sayfalar)
@@ -477,11 +520,15 @@ def tespit_et(belge, *, maks_sayfa: int | None = None) -> TespitSonucu:
             w -= 0.25
         if not a.metin_izliyor and not a.ciplak:
             w -= 0.1
+        if a.ocr_guven is not None:
+            w *= 0.6 + 0.4 * min(max(a.ocr_guven, 0.0), 1.0)
         a.agirlik = max(w, 0.1)
     adaylar.sort(key=lambda a: (a.sayfa, a.sutun, a.kutu.y0))
 
     zincir = _zincir_sec(adaylar)
     if not zincir:
+        if cogu_taranmis:
+            return TespitSonucu("taranmis", [], bilgiler, [], "Taranmış PDF; OCR soru numarası bulamadı.")
         return TespitSonucu("bos", [], bilgiler, capalar, "Soru numarası bulunamadı.")
 
     icerikler = {s.indeks: _icerik_nesneleri(s, suslemeler) for s in sayfalar}
@@ -590,11 +637,18 @@ def tespit_et(belge, *, maks_sayfa: int | None = None) -> TespitSonucu:
     sik_kutulari = {s.indeks: s.sik_kutulari for s in sayfalar}
     for taslak in taslaklar:
         taslak.siklar = _siklari_bul(taslak, sik_kutulari)
+    # OCR sonuçları belirsizdir: sayfalar yönetimde doğrulanmak üzere işaretlenir.
+    for sayfa_indeksi in ocr_ile:
+        bilgiler[sayfa_indeksi].uyar("Sorular OCR ile bulundu; alanları ve numaraları doğrulayın.")
     for taslak in taslaklar:
         taslak.guven = round(max(0.05, min(taslak.guven, 1.0)), 2)
+        if any(s in ocr_ile for s, _ in taslak.alanlar):
+            taslak.guven = round(min(taslak.guven, 0.85), 2)
         if any(bilgiler[s].notlar for s, _ in taslak.alanlar):
             taslak.guven = round(taslak.guven * 0.9, 2)
-    return TespitSonucu("tamam", taslaklar, bilgiler, capalar)
+    durum = "ocr" if cogu_taranmis else "tamam"
+    not_ = "Taranmış PDF; sorular OCR ile bulundu, yönetimde doğrulayın." if cogu_taranmis else ""
+    return TespitSonucu(durum, taslaklar, bilgiler, capalar, not_)
 
 
 def _icinde(k: Kutu, b: Kutu) -> bool:

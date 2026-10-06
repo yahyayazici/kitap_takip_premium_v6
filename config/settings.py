@@ -109,6 +109,8 @@ EKITAP_MAKS_SAYFA = int(os.environ.get("EKITAP_MAKS_SAYFA", "300"))
 # Sayfa görsel genişliği (px) — tahtada yakınlaştırınca soru net okunsun diye yüksek
 EKITAP_SAYFA_GENISLIK = int(os.environ.get("EKITAP_SAYFA_GENISLIK", "2000"))
 # PDF'ler yüklemeden sonra arka planda görsele çevrilir (testlerde False)
+# Taranmış PDF'lerde soru numaralarını OCR (tesseract) ile ara; kurulu değilse kendiliğinden atlanır.
+EKITAP_OCR = os.environ.get("EKITAP_OCR", "true").lower() not in ("0", "false", "no")
 EKITAP_ARKA_PLAN_ISLEME = os.environ.get("EKITAP_ARKA_PLAN_ISLEME", "True").lower() == "true"
 
 if not DEBUG:

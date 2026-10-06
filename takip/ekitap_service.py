@@ -306,7 +306,11 @@ def sorulari_bul(bolum_id: int, *, belge=None):
         with PDFIUM_KILIDI:
             if kendi_actik:
                 belge = _belge_ac(bolum)
-            sonuc = tespit_et(belge, maks_sayfa=bolum.sayfa_sayisi or None)
+            sonuc = tespit_et(
+                belge,
+                maks_sayfa=bolum.sayfa_sayisi or None,
+                ocr=None if getattr(settings, "EKITAP_OCR", True) else False,
+            )
     except Exception as hata:  # noqa: BLE001
         logger.exception("E-kitap soru tespiti başarısız bolum=%s", bolum.pk)
         bolum.tespit_durumu = EKitapBolum.TespitDurumu.HATA

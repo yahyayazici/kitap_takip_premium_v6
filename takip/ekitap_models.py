@@ -58,6 +58,7 @@ class EKitapBolum(models.Model):
         ARANIYOR = "araniyor", "Aranıyor"
         TAMAM = "tamam", "Tamam"
         TARANMIS = "taranmis", "Taranmış PDF"
+        OCR = "ocr", "OCR ile bulundu"
         BOS = "bos", "Soru bulunamadı"
         HATA = "hata", "Hata"
 
@@ -189,3 +190,35 @@ class EKitapAyar(models.Model):
     def al(cls) -> EKitapAyar:
         ayar, _ = cls.objects.get_or_create(pk=1)
         return ayar
+
+
+class EKitapDersAkisi(models.Model):
+    """Öğretmenin kitaptan seçtiği soruların ders sırası.
+
+    Yalnızca soru kimliklerini ve sıralarını saklar; çözüm ya da çizim saklamaz.
+    """
+
+    kitap = models.ForeignKey(EKitap, on_delete=models.CASCADE, related_name="ders_akislari")
+    ad = models.CharField("Ders akışı adı", max_length=80)
+    olusturulma = models.DateTimeField(auto_now_add=True)
+    guncellenme = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-guncellenme", "-id"]
+        verbose_name = "E-kitap ders akışı"
+        verbose_name_plural = "E-kitap ders akışları"
+
+    def __str__(self) -> str:
+        return f"{self.kitap.ad} · {self.ad}"
+
+
+class EKitapDersAkisiSoru(models.Model):
+    akis = models.ForeignKey(EKitapDersAkisi, on_delete=models.CASCADE, related_name="ogeler")
+    soru = models.ForeignKey(EKitapSoru, on_delete=models.CASCADE, related_name="+")
+    sira = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["sira", "id"]
+        constraints = [
+            models.UniqueConstraint(fields=["akis", "soru"], name="benzersiz_ekitap_akis_soru"),
+        ]

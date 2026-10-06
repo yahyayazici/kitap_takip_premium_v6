@@ -48,6 +48,8 @@
 
     var aktif = -1;
     var acik = false;
+    var liste = null; // ders akışı: gezilecek soru indeksleri (sırasıyla)
+    var listeAdi = '';
     var donusOdagi = null;
     var olcu = { w: 1, h: 1, olcek: 1, soruW: 1, soruH: 1 }; // kâğıt birimi ve ekrana sığdırma ölçeği
     var ekAlan = { alt: 0, sag: 0 }; // çözüm alanı (sorunun boyutuna oran)
@@ -175,10 +177,18 @@
         var parcalarMetin = [];
         if (veri.length > 1) parcalarMetin.push(bolum.ad);
         if (kayit.cokTestli) parcalarMetin.push(kayit.soru.t + '. test');
-        parcalarMetin.push((aktif + 1) + ' / ' + sorular.length);
+        if (liste) {
+            var konum = liste.indexOf(aktif);
+            parcalarMetin.unshift(listeAdi);
+            parcalarMetin.push((konum + 1) + ' / ' + liste.length);
+            oncekiBtn.disabled = konum <= 0;
+            sonrakiBtn.disabled = konum >= liste.length - 1;
+        } else {
+            parcalarMetin.push((aktif + 1) + ' / ' + sorular.length);
+            oncekiBtn.disabled = aktif <= 0;
+            sonrakiBtn.disabled = aktif >= sorular.length - 1;
+        }
         altBaslik.textContent = parcalarMetin.join(' · ');
-        oncekiBtn.disabled = aktif <= 0;
-        sonrakiBtn.disabled = aktif >= sorular.length - 1;
     }
 
     function goster(indeks) {
@@ -189,15 +199,16 @@
         kok.dispatchEvent(new CustomEvent('ek-soru-degisecek', { detail: { onceki: onceki, simdi: indeks } }));
         kagidiKur(kayit);
         etiketleriGuncelle(kayit);
-        onYukle(indeks + 1);
-        onYukle(indeks - 1);
-        onYukle(indeks + 2);
+        onYukle(komsu(indeks, 1));
+        onYukle(komsu(indeks, -1));
+        onYukle(komsu(indeks, 2));
         kok.dispatchEvent(new CustomEvent('ek-soru-degisti', { detail: { onceki: onceki, simdi: indeks } }));
     }
 
     // —— Dış arayüz ———————————————————————————————————————————————————————
     function ac(indeks, odak) {
         if (!sorular[indeks]) return;
+        if (!acik) { liste = null; listeAdi = ''; }
         donusOdagi = odak || document.activeElement;
         if (!acik) {
             acik = true;
@@ -222,13 +233,34 @@
         kagit.innerHTML = '';
         ekAlan = { alt: 0, sag: 0 };
         aktif = -1;
+        liste = null;
+        listeAdi = '';
         if (donusOdagi && document.contains(donusOdagi)) {
             try { donusOdagi.focus({ preventScroll: true }); } catch (e) { /* yok say */ }
         }
     }
 
-    function sonraki() { if (aktif < sorular.length - 1) goster(aktif + 1); }
-    function onceki() { if (aktif > 0) goster(aktif - 1); }
+    /* Sıradaki soru: ders akışında listedeki sıra, değilse kitap sırası. */
+    function komsu(indeks, adim) {
+        if (!liste) return indeks + adim;
+        var k = liste.indexOf(indeks) + adim;
+        return k >= 0 && k < liste.length ? liste[k] : -1;
+    }
+
+    function sonraki() { var i = komsu(aktif, 1); if (sorular[i]) goster(i); }
+    function onceki() { var i = komsu(aktif, -1); if (i >= 0 && sorular[i]) goster(i); }
+
+    /* Ders akışını baştan aç: yalnızca seçilen sorular, seçilen sırayla. */
+    function listeAc(indeksler, ad, odak) {
+        indeksler = indeksler.filter(function (i) { return !!sorular[i]; });
+        if (!indeksler.length) return;
+        if (acik) kapat(true);
+        ac(indeksler[0], odak);
+        liste = indeksler;
+        listeAdi = ad || 'Ders akışı';
+        etiketleriGuncelle(sorular[aktif]);
+        onYukle(komsu(aktif, 1));
+    }
 
     function indeksBul(bolumIndeksi, soruId) {
         for (var i = 0; i < sorular.length; i++) {
@@ -445,6 +477,7 @@
 
     window.EKitapSoru = {
         ac: ac,
+        listeAc: listeAc,
         kapat: kapat,
         acikMi: function () { return acik; },
         indeksBul: indeksBul,

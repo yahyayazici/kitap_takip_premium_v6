@@ -36,6 +36,7 @@
                         {% if b.islem_durumu == "hazir" %}
                             {% if b.tespit_durumu == "araniyor" %}<span class="ek-durum ek-durum-bekliyor"><span class="ek-donen" aria-hidden="true"></span>Sorular aranıyor…</span>
                             {% elif b.tespit_durumu == "tamam" %}<span class="ek-durum ek-durum-hazir">{{ b.soru_sayisi }} soru</span>
+                            {% elif b.tespit_durumu == "ocr" %}<span class="ek-durum ek-durum-hazir">{{ b.soru_sayisi }} soru</span><span class="ek-durum ek-durum-uyari" title="{{ b.tespit_notu }}">OCR ile bulundu · doğrulayın</span>
                             {% elif b.tespit_durumu == "taranmis" %}<span class="ek-durum ek-durum-uyari" title="{{ b.tespit_notu }}">Taranmış PDF · sorular elle işaretlenmeli</span>
                             {% elif b.tespit_durumu == "bos" %}<span class="ek-durum ek-durum-uyari">Soru bulunamadı</span>
                             {% elif b.tespit_durumu == "hata" %}<span class="ek-durum ek-durum-hata">{{ b.tespit_notu|default:"Soru tespiti başarısız" }}</span>

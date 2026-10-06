@@ -45,6 +45,7 @@ class EKitapTestBase(TestCase):
             EKITAP_YONETICI_SIFRE=SIFRE,
             EKITAP_ARKA_PLAN_ISLEME=False,
             EKITAP_SAYFA_GENISLIK=600,
+            EKITAP_OCR=False,
         )
         self.ayarlar.enable()
 

@@ -23,7 +23,16 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_POST
 
 from takip import ekitap_service as servis
-from takip.ekitap_models import EKitap, EKitapAyar, EKitapBolum, EKitapSayfa, EKitapSoru, EKitapSoruAlan
+from takip.ekitap_models import (
+    EKitap,
+    EKitapAyar,
+    EKitapBolum,
+    EKitapDersAkisi,
+    EKitapDersAkisiSoru,
+    EKitapSayfa,
+    EKitapSoru,
+    EKitapSoruAlan,
+)
 
 PIN_DENEME_LIMIT = 8
 YONETICI_DENEME_LIMIT = 5
@@ -45,7 +54,7 @@ def pin_gerekli(view):
     @wraps(view)
     def sarmal(request, *args, **kwargs):
         if not servis.pin_gecerli_mi(request):
-            if request.path.endswith(".webp"):
+            if request.path.endswith(".webp") or request.method == "POST":
                 return HttpResponse(status=403)
             return redirect(f"{reverse('ekitap:pin')}?next={request.get_full_path()}")
         return view(request, *args, **kwargs)
@@ -203,6 +212,7 @@ def okuyucu(request, kitap_id: int):
             "bolumler": bolumler,
             "veri": veri,
             "yonetici_onizleme": yonetici and not kitap.gorunur,
+            "akislar": _akis_verisi(kitap),
         },
     )
 
@@ -606,3 +616,79 @@ def soru_duzelt_kaydet(request, bolum_id: int):
         servis.soru_gorsellerini_uret_baslat(bolum)
     bolum.refresh_from_db()
     return JsonResponse({"tamam": True, "veri": _duzeltme_verisi(bolum)})
+
+
+# —— Ders akışı (tahta) —————————————————————————————————————————————————————
+# Yalnızca soru kimlikleri ve sıraları saklanır; çözüm/çizim saklanmaz.
+
+MAKS_AKIS = 100
+MAKS_AKIS_SORU = 200
+
+
+def _akis_verisi(kitap: EKitap) -> list[dict]:
+    return [
+        {"id": a.pk, "ad": a.ad, "sorular": [o.soru_id for o in a.ogeler.all() if not o.soru.gizli]}
+        for a in kitap.ders_akislari.prefetch_related("ogeler__soru")
+    ]
+
+
+def _akis_kitabi(request, kitap_id: int) -> EKitap:
+    kitap = get_object_or_404(EKitap, pk=kitap_id)
+    if not kitap.gorunur and not servis.yonetici_mi(request):
+        raise Http404
+    return kitap
+
+
+@require_POST
+@pin_gerekli
+def ders_akisi_kaydet(request, kitap_id: int):
+    kitap = _akis_kitabi(request, kitap_id)
+    try:
+        veri = json.loads(request.body.decode("utf-8"))
+        if not isinstance(veri, dict):
+            raise ValueError
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse({"hata": "Geçersiz istek."}, status=400)
+    ad = str(veri.get("ad") or "").strip()[:80]
+    sorular = veri.get("sorular")
+    if not ad:
+        return JsonResponse({"hata": "Ders akışına bir ad verin."}, status=400)
+    if not isinstance(sorular, list) or not sorular:
+        return JsonResponse({"hata": "En az bir soru seçin."}, status=400)
+    if len(sorular) > MAKS_AKIS_SORU:
+        return JsonResponse({"hata": f"Bir ders akışında en çok {MAKS_AKIS_SORU} soru olabilir."}, status=400)
+    try:
+        kimlikler = list(dict.fromkeys(int(k) for k in sorular))
+    except (TypeError, ValueError):
+        return JsonResponse({"hata": "Geçersiz soru."}, status=400)
+    gecerli = set(
+        EKitapSoru.objects.filter(
+            pk__in=kimlikler, bolum__kitap=kitap, gizli=False,
+            bolum__islem_durumu=EKitapBolum.IslemDurumu.HAZIR,
+        ).values_list("pk", flat=True)
+    )
+    if set(kimlikler) - gecerli:
+        return JsonResponse({"hata": "Seçilen sorulardan biri bu kitapta yok; sayfayı yenileyin."}, status=400)
+    with transaction.atomic():
+        akis_id = veri.get("id")
+        if akis_id is not None:
+            akis = get_object_or_404(EKitapDersAkisi, pk=akis_id, kitap=kitap)
+            akis.ad = ad
+            akis.save()
+            akis.ogeler.all().delete()
+        else:
+            if kitap.ders_akislari.count() >= MAKS_AKIS:
+                return JsonResponse({"hata": "Bu kitapta çok fazla ders akışı var; eskilerini silin."}, status=400)
+            akis = EKitapDersAkisi.objects.create(kitap=kitap, ad=ad)
+        EKitapDersAkisiSoru.objects.bulk_create(
+            [EKitapDersAkisiSoru(akis=akis, soru_id=pk, sira=i) for i, pk in enumerate(kimlikler)]
+        )
+    return JsonResponse({"tamam": True, "id": akis.pk, "akislar": _akis_verisi(kitap)})
+
+
+@require_POST
+@pin_gerekli
+def ders_akisi_sil(request, kitap_id: int, akis_id: int):
+    kitap = _akis_kitabi(request, kitap_id)
+    get_object_or_404(EKitapDersAkisi, pk=akis_id, kitap=kitap).delete()
+    return JsonResponse({"tamam": True, "akislar": _akis_verisi(kitap)})
