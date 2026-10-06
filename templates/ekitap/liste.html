@@ -1,4 +1,5 @@
 {% extends "ekitap/base.html" %}
+{% load ekitap_etiketleri %}
 {% block title %}Kitaplık · E-Kitap{% endblock %}
 {% block body_class %}ek-gece ek-kitaplik-sayfa{% endblock %}
 {% block body %}
@@ -17,29 +18,24 @@
         </button>
     </form>
 </header>
-<main class="ek-kitaplik">
+<main class="ek-kitaplik{% if not kitaplar %} ek-kitaplik-bos-alan{% endif %}">
     {% if kitaplar %}
-    <ul class="ek-raf">
+    <ul class="ek-raf{% if kitaplar|length <= 2 %} ek-raf-ortala{% endif %}" style="--n: {{ kitaplar|length }}">
         {% for kitap in kitaplar %}
-        <li class="ek-raf-oge">
+        <li>
             <a class="ek-eser" href="{% url 'ekitap:okuyucu' kitap.pk %}">
                 <span class="ek-kapak">
-                    {% if kitap.kapak %}<img src="{% url 'ekitap:sayfa_kucuk' kitap.kapak.pk %}" alt="" loading="lazy">{% endif %}
+                    {% if kitap.kapak %}<img src="{% url 'ekitap:sayfa_kucuk' kitap.kapak.pk %}" alt="" loading="lazy">
+                    {% else %}<span class="ek-kapak-harf" aria-hidden="true">{{ kitap.ad|first|upper }}</span>{% endif %}
                 </span>
                 <span class="ek-eser-ad">{{ kitap.ad }}</span>
-                <span class="ek-cipler">
-                    {% for ad in kitap.bolum_adlari %}<span class="ek-cip">{{ ad }}</span>{% endfor %}
-                    <span class="ek-eser-sayfa">{{ kitap.sayfa_toplam }} sayfa</span>
-                </span>
+                <span class="ek-eser-meta">{% with ilk=kitap.bolum_adlari|first %}{% if ilk %}{{ ilk|insan_adi }}{% if kitap.bolum_adlari|length > 1 %} +{{ kitap.bolum_adlari|length|add:"-1" }}{% endif %} · {% endif %}{% endwith %}{{ kitap.sayfa_toplam }} sayfa</span>
             </a>
         </li>
         {% endfor %}
     </ul>
     {% else %}
-    <div class="ek-bos">
-        <p class="ek-bos-baslik">Kitaplık boş</p>
-        <p>Yönetici bir kitap yükleyip görünür yaptığında burada listelenir.</p>
-    </div>
+    <p class="ek-kitaplik-bos">Henüz gösterilecek kitap yok. Yönetici bir kitap yükleyip görünür yaptığında burada listelenir.</p>
     {% endif %}
 </main>
 {% endblock %}
