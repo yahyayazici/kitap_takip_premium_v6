@@ -268,3 +268,137 @@ class CizimGizlilikTests(EKitapTestBase):
         # Çizimler için sunucuda kayıt yolu yok; okuyucu yalnızca GET kabul eder
         self.assertEqual(self.post(f"/kitap/{kitap.pk}/", {"cizim": "x"}).status_code, 405)
         self.assertFalse(any("cizim" in f.name.lower() for f in EKitapSoru._meta.get_fields()))
+
+
+class DuzeltmeEkraniTests(EKitapTestBase):
+    """Yönetimde soru alanlarını elle düzeltme."""
+
+    def setUp(self):
+        super().setUp()
+        self.yonetici_giris()
+        r = self.post(
+            "/yonetim/kitap/yeni/",
+            {
+                "ad": "Düzeltme Kitabı",
+                "gorunur": "on",
+                "yeni_ad_0": "Sayısal",
+                "yeni_pdf_0": SimpleUploadedFile("s.pdf", deneme_pdf(), content_type="application/pdf"),
+                "yeni_ad_1": "Taranmış",
+                "yeni_pdf_1": SimpleUploadedFile("t.pdf", taranmis_pdf(), content_type="application/pdf"),
+            },
+        )
+        self.assertEqual(r.status_code, 302)
+        self.sayisal, self.taranmis = list(EKitap.objects.get().bolumler.order_by("sira"))
+
+    def kaydet(self, bolum, veri):
+        return self.client.post(
+            f"/yonetim/bolum/{bolum.pk}/sorular/kaydet/",
+            data=json.dumps(veri),
+            content_type="application/json",
+            HTTP_HOST="ekitap.localhost",
+        )
+
+    def soru(self, test_no, no, bolum=None):
+        return (bolum or self.sayisal).sorular.get(test_no=test_no, no=no)
+
+    def test_ekran_yalnizca_yoneticiye_acik_ve_veri_icerir(self):
+        r = self.get(f"/yonetim/bolum/{self.sayisal.pk}/sorular/")
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, "duzeltVeri")
+        self.assertContains(r, "ekitap/duzelt.js")
+        veri = r.context["veri"]
+        self.assertEqual(len(veri["sorular"]), 23)
+        self.assertEqual([s["sira"] for s in veri["sayfalar"] if s["kontrol"]], [3, 5, 6])
+        self.post("/yonetim/cikis/")
+        self.assertEqual(self.get(f"/yonetim/bolum/{self.sayisal.pk}/sorular/").status_code, 302)
+        self.assertEqual(self.kaydet(self.sayisal, {}).status_code, 302)
+
+    def test_tasima_yeni_soru_silme_sira_ve_onay(self):
+        s5 = self.soru(1, 5)
+        eski_gorsel = s5.alanlar.get().gorsel.path
+        s1t2 = self.soru(2, 1)
+        s2t2 = self.soru(2, 2)
+        r = self.kaydet(self.sayisal, {
+            "sorular": [
+                {"id": s5.pk, "test_no": 1, "no": 5, "alanlar": [{"sayfa": 1, "k": [0.56, 0.26, 0.97, 0.47]}]},
+                {"id": None, "gecici": "1", "test_no": 1, "no": 16, "alanlar": [
+                    {"sayfa": 3, "k": [0.07, 0.6, 0.47, 0.9]},
+                    {"sayfa": 4, "k": [0.57, 0.75, 0.95, 0.88]},
+                ]},
+            ],
+            "silinen": [s1t2.pk],
+            "onaylanan_sayfalar": [4],
+        })
+        self.assertEqual(r.status_code, 200, r.content)
+        s5.refresh_from_db()
+        self.assertEqual((s5.kaynak, s5.onayli), ("elle", True))
+        alan = s5.alanlar.get()
+        self.assertEqual((alan.x0, alan.y1), (0.56, 0.47))
+        # Görsel yeni koordinatlara göre yeniden üretildi, eskisi silindi
+        self.assertTrue(alan.gorsel and Path(alan.gorsel.path).exists())
+        self.assertFalse(Path(eski_gorsel).exists())
+        yeni = self.soru(1, 16)
+        self.assertEqual([a.sayfa_sira for a in yeni.alanlar.order_by("sira")], [3, 4])
+        s1t2.refresh_from_db()
+        self.assertTrue(s1t2.gizli)
+        sayfa = EKitapSayfa.objects.get(bolum=self.sayisal, sira=4)
+        self.assertFalse(sayfa.kontrol_gerekli)
+        self.assertTrue(sayfa.onaylandi)
+
+        # Sıra: test 2'nin 2. sorusunu başa al
+        gorunur = list(self.sayisal.sorular.filter(gizli=False).order_by("sira").values_list("pk", flat=True))
+        gorunur.remove(s2t2.pk)
+        r = self.kaydet(self.sayisal, {"sira": [s2t2.pk] + gorunur})
+        self.assertEqual(r.status_code, 200)
+        sira = list(self.sayisal.sorular.filter(gizli=False).order_by("sira").values_list("pk", flat=True))
+        self.assertEqual(sira[0], s2t2.pk)
+
+        # Tahta: gizli soru görünmez, yeni soru iki parçalı
+        self.post("/yonetim/pin/", {"pin": "2468", "pin_tekrar": "2468"})
+        okuyucu = self.get(f"/kitap/{self.sayisal.kitap_id}/")
+        veri = json.loads(okuyucu.content.decode().split('id="ekitapVeri" type="application/json">')[1].split("</script>")[0])
+        kimlikler = [s["id"] for s in veri[0]["sorular"]]
+        self.assertNotIn(s1t2.pk, kimlikler)
+        self.assertEqual(kimlikler[0], s2t2.pk)
+        self.assertEqual(len(next(s for s in veri[0]["sorular"] if s["id"] == yeni.pk)["alanlar"]), 2)
+
+        # Yeniden tespit: elle düzeltmeler, gizlenen soru, sıra ve sayfa onayı korunur
+        call_command("ekitap_sorulari_bul", stdout=io.StringIO())
+        self.assertEqual(sira, list(self.sayisal.sorular.filter(gizli=False).order_by("sira").values_list("pk", flat=True)))
+        self.assertEqual(self.sayisal.sorular.filter(test_no=2, no=1).count(), 1)
+        self.assertTrue(self.soru(2, 1).gizli)
+        self.assertEqual(self.soru(1, 5).alanlar.get().x0, 0.56)
+        self.assertFalse(EKitapSayfa.objects.get(bolum=self.sayisal, sira=4).kontrol_gerekli)
+
+    def test_gecersiz_veriler_reddedilir(self):
+        s3 = self.soru(1, 3)
+        for veri, metin in (
+            ({"sorular": [{"id": s3.pk, "test_no": 1, "no": 3, "alanlar": [{"sayfa": 1, "k": [0.1, 0.1, 0.105, 0.5]}]}]}, "küçük"),
+            ({"sorular": [{"id": s3.pk, "test_no": 1, "no": 3, "alanlar": [{"sayfa": 99, "k": [0.1, 0.1, 0.5, 0.5]}]}]}, "sayfa"),
+            ({"sorular": [{"id": s3.pk, "test_no": 1, "no": "x", "alanlar": [{"sayfa": 1, "k": [0.1, 0.1, 0.5, 0.5]}]}]}, "sayı"),
+            ({"sorular": [{"id": s3.pk, "test_no": 1, "no": 3, "alanlar": []}]}, "alanı"),
+            ({"sorular": [{"id": 999999, "test_no": 1, "no": 3, "alanlar": [{"sayfa": 1, "k": [0.1, 0.1, 0.5, 0.5]}]}]}, "yenileyip"),
+        ):
+            r = self.kaydet(self.sayisal, veri)
+            self.assertEqual(r.status_code, 400, veri)
+            self.assertIn(metin, r.json()["hata"])
+        # Hata olunca hiçbir şey kaydedilmez (tek işlem)
+        s3.refresh_from_db()
+        self.assertEqual(s3.kaynak, "otomatik")
+        r = self.client.post(f"/yonetim/bolum/{self.sayisal.pk}/sorular/kaydet/", data="{bozuk",
+                             content_type="application/json", HTTP_HOST="ekitap.localhost")
+        self.assertEqual(r.status_code, 400)
+
+    def test_taranmis_pdfde_elle_isaretleme_kaynak_cozunurlugunde(self):
+        r = self.kaydet(self.taranmis, {"sorular": [
+            {"id": None, "gecici": "1", "test_no": 1, "no": 1, "alanlar": [{"sayfa": 0, "k": [0.07, 0.09, 0.49, 0.36]}]},
+        ]})
+        self.assertEqual(r.status_code, 200, r.content)
+        alan = EKitapSoruAlan.objects.get(soru__bolum=self.taranmis)
+        self.assertTrue(alan.gorsel)
+        # Taranmış görsel 2 px/pt; kırpıntı aynı çözünürlükte (büyütülmeden) üretilir
+        beklenen = (0.49 - 0.07) * 595.2756 * 2
+        self.assertAlmostEqual(alan.genislik, beklenen, delta=6)
+        # Yeniden tespit taranmış bölümdeki elle soruyu silmez
+        call_command("ekitap_sorulari_bul", "--bolum", str(self.taranmis.pk), stdout=io.StringIO())
+        self.assertEqual(self.taranmis.sorular.count(), 1)

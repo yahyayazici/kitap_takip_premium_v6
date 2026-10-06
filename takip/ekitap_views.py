@@ -8,13 +8,14 @@ Ana sitenin kullanıcı hesapları burada kullanılmaz.
 
 from __future__ import annotations
 
+import json
 import re
 from functools import wraps
 
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Count, Prefetch, Q
-from django.http import FileResponse, Http404, HttpResponse
+from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -89,9 +90,11 @@ def _soru_verisi(bolum: EKitapBolum) -> list[dict]:
             {
                 "s": a.sayfa_sira,
                 "k": [round(a.x0, 4), round(a.y0, 4), round(a.x1, 4), round(a.y1, 4)],
+                # Alan düzeltildiyse görsel arka planda yeniden üretilir; o sırada
+                # okuyucu sayfa görselinden kırpar.
                 "src": (
                     f"{reverse('ekitap:soru_gorseli', args=[a.pk])}?v={a.gorsel_imza[:8]}"
-                    if a.gorsel else None
+                    if servis.alan_gorseli_guncel_mi(a, bolum.pdf_ozeti) else None
                 ),
             }
             for a in soru.alanlar.all()
@@ -167,7 +170,7 @@ def okuyucu(request, kitap_id: int):
             Prefetch("sayfalar", queryset=EKitapSayfa.objects.order_by("sira")),
             Prefetch(
                 "sorular",
-                queryset=EKitapSoru.objects.order_by("sira", "pk").prefetch_related(
+                queryset=EKitapSoru.objects.filter(gizli=False).order_by("sira", "pk").prefetch_related(
                     Prefetch("alanlar", queryset=EKitapSoruAlan.objects.order_by("sira", "pk"))
                 ),
             ),
@@ -288,7 +291,10 @@ def yonetim(request):
             Prefetch(
                 "bolumler",
                 queryset=EKitapBolum.objects.annotate(
-                    soru_sayisi=Count("sorular", distinct=True),
+                    soru_sayisi=Count("sorular", filter=Q(sorular__gizli=False), distinct=True),
+                    inceleme_sayisi=Count(
+                        "sorular", filter=Q(sorular__inceleme_gerekli=True, sorular__gizli=False), distinct=True
+                    ),
                     kontrol_sayisi=Count(
                         "sayfalar", filter=Q(sayfalar__kontrol_gerekli=True), distinct=True
                     ),
@@ -516,3 +522,87 @@ def sorulari_bul(request):
         if len(ids) > 1 else "Bölümde sorular aranıyor.",
     )
     return redirect("ekitap:yonetim")
+
+
+# —— Soru düzeltme ekranı ———————————————————————————————————————————————————
+
+
+def _duzeltme_verisi(bolum: EKitapBolum) -> dict:
+    sayfalar = list(bolum.sayfalar.order_by("sira"))
+    sorular = bolum.sorular.filter(gizli=False).order_by("sira", "pk").prefetch_related(
+        Prefetch("alanlar", queryset=EKitapSoruAlan.objects.order_by("sira", "pk"))
+    )
+    return {
+        "bolum": bolum.pk,
+        "taranmis": bolum.tespit_durumu == EKitapBolum.TespitDurumu.TARANMIS,
+        "sayfalar": [
+            {
+                "sira": s.sira,
+                "src": reverse("ekitap:sayfa", args=[s.pk]),
+                "kucuk": reverse("ekitap:sayfa_kucuk", args=[s.pk]),
+                "w": s.genislik,
+                "h": s.yukseklik,
+                "kontrol": s.kontrol_gerekli,
+                "not": s.kontrol_notu,
+                "metinli": s.metinli,
+            }
+            for s in sayfalar
+        ],
+        "sorular": [
+            {
+                "id": q.pk,
+                "test_no": q.test_no,
+                "no": q.no,
+                "guven": q.guven,
+                "elle": q.kaynak == EKitapSoru.Kaynak.ELLE,
+                "onayli": q.onayli,
+                "inceleme": q.inceleme_gerekli,
+                "alanlar": [
+                    {"sayfa": a.sayfa_sira, "k": [a.x0, a.y0, a.x1, a.y1]} for a in q.alanlar.all()
+                ],
+            }
+            for q in sorular
+        ],
+    }
+
+
+@never_cache
+@require_GET
+@yonetici_gerekli
+def soru_duzelt(request, bolum_id: int):
+    bolum = get_object_or_404(EKitapBolum.objects.select_related("kitap"), pk=bolum_id)
+    if bolum.islem_durumu != EKitapBolum.IslemDurumu.HAZIR:
+        messages.error(request, "Bölümün sayfaları henüz hazır değil.")
+        return redirect("ekitap:yonetim")
+    return render(
+        request,
+        "ekitap/yonetim/duzelt.html",
+        {
+            "bolum": bolum,
+            "kitap": bolum.kitap,
+            "veri": _duzeltme_verisi(bolum),
+            "kontrol_sayisi": bolum.sayfalar.filter(kontrol_gerekli=True).count(),
+        },
+    )
+
+
+@require_POST
+@yonetici_gerekli
+def soru_duzelt_kaydet(request, bolum_id: int):
+    bolum = get_object_or_404(EKitapBolum, pk=bolum_id)
+    if len(request.body) > 2 * 1024 * 1024:
+        return JsonResponse({"hata": "İstek çok büyük."}, status=413)
+    try:
+        veri = json.loads(request.body.decode("utf-8"))
+        if not isinstance(veri, dict):
+            raise ValueError
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse({"hata": "Geçersiz istek."}, status=400)
+    try:
+        sonuc = servis.duzeltmeleri_kaydet(bolum, veri)
+    except servis.DuzeltmeHatasi as hata:
+        return JsonResponse({"hata": str(hata)}, status=400)
+    if sonuc["gorsel_bekleyen"]:
+        servis.soru_gorsellerini_uret_baslat(bolum)
+    bolum.refresh_from_db()
+    return JsonResponse({"tamam": True, "veri": _duzeltme_verisi(bolum)})

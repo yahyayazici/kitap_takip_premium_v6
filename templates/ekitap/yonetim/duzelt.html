@@ -1,0 +1,101 @@
+{% extends "ekitap/base.html" %}
+{% load static %}
+{% block title %}Soruları düzelt · {{ bolum.ad }} · E-Kitap{% endblock %}
+{% block body_class %}ek-porselen ek-duzelt-sayfa{% endblock %}
+{% block body %}
+<header class="ek-duzelt-bas">
+    <a class="ek-geri ek-duzelt-geri" href="{% url 'ekitap:yonetim' %}" id="geriBag">
+        <svg class="ek-ikon ek-ikon-kucuk" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Kitaplar
+    </a>
+    <div class="ek-duzelt-baslik">
+        <h1>Soruları düzelt</h1>
+        <p>{{ kitap.ad }} · {{ bolum.ad }}{% if veri.taranmis %} · <span class="ek-durum ek-durum-uyari">Taranmış PDF: soruları elle işaretleyin</span>{% endif %}</p>
+    </div>
+    <div class="ek-duzelt-bas-sag">
+        <span class="ek-duzelt-durum" id="kayitDurumu" role="status">Kaydedildi</span>
+        <button class="ek-dugme ek-dugme-ikincil ek-dugme-kucuk" type="button" id="geriAl" title="Geri al (Ctrl+Z)" disabled>
+            <svg class="ek-ikon ek-ikon-kucuk" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>Geri al
+        </button>
+        <button class="ek-dugme ek-dugme-ikincil ek-dugme-kucuk" type="button" id="ileriAl" title="İleri al (Ctrl+Y)" disabled>
+            İleri al<svg class="ek-ikon ek-ikon-kucuk" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 14l5-5-5-5M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
+        </button>
+        <button class="ek-dugme ek-dugme-ana" type="button" id="kaydet" disabled>Kaydet</button>
+    </div>
+</header>
+
+<div class="ek-duzelt">
+    <aside class="ek-duzelt-sayfalar" aria-label="Sayfalar">
+        <div id="sayfaListesi"></div>
+    </aside>
+
+    <main class="ek-duzelt-orta">
+        <div class="ek-duzelt-arac">
+            <div class="ek-duzelt-mod" role="radiogroup" aria-label="Düzenleme kipi">
+                <button type="button" class="ek-duzelt-mod-dugme" data-mod="sec" aria-pressed="true" title="Kutuları seç, taşı, köşelerinden boyutlandır (S)">Seç ve taşı</button>
+                <button type="button" class="ek-duzelt-mod-dugme" data-mod="yeni" aria-pressed="false" title="Sürükleyerek yeni soru alanı çiz (N)">Yeni soru çiz</button>
+                <button type="button" class="ek-duzelt-mod-dugme" data-mod="alan" aria-pressed="false" title="Seçili soruya ek alan çiz; sonraki sayfada devam eden sorular için (A)">Seçili soruya alan ekle</button>
+            </div>
+            <div class="ek-duzelt-gezinti">
+                <button type="button" class="ek-dugme ek-dugme-ikincil ek-dugme-kucuk" id="oncekiSayfa" aria-label="Önceki sayfa">‹</button>
+                <span id="sayfaEtiketi">Sayfa 1</span>
+                <button type="button" class="ek-dugme ek-dugme-ikincil ek-dugme-kucuk" id="sonrakiSayfa" aria-label="Sonraki sayfa">›</button>
+            </div>
+            <button type="button" class="ek-dugme ek-dugme-ikincil ek-dugme-kucuk" id="sayfaOnayla" title="Bu sayfadaki soruları doğru kabul et; Kontrol edin işaretini kaldır">Sayfayı onayla</button>
+        </div>
+        <p class="ek-duzelt-not" id="sayfaNotu" hidden></p>
+        <div class="ek-duzelt-tuval" id="duzeltTuval">
+            <div class="ek-duzelt-kagit" id="duzeltKagit">
+                <img id="duzeltGorsel" alt="" draggable="false">
+                <div class="ek-duzelt-kutular" id="duzeltKutular"></div>
+            </div>
+        </div>
+    </main>
+
+    <aside class="ek-duzelt-panel" aria-label="Seçili soru">
+        <section class="ek-duzelt-kart" id="seciliKart" hidden>
+            <h2 class="ek-duzelt-kart-baslik">Seçili soru</h2>
+            <div class="ek-duzelt-alanlar">
+                <label>Test<input class="ek-alan" type="number" id="seciliTest" min="1" max="99" inputmode="numeric"></label>
+                <label>Soru no<input class="ek-alan" type="number" id="seciliNo" min="1" max="999" inputmode="numeric"></label>
+            </div>
+            <p class="ek-not" id="seciliBilgi"></p>
+            <ul class="ek-duzelt-alan-listesi" id="seciliAlanlar"></ul>
+            <div class="ek-duzelt-sira">
+                <span>Okuma sırası</span>
+                <button type="button" class="ek-dugme ek-dugme-ikincil ek-dugme-kucuk" id="siraYukari" title="Okuma sırasında öne al">↑ Öne</button>
+                <button type="button" class="ek-dugme ek-dugme-ikincil ek-dugme-kucuk" id="siraAsagi" title="Okuma sırasında geriye al">↓ Geriye</button>
+            </div>
+            <div class="ek-duzelt-eylem">
+                <button type="button" class="ek-dugme ek-dugme-ikincil" id="onizle">Önizle</button>
+                <button type="button" class="ek-dugme ek-dugme-metin ek-dugme-tehlike" id="soruSil">Soruyu sil</button>
+            </div>
+        </section>
+        <section class="ek-duzelt-kart">
+            <h2 class="ek-duzelt-kart-baslik">Bu sayfadaki sorular</h2>
+            <ol class="ek-duzelt-soru-listesi" id="sayfaSorulari"></ol>
+            <p class="ek-not" id="sayfaSorulariBos" hidden>Bu sayfada soru yok. “Yeni soru çiz” ile ekleyin.</p>
+        </section>
+        <section class="ek-duzelt-kart ek-duzelt-lejant">
+            <p><i class="ek-lj ek-lj-oto"></i>Otomatik</p>
+            <p><i class="ek-lj ek-lj-dusuk"></i>Düşük güven</p>
+            <p><i class="ek-lj ek-lj-elle"></i>Elle düzeltilmiş / onaylı</p>
+            <p><i class="ek-lj ek-lj-incele"></i>PDF değişti, inceleyin</p>
+            <p class="ek-not">Silme: Delete · Geri al: Ctrl+Z · Kutuyu kaydırma: ok tuşları</p>
+        </section>
+    </aside>
+</div>
+
+<div class="ek-soru ek-duzelt-onizleme" id="onizleme" hidden role="dialog" aria-modal="true" aria-label="Öğretmenin göreceği soru">
+    <div class="ek-soru-sahne"><div class="ek-soru-katman"><div class="ek-soru-kagit" id="onizlemeKagit"></div></div></div>
+    <nav class="ek-soru-alt ek-cam">
+        <div class="ek-soru-kimlik"><strong id="onizlemeBaslik">Soru</strong><span>Öğretmenin göreceği görünüm</span></div>
+        <button class="ek-soru-dugme ek-soru-kapat" type="button" id="onizlemeKapat">Kapat</button>
+    </nav>
+</div>
+
+{{ veri|json_script:"duzeltVeri" }}
+<form id="duzeltAyar" data-kaydet="{% url 'ekitap:soru_duzelt_kaydet' bolum.pk %}" hidden>{% csrf_token %}</form>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'ekitap/duzelt.js' %}?v=1"></script>
+{% endblock %}
