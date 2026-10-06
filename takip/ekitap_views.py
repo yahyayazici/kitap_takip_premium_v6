@@ -13,7 +13,7 @@ from functools import wraps
 
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Prefetch
+from django.db.models import Count, Prefetch, Q
 from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -22,7 +22,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_POST
 
 from takip import ekitap_service as servis
-from takip.ekitap_models import EKitap, EKitapAyar, EKitapBolum, EKitapSayfa
+from takip.ekitap_models import EKitap, EKitapAyar, EKitapBolum, EKitapSayfa, EKitapSoru, EKitapSoruAlan
 
 PIN_DENEME_LIMIT = 8
 YONETICI_DENEME_LIMIT = 5
@@ -78,6 +78,28 @@ def _kapak(kitap: EKitap) -> EKitapSayfa | None:
         .order_by("bolum__sira", "bolum_id", "sira")
         .first()
     )
+
+
+def _soru_verisi(bolum: EKitapBolum) -> list[dict]:
+    """Okuyucunun soru görünümü için: numara, test ve sayfa üzerindeki alanlar."""
+    sayfa_sayisi = bolum.sayfa_sayisi
+    sonuc = []
+    for soru in bolum.sorular.all():
+        alanlar = [
+            {
+                "s": a.sayfa_sira,
+                "k": [round(a.x0, 4), round(a.y0, 4), round(a.x1, 4), round(a.y1, 4)],
+                "src": (
+                    f"{reverse('ekitap:soru_gorseli', args=[a.pk])}?v={a.gorsel_imza[:8]}"
+                    if a.gorsel else None
+                ),
+            }
+            for a in soru.alanlar.all()
+            if a.sayfa_sira < sayfa_sayisi and a.x1 > a.x0 and a.y1 > a.y0
+        ]
+        if alanlar:
+            sonuc.append({"id": soru.pk, "no": soru.no, "t": soru.test_no, "alanlar": alanlar})
+    return sonuc
 
 
 # —— Görüntüleme (tahta) ————————————————————————————————————————————————————
@@ -138,7 +160,13 @@ def okuyucu(request, kitap_id: int):
         raise Http404
     bolumler = list(
         kitap.hazir_bolumler().prefetch_related(
-            Prefetch("sayfalar", queryset=EKitapSayfa.objects.order_by("sira"))
+            Prefetch("sayfalar", queryset=EKitapSayfa.objects.order_by("sira")),
+            Prefetch(
+                "sorular",
+                queryset=EKitapSoru.objects.order_by("sira", "pk").prefetch_related(
+                    Prefetch("alanlar", queryset=EKitapSoruAlan.objects.order_by("sira", "pk"))
+                ),
+            ),
         )
     )
     if not bolumler:
@@ -156,6 +184,7 @@ def okuyucu(request, kitap_id: int):
                 }
                 for s in b.sayfalar.all()
             ],
+            "sorular": _soru_verisi(b),
         }
         for b in bolumler
     ]
@@ -199,6 +228,23 @@ def sayfa_kucuk(request, sayfa_id: int):
     return _sayfa_dosyasi(request, sayfa_id, "kucuk")
 
 
+@require_GET
+@pin_gerekli
+def soru_gorseli(request, alan_id: int):
+    alan = get_object_or_404(EKitapSoruAlan.objects.select_related("soru__bolum__kitap"), pk=alan_id)
+    if not alan.soru.bolum.kitap.gorunur and not servis.yonetici_mi(request):
+        raise Http404
+    if not alan.gorsel:
+        raise Http404
+    try:
+        yanit = FileResponse(alan.gorsel.storage.open(alan.gorsel.name, "rb"), content_type="image/webp")
+    except FileNotFoundError as exc:
+        raise Http404 from exc
+    # Adres ?v=<imza> taşır; alan değişince yeni adres oluşur.
+    yanit["Cache-Control"] = "private, max-age=604800"
+    return yanit
+
+
 # —— Yönetim ———————————————————————————————————————————————————————————————
 
 
@@ -233,11 +279,29 @@ def yonetim_cikis(request):
 @never_cache
 @yonetici_gerekli
 def yonetim(request):
-    kitaplar = list(EKitap.objects.prefetch_related("bolumler").order_by("sira", "-olusturulma"))
+    kitaplar = list(
+        EKitap.objects.prefetch_related(
+            Prefetch(
+                "bolumler",
+                queryset=EKitapBolum.objects.annotate(
+                    soru_sayisi=Count("sorular", distinct=True),
+                    kontrol_sayisi=Count(
+                        "sayfalar", filter=Q(sayfalar__kontrol_gerekli=True), distinct=True
+                    ),
+                ),
+            )
+        ).order_by("sira", "-olusturulma")
+    )
     for kitap in kitaplar:
         kitap.kapak = _kapak(kitap)
     isleniyor = any(
-        b.islem_durumu == EKitapBolum.IslemDurumu.BEKLIYOR for k in kitaplar for b in k.bolumler.all()
+        b.islem_durumu == EKitapBolum.IslemDurumu.BEKLIYOR
+        or b.tespit_durumu == EKitapBolum.TespitDurumu.ARANIYOR
+        for k in kitaplar for b in k.bolumler.all()
+    )
+    tespitsiz = any(
+        b.islem_durumu == EKitapBolum.IslemDurumu.HAZIR and b.tespit_durumu == EKitapBolum.TespitDurumu.YOK
+        for k in kitaplar for b in k.bolumler.all()
     )
     ayar = EKitapAyar.al()
     return render(
@@ -251,6 +315,7 @@ def yonetim(request):
                 if b.islem_durumu == EKitapBolum.IslemDurumu.HAZIR
             ),
             "isleniyor": isleniyor,
+            "tespitsiz": tespitsiz,
             "pin_tanimli": bool(ayar.pin_hash),
             "goruntuleme_adresi": request.build_absolute_uri(reverse("ekitap:liste")),
         },
@@ -425,4 +490,25 @@ def bolum_yeniden_isle(request, bolum_id: int):
     bolum = get_object_or_404(EKitapBolum, pk=bolum_id)
     servis.bolumleri_isle([bolum.pk])
     messages.success(request, f"“{bolum.ad}” yeniden işleniyor.")
+    return redirect("ekitap:yonetim")
+
+
+@require_POST
+@yonetici_gerekli
+def sorulari_bul(request):
+    """Tek bölüm (bolum=<id>) ya da tüm hazır bölümler için soru tespiti."""
+    bolumler = EKitapBolum.objects.filter(islem_durumu=EKitapBolum.IslemDurumu.HAZIR)
+    bolum_id = request.POST.get("bolum")
+    if bolum_id:
+        bolumler = bolumler.filter(pk=bolum_id)
+    ids = list(bolumler.values_list("pk", flat=True))
+    if not ids:
+        messages.error(request, "Soru aranacak hazır bölüm yok.")
+        return redirect("ekitap:yonetim")
+    servis.sorulari_bul_baslat(ids)
+    messages.success(
+        request,
+        "Sorular aranıyor. Elle düzeltilmiş ve onaylanmış sorular korunur."
+        if len(ids) > 1 else "Bölümde sorular aranıyor.",
+    )
     return redirect("ekitap:yonetim")

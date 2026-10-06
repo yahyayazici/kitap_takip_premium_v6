@@ -51,8 +51,43 @@
         <button class="ek-yan ek-yan-sag" type="button" id="sonrakiSayfa" aria-label="Sonraki sayfa">
             <svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4l8 8-8 8"/></svg>
         </button>
-        <p class="ek-ipucu" id="ipucu">Köşeden sürükleyerek sayfa çevirin · İki parmakla yakınlaştırın</p>
+        <p class="ek-ipucu" id="ipucu">Köşeden sürükleyerek sayfa çevirin · Sorudaki büyütece dokunarak soruyu açın</p>
     </main>
+
+    <section class="ek-soru" id="soruGorunum" hidden role="dialog" aria-modal="true" aria-labelledby="soruBaslik">
+        <div class="ek-soru-sahne" id="soruSahne">
+            <div class="ek-soru-katman" id="soruKatman">
+                <div class="ek-soru-kagit" id="soruKagit"></div>
+            </div>
+        </div>
+        <div class="ek-soru-zoom ek-cam" role="group" aria-label="Soru yakınlaştırma">
+            <button class="ek-yuvarlak" type="button" id="soruZoomAz" aria-label="Uzaklaştır" title="Uzaklaştır (−)">
+                <svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg>
+            </button>
+            <button class="ek-zoom-oran" type="button" id="soruZoomSifirla" title="Ekrana sığdır (0)">%100</button>
+            <button class="ek-yuvarlak" type="button" id="soruZoomCok" aria-label="Yakınlaştır" title="Yakınlaştır (+)">
+                <svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12M12 6v12"/></svg>
+            </button>
+        </div>
+        <nav class="ek-soru-alt ek-cam" aria-label="Sorular arasında gezin">
+            <button class="ek-soru-dugme" type="button" id="soruOnceki" title="Önceki soru (←)">
+                <svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+                <span>Önceki soru</span>
+            </button>
+            <div class="ek-soru-kimlik" aria-live="polite">
+                <strong id="soruBaslik">Soru</strong>
+                <span id="soruAlt"></span>
+            </div>
+            <button class="ek-soru-dugme" type="button" id="soruSonraki" title="Sonraki soru (→)">
+                <span>Sonraki soru</span>
+                <svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+            </button>
+            <button class="ek-soru-dugme ek-soru-kapat" type="button" id="soruKapat" title="Kapat (Esc)">
+                <svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+                <span>Kapat</span>
+            </button>
+        </nav>
+    </section>
 
     <footer class="ek-alt-kapsul ek-cam">
         <form class="ek-sayfa-git" id="sayfaGit" autocomplete="off">
@@ -68,5 +103,6 @@
 {% endblock %}
 {% block scripts %}
 <script src="{% static 'ekitap/vendor/page-flip-2.0.7.browser.js' %}"></script>
-<script src="{% static 'ekitap/okuyucu.js' %}?v=3"></script>
+<script src="{% static 'ekitap/soru-gorunum.js' %}?v=1"></script>
+<script src="{% static 'ekitap/okuyucu.js' %}?v=4"></script>
 {% endblock %}

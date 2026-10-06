@@ -52,6 +52,22 @@ class EKitapBolum(models.Model):
         max_length=12, choices=IslemDurumu.choices, default=IslemDurumu.BEKLIYOR
     )
     islem_notu = models.CharField(max_length=255, blank=True)
+
+    class TespitDurumu(models.TextChoices):
+        YOK = "yok", "Yapılmadı"
+        ARANIYOR = "araniyor", "Aranıyor"
+        TAMAM = "tamam", "Tamam"
+        TARANMIS = "taranmis", "Taranmış PDF"
+        BOS = "bos", "Soru bulunamadı"
+        HATA = "hata", "Hata"
+
+    tespit_durumu = models.CharField(
+        max_length=12, choices=TespitDurumu.choices, default=TespitDurumu.YOK
+    )
+    tespit_notu = models.CharField(max_length=255, blank=True)
+    pdf_ozeti = models.CharField(
+        max_length=64, blank=True, help_text="Son soru tespitinde PDF'in SHA-256 özeti."
+    )
     olusturulma = models.DateTimeField(auto_now_add=True)
     guncellenme = models.DateTimeField(auto_now=True)
 
@@ -71,12 +87,75 @@ class EKitapSayfa(models.Model):
     kucuk = models.ImageField(storage=ekitap_depolama, upload_to="kucuk/", max_length=255, blank=True)
     genislik = models.PositiveIntegerField(default=0)
     yukseklik = models.PositiveIntegerField(default=0)
+    metinli = models.BooleanField(default=True, help_text="Sayfada yazı katmanı var mı (taranmış değil).")
+    kontrol_gerekli = models.BooleanField(default=False)
+    kontrol_notu = models.CharField(max_length=500, blank=True)
 
     class Meta:
         ordering = ["sira"]
         constraints = [
             models.UniqueConstraint(fields=["bolum", "sira"], name="benzersiz_ekitap_sayfa"),
         ]
+
+
+class EKitapSoru(models.Model):
+    """Bir bölümde tespit edilen (ya da elle işaretlenen) soru.
+
+    Alanlar sayfa kaydına değil sayfa sırasına bağlıdır: PDF yeniden
+    işlendiğinde sayfa kayıtları yeniden oluşur, elle yapılan düzeltmeler kalır.
+    """
+
+    class Kaynak(models.TextChoices):
+        OTOMATIK = "otomatik", "Otomatik"
+        ELLE = "elle", "Elle"
+
+    bolum = models.ForeignKey(EKitapBolum, on_delete=models.CASCADE, related_name="sorular")
+    test_no = models.PositiveSmallIntegerField(
+        default=1, help_text="Bölüm içindeki test; numaralar her testte 1'den başlar."
+    )
+    no = models.PositiveSmallIntegerField("Soru numarası")
+    sira = models.PositiveIntegerField("Okuma sırası", default=0)
+    guven = models.FloatField("Tespit güveni", default=1.0)
+    kaynak = models.CharField(max_length=10, choices=Kaynak.choices, default=Kaynak.OTOMATIK)
+    onayli = models.BooleanField(
+        default=False, help_text="Yönetici onayladı; otomatik tespit yeniden çalışınca korunur."
+    )
+    inceleme_gerekli = models.BooleanField(
+        default=False, help_text="Onaydan sonra PDF değişti; alanları yeniden inceleyin."
+    )
+    pdf_ozeti = models.CharField(max_length=64, blank=True)
+    olusturulma = models.DateTimeField(auto_now_add=True)
+    guncellenme = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["bolum", "sira", "id"]
+        verbose_name = "E-kitap sorusu"
+        verbose_name_plural = "E-kitap soruları"
+
+    def __str__(self) -> str:
+        return f"{self.bolum} · T{self.test_no} · {self.no}"
+
+
+class EKitapSoruAlan(models.Model):
+    """Sorunun bir sayfadaki dikdörtgeni. Koordinatlar 0–1, sol üst orijinli.
+
+    Sonraki sayfada (ya da sütunda) devam eden soruların birden fazla alanı olur.
+    """
+
+    soru = models.ForeignKey(EKitapSoru, on_delete=models.CASCADE, related_name="alanlar")
+    sira = models.PositiveSmallIntegerField(default=0)
+    sayfa_sira = models.PositiveIntegerField("Sayfa (0'dan)")
+    x0 = models.FloatField()
+    y0 = models.FloatField()
+    x1 = models.FloatField()
+    y1 = models.FloatField()
+    gorsel = models.ImageField(storage=ekitap_depolama, upload_to="soru/", max_length=255, blank=True)
+    gorsel_imza = models.CharField(max_length=40, blank=True)
+    genislik = models.PositiveIntegerField(default=0)
+    yukseklik = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["soru", "sira", "id"]
 
 
 class EKitapAyar(models.Model):

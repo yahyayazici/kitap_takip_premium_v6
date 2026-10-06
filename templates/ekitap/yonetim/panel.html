@@ -33,6 +33,21 @@
                         {% elif b.islem_durumu == "bekliyor" %}<span class="ek-durum ek-durum-bekliyor"><span class="ek-donen" aria-hidden="true"></span>Sayfalar hazırlanıyor…</span>
                         {% else %}<span class="ek-durum ek-durum-hata">Hata: {{ b.islem_notu }}</span>{% endif %}
                         {% if b.islem_notu and b.islem_durumu == "hazir" %}<span class="ek-not">{{ b.islem_notu }}</span>{% endif %}
+                        {% if b.islem_durumu == "hazir" %}
+                            {% if b.tespit_durumu == "araniyor" %}<span class="ek-durum ek-durum-bekliyor"><span class="ek-donen" aria-hidden="true"></span>Sorular aranıyor…</span>
+                            {% elif b.tespit_durumu == "tamam" %}<span class="ek-durum ek-durum-hazir">{{ b.soru_sayisi }} soru</span>
+                            {% elif b.tespit_durumu == "taranmis" %}<span class="ek-durum ek-durum-uyari" title="{{ b.tespit_notu }}">Taranmış PDF · sorular elle işaretlenmeli</span>
+                            {% elif b.tespit_durumu == "bos" %}<span class="ek-durum ek-durum-uyari">Soru bulunamadı</span>
+                            {% elif b.tespit_durumu == "hata" %}<span class="ek-durum ek-durum-hata">{{ b.tespit_notu|default:"Soru tespiti başarısız" }}</span>
+                            {% else %}<span class="ek-not">Soru tespiti yapılmadı</span>{% endif %}
+                            {% if b.kontrol_sayisi and b.tespit_durumu != "taranmis" %}<span class="ek-durum ek-durum-uyari" title="Numara atlaması, devam eden soru ya da alan dışında kalan içerik bulunan sayfalar">Kontrol edin · {{ b.kontrol_sayisi }} sayfa</span>{% endif %}
+                            {% if b.tespit_durumu != "araniyor" %}
+                            <form method="post" action="{% url 'ekitap:sorulari_bul' %}">{% csrf_token %}
+                                <input type="hidden" name="bolum" value="{{ b.pk }}">
+                                <button class="ek-dugme ek-dugme-metin ek-dugme-kucuk" type="submit">Soruları bul</button>
+                            </form>
+                            {% endif %}
+                        {% endif %}
                         {% if b.islem_durumu != "hazir" %}
                         <form method="post" action="{% url 'ekitap:bolum_yeniden_isle' b.pk %}">{% csrf_token %}
                             <button class="ek-dugme ek-dugme-metin ek-dugme-kucuk" type="submit">Yeniden işle</button>
@@ -62,6 +77,21 @@
     <section class="ek-grup ek-grup-bos">
         <p class="ek-bos-baslik">Henüz kitap yok</p>
         <p class="ek-aciklama">İlk deneme kitapçığını yüklemek için “Yeni kitap”a dokunun.</p>
+    </section>
+    {% endif %}
+
+    {% if kitaplar %}
+    <h2 class="ek-grup-baslik">Soru tespiti</h2>
+    <section class="ek-grup">
+        <div class="ek-grup-satir">
+            <div>
+                <p class="ek-satir-etiket">Soruları bul</p>
+                <p class="ek-not">{% if tespitsiz %}Bazı bölümlerde soru tespiti henüz yapılmadı. {% endif %}Tahtadaki büyüteç rozetleri için tüm bölümlerde soruları yeniden arar. Elle düzeltilmiş ve onaylanmış sorular korunur; tekrar çalıştırmak güvenlidir.</p>
+            </div>
+            <form method="post" action="{% url 'ekitap:sorulari_bul' %}">{% csrf_token %}
+                <button class="ek-dugme {% if tespitsiz %}ek-dugme-ana{% else %}ek-dugme-ikincil{% endif %}" type="submit">Tümünde soruları bul</button>
+            </form>
+        </div>
     </section>
     {% endif %}
 
