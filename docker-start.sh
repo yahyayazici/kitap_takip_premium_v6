@@ -30,6 +30,11 @@ if not ok:
     raise SystemExit(f"WeasyPrint çalışmıyor: {msg}")
 PY
 
+# E-Kitap: soru tespiti hiç yapılmamış bölümler (ör. bu özellikten önce yüklenen
+# kitaplar) için arka planda soruları bul. Sunucunun açılmasını bekletmez;
+# yarıda kalırsa bir sonraki açılışta yeniden dener.
+nohup python manage.py ekitap_sorulari_bul --eksik > /tmp/ekitap-sorulari-bul.log 2>&1 &
+
 # cairo/pango gunicorn --preload ile fork sonrası bozulabiliyor
 exec gunicorn config.wsgi:application \
   --bind "0.0.0.0:${PORT:-8000}" \

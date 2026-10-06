@@ -135,3 +135,16 @@ Arama motorlarına kapalıdır (`noindex` + `robots.txt`).
    PIN'i değiştirirseniz tüm tahtalar yeniden PIN ister.
 
 Yerelde deneme: `EKITAP_YONETICI_SIFRE=deneme python manage.py runserver` → `http://ekitap.localhost:8000/`.
+
+### Soru tespiti (büyüteç ve soru görünümü)
+
+PDF yüklenince sayfalar hazırlandıktan sonra yazı katmanındaki soru numaraları okunur, her soru için
+alan ve yüksek çözünürlüklü soru görseli üretilir (disk: `EKITAP_MEDIA_ROOT/soru/`). Tahtada her sorunun
+yanında büyüteç rozeti çıkar.
+
+- Bu özellikten önce yüklenmiş kitaplar: sunucu açılırken `ekitap_sorulari_bul --eksik` arka planda
+  çalışır; ayrıca yönetimdeki **Tümünde soruları bul** düğmesi ya da
+  `python manage.py ekitap_sorulari_bul [--kitap ID] [--bolum ID]` kullanılabilir. Tekrar çalıştırmak güvenlidir.
+- Taranmış (yazısız) PDF'ler "Taranmış PDF" olarak işaretlenir; soruları elle işaretlenir.
+- Numara atlaması, sayfa sonunda devam eden soru ya da alan dışında kalan içerik bulunan sayfalar
+  yönetimde **Kontrol edin** olarak görünür.

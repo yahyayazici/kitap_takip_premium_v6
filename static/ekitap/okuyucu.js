@@ -70,9 +70,60 @@
             img.decoding = 'async';
             img.setAttribute('data-src', s.src);
             div.appendChild(img);
+            rozetleriEkle(div, bolum, i, s);
             return div;
         });
     }
+
+    // —— Büyüteç rozetleri ————————————————————————————————————————————————
+    var ROZET_GENISLIK = 0.075; // sayfa genişliğine oran (dokunma alanı)
+
+    function rozetleriEkle(div, bolum, sayfaIndeksi, sayfa) {
+        (bolum.sorular || []).forEach(function (soru) {
+            var ilk = soru.alanlar[0];
+            if (!ilk || ilk.s !== sayfaIndeksi) return;
+            var oran = sayfa.h ? sayfa.w / sayfa.h : 0.707;
+            // Rozet numaranın soluna, numara satırının ortasına oturur; metni kapatmaz.
+            var sol = Math.max(ilk.k[0] + 0.004, ROZET_GENISLIK + 0.002);
+            var ust = ilk.k[1] + 0.017;
+            ust = Math.max(ust, ROZET_GENISLIK * oran / 2);
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'ek-buyutec';
+            btn.setAttribute('data-bolum', String(veri.indexOf(bolum)));
+            btn.setAttribute('data-soru', String(soru.id));
+            btn.setAttribute('aria-label', soru.no + '. soruyu büyüt');
+            btn.title = soru.no + '. soruyu büyüt';
+            btn.style.left = (sol * 100) + '%';
+            btn.style.top = (ust * 100) + '%';
+            btn.style.width = (ROZET_GENISLIK * 100) + '%';
+            btn.innerHTML = '<span class="ek-buyutec-ic" aria-hidden="true"><svg viewBox="0 0 24 24">' +
+                '<circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></svg></span>';
+            div.appendChild(btn);
+        });
+    }
+
+    function rozetMi(e) {
+        return !!(e.target && e.target.closest && e.target.closest('.ek-buyutec'));
+    }
+
+    // Rozete basış sayfa çevirmeyi başlatmasın (StPageFlip kök öğede dinler).
+    ['mousedown', 'touchstart', 'pointerdown'].forEach(function (tur) {
+        kitapKap.addEventListener(tur, function (e) {
+            if (rozetMi(e)) e.stopPropagation();
+        }, { capture: true, passive: true });
+    });
+    kitapKap.addEventListener('click', function (e) {
+        var btn = e.target && e.target.closest ? e.target.closest('.ek-buyutec') : null;
+        if (!btn || !window.EKitapSoru) return;
+        e.stopPropagation();
+        e.preventDefault();
+        var indeks = window.EKitapSoru.indeksBul(
+            parseInt(btn.getAttribute('data-bolum'), 10),
+            parseInt(btn.getAttribute('data-soru'), 10)
+        );
+        if (indeks >= 0) window.EKitapSoru.ac(indeks, btn);
+    }, true);
 
     function gorselleriYukle(merkez) {
         // usePortrait kipinde StPageFlip sayfaları kopyalar; tüm kopyalar yüklenir.
@@ -274,6 +325,7 @@
     }
 
     tuval.addEventListener('touchstart', function (e) {
+        if (e.touches.length === 1 && rozetMi(e)) return;
         if (e.touches.length >= 2) {
             cimdikBaslat(e);
             tuket(e);
@@ -338,6 +390,7 @@
 
     // Fare / kalem: yakınlaştırılmışken sürükleyerek kaydırma
     tuval.addEventListener('mousedown', function (e) {
+        if (rozetMi(e)) return;
         if (z.s > 1.001 && e.button === 0) {
             kaydirBaslat(e.clientX, e.clientY);
             tuket(e);
@@ -359,11 +412,13 @@
         }
     }, true);
     tuval.addEventListener('dblclick', function (e) {
+        if (rozetMi(e)) return;
         var p = yerelNokta(e.clientX, e.clientY);
         if (z.s > 1.001) zoomSifirla(); else zoomAyarla(2.5, p.x, p.y);
         tuket(e);
     }, true);
     tuval.addEventListener('wheel', function (e) {
+        if (window.EKitapSoru && window.EKitapSoru.acikMi()) return;
         var p = yerelNokta(e.clientX, e.clientY);
         zoomAyarla(z.s * (e.deltaY < 0 ? 1.15 : 1 / 1.15), p.x, p.y);
         if (e.cancelable) e.preventDefault();
@@ -417,6 +472,10 @@
     document.addEventListener('keydown', function (e) {
         if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
         var tus = e.key;
+        if (window.EKitapSoru && window.EKitapSoru.acikMi()) {
+            if (tus === 'f' || tus === 'F') tamEkranDegistir();
+            return;
+        }
         if (tus === 'ArrowRight' || tus === 'PageDown' || tus === ' ') { sonraki(); e.preventDefault(); }
         else if (tus === 'ArrowLeft' || tus === 'PageUp') { onceki(); e.preventDefault(); }
         else if (tus === '+' || tus === '=') { zoomAyarla(z.s * ADIM); }
