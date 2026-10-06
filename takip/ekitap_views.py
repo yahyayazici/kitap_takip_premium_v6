@@ -123,9 +123,9 @@ def liste(request):
     kitaplar = list(_gorunur_kitaplar().prefetch_related("bolumler"))
     for kitap in kitaplar:
         kitap.kapak = _kapak(kitap)
-        kitap.bolum_adlari = [
-            b.ad for b in kitap.bolumler.all() if b.islem_durumu == EKitapBolum.IslemDurumu.HAZIR
-        ]
+        hazir = [b for b in kitap.bolumler.all() if b.islem_durumu == EKitapBolum.IslemDurumu.HAZIR]
+        kitap.bolum_adlari = [b.ad for b in hazir]
+        kitap.sayfa_toplam = sum(b.sayfa_sayisi for b in hazir)
     return render(request, "ekitap/liste.html", {"kitaplar": kitaplar})
 
 
@@ -245,6 +245,11 @@ def yonetim(request):
         "ekitap/yonetim/panel.html",
         {
             "kitaplar": kitaplar,
+            "gorunur_sayisi": sum(1 for k in kitaplar if k.gorunur),
+            "toplam_sayfa": sum(
+                b.sayfa_sayisi for k in kitaplar for b in k.bolumler.all()
+                if b.islem_durumu == EKitapBolum.IslemDurumu.HAZIR
+            ),
             "isleniyor": isleniyor,
             "pin_tanimli": bool(ayar.pin_hash),
             "goruntuleme_adresi": request.build_absolute_uri(reverse("ekitap:liste")),

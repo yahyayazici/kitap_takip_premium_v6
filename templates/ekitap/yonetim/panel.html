@@ -1,21 +1,17 @@
 {% extends "ekitap/base.html" %}
 {% block title %}Yönetim · E-Kitap{% endblock %}
-{% block tema_rengi %}#F5F5F7{% endblock %}
-{% block body_class %}ek-acik{% endblock %}
+{% block body_class %}ek-porselen{% endblock %}
 {% block head %}{% if isleniyor %}<meta http-equiv="refresh" content="6">{% endif %}{% endblock %}
 {% block body %}
-{% include "ekitap/yonetim/_ust.html" %}
+{% url 'ekitap:kitap_yeni' as yeni_url %}
+{% include "ekitap/yonetim/_ust.html" with baslik="Kitaplar" alt="Akıllı tahtada gösterilen deneme kitapçıkları." eylem_url=yeni_url eylem_etiket="Yeni kitap" %}
 <main class="ek-yonetim">
-    <div class="ek-sayfa-bas ek-sayfa-bas-satir">
-        <div>
-            <h1 class="ek-dev-baslik">Kitaplar</h1>
-            <p class="ek-aciklama">Akıllı tahtada gösterilen deneme kitapçıkları.</p>
-        </div>
-        <a class="ek-dugme ek-dugme-ana" href="{% url 'ekitap:kitap_yeni' %}">
-            <svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-            Yeni kitap
-        </a>
-    </div>
+    <dl class="ek-ozet">
+        <div><dt>Kitap</dt><dd>{{ kitaplar|length }}</dd></div>
+        <div><dt>Tahtada görünür</dt><dd>{{ gorunur_sayisi }}</dd></div>
+        <div><dt>Hazır sayfa</dt><dd>{{ toplam_sayfa }}</dd></div>
+        <div><dt>PIN</dt><dd class="{% if pin_tanimli %}ek-ozet-iyi{% else %}ek-ozet-uyari{% endif %}">{% if pin_tanimli %}Tanımlı{% else %}Yok{% endif %}</dd></div>
+    </dl>
 
     {% if kitaplar %}
     <section class="ek-grup" aria-label="Kitap listesi">
