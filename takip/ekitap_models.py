@@ -124,6 +124,10 @@ class EKitapSoru(models.Model):
         default=False, help_text="Onaydan sonra PDF değişti; alanları yeniden inceleyin."
     )
     pdf_ozeti = models.CharField(max_length=64, blank=True)
+    # Şık perdesi: şıkların başladığı alan (sıra) ve o sayfadaki y (0–1). Bilinmiyorsa boş;
+    # öğretmen perde aracıyla elle seçer.
+    siklar_alan = models.PositiveSmallIntegerField(null=True, blank=True)
+    siklar_y = models.FloatField(null=True, blank=True)
     olusturulma = models.DateTimeField(auto_now_add=True)
     guncellenme = models.DateTimeField(auto_now=True)
 

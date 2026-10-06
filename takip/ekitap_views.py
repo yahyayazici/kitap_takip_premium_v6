@@ -98,7 +98,10 @@ def _soru_verisi(bolum: EKitapBolum) -> list[dict]:
             if a.sayfa_sira < sayfa_sayisi and a.x1 > a.x0 and a.y1 > a.y0
         ]
         if alanlar:
-            sonuc.append({"id": soru.pk, "no": soru.no, "t": soru.test_no, "alanlar": alanlar})
+            kayit = {"id": soru.pk, "no": soru.no, "t": soru.test_no, "alanlar": alanlar}
+            if soru.siklar_alan is not None and soru.siklar_y is not None and soru.siklar_alan < len(alanlar):
+                kayit["siklar"] = [soru.siklar_alan, round(soru.siklar_y, 4)]
+            sonuc.append(kayit)
     return sonuc
 
 
@@ -152,6 +155,7 @@ def liste(request):
 
 
 @never_cache
+@require_GET
 @pin_gerekli
 def okuyucu(request, kitap_id: int):
     yonetici = servis.yonetici_mi(request)

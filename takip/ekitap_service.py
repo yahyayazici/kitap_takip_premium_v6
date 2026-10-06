@@ -349,10 +349,12 @@ def _tespiti_kaydet(bolum: EKitapBolum, sonuc, ozet: str) -> None:
         if _korunanla_cakisiyor(taslak, korunan_alanlar, korunan_kimlikler):
             continue
         yeni_alanlar = [(sayfa_sira, k.yuvarla()) for sayfa_sira, k in taslak.alanlar]
+        siklar = taslak.siklar or (None, None)
         soru = eskiler.get((taslak.test_no, taslak.no))
         if soru is not None and soru.pk not in kullanilan:
             soru.sira, soru.guven, soru.pdf_ozeti = taslak.sira, taslak.guven, ozet
-            soru.save(update_fields=["sira", "guven", "pdf_ozeti", "guncellenme"])
+            soru.siklar_alan, soru.siklar_y = siklar
+            soru.save(update_fields=["sira", "guven", "pdf_ozeti", "siklar_alan", "siklar_y", "guncellenme"])
             mevcut = [(a.sayfa_sira, (a.x0, a.y0, a.x1, a.y1)) for a in soru.alanlar.all()]
             if mevcut == yeni_alanlar:
                 kullanilan.add(soru.pk)
@@ -367,6 +369,8 @@ def _tespiti_kaydet(bolum: EKitapBolum, sonuc, ozet: str) -> None:
                 sira=taslak.sira,
                 guven=taslak.guven,
                 pdf_ozeti=ozet,
+                siklar_alan=siklar[0],
+                siklar_y=siklar[1],
             )
         kullanilan.add(soru.pk)
         EKitapSoruAlan.objects.bulk_create(

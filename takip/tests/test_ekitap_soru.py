@@ -82,6 +82,16 @@ class TespitAlgoritmasiTests(EKitapTestBase):
         self.assertFalse(self.sonuc.sayfalar[6].metinli)
         self.assertEqual(self.sonuc.sayfalar[1].notlar, [])
 
+    def test_sik_baslangici_bulunur(self):
+        # 1. soru: şıklar tek alanda, kökten sonra başlar
+        s1 = self.soru(1, 1)
+        alan_i, y = s1.siklar
+        kutu = s1.alanlar[alan_i][1]
+        self.assertEqual(alan_i, 0)
+        self.assertTrue(kutu.y0 + 0.05 < y < kutu.y1)
+        # 11. soru: şıklar sonraki sayfadaki devam alanında
+        self.assertEqual(self.soru(1, 11).siklar[0], 1)
+
     def test_taranmis_pdf(self):
         sonuc = tespit_et(_belge(taranmis_pdf()))
         self.assertEqual(sonuc.durum, "taranmis")
@@ -146,6 +156,7 @@ class SoruKayitTests(EKitapTestBase):
         self.assertEqual([a["s"] for a in s11["alanlar"]], [2, 3])
         self.assertTrue(all(a["src"] and "?v=" in a["src"] for a in s11["alanlar"]))
         self.assertEqual(veri[1]["sorular"], [])
+        self.assertEqual(s11["siklar"][0], 1)  # şık perdesi devam alanında
         gorsel = self.get(s11["alanlar"][0]["src"])
         self.assertEqual(gorsel.status_code, 200)
         self.assertEqual(gorsel["Content-Type"], "image/webp")
@@ -224,3 +235,36 @@ class SoruKayitTests(EKitapTestBase):
         self.post(f"/yonetim/kitap/{self.kitap.pk}/sil/")
         self.assertFalse(any(y.exists() for y in yollar))
         self.assertEqual(EKitapSoru.objects.count(), 0)
+
+
+class CizimGizlilikTests(EKitapTestBase):
+    """Çözümler ve çizimler hiçbir kalıcı depolamaya yazılmaz."""
+
+    STATIK = Path(__file__).resolve().parents[2] / "static" / "ekitap"
+
+    def test_cizim_kodu_kalici_depolama_ve_ag_kullanmaz(self):
+        yasak = ("localStorage", "sessionStorage", "indexedDB", "fetch(", "XMLHttpRequest", "sendBeacon", "document.cookie")
+        for ad in ("cizim.js", "soru-gorunum.js"):
+            kaynak = (self.STATIK / ad).read_text(encoding="utf-8")
+            # Açıklama satırları hariç kod
+            kod = "\n".join(
+                satir for satir in kaynak.splitlines()
+                if not satir.strip().startswith(("*", "/*", "//"))
+            )
+            for kelime in yasak:
+                self.assertNotIn(kelime, kod, f"{ad} içinde {kelime}")
+
+    def test_okuyucuda_arac_cubugu_ve_onay(self):
+        self.yonetici_giris()
+        self.post("/yonetim/pin/", {"pin": "2468", "pin_tekrar": "2468"})
+        self.kitap_yukle()
+        kitap = EKitap.objects.get()
+        r = self.get(f"/kitap/{kitap.pk}/")
+        for parca in ('id="araclar"', 'data-arac="kalem"', 'data-arac="fosfor"', 'data-arac="silgi"',
+                      'data-arac="el"', 'data-eylem="geri"', 'data-eylem="ileri"', 'data-eylem="temizle"',
+                      'data-eylem="siklar"', 'data-eylem="cozum"', 'id="onayKutusu"', 'id="kitapCizimBtn"',
+                      "ekitap/cizim.js"):
+            self.assertContains(r, parca)
+        # Çizimler için sunucuda kayıt yolu yok; okuyucu yalnızca GET kabul eder
+        self.assertEqual(self.post(f"/kitap/{kitap.pk}/", {"cizim": "x"}).status_code, 405)
+        self.assertFalse(any("cizim" in f.name.lower() for f in EKitapSoru._meta.get_fields()))
