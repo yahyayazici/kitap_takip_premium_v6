@@ -1,9 +1,10 @@
 {% extends "base.html" %}
-{% load l10n static deneme_panel %}
+{% load l10n static deneme_panel filter_tags %}
 {% block title %}Etüt Takip · {{ hoca.ad_soyad }}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek46">
 <link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk41">
+<link rel="stylesheet" href="{% static 'css/deneme-dil-v2.css' %}?v=dl5">
 {% endblock %}
 {% block content %}
 <div class="ek-page">
@@ -11,7 +12,7 @@
   <header class="ek-head">
     <div>
       <p class="ek-kicker">Etüt Takip · {{ talebe_sayisi }} talebe</p>
-      <h1>{{ hoca.ad_soyad }}</h1>
+      <h1>{{ hoca.ad_soyad|tr_baslik }}</h1>
       <p class="ek-desc">Gelişim grafiği, dikkat listesi ve deneme kutuları. Kazanım Excel’i yönetimden yüklenince burada görünür.</p>
     </div>
     <div class="ek-actions">
@@ -100,7 +101,7 @@
           <tbody>
           {% for row in dikkat.dusen_talebeler %}
           <tr>
-            <td class="ek-name">{{ row.talebe.ad_soyad }}</td>
+            <td class="ek-name">{{ row.talebe.ad_soyad|tr_baslik }}</td>
             <td>{{ row.eski }}</td>
             <td>{{ row.yeni }}</td>
             <td class="ek-danger">{{ row.delta }}</td>
@@ -162,7 +163,7 @@
   </section>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="{% static 'js/etut-chart.js' %}?v=ek41"></script>
+<script src="{% static 'js/etut-chart.js' %}?v=dl2"></script>
 <script>
 const data = {{ gelisim_json|safe }};
 csNavyLine(document.getElementById('gelisimChart'), data.sinif || [], data.tarihler || [], data.seriler || []);
@@ -179,7 +180,10 @@ csNavyLine(document.getElementById('gelisimChart'), data.sinif || [], data.tarih
     const fark = Math.round(last - first);
     document.getElementById("ekSon").textContent = txt(last, true);
     if (etutVals.length) document.getElementById("ekEtut").textContent = txt(etutVals[etutVals.length - 1], true);
-    document.getElementById("ekFark").textContent = (fark > 0 ? "+" : "") + fark;
+    const farkEl = document.getElementById("ekFark");
+    farkEl.textContent = (fark > 0 ? "+" : "") + fark;
+    farkEl.classList.toggle("is-up", fark > 0);
+    farkEl.classList.toggle("is-down", fark < 0);
     document.getElementById("ekOrt").textContent = txt(vals.reduce(function (a, b) { return a + b; }, 0) / vals.length, true);
     document.getElementById("ekMax").textContent = txt(Math.max.apply(null, vals), true);
   }

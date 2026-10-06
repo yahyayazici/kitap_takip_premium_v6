@@ -1,9 +1,10 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static filter_tags %}
 {% block title %}{{ deneme.ad }}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek41">
 <link rel="stylesheet" href="{% static 'css/deneme-detay.css' %}?v=dd5">
+<link rel="stylesheet" href="{% static 'css/deneme-dil-v2.css' %}?v=dl5">
 {% endblock %}
 {% block content %}
 <div class="result-entry-page deneme-detail-page">
@@ -60,7 +61,7 @@
                     {% for sonuc in sonuclar %}
                     <tr class="deneme-result-row">
                         <td class="num-col" data-label="Kurum sırası">{% if sonuc.kurum_sirasi %}{{ sonuc.kurum_sirasi }} / {{ sonuc.kurum_toplam }}{% else %}{{ forloop.counter }}{% endif %}</td>
-                        <td data-label="Talebe"><strong>{{ sonuc.talebe.ad_soyad }}</strong></td>
+                        <td data-label="Talebe"><strong>{{ sonuc.talebe.ad_soyad|tr_baslik }}</strong></td>
                         <td class="num-col" data-label="Sınıf">{{ sonuc.talebe.sinif_sube }}</td>
                         <td class="num-col" data-label="Doğru">{{ sonuc.toplam_dogru }}</td>
                         <td class="num-col" data-label="Yanlış">{{ sonuc.toplam_yanlis }}</td>
@@ -118,7 +119,7 @@
                     {% for satir in detay_satirlari %}
                     <tr>
                         <td class="num-col">{{ satir.sira }}</td>
-                        <td><strong>{{ satir.sonuc.talebe.ad_soyad }}</strong></td>
+                        <td><strong>{{ satir.sonuc.talebe.ad_soyad|tr_baslik }}</strong></td>
                         <td>{{ satir.sonuc.talebe.sinif_sube }}</td>
                         {% for brans in satir.branslar %}
                         <td class="num-col">{{ brans.dogru }}</td>
@@ -149,7 +150,7 @@
                 <header class="deneme-branches-card-head">
                     <span class="deneme-branches-rank">#{{ satir.sira }}</span>
                     <div>
-                        <strong>{{ satir.sonuc.talebe.ad_soyad }}</strong>
+                        <strong>{{ satir.sonuc.talebe.ad_soyad|tr_baslik }}</strong>
                         <span>{{ satir.sonuc.talebe.sinif_sube }}</span>
                     </div>
                 </header>
@@ -207,7 +208,7 @@
                     <small>/ 500</small>
                 </div>
                 <div class="ek-score-body">
-                    <strong>{{ k.talebe.ad_soyad }}</strong>
+                    <strong>{{ k.talebe.ad_soyad|tr_baslik }}</strong>
                     <div class="ek-meter"><i class="{% if k.zayif_sayisi %}is-low{% endif %}" style="width:{% if k.puan %}{% widthratio k.puan 500 100 %}{% else %}0{% endif %}%"></i></div>
                     <div class="ek-score-foot">
                         <span class="ek-flag {% if k.zayif_sayisi %}is-bad{% else %}is-ok{% endif %}">{% if k.zayif_sayisi %}{{ k.zayif_sayisi }} zayıf kazanım{% else %}Zayıf yok{% endif %}</span>
@@ -219,7 +220,7 @@
         </div>
         {% if secili_talebe %}
         <div id="talebe-kazanim" style="margin-top:1.25rem;">
-            <h3 class="deneme-section-title">{{ secili_talebe.talebe.ad_soyad }} · kazanımlar</h3>
+            <h3 class="deneme-section-title">{{ secili_talebe.talebe.ad_soyad|tr_baslik }} · kazanımlar</h3>
             <div class="ek-table-wrap">
                 <table class="ek-table">
                     <thead><tr><th>Ders</th><th>Kazanım</th><th>Yüzde</th><th>Net</th></tr></thead>

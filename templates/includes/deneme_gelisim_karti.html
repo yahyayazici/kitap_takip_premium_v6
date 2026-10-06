@@ -3,12 +3,12 @@
 <link rel="stylesheet" href="{% static 'css/deneme-gelisim.css' %}">
 <div class="profile-card dg-wrap" data-dg-root>
     <div class="dg-head">
-        <h3>📈 Deneme Gelişimi</h3>
+        <h3>Deneme gelişimi</h3>
         {% with trend=deneme_gelisim.trend %}
         <span class="dg-trend-badge dg-trend-{{ trend.kod }}">{{ trend.etiket }}</span>
         {% endwith %}
     </div>
-    <p style="margin:0;color:#64748b;font-size:12px;">{{ deneme_gelisim.trend.aciklama }}</p>
+    <p class="dg-trend-aciklama">{{ deneme_gelisim.trend.aciklama }}</p>
 
     {% if deneme_gelisim.metrikler %}
     {% with m=deneme_gelisim.metrikler %}
@@ -67,7 +67,7 @@
 
     {% if deneme_gelisim.calisma_karsilik %}
     <div>
-        <p style="margin:0 0 6px;font-size:12px;font-weight:700;color:#173b80;">Soru çözümü ↔ deneme performansı</p>
+        <p class="dg-calisma-baslik">Soru çözümü ↔ deneme performansı</p>
         <div class="dg-calisma-list">
             {% for c in deneme_gelisim.calisma_karsilik %}
             <div class="dg-calisma-item durum-{{ c.durum }}">
@@ -87,7 +87,7 @@
 {% elif deneme_gelisim and deneme_gelisim.bireysel_denemeler %}
 <link rel="stylesheet" href="{% static 'css/deneme-gelisim.css' %}">
 <div class="profile-card dg-wrap">
-    <div class="dg-head"><h3>📈 Deneme Gelişimi</h3></div>
+    <div class="dg-head"><h3>Deneme gelişimi</h3></div>
     <p class="dg-empty">Grup denemesi yok; aşağıda sadece bireysel denemeler listeleniyor.</p>
     <div class="dg-bireysel-row is-open">
         {% for b in deneme_gelisim.bireysel_denemeler %}

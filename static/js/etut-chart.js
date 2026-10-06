@@ -127,7 +127,7 @@ window.csNavyLine = function (canvas, values, dates, series) {
   const min = Math.max(0, Math.floor((lo - pad) / 10) * 10);
   const max = Math.min(500, Math.ceil((hi + pad) / 10) * 10);
   const labels = (sets[0].degerler || []).map((_, i) => String(i + 1));
-  const renkler = ["#ffffff", "#e0c27a", "#7eb6ff"];
+  const renkler = ["#1a4fb0", "#c49a3c", "#14955a"];
   const last = labels.length - 1;
   new Chart(canvas, {
     type: "line",
@@ -153,7 +153,7 @@ window.csNavyLine = function (canvas, values, dates, series) {
       plugins: {
         legend: {
           display: sets.length > 1,
-          labels: { color: "rgba(240,244,252,.85)", boxWidth: 12, font: { family: "Poppins", size: 12 } },
+          labels: { color: "#0f1a2e", boxWidth: 12, font: { family: "Inter, Poppins", size: 12 } },
         },
         tooltip: {
           enabled: true,
@@ -165,9 +165,9 @@ window.csNavyLine = function (canvas, values, dates, series) {
           cornerRadius: 12,
           padding: 12,
           titleColor: "rgba(240,244,252,.72)",
-          titleFont: { family: "Poppins", size: 12, weight: "500" },
+          titleFont: { family: "Inter, Poppins", size: 12, weight: "500" },
           bodyColor: "#ffffff",
-          bodyFont: { family: "LemonMilk, Georgia, sans-serif", size: 22, weight: "400" },
+          bodyFont: { family: "Inter, Poppins", size: 18, weight: "700" },
           callbacks: {
             title: (items) => {
               const i = items[0] ? items[0].dataIndex : 0;
@@ -192,7 +192,7 @@ window.csNavyLine = function (canvas, values, dates, series) {
       },
       scales: {
         x: {
-          ticks: { color: "rgba(240,244,252,.62)", font: { family: "Poppins", size: 12 } },
+          ticks: { color: "#7c8597", font: { family: "Inter, Poppins", size: 12 } },
           grid: { display: false },
           border: { display: false },
         },
@@ -200,8 +200,8 @@ window.csNavyLine = function (canvas, values, dates, series) {
           position: "right",
           min: min,
           max: max,
-          ticks: { color: "rgba(240,244,252,.45)", font: { family: "Poppins", size: 11 }, maxTicksLimit: 5 },
-          grid: { color: "rgba(240,244,252,.22)", borderDash: [3, 5] },
+          ticks: { color: "#7c8597", font: { family: "Inter, Poppins", size: 11 }, maxTicksLimit: 5 },
+          grid: { color: "rgba(15,26,46,.08)", borderDash: [3, 5] },
           border: { display: false },
         },
       },
@@ -215,7 +215,7 @@ window.csNavyLine = function (canvas, values, dates, series) {
         const { bottom } = chart.chartArea;
         const c = chart.ctx;
         c.save();
-        c.strokeStyle = "rgba(255,255,255,.7)";
+        c.strokeStyle = "rgba(26,79,176,.45)";
         c.lineWidth = 1;
         c.beginPath();
         c.moveTo(pt.x, pt.y + 8);

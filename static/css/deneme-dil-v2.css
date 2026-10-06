@@ -1,0 +1,547 @@
+/* Deneme modülü v2 — öğrenci detayı, etüt, arşiv, deneme sonucu.
+   Yükseliş ekranıyla aynı dil: açık zemin, Fraunces başlık, Inter rakam.
+   Yalnız bu sayfalara bağlıdır; disiplin ve diğer panelleri boyamaz. */
+
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,560&family=Inter:wght@400;600;700;800&display=swap");
+
+body.v3-body .dk-page,
+body.v3-body .ek-page,
+body.v3-body .deneme-page,
+body.v3-body .deneme-detail-page {
+    --dl-navy: #0a2a5e;
+    --dl-blue: #1a4fb0;
+    --dl-gold: #c49a3c;
+    --dl-up: #14955a;
+    --dl-down: #d23a2e;
+    --dl-watch: #b8650c;
+    --dl-ink: #0f1a2e;
+    --dl-muted: #7c8597;
+    --dl-ground: #f4f6fb;
+    --dl-card: 0 10px 30px rgba(15, 26, 46, 0.06);
+    min-width: 0;
+    max-width: 100%;
+    font-family: Inter, var(--cs-font), sans-serif;
+    color: var(--dl-ink);
+}
+
+body.v3-body .dk-page h1,
+body.v3-body .dk-page h2,
+body.v3-body .dk-page h3,
+body.v3-body .ek-page h1,
+body.v3-body .ek-page h2,
+body.v3-body .deneme-page h1,
+body.v3-body .deneme-page h2,
+body.v3-body .deneme-detail-page h1,
+body.v3-body .deneme-detail-page h2,
+body.v3-body .deneme-detail-page h3,
+body.v3-body .deneme-detail-page .deneme-section-title {
+    font-family: Fraunces, Georgia, serif !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.03em !important;
+    color: var(--dl-navy) !important;
+}
+
+/* Öğrenci detayı — lacivert şerit yerine beyaz kart */
+body.v3-body .dk-page .pv4-hero {
+    background: #fff !important;
+    background-image: none !important;
+    color: var(--dl-ink) !important;
+    border: 1px solid var(--cs-border) !important;
+    border-bottom: 3px solid var(--dl-gold) !important;
+    border-radius: 24px !important;
+    box-shadow: var(--dl-card) !important;
+    animation: none !important;
+}
+
+body.v3-body .dk-page .pv4-hero-grid { display: none !important; }
+
+body.v3-body .dk-page .pv4-hero h1 {
+    font-size: clamp(2rem, 3vw, 2.8rem) !important;
+    line-height: 1.05 !important;
+}
+
+body.v3-body .dk-page .pv4-eyebrow {
+    color: var(--dl-gold) !important;
+    font-family: Inter, var(--cs-font), sans-serif !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.14em !important;
+    text-transform: uppercase;
+}
+
+body.v3-body .dk-page .pv4-hero p { color: var(--dl-muted) !important; }
+
+body.v3-body .dk-page .pv4-date-card {
+    background: #fff !important;
+    color: var(--dl-ink) !important;
+    border: 1px solid var(--cs-border) !important;
+    border-bottom: 3px solid var(--dl-gold) !important;
+    border-radius: 24px !important;
+    box-shadow: var(--dl-card) !important;
+}
+
+body.v3-body .dk-page .pv4-date-kicker {
+    color: var(--dl-gold) !important;
+    font-family: Inter, var(--cs-font), sans-serif !important;
+}
+
+body.v3-body .dk-page .pv4-date-num {
+    font-family: Fraunces, Georgia, serif !important;
+    color: var(--dl-navy) !important;
+}
+
+body.v3-body .dk-page .pv4-date-sub { color: var(--dl-muted) !important; }
+
+body.v3-body .dk-page .dg-wrap,
+body.v3-body .dk-page .dk-card {
+    border: 1px solid var(--cs-border) !important;
+    border-radius: 24px !important;
+    box-shadow: var(--dl-card) !important;
+    background: #fff !important;
+}
+
+body.v3-body .dk-page .dg-head h3 { margin: 0; }
+
+body.v3-body .dk-page .dg-trend-aciklama,
+body.v3-body .dk-page .dg-calisma-baslik {
+    margin: 0;
+    color: var(--dl-muted);
+    font-size: 13px;
+}
+
+body.v3-body .dk-page .dg-calisma-baslik {
+    margin-bottom: 8px;
+    color: var(--dl-navy);
+    font-weight: 700;
+}
+
+body.v3-body .dk-page .dg-metrik {
+    border-radius: 16px !important;
+    background: var(--dl-ground) !important;
+    border-color: transparent !important;
+}
+
+body.v3-body .dk-page .dg-metrik span {
+    color: var(--dl-gold);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+body.v3-body .dk-page .dg-metrik strong {
+    font-family: Inter, var(--cs-font), sans-serif !important;
+    font-weight: 800 !important;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.03em;
+    color: var(--dl-navy);
+}
+
+body.v3-body .dk-page .dg-metrik strong.pos { color: var(--dl-up) !important; }
+body.v3-body .dk-page .dg-metrik strong.neg { color: var(--dl-down) !important; }
+
+body.v3-body .dk-page .dg-chart-bar .bar {
+    background: linear-gradient(180deg, #1a4fb0, #0a2a5e) !important;
+    border-radius: 8px 8px 0 0;
+}
+
+body.v3-body .dk-page .dg-chart-bar strong {
+    font-family: Inter, var(--cs-font), sans-serif;
+    font-variant-numeric: tabular-nums;
+    color: var(--dl-navy);
+}
+
+body.v3-body .dk-page .dg-trend-yukseliste { background: #e7f6ef !important; color: var(--dl-up) !important; }
+body.v3-body .dk-page .dg-trend-duseste { background: #fdeceb !important; color: var(--dl-down) !important; }
+body.v3-body .dk-page .dg-trend-dalgali,
+body.v3-body .dk-page .dg-trend-stabil { background: #f8f1de !important; color: var(--dl-watch) !important; }
+
+body.v3-body .dk-page .dg-brans-etiket { color: var(--dl-navy) !important; }
+body.v3-body .dk-page .dg-brans-net-seri {
+    font-variant-numeric: tabular-nums;
+    color: var(--dl-ink);
+}
+
+body.v3-body .dk-page .dg-calisma-item {
+    background: var(--dl-ground) !important;
+    border-color: transparent !important;
+    border-radius: 16px !important;
+}
+
+body.v3-body .dk-page .dg-calisma-item.durum-olumlu .dg-dot { background: var(--dl-up) !important; }
+body.v3-body .dk-page .dg-calisma-item.durum-uyari .dg-dot { background: var(--dl-down) !important; }
+
+body.v3-body .dk-page .dg-bireysel-chip {
+    background: var(--dl-ground) !important;
+    border: 1px solid var(--cs-border) !important;
+    color: var(--dl-ink) !important;
+    border-radius: 16px !important;
+}
+
+body.v3-body .dk-page .dg-bireysel-toggle {
+    min-height: var(--cs-touch-min, 44px);
+    border-radius: 999px;
+    border-color: var(--cs-border);
+    color: var(--dl-navy);
+}
+
+body.v3-body .dk-page .dk-back .ghost-btn {
+    min-height: var(--cs-touch-min, 44px);
+    border-radius: 999px;
+}
+
+body.v3-body .dk-page .pos { color: var(--dl-up); font-weight: 700; }
+body.v3-body .dk-page .neg { color: var(--dl-down); font-weight: 700; }
+
+/* Etüt ve arşiv — koyu hero kalkar */
+body.v3-body .ek-page .ek-hero,
+body.v3-body .deneme-page .ek-arsiv-hero {
+    background: #fff !important;
+    background-image: none !important;
+    color: var(--dl-ink) !important;
+    border: 1px solid var(--cs-border);
+    border-bottom: 3px solid var(--dl-gold);
+    border-radius: 24px;
+    box-shadow: var(--dl-card);
+    animation: none !important;
+}
+
+body.v3-body .deneme-page .ek-arsiv-hero::before,
+body.v3-body .deneme-page .ek-arsiv-hero-glow { display: none !important; }
+
+body.v3-body .ek-page .ek-hero-kicker,
+body.v3-body .ek-page .ek-hero-score span,
+body.v3-body .ek-page .ek-hero-stats span,
+body.v3-body .ek-page .ek-desc,
+body.v3-body .deneme-page .ek-arsiv-hero span,
+body.v3-body .deneme-page .ek-arsiv-hero small,
+body.v3-body .deneme-page .ek-arsiv-hero p {
+    color: var(--dl-muted) !important;
+}
+
+body.v3-body .ek-page .ek-kicker,
+body.v3-body .deneme-page .ek-arsiv-hero-id span {
+    color: var(--dl-gold) !important;
+    font-family: Inter, var(--cs-font), sans-serif !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase;
+}
+
+body.v3-body .ek-page h1,
+body.v3-body .deneme-page .ek-arsiv-hero h1 {
+    font-size: clamp(2rem, 3vw, 2.8rem) !important;
+    line-height: 1.05 !important;
+}
+
+body.v3-body .ek-page .ek-hero-score b,
+body.v3-body .ek-page .ek-hero-stats b,
+body.v3-body .deneme-page .ek-arsiv-hero-score b,
+body.v3-body .ek-page .ek-exam-score b,
+body.v3-body .deneme-page .ek-exam-score b,
+body.v3-body .ek-page .ek-gain-score b {
+    font-family: Inter, var(--cs-font), sans-serif !important;
+    font-weight: 800 !important;
+    color: var(--dl-navy) !important;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.04em;
+}
+
+body.v3-body .ek-page .ek-hero-stats div,
+body.v3-body .deneme-page .ek-arsiv-hero-score {
+    border-color: var(--cs-border) !important;
+}
+
+body.v3-body .ek-page .ek-scope a,
+body.v3-body .deneme-page .ek-scope a {
+    border-color: var(--cs-border) !important;
+    color: var(--dl-ink) !important;
+    background: #fff;
+    min-height: var(--cs-touch-min, 44px);
+}
+
+body.v3-body .ek-page .ek-scope a.is-on {
+    background: var(--dl-navy) !important;
+    color: #fff !important;
+    border-color: var(--dl-navy) !important;
+}
+
+body.v3-body .ek-page .ek-class {
+    background: var(--dl-ground);
+    color: var(--dl-navy);
+}
+
+body.v3-body .ek-page .ek-trend {
+    color: var(--dl-up) !important;
+    border-color: #cdebd9 !important;
+    background: #e7f6ef;
+}
+
+body.v3-body .ek-page .ek-trend::before { background: var(--dl-up); }
+body.v3-body .ek-page .ek-trend.is-down {
+    color: var(--dl-down) !important;
+    border-color: #f6d0cd !important;
+    background: #fdeceb;
+}
+body.v3-body .ek-page .ek-trend.is-down::before { background: var(--dl-down); }
+body.v3-body .ek-page .ek-trend.is-flat {
+    color: var(--dl-watch) !important;
+    border-color: #ead9b0 !important;
+    background: #f8f1de;
+}
+body.v3-body .ek-page .ek-trend.is-flat::before { background: var(--dl-gold); }
+
+body.v3-body .deneme-page .ek-arsiv-hero .ek-arsiv-rule {
+    background: var(--dl-gold) !important;
+}
+
+body.v3-body .deneme-page .ek-arsiv-hero svg polyline {
+    fill: none;
+    stroke: var(--dl-blue) !important;
+    stroke-width: 2;
+}
+
+body.v3-body .deneme-page .ek-arsiv-hero svg circle { fill: var(--dl-gold) !important; }
+
+body.v3-body .ek-page .ek-card,
+body.v3-body .ek-page .ek-exam,
+body.v3-body .deneme-page .ek-exam,
+body.v3-body .ek-page .ek-gain,
+body.v3-body .deneme-page .ek-arsiv-form {
+    border: 1px solid var(--cs-border);
+    border-radius: 24px;
+    box-shadow: var(--dl-card);
+    background: #fff;
+}
+
+body.v3-body .ek-page .ek-exam,
+body.v3-body .deneme-page .ek-exam {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+body.v3-body .ek-page .ek-exam:hover,
+body.v3-body .deneme-page .ek-exam:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 36px rgba(15, 26, 46, 0.1);
+}
+
+body.v3-body .ek-page .ek-pill,
+body.v3-body .deneme-page .ek-pill {
+    background: #f8f1de;
+    color: #8a6a22;
+}
+
+body.v3-body .ek-page .ek-meter i,
+body.v3-body .deneme-page .ek-meter i,
+body.v3-body .deneme-detail-page .ek-meter i {
+    background: linear-gradient(90deg, #1a4fb0, #0a2a5e) !important;
+}
+
+body.v3-body .deneme-detail-page .ek-meter i.is-low {
+    background: linear-gradient(90deg, #ef6d62, #d23a2e) !important;
+}
+
+body.v3-body .ek-page .ek-danger,
+body.v3-body .deneme-detail-page .ek-danger,
+body.v3-body .deneme-detail-page .ek-table .ek-danger,
+body.v3-body .ek-page .ek-delta.is-down {
+    color: var(--dl-down) !important;
+}
+
+body.v3-body .ek-page .ek-ok,
+body.v3-body .deneme-detail-page .ek-ok {
+    color: var(--dl-up);
+}
+
+body.v3-body .ek-page .ek-hero-stats b.is-up { color: var(--dl-up) !important; }
+body.v3-body .ek-page .ek-hero-stats b.is-down { color: var(--dl-down) !important; }
+
+body.v3-body .ek-page .ek-exam-go,
+body.v3-body .deneme-page .ek-exam-go {
+    color: var(--dl-blue);
+    font-weight: 700;
+}
+
+body.v3-body .ek-page .primary-btn,
+body.v3-body .deneme-page .primary-btn,
+body.v3-body .deneme-detail-page .result-header-actions .primary-btn,
+body.v3-body .ek-page .ghost-btn,
+body.v3-body .deneme-page .ghost-btn {
+    border-radius: 999px !important;
+    min-height: var(--cs-touch-min, 44px) !important;
+}
+
+body.v3-body .ek-page .primary-btn,
+body.v3-body .deneme-page .primary-btn,
+body.v3-body .deneme-detail-page .result-header-actions .primary-btn {
+    background: var(--dl-navy) !important;
+    border-color: var(--dl-navy) !important;
+    color: #fff !important;
+}
+
+body.v3-body .ek-page .ek-hero-chart,
+body.v3-body .ek-page .ek-table th,
+body.v3-body .deneme-page .ek-sort select,
+body.v3-body .deneme-page .ek-arsiv-form .input {
+    font-family: Inter, var(--cs-font), sans-serif;
+}
+
+body.v3-body .ek-page .ek-table th,
+body.v3-body .deneme-detail-page .report-data-table thead th,
+body.v3-body .deneme-detail-page .ek-table th {
+    font-family: Inter, var(--cs-font), sans-serif !important;
+    font-weight: 600 !important;
+    color: var(--dl-muted) !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    background: transparent !important;
+}
+
+body.v3-body .ek-page .ek-table td,
+body.v3-body .deneme-detail-page .report-data-table td {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Deneme sonucu */
+body.v3-body .deneme-detail-page .result-entry-header {
+    background: #fff !important;
+    background-image: none !important;
+    color: var(--dl-ink) !important;
+    border: 1px solid var(--cs-border) !important;
+    border-bottom: 3px solid var(--dl-gold) !important;
+    border-radius: 24px !important;
+    box-shadow: var(--dl-card) !important;
+    animation: none !important;
+}
+
+body.v3-body .deneme-detail-page .result-entry-header::before,
+body.v3-body .deneme-detail-page .result-entry-header::after { display: none !important; }
+
+body.v3-body .deneme-detail-page .result-kicker {
+    color: var(--dl-gold) !important;
+    letter-spacing: 0.14em !important;
+    font-weight: 700 !important;
+    font-family: Inter, var(--cs-font), sans-serif !important;
+}
+
+body.v3-body .deneme-detail-page .result-description { color: var(--dl-muted) !important; }
+
+body.v3-body .deneme-detail-page .pdf-sayfa-sec-label {
+    color: var(--dl-muted) !important;
+    text-shadow: none !important;
+}
+
+body.v3-body .deneme-detail-page .pdf-sayfa-sec-select {
+    background: #fff !important;
+    color: var(--dl-ink) !important;
+    border: 1px solid var(--cs-border) !important;
+    border-radius: 999px !important;
+    min-height: var(--cs-touch-min, 44px) !important;
+}
+
+body.v3-body .deneme-detail-page .result-entry-header h1 {
+    font-size: clamp(2rem, 3vw, 2.8rem) !important;
+}
+
+body.v3-body .deneme-detail-page .result-secondary-button,
+body.v3-body .deneme-detail-page .result-back-button,
+body.v3-body .deneme-detail-page .result-entry-header .result-header-actions > a,
+body.v3-body .deneme-detail-page .result-entry-header .result-header-actions > button {
+    min-height: var(--cs-touch-min, 44px) !important;
+    height: auto !important;
+    border-radius: 999px !important;
+    background: #fff !important;
+    color: var(--dl-navy) !important;
+    border: 1px solid var(--cs-border) !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+}
+
+body.v3-body .deneme-detail-page .result-card,
+body.v3-body .deneme-detail-page .ek-score {
+    border-radius: 24px !important;
+    box-shadow: var(--dl-card) !important;
+    background: #fff !important;
+}
+
+body.v3-body .deneme-detail-page .ek-score {
+    border: 1px solid var(--cs-border) !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+body.v3-body .deneme-detail-page .ek-score:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 36px rgba(15, 26, 46, 0.1) !important;
+}
+
+body.v3-body .deneme-detail-page .ek-score-rail span {
+    color: var(--dl-gold) !important;
+    font-family: Inter, var(--cs-font), sans-serif !important;
+}
+
+body.v3-body .deneme-detail-page .ek-score-rail b,
+body.v3-body .deneme-detail-page td.profile-score,
+body.v3-body .deneme-detail-page td[data-label="Puan"],
+body.v3-body .deneme-detail-page td[data-label="Net"] {
+    font-family: Inter, var(--cs-font), sans-serif !important;
+    font-weight: 800 !important;
+    color: var(--dl-navy) !important;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.03em !important;
+}
+
+body.v3-body .deneme-detail-page .deneme-net-card {
+    background: #fff !important;
+    border: 1px solid var(--cs-border) !important;
+    border-radius: 16px !important;
+    box-shadow: none !important;
+}
+
+body.v3-body .deneme-detail-page .deneme-net-sayi {
+    font-family: Inter, var(--cs-font), sans-serif !important;
+    font-weight: 800 !important;
+    color: var(--dl-navy) !important;
+    font-variant-numeric: tabular-nums;
+}
+
+body.v3-body .deneme-detail-page .deneme-net-ders {
+    color: var(--dl-muted);
+    font-family: Inter, var(--cs-font), sans-serif;
+}
+
+body.v3-body .deneme-detail-page .responsive-table,
+body.v3-body .deneme-detail-page .ek-table-wrap,
+body.v3-body .ek-page .ek-table-wrap,
+body.v3-body .dk-page .cs-table-wrap {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+@media (max-width: 900px) {
+    body.v3-body .dk-page .pv4-hero-row,
+    body.v3-body .deneme-page .ek-arsiv-hero,
+    body.v3-body .deneme-detail-page .result-entry-header,
+    body.v3-body .deneme-detail-page .deneme-net-strip {
+        grid-template-columns: 1fr !important;
+    }
+
+    body.v3-body .deneme-page .ek-arsiv-hero-score {
+        border: 0 !important;
+        padding: 12px 0 !important;
+        align-items: flex-start !important;
+    }
+}
+
+@media (max-width: 640px) {
+    body.v3-body .dk-page .dg-metrik-row {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    body.v3-body .deneme-page .ek-arsiv-form .input,
+    body.v3-body .deneme-page .ek-arsiv-form select,
+    body.v3-body .ek-page select.input,
+    body.v3-body .deneme-detail-page .pdf-sayfa-sec-select {
+        font-size: 16px !important;
+    }
+}

@@ -1,13 +1,16 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static filter_tags %}
 {% block title %}{{ talebe.ad_soyad }} · Etüt{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek44">{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek44">
+<link rel="stylesheet" href="{% static 'css/deneme-dil-v2.css' %}?v=dl5">
+{% endblock %}
 {% block content %}
 <div class="ek-page">
   <header class="ek-head">
     <div>
       <p class="ek-kicker">{{ hoca.ad_soyad }} · {% if talebe.sinif_sube %}{{ talebe.sinif_sube.sinif }}-{{ talebe.sinif_sube.sube }}{% endif %}</p>
-      <h1>{{ talebe.ad_soyad }}</h1>
+      <h1>{{ talebe.ad_soyad|tr_baslik }}</h1>
       <p class="ek-desc">Deneme puan grafiği; altta her denemenin kazanımları. Zayıflar (%70 altı) kırmızı ve üstte.</p>
     </div>
     <div class="ek-actions">
@@ -19,8 +22,8 @@
 
   <section class="ek-hero">
     <div class="ek-hero-bar">
-      <p class="ek-hero-kicker" style="color:#fff;font-weight:600;">Deneme puanları</p>
-      <span class="ek-trend">{% if gelisim.trend == "↓" %}Düşüşte{% elif gelisim.trend == "→" %}Yatay{% else %}Yükselişte{% endif %}</span>
+      <p class="ek-hero-kicker" style="font-weight:600;">Deneme puanları</p>
+      <span class="ek-trend{% if gelisim.trend == "↓" %} is-down{% elif gelisim.trend == "→" %} is-flat{% endif %}">{% if gelisim.trend == "↓" %}Düşüşte{% elif gelisim.trend == "→" %}Yatay{% else %}Yükselişte{% endif %}</span>
     </div>
     <div class="ek-hero-top">
       <div>
@@ -91,7 +94,7 @@
   {% endfor %}
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="{% static 'js/etut-chart.js' %}?v=ek36"></script>
+<script src="{% static 'js/etut-chart.js' %}?v=dl2"></script>
 <script>
 const data = {{ gelisim_json|safe }};
 csNavyLine(document.getElementById('talebeChart'), data.puanlar || [], data.tarihler || []);
@@ -105,7 +108,10 @@ csNavyLine(document.getElementById('talebeChart'), data.puanlar || [], data.tari
   const last = vals[vals.length - 1];
   const fark = Math.round(last - vals[0]);
   document.getElementById("ekSon").textContent = txt(last);
-  document.getElementById("ekFark").textContent = (fark > 0 ? "+" : "") + fark;
+  const farkEl = document.getElementById("ekFark");
+  farkEl.textContent = (fark > 0 ? "+" : "") + fark;
+  farkEl.classList.toggle("is-up", fark > 0);
+  farkEl.classList.toggle("is-down", fark < 0);
   document.getElementById("ekOrt").textContent = txt(vals.reduce(function (a, b) { return a + b; }, 0) / vals.length, true);
   document.getElementById("ekMax").textContent = txt(Math.max.apply(null, vals));
 })();
