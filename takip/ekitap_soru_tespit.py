@@ -30,6 +30,11 @@ from dataclasses import dataclass, field
 
 # —— Ayarlar ——————————————————————————————————————————————————————————————
 
+# Algoritma değiştikçe artırılır: daha eski sürümle taranmış bölümler sunucu
+# açılışında (`ekitap_sorulari_bul --eski`) yeniden taranır.
+# 3: satır/sütun sayfa düzeni, birleşik satırların bölünmesi, ortak bilgili gruplar.
+TESPIT_SURUMU = 3
+
 KUME_TOLERANS = 0.018  # sütun çapası kümelemesinde yatay tolerans (sayfa genişliği oranı)
 MIN_SORU_YUKSEKLIK = 0.03  # aynı sütunda iki soru numarası arası en az bu kadar olmalı
 UST_PAY = 0.010
@@ -108,6 +113,8 @@ class SoruTaslagi:
     siklar: tuple[int, float] | None = None
     # Büyüteç rozeti: (simgenin sağ kenarı x, merkez y, çap — sayfa genişliği oranı).
     rozet: tuple[float, float, float] | None = None
+    rozet_sayfa: int | None = None
+    numara_sayfa: int = 0
 
 
 @dataclass
@@ -167,6 +174,8 @@ class _SayfaVerisi:
     karakter: int
     gorsel_orani: float  # görsellerin kapladığı alan / sayfa
     sik_kutulari: list[Kutu] = field(default_factory=list)  # "A)" satırlarının başı
+    # "8, 9 ve 10. soruları aşağıdaki bilgiye göre cevaplayınız" başlıkları: (kutu, numaralar)
+    grup_basliklari: list[tuple[Kutu, list[int]]] = field(default_factory=list)
 
 
 def _font_kalin_mi(pdfium_c, metin_sayfasi, i: int) -> bool:
@@ -197,6 +206,7 @@ def _sayfa_oku(belge, indeks: int) -> _SayfaVerisi:
 
     adaylar: list[Aday] = []
     sik_kutulari: list[Kutu] = []
+    grup_basliklari: list[tuple[Kutu, list[int]]] = []
     metin_sayfasi = sayfa.get_textpage()
     try:
         n = metin_sayfasi.count_chars()
@@ -211,13 +221,29 @@ def _sayfa_oku(belge, indeks: int) -> _SayfaVerisi:
                     satirlar.append([])
                 continue
             satirlar[-1].append(i)
-        for satir in satirlar:
-            if not satir:
-                continue
+        kutu_onbellek: dict[int, tuple] = {}
+
+        def charbox(i):
+            if i not in kutu_onbellek:
+                kutu_onbellek[i] = metin_sayfasi.get_charbox(i)
+            return kutu_onbellek[i]
+
+        parcalar = _satirlari_bol(satirlar, karakterler, charbox, W)
+        for satir in parcalar:
             metin = "".join(karakterler[i] for i in satir)
+            baslik = _grup_basligi(metin)
+            if baslik:
+                bkutular = [charbox(i) for i in satir if not karakterler[i].isspace()]
+                bkutular = [k for k in bkutular if k and k[2] > k[0]]
+                if bkutular:
+                    grup_basliklari.append((
+                        normal(min(k[0] for k in bkutular), min(k[1] for k in bkutular),
+                               max(k[2] for k in bkutular), max(k[3] for k in bkutular)),
+                        baslik,
+                    ))
             if _SIK_A.match(metin):
                 bas = len(metin) - len(metin.lstrip())
-                k = metin_sayfasi.get_charbox(satir[bas])
+                k = charbox(satir[bas])
                 if k and k[2] > k[0]:
                     sik_kutulari.append(normal(*k))
             eslesme = _NUMARA.match(metin)
@@ -232,7 +258,7 @@ def _sayfa_oku(belge, indeks: int) -> _SayfaVerisi:
                 continue
             bas = len(metin) - len(metin.lstrip())
             numara_idx = [satir[j] for j in range(bas, eslesme.end()) if not karakterler[satir[j]].isspace()]
-            kutular = [metin_sayfasi.get_charbox(i) for i in numara_idx]
+            kutular = [charbox(i) for i in numara_idx]
             kutular = [k for k in kutular if k and k[2] > k[0]]
             if not kutular:
                 continue
@@ -279,7 +305,9 @@ def _sayfa_oku(belge, indeks: int) -> _SayfaVerisi:
     finally:
         metin_sayfasi.close()
     sayfa.close()
-    return _SayfaVerisi(indeks, W, H, adaylar, nesneler, dolu, min(gorsel_alani, 1.0), sik_kutulari)
+    return _SayfaVerisi(
+        indeks, W, H, adaylar, nesneler, dolu, min(gorsel_alani, 1.0), sik_kutulari, grup_basliklari
+    )
 
 
 # —— Süsleme (bant, çerçeve, sayfa no) ayıklama ——————————————————————————
@@ -345,15 +373,24 @@ def _susleme_icinde_mi(a: Aday, s: _SayfaVerisi, suslemeler: set, metin_turu: in
 def _capalari_bul(adaylar: list[Aday]) -> list[float]:
     if not adaylar:
         return []
-    xs = sorted(a.kutu.x0 for a in adaylar)
-    kumeler: list[list[float]] = [[xs[0]]]
-    for x in xs[1:]:
-        if x - kumeler[-1][-1] <= KUME_TOLERANS:
-            kumeler[-1].append(x)
+    sirali = sorted(adaylar, key=lambda a: a.kutu.x0)
+    kumeler: list[list[Aday]] = [[sirali[0]]]
+    for a in sirali[1:]:
+        if a.kutu.x0 - kumeler[-1][-1].kutu.x0 <= KUME_TOLERANS:
+            kumeler[-1].append(a)
         else:
-            kumeler.append([x])
+            kumeler.append([a])
     en_buyuk = max(len(k) for k in kumeler)
-    gucluler = [sum(k) / len(k) for k in kumeler if len(k) >= max(2, en_buyuk * 0.25) or len(k) == en_buyuk]
+    kalin_cogunluk = sum(1 for a in adaylar if a.kalin) >= len(adaylar) / 2
+    gucluler = [
+        sum(a.kutu.x0 for a in k) / len(k)
+        for k in kumeler
+        if len(k) >= max(2, en_buyuk * 0.25)
+        or len(k) == en_buyuk
+        # Kitapta o hizada tek soru olabilir (ör. sağ sütunda yalnız 3. soru): soru
+        # numaraları kalın yazılıyorsa kalın ve ardından metin gelen numara yeter.
+        or (kalin_cogunluk and any(a.kalin and a.metin_izliyor for a in k))
+    ]
     # Birbirine çok yakın (aynı sütun içinde girintili) çapalardan soldakini tut.
     capalar: list[float] = []
     for x in sorted(gucluler):
@@ -483,7 +520,8 @@ def _ocr_sayfasi(belge, s: _SayfaVerisi) -> _SayfaVerisi | None:
     ]
     nesneler = [(metin_turu, Kutu(*k), "") for k in okunan.murekkep]
     siklar = [Kutu(w.x0, w.y0, w.x1, w.y1) for w in okunan.sik_baslari]
-    return _SayfaVerisi(s.indeks, s.genislik, s.yukseklik, adaylar, nesneler, okunan.karakter, 0.0, siklar)
+    gruplar = [(Kutu(*k), n) for k, n in (okunan.grup_basliklari or [])]
+    return _SayfaVerisi(s.indeks, s.genislik, s.yukseklik, adaylar, nesneler, okunan.karakter, 0.0, siklar, gruplar)
 
 
 def tespit_et(belge, *, maks_sayfa: int | None = None, ocr: bool | None = None) -> TespitSonucu:
@@ -568,7 +606,7 @@ def tespit_et(belge, *, maks_sayfa: int | None = None, ocr: bool | None = None) 
     for sira, (a, t) in enumerate(secilen):
         taslaklar.append(
             SoruTaslagi(no=a.no, test_no=t, sira=sira, guven=a.agirlik, alanlar=[],
-                        numara_kutusu=a.kutu, sutun=a.sutun)
+                        numara_kutusu=a.kutu, sutun=a.sutun, numara_sayfa=a.sayfa)
         )
 
     # Sayfa sayfa alanlar
@@ -576,9 +614,11 @@ def tespit_et(belge, *, maks_sayfa: int | None = None, ocr: bool | None = None) 
     for i, (a, _) in enumerate(secilen):
         sayfa_sorulari.setdefault(a.sayfa, []).append(i)
 
+    basliklar_sayfa = {s.indeks: s.grup_basliklari for s in sayfalar}
     for sayfa_indeksi, indeksler in sayfa_sorulari.items():
         icerik = icerikler.get(sayfa_indeksi, [])
         bilgi = bilgiler[sayfa_indeksi]
+        basliklar = basliklar_sayfa.get(sayfa_indeksi, [])
         sutunlar: dict[int, list[int]] = {}
         for i in indeksler:
             sutunlar.setdefault(secilen[i][0].sutun, []).append(i)
@@ -593,6 +633,11 @@ def tespit_et(belge, *, maks_sayfa: int | None = None, ocr: bool | None = None) 
                     sinir = secilen[sutun_indeksleri[sira_i + 1]][0].kutu.y0 - UST_PAY
                 else:
                     sinir = 1 - ALT_BOSLUK + 0.01
+                # Altta yeni bir soru grubu başlıyorsa ("9 ve 10. soruları ...") soru orada biter.
+                for hb, _ in basliklar:
+                    if a.kutu.y0 + 0.01 < hb.y0 < sinir and hb.x0 < (capalar[sutun + 1] if sutun + 1 < len(capalar) else 1.0) \
+                            and hb.x1 > (capalar[sutun] if capalar else 0.0) - 0.02:
+                        sinir = hb.y0 - UST_PAY
                 sol, sag = _sutun_sinirlari(capalar, sutun, icerik, ust, sinir)
                 sol = min(sol, a.kutu.x0 - YAN_PAY)
                 sag = _saga_cek(icerik, sol, sag)
@@ -612,11 +657,16 @@ def tespit_et(belge, *, maks_sayfa: int | None = None, ocr: bool | None = None) 
             ustteki = [
                 k for k in icerik
                 if sol - 0.005 <= k.cx <= sag + 0.005 and k.y1 <= ilk.kutu.y0 - 0.002
+                # üstteki tam genişlik bir sorunun alanına giren içerik devam değildir
+                and not any(_icinde(k, b) for b in kapsanan)
             ]
             if not ustteki:
                 continue
             blok = Kutu(sol, min(k.y0 for k in ustteki) - UST_PAY, sag, max(k.y1 for k in ustteki) + ALT_PAY)
             if blok.yukseklik < 0.03:
+                continue
+            if any(blok.y0 - 0.01 <= hb.y0 <= blok.y1 and hb.x1 > blok.x0 and hb.x0 < blok.x1 for hb, _ in basliklar):
+                kapsanan.append(blok)  # soru grubunun ortak bilgisi/görseli; aşağıda gruba bağlanır
                 continue
             ilk_i = sutun_indeksleri[0]
             onceki_i = ilk_i - 1
@@ -648,6 +698,8 @@ def tespit_et(belge, *, maks_sayfa: int | None = None, ocr: bool | None = None) 
                 if ortak > 0.1 * min(kapsanan[x].alan(), kapsanan[y].alan()):
                     bilgi.uyar("Soru alanları çakışıyor.")
 
+    grup_rozeti = _gruplari_bagla(sayfalar, secilen, taslaklar, icerikler, capalar)
+
     sik_kutulari = {s.indeks: s.sik_kutulari for s in sayfalar}
     oranlar = {s.indeks: (s.genislik / s.yukseklik if s.yukseklik else 0.707) for s in sayfalar}
     yol_turu = _ham().FPDF_PAGEOBJ_PATH
@@ -658,10 +710,13 @@ def tespit_et(belge, *, maks_sayfa: int | None = None, ocr: bool | None = None) 
     }
     for taslak in taslaklar:
         taslak.siklar = _siklari_bul(taslak, sik_kutulari)
-        sayfa_indeksi = taslak.alanlar[0][0] if taslak.alanlar else None
-        if sayfa_indeksi is not None:
+        # Rozet numaranın sayfasında; grubun ilk sorusunda ortak bilginin başlığında.
+        grup = grup_rozeti.get(id(taslak))
+        sayfa_indeksi = grup[0] if grup else taslak.numara_sayfa
+        if taslak.alanlar:
+            taslak.rozet_sayfa = sayfa_indeksi
             taslak.rozet = _rozet_yeri(
-                taslak.numara_kutusu,
+                grup[1] if grup else taslak.numara_kutusu,
                 icerikler.get(sayfa_indeksi, []) + ayiricilar.get(sayfa_indeksi, []),
                 oranlar.get(sayfa_indeksi, 0.707),
             )
@@ -782,3 +837,130 @@ def _rozet_yeri(numara: Kutu, icerik: list[Kutu], oran: float) -> tuple[float, f
         merkez_y = numara.y0 - pay * oran - cap * oran / 2
         return (round(numara.cx + cap / 2, 4), round(merkez_y, 4), round(cap, 4))
     return (round(numara.x0 - 0.002, 4), round(numara.cy, 4), ROZET_EN_AZ)
+
+
+# —— Satır bölme ve soru grubu başlıkları —————————————————————————————————
+
+SUTUN_BOSLUGU = 0.025  # aynı satırda bu kadar boşluk: farklı sütunun yazısı
+
+
+def _satirlari_bol(satirlar, karakterler, charbox, genislik: float) -> list[list[int]]:
+    """pdfium satırlarını büyük yatay boşluklardan böler.
+
+    İki sütunun aynı yükseklikteki satırları PDF'te çoğu zaman tek satır olarak
+    gelir ("...sayıların toplamı   3. Aşağıdaki termometrenin..."). Sağ
+    sütundaki soru numarasının satır başı sayılabilmesi için satır, sütun
+    boşluğu kadar açıklıkta parçalanır.
+    """
+    esik = SUTUN_BOSLUGU * genislik
+    parcalar: list[list[int]] = []
+    for satir in satirlar:
+        if not satir:
+            continue
+        parca: list[int] = []
+        onceki_sag = None
+        for i in satir:
+            if karakterler[i].isspace():
+                if parca:
+                    parca.append(i)
+                continue
+            k = charbox(i)
+            if k and k[2] > k[0] and onceki_sag is not None:
+                bosluk = k[0] - onceki_sag
+                yukseklik = (k[3] - k[1]) or 1.0
+                if bosluk > max(esik, 2.5 * yukseklik) or bosluk < -0.2 * genislik:
+                    parcalar.append(parca)
+                    parca = []
+            if k and k[2] > k[0]:
+                onceki_sag = k[2]
+            parca.append(i)
+        if parca:
+            parcalar.append(parca)
+    return [p for p in parcalar if p]
+
+
+_GRUP_BASLIGI = re.compile(
+    r"(\d{1,3})(?:\s*[,.]\s*(\d{1,3}))*\s*(?:ve|ile|-|–|—)\s*(\d{1,3})\s*\.?\s*sorular",
+    re.IGNORECASE,
+)
+_GRUP_BASLIGI_ARALIK = re.compile(r"(\d{1,3})\s*[-–—]\s*(\d{1,3})\s*\.?\s*sorular", re.IGNORECASE)
+
+
+def _grup_basligi(metin: str) -> list[int] | None:
+    """"8, 9 ve 10. soruları ..." → [8, 9, 10]; "9-12. sorular" → [9, 10, 11, 12]."""
+    yalin = metin.replace("İ", "I").replace("ı", "i")
+    if "sorular" not in yalin.lower():
+        return None
+    e = _GRUP_BASLIGI_ARALIK.search(yalin)
+    if e:
+        bas, son = int(e.group(1)), int(e.group(2))
+        return list(range(bas, son + 1)) if 0 < son - bas <= 8 else None
+    e = _GRUP_BASLIGI.search(yalin)
+    if not e:
+        return None
+    sayilar = [int(n) for n in re.findall(r"\d{1,3}", e.group(0))]
+    sayilar = sorted(set(sayilar))
+    if len(sayilar) < 2 or sayilar[-1] - sayilar[0] > 8:
+        return None
+    return list(range(sayilar[0], sayilar[-1] + 1))
+
+
+
+def _gruplari_bagla(sayfalar, secilen, taslaklar, icerikler, capalar) -> dict[int, tuple[int, Kutu]]:
+    """Ortak bilgili soru grupları: başlıktan ilk soruya kadarki blok (bilgi metni,
+    görsel, tablo) gruptaki her sorunun ilk alanı olur.
+
+    Dönüş: grubun ilk sorusu → rozetin dayanacağı başlık kutusu (rozet görselin
+    üstünde, grubun başında durur).
+    """
+    rozet: dict[int, tuple[int, Kutu]] = {}
+    for s in sayfalar:
+        icerik = icerikler.get(s.indeks, [])
+        for hb, numaralar in s.grup_basliklari:
+            uyeler = [
+                i for i, (a, _) in enumerate(secilen)
+                if a.no in numaralar and (
+                    (a.sayfa == s.indeks and a.kutu.y0 > hb.y0 - 0.005) or a.sayfa == s.indeks + 1
+                )
+            ]
+            if not uyeler:
+                continue
+            ilk = min(uyeler)
+            test = secilen[ilk][1]
+            uyeler = [i for i in uyeler if secilen[i][1] == test]
+            a0 = secilen[ilk][0]
+            genis = hb.genislik > 0.45 or (hb.x0 < 0.45 and hb.x1 > 0.55)  # ortalanmış başlık da tam genişlik
+            if genis:
+                sol, sag = 0.0, 1.0
+            else:
+                sutun = _sutun_bul(capalar, hb.x0 + 0.015)
+                sol, sag = _sutun_sinirlari(capalar, sutun, icerik, hb.y0, 1.0)
+            ayni_yerde = a0.sayfa == s.indeks and (genis or a0.sutun == _sutun_bul(capalar, hb.x0 + 0.015))
+            ust = hb.y0 - UST_PAY
+            alt = a0.kutu.y0 - UST_PAY if ayni_yerde else 1 - ALT_BOSLUK
+            iceride = [
+                k for k in icerik
+                if sol - 0.005 <= k.cx <= sag + 0.005 and k.y0 >= ust - 0.004 and k.y1 <= alt + 0.004
+            ]
+            if not iceride:
+                continue
+            if genis:
+                # Başlık çoğu zaman sayfa genişliğinde bir çerçeve içindedir; çerçeve de bloğa girer.
+                iceride += [
+                    k for _, k, _ in s.nesneler
+                    if k.genislik <= 0.95 and k.y0 >= ust - 0.004 and k.y1 <= alt + 0.004 and k.yukseklik < 0.5
+                ]
+            blok = Kutu(
+                max(min(k.x0 for k in iceride) - YAN_PAY, 0.0) if genis else sol,
+                max(ust, 0.0),
+                min(max(k.x1 for k in iceride) + YAN_PAY, 1.0) if genis else _saga_cek(icerik, sol, sag),
+                min(alt, max(k.y1 for k in iceride) + ALT_PAY),
+            )
+            if blok.yukseklik < 0.02:
+                continue
+            for i in uyeler:
+                alanlar = taslaklar[i].alanlar
+                if not any(sayfa == s.indeks and k.kesisim(blok) > 0.5 * blok.alan() for sayfa, k in alanlar):
+                    alanlar.insert(0, (s.indeks, blok))
+            rozet[id(taslaklar[ilk])] = (s.indeks, hb)
+    return rozet

@@ -24,7 +24,13 @@ from takip.ekitap_models import (
     EKitapSoruAlan,
 )
 from takip.ekitap_soru_tespit import tespit_et
-from takip.tests.ekitap_pdf_ornekleri import deneme_pdf, karisik_duzen_pdf, taranmis_pdf
+from takip.tests.ekitap_pdf_ornekleri import (
+    deneme_pdf,
+    karisik_duzen_pdf,
+    ortak_bilgili_pdf,
+    taranmis_kopya,
+    taranmis_pdf,
+)
 from takip.tests.test_ekitap import EKitapTestBase
 
 
@@ -568,15 +574,57 @@ class KarisikDuzenTests(EKitapTestBase):
         r = self.get(f"/kitap/{kitap.pk}/")
         veri = json.loads(r.content.decode().split('id="ekitapVeri" type="application/json">')[1].split("</script>")[0])
         self.assertEqual(len(veri[0]["sorular"]), 7)
-        self.assertTrue(all(len(q["r"]) == 3 for q in veri[0]["sorular"]))
-        # Eski sürümle bulunmuş (rozetsiz) sorular komutla güncellenir, kimlikler korunur
+        self.assertTrue(all(len(q["r"]) == 4 for q in veri[0]["sorular"]))
+        # Eski algoritma sürümüyle taranmış bölümler komutla yenilenir, kimlikler korunur
         kimlikler = list(EKitapSoru.objects.order_by("sira").values_list("pk", flat=True))
-        EKitapSoru.objects.update(rozet_x=None, rozet_y=None, rozet_cap=None)
+        EKitapSoru.objects.update(rozet_x=None, rozet_y=None, rozet_cap=None, rozet_sayfa=None)
+        EKitapBolum.objects.update(tespit_surumu=0)
         cikti = io.StringIO()
-        call_command("ekitap_sorulari_bul", "--eksik", "--rozetsiz", stdout=cikti)
+        call_command("ekitap_sorulari_bul", "--eksik", "--eski", stdout=cikti)
         self.assertIn("7 soru", cikti.getvalue())
         self.assertFalse(EKitapSoru.objects.filter(rozet_x__isnull=True).exists())
+        self.assertFalse(EKitapSoru.objects.filter(rozet_sayfa__isnull=True).exists())
         self.assertEqual(kimlikler, list(EKitapSoru.objects.order_by("sira").values_list("pk", flat=True)))
         cikti = io.StringIO()
-        call_command("ekitap_sorulari_bul", "--eksik", "--rozetsiz", stdout=cikti)
+        call_command("ekitap_sorulari_bul", "--eksik", "--eski", stdout=cikti)
         self.assertIn("İşlenecek bölüm yok", cikti.getvalue())
+
+
+
+class OrtakBilgiVeBirlesikSatirTests(EKitapTestBase):
+    """Beceri temelli testler: aynı yükseklikte iki sütun ve ortak bilgili soru grupları."""
+
+    def kontrol(self, sonuc):
+        self.assertEqual([q.no for q in sonuc.sorular], [1, 2, 3, 4, 5, 6, 7])
+        s1, s2, s3, s4, s5, s6, s7 = sonuc.sorular
+        # 3. soru sağ sütunda; 2 ile aynı satırda başlasa da bulunur
+        self.assertGreater(s3.alanlar[0][1].x0, 0.5)
+        self.assertLess(s2.alanlar[0][1].x1, 0.51)
+        # Tam genişlikteki 1. soru ikiye bölünmez, 2'ye "devam" olarak eklenmez
+        self.assertEqual(len(s1.alanlar), 1)
+        self.assertEqual(len(s2.alanlar), 1)
+        self.assertGreater(s1.alanlar[0][1].x1, 0.6)
+        # 4, 5, 6: ortak bilgi bloğu (başlık + metin + görsel + tablo) ilk alan
+        ortak = s4.alanlar[0][1]
+        for q in (s4, s5, s6):
+            self.assertEqual(len(q.alanlar), 2, q.no)
+            self.assertEqual(q.alanlar[0][1].yuvarla(), ortak.yuvarla())
+        self.assertLess(ortak.y0, 0.09)       # başlıktan başlar
+        self.assertGreater(ortak.y1, 0.3)     # tabloyu kapsar
+        self.assertLess(ortak.y1, s4.alanlar[1][1].y0 + 0.001)
+        self.assertEqual(len(s7.alanlar), 1)  # grup dışı
+        # Grubun rozeti ortak bilginin başında (başlık satırında), diğerleri numaralarında
+        self.assertTrue(ortak.y0 <= s4.rozet[1] <= ortak.y0 + 0.04)
+        self.assertEqual(s4.rozet_sayfa, 1)
+        self.assertTrue(abs(s5.rozet[1] - s5.numara_kutusu.cy) < 0.01)
+        # Ortak bilgi önceki sayfanın sorusuna (3) "devam" olarak eklenmez
+        self.assertEqual(len(s3.alanlar), 1)
+
+    def test_metinli_pdf(self):
+        sonuc = tespit_et(_belge(ortak_bilgili_pdf()), ocr=False)
+        self.kontrol(sonuc)
+        self.assertTrue(all(not b.notlar for b in sonuc.sayfalar.values()))
+
+    @unittest.skipUnless(TESSERACT_VAR, "tesseract kurulu değil")
+    def test_taranmis_kopya_ocr(self):
+        self.kontrol(tespit_et(_belge(taranmis_kopya(ortak_bilgili_pdf())), ocr=True))

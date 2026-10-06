@@ -7,7 +7,7 @@ otomatik sorular yeniden oluşturulur, eksik soru görselleri üretilir.
     python manage.py ekitap_sorulari_bul --kitap 3    # yalnızca bir kitap
     python manage.py ekitap_sorulari_bul --bolum 7 --bolum 8
     python manage.py ekitap_sorulari_bul --eksik      # yalnızca hiç tespit yapılmamışlar
-    python manage.py ekitap_sorulari_bul --eksik --rozetsiz  # + rozet konumu hesaplanmamış eski tespitler
+    python manage.py ekitap_sorulari_bul --eksik --eski  # + eski algoritma sürümüyle taranmışlar
 """
 
 from __future__ import annotations
@@ -16,7 +16,8 @@ from django.core.management.base import BaseCommand
 from django.db.models import Q
 
 from takip import ekitap_service as servis
-from takip.ekitap_models import EKitapBolum, EKitapSoru
+from takip.ekitap_models import EKitapBolum
+from takip.ekitap_soru_tespit import TESPIT_SURUMU
 
 
 class Command(BaseCommand):
@@ -29,9 +30,11 @@ class Command(BaseCommand):
             "--eksik", action="store_true", help="Yalnızca tespiti hiç yapılmamış bölümler."
         )
         parser.add_argument(
+            "--eski",
             "--rozetsiz",
+            dest="eski",
             action="store_true",
-            help="Rozet konumu olmayan otomatik soruları bulunan bölümler (eski sürümle yapılmış tespit).",
+            help="Daha eski tespit algoritmasıyla taranmış bölümler (elle düzeltmeler korunur).",
         )
 
     def handle(self, *args, **opts):
@@ -40,14 +43,12 @@ class Command(BaseCommand):
             bolumler = bolumler.filter(kitap_id__in=opts["kitap"])
         if opts["bolum"]:
             bolumler = bolumler.filter(pk__in=opts["bolum"])
-        if opts["eksik"] or opts["rozetsiz"]:
+        if opts["eksik"] or opts["eski"]:
             kosul = Q()
             if opts["eksik"]:
                 kosul |= Q(tespit_durumu=EKitapBolum.TespitDurumu.YOK)
-            if opts["rozetsiz"]:
-                kosul |= Q(pk__in=EKitapSoru.objects.filter(
-                    kaynak=EKitapSoru.Kaynak.OTOMATIK, gizli=False, rozet_x__isnull=True
-                ).values("bolum_id"))
+            if opts["eski"]:
+                kosul |= Q(tespit_surumu__lt=TESPIT_SURUMU) & ~Q(tespit_durumu=EKitapBolum.TespitDurumu.YOK)
             bolumler = bolumler.filter(kosul)
         bolumler = list(bolumler.select_related("kitap").order_by("kitap_id", "sira", "pk"))
         if not bolumler:

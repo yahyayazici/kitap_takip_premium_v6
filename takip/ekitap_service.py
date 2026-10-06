@@ -355,14 +355,16 @@ def _tespiti_kaydet(bolum: EKitapBolum, sonuc, ozet: str) -> None:
         yeni_alanlar = [(sayfa_sira, k.yuvarla()) for sayfa_sira, k in taslak.alanlar]
         siklar = taslak.siklar or (None, None)
         rozet = taslak.rozet or (None, None, None)
+        rozet_sayfa = taslak.rozet_sayfa if taslak.rozet else None
         soru = eskiler.get((taslak.test_no, taslak.no))
         if soru is not None and soru.pk not in kullanilan:
             soru.sira, soru.guven, soru.pdf_ozeti = taslak.sira, taslak.guven, ozet
             soru.siklar_alan, soru.siklar_y = siklar
             soru.rozet_x, soru.rozet_y, soru.rozet_cap = rozet
+            soru.rozet_sayfa = rozet_sayfa
             soru.save(update_fields=[
                 "sira", "guven", "pdf_ozeti", "siklar_alan", "siklar_y",
-                "rozet_x", "rozet_y", "rozet_cap", "guncellenme",
+                "rozet_x", "rozet_y", "rozet_cap", "rozet_sayfa", "guncellenme",
             ])
             mevcut = [(a.sayfa_sira, (a.x0, a.y0, a.x1, a.y1)) for a in soru.alanlar.all()]
             if mevcut == yeni_alanlar:
@@ -383,6 +385,7 @@ def _tespiti_kaydet(bolum: EKitapBolum, sonuc, ozet: str) -> None:
                 rozet_x=rozet[0],
                 rozet_y=rozet[1],
                 rozet_cap=rozet[2],
+                rozet_sayfa=rozet_sayfa,
             )
         kullanilan.add(soru.pk)
         EKitapSoruAlan.objects.bulk_create(
@@ -442,10 +445,13 @@ def _tespiti_kaydet(bolum: EKitapBolum, sonuc, ozet: str) -> None:
         sayfa.kontrol_notu = " · ".join(notlar)[:500]
         sayfa.save(update_fields=["metinli", "kontrol_gerekli", "kontrol_notu"])
 
+    from takip.ekitap_soru_tespit import TESPIT_SURUMU
+
     bolum.tespit_durumu = sonuc.durum
     bolum.tespit_notu = sonuc.not_[:255]
     bolum.pdf_ozeti = ozet
-    bolum.save(update_fields=["tespit_durumu", "tespit_notu", "pdf_ozeti", "guncellenme"])
+    bolum.tespit_surumu = TESPIT_SURUMU
+    bolum.save(update_fields=["tespit_durumu", "tespit_notu", "pdf_ozeti", "tespit_surumu", "guncellenme"])
 
 
 def _alan_imzasi(alan: EKitapSoruAlan, ozet: str) -> str:
@@ -702,8 +708,8 @@ def duzeltmeleri_kaydet(bolum: EKitapBolum, veri: dict) -> dict:
                     alan.delete()
             # Rozet ilk alana göre yeniden tahmin edilir (okuyucuda).
             if soru.rozet_x is not None:
-                soru.rozet_x = soru.rozet_y = soru.rozet_cap = None
-                soru.save(update_fields=["rozet_x", "rozet_y", "rozet_cap"])
+                soru.rozet_x = soru.rozet_y = soru.rozet_cap = soru.rozet_sayfa = None
+                soru.save(update_fields=["rozet_x", "rozet_y", "rozet_cap", "rozet_sayfa"])
             # Şık konumu artık alanlarla uyuşmayabilir; perde aracı elle kullanılır.
             if soru.siklar_alan is not None and soru.siklar_alan >= len(yeni):
                 soru.siklar_alan = soru.siklar_y = None

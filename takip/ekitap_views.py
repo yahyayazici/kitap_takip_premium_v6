@@ -114,7 +114,8 @@ def _soru_verisi(bolum: EKitapBolum) -> list[dict]:
             if soru.siklar_alan is not None and soru.siklar_y is not None and soru.siklar_alan < len(alanlar):
                 kayit["siklar"] = [soru.siklar_alan, round(soru.siklar_y, 4)]
             if soru.rozet_x is not None and soru.rozet_y is not None and soru.rozet_cap:
-                kayit["r"] = [round(soru.rozet_x, 4), round(soru.rozet_y, 4), round(soru.rozet_cap, 4)]
+                rozet_sayfa = soru.rozet_sayfa if soru.rozet_sayfa is not None else alanlar[0]["s"]
+                kayit["r"] = [round(soru.rozet_x, 4), round(soru.rozet_y, 4), round(soru.rozet_cap, 4), rozet_sayfa]
             sonuc.append(kayit)
     return sonuc
 

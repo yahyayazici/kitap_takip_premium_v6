@@ -82,7 +82,10 @@
     function rozetleriEkle(div, bolum, sayfaIndeksi, sayfa) {
         (bolum.sorular || []).forEach(function (soru) {
             var ilk = soru.alanlar[0];
-            if (!ilk || ilk.s !== sayfaIndeksi) return;
+            if (!ilk) return;
+            // Rozetin sayfası: sunucu bildirdiyse o (numaranın / grup başlığının sayfası), değilse ilk alanın.
+            var rozetSayfasi = soru.r && soru.r.length > 3 ? soru.r[3] : ilk.s;
+            if (rozetSayfasi !== sayfaIndeksi) return;
             // Sunucu rozeti numaranın yanındaki boşluğa (yoksa üstüne) yerleştirir:
             // r = [simgenin sağ kenarı x, merkez y, çap]. Yoksa alanın sol üstünden tahmin.
             var cap, mx, my;
@@ -102,9 +105,11 @@
             btn.setAttribute('data-soru', String(soru.id));
             btn.setAttribute('aria-label', soru.no + '. soruyu büyüt');
             btn.title = soru.no + '. soruyu büyüt';
+            // Dokunma alanı sayfanın dışına taşmasın (komşu sayfanın üstüne binmesin).
+            var hedef = Math.min(cap * DOKUNMA_KATI, 2 * mx, 2 * (1 - mx));
             btn.style.left = (mx * 100) + '%';
             btn.style.top = (my * 100) + '%';
-            btn.style.width = (cap * DOKUNMA_KATI * 100) + '%';
+            btn.style.width = (Math.max(hedef, cap) * 100) + '%';
             btn.innerHTML = '<span class="ek-buyutec-ic" aria-hidden="true"><svg viewBox="0 0 24 24">' +
                 '<circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></svg></span>';
             div.appendChild(btn);

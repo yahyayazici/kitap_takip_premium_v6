@@ -69,6 +69,9 @@ class EKitapBolum(models.Model):
     pdf_ozeti = models.CharField(
         max_length=64, blank=True, help_text="Son soru tespitinde PDF'in SHA-256 özeti."
     )
+    tespit_surumu = models.PositiveSmallIntegerField(
+        default=0, help_text="Soru tespiti hangi algoritma sürümüyle yapıldı; eskiyse açılışta yenilenir."
+    )
     sira_elle = models.BooleanField(
         default=False, help_text="Okuma sırası yönetimde elle düzenlendi; yeniden tespit sırayı bozmaz."
     )
@@ -144,6 +147,7 @@ class EKitapSoru(models.Model):
     rozet_x = models.FloatField(null=True, blank=True)
     rozet_y = models.FloatField(null=True, blank=True)
     rozet_cap = models.FloatField(null=True, blank=True)
+    rozet_sayfa = models.PositiveIntegerField(null=True, blank=True)
     olusturulma = models.DateTimeField(auto_now_add=True)
     guncellenme = models.DateTimeField(auto_now=True)
 
