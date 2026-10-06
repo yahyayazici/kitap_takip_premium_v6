@@ -1,23 +1,21 @@
 {% extends "ekitap/base.html" %}
 {% block title %}Kitaplık · E-Kitap{% endblock %}
-{% block body_class %}ek-gece{% endblock %}
+{% block body_class %}ek-gece ek-kitaplik-sayfa{% endblock %}
 {% block body %}
-<header class="ek-sahne-bas">
-    <div class="ek-desen ek-desen-ust" aria-hidden="true"></div>
-    <nav class="ek-ust-nav" aria-label="Kitaplık">
-        <span class="ek-nav-marka">{% include "ekitap/_marka.html" %}<span class="ek-nav-ad">E-Kitap</span></span>
-        <form method="post" action="{% url 'ekitap:pin_cikis' %}">{% csrf_token %}
-            <button class="ek-dugme ek-dugme-cam" type="submit">
-                <svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
-                Kilitle
-            </button>
-        </form>
-    </nav>
-    <div class="ek-sahne-baslik">
-        <p class="ek-unvan">Çinili Saray Proje · Dijital Kitaplık</p>
-        <h1 class="ek-serif-dev">Kitaplık</h1>
-        <p class="ek-sahne-alt">{% if kitaplar %}{{ kitaplar|length }} kitap · Tahtada açmak için kapağa dokunun{% else %}Henüz kitap yok{% endif %}</p>
+<header class="ek-ince-bas">
+    <div class="ek-ince-sol">
+        {% include "ekitap/_marka.html" %}
+        <span class="ek-nav-ad">E-Kitap</span>
+        <span class="ek-bas-ayrac" aria-hidden="true"></span>
+        <h1 class="ek-bas-baslik">Kitaplık</h1>
+        {% if kitaplar %}<span class="ek-bas-sayi">{{ kitaplar|length }} kitap</span>{% endif %}
     </div>
+    <form method="post" action="{% url 'ekitap:pin_cikis' %}">{% csrf_token %}
+        <button class="ek-dugme ek-dugme-cam ek-dugme-kucuk" type="submit">
+            <svg class="ek-ikon ek-ikon-kucuk" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+            Kilitle
+        </button>
+    </form>
 </header>
 <main class="ek-kitaplik">
     {% if kitaplar %}
@@ -28,7 +26,6 @@
                 <span class="ek-kapak">
                     {% if kitap.kapak %}<img src="{% url 'ekitap:sayfa_kucuk' kitap.kapak.pk %}" alt="" loading="lazy">{% endif %}
                 </span>
-                <span class="ek-raf-isik" aria-hidden="true"></span>
                 <span class="ek-eser-ad">{{ kitap.ad }}</span>
                 <span class="ek-cipler">
                     {% for ad in kitap.bolum_adlari %}<span class="ek-cip">{{ ad }}</span>{% endfor %}
