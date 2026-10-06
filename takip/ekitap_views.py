@@ -120,9 +120,12 @@ def pin_cikis(request):
 @never_cache
 @pin_gerekli
 def liste(request):
-    kitaplar = list(_gorunur_kitaplar())
+    kitaplar = list(_gorunur_kitaplar().prefetch_related("bolumler"))
     for kitap in kitaplar:
         kitap.kapak = _kapak(kitap)
+        kitap.bolum_adlari = [
+            b.ad for b in kitap.bolumler.all() if b.islem_durumu == EKitapBolum.IslemDurumu.HAZIR
+        ]
     return render(request, "ekitap/liste.html", {"kitaplar": kitaplar})
 
 
@@ -231,6 +234,8 @@ def yonetim_cikis(request):
 @yonetici_gerekli
 def yonetim(request):
     kitaplar = list(EKitap.objects.prefetch_related("bolumler").order_by("sira", "-olusturulma"))
+    for kitap in kitaplar:
+        kitap.kapak = _kapak(kitap)
     isleniyor = any(
         b.islem_durumu == EKitapBolum.IslemDurumu.BEKLIYOR for k in kitaplar for b in k.bolumler.all()
     )

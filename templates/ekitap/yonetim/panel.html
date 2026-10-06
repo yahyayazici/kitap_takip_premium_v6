@@ -1,74 +1,97 @@
 {% extends "ekitap/base.html" %}
-{% block title %}E-Kitap · Yönetim{% endblock %}
-{% block body_class %}ek-yonetim{% endblock %}
+{% block title %}Yönetim · E-Kitap{% endblock %}
+{% block tema_rengi %}#F5F5F7{% endblock %}
+{% block body_class %}ek-acik{% endblock %}
 {% block head %}{% if isleniyor %}<meta http-equiv="refresh" content="6">{% endif %}{% endblock %}
 {% block body %}
 {% include "ekitap/yonetim/_ust.html" %}
-<main class="ek-icerik ek-dar">
-    <section class="ek-kart">
-        <div class="ek-kart-bas">
-            <h2>Kitaplar</h2>
-            <a class="ek-btn ek-btn-ana" href="{% url 'ekitap:kitap_yeni' %}">+ Yeni kitap</a>
+<main class="ek-yonetim">
+    <div class="ek-sayfa-bas ek-sayfa-bas-satir">
+        <div>
+            <h1 class="ek-dev-baslik">Kitaplar</h1>
+            <p class="ek-aciklama">Akıllı tahtada gösterilen deneme kitapçıkları.</p>
         </div>
-        {% if kitaplar %}
-        <ul class="ek-yonetim-liste">
-            {% for kitap in kitaplar %}
-            <li class="ek-yonetim-kitap">
-                <div class="ek-yonetim-kitap-bas">
-                    <strong>{{ kitap.ad }}</strong>
-                    <span class="ek-rozet {% if kitap.gorunur %}ek-rozet-acik{% else %}ek-rozet-kapali{% endif %}">
-                        {% if kitap.gorunur %}Gösteriliyor{% else %}Gizli{% endif %}
+        <a class="ek-dugme ek-dugme-ana" href="{% url 'ekitap:kitap_yeni' %}">
+            <svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            Yeni kitap
+        </a>
+    </div>
+
+    {% if kitaplar %}
+    <section class="ek-grup" aria-label="Kitap listesi">
+        {% for kitap in kitaplar %}
+        <article class="ek-satir-kitap">
+            <span class="ek-mini-kapak">{% if kitap.kapak %}<img src="{% url 'ekitap:sayfa_kucuk' kitap.kapak.pk %}" alt="" loading="lazy">{% endif %}</span>
+            <div class="ek-satir-govde">
+                <div class="ek-satir-ust">
+                    <h2 class="ek-satir-baslik">{{ kitap.ad }}</h2>
+                    <span class="ek-rozet {% if kitap.gorunur %}ek-rozet-yesil{% else %}ek-rozet-gri{% endif %}">
+                        {% if kitap.gorunur %}Tahtada görünür{% else %}Gizli{% endif %}
                     </span>
                 </div>
-                <ul class="ek-bolumler">
+                <ul class="ek-bolum-durumlari">
                     {% for b in kitap.bolumler.all %}
                     <li>
-                        <span>{{ b.ad }}</span>
+                        <span class="ek-bolum-ad">{{ b.ad }}</span>
                         {% if b.islem_durumu == "hazir" %}<span class="ek-durum ek-durum-hazir">{{ b.sayfa_sayisi }} sayfa</span>
-                        {% elif b.islem_durumu == "bekliyor" %}<span class="ek-durum ek-durum-bekliyor">Sayfalar hazırlanıyor…</span>
+                        {% elif b.islem_durumu == "bekliyor" %}<span class="ek-durum ek-durum-bekliyor"><span class="ek-donen" aria-hidden="true"></span>Sayfalar hazırlanıyor…</span>
                         {% else %}<span class="ek-durum ek-durum-hata">Hata: {{ b.islem_notu }}</span>{% endif %}
-                        {% if b.islem_notu and b.islem_durumu == "hazir" %}<small>{{ b.islem_notu }}</small>{% endif %}
+                        {% if b.islem_notu and b.islem_durumu == "hazir" %}<span class="ek-not">{{ b.islem_notu }}</span>{% endif %}
                         {% if b.islem_durumu != "hazir" %}
                         <form method="post" action="{% url 'ekitap:bolum_yeniden_isle' b.pk %}">{% csrf_token %}
-                            <button class="ek-btn ek-btn-kucuk" type="submit">Yeniden işle</button>
+                            <button class="ek-dugme ek-dugme-metin ek-dugme-kucuk" type="submit">Yeniden işle</button>
                         </form>
                         {% endif %}
                     </li>
                     {% empty %}
-                    <li class="ek-alt">Bölüm yok — düzenleyip PDF ekleyin.</li>
+                    <li class="ek-not">Bölüm yok — düzenleyip PDF ekleyin.</li>
                     {% endfor %}
                 </ul>
-                <div class="ek-eylemler">
-                    <a class="ek-btn" href="{% url 'ekitap:okuyucu' kitap.pk %}" target="_blank" rel="noopener">Aç</a>
-                    <a class="ek-btn" href="{% url 'ekitap:kitap_duzenle' kitap.pk %}">Düzenle</a>
-                    <form method="post" action="{% url 'ekitap:kitap_gorunurluk' kitap.pk %}">{% csrf_token %}
-                        <button class="ek-btn" type="submit">{% if kitap.gorunur %}Gizle{% else %}Göster{% endif %}</button>
-                    </form>
-                    <form method="post" action="{% url 'ekitap:kitap_sil' kitap.pk %}"
-                          onsubmit="return confirm('“{{ kitap.ad|escapejs }}” ve tüm PDF dosyaları kalıcı olarak silinsin mi?');">{% csrf_token %}
-                        <button class="ek-btn ek-btn-tehlike" type="submit">Sil</button>
-                    </form>
-                </div>
-            </li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <p class="ek-alt">Henüz kitap yok.</p>
-        {% endif %}
+            </div>
+            <div class="ek-satir-eylem">
+                <a class="ek-dugme ek-dugme-ikincil ek-dugme-kucuk" href="{% url 'ekitap:okuyucu' kitap.pk %}" target="_blank" rel="noopener">Aç</a>
+                <a class="ek-dugme ek-dugme-ikincil ek-dugme-kucuk" href="{% url 'ekitap:kitap_duzenle' kitap.pk %}">Düzenle</a>
+                <form method="post" action="{% url 'ekitap:kitap_gorunurluk' kitap.pk %}">{% csrf_token %}
+                    <button class="ek-dugme ek-dugme-ikincil ek-dugme-kucuk" type="submit">{% if kitap.gorunur %}Gizle{% else %}Göster{% endif %}</button>
+                </form>
+                <form method="post" action="{% url 'ekitap:kitap_sil' kitap.pk %}"
+                      onsubmit="return confirm('“{{ kitap.ad|escapejs }}” ve tüm PDF dosyaları kalıcı olarak silinsin mi?');">{% csrf_token %}
+                    <button class="ek-dugme ek-dugme-metin ek-dugme-kucuk ek-dugme-tehlike" type="submit">Sil</button>
+                </form>
+            </div>
+        </article>
+        {% endfor %}
     </section>
+    {% else %}
+    <section class="ek-grup ek-grup-bos">
+        <p class="ek-bos-baslik">Henüz kitap yok</p>
+        <p class="ek-aciklama">İlk deneme kitapçığını yüklemek için “Yeni kitap”a dokunun.</p>
+    </section>
+    {% endif %}
 
-    <section class="ek-kart">
-        <h2>Görüntüleme PIN'i</h2>
-        <p class="ek-alt">
-            {% if pin_tanimli %}PIN tanımlı. Değiştirirseniz açık tahtalar yeni PIN'i ister.{% else %}<strong>PIN henüz yok</strong> — belirleyene kadar görüntüleme sayfası açılmaz.{% endif %}
-            Tahtada açılacak adres: <code>{{ goruntuleme_adresi }}</code>
-        </p>
-        <form method="post" action="{% url 'ekitap:yonetim_pin' %}" class="ek-satir" autocomplete="off">
-            {% csrf_token %}
-            <input class="ek-girdi" type="password" name="pin" inputmode="numeric" pattern="[0-9]{4,12}" placeholder="Yeni PIN (4–12 rakam)" required autocomplete="new-password">
-            <input class="ek-girdi" type="password" name="pin_tekrar" inputmode="numeric" pattern="[0-9]{4,12}" placeholder="PIN tekrar" required autocomplete="new-password">
-            <button class="ek-btn ek-btn-ana" type="submit">PIN'i kaydet</button>
-        </form>
+    <h2 class="ek-grup-baslik">Görüntüleme erişimi</h2>
+    <section class="ek-grup">
+        <div class="ek-grup-satir">
+            <div>
+                <p class="ek-satir-etiket">Tahta adresi</p>
+                <p class="ek-not">Hoca bu adresi tahtada açar ve PIN'i girer.</p>
+            </div>
+            <code class="ek-adres">{{ goruntuleme_adresi }}</code>
+        </div>
+        <div class="ek-grup-satir ek-grup-satir-dikey">
+            <div>
+                <p class="ek-satir-etiket">PIN
+                    <span class="ek-rozet {% if pin_tanimli %}ek-rozet-yesil{% else %}ek-rozet-turuncu{% endif %}">{% if pin_tanimli %}Tanımlı{% else %}Belirlenmedi{% endif %}</span>
+                </p>
+                <p class="ek-not">{% if pin_tanimli %}Değiştirirseniz açık tahtalar yeni PIN'i ister.{% else %}PIN belirlenene kadar kitaplık açılmaz.{% endif %}</p>
+            </div>
+            <form method="post" action="{% url 'ekitap:yonetim_pin' %}" class="ek-pin-form" autocomplete="off">
+                {% csrf_token %}
+                <input class="ek-alan" type="password" name="pin" inputmode="numeric" pattern="[0-9]{4,12}" placeholder="Yeni PIN (4–12 rakam)" required autocomplete="new-password" aria-label="Yeni PIN">
+                <input class="ek-alan" type="password" name="pin_tekrar" inputmode="numeric" pattern="[0-9]{4,12}" placeholder="PIN tekrar" required autocomplete="new-password" aria-label="PIN tekrar">
+                <button class="ek-dugme ek-dugme-ana" type="submit">PIN'i kaydet</button>
+            </form>
+        </div>
     </section>
 </main>
 {% endblock %}

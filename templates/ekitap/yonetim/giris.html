@@ -1,20 +1,24 @@
 {% extends "ekitap/base.html" %}
-{% block title %}E-Kitap · Yönetici girişi{% endblock %}
-{% block body_class %}ek-merkez ek-yonetim{% endblock %}
+{% block title %}Yönetim girişi · E-Kitap{% endblock %}
+{% block tema_rengi %}#F5F5F7{% endblock %}
+{% block body_class %}ek-acik ek-ortala{% endblock %}
 {% block body %}
-<main class="ek-kart ek-giris">
-    <h1>E-Kitap Yönetimi</h1>
+<main class="ek-kilit ek-kilit-acik">
+    {% include "ekitap/_marka.html" with buyuk=True %}
+    <p class="ek-ust-baslik">E-Kitap</p>
+    <h1 class="ek-dev-baslik">Yönetim</h1>
     {% if sifre_tanimli %}
-    <form method="post" autocomplete="off">
+    <form method="post" autocomplete="off" class="ek-kilit-form">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ next }}">
-        <label class="ek-etiket" for="sifre">Yönetici şifresi</label>
-        <input class="ek-girdi" id="sifre" type="password" name="sifre" autocomplete="current-password" autofocus required>
-        {% if hata %}<p class="ek-hata" role="alert">{{ hata }}</p>{% endif %}
-        <button class="ek-btn ek-btn-ana ek-btn-genis" type="submit">Giriş</button>
+        <label class="ek-gizli-etiket" for="sifre">Yönetici şifresi</label>
+        <input class="ek-alan ek-alan-buyuk{% if hata %} ek-alan-hata{% endif %}" id="sifre" type="password" name="sifre"
+               autocomplete="current-password" autofocus required placeholder="Yönetici şifresi" aria-describedby="girisHata">
+        <button class="ek-dugme ek-dugme-ana ek-dugme-blok" type="submit">Giriş yap</button>
+        <p class="ek-form-hata" id="girisHata" role="alert">{% if hata %}{{ hata }}{% endif %}</p>
     </form>
     {% else %}
-    <p class="ek-alt">Yönetim kapalı: sunucuda <code>EKITAP_YONETICI_SIFRE</code> ortam değişkeni tanımlı değil.</p>
+    <p class="ek-aciklama">Yönetim kapalı: sunucuda <code>EKITAP_YONETICI_SIFRE</code> ortam değişkeni tanımlı değil.</p>
     {% endif %}
 </main>
 {% endblock %}

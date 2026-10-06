@@ -1,13 +1,23 @@
 {% extends "ekitap/base.html" %}
-{% block title %}E-Kitap{% endblock %}
+{% block title %}Kitaplık · E-Kitap{% endblock %}
+{% block body_class %}ek-koyu{% endblock %}
 {% block body %}
-<header class="ek-ust">
-    <h1>E-Kitaplar</h1>
-    <form method="post" action="{% url 'ekitap:pin_cikis' %}">{% csrf_token %}
-        <button class="ek-btn ek-btn-hafif" type="submit">Kilitle</button>
-    </form>
+<header class="ek-cubuk ek-cubuk-koyu">
+    <div class="ek-cubuk-ic">
+        <span class="ek-cubuk-marka">{% include "ekitap/_marka.html" %}<span>E-Kitap</span></span>
+        <form method="post" action="{% url 'ekitap:pin_cikis' %}">{% csrf_token %}
+            <button class="ek-dugme ek-dugme-cam" type="submit">
+                <svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+                Kilitle
+            </button>
+        </form>
+    </div>
 </header>
-<main class="ek-icerik">
+<main class="ek-kitaplik">
+    <div class="ek-sayfa-bas">
+        <p class="ek-ust-baslik">Çinili Saray Proje</p>
+        <h1 class="ek-dev-baslik">Kitaplık</h1>
+    </div>
     {% if kitaplar %}
     <ul class="ek-raf">
         {% for kitap in kitaplar %}
@@ -17,12 +27,16 @@
                     {% if kitap.kapak %}<img src="{% url 'ekitap:sayfa_kucuk' kitap.kapak.pk %}" alt="" loading="lazy">{% endif %}
                 </span>
                 <span class="ek-kitap-ad">{{ kitap.ad }}</span>
+                <span class="ek-kitap-bilgi">{{ kitap.bolum_adlari|join:" · " }}</span>
             </a>
         </li>
         {% endfor %}
     </ul>
     {% else %}
-    <p class="ek-bos">Gösterilecek kitap yok.</p>
+    <div class="ek-bos">
+        <p class="ek-bos-baslik">Kitaplık boş</p>
+        <p>Yönetici bir kitap yükleyip görünür yaptığında burada listelenir.</p>
+    </div>
     {% endif %}
 </main>
 {% endblock %}

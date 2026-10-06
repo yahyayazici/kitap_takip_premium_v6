@@ -1,14 +1,25 @@
-<header class="ek-ust">
-    <h1><a href="{% url 'ekitap:yonetim' %}">E-Kitap Yönetimi</a></h1>
-    <div class="ek-ust-sag">
-        <a class="ek-btn ek-btn-hafif" href="{% url 'ekitap:liste' %}" target="_blank" rel="noopener">Görüntüleme sayfası ↗</a>
-        <form method="post" action="{% url 'ekitap:yonetim_cikis' %}">{% csrf_token %}
-            <button class="ek-btn ek-btn-hafif" type="submit">Çıkış</button>
-        </form>
+<header class="ek-cubuk ek-cubuk-acik">
+    <div class="ek-cubuk-ic">
+        <a class="ek-cubuk-marka" href="{% url 'ekitap:yonetim' %}">{% include "ekitap/_marka.html" %}<span>E-Kitap</span><span class="ek-cubuk-alt">Yönetim</span></a>
+        <nav class="ek-cubuk-sag" aria-label="Hesap">
+            <a class="ek-dugme ek-dugme-metin" href="{% url 'ekitap:liste' %}" target="_blank" rel="noopener">
+                Kitaplığı aç
+                <svg class="ek-ikon ek-ikon-kucuk" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>
+            </a>
+            <form method="post" action="{% url 'ekitap:yonetim_cikis' %}">{% csrf_token %}
+                <button class="ek-dugme ek-dugme-ikincil" type="submit">Çıkış yap</button>
+            </form>
+        </nav>
     </div>
 </header>
 {% if messages %}
-<div class="ek-mesajlar">
-    {% for m in messages %}<p class="ek-mesaj ek-mesaj-{{ m.tags }}" role="status">{{ m }}</p>{% endfor %}
+<div class="ek-bildirimler" role="status">
+    {% for m in messages %}
+    <p class="ek-bildirim ek-bildirim-{{ m.tags }}">
+        {% if m.tags == "error" %}<svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></svg>
+        {% else %}<svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 9.8"/></svg>{% endif %}
+        {{ m }}
+    </p>
+    {% endfor %}
 </div>
 {% endif %}
