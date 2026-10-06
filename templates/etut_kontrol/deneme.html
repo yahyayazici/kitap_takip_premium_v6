@@ -1,12 +1,15 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static filter_tags %}
 {% block title %}{{ deneme.ad }} · Etüt Kontrol{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek44">{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek44">
+<link rel="stylesheet" href="{% static 'css/deneme-dil-v2.css' %}?v=dl6">
+{% endblock %}
 {% block content %}
 <div class="ek-page">
   <header class="ek-head">
     <div>
-      <p class="ek-kicker">{{ hoca.ad_soyad }} · {{ deneme.sinav_tarihi|date:"d.m.Y" }}</p>
+      <p class="ek-kicker">{{ hoca.ad_soyad|tr_baslik }} · {{ deneme.sinav_tarihi|date:"d.m.Y" }}</p>
       <h1>{{ deneme.ad }}</h1>
       <p class="ek-desc">
         {{ sinif_ad }} geneli {% if etut_ortalama %}{{ etut_ortalama }}{% else %}—{% endif %}
@@ -41,7 +44,7 @@
       {% for row in siralama %}
       <tr>
         <td>{{ row.sira }}</td>
-        <td><a href="{% url 'etut_kontrol_talebe' hoca.id row.talebe_id %}"><span class="ek-name">{{ row.ad_soyad }}</span></a></td>
+        <td><a href="{% url 'etut_kontrol_talebe' hoca.id row.talebe_id %}"><span class="ek-name">{{ row.ad_soyad|tr_baslik }}</span></a></td>
         <td><span class="ek-badge">{{ row.sinif }}</span></td>
         <td><strong>{% if row.ortalama %}{{ row.ortalama }}%{% else %}—{% endif %}</strong></td>
         <td>{{ row.konu_sayisi }}</td>

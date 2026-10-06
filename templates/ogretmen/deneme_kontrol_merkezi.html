@@ -4,6 +4,7 @@
 {% block extra_css %}
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,560&family=Inter:wght@400;600;700;800&display=swap">
 <link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk51">
+<link rel="stylesheet" href="{% static 'css/deneme-dil-v2.css' %}?v=dl6">
 {% endblock %}
 
 {% block content %}
@@ -41,6 +42,12 @@
             <p class="dk-kirinti">Deneme Kontrol / {{ secili.etiket }} / Sınıf analizi</p>
             <h2 class="dk-grup-baslik">Sınıf analizi</h2>
             <p class="dk-grup-sayi">{{ secili.etiket }}{% if grup.sinif_raporu %} · {{ grup.sinif_raporu.ogrenci }} öğrenci · {{ grup.sinif_raporu.deneme_sayisi }} deneme{% else %} · {{ secili.ogrenci_sayisi }} öğrenci{% endif %}</p>
+            {% elif ekran == 'cisa' %}
+            <p class="dk-altin-etiket">{{ secili.etiket }}</p>
+            <div class="dk-baslik-satir">
+                <h2 class="dk-grup-baslik">ÇİSA</h2>
+                <span class="dk-baslik-italik">raporu</span>
+            </div>
             {% else %}
             <p class="dk-altin-etiket">{{ secili.ogrenci_sayisi }} öğrenci{% if veri.son_deneme %} · {% if veri.son_deneme.goster_sira %}{{ veri.son_deneme.goster_sira }}. Deneme{% elif veri.son_deneme.sira_no %}{{ veri.son_deneme.sira_no }}. Deneme{% else %}{{ veri.son_deneme.ad }}{% endif %}{% endif %}</p>
             <div class="dk-baslik-satir">
@@ -144,7 +151,7 @@
                     {% for talebe in grup.cisa_talebeler %}
                     <li data-ad="{{ talebe.ad_soyad }}">
                         <button class="ghost-btn dk-cisa-talebe" type="submit" name="talebe" value="{{ talebe.id }}">
-                            <span>{{ talebe.ad_soyad }}</span>
+                            <span>{{ talebe.ad_soyad|tr_baslik }}</span>
                             <span class="dk-cisa-git">Rapor</span>
                         </button>
                     </li>
@@ -204,7 +211,7 @@
                     {% for talebe in grup.cisa_talebeler %}
                     <li data-ad="{{ talebe.ad_soyad }}">
                         <button class="ghost-btn dk-cisa-talebe" type="submit" name="talebe" value="{{ talebe.id }}">
-                            <span>{{ talebe.ad_soyad }}</span>
+                            <span>{{ talebe.ad_soyad|tr_baslik }}</span>
                             <span class="dk-cisa-git">Rapor</span>
                         </button>
                     </li>

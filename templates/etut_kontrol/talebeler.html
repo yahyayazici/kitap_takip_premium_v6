@@ -1,13 +1,16 @@
 {% extends "base.html" %}
 {% load static filter_tags %}
 {% block title %}Talebeler · {{ hoca.ad_soyad }}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek44">{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek44">
+<link rel="stylesheet" href="{% static 'css/deneme-dil-v2.css' %}?v=dl7">
+{% endblock %}
 {% block content %}
 <div class="ek-page">
   <header class="ek-head">
     <div>
       <p class="ek-kicker ek-kicker-soft"><i></i> Etüt, talebelerim</p>
-      <h1>{{ hoca.ad_soyad }}</h1>
+      <h1>{{ hoca.ad_soyad|tr_baslik }}</h1>
       <p class="ek-desc">Talebe kutularına gir; puan grafiği ve deneme kazanımlarını gör. Zayıflar öne çıkar.</p>
     </div>
     <div class="ek-actions">
@@ -62,7 +65,7 @@
         <span class="ek-delta">{% if k.fark != None %}{% if k.fark > 0 %}+{% endif %}{{ k.fark|floatformat:0 }} puan{% endif %}</span>
         <span>{{ k.deneme_sayisi }} deneme</span>
       </div>
-      <p class="ek-person-weak">{% if k.zayif_sayisi %}{{ k.zayif_sayisi }} zayıf kazanım{% else %}Zayıf kazanım yok{% endif %}</p>
+      <p class="ek-person-weak{% if not k.zayif_sayisi %} is-ok{% endif %}">{% if k.zayif_sayisi %}{{ k.zayif_sayisi }} zayıf kazanım{% else %}Zayıf kazanım yok{% endif %}</p>
     </a>
     {% endfor %}
   </div>

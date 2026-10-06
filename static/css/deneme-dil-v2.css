@@ -541,7 +541,269 @@ body.v3-body .dk-page .cs-table-wrap {
     body.v3-body .deneme-page .ek-arsiv-form .input,
     body.v3-body .deneme-page .ek-arsiv-form select,
     body.v3-body .ek-page select.input,
-    body.v3-body .deneme-detail-page .pdf-sayfa-sec-select {
+    body.v3-body .ek-page .ek-roster-tools .input,
+    body.v3-body .deneme-detail-page .pdf-sayfa-sec-select,
+    body.v3-body .dk-page .dk-kazanim-ara,
+    body.v3-body .dk-page .dk-kazanim-ders,
+    body.v3-body .dk-page .dk-cisa-ara,
+    body.v3-body .cisa-rapor select,
+    body.v3-body .cisa-rapor input[type="search"] {
         font-size: 16px !important;
     }
+
+    body.v3-body .dk-page .dk-ozet-uc,
+    body.v3-body .dk-page .dk-cisa-iki,
+    body.v3-body .cisa-rapor .cisa-iki {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Kazanım, ÇİSA, sınıf analizi, talebe listesi, etüt deneme detayı */
+body.v3-body .dk-page .dk-grup-baslik,
+body.v3-body .dk-page .dk-panel-head h2,
+body.v3-body .dk-page .dk-cisa > .dk-panel-head h2,
+body.v3-body .dk-page .dk-cisa h3,
+body.v3-body .dk-page .dk-sinif-baslik {
+    font-family: Fraunces, Georgia, serif !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.03em !important;
+    color: var(--dl-navy) !important;
+}
+
+body.v3-body .dk-page .dk-kirinti {
+    color: var(--dl-gold) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase;
+}
+
+body.v3-body .dk-page .dk-ozet-uc {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    border-radius: 0 !important;
+}
+
+body.v3-body .dk-page .dk-ozet-uc .dk-metrik {
+    background: #fff !important;
+    border: 1px solid var(--cs-border) !important;
+    border-radius: 24px !important;
+    box-shadow: var(--dl-card) !important;
+    padding: 18px 20px !important;
+}
+
+body.v3-body .dk-page .dk-metrik-kicker {
+    margin: 0 0 6px;
+    color: var(--dl-gold);
+    font-family: Inter, var(--cs-font), sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+body.v3-body .dk-page .dk-metrik-sayi {
+    font-family: Inter, var(--cs-font), sans-serif !important;
+    font-weight: 800 !important;
+    color: var(--dl-navy);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.04em;
+}
+
+body.v3-body .dk-page .dk-panel,
+body.v3-body .dk-page .dk-sinif-ders {
+    background: #fff;
+    border: 1px solid var(--cs-border);
+    border-radius: 24px;
+    box-shadow: var(--dl-card);
+}
+
+body.v3-body .dk-page .dk-cubuk span {
+    background: linear-gradient(90deg, #1a4fb0, #0a2a5e) !important;
+}
+
+body.v3-body .dk-page .dk-kazanim-tablo th,
+body.v3-body .dk-page .dk-sinif-kayip-tablo th,
+body.v3-body .dk-page .dk-sinif-konu th {
+    font-family: Inter, var(--cs-font), sans-serif !important;
+    color: var(--dl-muted) !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    font-weight: 600 !important;
+}
+
+body.v3-body .dk-page .dk-cisa button.dk-cisa-sinif {
+    background: var(--dl-navy) !important;
+    border-color: var(--dl-navy) !important;
+    border-radius: 999px !important;
+    min-height: var(--cs-touch-min, 44px) !important;
+}
+
+body.v3-body .dk-page .dk-cisa button.ghost-btn.dk-cisa-talebe[type="submit"],
+body.v3-body .dk-page .dk-cisa a.ghost-btn.dk-cisa-talebe,
+body.v3-body .dk-page .dk-cisa-deneme {
+    border-radius: 16px !important;
+}
+
+body.v3-body .dk-page .dk-cisa .dk-cisa-git {
+    color: var(--dl-blue);
+    font-weight: 700;
+}
+
+/* Talebelerim — lacivert dağılım şeridi kalkar */
+body.v3-body .ek-page .ek-roster {
+    background: #fff !important;
+    color: var(--dl-ink) !important;
+    border: 1px solid var(--cs-border);
+    border-bottom: 3px solid var(--dl-gold);
+    border-radius: 24px;
+    box-shadow: var(--dl-card);
+}
+
+body.v3-body .ek-page .ek-roster-stats div {
+    border-left-color: var(--cs-border) !important;
+}
+
+body.v3-body .ek-page .ek-roster-stats span,
+body.v3-body .ek-page .ek-roster-plot-top,
+body.v3-body .ek-page .ek-dots-legend,
+body.v3-body .ek-page .ek-dots-axis {
+    color: var(--dl-muted) !important;
+}
+
+body.v3-body .ek-page .ek-roster-stats b,
+body.v3-body .ek-page .ek-person-score b {
+    font-family: Inter, var(--cs-font), sans-serif !important;
+    font-weight: 800 !important;
+    color: var(--dl-navy) !important;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.04em;
+}
+
+body.v3-body .ek-page .ek-roster-plot {
+    border-top-color: var(--cs-border) !important;
+}
+
+body.v3-body .ek-page .ek-dots i {
+    background: var(--dl-navy);
+}
+
+body.v3-body .ek-page .ek-dots i.is-hot {
+    background: var(--dl-down);
+}
+
+body.v3-body .ek-page .ek-dots b {
+    border-left-color: var(--dl-gold);
+}
+
+body.v3-body .ek-page .ek-dots b::after {
+    color: var(--dl-gold) !important;
+}
+
+body.v3-body .ek-page .ek-dots-axis {
+    border-top-color: var(--cs-border) !important;
+}
+
+body.v3-body .ek-page .ek-dots-legend span::before {
+    background: var(--dl-navy);
+}
+
+body.v3-body .ek-page .ek-dots-legend .is-hot::before {
+    background: var(--dl-down);
+}
+
+body.v3-body .ek-page .ek-person {
+    border-radius: 24px;
+    box-shadow: var(--dl-card);
+    border: 1px solid var(--cs-border);
+    background: #fff;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+body.v3-body .ek-page .ek-person:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 36px rgba(15, 26, 46, 0.1);
+}
+
+body.v3-body .ek-page .ek-person.is-hot {
+    background: #fff8f6;
+    border-color: #f3d4d0;
+}
+
+body.v3-body .ek-page .ek-avatar {
+    background: #e8eefb;
+    color: var(--dl-navy);
+}
+
+body.v3-body .ek-page .ek-spark {
+    color: var(--dl-blue);
+}
+
+body.v3-body .ek-page .ek-person .ek-delta.is-down {
+    color: var(--dl-down);
+}
+
+body.v3-body .ek-page .ek-person-weak.is-ok {
+    color: var(--dl-muted);
+}
+
+body.v3-body .ek-page .ek-person-weak.is-ok::before {
+    background: var(--dl-muted);
+}
+
+body.v3-body .ek-page .ek-roster-tools .input,
+body.v3-body .ek-page .ek-sort select {
+    min-height: var(--cs-input-h, 44px);
+    border-radius: 999px;
+    border: 1px solid var(--cs-border);
+    background: #fff;
+}
+
+/* ÇİSA rapor sayfası */
+body.v3-body .cisa-rapor {
+    --dl-navy: #0a2a5e;
+    --dl-gold: #c49a3c;
+    --dl-ink: #0f1a2e;
+    --dl-card: 0 10px 30px rgba(15, 26, 46, 0.06);
+    font-family: Inter, var(--cs-font), sans-serif;
+    color: var(--dl-ink);
+}
+
+body.v3-body .cisa-rapor .cisa-baslik p {
+    color: var(--dl-gold) !important;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+body.v3-body .cisa-rapor .cisa-baslik h1,
+body.v3-body .cisa-rapor .cisa-kart-ust h2 {
+    font-family: Fraunces, Georgia, serif !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.03em !important;
+    color: var(--dl-navy) !important;
+}
+
+body.v3-body .cisa-rapor .cisa-kart {
+    border-radius: 24px;
+    box-shadow: var(--dl-card);
+}
+
+body.v3-body .cisa-rapor .cisa-geri {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--cs-touch-min, 44px);
+    color: var(--dl-navy);
+}
+
+body.v3-body .cisa-rapor button.cisa-indir,
+body.v3-body .cisa-rapor button.cisa-pdf {
+    background: var(--dl-navy) !important;
+    border-color: var(--dl-navy) !important;
+    border-radius: 999px !important;
+    min-height: var(--cs-touch-min, 44px) !important;
 }

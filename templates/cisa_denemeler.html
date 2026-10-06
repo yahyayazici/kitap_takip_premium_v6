@@ -1,9 +1,10 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static filter_tags %}
 
 {% block title %}ÇİSA{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek51">
+<link rel="stylesheet" href="{% static 'css/deneme-dil-v2.css' %}?v=dl6">
 {% endblock %}
 
 {% block content %}
@@ -97,7 +98,7 @@
                     {% for talebe in grup.talebeler %}
                     <li class="cisa-talebe-satir cisa-ogrenci" data-ad="{{ talebe.ad_soyad }}">
                         <span>
-                            <strong>{{ talebe.ad_soyad }}</strong>
+                            <strong>{{ talebe.ad_soyad|tr_baslik }}</strong>
                             <small>Seçili denemelerin raporu</small>
                         </span>
                         <button class="ghost-btn cisa-pdf" type="submit" name="talebe" value="{{ talebe.id }}">PDF indir</button>
