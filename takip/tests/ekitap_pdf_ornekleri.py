@@ -212,3 +212,87 @@ def taranmis_pdf(sayfa: int = 2) -> bytes:
         c.showPage()
     c.save()
     return tampon.getvalue()
+
+
+def karisik_duzen_pdf() -> bytes:
+    """Gerçek kitapçıktaki düzen: numaralar sütunun en kenarında, dar oluk.
+
+    1. sayfa sütun sütun okunur (1, 2 solda; 3 sağda, uzun).
+    2. sayfa satır satır okunur (4 | 5 üstte, yatay çizgi, 6 | 7 altta).
+    Üstte numaralı yönergeler ("1. Bu testte 20 soru vardır."), altta
+    "1. Deneme · Sayısal Bölüm" alt bilgisi vardır; ikisi de soru değildir.
+    Şıklar daire içinde harf olarak çizilir ("A)" yazısı yoktur).
+    """
+    from reportlab.pdfgen import canvas
+
+    tampon = io.BytesIO()
+    c = canvas.Canvas(tampon, pagesize=(A4_G, A4_Y))
+    NX = (22, 22 + A4_G / 2)  # numara x
+    TX = (44, 44 + A4_G / 2)  # metin x
+
+    def bant(sayfa_no):
+        c.setFillColorRGB(0.95, 0.96, 0.98)
+        c.rect(0, A4_Y - 40, A4_G, 40, fill=1, stroke=0)
+        c.setFillColorRGB(0.1, 0.15, 0.35)
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(22, A4_Y - 22, "Cinili Saray Ogrenci Yurdu")
+        c.setFont("Helvetica", 8)
+        c.drawString(22, A4_Y - 32, "7. Sinif Kurumsal Deneme - 1. Deneme")
+        c.drawRightString(A4_G - 22, A4_Y - 24, "Matematik")
+        c.setFillColorRGB(0, 0, 0)
+        c.setFont("Helvetica", 7)
+        c.drawString(22, 24, "1. Deneme - Sayisal Bolum")
+        c.drawCentredString(A4_G / 2, 24, str(sayfa_no))
+        c.drawRightString(A4_G - 22, 24, "A Kitapcigi")
+        c.setStrokeColorRGB(0.8, 0.8, 0.8)
+        c.line(A4_G / 2, 50, A4_G / 2, A4_Y - 60)
+
+    def soru(sutun, y, no, satir=4, sekil=False):
+        c.setFillColorRGB(0.1, 0.3, 0.7)
+        c.setFont("Helvetica-Bold", 13)
+        c.drawString(NX[sutun], y, f"{no}.")
+        c.setFillColorRGB(0, 0, 0)
+        c.setFont("Helvetica", 9)
+        yy = y
+        for i in range(satir):
+            c.drawString(TX[sutun], yy, "Ece sinifta oynanan oyunda kartlari sececektir. Kartlar"[: 46 + i % 3])
+            yy -= 13
+        if sekil:
+            c.rect(TX[sutun] + 10, yy - 70, 200, 62)
+            yy -= 80
+        c.setFont("Helvetica-Bold", 9)
+        c.drawString(TX[sutun], yy, "Buna gore hangisi dogrudur?")
+        yy -= 18
+        c.setFont("Helvetica", 9)
+        for i, harf in enumerate("ABCD"):
+            x = TX[sutun] + (i % 2) * 120
+            if i == 2:
+                yy -= 18
+            c.circle(x + 5, yy + 3, 6)
+            c.drawCentredString(x + 5, yy, harf)
+            c.drawString(x + 16, yy, f"secenek {harf.lower()}")
+        return yy
+
+    # 1. sayfa: sütun sütun
+    bant(2)
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(22, A4_Y - 78, "MATEMATIK")
+    c.setFont("Helvetica", 7)
+    c.drawRightString(A4_G / 2 - 12, A4_Y - 70, "1. Bu testte 20 soru vardir.")
+    c.drawRightString(A4_G / 2 - 12, A4_Y - 80, "2. Cevaplarinizi cevap kagidina isaretleyiniz.")
+    soru(0, A4_Y - 120, 1, satir=3)
+    c.line(14, A4_Y / 2 + 20, A4_G / 2 - 10, A4_Y / 2 + 20)
+    soru(0, A4_Y / 2, 2, satir=4, sekil=True)
+    soru(1, A4_Y - 120, 3, satir=4, sekil=True)
+    c.showPage()
+
+    # 2. sayfa: satır satır
+    bant(3)
+    soru(0, A4_Y - 80, 4, satir=7, sekil=True)
+    soru(1, A4_Y - 80, 5, satir=2, sekil=True)
+    c.line(14, A4_Y / 2 + 30, A4_G - 14, A4_Y / 2 + 30)
+    soru(0, A4_Y / 2, 6, satir=3, sekil=True)
+    soru(1, A4_Y / 2, 7, satir=2)
+    c.showPage()
+    c.save()
+    return tampon.getvalue()

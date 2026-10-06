@@ -76,17 +76,25 @@
     }
 
     // —— Büyüteç rozetleri ————————————————————————————————————————————————
-    var ROZET_GENISLIK = 0.075; // sayfa genişliğine oran (dokunma alanı)
+    var ROZET_TAHMINI_CAP = 0.022; // rozet konumu bilinmeyen (elle eklenmiş) sorular için
+    var DOKUNMA_KATI = 2.4; // dokunma alanı = simge çapı × bu kat (saydam)
 
     function rozetleriEkle(div, bolum, sayfaIndeksi, sayfa) {
         (bolum.sorular || []).forEach(function (soru) {
             var ilk = soru.alanlar[0];
             if (!ilk || ilk.s !== sayfaIndeksi) return;
-            var oran = sayfa.h ? sayfa.w / sayfa.h : 0.707;
-            // Rozet numaranın soluna, numara satırının ortasına oturur; metni kapatmaz.
-            var sol = Math.max(ilk.k[0] + 0.004, ROZET_GENISLIK + 0.002);
-            var ust = ilk.k[1] + 0.017;
-            ust = Math.max(ust, ROZET_GENISLIK * oran / 2);
+            // Sunucu rozeti numaranın yanındaki boşluğa (yoksa üstüne) yerleştirir:
+            // r = [simgenin sağ kenarı x, merkez y, çap]. Yoksa alanın sol üstünden tahmin.
+            var cap, mx, my;
+            if (soru.r) {
+                cap = soru.r[2];
+                mx = soru.r[0] - cap / 2;
+                my = soru.r[1];
+            } else {
+                cap = ROZET_TAHMINI_CAP;
+                mx = Math.max(ilk.k[0] + 0.01 - cap / 2, cap / 2 + 0.002);
+                my = ilk.k[1] + 0.017;
+            }
             var btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'ek-buyutec';
@@ -94,9 +102,9 @@
             btn.setAttribute('data-soru', String(soru.id));
             btn.setAttribute('aria-label', soru.no + '. soruyu büyüt');
             btn.title = soru.no + '. soruyu büyüt';
-            btn.style.left = (sol * 100) + '%';
-            btn.style.top = (ust * 100) + '%';
-            btn.style.width = (ROZET_GENISLIK * 100) + '%';
+            btn.style.left = (mx * 100) + '%';
+            btn.style.top = (my * 100) + '%';
+            btn.style.width = (cap * DOKUNMA_KATI * 100) + '%';
             btn.innerHTML = '<span class="ek-buyutec-ic" aria-hidden="true"><svg viewBox="0 0 24 24">' +
                 '<circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></svg></span>';
             div.appendChild(btn);

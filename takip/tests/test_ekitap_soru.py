@@ -24,7 +24,7 @@ from takip.ekitap_models import (
     EKitapSoruAlan,
 )
 from takip.ekitap_soru_tespit import tespit_et
-from takip.tests.ekitap_pdf_ornekleri import deneme_pdf, taranmis_pdf
+from takip.tests.ekitap_pdf_ornekleri import deneme_pdf, karisik_duzen_pdf, taranmis_pdf
 from takip.tests.test_ekitap import EKitapTestBase
 
 
@@ -520,3 +520,63 @@ class DersAkisiTests(EKitapTestBase):
             f.name for f in EKitapDersAkisiSoru._meta.get_fields()
         }
         self.assertEqual(alanlar, {"id", "kitap", "ad", "olusturulma", "guncellenme", "ogeler", "akis", "soru", "sira"})
+
+
+
+class KarisikDuzenTests(EKitapTestBase):
+    """Gerçek kitapçık düzeni: kenardaki numaralar, dar oluk, satır/sütun karışık sayfalar."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.sonuc = tespit_et(_belge(karisik_duzen_pdf()), ocr=False)
+
+    def test_satir_duzenli_sayfada_tum_sorular_sirali(self):
+        self.assertEqual([(q.test_no, q.no) for q in self.sonuc.sorular], [(1, n) for n in range(1, 8)])
+        self.assertEqual(self.sonuc.duzenler[1][0], "satir")
+        self.assertNotIn(0, self.sonuc.duzenler)  # 1. sayfa sütun düzeninde
+        # Yönergelerdeki "1." "2." ve alt bilgideki "1. Deneme" soru sayılmaz; uyarı yok
+        self.assertTrue(all(not b.notlar for b in self.sonuc.sayfalar.values()))
+        # 5. soru kendi alanına sahip; 6. soruya devam olarak eklenmez
+        self.assertEqual(len(self.sonuc.sorular[5].alanlar), 1)
+
+    def test_ayirici_cizgi_soru_alanina_girmez(self):
+        s1, s2 = self.sonuc.sorular[0], self.sonuc.sorular[1]
+        self.assertLess(s1.alanlar[0][1].y1, 0.3)  # 1. soru şıklarında biter, yatay çizgiye uzanmaz
+        self.assertLess(s1.alanlar[0][1].x1, 0.5)
+
+    def test_rozet_numarayi_ve_yan_sutunu_ortmez(self):
+        for q in self.sonuc.sorular:
+            sag, merkez_y, cap = q.rozet
+            sol = sag - cap
+            numara = q.numara_kutusu
+            self.assertLessEqual(sag, numara.x0, q.no)  # numaranın solunda
+            self.assertGreaterEqual(sol, 0.0, q.no)
+            self.assertTrue(numara.y0 <= merkez_y <= numara.y1, q.no)  # numara satırında
+            self.assertGreaterEqual(cap, 0.016)
+            if numara.x0 > 0.5:
+                self.assertGreater(sol, 0.5, q.no)  # sütun ayırıcıyı ve sol sütunu geçmez
+
+    def test_okuyucu_verisinde_rozet_ve_rozetsiz_komutu(self):
+        self.yonetici_giris()
+        self.post("/yonetim/pin/", {"pin": "2468", "pin_tekrar": "2468"})
+        self.post("/yonetim/kitap/yeni/", {
+            "ad": "Karışık", "gorunur": "on", "yeni_ad_0": "Sayısal",
+            "yeni_pdf_0": SimpleUploadedFile("k.pdf", karisik_duzen_pdf(), content_type="application/pdf"),
+        })
+        kitap = EKitap.objects.get()
+        r = self.get(f"/kitap/{kitap.pk}/")
+        veri = json.loads(r.content.decode().split('id="ekitapVeri" type="application/json">')[1].split("</script>")[0])
+        self.assertEqual(len(veri[0]["sorular"]), 7)
+        self.assertTrue(all(len(q["r"]) == 3 for q in veri[0]["sorular"]))
+        # Eski sürümle bulunmuş (rozetsiz) sorular komutla güncellenir, kimlikler korunur
+        kimlikler = list(EKitapSoru.objects.order_by("sira").values_list("pk", flat=True))
+        EKitapSoru.objects.update(rozet_x=None, rozet_y=None, rozet_cap=None)
+        cikti = io.StringIO()
+        call_command("ekitap_sorulari_bul", "--eksik", "--rozetsiz", stdout=cikti)
+        self.assertIn("7 soru", cikti.getvalue())
+        self.assertFalse(EKitapSoru.objects.filter(rozet_x__isnull=True).exists())
+        self.assertEqual(kimlikler, list(EKitapSoru.objects.order_by("sira").values_list("pk", flat=True)))
+        cikti = io.StringIO()
+        call_command("ekitap_sorulari_bul", "--eksik", "--rozetsiz", stdout=cikti)
+        self.assertIn("İşlenecek bölüm yok", cikti.getvalue())
