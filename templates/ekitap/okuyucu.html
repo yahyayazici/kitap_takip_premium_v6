@@ -4,48 +4,69 @@
 {% block head %}
 <link rel="stylesheet" href="{% static 'ekitap/vendor/page-flip-2.0.7.css' %}">
 {% endblock %}
-{% block body_class %}ek-okuyucu-sayfa{% endblock %}
+{% block body_class %}ek-koyu ek-okuyucu-sayfa{% endblock %}
 {% block body %}
 <div class="ek-okuyucu" id="okuyucu">
-    <header class="ek-arac">
-        <a class="ek-btn ek-btn-hafif" href="{% url 'ekitap:liste' %}" aria-label="Kitap listesine dön">‹ Kitaplar</a>
-        <h1 class="ek-arac-baslik">{{ kitap.ad }}{% if yonetici_onizleme %} <small>(gizli · önizleme)</small>{% endif %}</h1>
+    <header class="ek-arac ek-cam" aria-label="Kitap araçları">
+        <div class="ek-arac-sol">
+            <a class="ek-yuvarlak" href="{% url 'ekitap:liste' %}" aria-label="Kitaplığa dön" title="Kitaplığa dön">
+                <svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+            </a>
+            <h1 class="ek-arac-baslik">{{ kitap.ad }}{% if yonetici_onizleme %} <span class="ek-etiket-onizleme">gizli · önizleme</span>{% endif %}</h1>
+        </div>
         {% if bolumler|length > 1 %}
-        <nav class="ek-sekmeler" role="tablist" aria-label="Bölümler">
+        <nav class="ek-segment" role="tablist" aria-label="Bölümler">
             {% for b in bolumler %}
             <button type="button" class="ek-sekme" role="tab" data-bolum="{{ forloop.counter0 }}"
                     aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">{{ b.ad }}</button>
             {% endfor %}
         </nav>
         {% endif %}
-        <form class="ek-sayfa-git" id="sayfaGit" autocomplete="off">
-            <label for="sayfaNo">Sayfa</label>
-            <input id="sayfaNo" type="number" inputmode="numeric" min="1" value="1">
-            <span id="sayfaToplam">/ –</span>
-            <button class="ek-btn" type="submit">Git</button>
-        </form>
-        <div class="ek-zoom" role="group" aria-label="Yakınlaştırma">
-            <button class="ek-btn ek-btn-kare" type="button" id="zoomAz" aria-label="Uzaklaştır">−</button>
-            <button class="ek-btn ek-zoom-oran" type="button" id="zoomSifirla" title="Yakınlaştırmayı sıfırla">%100</button>
-            <button class="ek-btn ek-btn-kare" type="button" id="zoomCok" aria-label="Yakınlaştır">+</button>
+        <div class="ek-arac-sag">
+            <div class="ek-zoom" role="group" aria-label="Yakınlaştırma">
+                <button class="ek-yuvarlak" type="button" id="zoomAz" aria-label="Uzaklaştır" title="Uzaklaştır (−)">
+                    <svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg>
+                </button>
+                <button class="ek-zoom-oran" type="button" id="zoomSifirla" title="Yakınlaştırmayı sıfırla (0)">%100</button>
+                <button class="ek-yuvarlak" type="button" id="zoomCok" aria-label="Yakınlaştır" title="Yakınlaştır (+)">
+                    <svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12M12 6v12"/></svg>
+                </button>
+            </div>
+            <button class="ek-yuvarlak ek-yuvarlak-vurgu" type="button" id="tamEkran" aria-label="Tam ekran" title="Tam ekran (F)">
+                <svg class="ek-ikon ek-ikon-ac" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+                <svg class="ek-ikon ek-ikon-kapat" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>
+            </button>
         </div>
-        <button class="ek-btn ek-btn-ana" type="button" id="tamEkran">⛶ Tam ekran</button>
     </header>
 
     <main class="ek-sahne" id="sahne">
-        <button class="ek-yan ek-yan-sol" type="button" id="oncekiSayfa" aria-label="Önceki sayfa">‹</button>
         <div class="ek-tuval" id="tuval">
             <div class="ek-zoom-katman" id="zoomKatman">
                 <div class="ek-kitap" id="kitap"></div>
             </div>
         </div>
-        <button class="ek-yan ek-yan-sag" type="button" id="sonrakiSayfa" aria-label="Sonraki sayfa">›</button>
-        <p class="ek-ipucu" id="ipucu">Sayfayı çevirmek için köşeden sürükleyin · Yakınlaştırmak için iki parmakla açın</p>
+        <button class="ek-yan ek-yan-sol" type="button" id="oncekiSayfa" aria-label="Önceki sayfa">
+            <svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4l-8 8 8 8"/></svg>
+        </button>
+        <button class="ek-yan ek-yan-sag" type="button" id="sonrakiSayfa" aria-label="Sonraki sayfa">
+            <svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4l8 8-8 8"/></svg>
+        </button>
+        <p class="ek-ipucu" id="ipucu">Köşeden sürükleyerek sayfa çevirin · İki parmakla yakınlaştırın</p>
     </main>
+
+    <footer class="ek-alt-kapsul ek-cam">
+        <form class="ek-sayfa-git" id="sayfaGit" autocomplete="off">
+            <label for="sayfaNo">Sayfa</label>
+            <input id="sayfaNo" type="number" inputmode="numeric" min="1" value="1">
+            <span id="sayfaToplam" class="ek-sayfa-toplam">/ –</span>
+            <button class="ek-git" type="submit">Git</button>
+        </form>
+        <div class="ek-ilerleme" aria-hidden="true"><span id="ilerleme"></span></div>
+    </footer>
 </div>
 {{ veri|json_script:"ekitapVeri" }}
 {% endblock %}
 {% block scripts %}
 <script src="{% static 'ekitap/vendor/page-flip-2.0.7.browser.js' %}"></script>
-<script src="{% static 'ekitap/okuyucu.js' %}?v=1"></script>
+<script src="{% static 'ekitap/okuyucu.js' %}?v=2"></script>
 {% endblock %}

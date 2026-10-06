@@ -17,6 +17,7 @@
     var sayfaToplam = document.getElementById('sayfaToplam');
     var zoomOran = document.getElementById('zoomSifirla');
     var tamEkranBtn = document.getElementById('tamEkran');
+    var ilerleme = document.getElementById('ilerleme');
     var sekmeler = Array.prototype.slice.call(document.querySelectorAll('.ek-sekme'));
 
     var MIN_ZOOM = 1;
@@ -158,8 +159,15 @@
     }
 
     function gostergeyiGuncelle() {
+        var no = mevcutSayfa() + 1;
         if (document.activeElement !== sayfaNo) {
-            sayfaNo.value = String(mevcutSayfa() + 1);
+            sayfaNo.value = String(no);
+        }
+        if (ilerleme) {
+            var toplam = Math.max(sayfaSayisi(), 1);
+            // Açık kitapta görünen sağ sayfa da okunmuş sayılır.
+            var gorunen = yatay && no > 1 ? Math.min(no + 1, toplam) : no;
+            ilerleme.style.width = (toplam > 1 ? (gorunen / toplam) * 100 : 100) + '%';
         }
     }
 
@@ -378,7 +386,10 @@
     }
 
     function tamEkranDugmesi() {
-        tamEkranBtn.textContent = tamEkrandaMi() ? '✕ Tam ekrandan çık' : '⛶ Tam ekran';
+        var tam = tamEkrandaMi();
+        okuyucu.classList.toggle('ek-tam-ekran', tam);
+        tamEkranBtn.setAttribute('aria-label', tam ? 'Tam ekrandan çık' : 'Tam ekran');
+        tamEkranBtn.title = tam ? 'Tam ekrandan çık (F)' : 'Tam ekran (F)';
     }
 
     if (!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen)) {
