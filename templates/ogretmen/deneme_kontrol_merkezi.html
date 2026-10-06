@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% load l10n static deneme_panel %}
+{% load l10n static deneme_panel filter_tags %}
 {% block title %}Deneme Kontrol Merkezi{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk46">
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk49">
 {% endblock %}
 
 {% block content %}
@@ -374,12 +374,15 @@
     </article>
     <article class="dk-metrik">
         <p class="dk-metrik-kicker">Öğrenci gelişimi</p>
-        <p class="dk-gelisim-satir">
-            <strong class="pos">{{ veri.yukselen }}</strong> Yükselen
-            <span aria-hidden="true">·</span>
-            <strong class="neg">{{ veri.dusen }}</strong> Düşen
-            <span aria-hidden="true">·</span>
-            <strong>{{ veri.sabit }}</strong> Sabit
+        <div class="dk-gelisim-bar" aria-hidden="true">
+            <span class="pos" style="flex-grow: {{ veri.yukselen }}"></span>
+            <span class="neg" style="flex-grow: {{ veri.dusen }}"></span>
+            <span class="sabit" style="flex-grow: {{ veri.sabit }}"></span>
+        </div>
+        <p class="dk-gelisim-lejant">
+            <span><i class="pos"></i><strong>{{ veri.yukselen }}</strong> Yükselen</span>
+            <span><i class="neg"></i><strong>{{ veri.dusen }}</strong> Düşen</span>
+            <span><i class="sabit"></i><strong>{{ veri.sabit }}</strong> Sabit</span>
         </p>
     </article>
     <article class="dk-metrik">
@@ -392,29 +395,28 @@
 <div class="dk-split">
     <section class="dk-panel" id="dk-oncelik-{{ forloop.counter }}">
         <header class="dk-panel-head">
-            <h2>Öncelikli takip</h2>
+            <div>
+                <h2>Öncelikli takip</h2>
+                <p class="dk-note">Puanı belirgin düşen öğrenciler</p>
+            </div>
             <span class="dk-sayac{% if not veri.takip_gereken %} sakin{% endif %}">{{ veri.takip_gereken }} öğrenci</span>
         </header>
         {% if veri.oncelikli_takip %}
-        <div class="cs-table-wrap">
-            <table class="dk-table dk-oncelik-tablo">
-                <thead>
-                    <tr><th>Öğrenci</th><th>Durum</th><th>İşlem</th></tr>
-                </thead>
-                <tbody>
-                    {% for satir in veri.oncelikli_takip %}
-                    <tr>
-                        <td>
-                            <div class="dk-ogrenci-ad"><span>{{ forloop.counter|stringformat:"02d" }}</span>{{ satir.talebe.ad_soyad }}</div>
-                            {% for s in satir.sinyaller %}<div class="dk-oncelik-sinyal">{{ s }}</div>{% endfor %}
-                        </td>
-                        <td><span class="dk-durum-rozet{% if satir.kritik %} kritik{% endif %}">{% if satir.kritik %}Kritik{% else %}Takip gerekiyor{% endif %}</span></td>
-                        <td><a class="dk-incele" href="{% url 'ogretmen_deneme_kontrol_ogrenci_detay' satir.talebe.sinif_sube_id satir.talebe.id %}">İncele</a></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        <ul class="dk-oncelik-liste">
+            {% for satir in veri.oncelikli_takip %}
+            <li>
+                <a class="dk-oncelik-satir" href="{% url 'ogretmen_deneme_kontrol_ogrenci_detay' satir.talebe.sinif_sube_id satir.talebe.id %}">
+                    <span class="dk-avatar" aria-hidden="true">{{ satir.talebe.ad_soyad|harf_avatar }}</span>
+                    <span class="dk-oncelik-yazi">
+                        <strong>{{ satir.talebe.ad_soyad|tr_baslik }}</strong>
+                        {% if satir.sinyaller %}<small>{{ satir.sinyaller|join:" " }}</small>{% endif %}
+                    </span>
+                    <span class="dk-durum-rozet{% if satir.kritik %} kritik{% endif %}">{% if satir.kritik %}Kritik{% else %}Takip{% endif %}</span>
+                    <span class="dk-ok" aria-hidden="true"></span>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
         {% else %}
         <div class="dk-oncelik-bos">
             <span class="dk-onay" aria-hidden="true"></span>
@@ -430,7 +432,7 @@
                 <h2>Nokta atışı</h2>
                 <p class="dk-note">Ders, kazanım ve sınıf bazında inceleme</p>
             </div>
-            <a class="dk-metrik-link" href="#dk-nokta-{{ forloop.counter }}" onclick="document.getElementById('dk-nokta-{{ forloop.counter }}').open=true">Analizi aç →</a>
+            <a class="dk-metrik-link" href="#dk-nokta-{{ forloop.counter }}" onclick="document.getElementById('dk-nokta-{{ forloop.counter }}').open=true">Analizi aç</a>
         </header>
         <div class="dk-nokta-kutular">
             <a class="dk-menu-satir" href="#dk-nokta-{{ forloop.counter }}" onclick="document.getElementById('dk-nokta-{{ forloop.counter }}').open=true">
@@ -503,8 +505,13 @@
     {% if veri.yukselis_satirlari %}
     <div class="dk-yukselis-araclar">
         <input type="search" class="dk-yukselis-ara" placeholder="Öğrenci ara..." aria-label="Öğrenci ara" autocomplete="off">
-        <select class="dk-yukselis-sirala" aria-label="Sıralama">
-            <option value="yukselis">Yükselişe göre</option>
+        <div class="dk-seg" role="group" aria-label="Sıralama">
+            <button type="button" class="is-active" data-dk-sira-mod="yukselis" aria-pressed="true">Yükseliş</button>
+            <button type="button" data-dk-sira-mod="son" aria-pressed="false">Son puan</button>
+            <button type="button" data-dk-sira-mod="isim" aria-pressed="false">Ad</button>
+        </div>
+        <select class="dk-yukselis-sirala" hidden aria-hidden="true" tabindex="-1">
+            <option value="yukselis" selected>Yükselişe göre</option>
             <option value="isim">İsme göre</option>
             <option value="son">Son puana göre</option>
         </select>
@@ -515,25 +522,36 @@
                 <tr>
                     <th>Sıra</th>
                     <th>Öğrenci</th>
-                    <th class="n">Önceki puan</th>
-                    <th class="n">Son puan</th>
-                    <th class="n">Yükseliş</th>
-                    <th class="n">İşlem</th>
+                    <th>Önceki → Son</th>
+                    <th>Değişim</th>
+                    <th class="n">Fark</th>
+                    <th class="dk-islem-baslik"><span class="dk-sr">İşlem</span></th>
                 </tr>
             </thead>
             <tbody>
                 {% for satir in veri.yukselis_satirlari %}
                 <tr class="dk-row" data-ad="{{ satir.talebe.ad_soyad }}" data-yukselis="{% if satir.metrikler and satir.metrikler.son2_degisim is not None %}{{ satir.metrikler.son2_degisim|unlocalize }}{% endif %}" data-son="{% if satir.son_puan is not None %}{{ satir.son_puan|unlocalize }}{% endif %}" onclick="location.href='{% url 'ogretmen_deneme_kontrol_ogrenci_detay' satir.talebe.sinif_sube_id satir.talebe.id %}'">
-                    <td data-dk-sira>{{ forloop.counter }}</td>
-                    <td>{{ satir.talebe.ad_soyad }}</td>
-                    <td class="n">{% if satir.metrikler and satir.metrikler.onceki_puan is not None %}{{ satir.metrikler.onceki_puan|floatformat:1 }}{% else %}—{% endif %}</td>
-                    <td class="n">{% if satir.son_puan is not None %}{{ satir.son_puan|floatformat:1 }}{% else %}—{% endif %}</td>
-                    <td class="n">
-                        {% if satir.metrikler and satir.metrikler.son2_degisim is not None %}
-                        <span class="{% if satir.metrikler.son2_degisim > 0 %}pos{% elif satir.metrikler.son2_degisim < 0 %}neg{% endif %}">{% if satir.metrikler.son2_degisim > 0 %}↑ +{% elif satir.metrikler.son2_degisim < 0 %}↓ {% endif %}{{ satir.metrikler.son2_degisim|floatformat:1 }}</span>
-                        {% else %}—{% endif %}
+                    <td class="dk-sira" data-dk-sira>{{ forloop.counter }}</td>
+                    <td>
+                        <div class="dk-kisi">
+                            <span class="dk-avatar" aria-hidden="true">{{ satir.talebe.ad_soyad|harf_avatar }}</span>
+                            <span class="dk-kisi-ad">{{ satir.talebe.ad_soyad|tr_baslik }}</span>
+                        </div>
                     </td>
-                    <td class="n dk-islem">
+                    <td class="dk-puan-cift">
+                        <span>{% if satir.metrikler and satir.metrikler.onceki_puan is not None %}{{ satir.metrikler.onceki_puan|floatformat:1 }}{% else %}—{% endif %}</span>
+                        <span class="dk-puan-ok" aria-hidden="true">→</span>
+                        <strong>{% if satir.son_puan is not None %}{{ satir.son_puan|floatformat:1 }}{% else %}—{% endif %}</strong>
+                    </td>
+                    <td class="dk-degisim">
+                        <span class="dk-cubuk-iz" aria-hidden="true"><span data-dk-cubuk class="{% if satir.metrikler and satir.metrikler.son2_degisim > 0 %}pos{% elif satir.metrikler and satir.metrikler.son2_degisim < 0 %}neg{% endif %}"></span></span>
+                    </td>
+                    <td class="n dk-fark">
+                        {% if satir.metrikler and satir.metrikler.son2_degisim is not None %}
+                        <span class="dk-fark-rozet {% if satir.metrikler.son2_degisim > 0 %}pos{% elif satir.metrikler.son2_degisim < 0 %}neg{% endif %}">{% if satir.metrikler.son2_degisim > 0 %}+{% endif %}{{ satir.metrikler.son2_degisim|floatformat:1 }}</span>
+                        {% else %}<span class="dk-fark-rozet">—</span>{% endif %}
+                    </td>
+                    <td class="dk-islem">
                         <span class="dk-ok" aria-hidden="true"></span>
                     </td>
                 </tr>
@@ -638,8 +656,43 @@
             });
             if (sayac) sayac.textContent = n + " öğrenci";
         }
+        function cubuklari(satirlar) {
+            var max = 0;
+            satirlar.forEach(function (tr) {
+                var y = sayi(tr, "data-yukselis");
+                if (y !== null) max = Math.max(max, Math.abs(y));
+            });
+            satirlar.forEach(function (tr) {
+                var cubuk = tr.querySelector("[data-dk-cubuk]");
+                if (!cubuk) return;
+                var y = sayi(tr, "data-yukselis");
+                if (y === null || max === 0) {
+                    cubuk.style.width = "0";
+                    return;
+                }
+                cubuk.style.width = Math.max(8, Math.round((Math.abs(y) / max) * 100)) + "%";
+            });
+        }
+        var eskiUygula = uygula;
+        uygula = function () {
+            eskiUygula();
+            cubuklari(Array.prototype.slice.call(govde.querySelectorAll("tr")));
+        };
+        kok.querySelectorAll("[data-dk-sira-mod]").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                var mod = btn.getAttribute("data-dk-sira-mod");
+                if (sirala.value !== mod) sirala.value = mod;
+                kok.querySelectorAll("[data-dk-sira-mod]").forEach(function (diger) {
+                    var secili = diger === btn;
+                    diger.classList.toggle("is-active", secili);
+                    diger.setAttribute("aria-pressed", secili ? "true" : "false");
+                });
+                uygula();
+            });
+        });
         ara.addEventListener("input", uygula);
         sirala.addEventListener("change", uygula);
+        uygula();
     });
 })();
 </script>

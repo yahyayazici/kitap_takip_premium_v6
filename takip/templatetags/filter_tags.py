@@ -27,6 +27,21 @@ def tr_baslik_filtre(value) -> str:
     return tr_baslik(value)
 
 
+def harf_avatar(value) -> str:
+    """Adın ilk ve son kelimesinin baş harfi. Ömer Kerem Sucu → ÖS."""
+    parcalar = tr_baslik(value).split()
+    if not parcalar:
+        return ""
+    if len(parcalar) == 1:
+        return parcalar[0][:1]
+    return parcalar[0][:1] + parcalar[-1][:1]
+
+
+@register.filter(name="harf_avatar")
+def harf_avatar_filtre(value) -> str:
+    return harf_avatar(value)
+
+
 @register.filter
 def in_filter(value, selected) -> bool:
     """Seçili liste veya tekil değer içinde mi kontrol eder."""

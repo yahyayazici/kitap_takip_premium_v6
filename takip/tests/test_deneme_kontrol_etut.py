@@ -263,7 +263,7 @@ class DenemeKontrolKazanimTests(TestCase):
             reverse("ogretmen_deneme_kontrol_merkezi_sinif", args=[self.sinif.id])
         )
         html = sayfa.content.decode()
-        self.assertIn("Önceki puan", html)
+        self.assertIn("Önceki → Son", html)
         self.assertNotIn(">İlk puan<", html)
         ali = html.index("Ali Yukselen")
         ayse = html.index("Ayse Azartan")

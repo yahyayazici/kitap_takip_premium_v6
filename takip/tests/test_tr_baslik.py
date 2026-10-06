@@ -1,6 +1,6 @@
 from django.test import SimpleTestCase
 
-from takip.templatetags.filter_tags import tr_baslik
+from takip.templatetags.filter_tags import harf_avatar, tr_baslik
 
 
 class TrBaslikTests(SimpleTestCase):
@@ -13,3 +13,9 @@ class TrBaslikTests(SimpleTestCase):
     def test_zaten_baslik_olan_ad_bozulmaz(self):
         self.assertEqual(tr_baslik("Ahmet Arif"), "Ahmet Arif")
         self.assertEqual(tr_baslik(""), "")
+
+    def test_harf_avatar_ilk_ve_son_kelime(self):
+        self.assertEqual(harf_avatar("AHMED YASİR KAYMAKÇI"), "AK")
+        self.assertEqual(harf_avatar("ÖMER KEREM SUCU"), "ÖS")
+        self.assertEqual(harf_avatar("İSMAİL"), "İ")
+        self.assertEqual(harf_avatar(""), "")
