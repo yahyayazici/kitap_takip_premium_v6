@@ -41,7 +41,9 @@
                             {% elif b.tespit_durumu == "hata" %}<span class="ek-durum ek-durum-hata">{{ b.tespit_notu|default:"Soru tespiti başarısız" }}</span>
                             {% else %}<span class="ek-not">Soru tespiti yapılmadı</span>{% endif %}
                             {% if b.kontrol_sayisi and b.tespit_durumu != "taranmis" %}<span class="ek-durum ek-durum-uyari" title="Numara atlaması, devam eden soru ya da alan dışında kalan içerik bulunan sayfalar">Kontrol edin · {{ b.kontrol_sayisi }} sayfa</span>{% endif %}
+                            {% if b.inceleme_sayisi %}<span class="ek-durum ek-durum-uyari" title="Onaydan sonra PDF değişti">İnceleyin · {{ b.inceleme_sayisi }} soru</span>{% endif %}
                             {% if b.tespit_durumu != "araniyor" %}
+                            <a class="ek-dugme ek-dugme-metin ek-dugme-kucuk" href="{% url 'ekitap:soru_duzelt' b.pk %}">Soruları düzelt</a>
                             <form method="post" action="{% url 'ekitap:sorulari_bul' %}">{% csrf_token %}
                                 <input type="hidden" name="bolum" value="{{ b.pk }}">
                                 <button class="ek-dugme ek-dugme-metin ek-dugme-kucuk" type="submit">Soruları bul</button>

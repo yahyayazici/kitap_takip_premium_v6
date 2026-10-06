@@ -148,3 +148,7 @@ yanında büyüteç rozeti çıkar.
 - Taranmış (yazısız) PDF'ler "Taranmış PDF" olarak işaretlenir; soruları elle işaretlenir.
 - Numara atlaması, sayfa sonunda devam eden soru ya da alan dışında kalan içerik bulunan sayfalar
   yönetimde **Kontrol edin** olarak görünür.
+- Yönetim → bölüm satırındaki **Soruları düzelt**: kutuları taşıma/boyutlandırma, çizerek soru ya da
+  (sonraki sayfada devam eden sorular için) ek alan ekleme, silme, numara/test/okuma sırası düzenleme,
+  öğretmen görünümünü önizleme ve sayfayı onaylama. Kaydedilen düzeltmeler onaylıdır; otomatik tespit
+  yeniden çalışınca korunur. PDF değişirse bu sorular "İnceleyin" olarak işaretlenir.

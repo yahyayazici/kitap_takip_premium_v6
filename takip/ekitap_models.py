@@ -68,6 +68,9 @@ class EKitapBolum(models.Model):
     pdf_ozeti = models.CharField(
         max_length=64, blank=True, help_text="Son soru tespitinde PDF'in SHA-256 özeti."
     )
+    sira_elle = models.BooleanField(
+        default=False, help_text="Okuma sırası yönetimde elle düzenlendi; yeniden tespit sırayı bozmaz."
+    )
     olusturulma = models.DateTimeField(auto_now_add=True)
     guncellenme = models.DateTimeField(auto_now=True)
 
@@ -90,6 +93,9 @@ class EKitapSayfa(models.Model):
     metinli = models.BooleanField(default=True, help_text="Sayfada yazı katmanı var mı (taranmış değil).")
     kontrol_gerekli = models.BooleanField(default=False)
     kontrol_notu = models.CharField(max_length=500, blank=True)
+    onaylandi = models.BooleanField(
+        default=False, help_text="Yönetici sayfayı onayladı; yeniden tespit 'Kontrol edin' işaretini geri getirmez."
+    )
 
     class Meta:
         ordering = ["sira"]
@@ -122,6 +128,10 @@ class EKitapSoru(models.Model):
     )
     inceleme_gerekli = models.BooleanField(
         default=False, help_text="Onaydan sonra PDF değişti; alanları yeniden inceleyin."
+    )
+    gizli = models.BooleanField(
+        default=False,
+        help_text="Yönetimde silindi: tahtada görünmez, yeniden tespitte geri gelmez.",
     )
     pdf_ozeti = models.CharField(max_length=64, blank=True)
     # Şık perdesi: şıkların başladığı alan (sıra) ve o sayfadaki y (0–1). Bilinmiyorsa boş;

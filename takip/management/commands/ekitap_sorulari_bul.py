@@ -45,7 +45,7 @@ class Command(BaseCommand):
             kontrol = bolum.sayfalar.filter(kontrol_gerekli=True).count()
             self.stdout.write(
                 f"{bolum.kitap.ad} · {bolum.ad}: {bolum.get_tespit_durumu_display()}"
-                f" — {bolum.sorular.count()} soru"
+                f" — {bolum.sorular.filter(gizli=False).count()} soru"
                 + (f", {kontrol} sayfa kontrol bekliyor" if kontrol else "")
                 + (f" ({bolum.tespit_notu})" if bolum.tespit_notu else "")
                 + ("" if sonuc is not None else " [hata]")

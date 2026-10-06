@@ -23,5 +23,7 @@ urlpatterns = [
     path("yonetim/kitap/<int:kitap_id>/gorunurluk/", v.kitap_gorunurluk, name="kitap_gorunurluk"),
     path("yonetim/kitap/<int:kitap_id>/sil/", v.kitap_sil, name="kitap_sil"),
     path("yonetim/bolum/<int:bolum_id>/sil/", v.bolum_sil, name="bolum_sil"),
+    path("yonetim/bolum/<int:bolum_id>/sorular/", v.soru_duzelt, name="soru_duzelt"),
+    path("yonetim/bolum/<int:bolum_id>/sorular/kaydet/", v.soru_duzelt_kaydet, name="soru_duzelt_kaydet"),
     path("yonetim/bolum/<int:bolum_id>/yeniden-isle/", v.bolum_yeniden_isle, name="bolum_yeniden_isle"),
 ]

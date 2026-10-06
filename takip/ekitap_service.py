@@ -394,7 +394,22 @@ def _tespiti_kaydet(bolum: EKitapBolum, sonuc, ozet: str) -> None:
         ilk = alanlar[0]
         return (ilk.sayfa_sira, sonuc.sutun_indeksi(ilk.x0 + 0.015), ilk.y0, s.test_no, s.no)
 
-    sorular.sort(key=anahtar)
+    korunan_pk = {s.pk for s in korunan}
+    if bolum.sira_elle and korunan_pk:
+        # Yönetici sırayı elle düzenledi: korunan soruların göreli sırası kalır,
+        # yeni otomatik sorular konumca kendilerinden önce gelen korunan sorunun ardına girer.
+        korunanlar = sorted((s for s in sorular if s.pk in korunan_pk), key=lambda s: (s.sira, s.pk))
+        yeni_anahtar: dict[int, tuple] = {}
+        for s in sorular:
+            if s.pk in korunan_pk:
+                yeni_anahtar[s.pk] = (korunanlar.index(s), 0, (0,))
+                continue
+            konum = anahtar(s)
+            onceki = [i for i, k in enumerate(korunanlar) if anahtar(k) < konum]
+            yeni_anahtar[s.pk] = ((onceki[-1] if onceki else -1), 1, konum)
+        sorular.sort(key=lambda s: yeni_anahtar[s.pk])
+    else:
+        sorular.sort(key=anahtar)
     for sira, soru in enumerate(sorular):
         if soru.sira != sira:
             soru.sira = sira
@@ -406,6 +421,8 @@ def _tespiti_kaydet(bolum: EKitapBolum, sonuc, ozet: str) -> None:
     for sayfa in bolum.sayfalar.all():
         bilgi = sonuc.sayfalar.get(sayfa.sira)
         notlar = list(bilgi.notlar) if bilgi else []
+        if sayfa.onaylandi:
+            notlar = []  # yönetici onayladı (PDF değişince sayfa kayıtları yenilenir, onay düşer)
         if sayfa.sira in inceleme_sayfalari:
             notlar.append("PDF değişti: elle düzeltilmiş alanları yeniden inceleyin.")
         sayfa.metinli = bilgi.metinli if bilgi else True
@@ -561,3 +578,180 @@ def bolumleri_isle(bolum_ids: list[int]) -> None:
             target=_arka_planda_isle, args=(list(bolum_ids),), daemon=True, name="ekitap-pdf"
         ).start()
     )
+
+
+# —— Yönetimde elle düzeltme ————————————————————————————————————————————————
+
+MAKS_DUZELTME_SORU = 3000
+MAKS_SORU_ALANI = 12
+
+
+class DuzeltmeHatasi(ValueError):
+    pass
+
+
+def _alan_dogrula(ham, sayfa_sayisi: int) -> tuple[int, tuple[float, float, float, float]]:
+    try:
+        sayfa = int(ham["sayfa"])
+        x0, y0, x1, y1 = (float(v) for v in ham["k"])
+    except (KeyError, TypeError, ValueError) as exc:
+        raise DuzeltmeHatasi("Alan verisi okunamadı.") from exc
+    if not 0 <= sayfa < sayfa_sayisi:
+        raise DuzeltmeHatasi("Alan geçersiz bir sayfada.")
+    x0, x1 = sorted((min(max(x0, 0.0), 1.0), min(max(x1, 0.0), 1.0)))
+    y0, y1 = sorted((min(max(y0, 0.0), 1.0), min(max(y1, 0.0), 1.0)))
+    if x1 - x0 < 0.01 or y1 - y0 < 0.01:
+        raise DuzeltmeHatasi("Çok küçük alan var; en az sayfanın %1'i olmalı.")
+    return sayfa, (round(x0, 4), round(y0, 4), round(x1, 4), round(y1, 4))
+
+
+def _sayi(ham, ad: str, en_az: int, en_cok: int) -> int:
+    try:
+        deger = int(ham)
+    except (TypeError, ValueError) as exc:
+        raise DuzeltmeHatasi(f"{ad} sayı olmalı.") from exc
+    if not en_az <= deger <= en_cok:
+        raise DuzeltmeHatasi(f"{ad} {en_az}–{en_cok} arasında olmalı.")
+    return deger
+
+
+@transaction.atomic
+def duzeltmeleri_kaydet(bolum: EKitapBolum, veri: dict) -> dict:
+    """Düzeltme ekranından gelen değişiklikleri uygular.
+
+    veri = {
+      "sorular": [{"id": int|None, "test_no", "no", "alanlar": [{"sayfa", "k": [x0,y0,x1,y1]}]}],
+          # yalnızca değişen ya da yeni sorular
+      "silinen": [id, ...],
+      "sira": [id|"yeni-<i>", ...]   # isteğe bağlı: tüm görünür soruların okuma sırası
+      "onaylanan_sayfalar": [sayfa, ...],
+    }
+    Değişen/yeni sorular "elle" ve onaylı olur; yeniden tespitte korunur.
+    Silinen otomatik sorular gizlenir ki yeniden tespitte geri gelmesin.
+    """
+    sorular_ham = veri.get("sorular") or []
+    silinen = veri.get("silinen") or []
+    if not isinstance(sorular_ham, list) or not isinstance(silinen, list):
+        raise DuzeltmeHatasi("Geçersiz istek.")
+    if len(sorular_ham) > MAKS_DUZELTME_SORU:
+        raise DuzeltmeHatasi("Tek seferde çok fazla soru.")
+    ozet = bolum.pdf_ozeti
+    mevcut = {s.pk: s for s in bolum.sorular.select_for_update()}
+    yeni_kimlikler: dict[str, int] = {}
+    degisen_alanlar: list[int] = []
+
+    for i, ham in enumerate(sorular_ham):
+        if not isinstance(ham, dict):
+            raise DuzeltmeHatasi("Geçersiz soru verisi.")
+        test_no = _sayi(ham.get("test_no"), "Test numarası", 1, 99)
+        no = _sayi(ham.get("no"), "Soru numarası", 1, 999)
+        alanlar_ham = ham.get("alanlar") or []
+        if not isinstance(alanlar_ham, list) or not 1 <= len(alanlar_ham) <= MAKS_SORU_ALANI:
+            raise DuzeltmeHatasi(f"{no}. sorunun en az bir, en çok {MAKS_SORU_ALANI} alanı olmalı.")
+        alanlar = [_alan_dogrula(a, bolum.sayfa_sayisi) for a in alanlar_ham]
+
+        soru = mevcut.get(ham.get("id")) if ham.get("id") is not None else None
+        if ham.get("id") is not None and soru is None:
+            raise DuzeltmeHatasi("Bir soru bu arada değişmiş; sayfayı yenileyip tekrar deneyin.")
+        if soru is None:
+            soru = EKitapSoru.objects.create(
+                bolum=bolum, test_no=test_no, no=no, sira=10**6 + i,
+                guven=1.0, kaynak=EKitapSoru.Kaynak.ELLE, onayli=True, pdf_ozeti=ozet,
+            )
+            mevcut[soru.pk] = soru
+            yeni_kimlikler[f"yeni-{ham.get('gecici', i)}"] = soru.pk
+        else:
+            soru.test_no, soru.no = test_no, no
+            soru.kaynak, soru.onayli, soru.inceleme_gerekli, soru.gizli = (
+                EKitapSoru.Kaynak.ELLE, True, False, False
+            )
+            soru.guven, soru.pdf_ozeti = 1.0, ozet
+            soru.save()
+        eski = {(a.sayfa_sira, (a.x0, a.y0, a.x1, a.y1)): a for a in soru.alanlar.all()}
+        yeni = list(alanlar)
+        if [k for k in eski] != yeni:
+            kalacak = set()
+            for sira, (sayfa, k) in enumerate(yeni):
+                alan = eski.get((sayfa, k))
+                if alan is not None:
+                    alan.sira = sira
+                    alan.save(update_fields=["sira"])
+                    kalacak.add(alan.pk)
+                    continue
+                alan = EKitapSoruAlan.objects.create(
+                    soru=soru, sira=sira, sayfa_sira=sayfa, x0=k[0], y0=k[1], x1=k[2], y1=k[3]
+                )
+                kalacak.add(alan.pk)
+                degisen_alanlar.append(alan.pk)
+            for alan in eski.values():
+                if alan.pk not in kalacak:
+                    if alan.gorsel:
+                        alan.gorsel.delete(save=False)
+                    alan.delete()
+            # Şık konumu artık alanlarla uyuşmayabilir; perde aracı elle kullanılır.
+            if soru.siklar_alan is not None and soru.siklar_alan >= len(yeni):
+                soru.siklar_alan = soru.siklar_y = None
+                soru.save(update_fields=["siklar_alan", "siklar_y"])
+
+    for pk in silinen:
+        soru = mevcut.get(pk)
+        if soru is None:
+            continue
+        # Gizlenir (silinmez): yeniden tespitte aynı soru geri gelmesin.
+        soru.gizli, soru.onayli, soru.kaynak, soru.inceleme_gerekli = True, True, EKitapSoru.Kaynak.ELLE, False
+        soru.save(update_fields=["gizli", "onayli", "kaynak", "inceleme_gerekli", "guncellenme"])
+
+    sira = veri.get("sira")
+    if isinstance(sira, list) and sira:
+        kimlikler = [yeni_kimlikler.get(k, k) if isinstance(k, str) else k for k in sira]
+        gorunur = [pk for pk in kimlikler if pk in mevcut and not mevcut[pk].gizli]
+        geri_kalan = sorted(
+            (s for pk, s in mevcut.items() if pk not in set(gorunur)), key=lambda s: (s.sira, s.pk)
+        )
+        for i, pk in enumerate(gorunur):
+            EKitapSoru.objects.filter(pk=pk).update(sira=i)
+        for j, s in enumerate(geri_kalan, start=len(gorunur)):
+            EKitapSoru.objects.filter(pk=s.pk).update(sira=j)
+        if not bolum.sira_elle:
+            bolum.sira_elle = True
+            bolum.save(update_fields=["sira_elle", "guncellenme"])
+        # Sıra elle düzenlendi: yönetici bölümün tüm sorularını gözden geçirmiş sayılır.
+        # Hepsi onaylı olur ki yeniden tespit bu sırayı bozmasın.
+        EKitapSoru.objects.filter(bolum=bolum, gizli=False, onayli=False).update(onayli=True, pdf_ozeti=ozet)
+
+    onaylanan = {int(s) for s in (veri.get("onaylanan_sayfalar") or []) if str(s).isdigit()}
+    if onaylanan:
+        EKitapSayfa.objects.filter(bolum=bolum, sira__in=onaylanan).update(
+            kontrol_gerekli=False, kontrol_notu="", onaylandi=True
+        )
+        sayfadaki = EKitapSoru.objects.filter(
+            bolum=bolum, alanlar__sayfa_sira__in=onaylanan
+        ).distinct()
+        sayfadaki.update(onayli=True, inceleme_gerekli=False, pdf_ozeti=ozet)
+
+    return {"yeni": yeni_kimlikler, "gorsel_bekleyen": len(degisen_alanlar)}
+
+
+def _arka_planda_gorsel(bolum_id: int) -> None:
+    try:
+        bolum = EKitapBolum.objects.filter(pk=bolum_id).first()
+        if bolum is not None:
+            soru_gorsellerini_uret(bolum)
+    finally:
+        close_old_connections()
+
+
+def soru_gorsellerini_uret_baslat(bolum: EKitapBolum) -> None:
+    if not getattr(settings, "EKITAP_ARKA_PLAN_ISLEME", True):
+        soru_gorsellerini_uret(bolum)
+        return
+    bolum_id = bolum.pk
+    transaction.on_commit(
+        lambda: threading.Thread(
+            target=_arka_planda_gorsel, args=(bolum_id,), daemon=True, name="ekitap-soru-gorsel"
+        ).start()
+    )
+
+
+def alan_gorseli_guncel_mi(alan: EKitapSoruAlan, ozet: str) -> bool:
+    return bool(alan.gorsel) and alan.gorsel_imza == _alan_imzasi(alan, ozet)
