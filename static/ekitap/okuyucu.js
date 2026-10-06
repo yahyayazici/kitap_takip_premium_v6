@@ -103,6 +103,15 @@
         });
     }
 
+    function kitapCiziliyor() {
+        return !!(window.EKitapCizim && window.EKitapCizim.kitapModu());
+    }
+
+    function kitapKalemi() {
+        // Kitap çizim modunda bir çizim aracı seçili: tek dokunuş çizime aittir.
+        return kitapCiziliyor() && window.EKitapCizim.ciziyorMu();
+    }
+
     function rozetMi(e) {
         return !!(e.target && e.target.closest && e.target.closest('.ek-buyutec'));
     }
@@ -203,6 +212,7 @@
             btn.setAttribute('aria-selected', i === aktif ? 'true' : 'false');
         });
         gostergeyiGuncelle();
+        document.dispatchEvent(new CustomEvent('ek-kitap-kuruldu'));
     }
 
     function mevcutSayfa() {
@@ -223,7 +233,7 @@
     }
 
     function sayfayaGit(no) {
-        if (!pageFlip) return;
+        if (!pageFlip || kitapCiziliyor()) return;
         var hedef = sinirla(no - 1, 0, sayfaSayisi() - 1);
         zoomSifirla();
         if (Math.abs(hedef - mevcutSayfa()) <= 3) {
@@ -237,11 +247,13 @@
     }
 
     function sonraki() {
+        if (kitapCiziliyor()) return;
         zoomSifirla();
         if (pageFlip) pageFlip.flipNext('bottom');
     }
 
     function onceki() {
+        if (kitapCiziliyor()) return;
         zoomSifirla();
         if (pageFlip) pageFlip.flipPrev('bottom');
     }
@@ -325,8 +337,9 @@
     }
 
     tuval.addEventListener('touchstart', function (e) {
-        if (e.touches.length === 1 && rozetMi(e)) return;
+        if (e.touches.length === 1 && (rozetMi(e) || kitapKalemi())) return;
         if (e.touches.length >= 2) {
+            if (kitapCiziliyor()) window.EKitapCizim.kitapIptal();
             cimdikBaslat(e);
             tuket(e);
             return;
@@ -390,7 +403,7 @@
 
     // Fare / kalem: yakınlaştırılmışken sürükleyerek kaydırma
     tuval.addEventListener('mousedown', function (e) {
-        if (rozetMi(e)) return;
+        if (rozetMi(e) || kitapKalemi()) return;
         if (z.s > 1.001 && e.button === 0) {
             kaydirBaslat(e.clientX, e.clientY);
             tuket(e);
@@ -412,7 +425,7 @@
         }
     }, true);
     tuval.addEventListener('dblclick', function (e) {
-        if (rozetMi(e)) return;
+        if (rozetMi(e) || kitapKalemi()) return;
         var p = yerelNokta(e.clientX, e.clientY);
         if (z.s > 1.001) zoomSifirla(); else zoomAyarla(2.5, p.x, p.y);
         tuket(e);
@@ -465,6 +478,7 @@
     });
     sekmeler.forEach(function (btn, i) {
         btn.addEventListener('click', function () {
+            if (kitapCiziliyor()) return;
             if (i !== aktif) kur(i, sonSayfaOku(i));
         });
     });

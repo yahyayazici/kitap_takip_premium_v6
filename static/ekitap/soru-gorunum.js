@@ -28,6 +28,7 @@
     var sonrakiBtn = document.getElementById('soruSonraki');
     var kapatBtn = document.getElementById('soruKapat');
     var zoomOran = document.getElementById('soruZoomSifirla');
+    var cizimSvg = document.getElementById('soruCizim');
 
     var MIN_ZOOM = 1;
     var MAX_ZOOM = 6;
@@ -48,7 +49,10 @@
     var aktif = -1;
     var acik = false;
     var donusOdagi = null;
-    var olcu = { w: 1, h: 1, olcek: 1 }; // kâğıt birimi ve ekrana sığdırma ölçeği
+    var olcu = { w: 1, h: 1, olcek: 1, soruW: 1, soruH: 1 }; // kâğıt birimi ve ekrana sığdırma ölçeği
+    var ekAlan = { alt: 0, sag: 0 }; // çözüm alanı (sorunun boyutuna oran)
+    var yerlesim = []; // parçaların kâğıttaki yeri (kâğıt biriminde)
+    var cizim = null; // çizim köprüsü: { basla(e), surdur(e), bitir(e), iptal(), avucMu(e), ciziyorMu() }
     var z = { s: 1, x: 0, y: 0 };
 
     function sinirla(d, a, b) { return Math.max(a, Math.min(b, d)); }
@@ -90,8 +94,13 @@
         var bosluk = genislik * PARCA_ARASI;
         var yukseklik = 0;
         ps.forEach(function (p, i) { yukseklik += p.h + (i ? bosluk : 0); });
-        olcu.w = genislik;
-        olcu.h = Math.max(yukseklik, 1);
+        olcu.soruW = genislik;
+        olcu.soruH = Math.max(yukseklik, 1);
+        // Çözüm alanı soru içeriğinin sağına/altına eklenir; içerik sol üstte kalır,
+        // böylece çizimlerin kâğıt koordinatları değişmez.
+        olcu.w = genislik * (1 + ekAlan.sag);
+        olcu.h = olcu.soruH * (1 + ekAlan.alt);
+        yerlesim = [];
 
         kagit.innerHTML = '';
         var y = 0;
@@ -120,8 +129,31 @@
             }
             parca.appendChild(img);
             kagit.appendChild(parca);
+            yerlesim.push({ y: y, w: p.w, h: p.h, k: p.k, sayfa: p.sayfa });
             y += p.h;
         });
+        if (ekAlan.alt) {
+            var alt = document.createElement('div');
+            alt.className = 'ek-cozum-alani';
+            alt.style.left = '0';
+            alt.style.right = '0';
+            alt.style.top = (olcu.soruH / olcu.h * 100) + '%';
+            alt.style.bottom = '0';
+            kagit.appendChild(alt);
+        }
+        if (ekAlan.sag) {
+            var sag = document.createElement('div');
+            sag.className = 'ek-cozum-alani';
+            sag.style.left = (olcu.soruW / olcu.w * 100) + '%';
+            sag.style.right = '0';
+            sag.style.top = '0';
+            sag.style.bottom = ekAlan.alt ? ((1 - olcu.soruH / olcu.h) * 100) + '%' : '0';
+            kagit.appendChild(sag);
+        }
+        if (cizimSvg) {
+            cizimSvg.setAttribute('viewBox', '0 0 ' + olcu.w + ' ' + olcu.h);
+            kagit.appendChild(cizimSvg);
+        }
         sigdir();
     }
 
@@ -154,6 +186,7 @@
         var onceki = aktif;
         aktif = indeks;
         var kayit = sorular[indeks];
+        kok.dispatchEvent(new CustomEvent('ek-soru-degisecek', { detail: { onceki: onceki, simdi: indeks } }));
         kagidiKur(kayit);
         etiketleriGuncelle(kayit);
         onYukle(indeks + 1);
@@ -176,17 +209,19 @@
         kapatBtn.focus({ preventScroll: true });
     }
 
-    var kapatmaOnayi = null; // 2. aşama: çizim varsa onay sorar (true → kapat)
+    // Çizim varsa onay ister: false dönerse kapatma bekletilir, onaylanınca devam() çağrılır.
+    var kapatmaOnayi = null;
 
-    function kapat() {
+    function kapat(zorla) {
         if (!acik) return;
-        if (kapatmaOnayi && !kapatmaOnayi()) return;
+        if (zorla !== true && kapatmaOnayi && kapatmaOnayi(function () { kapat(true); }) === false) return;
         acik = false;
         kok.hidden = true;
         document.body.classList.remove('ek-soru-acik');
-        kagit.innerHTML = '';
-        aktif = -1;
         kok.dispatchEvent(new CustomEvent('ek-soru-kapandi'));
+        kagit.innerHTML = '';
+        ekAlan = { alt: 0, sag: 0 };
+        aktif = -1;
         if (donusOdagi && document.contains(donusOdagi)) {
             try { donusOdagi.focus({ preventScroll: true }); } catch (e) { /* yok say */ }
         }
@@ -249,12 +284,12 @@
         };
     }
 
-    // İşaretçi takibi. Dış modül (çizim) bir işaretçiyi "sahiplenirse" burada
-    // kaydırma/çimdik için kullanılmaz.
+    // İşaretçi takibi. Çizim aracı seçiliyse tek işaretçi çizime gider; ikinci
+    // parmak gelince yeni başlamış çizgi iptal edilir ve çimdik başlar. Kalem
+    // ucu yazarken gelen dokunmalar (avuç içi) yok sayılır.
     var isaretciler = {};
     var jest = null;
     var sonDokunus = { t: 0, x: 0, y: 0 };
-    var sahiplenici = null; // function(e) → true ise işaretçi çizime gider
 
     function aktifIsaretciler() {
         return Object.keys(isaretciler).map(function (k) { return isaretciler[k]; });
@@ -262,6 +297,7 @@
 
     function cimdikBaslat() {
         var p = aktifIsaretciler();
+        p.forEach(function (k) { k.cizim = false; });
         var a = p[0], b = p[1];
         var mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
         jest = {
@@ -275,35 +311,43 @@
     sahne.addEventListener('pointerdown', function (e) {
         if (!acik) return;
         if (e.pointerType === 'mouse' && e.button !== 0) return;
-        if (sahiplenici && sahiplenici(e, 'down')) return;
+        if (cizim && cizim.avucMu(e)) { e.preventDefault(); return; }
         var p = yerel(e);
-        isaretciler[e.pointerId] = { x: p.x, y: p.y, bx: p.x, by: p.y, t: Date.now(), tur: e.pointerType };
+        isaretciler[e.pointerId] = { x: p.x, y: p.y, bx: p.x, by: p.y, t: Date.now(), tur: e.pointerType, cizim: false };
         try { sahne.setPointerCapture(e.pointerId); } catch (h) { /* yok say */ }
-        var sayi = aktifIsaretciler().length;
-        if (sayi >= 2) {
+        e.preventDefault();
+        if (aktifIsaretciler().length >= 2) {
+            if (cizim) cizim.iptal();
             cimdikBaslat();
-        } else {
-            jest = { tur: 'kaydir', bx: p.x, by: p.y, x: z.x, y: z.y, t: Date.now() };
-            if (e.pointerType !== 'mouse') {
-                var simdi = Date.now();
-                var cift = simdi - sonDokunus.t < 320 && Math.hypot(p.x - sonDokunus.x, p.y - sonDokunus.y) < 40;
-                sonDokunus = { t: cift ? 0 : simdi, x: p.x, y: p.y };
-                if (cift) {
-                    if (z.s > 1.001) zoomSifirla(); else zoomAyarla(2.5, p.x, p.y);
-                    jest = null;
-                }
+            return;
+        }
+        if (cizim && cizim.basla(e)) {
+            isaretciler[e.pointerId].cizim = true;
+            jest = null;
+            return;
+        }
+        jest = { tur: 'kaydir', bx: p.x, by: p.y, x: z.x, y: z.y, t: Date.now() };
+        if (e.pointerType !== 'mouse') {
+            var simdi = Date.now();
+            var cift = simdi - sonDokunus.t < 320 && Math.hypot(p.x - sonDokunus.x, p.y - sonDokunus.y) < 40;
+            sonDokunus = { t: cift ? 0 : simdi, x: p.x, y: p.y };
+            if (cift) {
+                if (z.s > 1.001) zoomSifirla(); else zoomAyarla(2.5, p.x, p.y);
+                jest = null;
             }
         }
-        e.preventDefault();
     });
 
     sahne.addEventListener('pointermove', function (e) {
-        if (sahiplenici && sahiplenici(e, 'move')) return;
         var kayit = isaretciler[e.pointerId];
         if (!kayit) return;
         var p = yerel(e);
         kayit.x = p.x;
         kayit.y = p.y;
+        if (kayit.cizim) {
+            cizim.surdur(e);
+            return;
+        }
         if (!jest) return;
         if (jest.tur === 'cimdik') {
             var ps = aktifIsaretciler();
@@ -326,10 +370,14 @@
     });
 
     function isaretciBitti(e) {
-        if (sahiplenici && sahiplenici(e, 'up')) return;
         var kayit = isaretciler[e.pointerId];
         if (!kayit) return;
         delete isaretciler[e.pointerId];
+        if (kayit.cizim) {
+            cizim.bitir(e);
+            jest = null;
+            return;
+        }
         var kalan = aktifIsaretciler();
         if (jest && jest.tur === 'kaydir' && z.s <= 1.001 && e.type === 'pointerup' && kalan.length === 0) {
             // Yakınlaştırılmamışken hızlı yatay kaydırma → sorular arasında geçiş
@@ -341,8 +389,9 @@
             }
         }
         if (kalan.length === 1) {
-            jest = { tur: 'kaydir', bx: kalan[0].x, by: kalan[0].y, x: z.x, y: z.y, t: Date.now() };
             kalan[0].bx = kalan[0].x; kalan[0].by = kalan[0].y; kalan[0].t = Date.now();
+            kalan[0].cizim = false;
+            jest = { tur: 'kaydir', bx: kalan[0].x, by: kalan[0].y, x: z.x, y: z.y, t: Date.now() };
         } else if (kalan.length === 0) {
             jest = null;
             if (z.s <= 1.001) zoomSifirla();
@@ -352,7 +401,7 @@
     sahne.addEventListener('pointercancel', isaretciBitti);
 
     sahne.addEventListener('dblclick', function (e) {
-        if (sahiplenici && sahiplenici(e, 'dblclick')) return;
+        if (cizim && cizim.ciziyorMu()) return;
         var p = yerel(e);
         if (z.s > 1.001) zoomSifirla(); else zoomAyarla(2.5, p.x, p.y);
     });
@@ -407,7 +456,22 @@
         olcu: olcu,
         kagitNoktasi: kagitNoktasi,
         zoom: z,
-        sahiplen: function (fn) { sahiplenici = fn; },
+        cizimBagla: function (kopru) { cizim = kopru; },
+        ekAlan: function () { return { alt: ekAlan.alt, sag: ekAlan.sag }; },
+        /* sessiz: yalnızca değeri ayarla (soru değişirken, kâğıt zaten yeniden kurulacak). */
+        ekAlanAyarla: function (yeni, sessiz) {
+            ekAlan = { alt: yeni.alt || 0, sag: yeni.sag || 0 };
+            if (!sessiz && acik && sorular[aktif]) kagidiKur(sorular[aktif]);
+        },
+        /* Şıkların kâğıttaki dikdörtgeni (kâğıt biriminde); bilinmiyorsa null. */
+        sikKutusu: function () {
+            var kayit = sorular[aktif];
+            if (!kayit || !kayit.soru.siklar) return null;
+            var parca = yerlesim[kayit.soru.siklar[0]];
+            if (!parca) return null;
+            var ust = parca.y + (kayit.soru.siklar[1] - parca.k[1]) * parca.sayfa.h;
+            return { x: 0, y: ust, w: parca.w, h: parca.y + parca.h - ust };
+        },
         kapatmaOnayiAyarla: function (fn) { kapatmaOnayi = fn; },
         sonraki: sonraki,
         onceki: onceki

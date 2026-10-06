@@ -32,6 +32,9 @@
                     <svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12M12 6v12"/></svg>
                 </button>
             </div>
+            <button class="ek-yuvarlak" type="button" id="kitapCizimBtn" aria-pressed="false" aria-label="Kitap üzerinde çiz" title="Kitap üzerinde çiz (sayfa çevirme kilitlenir)">
+                <svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l4-1 11-11-3-3L5 16l-1 4zM14 6l3 3"/></svg>
+            </button>
             <button class="ek-yuvarlak ek-yuvarlak-altin" type="button" id="tamEkran" aria-label="Tam ekran" title="Tam ekran (F)">
                 <svg class="ek-ikon ek-ikon-ac" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
                 <svg class="ek-ikon ek-ikon-kapat" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>
@@ -43,6 +46,7 @@
         <div class="ek-tuval" id="tuval">
             <div class="ek-zoom-katman" id="zoomKatman">
                 <div class="ek-kitap" id="kitap"></div>
+                <svg class="ek-cizim-yuzey ek-kitap-cizim" id="kitapCizim" hidden aria-hidden="true"></svg>
             </div>
         </div>
         <button class="ek-yan ek-yan-sol" type="button" id="oncekiSayfa" aria-label="Önceki sayfa">
@@ -58,6 +62,7 @@
         <div class="ek-soru-sahne" id="soruSahne">
             <div class="ek-soru-katman" id="soruKatman">
                 <div class="ek-soru-kagit" id="soruKagit"></div>
+                <svg class="ek-cizim-yuzey" id="soruCizim" aria-hidden="true"></svg>
             </div>
         </div>
         <div class="ek-soru-zoom ek-cam" role="group" aria-label="Soru yakınlaştırma">
@@ -88,6 +93,89 @@
             </button>
         </nav>
     </section>
+    <div class="ek-araclar ek-cam" id="araclar" hidden role="toolbar" aria-label="Çizim araçları" aria-orientation="vertical">
+        <button type="button" class="ek-arac-dugme" data-arac="el" aria-pressed="false" title="El: kaydır ve yakınlaştır">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 12V6.5a1.5 1.5 0 0 1 3 0V11M11 10.5V5a1.5 1.5 0 0 1 3 0v5.5M14 10.5V6.5a1.5 1.5 0 0 1 3 0V12M17 10a1.5 1.5 0 0 1 3 0v4a7 7 0 0 1-7 7h-1.2a6 6 0 0 1-5-2.8L4.2 15a1.5 1.5 0 0 1 2.5-1.7L8 15"/></svg>
+            <span>El</span>
+        </button>
+        <button type="button" class="ek-arac-dugme" data-arac="kalem" aria-pressed="false" aria-haspopup="true" title="Kalem (renk ve kalınlık için tekrar dokunun)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l4-1 11-11-3-3L5 16l-1 4zM14 6l3 3"/></svg>
+            <span>Kalem</span><i class="ek-arac-renk" id="kalemRenkNokta" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="ek-arac-dugme" data-arac="fosfor" aria-pressed="false" title="Fosforlu kalem">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 15.5L4 20h5l1.5-1.5M8.5 15.5l7-7 3.5 3.5-7 7zM13.5 10.5l3-3 3.5 3.5-3 3"/><path class="ek-arac-fosfor-cizgi" d="M13 21h8"/></svg>
+            <span>Fosforlu</span>
+        </button>
+        <button type="button" class="ek-arac-dugme" data-arac="silgi" aria-pressed="false" title="Silgi: dokunduğu çizgiyi siler">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 20h12M4.5 15.5l9-9a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8L10 20H8.5zM9 11l5 5"/></svg>
+            <span>Silgi</span>
+        </button>
+        <button type="button" class="ek-arac-dugme" data-arac="perde" aria-pressed="false" title="Perde: örtmek istediğiniz bölgeyi sürükleyerek seçin; açmak için perdeye dokunun">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18M5 4v16M19 4v16M5 4c0 7 3 10 7 10s7-3 7-10"/></svg>
+            <span>Perde</span>
+        </button>
+        <span class="ek-arac-ayrac" aria-hidden="true"></span>
+        <button type="button" class="ek-arac-dugme" data-eylem="geri" title="Geri al">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+            <span>Geri al</span>
+        </button>
+        <button type="button" class="ek-arac-dugme" data-eylem="ileri" title="İleri al">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 14l5-5-5-5M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
+            <span>İleri al</span>
+        </button>
+        <button type="button" class="ek-arac-dugme" data-eylem="temizle" title="Tümünü temizle (geri alınabilir)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
+            <span>Temizle</span>
+        </button>
+        <span class="ek-arac-ayrac ek-yalniz-soru" aria-hidden="true"></span>
+        <button type="button" class="ek-arac-dugme ek-yalniz-soru" data-eylem="siklar" aria-pressed="false" title="Şıkları gizle / göster">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path class="ek-arac-capraz" d="M4 4l16 16"/></svg>
+            <span>Şıklar</span>
+        </button>
+        <button type="button" class="ek-arac-dugme ek-yalniz-soru" data-eylem="cozum" aria-haspopup="true" title="Çözüm alanı ekle">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h9v8H5zM5 14h14v7H5z"/><path d="M17 4v6M14 7h6"/></svg>
+            <span>Çözüm alanı</span>
+        </button>
+        <button type="button" class="ek-arac-dugme ek-arac-bitti ek-yalniz-kitap" data-eylem="bitti" title="Çizimi bitir">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+            <span>Bitti</span>
+        </button>
+    </div>
+
+    <div class="ek-acilir ek-cam" id="kalemAyar" hidden role="dialog" aria-label="Kalem rengi ve kalınlığı">
+        <p class="ek-acilir-baslik">Renk</p>
+        <div class="ek-acilir-satir">
+            <button type="button" class="ek-renk" data-renk="siyah" aria-label="Siyah" style="--r:#14181F"></button>
+            <button type="button" class="ek-renk" data-renk="mavi" aria-label="Mavi" style="--r:#1E5BD6"></button>
+            <button type="button" class="ek-renk" data-renk="kirmizi" aria-label="Kırmızı" style="--r:#D2232A"></button>
+        </div>
+        <p class="ek-acilir-baslik">Kalınlık</p>
+        <div class="ek-acilir-satir">
+            <button type="button" class="ek-kalinlik" data-kalinlik="ince" aria-label="İnce"><i style="--k:3px"></i></button>
+            <button type="button" class="ek-kalinlik" data-kalinlik="orta" aria-label="Orta"><i style="--k:6px"></i></button>
+            <button type="button" class="ek-kalinlik" data-kalinlik="kalin" aria-label="Kalın"><i style="--k:11px"></i></button>
+        </div>
+    </div>
+
+    <div class="ek-acilir ek-cam" id="cozumAyar" hidden role="dialog" aria-label="Çözüm alanı">
+        <p class="ek-acilir-baslik">Çözüm alanı</p>
+        <div class="ek-acilir-dikey">
+            <button type="button" class="ek-acilir-dugme" data-cozum="alt">Altına alan ekle</button>
+            <button type="button" class="ek-acilir-dugme" data-cozum="sag">Yanına alan ekle</button>
+            <button type="button" class="ek-acilir-dugme" data-cozum="kaldir">Alanı kaldır</button>
+        </div>
+    </div>
+
+    <div class="ek-onay" id="onayKutusu" hidden role="alertdialog" aria-modal="true" aria-labelledby="onayMetni">
+        <div class="ek-onay-kart">
+            <p class="ek-onay-metin" id="onayMetni">Çizimler silinecek. Kapatılsın mı?</p>
+            <p class="ek-onay-alt">Çizimler kaydedilmez.</p>
+            <div class="ek-onay-dugmeler">
+                <button type="button" class="ek-soru-dugme" id="onayVazgec">Vazgeç</button>
+                <button type="button" class="ek-soru-dugme ek-soru-kapat" id="onayTamam">Sil ve kapat</button>
+            </div>
+        </div>
+    </div>
 
     <footer class="ek-alt-kapsul ek-cam">
         <form class="ek-sayfa-git" id="sayfaGit" autocomplete="off">
@@ -103,6 +191,7 @@
 {% endblock %}
 {% block scripts %}
 <script src="{% static 'ekitap/vendor/page-flip-2.0.7.browser.js' %}"></script>
-<script src="{% static 'ekitap/soru-gorunum.js' %}?v=1"></script>
-<script src="{% static 'ekitap/okuyucu.js' %}?v=4"></script>
+<script src="{% static 'ekitap/soru-gorunum.js' %}?v=2"></script>
+<script src="{% static 'ekitap/okuyucu.js' %}?v=5"></script>
+<script src="{% static 'ekitap/cizim.js' %}?v=1"></script>
 {% endblock %}

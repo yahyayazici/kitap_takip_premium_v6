@@ -44,6 +44,7 @@ MAKS_SAYFA_ARALIGI = 2
 
 _NUMARA = re.compile(r"^\s*(\d{1,3})\s*([.)])(?!\d)")
 _CIPLAK_NUMARA = re.compile(r"^\s*(\d{1,2})\s*$")
+_SIK_A = re.compile(r"^\s*A\s*[).]")
 
 
 @dataclass
@@ -102,6 +103,8 @@ class SoruTaslagi:
     alanlar: list[tuple[int, Kutu]]  # (sayfa indeksi, kutu)
     numara_kutusu: Kutu
     sutun: int
+    # Şıkların başladığı yer: (alan indeksi, sayfaya göre y). Bulunamazsa None.
+    siklar: tuple[int, float] | None = None
 
 
 @dataclass
@@ -153,6 +156,7 @@ class _SayfaVerisi:
     nesneler: list[tuple[int, Kutu, str]]  # (tür, kutu, bantta duran yazının metni)
     karakter: int
     gorsel_orani: float  # görsellerin kapladığı alan / sayfa
+    sik_kutulari: list[Kutu] = field(default_factory=list)  # "A)" satırlarının başı
 
 
 def _font_kalin_mi(pdfium_c, metin_sayfasi, i: int) -> bool:
@@ -182,6 +186,7 @@ def _sayfa_oku(belge, indeks: int) -> _SayfaVerisi:
         return Kutu(sol / W, 1 - ust / H, sag / W, 1 - alt / H)
 
     adaylar: list[Aday] = []
+    sik_kutulari: list[Kutu] = []
     metin_sayfasi = sayfa.get_textpage()
     try:
         n = metin_sayfasi.count_chars()
@@ -200,6 +205,11 @@ def _sayfa_oku(belge, indeks: int) -> _SayfaVerisi:
             if not satir:
                 continue
             metin = "".join(karakterler[i] for i in satir)
+            if _SIK_A.match(metin):
+                bas = len(metin) - len(metin.lstrip())
+                k = metin_sayfasi.get_charbox(satir[bas])
+                if k and k[2] > k[0]:
+                    sik_kutulari.append(normal(*k))
             eslesme = _NUMARA.match(metin)
             ciplak = False
             if not eslesme:
@@ -259,7 +269,7 @@ def _sayfa_oku(belge, indeks: int) -> _SayfaVerisi:
     finally:
         metin_sayfasi.close()
     sayfa.close()
-    return _SayfaVerisi(indeks, W, H, adaylar, nesneler, dolu, min(gorsel_alani, 1.0))
+    return _SayfaVerisi(indeks, W, H, adaylar, nesneler, dolu, min(gorsel_alani, 1.0), sik_kutulari)
 
 
 # —— Süsleme (bant, çerçeve, sayfa no) ayıklama ——————————————————————————
@@ -577,6 +587,9 @@ def tespit_et(belge, *, maks_sayfa: int | None = None) -> TespitSonucu:
                 if ortak > 0.1 * min(kapsanan[x].alan(), kapsanan[y].alan()):
                     bilgi.uyar("Soru alanları çakışıyor.")
 
+    sik_kutulari = {s.indeks: s.sik_kutulari for s in sayfalar}
+    for taslak in taslaklar:
+        taslak.siklar = _siklari_bul(taslak, sik_kutulari)
     for taslak in taslaklar:
         taslak.guven = round(max(0.05, min(taslak.guven, 1.0)), 2)
         if any(bilgiler[s].notlar for s, _ in taslak.alanlar):
@@ -586,3 +599,16 @@ def tespit_et(belge, *, maks_sayfa: int | None = None) -> TespitSonucu:
 
 def _icinde(k: Kutu, b: Kutu) -> bool:
     return b.x0 - 0.004 <= k.cx <= b.x1 + 0.004 and b.y0 - 0.004 <= k.cy <= b.y1 + 0.004
+
+
+def _siklari_bul(taslak: SoruTaslagi, sik_kutulari: dict[int, list[Kutu]]) -> tuple[int, float] | None:
+    """Sorunun alanları içindeki ilk "A)" satırı: şık perdesi buradan aşağısını örter."""
+    for i, (sayfa, alan) in enumerate(taslak.alanlar):
+        icindekiler = [
+            k for k in sik_kutulari.get(sayfa, ())
+            if alan.x0 <= k.cx <= alan.x1 and alan.y0 + 0.01 < k.y0 < alan.y1
+        ]
+        if icindekiler:
+            ilk = min(icindekiler, key=lambda k: k.y0)
+            return i, round(max(ilk.y0 - 0.006, alan.y0), 4)
+    return None
