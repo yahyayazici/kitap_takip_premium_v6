@@ -1,18 +1,10 @@
 {% extends "ekitap/base.html" %}
 {% block title %}{% if yeni %}Yeni kitap{% else %}{{ kitap.ad }}{% endif %} · E-Kitap{% endblock %}
-{% block tema_rengi %}#F5F5F7{% endblock %}
-{% block body_class %}ek-acik{% endblock %}
+{% block body_class %}ek-porselen{% endblock %}
 {% block body %}
-{% include "ekitap/yonetim/_ust.html" %}
+{% if yeni %}{% include "ekitap/yonetim/_ust.html" with baslik="Yeni kitap" alt="Kitap adını yazın, her bölüm için bir PDF seçin." geri=True %}
+{% else %}{% include "ekitap/yonetim/_ust.html" with baslik="Kitabı düzenle" alt=kitap.ad geri=True %}{% endif %}
 <main class="ek-yonetim ek-yonetim-dar">
-    <a class="ek-geri" href="{% url 'ekitap:yonetim' %}">
-        <svg class="ek-ikon ek-ikon-kucuk" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
-        Kitaplar
-    </a>
-    <div class="ek-sayfa-bas">
-        <h1 class="ek-dev-baslik">{% if yeni %}Yeni kitap{% else %}Kitabı düzenle{% endif %}</h1>
-    </div>
-
     <form method="post" enctype="multipart/form-data" id="kitapForm">
         {% csrf_token %}
         {% if hatalar %}

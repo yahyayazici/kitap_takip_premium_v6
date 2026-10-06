@@ -1,25 +1,40 @@
-<header class="ek-cubuk ek-cubuk-acik">
-    <div class="ek-cubuk-ic">
-        <a class="ek-cubuk-marka" href="{% url 'ekitap:yonetim' %}">{% include "ekitap/_marka.html" %}<span>E-Kitap</span><span class="ek-cubuk-alt">Yönetim</span></a>
-        <nav class="ek-cubuk-sag" aria-label="Hesap">
-            <a class="ek-dugme ek-dugme-metin" href="{% url 'ekitap:liste' %}" target="_blank" rel="noopener">
+<header class="ek-kurum-bas">
+    <div class="ek-desen ek-desen-ust" aria-hidden="true"></div>
+    <nav class="ek-ust-nav" aria-label="Yönetim">
+        <a class="ek-nav-marka" href="{% url 'ekitap:yonetim' %}">{% include "ekitap/_marka.html" %}<span class="ek-nav-ad">E-Kitap</span><span class="ek-nav-alt">Yönetim</span></a>
+        <div class="ek-nav-sag">
+            <a class="ek-dugme ek-dugme-cam" href="{% url 'ekitap:liste' %}" target="_blank" rel="noopener">
                 Kitaplığı aç
                 <svg class="ek-ikon ek-ikon-kucuk" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>
             </a>
             <form method="post" action="{% url 'ekitap:yonetim_cikis' %}">{% csrf_token %}
-                <button class="ek-dugme ek-dugme-ikincil" type="submit">Çıkış yap</button>
+                <button class="ek-dugme ek-dugme-hayalet" type="submit">Çıkış yap</button>
             </form>
-        </nav>
+        </div>
+    </nav>
+    <div class="ek-kurum-baslik">
+        <div>
+            {% if geri %}<a class="ek-geri" href="{% url 'ekitap:yonetim' %}"><svg class="ek-ikon ek-ikon-kucuk" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Kitaplar</a>{% endif %}
+            <p class="ek-unvan">Çinili Saray Proje · E-Kitap</p>
+            <h1 class="ek-serif-dev">{{ baslik }}</h1>
+            {% if alt %}<p class="ek-sahne-alt">{{ alt }}</p>{% endif %}
+        </div>
+        {% if eylem_url %}
+        <a class="ek-dugme ek-dugme-altin" href="{{ eylem_url }}">
+            <svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            {{ eylem_etiket }}
+        </a>
+        {% endif %}
     </div>
+    {% if messages %}
+    <div class="ek-bildirimler" role="status">
+        {% for m in messages %}
+        <p class="ek-bildirim ek-bildirim-{{ m.tags }}">
+            {% if m.tags == "error" %}<svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></svg>
+            {% else %}<svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 9.8"/></svg>{% endif %}
+            {{ m }}
+        </p>
+        {% endfor %}
+    </div>
+    {% endif %}
 </header>
-{% if messages %}
-<div class="ek-bildirimler" role="status">
-    {% for m in messages %}
-    <p class="ek-bildirim ek-bildirim-{{ m.tags }}">
-        {% if m.tags == "error" %}<svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></svg>
-        {% else %}<svg class="ek-ikon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 9.8"/></svg>{% endif %}
-        {{ m }}
-    </p>
-    {% endfor %}
-</div>
-{% endif %}

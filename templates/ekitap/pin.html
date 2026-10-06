@@ -1,25 +1,27 @@
 {% extends "ekitap/base.html" %}
 {% block title %}E-Kitap · Giriş{% endblock %}
-{% block body_class %}ek-koyu ek-ortala{% endblock %}
+{% block body_class %}ek-gece ek-giris-sayfa{% endblock %}
 {% block body %}
-<main class="ek-kilit">
+<div class="ek-desen" aria-hidden="true"></div>
+<main class="ek-giris">
     {% include "ekitap/_marka.html" with buyuk=True %}
-    <p class="ek-ust-baslik">Çinili Saray Proje</p>
-    <h1 class="ek-dev-baslik">E-Kitap</h1>
+    <p class="ek-unvan">Çinili Saray Proje</p>
+    <h1 class="ek-serif-dev">E-Kitap</h1>
+    <span class="ek-altin-cizgi" aria-hidden="true"></span>
     {% if pin_tanimli %}
-    <p class="ek-aciklama">Kitaplığı açmak için PIN'i girin.</p>
-    <form method="post" autocomplete="off" class="ek-kilit-form">
+    <p class="ek-giris-metin">Kitaplığı açmak için PIN'i girin.</p>
+    <form method="post" autocomplete="off" class="ek-giris-form">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ next }}">
         <label class="ek-gizli-etiket" for="pin">PIN</label>
         <input class="ek-pin{% if hata %} ek-pin-hata{% endif %}" id="pin" type="password" name="pin"
                inputmode="numeric" pattern="[0-9]*" maxlength="12" autofocus required
                placeholder="••••••" aria-describedby="pinHata">
-        <button class="ek-dugme ek-dugme-ana ek-dugme-blok" type="submit">Kitaplığı aç</button>
+        <button class="ek-dugme ek-dugme-altin ek-dugme-blok" type="submit">Kitaplığı aç</button>
         <p class="ek-form-hata" id="pinHata" role="alert">{% if hata %}{{ hata }}{% endif %}</p>
     </form>
     {% else %}
-    <p class="ek-aciklama">Görüntüleme PIN'i henüz belirlenmedi. Yöneticinin PIN belirlemesi gerekiyor.</p>
+    <p class="ek-giris-metin">Görüntüleme PIN'i henüz belirlenmedi. Yöneticinin PIN belirlemesi gerekiyor.</p>
     {% endif %}
 </main>
 {% endblock %}
