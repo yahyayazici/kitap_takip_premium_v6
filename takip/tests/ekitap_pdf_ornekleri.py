@@ -296,3 +296,112 @@ def karisik_duzen_pdf() -> bytes:
     c.showPage()
     c.save()
     return tampon.getvalue()
+
+
+def ortak_bilgili_pdf() -> bytes:
+    """Beceri temelli test düzeni.
+
+    1. sayfa: 1. soru tam genişlik (şekilli); altında iki sütun: 2 solda, 3 sağda.
+       2 ve 3 aynı yükseklikte başlar ve iki sütunun satırları TEK yazı bloğunda
+       yazılır (PDF'te tek satır gibi görünür).
+    2. sayfa: "4, 5 ve 6. soruları aşağıda verilen bilgi ile cevaplayınız."
+       başlığı, bilgi metni, görsel ve tablo; ardından 4, 5, 6 ve 7. sorular.
+    """
+    from reportlab.pdfgen import canvas
+
+    tampon = io.BytesIO()
+    c = canvas.Canvas(tampon, pagesize=(A4_G, A4_Y))
+    SOL, ORTA = 40, A4_G / 2 + 10
+
+    def ust(no):
+        c.setFont("Helvetica-Bold", 12)
+        c.drawCentredString(A4_G / 2, A4_Y - 40, "Tam Sayilarla Islemler")
+        c.setFont("Helvetica", 8)
+        c.drawRightString(A4_G - 40, 30, str(no))
+
+    def numara(x, y, no):
+        c.setFillColorRGB(0.1, 0.3, 0.7)
+        c.setFont("Helvetica-Bold", 11)
+        c.drawString(x, y, f"{no}.")
+        c.setFillColorRGB(0, 0, 0)
+
+    def siklar(x, y, adim=110):
+        c.setFont("Helvetica", 9)
+        for i, h in enumerate("ABCD"):
+            c.drawString(x + i * adim, y, f"{h}) {(i + 1) * 12}")
+
+    # —— 1. sayfa
+    ust(53)
+    numara(SOL, A4_Y - 80, 1)
+    c.setFont("Helvetica", 9)
+    for i in range(2):
+        c.drawString(SOL + 16, A4_Y - 80 - i * 12, "Iki cubuk, ardisik tam sayilar arasi uzakligin 1 cm oldugu bir sayi dogrusuna")
+    c.line(SOL + 30, A4_Y - 130, A4_G - 60, A4_Y - 130)
+    c.rect(SOL + 80, A4_Y - 150, 200, 10)
+    c.drawString(SOL + 16, A4_Y - 180, "Buna gore K ve L noktalarina karsilik gelen tam sayilarin carpimi kactir?")
+    siklar(SOL + 16, A4_Y - 198)
+    # 2 ve 3: iki sütunun satırları tek yazı bloğunda
+    y0 = A4_Y / 2 + 40
+    numara(SOL, y0, 2)
+    numara(ORTA, y0, 3)
+    t = c.beginText()
+    t.setFont("Helvetica", 9)
+    sol_satirlar = ["Asagida ayri renklerdeki kartlarin", "uzerinde ayni tam sayilarin yazili", "oldugu kirmizi, mavi ve sari kartlar"]
+    sag_satirlar = ["Asagidaki termometrenin uzerine", "bir zincir yerlestirilmistir. Bu", "zincirin sag ucu -2 sayisinin"]
+    for i in range(3):
+        t.setTextOrigin(SOL + 16, y0 - i * 12)
+        t.textOut(sol_satirlar[i])
+        t.moveCursor(ORTA + 16 - (SOL + 16), 0)
+        t.textOut(sag_satirlar[i])
+    c.drawText(t)
+    c.rect(SOL + 20, y0 - 120, 180, 80)
+    c.rect(ORTA + 30, y0 - 150, 60, 110)
+    c.setFont("Helvetica-Bold", 9)
+    c.drawString(SOL + 16, y0 - 140, "Buna gore toplam kactir?")
+    c.drawString(ORTA + 16, y0 - 170, "Zincirin sol ucu hangi sayidadir?")
+    siklar(SOL + 16, y0 - 158, 55)
+    siklar(ORTA + 16, y0 - 188, 55)
+    c.showPage()
+
+    # —— 2. sayfa: ortak bilgili grup
+    ust(54)
+    c.rect(SOL, A4_Y - 82, A4_G - 2 * SOL, 18)
+    c.setFont("Helvetica-Bold", 10)
+    c.drawCentredString(A4_G / 2, A4_Y - 77, "4, 5 ve 6. sorulari asagida verilen bilgi ile cevaplayiniz.")
+    c.setFont("Helvetica", 9)
+    for i in range(3):
+        c.drawString(SOL, A4_Y - 105 - i * 12, "Fatih ile Mehmet, asagidaki labutlara top atacaklari bir oyun oynayacaklardir. Bu oyuna gore"[: 88 - i])
+    for i in range(8):
+        c.circle(SOL + 60 + i * 50, A4_Y - 175, 14)
+    c.rect(SOL + 120, A4_Y - 260, 220, 50)
+    c.line(SOL + 120, A4_Y - 235, SOL + 340, A4_Y - 235)
+    yy = A4_Y - 300
+    for no in (4, 5, 6, 7):
+        numara(SOL, yy, no)
+        c.setFont("Helvetica-Bold", 9)
+        c.drawString(SOL + 16, yy, "Oyun sonunda Fatih ile Mehmet'in puanlarinin toplami kac olur?")
+        siklar(SOL + 16, yy - 20)
+        yy -= 90
+    c.showPage()
+    c.save()
+    return tampon.getvalue()
+
+
+def taranmis_kopya(pdf: bytes, olcek: float = 2.0) -> bytes:
+    """Metinli PDF'in sayfalarını görsele çevirip yazı katmanı olmayan PDF üretir."""
+    import pypdfium2 as pdfium
+    from reportlab.lib.utils import ImageReader
+    from reportlab.pdfgen import canvas
+
+    belge = pdfium.PdfDocument(pdf)
+    tampon = io.BytesIO()
+    c = canvas.Canvas(tampon, pagesize=(A4_G, A4_Y))
+    for i in range(len(belge)):
+        gorsel = belge[i].render(scale=olcek).to_pil().convert("L")
+        b = io.BytesIO()
+        gorsel.save(b, format="PNG")
+        b.seek(0)
+        c.drawImage(ImageReader(b), 0, 0, width=A4_G, height=A4_Y)
+        c.showPage()
+    c.save()
+    return tampon.getvalue()

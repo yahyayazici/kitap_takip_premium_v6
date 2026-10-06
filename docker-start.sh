@@ -33,9 +33,9 @@ PY
 # E-Kitap: soru tespiti hiç yapılmamış bölümler (ör. bu özellikten önce yüklenen
 # kitaplar) için arka planda soruları bul. Sunucunun açılmasını bekletmez;
 # yarıda kalırsa bir sonraki açılışta yeniden dener.
-# --rozetsiz: eski sürümle bulunmuş sorular için rozet konumu ve sayfa düzeni (satır/sütun)
-# yeniden hesaplanır; elle düzeltilmiş/onaylı sorular korunur.
-nohup python manage.py ekitap_sorulari_bul --eksik --rozetsiz > /tmp/ekitap-sorulari-bul.log 2>&1 &
+# --eski: daha eski tespit algoritmasıyla taranmış bölümler yeniden taranır (soru kimlikleri
+# ve elle düzeltilmiş/onaylı sorular korunur).
+nohup python manage.py ekitap_sorulari_bul --eksik --eski > /tmp/ekitap-sorulari-bul.log 2>&1 &
 
 # cairo/pango gunicorn --preload ile fork sonrası bozulabiliyor
 exec gunicorn config.wsgi:application \

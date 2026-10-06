@@ -90,28 +90,57 @@ def sozcukleri_oku(gorsel, psm: str = "4") -> list[OcrSozcuk]:
     return sozcukler
 
 
-def satir_baslari(sozcukler: list[OcrSozcuk]) -> list[OcrSozcuk]:
-    ilkler: dict[tuple, OcrSozcuk] = {}
+SUTUN_BOSLUGU = 0.025
+
+
+def satir_parcalari(sozcukler: list[OcrSozcuk]) -> list[list[OcrSozcuk]]:
+    """OCR satırlarını büyük yatay boşluklardan böler (iki sütun tek satır okunabilir)."""
+    satirlar: dict[tuple, list[OcrSozcuk]] = {}
     for s in sozcukler:
-        mevcut = ilkler.get(s.satir)
-        if mevcut is None or s.x0 < mevcut.x0:
-            ilkler[s.satir] = s
-    return list(ilkler.values())
+        satirlar.setdefault(s.satir, []).append(s)
+    parcalar: list[list[OcrSozcuk]] = []
+    for liste in satirlar.values():
+        liste.sort(key=lambda w: w.x0)
+        parca = [liste[0]]
+        for w in liste[1:]:
+            if w.x0 - parca[-1].x1 > SUTUN_BOSLUGU:
+                parcalar.append(parca)
+                parca = []
+            parca.append(w)
+        parcalar.append(parca)
+    return parcalar
+
+
+def satir_baslari(sozcukler: list[OcrSozcuk]) -> list[OcrSozcuk]:
+    return [p[0] for p in satir_parcalari(sozcukler)]
 
 
 def numara_adaylari(sozcukler: list[OcrSozcuk]) -> list[tuple[int, OcrSozcuk, bool]]:
     """(numara, sözcük, ardından metin geliyor mu) — yalnızca satır başları."""
     sonuc = []
-    satirdaki = {}
-    for s in sozcukler:
-        satirdaki.setdefault(s.satir, []).append(s)
-    for bas in satir_baslari(sozcukler):
+    for parca in satir_parcalari(sozcukler):
+        bas = parca[0]
         e = _NUMARA.match(bas.metin)
         if not e:
             continue
         no = int(e.group(1) or e.group(2))
         if 1 <= no <= 200:
-            sonuc.append((no, bas, len(satirdaki.get(bas.satir, ())) > 1))
+            sonuc.append((no, bas, len(parca) > 1))
+    return sonuc
+
+
+def grup_basliklari(sozcukler: list[OcrSozcuk]) -> list[tuple[tuple[float, float, float, float], list[int]]]:
+    """"9 ve 10. soruları ..." satırları: (kutu, numaralar)."""
+    from takip.ekitap_soru_tespit import _grup_basligi
+
+    sonuc = []
+    for parca in satir_parcalari([s for s in sozcukler if s.satir[0] == "4"]):
+        numaralar = _grup_basligi(" ".join(w.metin for w in parca))
+        if numaralar:
+            sonuc.append((
+                (min(w.x0 for w in parca), min(w.y0 for w in parca), max(w.x1 for w in parca), max(w.y1 for w in parca)),
+                numaralar,
+            ))
     return sonuc
 
 
@@ -151,7 +180,26 @@ def murekkep_kutulari(gorsel) -> list[tuple[float, float, float, float]]:
             bant = parca.crop((0, bas, x1 - x0, y)).getbbox()
             if bant:
                 kutular.append(((x0 + bant[0]) / W, bas / H, (x0 + bant[2]) / W, y / H))
-    return kutular
+    return _seritleri_birlestir(kutular)
+
+
+def _seritleri_birlestir(kutular, bosluk: float = 0.012):
+    """Aynı satırdaki bitişik şerit kutularını birleştirir.
+
+    Sözcük arası boşluk küçük, sütun oluğu büyüktür: tam genişlikteki bir satır
+    tek kutu olur (sayfa o yükseklikte tek sütun sayılır), iki sütunun aynı
+    yükseklikteki satırları ayrı kalır.
+    """
+    sonuc: list[list[float]] = []
+    for k in sorted(kutular, key=lambda k: (k[0], k[1])):
+        for s in sonuc:
+            dikey = min(s[3], k[3]) - max(s[1], k[1])
+            if dikey > 0.5 * min(s[3] - s[1], k[3] - k[1]) and 0 <= k[0] - s[2] <= bosluk:
+                s[0], s[1], s[2], s[3] = min(s[0], k[0]), min(s[1], k[1]), max(s[2], k[2]), max(s[3], k[3])
+                break
+        else:
+            sonuc.append(list(k))
+    return [tuple(s) for s in sonuc]
 
 
 @dataclass
@@ -160,6 +208,7 @@ class OcrSayfasi:
     sik_baslari: list[OcrSozcuk]
     murekkep: list[tuple[float, float, float, float]]
     karakter: int
+    grup_basliklari: list = None
 
 
 def _tekillestir(ogeler, kutu):
@@ -187,4 +236,5 @@ def sayfayi_oku(gorsel) -> OcrSayfasi:
         sik_baslari=siklar,
         murekkep=murekkep_kutulari(gri),
         karakter=sum(len(s.metin) for s in sozcukler) // 2,
+        grup_basliklari=grup_basliklari(sozcukler),
     )
