@@ -139,6 +139,11 @@ class EKitapSoru(models.Model):
     # öğretmen perde aracıyla elle seçer.
     siklar_alan = models.PositiveSmallIntegerField(null=True, blank=True)
     siklar_y = models.FloatField(null=True, blank=True)
+    # Büyüteç rozeti: simgenin sağ kenarı x, merkez y, çap (sayfaya oranlı). Tespitte
+    # numaranın çevresindeki boşluğa göre hesaplanır; boşsa okuyucu alandan tahmin eder.
+    rozet_x = models.FloatField(null=True, blank=True)
+    rozet_y = models.FloatField(null=True, blank=True)
+    rozet_cap = models.FloatField(null=True, blank=True)
     olusturulma = models.DateTimeField(auto_now_add=True)
     guncellenme = models.DateTimeField(auto_now=True)
 

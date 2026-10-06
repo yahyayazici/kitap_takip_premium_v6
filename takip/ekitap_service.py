@@ -354,11 +354,16 @@ def _tespiti_kaydet(bolum: EKitapBolum, sonuc, ozet: str) -> None:
             continue
         yeni_alanlar = [(sayfa_sira, k.yuvarla()) for sayfa_sira, k in taslak.alanlar]
         siklar = taslak.siklar or (None, None)
+        rozet = taslak.rozet or (None, None, None)
         soru = eskiler.get((taslak.test_no, taslak.no))
         if soru is not None and soru.pk not in kullanilan:
             soru.sira, soru.guven, soru.pdf_ozeti = taslak.sira, taslak.guven, ozet
             soru.siklar_alan, soru.siklar_y = siklar
-            soru.save(update_fields=["sira", "guven", "pdf_ozeti", "siklar_alan", "siklar_y", "guncellenme"])
+            soru.rozet_x, soru.rozet_y, soru.rozet_cap = rozet
+            soru.save(update_fields=[
+                "sira", "guven", "pdf_ozeti", "siklar_alan", "siklar_y",
+                "rozet_x", "rozet_y", "rozet_cap", "guncellenme",
+            ])
             mevcut = [(a.sayfa_sira, (a.x0, a.y0, a.x1, a.y1)) for a in soru.alanlar.all()]
             if mevcut == yeni_alanlar:
                 kullanilan.add(soru.pk)
@@ -375,6 +380,9 @@ def _tespiti_kaydet(bolum: EKitapBolum, sonuc, ozet: str) -> None:
                 pdf_ozeti=ozet,
                 siklar_alan=siklar[0],
                 siklar_y=siklar[1],
+                rozet_x=rozet[0],
+                rozet_y=rozet[1],
+                rozet_cap=rozet[2],
             )
         kullanilan.add(soru.pk)
         EKitapSoruAlan.objects.bulk_create(
@@ -396,7 +404,7 @@ def _tespiti_kaydet(bolum: EKitapBolum, sonuc, ozet: str) -> None:
         if not alanlar:
             return (10**6, 0, 0.0, s.test_no, s.no)
         ilk = alanlar[0]
-        return (ilk.sayfa_sira, sonuc.sutun_indeksi(ilk.x0 + 0.015), ilk.y0, s.test_no, s.no)
+        return sonuc.konum_anahtari(ilk.sayfa_sira, ilk.x0, ilk.y0) + (s.test_no, s.no)
 
     korunan_pk = {s.pk for s in korunan}
     if bolum.sira_elle and korunan_pk:
@@ -692,6 +700,10 @@ def duzeltmeleri_kaydet(bolum: EKitapBolum, veri: dict) -> dict:
                     if alan.gorsel:
                         alan.gorsel.delete(save=False)
                     alan.delete()
+            # Rozet ilk alana göre yeniden tahmin edilir (okuyucuda).
+            if soru.rozet_x is not None:
+                soru.rozet_x = soru.rozet_y = soru.rozet_cap = None
+                soru.save(update_fields=["rozet_x", "rozet_y", "rozet_cap"])
             # Şık konumu artık alanlarla uyuşmayabilir; perde aracı elle kullanılır.
             if soru.siklar_alan is not None and soru.siklar_alan >= len(yeni):
                 soru.siklar_alan = soru.siklar_y = None

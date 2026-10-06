@@ -106,6 +106,8 @@ class SoruTaslagi:
     sutun: int
     # Şıkların başladığı yer: (alan indeksi, sayfaya göre y). Bulunamazsa None.
     siklar: tuple[int, float] | None = None
+    # Büyüteç rozeti: (simgenin sağ kenarı x, merkez y, çap — sayfa genişliği oranı).
+    rozet: tuple[float, float, float] | None = None
 
 
 @dataclass
@@ -125,9 +127,16 @@ class TespitSonucu:
     sayfalar: dict[int, SayfaBilgisi]
     capalar: list[float]
     not_: str = ""
+    # Sayfa okuma düzeni: "sutun" (önce sol sütun yukarıdan aşağı) ya da
+    # "satir" (soru sıraları soldan sağa); satır düzeninde satırların üst y'leri.
+    duzenler: dict[int, tuple[str, list[float]]] = field(default_factory=dict)
 
     def sutun_indeksi(self, x0: float) -> int:
         return _sutun_bul(self.capalar, x0)
+
+    def konum_anahtari(self, sayfa: int, x0: float, y0: float) -> tuple:
+        """Okuma sırası anahtarı (elle eklenen sorular dahil)."""
+        return (sayfa,) + _sayfa_ici_anahtar(self.duzenler.get(sayfa), _sutun_bul(self.capalar, x0 + 0.015), y0)
 
 
 # —— pypdfium2 sürüm uyumu ————————————————————————————————————————————————
@@ -305,6 +314,10 @@ def _susleme_mi(t: int, k: Kutu, m: str, suslemeler: set) -> bool:
         return True
     if k.genislik > 0.85 or k.yukseklik > 0.7:
         return True  # sayfa çerçevesi, zemin, tam genişlik bant, sütun ayırıcı çizgi
+    if t == _ham().FPDF_PAGEOBJ_PATH and (
+        (k.yukseklik < 0.004 and k.genislik > 0.25) or (k.genislik < 0.004 and k.yukseklik > 0.25)
+    ):
+        return True  # soruları ayıran ince yatay/dikey çizgi
     if k.y0 > 1 - ALT_BOSLUK and k.yukseklik < 0.03:
         return True  # sayfa numarası / alt bilgi
     if k.y1 < UST_BOSLUK and k.yukseklik < 0.03:
@@ -523,7 +536,8 @@ def tespit_et(belge, *, maks_sayfa: int | None = None, ocr: bool | None = None) 
         if a.ocr_guven is not None:
             w *= 0.6 + 0.4 * min(max(a.ocr_guven, 0.0), 1.0)
         a.agirlik = max(w, 0.1)
-    adaylar.sort(key=lambda a: (a.sayfa, a.sutun, a.kutu.y0))
+    duzenler = _duzenleri_bul(adaylar)
+    adaylar.sort(key=lambda a: (a.sayfa,) + _sayfa_ici_anahtar(duzenler.get(a.sayfa), a.sutun, a.kutu.y0))
 
     zincir = _zincir_sec(adaylar)
     if not zincir:
@@ -635,8 +649,22 @@ def tespit_et(belge, *, maks_sayfa: int | None = None, ocr: bool | None = None) 
                     bilgi.uyar("Soru alanları çakışıyor.")
 
     sik_kutulari = {s.indeks: s.sik_kutulari for s in sayfalar}
+    oranlar = {s.indeks: (s.genislik / s.yukseklik if s.yukseklik else 0.707) for s in sayfalar}
+    yol_turu = _ham().FPDF_PAGEOBJ_PATH
+    # Rozet için engeller: içerik + sütun ayırıcı dikey çizgiler (içerikten ayıklanmıştı)
+    ayiricilar = {
+        s.indeks: [k for t, k, _ in s.nesneler if t == yol_turu and k.genislik < 0.004 and k.yukseklik > 0.25]
+        for s in sayfalar
+    }
     for taslak in taslaklar:
         taslak.siklar = _siklari_bul(taslak, sik_kutulari)
+        sayfa_indeksi = taslak.alanlar[0][0] if taslak.alanlar else None
+        if sayfa_indeksi is not None:
+            taslak.rozet = _rozet_yeri(
+                taslak.numara_kutusu,
+                icerikler.get(sayfa_indeksi, []) + ayiricilar.get(sayfa_indeksi, []),
+                oranlar.get(sayfa_indeksi, 0.707),
+            )
     # OCR sonuçları belirsizdir: sayfalar yönetimde doğrulanmak üzere işaretlenir.
     for sayfa_indeksi in ocr_ile:
         bilgiler[sayfa_indeksi].uyar("Sorular OCR ile bulundu; alanları ve numaraları doğrulayın.")
@@ -648,7 +676,7 @@ def tespit_et(belge, *, maks_sayfa: int | None = None, ocr: bool | None = None) 
             taslak.guven = round(taslak.guven * 0.9, 2)
     durum = "ocr" if cogu_taranmis else "tamam"
     not_ = "Taranmış PDF; sorular OCR ile bulundu, yönetimde doğrulayın." if cogu_taranmis else ""
-    return TespitSonucu(durum, taslaklar, bilgiler, capalar, not_)
+    return TespitSonucu(durum, taslaklar, bilgiler, capalar, not_, duzenler)
 
 
 def _icinde(k: Kutu, b: Kutu) -> bool:
@@ -666,3 +694,91 @@ def _siklari_bul(taslak: SoruTaslagi, sik_kutulari: dict[int, list[Kutu]]) -> tu
             ilk = min(icindekiler, key=lambda k: k.y0)
             return i, round(max(ilk.y0 - 0.006, alan.y0), 4)
     return None
+
+
+# —— Sayfa okuma düzeni ———————————————————————————————————————————————————
+
+SATIR_TOLERANS = 0.03
+
+
+def _satir_baslari(ys: list[float]) -> list[float]:
+    baslar: list[float] = []
+    for y in sorted(ys):
+        if not baslar or y - baslar[-1] > SATIR_TOLERANS:
+            baslar.append(y)
+    return baslar
+
+
+def _sayfa_ici_anahtar(duzen, sutun: int, y0: float) -> tuple:
+    if duzen and duzen[0] == "satir":
+        satir = sum(1 for b in duzen[1] if b <= y0 + SATIR_TOLERANS) - 1
+        return (max(satir, 0), sutun, y0)
+    return (sutun, y0, 0)
+
+
+def _ters_sirali(numaralar: list[int]) -> int:
+    return sum(1 for i in range(len(numaralar)) for j in range(i + 1, len(numaralar)) if numaralar[i] > numaralar[j])
+
+
+def _duzenleri_bul(adaylar: list[Aday]) -> dict[int, tuple[str, list[float]]]:
+    """Her sayfa için sütun ya da satır okuma düzenini seçer.
+
+    Kitapçıklarda iki düzen bir arada olabilir: bir sayfada önce sol sütun
+    (1, 2) sonra sağ sütun (3); diğerinde sorular satır satır (4 | 5, 6 | 7).
+    Güçlü adayların numaralarının hangi okuma sırasında daha düzgün arttığına
+    bakılır; eşitlikte sütun düzeni seçilir.
+    """
+    sayfalar: dict[int, list[Aday]] = {}
+    for a in adaylar:
+        if a.agirlik >= 0.8:
+            sayfalar.setdefault(a.sayfa, []).append(a)
+    duzenler: dict[int, tuple[str, list[float]]] = {}
+    for sayfa, liste in sayfalar.items():
+        sutunlar = {a.sutun for a in liste}
+        if len(liste) < 3 or len(sutunlar) < 2:
+            continue
+        baslar = _satir_baslari([a.kutu.y0 for a in liste])
+        sutun_sira = sorted(liste, key=lambda a: _sayfa_ici_anahtar(None, a.sutun, a.kutu.y0))
+        satir_sira = sorted(liste, key=lambda a: _sayfa_ici_anahtar(("satir", baslar), a.sutun, a.kutu.y0))
+        if _ters_sirali([a.no for a in satir_sira]) < _ters_sirali([a.no for a in sutun_sira]):
+            duzenler[sayfa] = ("satir", baslar)
+    return duzenler
+
+
+# —— Büyüteç rozeti yeri ——————————————————————————————————————————————————
+
+ROZET_CAP = 0.03  # tercih edilen simge çapı (sayfa genişliği oranı)
+ROZET_EN_AZ = 0.016
+
+
+def _rozet_yeri(numara: Kutu, icerik: list[Kutu], oran: float) -> tuple[float, float, float]:
+    """Rozeti metni örtmeden yerleştirir.
+
+    1) Numaranın solundaki boşluk (sayfa kenarı ya da sütun oluğu) yeterliyse
+       oraya, numara satırının ortasına; boşluk darsa simge küçülür.
+    2) Değilse numaranın hemen üstündeki boşluğa.
+    3) İkisi de yoksa en küçük boyutta numaranın soluna.
+    Dönüş: (simgenin sağ kenarı x, merkez y, çap); x ve çap sayfa genişliğine,
+    y sayfa yüksekliğine oranlıdır. oran = genişlik / yükseklik.
+    """
+    pay = 0.005
+    satirdaki = [
+        k for k in icerik
+        if k.y1 > numara.y0 - 0.004 and k.y0 < numara.y1 + 0.004 and k.x1 <= numara.x0 + 0.002
+    ]
+    sol_engel = max((k.x1 for k in satirdaki), default=0.0)
+    yatay = numara.x0 - sol_engel - 2 * pay
+    if yatay >= ROZET_EN_AZ:
+        cap = min(ROZET_CAP, yatay)
+        return (round(numara.x0 - pay, 4), round(numara.cy, 4), round(cap, 4))
+    ustteki = [
+        k for k in icerik
+        if k.y1 <= numara.y0 + 0.001 and k.x1 > numara.x0 - 0.02 and k.x0 < numara.x1 + 0.02
+    ]
+    ust_engel = max((k.y1 for k in ustteki), default=0.0)
+    dikey = (numara.y0 - ust_engel - 2 * pay * oran) / oran  # genişlik birimine çevrilmiş
+    if dikey >= ROZET_EN_AZ:
+        cap = min(ROZET_CAP, dikey)
+        merkez_y = numara.y0 - pay * oran - cap * oran / 2
+        return (round(numara.cx + cap / 2, 4), round(merkez_y, 4), round(cap, 4))
+    return (round(numara.x0 - 0.002, 4), round(numara.cy, 4), ROZET_EN_AZ)
