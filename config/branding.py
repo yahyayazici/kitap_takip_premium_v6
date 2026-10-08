@@ -70,6 +70,11 @@ PANEL_MODULES = {
         "enabled": True,
         "nav_group": "Takip",
     },
+    "nehari_odev": {
+        "label": "Nehari Günlük Ödev",
+        "enabled": True,
+        "nav_group": "Eğitim",
+    },
     "program": {
         "label": "Programlar",
         "enabled": True,

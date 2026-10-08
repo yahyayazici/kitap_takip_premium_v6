@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Nehari Günlük Pano · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/nehari-odev.css' %}?v=1">
+{% endblock %}
+
+{% block content %}
+<div class="nh-page">
+    <header class="page-head patterned-page-head">
+        <p class="kicker">NEHARİ</p>
+        <h1>Günlük pano</h1>
+        <p>Her gün yeni açılır. İsimlerin yanında o günün ödevi yapılmadı görünür. Hoca kutuyu işaretleyince o gün yapılmış sayılır.</p>
+    </header>
+
+    <section class="nh-summary" aria-label="Günün özeti">
+        <div class="nh-progress">
+            <div class="nh-progress-top">
+                <strong data-nh-yapildi>{{ ozet.yapildi }}</strong>
+                <span>/ <span data-nh-toplam>{{ ozet.toplam }}</span> ödev</span>
+            </div>
+            <div class="nh-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ ozet.oran }}">
+                <span style="width: {{ ozet.oran }}%"></span>
+            </div>
+            <p data-nh-bekleyen>{{ ozet.bekleyen }} bekliyor</p>
+        </div>
+        <ul class="nh-counts">
+            <li><span>Yoklama</span><strong>{{ ozet.yoklama }}</strong></li>
+            <li><span>Kitap</span><strong>{{ ozet.kitap }}</strong></li>
+            <li><span>Dini ders</span><strong>{{ ozet.dini }}</strong></li>
+            <li><span>KTT</span><strong>{{ ozet.ktt }}</strong></li>
+            <li><span>Deneme</span><strong>{{ ozet.deneme }}</strong></li>
+            <li><span>Yazılı</span><strong>{{ ozet.yazili }}</strong></li>
+            <li><span>Not</span><strong>{{ ozet.not_girilen }}</strong></li>
+        </ul>
+    </section>
+
+    <section class="nh-toolbar">
+        <form method="get" class="nh-filters">
+            <label>
+                Tarih
+                <input class="input" type="date" name="tarih" value="{{ secili_tarih|date:'Y-m-d' }}">
+            </label>
+            <label>
+                Sınıf
+                <select class="input" name="sinif">
+                    <option value="">Tümü</option>
+                    {% for secenek in sinif_secenekleri %}
+                    <option value="{{ secenek }}" {% if filtre_sinif == secenek %}selected{% endif %}>{{ secenek }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>
+                Arama
+                <input class="input" type="search" name="q" value="{{ filtre_q }}" placeholder="Talebe adı">
+            </label>
+            <label>
+                Ödev
+                <select class="input" name="durum">
+                    <option value="">Tümü</option>
+                    <option value="bekleyen" {% if filtre_durum == "bekleyen" %}selected{% endif %}>Yapılmadı</option>
+                    <option value="yapildi" {% if filtre_durum == "yapildi" %}selected{% endif %}>Yapıldı</option>
+                </select>
+            </label>
+            <button class="ghost-btn" type="submit">Göster</button>
+        </form>
+        {% if bugun %}<p class="nh-today">Bugünün listesi</p>{% endif %}
+    </section>
+
+    <section class="nh-assignment">
+        <form method="post" class="nh-metin">
+            {% csrf_token %}
+            <input type="hidden" name="islem" value="metin">
+            <input type="hidden" name="tarih" value="{{ secili_tarih|date:'Y-m-d' }}">
+            <label for="nh-metin">Günün ödevi</label>
+            <input id="nh-metin" class="input" type="text" name="metin" maxlength="300" value="{{ odev_metni }}" placeholder="Örn. Matematik sayfa 42-45" {% if not duzenleyebilir %}disabled{% endif %}>
+            {% if duzenleyebilir %}
+            <button class="primary-btn" type="submit">Ödevi kaydet</button>
+            {% endif %}
+        </form>
+        <p class="nh-assignment-note" data-nh-metin-goster>{% if odev_metni %}{{ odev_metni }}{% else %}Günün ödevi{% endif %}</p>
+    </section>
+
+    {% if satirlar %}
+    <ol class="nh-list">
+        {% for satir in satirlar %}
+        <li class="nh-row {% if satir.yapildi %}is-done{% endif %}" data-nehari-satir>
+            <div class="nh-who">
+                <strong>{{ satir.ad }}</strong>
+                <span>{{ satir.sinif }}</span>
+            </div>
+            <label class="nh-check">
+                <input
+                    type="checkbox"
+                    data-nehari-odev
+                    value="{{ satir.talebe_id }}"
+                    data-tarih="{{ secili_tarih|date:'Y-m-d' }}"
+                    data-url="{% url 'nehari_odev_isaret' %}"
+                    {% if satir.yapildi %}checked{% endif %}
+                    {% if not duzenleyebilir %}disabled{% endif %}
+                >
+                <span>
+                    <em data-nh-metin-satir>{% if odev_metni %}{{ odev_metni }}{% else %}Günün ödevi{% endif %}</em>
+                    <b data-nehari-etiket>{% if satir.yapildi %}Yapıldı{% else %}Yapılmadı{% endif %}</b>
+                </span>
+            </label>
+            <ul class="nh-chips">
+                <li class="nh-chip is-{{ satir.yoklama.ton }}"><span>Yoklama</span>{{ satir.yoklama.etiket }}</li>
+                <li class="nh-chip is-{{ satir.kitap.ton }}"><span>Kitap</span>{{ satir.kitap.etiket }}</li>
+                <li class="nh-chip is-{{ satir.dini.ton }}"><span>Dini ders</span>{{ satir.dini.etiket }}</li>
+                <li class="nh-chip is-{{ satir.ktt.ton }}"><span>KTT</span>{{ satir.ktt.etiket }}</li>
+                <li class="nh-chip is-{{ satir.deneme.ton }}"><span>Deneme</span>{{ satir.deneme.etiket }}</li>
+                <li class="nh-chip is-{{ satir.yazili.ton }}"><span>Yazılı</span>{{ satir.yazili.etiket }}</li>
+                <li class="nh-chip is-{{ satir.notu.ton }}"><span>Not</span>{{ satir.notu.etiket }}</li>
+            </ul>
+        </li>
+        {% endfor %}
+    </ol>
+    {% else %}
+    <p class="nh-empty">Bu günde gösterilecek talebe yok.</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/nehari-odev.js' %}?v=1"></script>
+{% endblock %}

@@ -519,6 +519,21 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         nav_group="Disiplin & Takip",
     ),
     PanelNavItem(
+        key="nehari_odev",
+        label="Nehari Ödev",
+        url_name="nehari_odev_panel",
+        roller=frozenset(
+            {
+                ROL_IDARECI,
+                ROL_IC_MESUL,
+                ROL_EGITIM_MESUL,
+                ROL_NEHARI_MESUL,
+            }
+        ),
+        active_names=("nehari_odev_panel", "nehari_odev_isaret"),
+        nav_group="Eğitim",
+    ),
+    PanelNavItem(
         key="mezun",
         label="Mezun Takip Merkezi",
         url_name="mezun_listesi",
@@ -871,6 +886,13 @@ def gunluk_takip_modulu_erisimi_var(user: User) -> bool:
     return modul_erisimi_var(user, "gunluk_takip")
 
 
+def nehari_odev_modulu_erisimi_var(user: User) -> bool:
+    if not PANEL_MODULES.get("nehari_odev", {}).get("enabled", False):
+        return False
+
+    return modul_erisimi_var(user, "nehari_odev")
+
+
 def panel_nav_items(user: User) -> list[PanelNavItem]:
     rol = kullanici_rolu(user)
     if rol is None:
@@ -974,6 +996,8 @@ def panel_nav_items(user: User) -> list[PanelNavItem]:
         if item.key == "disiplin" and not disiplin_modulu_erisimi_var(user):
             continue
         if item.key == "gunluk_takip" and not gunluk_takip_modulu_erisimi_var(user):
+            continue
+        if item.key == "nehari_odev" and not nehari_odev_modulu_erisimi_var(user):
             continue
         if item.key == "yonetim" and not yonetim_erisimi_var(user):
             continue

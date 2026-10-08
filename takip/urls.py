@@ -12,6 +12,7 @@ from . import finans_views
 from . import rehberlik_views
 from . import disiplin_views
 from . import gunluk_takip_views
+from . import nehari_odev_views
 from . import cisa_views
 from . import deneme_views
 from . import etut_kontrol_views
@@ -733,6 +734,12 @@ urlpatterns = [
         "gunluk-takip/<int:pk>/duzenle/",
         gunluk_takip_views.gunluk_takip_duzenle,
         name="gunluk_takip_duzenle",
+    ),
+    path("nehari-odev/", nehari_odev_views.nehari_odev_panel, name="nehari_odev_panel"),
+    path(
+        "nehari-odev/isaret/",
+        nehari_odev_views.nehari_odev_isaret,
+        name="nehari_odev_isaret",
     ),
 
     path("veli/", veli_views.veli_dashboard, name="veli_dashboard"),
