@@ -152,6 +152,11 @@ def _yetkili_zimmetler(user):
     if tum_talebe_erisimi_var(user):
         return zimmetler
 
+    from takip.permissions.service import kullanici_rol_slugleri
+
+    if "nehari_mesul" in kullanici_rol_slugleri(user):
+        return zimmetler.filter(talebe__in=_yetkili_talebeler(user))
+
     hoca = _etut_hocasi(user)
 
     if not hoca:

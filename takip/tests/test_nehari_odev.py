@@ -182,6 +182,110 @@ class NehariOdevTests(TestCase):
         sayfa = self.client.get(reverse("nehari_odev_panel"), {"tarih": "2026-10-08"})
         self.assertContains(sayfa, "Matematik sayfa 42-45")
 
+    def test_ktt_yoklama_ve_kitap_girisi_acik(self):
+        self.client.force_login(self.nehari)
+        ktt = self.client.get(reverse("ktt_listesi"))
+        self.assertEqual(ktt.status_code, 200)
+        self.assertContains(ktt, 'name="sinif_subeler"')
+        self.assertContains(ktt, "5-A")
+        kayit = self.client.post(
+            reverse("ktt_listesi"),
+            {
+                "ad": "Nehari KTT",
+                "ders": self.ders.pk,
+                "sinav_tarihi": "2026-10-08",
+                "soru_sayisi": 10,
+                "sinif_subeler": "5-A",
+            },
+        )
+        self.assertEqual(kayit.status_code, 302)
+        self.assertIn("/sonuclar/", kayit.url)
+        sinav = KttSinav.objects.get(ad="Nehari KTT")
+        self.assertEqual(sinav.olusturan, self.nehari)
+        self.assertEqual(sinav.etut_hocasi.user, self.nehari)
+        sonuc = self.client.get(kayit.url)
+        self.assertEqual(sonuc.status_code, 200)
+        self.assertContains(sonuc, "Ali Yıldız")
+        self.assertContains(sonuc, "Veli Demir")
+
+        yoklama = self.client.post(
+            reverse("gunluk_takip_panel"),
+            {"tarih": "2026-10-08", "devamsiz": str(self.veli.pk)},
+        )
+        self.assertEqual(yoklama.status_code, 302)
+        self.assertEqual(
+            GunlukTakipKaydi.objects.get(talebe=self.veli, tarih=self.tarih).devam,
+            GunlukTakipKaydi.DevamDurumu.GELMEDI,
+        )
+
+        okuma = self.client.get(reverse("toplu_gunluk_okuma"))
+        self.assertEqual(okuma.status_code, 200)
+        self.assertContains(okuma, "Ali Yıldız")
+        self.assertContains(okuma, "Siyer")
+        zimmet = Zimmet.objects.get(talebe=self.ali)
+        okuma_kayit = self.client.post(
+            reverse("toplu_gunluk_okuma"),
+            {f"son_sayfa_{zimmet.pk}": "24"},
+        )
+        self.assertEqual(okuma_kayit.status_code, 302)
+        self.assertEqual(
+            OkumaKaydi.objects.filter(zimmet=zimmet).order_by("-tarih", "-id").first().son_sayfa,
+            24,
+        )
+
+        sinav = YaziliSinav.objects.get(ad="Matematik yazılı")
+        yazili = self.client.get(reverse("yazili_sonuc_gir", args=[sinav.pk]))
+        self.assertEqual(yazili.status_code, 200)
+        self.assertContains(yazili, "Veli Demir")
+        yazili_kayit = self.client.post(
+            reverse("yazili_sonuc_gir", args=[sinav.pk]),
+            {f"puan_{self.ali.pk}": "80", f"puan_{self.veli.pk}": "91"},
+        )
+        self.assertEqual(yazili_kayit.status_code, 302)
+        self.assertEqual(
+            YaziliSonuc.objects.get(sinav=sinav, talebe=self.veli).puan,
+            Decimal("91"),
+        )
+
+        seviye = DiniDersSeviyesi.objects.get(ad="Temel")
+        konu = DiniDersKonu.objects.get(ad="Abdest")
+        self.hoca.sorumlu_dini_ders_seviyeleri.add(seviye)
+        self.veli.dini_ders_seviyesi = seviye
+        self.veli.save(update_fields=["dini_ders_seviyesi"])
+        dini = self.client.get(
+            reverse("dini_ders_panel"),
+            {"seviye": seviye.pk, "alan": konu.alan_id},
+        )
+        self.assertEqual(dini.status_code, 200)
+        self.assertContains(dini, "Veli Demir")
+        dini_kayit = self.client.post(
+            reverse("dini_ders_panel"),
+            {
+                "seviye_id": seviye.pk,
+                "alan_id": konu.alan_id,
+                f"d_{self.veli.pk}_{konu.pk}": "tamam",
+            },
+        )
+        self.assertEqual(dini_kayit.status_code, 302)
+        self.assertTrue(
+            DiniDersKonuKaydi.objects.get(talebe=self.veli, konu=konu).tamamlandi
+        )
+
+        deneme = self.client.get(reverse("deneme_listesi"))
+        self.assertEqual(deneme.status_code, 200)
+        self.assertContains(deneme, "72,5")
+        self.assertContains(deneme, "/denemeler/")
+
+        pano = self.client.get(reverse("nehari_odev_panel"), {"tarih": "2026-10-08"})
+        self.assertContains(pano, reverse("ktt_listesi"))
+        self.assertContains(pano, reverse("gunluk_takip_panel"))
+
+        anahtarlar = {item.key for item in panel_nav_items(self.nehari)}
+        self.assertTrue(
+            {"ktt", "deneme", "dini_ders_takip", "yazili_takip", "gunluk_takip", "okuma", "zimmetler"}
+            <= anahtarlar
+        )
+
     def test_etut_hocasi_goremez_nehari_menude_durur(self):
         self.client.force_login(self.etut_user)
         cevap = self.client.get(reverse("nehari_odev_panel"))

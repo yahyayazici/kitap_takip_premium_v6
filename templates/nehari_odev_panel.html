@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Nehari Günlük Pano · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/nehari-odev.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'css/nehari-odev.css' %}?v=2">
 {% endblock %}
 
 {% block content %}
@@ -81,6 +81,15 @@
         <p class="nh-assignment-note" data-nh-metin-goster>{% if odev_metni %}{{ odev_metni }}{% else %}Günün ödevi{% endif %}</p>
     </section>
 
+    <nav class="nh-links" aria-label="Giriş ekranları">
+        <a class="ghost-btn" href="{% url 'ktt_listesi' %}">KTT ekle</a>
+        <a class="ghost-btn" href="{% url 'deneme_listesi' %}">Deneme</a>
+        <a class="ghost-btn" href="{% url 'dini_ders_panel' %}">Dini ders</a>
+        <a class="ghost-btn" href="{% url 'toplu_gunluk_okuma' %}">Kitap okuma</a>
+        <a class="ghost-btn" href="{% url 'yazili_kamp_listesi' %}">Yazılı</a>
+        <a class="ghost-btn" href="{% url 'gunluk_takip_panel' %}?tarih={{ secili_tarih|date:'Y-m-d' }}">Yoklama</a>
+    </nav>
+
     {% if satirlar %}
     <ol class="nh-list">
         {% for satir in satirlar %}
@@ -105,12 +114,12 @@
                 </span>
             </label>
             <ul class="nh-chips">
-                <li class="nh-chip is-{{ satir.yoklama.ton }}"><span>Yoklama</span>{{ satir.yoklama.etiket }}</li>
-                <li class="nh-chip is-{{ satir.kitap.ton }}"><span>Kitap</span>{{ satir.kitap.etiket }}</li>
-                <li class="nh-chip is-{{ satir.dini.ton }}"><span>Dini ders</span>{{ satir.dini.etiket }}</li>
-                <li class="nh-chip is-{{ satir.ktt.ton }}"><span>KTT</span>{{ satir.ktt.etiket }}</li>
-                <li class="nh-chip is-{{ satir.deneme.ton }}"><span>Deneme</span>{{ satir.deneme.etiket }}</li>
-                <li class="nh-chip is-{{ satir.yazili.ton }}"><span>Yazılı</span>{{ satir.yazili.etiket }}</li>
+                <li><a class="nh-chip is-{{ satir.yoklama.ton }}" href="{% url 'gunluk_takip_panel' %}?tarih={{ secili_tarih|date:'Y-m-d' }}"><span>Yoklama</span>{{ satir.yoklama.etiket }}</a></li>
+                <li><a class="nh-chip is-{{ satir.kitap.ton }}" href="{% url 'toplu_gunluk_okuma' %}"><span>Kitap</span>{{ satir.kitap.etiket }}</a></li>
+                <li><a class="nh-chip is-{{ satir.dini.ton }}" href="{% url 'dini_ders_panel' %}"><span>Dini ders</span>{{ satir.dini.etiket }}</a></li>
+                <li><a class="nh-chip is-{{ satir.ktt.ton }}" href="{% url 'ktt_listesi' %}"><span>KTT</span>{{ satir.ktt.etiket }}</a></li>
+                <li><a class="nh-chip is-{{ satir.deneme.ton }}" href="{% url 'deneme_listesi' %}"><span>Deneme</span>{{ satir.deneme.etiket }}</a></li>
+                <li><a class="nh-chip is-{{ satir.yazili.ton }}" href="{% url 'yazili_kamp_listesi' %}"><span>Yazılı</span>{{ satir.yazili.etiket }}</a></li>
                 <li class="nh-chip is-{{ satir.notu.ton }}"><span>Not</span>{{ satir.notu.etiket }}</li>
             </ul>
         </li>

@@ -113,7 +113,9 @@ def _ktt_olustur_kaydet(request, form, sinif_etiketleri):
 @login_required
 @require_permission("ktt", "view")
 def ktt_listesi(request):
-    hoca = etut_hocasi_for_user(request.user)
+    from takip.nehari_odev_service import nehari_kayit_hocasi
+
+    hoca = etut_hocasi_for_user(request.user) or nehari_kayit_hocasi(request.user)
     olusturabilir = ktt_olusturabilir(request.user)
     form = None
 
