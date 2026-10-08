@@ -395,3 +395,93 @@ class DenemeExcelYukleme(models.Model):
 
     def __str__(self):
         return f"{self.dosya_adi or self.dosya_hash[:8]} · {self.deneme.ad}"
+
+
+class OptikForm(models.Model):
+    """Bir optik kâğıdın kolon haritası. Okuyucu tek; kâğıtlar kayıttır."""
+
+    ad = models.CharField(max_length=120, unique=True, verbose_name="Form adı")
+    aciklama = models.TextField(blank=True, verbose_name="Açıklama")
+    satir_uzunluk = models.PositiveIntegerField(verbose_name="Satır uzunluğu")
+    kodlama = models.CharField(
+        max_length=20,
+        default="cp1254",
+        verbose_name="Harf düzeni",
+        help_text="cp1254 Türkçe Windows, utf-8 düz metin.",
+    )
+    olusturulma = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Optik form"
+        verbose_name_plural = "Optik formlar"
+        ordering = ["ad"]
+
+    def __str__(self):
+        return self.ad
+
+
+class OptikFormAlani(models.Model):
+    class Tur(models.TextChoices):
+        TC = "tc", "TC"
+        NUMARA = "numara", "Öğrenci no"
+        NUMARA_KONTROL = "numara_kontrol", "Numara taşma kontrolü"
+        KITAPCIK = "kitapcik", "Kitapçık"
+        SINIF = "sinif", "Sınıf"
+        SUBE = "sube", "Şube"
+        AD = "ad", "Ad soyad"
+        SIK = "sik", "Şık bölgesi"
+
+    form = models.ForeignKey(
+        OptikForm,
+        on_delete=models.CASCADE,
+        related_name="alanlar",
+        verbose_name="Form",
+    )
+    tur = models.CharField(max_length=20, choices=Tur.choices, verbose_name="Tür")
+    baslangic = models.PositiveIntegerField(verbose_name="Başlangıç kolonu")
+    bitis = models.PositiveIntegerField(verbose_name="Bitiş kolonu")
+    sira = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = "Optik form alanı"
+        verbose_name_plural = "Optik form alanları"
+        ordering = ["sira", "id"]
+
+    def __str__(self):
+        return f"{self.form.ad} · {self.tur} {self.baslangic}-{self.bitis}"
+
+
+class DenemeOptik(models.Model):
+    """Denemenin kullandığı form, anahtar ve ders sırası."""
+
+    deneme = models.OneToOneField(
+        DenemeSinavi,
+        on_delete=models.CASCADE,
+        related_name="optik",
+        verbose_name="Deneme",
+    )
+    form = models.ForeignKey(
+        OptikForm,
+        on_delete=models.PROTECT,
+        related_name="denemeler",
+        verbose_name="Optik form",
+    )
+    anahtar_a = models.TextField(verbose_name="A kitapçık anahtarı")
+    anahtar_b = models.TextField(blank=True, verbose_name="B kitapçık anahtarı")
+    dagilim = models.TextField(
+        verbose_name="Ders sırası",
+        help_text="Şeritteki sıra. Her satır: turkce 15",
+    )
+    kazanimlar = models.TextField(
+        blank=True,
+        verbose_name="Soru kazanımları",
+        help_text="İsteğe bağlı. Her satır bir soru, şeritteki sırayla.",
+    )
+    guncellenme = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Deneme optik tanımı"
+        verbose_name_plural = "Deneme optik tanımları"
+
+    def __str__(self):
+        return f"{self.deneme.ad} · {self.form.ad}"

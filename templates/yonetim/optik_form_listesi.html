@@ -1,0 +1,47 @@
+{% extends "yonetim/base.html" %}
+{% block title %}Optik formlar{% endblock %}
+{% block content %}
+<div class="yonetim-page">
+    <header class="yonetim-page-head">
+        <div>
+            <h1>Optik formlar</h1>
+            <p>Her kâğıdın kolon haritası ayrı bir formdur. Deneme, formlardan birini seçer.</p>
+        </div>
+        <div class="yonetim-page-head-actions">
+            <a href="{% url 'yonetim:deneme_listesi' %}" class="ghost-btn">Denemeler</a>
+            <a href="{% url 'yonetim:optik_form_ekle' %}" class="primary-btn">Yeni form</a>
+        </div>
+    </header>
+    <section class="yonetim-card">
+        <div class="responsive-table">
+            <table class="yonetim-table">
+                <thead>
+                    <tr>
+                        <th>Form</th>
+                        <th>Satır</th>
+                        <th>Şık</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for form in formlar %}
+                    <tr>
+                        <td>
+                            <strong>{{ form.ad }}</strong>
+                            {% if form.aciklama %}<div>{{ form.aciklama }}</div>{% endif %}
+                        </td>
+                        <td>{{ form.satir_uzunluk }} · {{ form.kodlama }}</td>
+                        <td>
+                            {% for alan in form.alanlar.all %}{% if alan.tur == "sik" %}{{ alan.baslangic }}–{{ alan.bitis }} {% endif %}{% endfor %}
+                        </td>
+                        <td><a class="ghost-btn" href="{% url 'yonetim:optik_form_kaydet' form.pk %}">Düzenle</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4">Henüz form yok.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

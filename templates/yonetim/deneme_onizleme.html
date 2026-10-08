@@ -5,7 +5,7 @@
     <header class="yonetim-page-head">
         <div>
             <h1>{% if onizleme.format == "optik" %}Optik önizleme{% else %}Excel Önizleme{% endif %}</h1>
-            <p>{{ deneme.ad }}{% if onizleme.format == "okyanus" %} · Okyanus genel sonuç raporu{% elif onizleme.format == "optik" %} · Günay optik{% if onizleme.aciklama %} · {{ onizleme.aciklama }}{% endif %}{% endif %}</p>
+            <p>{{ deneme.ad }}{% if onizleme.format == "okyanus" %} · Okyanus genel sonuç raporu{% elif onizleme.format == "optik" %} · Optik{% if onizleme.aciklama %} · {{ onizleme.aciklama }}{% endif %}{% endif %}</p>
         </div>
         <a href="{% url 'yonetim:deneme_detay' deneme.pk %}" class="ghost-btn">Geri</a>
     </header>

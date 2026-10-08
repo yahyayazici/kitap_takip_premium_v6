@@ -1,0 +1,40 @@
+{% extends "yonetim/base.html" %}
+{% block title %}{% if kayit %}{{ kayit.ad }}{% else %}Yeni optik form{% endif %}{% endblock %}
+{% block content %}
+<div class="yonetim-page">
+    <header class="yonetim-page-head">
+        <div>
+            <h1>{% if kayit %}{{ kayit.ad }}{% else %}Yeni optik form{% endif %}</h1>
+            <p>Kolonlar 1'den başlar, bitiş dahildir. Şık bölgeleri şeritteki sırayla yazılır.</p>
+        </div>
+        <a href="{% url 'yonetim:optik_form_listesi' %}" class="ghost-btn">Formlar</a>
+    </header>
+    <section class="yonetim-card">
+        <form method="post" style="display:grid;gap:12px;max-width:640px;">
+            {% csrf_token %}
+            <label for="form-ad">Ad</label>
+            <input id="form-ad" name="ad" class="input" required value="{{ posted.ad }}" style="font-size:16px;min-height:44px;">
+            <label for="form-aciklama">Açıklama</label>
+            <input id="form-aciklama" name="aciklama" class="input" value="{{ posted.aciklama }}" style="font-size:16px;min-height:44px;">
+            <label for="form-uzunluk">Satır uzunluğu</label>
+            <input id="form-uzunluk" name="satir_uzunluk" type="number" min="1" class="input" required value="{{ posted.satir_uzunluk }}" style="font-size:16px;min-height:44px;">
+            <label for="form-kodlama">Harf düzeni</label>
+            <select id="form-kodlama" name="kodlama" class="input" style="font-size:16px;min-height:44px;">
+                <option value="cp1254" {% if posted.kodlama != "utf-8" %}selected{% endif %}>Türkçe Windows (cp1254)</option>
+                <option value="utf-8" {% if posted.kodlama == "utf-8" %}selected{% endif %}>UTF-8</option>
+            </select>
+            <label for="form-alanlar">Alanlar</label>
+            <textarea id="form-alanlar" name="alanlar" class="input" required rows="12" placeholder="numara 21 25&#10;kitapcik 26 26&#10;ad 30 50&#10;sik 51 65&#10;sik 71 115" style="font-size:16px;min-height:220px;">{{ posted.alanlar }}</textarea>
+            <p style="margin:0;color:#64748b;font-size:13px;">Türler: numara, ad, kitapcik, sinif, sube, tc, sik, numara_kontrol. sik birden fazla yazılır. numara_kontrol bölgesinde rakam varsa o satırın numarası güvenilmez sayılır.</p>
+            <button type="submit" class="primary-btn">Kaydet</button>
+        </form>
+        {% if kayit %}
+        <form method="post" style="margin-top:16px;" onsubmit="return confirm('Bu form silinsin mi?');">
+            {% csrf_token %}
+            <input type="hidden" name="aksiyon" value="sil">
+            <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger">Formu sil</button>
+        </form>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

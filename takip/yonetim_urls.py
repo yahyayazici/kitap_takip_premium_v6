@@ -756,6 +756,21 @@ urlpatterns = [
         name="deneme_yonetici_ozeti",
     ),
     path(
+        "denemeler/optik-formlar/",
+        deneme_yonetim_views.optik_form_listesi,
+        name="optik_form_listesi",
+    ),
+    path(
+        "denemeler/optik-formlar/ekle/",
+        deneme_yonetim_views.optik_form_kaydet,
+        name="optik_form_ekle",
+    ),
+    path(
+        "denemeler/optik-formlar/<int:pk>/",
+        deneme_yonetim_views.optik_form_kaydet,
+        name="optik_form_kaydet",
+    ),
+    path(
         "denemeler/<int:pk>/",
         deneme_yonetim_views.deneme_detay,
         name="deneme_detay",
@@ -774,6 +789,11 @@ urlpatterns = [
         "denemeler/<int:pk>/optik/",
         deneme_yonetim_views.deneme_optik_yukle,
         name="deneme_optik_yukle",
+    ),
+    path(
+        "denemeler/<int:pk>/optik-tanim/",
+        deneme_yonetim_views.deneme_optik_tanim,
+        name="deneme_optik_tanim",
     ),
     path(
         "denemeler/<int:pk>/kazanim-excel/",
