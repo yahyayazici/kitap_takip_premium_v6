@@ -50,41 +50,6 @@
             <button type="submit" class="primary-btn" style="margin-top:12px;">{% if deneme.durum == 'aktif' %}Yeniden yükle{% else %}Yükle ve Önizle{% endif %}</button>
         </form>
     </section>
-    <section class="yonetim-card" style="margin-bottom:20px;">
-        <h2>Optik okuma</h2>
-        <p>Kâğıdın kolon haritası bir formdur. Bu denemede form, cevap anahtarı ve ders sırası bir kez kaydolur; sonra yalnızca .dat yüklenir. Net = doğru − yanlış/4. Puan = toplam net / soru sayısı × 100. Eşleşmeyen satır listede kalır.{% if deneme.durum == 'aktif' %} Mevcut sonuçların üzerine yazılır.{% endif %} <a href="{% url 'yonetim:optik_form_listesi' %}">Optik formlar</a></p>
-        {% if not optik_formlar %}
-        <p>Henüz form yok. Önce bir optik form tanımlayın.</p>
-        {% else %}
-        <form method="post" action="{% url 'yonetim:deneme_optik_tanim' deneme.pk %}" style="margin-top:12px;display:grid;gap:12px;max-width:640px;">
-            {% csrf_token %}
-            <label for="optik-form">Form</label>
-            <select id="optik-form" name="form_id" class="input" required style="font-size:16px;min-height:44px;">
-                {% for form in optik_formlar %}
-                <option value="{{ form.pk }}" {% if optik_tanim and optik_tanim.form_id == form.pk %}selected{% endif %}>{{ form.ad }}</option>
-                {% endfor %}
-            </select>
-            <label for="optik-anahtar-a">A kitapçık cevap anahtarı</label>
-            <textarea id="optik-anahtar-a" name="anahtar_a" class="input" required rows="3" style="font-size:16px;min-height:88px;">{{ optik_tanim.anahtar_a|default:"" }}</textarea>
-            <label for="optik-anahtar-b">B kitapçık cevap anahtarı</label>
-            <textarea id="optik-anahtar-b" name="anahtar_b" class="input" rows="2" placeholder="B kitapçık yoksa boş bırakın" style="font-size:16px;min-height:44px;">{{ optik_tanim.anahtar_b|default:"" }}</textarea>
-            <label for="optik-dagilim">Ders sırası, şeridin başından</label>
-            <textarea id="optik-dagilim" name="dagilim" class="input" required rows="6" placeholder="turkce 15&#10;matematik 15" style="font-size:16px;min-height:132px;">{{ optik_tanim.dagilim|default:"" }}</textarea>
-            <label for="optik-kazanim">Soru kazanımları</label>
-            <textarea id="optik-kazanim" name="kazanimlar" class="input" rows="4" placeholder="İsteğe bağlı. Her satır bir soru. Boş bırakılırsa kazanım yazılmaz." style="font-size:16px;min-height:88px;">{{ optik_tanim.kazanimlar|default:"" }}</textarea>
-            <button type="submit" class="primary-btn">Tanımı kaydet</button>
-        </form>
-        {% if optik_tanim %}
-        <form method="post" action="{% url 'yonetim:deneme_optik_yukle' deneme.pk %}" enctype="multipart/form-data" style="margin-top:20px;display:grid;gap:12px;max-width:640px;">
-            {% csrf_token %}
-            <p style="margin:0;">Kayıtlı form: <strong>{{ optik_tanim.form.ad }}</strong></p>
-            <label for="optik-dosya">Optik dosyası</label>
-            <input id="optik-dosya" type="file" name="optik_dosya" accept=".dat,.txt" class="input" required style="font-size:16px;min-height:44px;">
-            <button type="submit" class="primary-btn">Oku ve önizle</button>
-        </form>
-        {% endif %}
-        {% endif %}
-    </section>
     {% endif %}
 
     {% if deneme.durum == 'aktif' %}

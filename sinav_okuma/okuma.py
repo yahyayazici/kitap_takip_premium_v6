@@ -1,18 +1,14 @@
-"""Optik .dat dosyasını form haritasına göre deneme sonucuna çevirir.
+"""Optik .dat dosyasını form haritasına göre puanlar.
 
-Okuyucu tektir. Hangi kolonun numara, hangisinin şık olduğu OptikForm
-kaydında durur. Örnek dosyanın düzeni birinci form olarak tohumlanır.
+Okuyucu tektir. Kolonlar OptikForm kaydındadır. Örnek dosyanın düzeni
+birinci form olarak tohumlanır. Sonuçlar bu uygulamanın kendi tablosuna
+yazılır; ana sitedeki talebe veya deneme kayıtlarına dokunulmaz.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from decimal import Decimal, ROUND_HALF_UP
-
-from takip.deneme_excel import DenemeImportOnizleme, DenemeImportSatir, talebe_eslestir
-from takip.deneme_models import DenemeBransSonucu
-from takip.deneme_service import BRANS_ETIKETLERI
-from takip.models import Talebe
 
 GECERLI_SIK = frozenset("ABCD")
 TEK_ALANLAR = frozenset({"tc", "numara", "numara_kontrol", "kitapcik", "sinif", "sube", "ad"})
@@ -32,7 +28,6 @@ ALAN_ADLARI = {
     "cevap": "sik",
 }
 
-# Örnek .dat dosyasından çıkan düzen. Kolonlar 1'den başlar, bitiş dahildir.
 ORNEK_FORM_AD = "Örnek kayıt 150"
 ORNEK_FORM_ACIKLAMA = "Örnek .dat dosyasındaki düzen. Satır 150 karakter, 75 şık."
 ORNEK_SATIR = 150
@@ -50,6 +45,14 @@ ORNEK_ALANLAR = (
     ("sik", 121, 135),
 )
 
+DERS_ETIKETLERI = {
+    "turkce": "Türkçe",
+    "matematik": "Matematik",
+    "fen": "Fen Bilimleri",
+    "sosyal": "Sosyal Bilgiler",
+    "din": "Din Kültürü",
+    "ingilizce": "İngilizce",
+}
 _DERS_ADLARI = {
     "turkce": "turkce",
     "matematik": "matematik",
@@ -75,7 +78,6 @@ class OptikKayit:
     satir_no: int
     ogrenci_no: str
     numara_guvenilir: bool
-    tc: str
     ad_soyad: str
     kitapcik: str
     sinif: str
@@ -111,6 +113,36 @@ class FormHaritasi:
         return sum(a.bitis - a.baslangic + 1 for a in self.sik_alanlari())
 
 
+@dataclass
+class OptikDosya:
+    kayitlar: list[OptikKayit]
+    uyarilar: list[str] = field(default_factory=list)
+
+    @property
+    def cevap_sayisi(self) -> int:
+        if not self.kayitlar:
+            return 0
+        return len(self.kayitlar[0].cevaplar)
+
+
+@dataclass
+class PuanSatiri:
+    satir_no: int
+    ogrenci_no: str
+    ad: str
+    kitapcik: str
+    sinif_metni: str
+    uyarilar: list[str]
+    cevaplar: str
+    puanlandi: bool
+    dogru: int = 0
+    yanlis: int = 0
+    bos: int = 0
+    net: str = "0.00"
+    puan: str = ""
+    sorular: list[dict] = field(default_factory=list)
+
+
 def ornek_harita() -> FormHaritasi:
     return FormHaritasi(
         satir_uzunluk=ORNEK_SATIR,
@@ -127,23 +159,8 @@ def harita_from_form(form) -> FormHaritasi:
     return FormHaritasi(
         satir_uzunluk=form.satir_uzunluk,
         kodlama=form.kodlama or ORNEK_KODLAMA,
-        alanlar=[
-            FormAlani(a.tur, a.baslangic, a.bitis)
-            for a in form.alanlar.all()
-        ],
+        alanlar=[FormAlani(a.tur, a.baslangic, a.bitis) for a in form.alanlar.all()],
     )
-
-
-@dataclass
-class OptikDosya:
-    kayitlar: list[OptikKayit]
-    uyarilar: list[str] = field(default_factory=list)
-
-    @property
-    def cevap_sayisi(self) -> int:
-        if not self.kayitlar:
-            return 0
-        return len(self.kayitlar[0].cevaplar)
 
 
 def _metin_oku(ham: bytes, kodlama: str) -> str:
@@ -169,7 +186,7 @@ def _parca(satir: str, harita: FormHaritasi, tur: str) -> str:
 
 
 def optik_oku(ham: bytes, harita: FormHaritasi) -> OptikDosya:
-    """Form haritasındaki kolonlardan talebe ve şık şeridini ayırır."""
+    """Form haritasındaki kolonlardan kimlik ve şık şeridini ayırır."""
     if harita.sik_sayisi <= 0:
         raise OptikHata("Formda şık bölgesi yok.")
     metin = _metin_oku(ham, harita.kodlama)
@@ -192,14 +209,9 @@ def optik_oku(ham: bytes, harita: FormHaritasi) -> OptikDosya:
 
 
 def _satir_ayir(satir_no: int, satir: str, harita: FormHaritasi) -> OptikKayit:
-    tc = _parca(satir, harita, "tc").strip()
-    if not (tc.isdigit() and len(tc) == 11):
-        tc = ""
     kontrol = _parca(satir, harita, "numara_kontrol")
     no_ham = _parca(satir, harita, "numara").strip()
-    numara_guvenilir = bool(no_ham) and no_ham.isdigit() and not any(
-        c.isdigit() for c in kontrol
-    )
+    numara_guvenilir = bool(no_ham) and no_ham.isdigit() and not any(c.isdigit() for c in kontrol)
     kitapcik = _parca(satir, harita, "kitapcik").strip().upper()
     if kitapcik not in {"A", "B"}:
         kitapcik = ""
@@ -213,7 +225,7 @@ def _satir_ayir(satir_no: int, satir: str, harita: FormHaritasi) -> OptikKayit:
     cevaplar = "".join(satir[harita.dilim(alan)] for alan in harita.sik_alanlari()).upper()
     uyarilar: list[str] = []
     if harita.alan("numara") and not numara_guvenilir:
-        uyarilar.append("Numara alanı kaymış, isimle aranacak.")
+        uyarilar.append("Numara alanı kaymış.")
     if harita.alan("ad") and not ad:
         uyarilar.append("Ad soyad okunamadı.")
     cift = cevaplar.count("*")
@@ -223,7 +235,6 @@ def _satir_ayir(satir_no: int, satir: str, harita: FormHaritasi) -> OptikKayit:
         satir_no=satir_no,
         ogrenci_no=no_ham if numara_guvenilir else "",
         numara_guvenilir=numara_guvenilir,
-        tc=tc,
         ad_soyad=ad,
         kitapcik=kitapcik,
         sinif=sinif,
@@ -231,6 +242,12 @@ def _satir_ayir(satir_no: int, satir: str, harita: FormHaritasi) -> OptikKayit:
         cevaplar=cevaplar,
         uyarilar=uyarilar,
     )
+
+
+def _katla(metin: str) -> str:
+    s = metin.strip().replace("İ", "i").replace("I", "ı")
+    s = s.lower().translate(str.maketrans("ışğüöçâîû", "isguocaiu"))
+    return "".join(ch for ch in s if ch.isalnum())
 
 
 def form_alanlarini_coz(metin: str, satir_uzunluk: int) -> list[FormAlani]:
@@ -256,9 +273,7 @@ def form_alanlarini_coz(metin: str, satir_uzunluk: int) -> list[FormAlani]:
             )
         bas, bit = int(kelimeler[1]), int(kelimeler[2])
         if bas < 1 or bit < bas or bit > satir_uzunluk:
-            raise OptikHata(
-                f"{tur} {bas}-{bit} satırın dışında. Satır 1–{satir_uzunluk}."
-            )
+            raise OptikHata(f"{tur} {bas}-{bit} satırın dışında. Satır 1–{satir_uzunluk}.")
         if tur in TEK_ALANLAR and tur in gorulen:
             raise OptikHata(f"{tur} iki kez yazılmış.")
         gorulen.add(tur)
@@ -311,18 +326,10 @@ def kazanim_metni(satirlar: list[str]) -> str:
     return metin
 
 
-def _katla(metin: str) -> str:
-    s = metin.strip().replace("İ", "i").replace("I", "ı")
-    s = s.lower().translate(str.maketrans("ışğüöçâîû", "isguocaiu"))
-    return "".join(ch for ch in s if ch.isalnum())
-
-
 def dagilim_coz(metin: str, cevap_sayisi: int) -> list[tuple[str, int]]:
     """«turkce 15» satırlarını optikteki ders sırasına çevirir."""
     if not (metin or "").strip():
-        raise OptikHata(
-            "Soru dağılımını yazın. Her satır bir ders: turkce 15"
-        )
+        raise OptikHata("Soru dağılımını yazın. Her satır bir ders: turkce 15")
     dagilim: list[tuple[str, int]] = []
     gorulen: set[str] = set()
     for ham in metin.splitlines():
@@ -345,7 +352,7 @@ def dagilim_coz(metin: str, cevap_sayisi: int) -> list[tuple[str, int]]:
                 f"«{ad}» dersi yok. Türkçe, Matematik, Fen, Sosyal, Din, İngilizce yazın."
             )
         if kod in gorulen:
-            raise OptikHata(f"{BRANS_ETIKETLERI[kod]} iki kez yazılmış.")
+            raise OptikHata(f"{DERS_ETIKETLERI[kod]} iki kez yazılmış.")
         adet = int(adet_metin)
         if adet < 0:
             raise OptikHata("Soru sayısı eksi olamaz.")
@@ -362,6 +369,10 @@ def dagilim_coz(metin: str, cevap_sayisi: int) -> list[tuple[str, int]]:
             "İkisi eşit olmalı."
         )
     return dagilim
+
+
+def dagilim_metni(dagilim: list[tuple[str, int]]) -> str:
+    return "\n".join(f"{kod} {adet}" for kod, adet in dagilim)
 
 
 def anahtar_temizle(metin: str, cevap_sayisi: int, *, kitapcik: str) -> str:
@@ -382,6 +393,13 @@ def anahtar_temizle(metin: str, cevap_sayisi: int, *, kitapcik: str) -> str:
     return anahtar
 
 
+def _net_hesapla(dogru: int, yanlis: int) -> Decimal:
+    net = Decimal(int(dogru or 0)) - (Decimal(int(yanlis or 0)) / Decimal("4"))
+    if net < 0:
+        net = Decimal("0.00")
+    return net.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
 def _sik_say(cevaplar: str, anahtar: str) -> tuple[int, int, int]:
     dogru = yanlis = bos = 0
     for verilen, beklenen in zip(cevaplar, anahtar):
@@ -398,31 +416,23 @@ def _sik_say(cevaplar: str, anahtar: str) -> tuple[int, int, int]:
     return dogru, yanlis, bos
 
 
+def _sik_durum(verilen: str, beklenen: str) -> str:
+    if verilen in {" ", ""}:
+        return "bos"
+    if verilen == "*":
+        return "yanlis"
+    if verilen == beklenen:
+        return "dogru"
+    if verilen in GECERLI_SIK:
+        return "yanlis"
+    return "bos"
+
+
 def _puan(net: Decimal, soru: int) -> str:
     if soru <= 0:
         return "0.00"
-    puan = (net / Decimal(soru) * Decimal(100)).quantize(
-        Decimal("0.01"), rounding=ROUND_HALF_UP
-    )
+    puan = (net / Decimal(soru) * Decimal(100)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
     return format(puan, "f")
-
-
-def _no_ile_bul(ogrenci_no: str) -> Talebe | None:
-    yalin = ogrenci_no.strip().lstrip("0") or "0"
-    bicimler = {ogrenci_no.strip(), yalin, yalin.zfill(3), yalin.zfill(4), yalin.zfill(5)}
-    adaylar = list(Talebe.objects.filter(aktif=True, talebe_no__in=bicimler))
-    if len(adaylar) == 1:
-        return adaylar[0]
-    return None
-
-
-def _tc_ile_bul(tc: str) -> Talebe | None:
-    if not tc:
-        return None
-    adaylar = list(Talebe.objects.filter(aktif=True, tc_kimlik=tc))
-    if len(adaylar) == 1:
-        return adaylar[0]
-    return None
 
 
 def _sinif_metni(kayit: OptikKayit) -> str:
@@ -438,101 +448,16 @@ def _sinif_metni(kayit: OptikKayit) -> str:
     return " · ".join(parcalar)
 
 
-def optik_onizleme(
-    dosya: OptikDosya,
-    dagilim: list[tuple[str, int]],
-    anahtar_a: str,
-    anahtar_b: str = "",
-    kazanimlar: list[str] | None = None,
-) -> DenemeImportOnizleme:
-    """Şıkları doğru/yanlış/boş ve nete çevirip Excel aktarımının önizlemesine koyar."""
-    onizleme = DenemeImportOnizleme(
-        format="optik",
-        hatalar=list(dosya.uyarilar),
-        aciklama=_dagilim_metni(dagilim),
-    )
-    for kayit in dosya.kayitlar:
-        kitap = kayit.kitapcik or "A"
-        anahtar = anahtar_a if kitap == "A" else anahtar_b
-        satir = DenemeImportSatir(
-            satir_no=kayit.satir_no,
-            excel_ad_soyad=kayit.ad_soyad or f"No {kayit.ogrenci_no or kayit.satir_no}",
-            sinif=_sinif_metni(kayit),
-            hatalar=list(kayit.uyarilar),
-        )
-        if kitap == "B" and not anahtar_b:
-            satir.puan = ""
-            satir.hatalar.append("B kitapçık anahtarı yok, puan yazılmadı.")
-        elif not anahtar:
-            satir.puan = ""
-            satir.hatalar.append("Cevap anahtarı yok, puan yazılmadı.")
-        else:
-            _puanlari_yaz(satir, kayit.cevaplar, anahtar, dagilim, kazanimlar or [])
-
-        sinif_eslesme = ""
-        if kayit.sinif and kayit.sube:
-            sinif_eslesme = f"{kayit.sinif}{kayit.sube}"
-        elif kayit.sinif:
-            sinif_eslesme = kayit.sinif
-
-        talebe = _no_ile_bul(kayit.ogrenci_no) if kayit.numara_guvenilir else None
-        if talebe:
-            satir.talebe_id = talebe.id
-            satir.eslesme = "otomatik"
-        else:
-            talebe = _tc_ile_bul(kayit.tc)
-            if talebe:
-                satir.talebe_id = talebe.id
-                satir.eslesme = "otomatik"
-            else:
-                bulunan, eslesme, oneriler = talebe_eslestir(
-                    kayit.ad_soyad, sinif_eslesme
-                )
-                satir.eslesme = eslesme
-                satir.oneriler = oneriler
-                if bulunan:
-                    satir.talebe_id = bulunan.id
-                elif oneriler:
-                    en_iyi = oneriler[0]
-                    satir.oneri_talebe_id = en_iyi["id"]
-                    satir.oneri_ad_soyad = en_iyi["ad_soyad"]
-                    satir.oneri_sinif = en_iyi.get("sinif", "")
-                    satir.oneri_oran = int(en_iyi.get("oran", 0))
-                    satir.eslesme = "oneri"
-                    satir.hatalar.append(
-                        f"«{kayit.ad_soyad}» sitedeki «{en_iyi['ad_soyad']}» "
-                        f"(%{en_iyi['oran']}) talebesine benziyor — doğru mu?"
-                    )
-        onizleme.satirlar.append(satir)
-    return onizleme
-
-
-def _dagilim_metni(dagilim: list[tuple[str, int]]) -> str:
-    parcalar = [f"{BRANS_ETIKETLERI[kod]} {adet}" for kod, adet in dagilim]
-    return " · ".join(parcalar)
-
-
-def _sik_durum(verilen: str, beklenen: str) -> str:
-    if verilen in {" ", ""}:
-        return "bos"
-    if verilen == "*":
-        return "yanlis"
-    if verilen == beklenen:
-        return "dogru"
-    if verilen in GECERLI_SIK:
-        return "yanlis"
-    return "bos"
-
-
-def _puanlari_yaz(
-    satir: DenemeImportSatir,
+def _sorulari_say(
     cevaplar: str,
     anahtar: str,
     dagilim: list[tuple[str, int]],
-    kazanimlar: list[str] | None = None,
-) -> None:
+    kazanimlar: list[str],
+) -> tuple[list[dict], int, int, int, Decimal]:
     imlec = 0
     sorular: list[dict] = []
+    t_dogru = t_yanlis = t_bos = 0
+    t_net = Decimal("0")
     for kod, adet in dagilim:
         parca = cevaplar[imlec : imlec + adet]
         kilit = anahtar[imlec : imlec + adet]
@@ -551,110 +476,64 @@ def _puanlari_yaz(
             )
         imlec += adet
         dogru, yanlis, bos = _sik_say(parca, kilit)
-        net = DenemeBransSonucu.net_hesapla(dogru, yanlis)
-        satir.branslar[kod] = {
-            "dogru": dogru,
-            "yanlis": yanlis,
-            "bos": bos,
-            "net": str(net),
-        }
-    satir.sorular = sorular
-    t_dogru = sum(v["dogru"] for v in satir.branslar.values())
-    t_yanlis = sum(v["yanlis"] for v in satir.branslar.values())
-    t_bos = sum(v["bos"] for v in satir.branslar.values())
-    t_net = sum(
-        (Decimal(v["net"]) for v in satir.branslar.values()),
-        Decimal("0"),
-    ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-    soru = sum(adet for _, adet in dagilim)
-    satir.toplam = {
-        "dogru": t_dogru,
-        "yanlis": t_yanlis,
-        "bos": t_bos,
-        "net": str(t_net),
-    }
-    satir.puan = _puan(t_net, soru)
+        t_dogru += dogru
+        t_yanlis += yanlis
+        t_bos += bos
+        t_net += _net_hesapla(dogru, yanlis)
+    t_net = t_net.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    return sorular, t_dogru, t_yanlis, t_bos, t_net
 
 
-def optik_sorulari_yaz(deneme, onizleme: DenemeImportOnizleme) -> int:
-    """Eşleşen ve puanı yazılmış satırların soru sonucunu kayda geçirir."""
-    from takip.deneme_kazanim_excel import name_key
-    from takip.deneme_models import DenemeKazanimSonucu, DenemeSoruSonucu
+def satirlari_puanla(
+    dosya: OptikDosya,
+    dagilim: list[tuple[str, int]],
+    anahtar_a: str,
+    anahtar_b: str = "",
+    kazanimlar: list[str] | None = None,
+) -> list[PuanSatiri]:
+    """Her optik satırını saklanacak puan satırına çevirir.
 
-    eslesen = [
-        s
-        for s in onizleme.satirlar
-        if s.talebe_id and (s.puan or "").strip() and s.sorular
-    ]
-    if not eslesen:
-        return 0
-    ids = [s.talebe_id for s in eslesen]
-    DenemeSoruSonucu.objects.filter(deneme=deneme, talebe_id__in=ids).delete()
-    soru_satirlari = []
-    for satir in eslesen:
-        for soru in satir.sorular:
-            kod = soru["ders_key"]
-            soru_satirlari.append(
-                DenemeSoruSonucu(
-                    deneme=deneme,
-                    talebe_id=satir.talebe_id,
-                    ders_ad=BRANS_ETIKETLERI.get(kod, kod)[:120],
-                    ders_key=kod,
-                    soru_no=int(soru["soru_no"]),
-                    konu_ad=(soru.get("konu_ad") or "")[:300],
-                    sonuc=soru["sonuc"],
-                    sira=int(soru.get("sira") or 0),
-                )
+    B kitapçığın anahtarı yoksa satır yine döner; puan boş kalır.
+    Numara kayması bir nottur, satır atılmaz.
+    """
+    satirlar: list[PuanSatiri] = []
+    soru_sayisi = sum(adet for _, adet in dagilim)
+    for kayit in dosya.kayitlar:
+        kitap = kayit.kitapcik or "A"
+        anahtar = anahtar_a if kitap == "A" else anahtar_b
+        uyarilar = list(kayit.uyarilar)
+        puanlandi = True
+        if kitap == "B" and not anahtar_b:
+            uyarilar.append("B kitapçık anahtarı yok, puan yazılmadı.")
+            puanlandi = False
+        elif not anahtar:
+            uyarilar.append("Cevap anahtarı yok, puan yazılmadı.")
+            puanlandi = False
+        sorular: list[dict] = []
+        dogru = yanlis = bos = 0
+        net = Decimal("0.00")
+        puan = ""
+        if puanlandi:
+            sorular, dogru, yanlis, bos, net = _sorulari_say(
+                kayit.cevaplar, anahtar, dagilim, kazanimlar or []
             )
-    DenemeSoruSonucu.objects.bulk_create(soru_satirlari, batch_size=500)
-    _kazanimlari_yaz(deneme, eslesen, name_key, DenemeKazanimSonucu)
-    return len(soru_satirlari)
-
-
-def _kazanimlari_yaz(deneme, eslesen, name_key, model) -> None:
-    if not any(soru.get("konu_ad") for satir in eslesen for soru in satir.sorular):
-        return
-    ids = [s.talebe_id for s in eslesen]
-    model.objects.filter(deneme=deneme, talebe_id__in=ids).delete()
-    kovalar: dict[tuple, dict] = {}
-    for satir in eslesen:
-        for soru in satir.sorular:
-            konu = (soru.get("konu_ad") or "").strip()
-            if not konu:
-                continue
-            kod = soru["ders_key"]
-            anahtar = (satir.talebe_id, kod, name_key(konu))
-            kova = kovalar.setdefault(
-                anahtar,
-                {
-                    "ders_ad": BRANS_ETIKETLERI.get(kod, kod),
-                    "konu_ad": konu,
-                    "dogru": 0,
-                    "yanlis": 0,
-                    "bos": 0,
-                },
-            )
-            kova[soru["sonuc"]] = kova.get(soru["sonuc"], 0) + 1
-    yazilacak = []
-    for (talebe_id, ders_key, konu_key), kova in kovalar.items():
-        toplam = kova["dogru"] + kova["yanlis"] + kova["bos"]
-        if not toplam:
-            continue
-        yuzde = (Decimal(kova["dogru"]) * Decimal(100) / Decimal(toplam)).quantize(
-            Decimal("0.01"), rounding=ROUND_HALF_UP
-        )
-        yazilacak.append(
-            model(
-                deneme=deneme,
-                talebe_id=talebe_id,
-                ders_ad=kova["ders_ad"][:120],
-                konu_ad=kova["konu_ad"][:300],
-                ders_key=ders_key[:120],
-                konu_key=konu_key[:300],
-                yuzde=yuzde,
-                net_dogru=Decimal(kova["dogru"]),
-                net_toplam=Decimal(toplam),
+            puan = _puan(net, soru_sayisi)
+        satirlar.append(
+            PuanSatiri(
+                satir_no=kayit.satir_no,
+                ogrenci_no=kayit.ogrenci_no,
+                ad=kayit.ad_soyad or f"Satır {kayit.satir_no}",
+                kitapcik=kayit.kitapcik,
+                sinif_metni=_sinif_metni(kayit),
+                uyarilar=uyarilar,
+                cevaplar=kayit.cevaplar,
+                puanlandi=puanlandi,
+                dogru=dogru,
+                yanlis=yanlis,
+                bos=bos,
+                net=format(net, "f"),
+                puan=puan,
+                sorular=sorular,
             )
         )
-    if yazilacak:
-        model.objects.bulk_create(yazilacak, batch_size=500)
+    return satirlar

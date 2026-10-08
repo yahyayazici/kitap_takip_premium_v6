@@ -5,26 +5,36 @@ import django.db.models.deletion
 def ornek_formu_ekle(apps, schema_editor):
     Form = apps.get_model("takip", "OptikForm")
     Alan = apps.get_model("takip", "OptikFormAlani")
-    from takip.deneme_optik import (
-        ORNEK_ALANLAR,
-        ORNEK_FORM_ACIKLAMA,
-        ORNEK_FORM_AD,
-        ORNEK_KODLAMA,
-        ORNEK_SATIR,
+    # Sabitler burada durur: bu göç uygulandıktan sonra tablolar 0116 ile kalkar.
+    ornek_form_ad = "Örnek kayıt 150"
+    ornek_form_aciklama = "Örnek .dat dosyasındaki düzen. Satır 150 karakter, 75 şık."
+    ornek_satir = 150
+    ornek_kodlama = "cp1254"
+    ornek_alanlar = (
+        ("tc", 2, 12),
+        ("numara_kontrol", 13, 20),
+        ("numara", 21, 25),
+        ("kitapcik", 26, 26),
+        ("sinif", 27, 27),
+        ("sube", 28, 28),
+        ("ad", 30, 50),
+        ("sik", 51, 65),
+        ("sik", 71, 115),
+        ("sik", 121, 135),
     )
 
-    if Form.objects.filter(ad=ORNEK_FORM_AD).exists():
+    if Form.objects.filter(ad=ornek_form_ad).exists():
         return
     form = Form.objects.create(
-        ad=ORNEK_FORM_AD,
-        aciklama=ORNEK_FORM_ACIKLAMA,
-        satir_uzunluk=ORNEK_SATIR,
-        kodlama=ORNEK_KODLAMA,
+        ad=ornek_form_ad,
+        aciklama=ornek_form_aciklama,
+        satir_uzunluk=ornek_satir,
+        kodlama=ornek_kodlama,
     )
     Alan.objects.bulk_create(
         [
             Alan(form=form, tur=tur, baslangic=bas, bitis=bit, sira=sira)
-            for sira, (tur, bas, bit) in enumerate(ORNEK_ALANLAR)
+            for sira, (tur, bas, bit) in enumerate(ornek_alanlar)
         ]
     )
 

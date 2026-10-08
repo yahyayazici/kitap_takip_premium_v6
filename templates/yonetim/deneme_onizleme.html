@@ -4,59 +4,11 @@
 <div class="yonetim-page">
     <header class="yonetim-page-head">
         <div>
-            <h1>{% if onizleme.format == "optik" %}Optik önizleme{% else %}Excel Önizleme{% endif %}</h1>
-            <p>{{ deneme.ad }}{% if onizleme.format == "okyanus" %} · Okyanus genel sonuç raporu{% elif onizleme.format == "optik" %} · Optik{% if onizleme.aciklama %} · {{ onizleme.aciklama }}{% endif %}{% endif %}</p>
+            <h1>Excel Önizleme</h1>
+            <p>{{ deneme.ad }}{% if onizleme.format == "okyanus" %} · Okyanus genel sonuç raporu{% endif %}</p>
         </div>
         <a href="{% url 'yonetim:deneme_detay' deneme.pk %}" class="ghost-btn">Geri</a>
     </header>
-
-    {% if onizleme.hatalar %}
-    <section class="yonetim-card" style="margin-bottom:20px;">
-        <h2>Dosya notları</h2>
-        <ul>
-            {% for hata in onizleme.hatalar %}
-            <li>{{ hata }}</li>
-            {% endfor %}
-        </ul>
-    </section>
-    {% endif %}
-
-    {% if onizleme.format == "optik" %}
-    <section class="yonetim-card" style="margin-bottom:20px;">
-        <h2>Okunan sonuçlar</h2>
-        <p style="margin:0 0 12px;color:#64748b;font-size:13px;">Net = doğru − yanlış/4. Puan = toplam net / soru sayısı × 100. Çift işaret yanlış sayılır, boş şık boş kalır.</p>
-        <div class="responsive-table">
-            <table class="yonetim-table">
-                <thead>
-                    <tr>
-                        <th>Talebe</th>
-                        <th>Form</th>
-                        <th class="num-col">Doğru</th>
-                        <th class="num-col">Yanlış</th>
-                        <th class="num-col">Boş</th>
-                        <th class="num-col">Net</th>
-                        <th class="num-col">Puan</th>
-                        <th>Not</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for satir in onizleme.satirlar %}
-                    <tr>
-                        <td>{{ satir.excel_ad_soyad }}</td>
-                        <td>{{ satir.sinif|default:"—" }}</td>
-                        <td class="num-col">{{ satir.toplam.dogru|default:"—" }}</td>
-                        <td class="num-col">{{ satir.toplam.yanlis|default:"—" }}</td>
-                        <td class="num-col">{{ satir.toplam.bos|default:"—" }}</td>
-                        <td class="num-col">{{ satir.toplam.net|default:"—" }}</td>
-                        <td class="num-col">{{ satir.puan|default:"—" }}</td>
-                        <td>{% if satir.hatalar %}{{ satir.hatalar|join:" " }}{% else %}—{% endif %}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </section>
-    {% endif %}
 
     <section class="daily-stat-grid" style="margin-bottom:20px;">
         <article class="daily-stat-card"><div><span>TOPLAM</span><strong>{{ onizleme.toplam_ogrenci }}</strong></div></article>

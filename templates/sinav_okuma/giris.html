@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Giriş · Sınav okuma</title>
+    <link rel="stylesheet" href="{% static 'css/cs-design-tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'css/sinav-okuma.css' %}">
+</head>
+<body>
+    <main class="so-giris">
+        <section class="so-giris-kart">
+            <p class="so-kicker">Ayrı alan</p>
+            <h1>Sınav okuma</h1>
+            <p class="so-alt">Ana site oturumu burada geçerli değildir. Sonuçlar bu alanda kalır.</p>
+            {% if sifre_tanimli %}
+            <form method="post" class="so-form" autocomplete="off">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ next }}">
+                <label for="sifre">Yönetici şifresi</label>
+                <input id="sifre" name="sifre" type="password" autocomplete="current-password" required autofocus>
+                <button class="so-birincil" type="submit">Giriş yap</button>
+                {% if hata %}<p class="so-hata" role="alert">{{ hata }}</p>{% endif %}
+            </form>
+            {% else %}
+            <p>Giriş kapalı. Sunucuda SINAV_YONETICI_SIFRE tanımlı değil.</p>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>

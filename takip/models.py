@@ -2131,12 +2131,9 @@ from takip.deneme_models import (  # noqa: E402,F401
     DenemeEslestirmeAlias,
     DenemeExcelYukleme,
     DenemeKazanimSonucu,
-    DenemeOptik,
     DenemeSinavi,
     DenemeSonucu,
     DenemeSoruSonucu,
-    OptikForm,
-    OptikFormAlani,
 )
 
 from takip.etut_plan_models import (  # noqa: E402,F401

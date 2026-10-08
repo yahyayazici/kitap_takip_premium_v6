@@ -516,7 +516,6 @@ class DenemeImportSatir:
     oneri_sinif: str = ""
     oneri_oran: int = 0
     oneriler: list[dict] = field(default_factory=list)
-    sorular: list = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
@@ -535,7 +534,6 @@ class DenemeImportSatir:
             "oneri_sinif": self.oneri_sinif,
             "oneri_oran": self.oneri_oran,
             "oneriler": self.oneriler,
-            "sorular": self.sorular,
         }
 
     @classmethod
@@ -556,7 +554,6 @@ class DenemeImportSatir:
             "oneri_sinif",
             "oneri_oran",
             "oneriler",
-            "sorular",
         }
         return cls(**{k: data[k] for k in alanlar if k in data})
 

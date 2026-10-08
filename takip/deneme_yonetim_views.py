@@ -18,19 +18,6 @@ from takip.deneme_excel import (
     session_key,
     DenemeImportOnizleme,
 )
-from takip.deneme_optik import (
-    OptikHata,
-    alan_metni,
-    anahtar_temizle,
-    dagilim_coz,
-    form_alanlarini_coz,
-    harita_from_form,
-    kazanim_listesi,
-    kazanim_metni,
-    optik_oku,
-    optik_onizleme,
-    optik_sorulari_yaz,
-)
 from takip.deneme_kazanim_excel import import_kazanim_excel
 from takip.deneme_models import DenemeKazanimSonucu, DenemeSoruSonucu
 from takip.deneme_soru_karne import import_soru_karneleri
@@ -44,7 +31,7 @@ from takip.deneme_service import (
     deneme_yukleyebilir,
 )
 from takip.forms import DenemeSinaviForm
-from takip.models import DenemeOptik, DenemeSinavi, OptikForm, OptikFormAlani, Talebe
+from takip.models import DenemeSinavi, Talebe
 from takip.permissions.service import can
 
 from .yonetim_views import yonetici_gerekli
@@ -178,8 +165,6 @@ def deneme_detay(request, pk):
             "detay_branslar": DENEME_DETAY_BRANSLAR,
             "detay_brans_basliklari": [BRANS_ETIKETLERI[k] for k in DENEME_DETAY_BRANSLAR],
             "yukleyebilir": deneme_yukleyebilir(request.user),
-            "optik_tanim": _optik_tanim(deneme),
-            "optik_formlar": OptikForm.objects.all(),
             "sil_yetkisi": deneme_silebilir(request.user),
             "pdf_yetkisi": can(request.user, "deneme", "export_pdf"),
             "kazanim_satir": DenemeKazanimSonucu.objects.filter(deneme=deneme).count(),
@@ -306,192 +291,6 @@ def deneme_soru_yukle(request, pk):
     return redirect("yonetim:deneme_detay", pk=pk)
 
 
-def _optik_tanim(deneme):
-    try:
-        return deneme.optik
-    except DenemeOptik.DoesNotExist:
-        return None
-
-
-@yonetici_gerekli
-def deneme_optik_tanim(request, pk):
-    if not deneme_yukleyebilir(request.user):
-        messages.error(request, "Optik tanım yetkiniz yok.")
-        return redirect("yonetim:deneme_listesi")
-    deneme = get_object_or_404(DenemeSinavi, pk=pk)
-    if request.method != "POST":
-        return redirect("yonetim:deneme_detay", pk=pk)
-    form = get_object_or_404(OptikForm, pk=request.POST.get("form_id") or 0)
-    try:
-        harita = harita_from_form(form)
-        dagilim = dagilim_coz(request.POST.get("dagilim", ""), harita.sik_sayisi)
-        anahtar_a = anahtar_temizle(
-            request.POST.get("anahtar_a", ""),
-            harita.sik_sayisi,
-            kitapcik="A",
-        )
-        ham_b = request.POST.get("anahtar_b", "")
-        anahtar_b = ""
-        if "".join(ham_b.split()):
-            anahtar_b = anahtar_temizle(ham_b, harita.sik_sayisi, kitapcik="B")
-        kazanimlar = kazanim_listesi(request.POST.get("kazanimlar", ""), harita.sik_sayisi)
-    except OptikHata as exc:
-        messages.error(request, str(exc))
-        return redirect("yonetim:deneme_detay", pk=pk)
-    DenemeOptik.objects.update_or_create(
-        deneme=deneme,
-        defaults={
-            "form": form,
-            "anahtar_a": anahtar_a,
-            "anahtar_b": anahtar_b,
-            "dagilim": "\n".join(f"{kod} {adet}" for kod, adet in dagilim),
-            "kazanimlar": kazanim_metni(kazanimlar),
-        },
-    )
-    messages.success(request, f"Optik tanımı kaydedildi: {form.ad}.")
-    return redirect("yonetim:deneme_detay", pk=pk)
-
-
-@yonetici_gerekli
-def deneme_optik_yukle(request, pk):
-    if not deneme_yukleyebilir(request.user):
-        messages.error(request, "Optik dosya yükleme yetkiniz yok.")
-        return redirect("yonetim:deneme_listesi")
-
-    deneme = get_object_or_404(DenemeSinavi, pk=pk)
-    if request.method != "POST":
-        return redirect("yonetim:deneme_detay", pk=pk)
-
-    dosya = request.FILES.get("optik_dosya")
-    if not dosya:
-        messages.error(request, "Optik dosyası seçin (.dat).")
-        return redirect("yonetim:deneme_detay", pk=pk)
-    if dosya.size > 2_000_000:
-        messages.error(request, "Optik dosyası 2 MB sınırını aşıyor.")
-        return redirect("yonetim:deneme_detay", pk=pk)
-
-    tanim = _optik_tanim(deneme)
-    if tanim is None or not (tanim.anahtar_a or "").strip():
-        messages.error(request, "Önce optik formunu ve cevap anahtarını kaydedin.")
-        return redirect("yonetim:deneme_detay", pk=pk)
-
-    try:
-        harita = harita_from_form(tanim.form)
-        optik = optik_oku(dosya.read(), harita)
-        dagilim = dagilim_coz(tanim.dagilim, optik.cevap_sayisi)
-        anahtar_b = tanim.anahtar_b or ""
-        kazanimlar = kazanim_listesi(tanim.kazanimlar, optik.cevap_sayisi)
-    except OptikHata as exc:
-        messages.error(request, str(exc))
-        return redirect("yonetim:deneme_detay", pk=pk)
-
-    onizleme = optik_onizleme(
-        optik, dagilim, tanim.anahtar_a, anahtar_b, kazanimlar
-    )
-    onizleme.dosya_hash = dosya_hash_hesapla(dosya)
-    onizleme.dosya_adi = (dosya.name or "")[:255]
-    tekrar = excel_zaten_yuklendi_mi(deneme, onizleme.dosya_hash)
-    if tekrar:
-        onizleme.tekrar_yukleme_uyarisi = (
-            f"«{tekrar.dosya_adi or 'Bu dosya'}» {tekrar.olusturulma:%d.%m.%Y %H:%M} "
-            "tarihinde bu denemeye zaten yüklenmiş görünüyor — yine de "
-            "devam edebilirsiniz."
-        )
-        messages.warning(request, onizleme.tekrar_yukleme_uyarisi)
-    _onizleme_kaydet(request, pk, onizleme)
-    messages.success(
-        request,
-        f"{len(onizleme.satirlar)} optik satır okundu. Eşleşmeyi kontrol edip aktarın.",
-    )
-    return redirect("yonetim:deneme_onizleme", pk=pk)
-
-
-@yonetici_gerekli
-def optik_form_listesi(request):
-    if not deneme_yukleyebilir(request.user):
-        return redirect("yonetim:deneme_listesi")
-    formlar = OptikForm.objects.prefetch_related("alanlar")
-    return render(
-        request,
-        "yonetim/optik_form_listesi.html",
-        {"formlar": formlar},
-    )
-
-
-@yonetici_gerekli
-def optik_form_kaydet(request, pk=None):
-    if not deneme_yukleyebilir(request.user):
-        return redirect("yonetim:deneme_listesi")
-    kayit = get_object_or_404(OptikForm, pk=pk) if pk else None
-    if request.method == "POST" and request.POST.get("aksiyon") == "sil" and kayit:
-        if kayit.denemeler.exists():
-            messages.error(request, "Bu formu kullanan deneme var. Silinmez.")
-            return redirect("yonetim:optik_form_kaydet", pk=kayit.pk)
-        kayit.delete()
-        messages.success(request, "Optik form silindi.")
-        return redirect("yonetim:optik_form_listesi")
-
-    posted = {
-        "ad": (request.POST.get("ad") or (kayit.ad if kayit else "")).strip(),
-        "aciklama": request.POST.get("aciklama") if request.method == "POST" else (kayit.aciklama if kayit else ""),
-        "satir_uzunluk": request.POST.get("satir_uzunluk") if request.method == "POST" else (kayit.satir_uzunluk if kayit else ""),
-        "kodlama": request.POST.get("kodlama") if request.method == "POST" else (kayit.kodlama if kayit else "cp1254"),
-        "alanlar": request.POST.get("alanlar") if request.method == "POST" else (alan_metni(harita_from_form(kayit).alanlar) if kayit else ""),
-    }
-    if request.method == "POST" and request.POST.get("aksiyon") != "sil":
-        try:
-            uzunluk = int(posted["satir_uzunluk"] or 0)
-        except ValueError:
-            uzunluk = 0
-        kodlama = posted["kodlama"] if posted["kodlama"] in {"cp1254", "utf-8"} else "cp1254"
-        try:
-            if not posted["ad"]:
-                raise OptikHata("Formun adını yazın.")
-            if OptikForm.objects.exclude(pk=getattr(kayit, "pk", None)).filter(ad=posted["ad"]).exists():
-                raise OptikHata("Bu adda bir form zaten var.")
-            alanlar = form_alanlarini_coz(posted["alanlar"], uzunluk)
-        except OptikHata as exc:
-            messages.error(request, str(exc))
-        else:
-            from django.db import transaction
-
-            with transaction.atomic():
-                if kayit is None:
-                    kayit = OptikForm.objects.create(
-                        ad=posted["ad"],
-                        aciklama=(posted["aciklama"] or "").strip(),
-                        satir_uzunluk=uzunluk,
-                        kodlama=kodlama,
-                    )
-                else:
-                    kayit.ad = posted["ad"]
-                    kayit.aciklama = (posted["aciklama"] or "").strip()
-                    kayit.satir_uzunluk = uzunluk
-                    kayit.kodlama = kodlama
-                    kayit.save()
-                    kayit.alanlar.all().delete()
-                OptikFormAlani.objects.bulk_create(
-                    [
-                        OptikFormAlani(
-                            form=kayit,
-                            tur=alan.tur,
-                            baslangic=alan.baslangic,
-                            bitis=alan.bitis,
-                            sira=sira,
-                        )
-                        for sira, alan in enumerate(alanlar)
-                    ]
-                )
-            messages.success(request, f"«{kayit.ad}» kaydedildi.")
-            return redirect("yonetim:optik_form_listesi")
-
-    return render(
-        request,
-        "yonetim/optik_form_form.html",
-        {"kayit": kayit, "posted": posted},
-    )
-
-
 @yonetici_gerekli
 def deneme_onizleme(request, pk):
     if not deneme_yukleyebilir(request.user):
@@ -561,8 +360,6 @@ def deneme_onizleme(request, pk):
 
                 hatalari_ozetle(request, hatalar, tek_baslik="Aktarım hatası")
             elif adet:
-                if onizleme.format == "optik":
-                    optik_sorulari_yaz(deneme, onizleme)
                 request.session.pop(session_key(pk), None)
                 messages.success(request, f"{adet} öğrenci sonucu aktarıldı.")
                 if hatalar:
