@@ -19,6 +19,7 @@ from takip.panel_permissions import (
     etut_plani_modulu_erisimi_var,
     gelisim_dosyasi_erisimi_var,
     gunluk_takip_modulu_erisimi_var,
+    nehari_odev_modulu_erisimi_var,
     imam_muezzin_modulu_erisimi_var,
     ktt_modulu_erisimi_var,
     program_modulu_erisimi_var,
@@ -283,6 +284,7 @@ def _legacy_personel_kisayollari(user: User, *, bugun: date) -> list[DashboardSh
     ekle(deneme_modulu_erisimi_var(user), "deneme", "Deneme Sonuçları", "Deneme analizi", "deneme_listesi", "chart", mark="DN")
     ekle(egitim_modulu_erisimi_var(user), "kitap", "Kitap Takip", "Zimmet, okuma ve arşiv", "kitap_listesi", "book", mark="KT")
     ekle(gunluk_takip_modulu_erisimi_var(user), "gunluk_takip", "Günlük Takip", "Yoklama ve takip", "gunluk_takip_panel", "clipboard", mark="GT")
+    ekle(nehari_odev_modulu_erisimi_var(user), "nehari_odev", "Nehari Ödev", "Günlük ödev ve takip", "nehari_odev_panel", "clipboard", mark="NÖ")
     return adaylar[:12]
 
 
