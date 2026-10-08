@@ -50,7 +50,7 @@
 
         <nav class="cs-v6-nav v3-nav" id="yonetim-nav">
             {% include "yonetim/includes/nav.html" %}
-            <a href="{% url 'dashboard' %}" class="v3-nav-link yonetim-site-link-mobile">Siteye Dön</a>
+            <a href="{% url 'dashboard' %}" class="v3-nav-link yonetim-site-link-mobile" data-cs-full>Siteye Dön</a>
             {% include "includes/panel_mobile_logout.html" %}
         </nav>
 
@@ -61,7 +61,7 @@
                 <strong>{{ panel_user_name|default:request.user.username }}</strong>
                 <small>{{ panel_user_subtitle|default:panel_rol_etiketi|default:"Yönetici" }}</small>
             </span>
-            <a href="{% url 'dashboard' %}" class="yonetim-site-link">Siteye Dön</a>
+            <a href="{% url 'dashboard' %}" class="yonetim-site-link" data-cs-full>Siteye Dön</a>
             <form method="post" action="{% url 'logout' %}" class="panel-logout-desktop-form">
                 {% csrf_token %}
                 <button type="submit" class="yonetim-logout">Çıkış</button>

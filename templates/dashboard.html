@@ -174,14 +174,14 @@
         <div class="pv4-promo-foot">
             <span class="pv4-promo-stat">{{ duyuru.ozet|truncatechars:48 }}</span>
             {% if yonetim_modulu %}
-            <a href="{% url 'yonetim:duyuru_listesi' %}" class="pv4-promo-btn">Yönet</a>
+            <a href="{% url 'yonetim:duyuru_listesi' %}" class="pv4-promo-btn" data-cs-full>Yönet</a>
             {% endif %}
         </div>
         {% else %}
         <div class="pv4-promo-empty">
             Henüz duyuru yok.
             {% if yonetim_modulu %}
-            <br><a href="{% url 'yonetim:duyuru_ekle' %}">Duyuru Ekle</a>
+            <br><a href="{% url 'yonetim:duyuru_ekle' %}" data-cs-full>Duyuru Ekle</a>
             {% endif %}
         </div>
         {% endif %}
@@ -390,7 +390,7 @@
 <section class="dash-panel">
     <p class="dash-hero-meta">{{ panel_rol }} · Eğitim modülüne erişiminiz bulunmuyor.</p>
     {% if yonetim_modulu %}
-    <a href="{% url 'yonetim:dashboard' %}" class="dash-text-btn dash-text-btn-strong">Yönetim merkezine git</a>
+    <a href="{% url 'yonetim:dashboard' %}" class="dash-text-btn dash-text-btn-strong" data-cs-full>Yönetim merkezine git</a>
     {% endif %}
 </section>
 {% endif %}

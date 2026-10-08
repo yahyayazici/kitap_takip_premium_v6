@@ -28,4 +28,6 @@ class CsKabukTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'data-cs-shell="yonetim"')
         self.assertContains(response, 'id="cs-page"')
-        self.assertContains(response, "cs-instant.js")
+        self.assertContains(response, "cs-instant.js?v=4")
+        self.assertContains(response, 'class="yonetim-site-link" data-cs-full')
+        self.assertContains(response, 'class="v3-nav-link yonetim-site-link-mobile" data-cs-full')

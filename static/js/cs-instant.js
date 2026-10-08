@@ -54,6 +54,19 @@
         }
     }
 
+    function isYonetimPath(pathname) {
+        return pathname === "/yonetim" || pathname.indexOf("/yonetim/") === 0;
+    }
+
+    function crossesYonetim(url) {
+        try {
+            var parsed = new URL(url, window.location.href);
+            return isYonetimPath(parsed.pathname) !== isYonetimPath(window.location.pathname);
+        } catch (err) {
+            return true;
+        }
+    }
+
     function hrefFromAnchor(anchor) {
         if (!anchor || anchor.hasAttribute("download") || anchor.hasAttribute("data-cs-full")) {
             return "";
@@ -70,7 +83,7 @@
         }
         try {
             var parsed = new URL(raw, window.location.href);
-            if (skipUrl(parsed.href)) {
+            if (skipUrl(parsed.href) || crossesYonetim(parsed.href)) {
                 return "";
             }
             if (parsed.pathname === window.location.pathname && parsed.search === window.location.search) {
@@ -512,7 +525,8 @@
             finishBar(token);
             var redirected = stripHash(payload.finalUrl || "") !== stripHash(payload.url || "");
             if (dest && (!opts.fromForm || redirected)) {
-                window.location.href = dest;
+                document.documentElement.classList.remove("cs-nav-on");
+                window.location.assign(dest);
                 return "leave";
             }
             showFail("Kayıt tamamlanamadı. Sayfayı yenileyip tekrar deneyin.");
@@ -883,6 +897,10 @@
     });
 
     window.addEventListener("popstate", function (event) {
+        if (crossesYonetim(window.location.href)) {
+            window.location.reload();
+            return;
+        }
         var y = event.state && typeof event.state.y === "number" ? event.state.y : 0;
         go(window.location.href, { push: false, scrollY: y });
     });
