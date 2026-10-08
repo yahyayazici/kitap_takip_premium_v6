@@ -4,6 +4,41 @@
 a,button,summary,[role="button"],.v3-nav-link,.v3-nav-trigger,.v3-menu-toggle,.primary-btn,.ghost-btn,.book-action-btn{
     touch-action:manipulation;
 }
+.cs-instant-bar{
+    position:fixed;
+    left:0;
+    top:0;
+    height:3px;
+    width:100%;
+    transform:scaleX(0);
+    transform-origin:left;
+    background:var(--cs-primary);
+    z-index:2147483000;
+    pointer-events:none;
+    opacity:0;
+}
+.cs-instant-bar.is-on{
+    opacity:1;
+    transform:scaleX(.72);
+    transition:transform .18s ease;
+}
+.cs-instant-bar.is-done{
+    opacity:0;
+    transform:scaleX(1);
+    transition:transform .12s ease, opacity .18s ease;
+}
+html.cs-nav-on,
+html.cs-nav-on body{
+    cursor:progress;
+}
+button.is-saving,
+input.is-saving,
+tr.is-saving{
+    cursor:progress;
+}
+tr.is-saving{
+    opacity:.55;
+}
 @media (max-width:1400px){
     .v3-nav-backdrop{transition:none!important}
     .cs-nav-arming a,
@@ -24,17 +59,4 @@ a,button,summary,[role="button"],.v3-nav-link,.v3-nav-trigger,.v3-menu-toggle,.p
 <link rel="icon" type="image/png" sizes="512x512" href="{% url 'pwa_icon_512' %}?v=14">
 <script src="{% static 'js/pwa-install.js' %}?v=14" defer></script>
 <script src="{% static 'js/cs-mobile-snap.js' %}?v=17" defer></script>
-<script src="{% static 'js/nav-instant.js' %}?v=1" defer></script>
-<script type="speculationrules">
-{
-  "prefetch": [{
-    "where": {
-      "and": [
-        {"href_matches": "/*"},
-        {"not": {"href_matches": ["*/logout*", "*/cikis*", "*pdf*", "*export*", "*download*"]}}
-      ]
-    },
-    "eagerness": "moderate"
-  }]
-}
-</script>
+<script src="{% static 'js/cs-instant.js' %}?v=1" defer></script>

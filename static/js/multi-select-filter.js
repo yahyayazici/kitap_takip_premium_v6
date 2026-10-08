@@ -162,12 +162,22 @@
             updateLabel(wrap, select, placeholder);
         });
 
-        document.addEventListener("click", function (event) {
-            if (!wrap.contains(event.target)) panel.hidden = true;
-        });
+        closers.push({ wrap: wrap, panel: panel });
 
         updateLabel(wrap, select, placeholder);
     }
+
+    var closers = [];
+    document.addEventListener("click", function (event) {
+        closers = closers.filter(function (item) {
+            return item.wrap.isConnected;
+        });
+        closers.forEach(function (item) {
+            if (!item.wrap.contains(event.target)) {
+                item.panel.hidden = true;
+            }
+        });
+    });
 
     function initAll(root) {
         (root || document).querySelectorAll("select.ms-filter").forEach(initMultiSelect);
@@ -180,6 +190,10 @@
     } else {
         initAll(document);
     }
+
+    document.addEventListener("cs:page", function () {
+        initAll(document.getElementById("cs-page") || document);
+    });
 
     window.initMultiSelectFilters = initAll;
 })();

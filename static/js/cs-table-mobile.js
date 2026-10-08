@@ -104,6 +104,8 @@
         enhanceAll();
     }
 
+    document.addEventListener("cs:page", enhanceAll);
+
     var resizeTimer;
     window.addEventListener("resize", function () {
         clearTimeout(resizeTimer);

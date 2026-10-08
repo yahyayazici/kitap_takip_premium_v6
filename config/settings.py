@@ -141,6 +141,7 @@ INSTALLED_APPS += [
 ]
 
 MIDDLEWARE = [
+    "config.middleware.ServerTimingMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.gzip.GZipMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",

@@ -10,6 +10,23 @@ from django.http import HttpResponsePermanentRedirect
 _SESSION_SLIDE_SECONDS = 6 * 60 * 60
 
 
+class ServerTimingMiddleware:
+    """Her yanıtın süresini Server-Timing başlığına yazar (DevTools → Network)."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        start = time.perf_counter()
+        response = self.get_response(request)
+        try:
+            elapsed_ms = (time.perf_counter() - start) * 1000
+            response["Server-Timing"] = f"app;dur={elapsed_ms:.1f}"
+        except Exception:
+            pass
+        return response
+
+
 class SlideSessionMiddleware:
     """Oturumu her tıklamada yazmak yerine birkaç saatte bir kaydır."""
 

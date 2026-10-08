@@ -24,7 +24,7 @@
     {% block extra_css %}{% endblock %}
     <link rel="stylesheet" href="{% static 'css/bundle-panel-late.css' %}?v=ui62">
 </head>
-<body class="v3-body veli-body">
+<body class="v3-body veli-body" data-cs-shell="veli">
 <header class="cs-v6-header veli-v6-header">
     <div class="cs-v6-inner">
         <a href="{% url 'veli_dashboard' %}" class="cs-v6-brand v6-brand-block">
@@ -53,6 +53,7 @@
 </header>
 
 <main class="cs-v6-main">
+    <div id="cs-messages">
     {% if messages %}
     <div class="yonetim-messages">
         {% for message in messages %}
@@ -60,7 +61,10 @@
         {% endfor %}
     </div>
     {% endif %}
+    </div>
+    <div id="cs-page">
     {% block content %}{% endblock %}
+    </div>
 </main>
 
 {% if asistan_aktif %}
@@ -73,8 +77,10 @@
 <script src="{% static 'js/panel-scroll-guard.js' %}" defer></script>
 <script src="{% static 'js/bildirim-bell.js' %}" defer></script>
 {% if push_bildirim_aktif %}<script src="{% static 'js/push-subscribe.js' %}" defer></script>{% endif %}
-<script src="{% static 'js/cs-table-mobile.js' %}?v=10" defer></script>
-<script src="{% static 'js/nav-dropdown.js' %}?v=nav-s5" defer></script>
+<script src="{% static 'js/cs-table-mobile.js' %}?v=11" defer></script>
+<script src="{% static 'js/nav-dropdown.js' %}?v=nav-s6" defer></script>
+<div id="cs-page-boot" hidden>
 {% block extra_js %}{% endblock %}
+</div>
 </body>
 </html>

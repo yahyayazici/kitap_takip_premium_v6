@@ -1,4 +1,7 @@
 (function () {
+  if (document.body && document.body.dataset && document.body.dataset.csShell) {
+    return;
+  }
   var bar = document.createElement("div");
   bar.className = "pv4-progress";
   document.body.appendChild(bar);

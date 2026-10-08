@@ -25,7 +25,7 @@
     {% block extra_css %}{% endblock %}
     <link rel="stylesheet" href="{% static 'css/bundle-panel-late.css' %}?v=ui62">
 </head>
-<body class="yonetim-body">
+<body class="yonetim-body" data-cs-shell="yonetim">
 
 <header class="cs-v6-header yonetim-v6-header">
     {% include "includes/v6_header_books.html" %}
@@ -75,6 +75,7 @@
 </header>
 
 <main class="cs-v6-main">
+    <div id="cs-messages">
     {% if messages %}
     <div class="yonetim-messages">
         {% for message in messages %}
@@ -82,8 +83,9 @@
         {% endfor %}
     </div>
     {% endif %}
+    </div>
 
-    <div class="yonetim-page">
+    <div id="cs-page" class="yonetim-page">
         {% block content %}{% endblock %}
     </div>
 </main>
@@ -96,12 +98,14 @@
 <script src="{% static 'js/ai-zekasi.js' %}" defer></script>
 {% endif %}
 
-<script src="{% static 'js/nav-dropdown.js' %}?v=nav-s5" defer></script>
-<script src="{% static 'js/multi-select-filter.js' %}" defer></script>
+<script src="{% static 'js/nav-dropdown.js' %}?v=nav-s6" defer></script>
+<script src="{% static 'js/multi-select-filter.js' %}?v=ms2" defer></script>
 <script src="{% static 'js/panel-scroll-guard.js' %}" defer></script>
 <script src="{% static 'js/bildirim-bell.js' %}" defer></script>
 {% if push_bildirim_aktif %}<script src="{% static 'js/push-subscribe.js' %}" defer></script>{% endif %}
-<script src="{% static 'js/cs-table-mobile.js' %}?v=10" defer></script>
+<script src="{% static 'js/cs-table-mobile.js' %}?v=11" defer></script>
+<div id="cs-page-boot" hidden>
 {% block extra_js %}{% endblock %}
+</div>
 </body>
 </html>
