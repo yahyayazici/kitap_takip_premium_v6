@@ -771,6 +771,11 @@ urlpatterns = [
         name="deneme_onizleme",
     ),
     path(
+        "denemeler/<int:pk>/optik/",
+        deneme_yonetim_views.deneme_optik_yukle,
+        name="deneme_optik_yukle",
+    ),
+    path(
         "denemeler/<int:pk>/kazanim-excel/",
         deneme_yonetim_views.deneme_kazanim_yukle,
         name="deneme_kazanim_yukle",

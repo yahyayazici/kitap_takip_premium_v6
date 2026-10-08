@@ -50,6 +50,23 @@
             <button type="submit" class="primary-btn" style="margin-top:12px;">{% if deneme.durum == 'aktif' %}Yeniden yükle{% else %}Yükle ve Önizle{% endif %}</button>
         </form>
     </section>
+    <section class="yonetim-card" style="margin-bottom:20px;">
+        <h2>Optik okuma (.dat)</h2>
+        <p>Günay optik okuyucunun 150 karakterlik dosyası. Her satır bir talebe: numara, ad ve işaretlediği şıklar. Cevap anahtarı dosyada yoktur; buraya yazılır. Net = doğru − yanlış/4. Puan = toplam net / soru sayısı × 100. Numara veya ad sitedeki talebeyle eşleşir; eşleşmeyen satır listede kalır, aktarılmaz.{% if deneme.durum == 'aktif' %} Mevcut sonuçların üzerine yazılır.{% endif %}</p>
+        <form method="post" action="{% url 'yonetim:deneme_optik_yukle' deneme.pk %}" enctype="multipart/form-data" style="margin-top:12px;display:grid;gap:12px;max-width:640px;">
+            {% csrf_token %}
+            <label for="optik-dosya">Optik dosyası</label>
+            <input id="optik-dosya" type="file" name="optik_dosya" accept=".dat,.txt" class="input" required style="font-size:16px;min-height:44px;">
+            <label for="optik-anahtar-a">A kitapçık cevap anahtarı</label>
+            <textarea id="optik-anahtar-a" name="anahtar_a" class="input" required rows="3" placeholder="ABCD… optikteki soru sırasıyla, boşluksuz" style="font-size:16px;min-height:88px;"></textarea>
+            <label for="optik-anahtar-b">B kitapçık cevap anahtarı</label>
+            <textarea id="optik-anahtar-b" name="anahtar_b" class="input" rows="2" placeholder="B kitapçık yoksa boş bırakın" style="font-size:16px;min-height:44px;"></textarea>
+            <label for="optik-dagilim">Soru dağılımı, formdaki sıra</label>
+            <textarea id="optik-dagilim" name="dagilim" class="input" required rows="6" placeholder="turkce 15&#10;matematik 15&#10;fen 15&#10;sosyal 15&#10;ingilizce 15" style="font-size:16px;min-height:132px;"></textarea>
+            <p style="margin:0;color:#64748b;font-size:13px;">Her satır bir ders ve soru sayısı. Sıra, şeritteki sıradır; toplam optikteki işaret sayısına eşit olmalı. Günay-2024 düzeninde 75 işaret vardır: ilk 15, sonraki 45, son 15.</p>
+            <button type="submit" class="primary-btn">Oku ve önizle</button>
+        </form>
+    </section>
     {% endif %}
 
     {% if deneme.durum == 'aktif' %}

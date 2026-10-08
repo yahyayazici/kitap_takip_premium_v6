@@ -18,6 +18,7 @@ from takip.deneme_excel import (
     session_key,
     DenemeImportOnizleme,
 )
+from takip.deneme_optik import OptikHata, anahtar_temizle, dagilim_coz, gunay_dat_oku, optik_onizleme
 from takip.deneme_kazanim_excel import import_kazanim_excel
 from takip.deneme_models import DenemeKazanimSonucu, DenemeSoruSonucu
 from takip.deneme_soru_karne import import_soru_karneleri
@@ -292,6 +293,59 @@ def deneme_soru_yukle(request, pk):
 
 
 @yonetici_gerekli
+def deneme_optik_yukle(request, pk):
+    if not deneme_yukleyebilir(request.user):
+        messages.error(request, "Optik dosya yükleme yetkiniz yok.")
+        return redirect("yonetim:deneme_listesi")
+
+    deneme = get_object_or_404(DenemeSinavi, pk=pk)
+    if request.method != "POST":
+        return redirect("yonetim:deneme_detay", pk=pk)
+
+    dosya = request.FILES.get("optik_dosya")
+    if not dosya:
+        messages.error(request, "Optik dosyası seçin (.dat).")
+        return redirect("yonetim:deneme_detay", pk=pk)
+    if dosya.size > 2_000_000:
+        messages.error(request, "Optik dosyası 2 MB sınırını aşıyor.")
+        return redirect("yonetim:deneme_detay", pk=pk)
+
+    try:
+        optik = gunay_dat_oku(dosya.read())
+        dagilim = dagilim_coz(request.POST.get("dagilim", ""), optik.cevap_sayisi)
+        anahtar_a = anahtar_temizle(
+            request.POST.get("anahtar_a", ""),
+            optik.cevap_sayisi,
+            kitapcik="A",
+        )
+        ham_b = request.POST.get("anahtar_b", "")
+        anahtar_b = ""
+        if "".join(ham_b.split()):
+            anahtar_b = anahtar_temizle(ham_b, optik.cevap_sayisi, kitapcik="B")
+    except OptikHata as exc:
+        messages.error(request, str(exc))
+        return redirect("yonetim:deneme_detay", pk=pk)
+
+    onizleme = optik_onizleme(optik, dagilim, anahtar_a, anahtar_b)
+    onizleme.dosya_hash = dosya_hash_hesapla(dosya)
+    onizleme.dosya_adi = (dosya.name or "")[:255]
+    tekrar = excel_zaten_yuklendi_mi(deneme, onizleme.dosya_hash)
+    if tekrar:
+        onizleme.tekrar_yukleme_uyarisi = (
+            f"«{tekrar.dosya_adi or 'Bu dosya'}» {tekrar.olusturulma:%d.%m.%Y %H:%M} "
+            "tarihinde bu denemeye zaten yüklenmiş görünüyor — yine de "
+            "devam edebilirsiniz."
+        )
+        messages.warning(request, onizleme.tekrar_yukleme_uyarisi)
+    _onizleme_kaydet(request, pk, onizleme)
+    messages.success(
+        request,
+        f"{len(onizleme.satirlar)} optik satır okundu. Eşleşmeyi kontrol edip aktarın.",
+    )
+    return redirect("yonetim:deneme_onizleme", pk=pk)
+
+
+@yonetici_gerekli
 def deneme_onizleme(request, pk):
     if not deneme_yukleyebilir(request.user):
         return redirect("yonetim:deneme_listesi")
@@ -299,7 +353,7 @@ def deneme_onizleme(request, pk):
     deneme = get_object_or_404(DenemeSinavi, pk=pk)
     onizleme = _onizleme_yukle(request, pk)
     if not onizleme:
-        messages.error(request, "Önizleme verisi bulunamadı. Excel'i tekrar yükleyin.")
+        messages.error(request, "Önizleme verisi bulunamadı. Dosyayı tekrar yükleyin.")
         return redirect("yonetim:deneme_detay", pk=pk)
 
     if request.method == "POST":
