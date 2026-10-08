@@ -14,24 +14,24 @@ from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
 
+from sinav_okuma.anahtar_excel import anahtar_excel_oku, belge_from_sinav
 from sinav_okuma.kayit import sonuclari_yaz
-from sinav_okuma.models import OptikForm, OptikFormAlani, Sinav
+from sinav_okuma.models import OptikForm, OptikFormAlani, Sinav, SinavAnahtarSoru
 from sinav_okuma.okuma import (
     OptikHata,
     alan_metni,
-    anahtar_temizle,
     dagilim_coz,
     dagilim_metni,
     form_alanlarini_coz,
     harita_from_form,
     kazanim_listesi,
-    kazanim_metni,
     optik_oku,
     satirlari_puanla,
 )
 
 OTURUM = "sinav_okuma_yonetici"
 _MAKS_DOSYA = 2_000_000
+_MAKS_EXCEL = 8_000_000
 
 
 def _sifre_tanimli() -> bool:
@@ -112,9 +112,14 @@ def sinav_listesi(request):
 def sinav_detay(request, pk):
     sinav = get_object_or_404(Sinav.objects.select_related("form"), pk=pk)
     if request.method == "POST":
-        _tanimi_kaydet(request, sinav)
+        if request.FILES.get("anahtar_excel"):
+            _anahtar_yukle(request, sinav)
+        elif request.POST.get("form_id"):
+            _form_sec(request, sinav)
         return redirect("sinav_okuma:sinav_detay", pk=sinav.pk)
     satirlar = list(sinav.satirlar.all())
+    belge = belge_from_sinav(sinav)
+    sik = harita_from_form(sinav.form).sik_sayisi if sinav.form_id else 0
     return render(
         request,
         "sinav_okuma/sinav_detay.html",
@@ -123,35 +128,77 @@ def sinav_detay(request, pk):
             "formlar": OptikForm.objects.all(),
             "satirlar": satirlar,
             "puanlanan": sum(1 for s in satirlar if s.puanlandi),
+            "belge": belge,
+            "anahtar_sorulari": list(sinav.anahtar_sorulari.all()) if belge else [],
+            "form_sik": sik,
         },
     )
 
 
-def _tanimi_kaydet(request, sinav: Sinav) -> None:
+def _form_sec(request, sinav: Sinav) -> None:
     form = get_object_or_404(OptikForm, pk=request.POST.get("form_id") or 0)
+    sinav.form = form
+    sinav.save(update_fields=["form", "guncellenme"])
+    messages.success(request, f"Optik form seçildi: {form.ad}.")
+
+
+def _anahtar_yukle(request, sinav: Sinav) -> None:
+    dosya = request.FILES["anahtar_excel"]
+    if dosya.size > _MAKS_EXCEL:
+        messages.error(request, "Excel 8 MB sınırını aşıyor.")
+        return
+    ad = (dosya.name or "").lower()
+    if not ad.endswith(".xlsx"):
+        messages.error(request, "Cevap anahtarı .xlsx olmalı.")
+        return
     try:
-        harita = harita_from_form(form)
-        dagilim = dagilim_coz(request.POST.get("dagilim", ""), harita.sik_sayisi)
-        anahtar_a = anahtar_temizle(
-            request.POST.get("anahtar_a", ""),
-            harita.sik_sayisi,
-            kitapcik="A",
-        )
-        ham_b = request.POST.get("anahtar_b", "")
-        anahtar_b = ""
-        if "".join(ham_b.split()):
-            anahtar_b = anahtar_temizle(ham_b, harita.sik_sayisi, kitapcik="B")
-        kazanimlar = kazanim_listesi(request.POST.get("kazanimlar", ""), harita.sik_sayisi)
+        belge = anahtar_excel_oku(dosya.read())
     except OptikHata as exc:
         messages.error(request, str(exc))
         return
-    sinav.form = form
-    sinav.anahtar_a = anahtar_a
-    sinav.anahtar_b = anahtar_b
-    sinav.dagilim = dagilim_metni(dagilim)
-    sinav.kazanimlar = kazanim_metni(kazanimlar)
-    sinav.save(update_fields=["form", "anahtar_a", "anahtar_b", "dagilim", "kazanimlar", "guncellenme"])
-    messages.success(request, f"Tanım kaydedildi: {form.ad}.")
+    with transaction.atomic():
+        sinav.anahtar_sorulari.all().delete()
+        SinavAnahtarSoru.objects.bulk_create(
+            [
+                SinavAnahtarSoru(
+                    sinav=sinav,
+                    sira=sira,
+                    ders_key=soru.ders_key,
+                    ders_ad=soru.ders_ad[:120],
+                    test_ad=soru.test_ad[:120],
+                    a_no=soru.a_no,
+                    b_no=soru.b_no,
+                    cevap=soru.cevap,
+                    kazanim_kodu=soru.kazanim_kodu[:40],
+                    kazanim="\n".join(soru.kazanimlar),
+                )
+                for sira, soru in enumerate(belge.sorular, start=1)
+            ]
+        )
+        sinav.anahtar_a = belge.anahtar("A")
+        sinav.anahtar_b = belge.anahtar("B")
+        sinav.dagilim = dagilim_metni(belge.dagilim)
+        sinav.kazanimlar = "\n".join(belge.kazanimlar("A"))
+        sinav.sinif_etiket = belge.sinif
+        sinav.anahtar_ad = belge.ad
+        sinav.anahtar_dosya = (dosya.name or "")[:255]
+        sinav.save(
+            update_fields=[
+                "anahtar_a",
+                "anahtar_b",
+                "dagilim",
+                "kazanimlar",
+                "sinif_etiket",
+                "anahtar_ad",
+                "anahtar_dosya",
+                "guncellenme",
+            ]
+        )
+    kitap = "A ve B" if belge.b_var else "A"
+    messages.success(
+        request,
+        f"{belge.soru_sayisi} soru okundu. {kitap} kitapçık anahtarı ve kazanımlar kaydedildi.",
+    )
 
 
 @yonetici_gerekli
@@ -166,15 +213,31 @@ def sinav_oku(request, pk):
         messages.error(request, "Optik dosyası 2 MB sınırını aşıyor.")
         return redirect("sinav_okuma:sinav_detay", pk=pk)
     if sinav.form_id is None or not (sinav.anahtar_a or "").strip():
-        messages.error(request, "Önce optik formunu ve cevap anahtarını kaydedin.")
+        messages.error(request, "Önce optik formunu seçin ve cevap anahtarı Excel'ini yükleyin.")
         return redirect("sinav_okuma:sinav_detay", pk=pk)
     try:
         harita = harita_from_form(sinav.form)
         optik = optik_oku(dosya.read(), harita)
-        dagilim = dagilim_coz(sinav.dagilim, optik.cevap_sayisi)
-        kazanimlar = kazanim_listesi(sinav.kazanimlar, optik.cevap_sayisi)
+        belge = belge_from_sinav(sinav)
+        if belge is not None:
+            if belge.soru_sayisi != optik.cevap_sayisi:
+                raise OptikHata(
+                    f"Formda {optik.cevap_sayisi} şık var, "
+                    f"cevap anahtarında {belge.soru_sayisi} soru var. İkisi eşit olmalı."
+                )
+            dagilim = belge.dagilim
+            anahtar_a = belge.anahtar("A")
+            anahtar_b = belge.anahtar("B")
+            kazanimlar = belge.kazanimlar("A")
+            kazanimlar_b = belge.kazanimlar("B")
+        else:
+            dagilim = dagilim_coz(sinav.dagilim, optik.cevap_sayisi)
+            anahtar_a = sinav.anahtar_a
+            anahtar_b = sinav.anahtar_b or ""
+            kazanimlar = kazanim_listesi(sinav.kazanimlar, optik.cevap_sayisi)
+            kazanimlar_b = None
         puanlar = satirlari_puanla(
-            optik, dagilim, sinav.anahtar_a, sinav.anahtar_b or "", kazanimlar
+            optik, dagilim, anahtar_a, anahtar_b, kazanimlar, kazanimlar_b
         )
     except OptikHata as exc:
         messages.error(request, str(exc))

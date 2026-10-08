@@ -5,12 +5,14 @@ from __future__ import annotations
 import os
 from datetime import date
 from decimal import Decimal
+from io import BytesIO
 
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import NoReverseMatch, reverse
 
+from sinav_okuma.anahtar_excel import anahtar_excel_oku
 from sinav_okuma.models import OptikForm, Sinav, SinavSatiri, SinavSoru
 from sinav_okuma.okuma import (
     ORNEK_FORM_AD,
@@ -31,6 +33,10 @@ from takip.deneme_models import DenemeSinavi, DenemeSonucu
 HOST = "sinav.localhost"
 SIFRE = "Sinav-Test-Sifre-42"
 ORNEK_DAT = "/home/ubuntu/.cursor/projects/workspace/uploads/G_nay-2024_51b9.dat"
+ORNEK_ANAHTAR = (
+    "/home/ubuntu/.cursor/projects/workspace/uploads/"
+    "Optik-Okutma_Kazanim-Tablosu_Cevap-Anahtarli_9fb1.xlsx"
+)
 
 SULEYMAN = (
     "0                   00021A   SÜLEYMAN MERT DURAK  "
@@ -42,6 +48,25 @@ KARAKAYA = (
     "CBBACCADBCBBABD     CDBADACBAB BBCB A*DCACBDDCC BBCACDABDCABBBBDC     "
     "CDDBBAB CBDACBA               "
 )
+
+
+def _anahtar_xlsx(satirlar, baslik="Deneme", sinif="7.Sınıf"):
+    import openpyxl
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.append(["ÇS", None, baslik])
+    ws.append([None, None, sinif])
+    ws.append(["Kitapçık", "Test", "Ders", "A Soru", "B Soru", "Cevap", "Kazanım Kodu", "Kazanım-1", "Kazanım-2"])
+    for satir in satirlar:
+        ws.append(list(satir))
+    buf = BytesIO()
+    wb.save(buf)
+    return SimpleUploadedFile(
+        "anahtar.xlsx",
+        buf.getvalue(),
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
 
 
 def _kayit(
@@ -170,6 +195,52 @@ class OrnekDatOkumaTests(TestCase):
         self.assertEqual(dosya.kayitlar[0].cevaplar, "ABC")
 
 
+class AnahtarExcelTests(TestCase):
+    def test_b_sorusu_anahtari_ve_kazanimi_yer_degistirir(self):
+        ham = _anahtar_xlsx(
+            [
+                ["A", "Sözel (TÜR)", "Türkçe", 1, 2, "C", "", "Fiil"],
+                ["A", "Sözel (TÜR)", "Türkçe", 2, 1, "A", "T.O.7.7", "Ana düşünce", "Yardımcı düşünce"],
+                ["A", "Sayısal (MAT)", "Matematik", 1, 1, "D", "MAT.7.1.1", "Rasyonel sayılar"],
+            ],
+            baslik="7.SINIF KURUMSAL DENEME 1",
+        ).read()
+        belge = anahtar_excel_oku(ham)
+        self.assertEqual(belge.ad, "7.SINIF KURUMSAL DENEME 1")
+        self.assertEqual(belge.sinif, "7.Sınıf")
+        self.assertEqual(belge.dagilim, [("turkce", 2), ("matematik", 1)])
+        self.assertEqual(belge.anahtar("A"), "CAD")
+        self.assertEqual(belge.anahtar("B"), "ACD")
+        self.assertEqual(belge.kazanimlar("A")[0], "Fiil")
+        self.assertEqual(belge.kazanimlar("B")[0], "T.O.7.7 · Ana düşünce · Yardımcı düşünce")
+        self.assertEqual(belge.kazanimlar("A")[2], "MAT.7.1.1 · Rasyonel sayılar")
+
+    def test_din_adi_ve_gercek_dosya(self):
+        if not os.path.exists(ORNEK_ANAHTAR):
+            self.skipTest("örnek anahtar exceli bu ortamda yok")
+        belge = anahtar_excel_oku(open(ORNEK_ANAHTAR, "rb").read())
+        self.assertEqual(belge.soru_sayisi, 90)
+        self.assertIn("KURUMSAL DENEME", belge.ad)
+        self.assertEqual(belge.sinif, "7.Sınıf")
+        self.assertEqual(
+            belge.dagilim,
+            [
+                ("turkce", 20),
+                ("sosyal", 10),
+                ("din", 10),
+                ("ingilizce", 10),
+                ("matematik", 20),
+                ("fen", 20),
+            ],
+        )
+        self.assertEqual(belge.anahtar("A")[0], "C")
+        self.assertEqual(belge.anahtar("B")[0], "A")
+        self.assertEqual(belge.kazanimlar("A")[0], "Sözcükte anlam: çok anlamlılık")
+        self.assertTrue(belge.b_var)
+        self.assertEqual(len(belge.anahtar("A")), 90)
+        self.assertEqual(len(belge.anahtar("B")), 90)
+
+
 class OrnekDosyaTests(TestCase):
     def test_yuklenen_ornek_yirmi_bir_satir(self):
         if not os.path.exists(ORNEK_DAT):
@@ -281,14 +352,16 @@ class SinavHostTests(TestCase):
         self.assertEqual(tanimsiz.status_code, 302)
         self.assertEqual(SinavSatiri.objects.filter(sinav=sinav).count(), 0)
 
+        self.post(f"/sinavlar/{sinav.pk}/", {"form_id": form.pk})
         tanim = self.post(
             f"/sinavlar/{sinav.pk}/",
             {
-                "form_id": form.pk,
-                "anahtar_a": "A" * 75,
-                "anahtar_b": "",
-                "dagilim": "turkce 75",
-                "kazanimlar": "Fiil\n" + ("\n" * 74),
+                "anahtar_excel": _anahtar_xlsx(
+                    [
+                        ["A", "Sözel (TÜR)", "Türkçe", i, "", "A", "", "Fiil" if i == 1 else ""]
+                        for i in range(1, 76)
+                    ]
+                )
             },
         )
         self.assertEqual(tanim.status_code, 302)
@@ -324,12 +397,13 @@ class SinavHostTests(TestCase):
         self.post("/", {"ad": "B deneme", "tarih": "2024-11-02"})
         sinav = Sinav.objects.get(ad="B deneme")
         form = OptikForm.objects.get(ad=ORNEK_FORM_AD)
+        self.post(f"/sinavlar/{sinav.pk}/", {"form_id": form.pk})
         self.post(
             f"/sinavlar/{sinav.pk}/",
             {
-                "form_id": form.pk,
-                "anahtar_a": "A" * 75,
-                "dagilim": "turkce 75",
+                "anahtar_excel": _anahtar_xlsx(
+                    [["A", "Sözel (TÜR)", "Türkçe", i, "", "A", "", ""] for i in range(1, 76)]
+                )
             },
         )
         self.post(

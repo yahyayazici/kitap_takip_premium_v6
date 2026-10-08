@@ -1,11 +1,11 @@
 {% extends "sinav_okuma/base.html" %}
 {% block title %}{{ sinav.ad }} · Sınav okuma{% endblock %}
 {% block baslik %}{{ sinav.ad }}{% endblock %}
-{% block alt %}<p class="so-alt">{{ sinav.tarih|date:"d.m.Y" }}{% if sinav.form %} · {{ sinav.form.ad }}{% endif %}</p>{% endblock %}
+{% block alt %}<p class="so-alt">{{ sinav.tarih|date:"d.m.Y" }}{% if sinav.sinif_etiket %} · {{ sinav.sinif_etiket }}{% endif %}{% if sinav.form %} · {{ sinav.form.ad }}{% endif %}</p>{% endblock %}
 {% block icerik %}
 <section class="so-kart">
-    <h2>Form ve cevap anahtarı</h2>
-    <p>Net = doğru − yanlış/4. Puan = toplam net / soru sayısı × 100. Çift işaret yanlış, boş şık boş sayılır.</p>
+    <h2>Optik form</h2>
+    <p>Kâğıdın kolon haritası. Cevap anahtarından ayrıdır; aynı form birçok sınavda kullanılır.</p>
     {% if not formlar %}
     <p style="margin-top:12px;">Henüz form yok. Önce bir optik form tanımlayın.</p>
     {% else %}
@@ -17,20 +17,55 @@
             <option value="{{ form.pk }}" {% if sinav.form_id == form.pk %}selected{% endif %}>{{ form.ad }}</option>
             {% endfor %}
         </select>
-        <label for="anahtar-a">A kitapçık cevap anahtarı</label>
-        <textarea id="anahtar-a" name="anahtar_a" required rows="3">{{ sinav.anahtar_a }}</textarea>
-        <label for="anahtar-b">B kitapçık cevap anahtarı</label>
-        <textarea id="anahtar-b" name="anahtar_b" rows="2" placeholder="B kitapçık yoksa boş bırakın">{{ sinav.anahtar_b }}</textarea>
-        <label for="dagilim">Ders sırası, şeridin başından</label>
-        <textarea id="dagilim" name="dagilim" required rows="6" placeholder="turkce 15&#10;matematik 15">{{ sinav.dagilim }}</textarea>
-        <label for="kazanim">Soru kazanımları</label>
-        <textarea id="kazanim" name="kazanimlar" rows="4" placeholder="İsteğe bağlı. Her satır bir soru.">{{ sinav.kazanimlar }}</textarea>
-        <button class="so-birincil" type="submit">Tanımı kaydet</button>
+        <button class="so-birincil" type="submit">Formu kaydet</button>
     </form>
     {% endif %}
 </section>
 
-{% if sinav.anahtar_a %}
+<section class="so-kart">
+    <h2>Cevap anahtarı ve kazanımlar</h2>
+    <p>Excel yükleyin. Her satır bir soru: ders, A soru numarası, B soru numarası, cevap ve kazanımlar. B numarası aynı sorunun B kitapçıktaki yeridir. Net = doğru − yanlış/4. Puan = toplam net / soru sayısı × 100.</p>
+    <form method="post" enctype="multipart/form-data" class="so-form">
+        {% csrf_token %}
+        <label for="anahtar-excel">.xlsx dosyası</label>
+        <input id="anahtar-excel" type="file" name="anahtar_excel" accept=".xlsx" required>
+        <button class="so-birincil" type="submit">Anahtarı yükle</button>
+    </form>
+    {% if belge %}
+    <p style="margin-top:12px;">{{ belge.soru_sayisi }} soru{% if sinav.anahtar_dosya %} · {{ sinav.anahtar_dosya }}{% endif %}{% if sinav.anahtar_ad %} · {{ sinav.anahtar_ad }}{% endif %}. {% if belge.b_var %}A ve B anahtarı hazır.{% else %}A anahtarı hazır. B sütunu yok.{% endif %}</p>
+    {% if form_sik and form_sik != belge.soru_sayisi %}
+    <p style="margin-top:8px;">Seçili form {{ form_sik }} şık bekliyor, anahtarda {{ belge.soru_sayisi }} soru var. Optik dosya bu halde okunmaz.</p>
+    {% endif %}
+    <div class="so-tablo-cerceve">
+        <table class="so-tablo">
+            <thead>
+                <tr>
+                    <th>Ders</th>
+                    <th>Test</th>
+                    <th class="so-sayi">A</th>
+                    <th class="so-sayi">B</th>
+                    <th>Cevap</th>
+                    <th>Kazanım</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for soru in anahtar_sorulari %}
+                <tr>
+                    <td>{{ soru.ders_ad }}</td>
+                    <td>{{ soru.test_ad|default:"—" }}</td>
+                    <td class="so-sayi">{{ soru.a_no }}</td>
+                    <td class="so-sayi">{{ soru.b_no|default:"—" }}</td>
+                    <td>{{ soru.cevap }}</td>
+                    <td>{% if soru.kazanim_kodu %}{{ soru.kazanim_kodu }} · {% endif %}{{ soru.kazanim|linebreaksbr }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</section>
+
+{% if sinav.anahtar_a and sinav.form_id %}
 <section class="so-kart">
     <h2>Optik dosyası</h2>
     <p>Kayıtlı form: <strong>{{ sinav.form.ad }}</strong>. Yeni dosya bu sınavın önceki okumasının yerine geçer.</p>

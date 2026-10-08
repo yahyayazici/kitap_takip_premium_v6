@@ -64,6 +64,9 @@ _DERS_ADLARI = {
     "inkilap": "sosyal",
     "din": "din",
     "dinkulturu": "din",
+    "dinkveab": "din",
+    "dinkulturuvveahlakbilgisi": "din",
+    "dinkulturuvveahlak": "din",
     "ingilizce": "ingilizce",
     "ing": "ingilizce",
 }
@@ -326,6 +329,15 @@ def kazanim_metni(satirlar: list[str]) -> str:
     return metin
 
 
+def ders_kodu(ad: str) -> str:
+    kod = _DERS_ADLARI.get(_katla(ad))
+    if not kod:
+        raise OptikHata(
+            f"«{ad}» dersi yok. Türkçe, Matematik, Fen, Sosyal, Din, İngilizce yazın."
+        )
+    return kod
+
+
 def dagilim_coz(metin: str, cevap_sayisi: int) -> list[tuple[str, int]]:
     """«turkce 15» satırlarını optikteki ders sırasına çevirir."""
     if not (metin or "").strip():
@@ -346,11 +358,7 @@ def dagilim_coz(metin: str, cevap_sayisi: int) -> list[tuple[str, int]]:
             adet_metin, ad = kelimeler[-1], " ".join(kelimeler[:-1])
         else:
             raise OptikHata(f"«{ham.strip()}» satırında soru sayısı yok.")
-        kod = _DERS_ADLARI.get(_katla(ad))
-        if not kod:
-            raise OptikHata(
-                f"«{ad}» dersi yok. Türkçe, Matematik, Fen, Sosyal, Din, İngilizce yazın."
-            )
+        kod = ders_kodu(ad)
         if kod in gorulen:
             raise OptikHata(f"{DERS_ETIKETLERI[kod]} iki kez yazılmış.")
         adet = int(adet_metin)
@@ -490,6 +498,7 @@ def satirlari_puanla(
     anahtar_a: str,
     anahtar_b: str = "",
     kazanimlar: list[str] | None = None,
+    kazanimlar_b: list[str] | None = None,
 ) -> list[PuanSatiri]:
     """Her optik satırını saklanacak puan satırına çevirir.
 
@@ -514,8 +523,11 @@ def satirlari_puanla(
         net = Decimal("0.00")
         puan = ""
         if puanlandi:
+            kazanim = kazanimlar or []
+            if kitap == "B" and kazanimlar_b is not None:
+                kazanim = kazanimlar_b
             sorular, dogru, yanlis, bos, net = _sorulari_say(
-                kayit.cevaplar, anahtar, dagilim, kazanimlar or []
+                kayit.cevaplar, anahtar, dagilim, kazanim
             )
             puan = _puan(net, soru_sayisi)
         satirlar.append(

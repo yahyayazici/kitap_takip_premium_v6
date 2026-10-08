@@ -80,6 +80,9 @@ class Sinav(models.Model):
         verbose_name="Soru kazanımları",
         help_text="İsteğe bağlı. Her satır bir soru, şeritteki sırayla.",
     )
+    sinif_etiket = models.CharField(max_length=80, blank=True, verbose_name="Sınıf")
+    anahtar_ad = models.CharField(max_length=200, blank=True, verbose_name="Anahtar dosyasındaki sınav")
+    anahtar_dosya = models.CharField(max_length=255, blank=True, verbose_name="Anahtar dosyası")
     okuma_notu = models.TextField(blank=True, verbose_name="Son okuma notu")
     son_dosya = models.CharField(max_length=255, blank=True, verbose_name="Son dosya")
     olusturulma = models.DateTimeField(auto_now_add=True)
@@ -92,6 +95,38 @@ class Sinav(models.Model):
 
     def __str__(self):
         return self.ad
+
+
+class SinavAnahtarSoru(models.Model):
+    """Excel'den gelen soru. A ve B kitapçık aynı sorunun iki sırasıdır."""
+
+    sinav = models.ForeignKey(
+        Sinav,
+        on_delete=models.CASCADE,
+        related_name="anahtar_sorulari",
+        verbose_name="Sınav",
+    )
+    sira = models.PositiveIntegerField(verbose_name="A kitapçık sırası")
+    ders_key = models.CharField(max_length=40)
+    ders_ad = models.CharField(max_length=120)
+    test_ad = models.CharField(max_length=120, blank=True)
+    a_no = models.PositiveIntegerField()
+    b_no = models.PositiveIntegerField(null=True, blank=True)
+    cevap = models.CharField(max_length=1)
+    kazanim_kodu = models.CharField(max_length=40, blank=True)
+    kazanim = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = "Cevap anahtarı sorusu"
+        verbose_name_plural = "Cevap anahtarı soruları"
+        ordering = ["sira", "id"]
+        constraints = [
+            models.UniqueConstraint(fields=["sinav", "sira"], name="sinav_anahtar_sira"),
+            models.UniqueConstraint(fields=["sinav", "ders_key", "a_no"], name="sinav_anahtar_a_no"),
+        ]
+
+    def __str__(self):
+        return f"{self.ders_ad} A{self.a_no} {self.cevap}"
 
 
 class SinavSatiri(models.Model):
