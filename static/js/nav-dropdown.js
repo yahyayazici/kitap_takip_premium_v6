@@ -203,9 +203,10 @@
         syncHeaderHeight();
     });
 
-    (function initToasts() {
+    function initToasts() {
         var wrap = document.querySelector('[data-v3-toasts]');
-        if (!wrap) return;
+        if (!wrap || wrap.dataset.csToast === "1") return;
+        wrap.dataset.csToast = "1";
 
         var max = Number(wrap.getAttribute('data-max') || 3);
         var ttl = Number(wrap.getAttribute('data-ttl') || 3200);
@@ -233,7 +234,10 @@
             }
             window.setTimeout(function () { dismiss(toast); }, ttl);
         });
-    })();
+    }
+
+    initToasts();
+    document.addEventListener('cs:page', initToasts);
 
     syncHeaderHeight();
     window.addEventListener('resize', syncHeaderHeight);

@@ -21,7 +21,7 @@
     <link rel="stylesheet" href="{% static 'css/bundle-panel-late.css' %}?v=ui62">
     <link rel="stylesheet" href="{% static 'css/ogretmen-yuzey.css' %}?v=og4">
 </head>
-<body class="v3-body ogretmen-body">
+<body class="v3-body ogretmen-body" data-cs-shell="ogretmen">
 <header class="cs-v6-header ogretmen-v6-header">
     <div class="cs-v6-inner">
         <a href="{% url 'ogretmen_dashboard' %}" class="cs-v6-brand v6-brand-block">
@@ -57,6 +57,7 @@
 </header>
 
 <main class="cs-v6-main ogretmen-main">
+    <div id="cs-messages">
     {% if messages %}
     <div class="ogretmen-messages">
         {% for message in messages %}
@@ -64,7 +65,10 @@
         {% endfor %}
     </div>
     {% endif %}
+    </div>
+    <div id="cs-page">
     {% block content %}{% endblock %}
+    </div>
 </main>
 
 {% if asistan_aktif %}
@@ -74,8 +78,10 @@
 <script src="{% static 'js/panel-scroll-guard.js' %}" defer></script>
 <script src="{% static 'js/bildirim-bell.js' %}" defer></script>
 {% if push_bildirim_aktif %}<script src="{% static 'js/push-subscribe.js' %}" defer></script>{% endif %}
-<script src="{% static 'js/cs-table-mobile.js' %}?v=10" defer></script>
-<script src="{% static 'js/nav-dropdown.js' %}?v=nav-s5" defer></script>
+<script src="{% static 'js/cs-table-mobile.js' %}?v=11" defer></script>
+<script src="{% static 'js/nav-dropdown.js' %}?v=nav-s6" defer></script>
+<div id="cs-page-boot" hidden>
 {% block extra_js %}{% endblock %}
+</div>
 </body>
 </html>

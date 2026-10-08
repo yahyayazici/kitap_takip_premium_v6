@@ -32,6 +32,10 @@
     }
 
         function next() {
+            if (!shell.isConnected) {
+                if (timer) window.clearInterval(timer);
+                return;
+            }
             setActive(index + 1);
         }
 
