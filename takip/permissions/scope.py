@@ -109,6 +109,9 @@ def yetkili_talebeler(user: User, *, aktif_only: bool = True) -> QuerySet[Talebe
         if kosullar:
             return talebeler.filter(kosullar).distinct()
 
+    if "nehari_mesul" in slugler:
+        return talebeler
+
     hoca = etut_hocasi_for_user(user)
     if hoca:
         from takip.etut_zimmet_service import hoca_talebe_q

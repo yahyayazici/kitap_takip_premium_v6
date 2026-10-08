@@ -156,6 +156,13 @@ def yetkili_dini_talebeler(user: User) -> QuerySet[Talebe]:
     if user.is_superuser or tum_talebe_kapsami_var(user):
         return qs
 
+    from takip.permissions.service import kullanici_rol_slugleri
+
+    if "nehari_mesul" in kullanici_rol_slugleri(user):
+        from takip.permissions.scope import yetkili_talebeler
+
+        return qs.filter(pk__in=yetkili_talebeler(user).values("pk"))
+
     hoca = etut_hocasi_for_user(user)
     if not hoca:
         return Talebe.objects.none()

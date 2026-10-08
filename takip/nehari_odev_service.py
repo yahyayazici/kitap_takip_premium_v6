@@ -66,6 +66,31 @@ class NehariOzet:
         return round(self.yapildi * 100 / self.toplam)
 
 
+def nehari_kayit_hocasi(user: User):
+    """KTT gibi etüt hocası isteyen kayıtlarda nehari mesulün kendi hocası."""
+    from takip.models import EtutHocasi, PersonelProfili
+    from takip.user_helpers import etut_hocasi_for_user
+
+    if "nehari_mesul" not in kullanici_rol_slugleri(user):
+        return None
+    hoca = etut_hocasi_for_user(user)
+    if hoca:
+        return hoca
+    try:
+        profil = user.personel_profili
+    except PersonelProfili.DoesNotExist:
+        profil = None
+    ad = ""
+    if profil and profil.ad_soyad:
+        ad = profil.ad_soyad
+    ad = ad or user.get_full_name() or user.username
+    hoca = EtutHocasi.objects.create(user=user, ad_soyad=ad[:120], aktif=True)
+    if profil is not None and not profil.etut_hocasi_id:
+        profil.etut_hocasi = hoca
+        profil.save(update_fields=["etut_hocasi"])
+    return hoca
+
+
 def nehari_talebeleri(user: User):
     """Nehari mesulün günlük listesi. Kapsam yoksa kurumun aktif talebeleri."""
     aktif = Talebe.objects.filter(durum=Talebe.Durum.AKTIF)

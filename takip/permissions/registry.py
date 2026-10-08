@@ -296,6 +296,12 @@ LEGACY_ROL_MODULLER: dict[str, frozenset[str]] = {
     "nehari_mesul": frozenset(
         {
             "asistan",
+            "egitim_kitap",
+            "ktt",
+            "deneme",
+            "dini_ders_takip",
+            "yazili_takip",
+            "gunluk_takip",
             "program",
             "dershane_programi",
             "imam_muezzin",

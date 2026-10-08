@@ -55,6 +55,7 @@ EGITIM_MODULU_ROLLER = frozenset(
         ROL_SINIF_MESUL,
     }
 )
+NEHARI_GIRIS_ROLLER = EGITIM_MODULU_ROLLER | frozenset({ROL_NEHARI_MESUL})
 REHBERLIK_MODULU_ROLLER = frozenset({ROL_REHBER_OGRETMENI})
 DISIPLIN_KURUL_ROLLER = frozenset(
     {
@@ -250,7 +251,7 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         key="talebeler",
         label="Talebeler",
         url_name="talebe_listesi",
-        roller=EGITIM_MODULU_ROLLER,
+        roller=NEHARI_GIRIS_ROLLER,
         active_names=("talebe_listesi", "talebe_detay", "talebe_liste_excel", "talebe_liste_raporu_pdf"),
         nav_group="Eğitim",
     ),
@@ -258,7 +259,7 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         key="kitaplar",
         label="Kitap Arşivi",
         url_name="kitap_listesi",
-        roller=EGITIM_MODULU_ROLLER,
+        roller=NEHARI_GIRIS_ROLLER,
         active_names=("kitap_listesi", "kitap_sil"),
         nav_group="Kitaplar",
     ),
@@ -274,7 +275,7 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         key="zimmetler",
         label="Zimmetleme",
         url_name="toplu_zimmet",
-        roller=EGITIM_MODULU_ROLLER,
+        roller=NEHARI_GIRIS_ROLLER,
         active_names=("toplu_zimmet",),
         nav_group="Kitaplar",
     ),
@@ -282,7 +283,7 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         key="okuma",
         label="Günlük Adet Gir",
         url_name="toplu_gunluk_okuma",
-        roller=EGITIM_MODULU_ROLLER,
+        roller=NEHARI_GIRIS_ROLLER,
         active_names=("toplu_gunluk_okuma",),
         nav_group="Kitaplar",
     ),
@@ -314,7 +315,7 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         key="ktt",
         label="KTT",
         url_name="ktt_listesi",
-        roller=EGITIM_MODULU_ROLLER,
+        roller=NEHARI_GIRIS_ROLLER,
         active_names=(
             "ktt_listesi",
             "ktt_rapor",
@@ -342,7 +343,7 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         key="deneme",
         label="Deneme",
         url_name="deneme_listesi",
-        roller=EGITIM_MODULU_ROLLER,
+        roller=NEHARI_GIRIS_ROLLER,
         active_names=(
             "deneme_listesi",
             "deneme_detay",
@@ -444,7 +445,7 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         key="dini_ders_takip",
         label="Dini Ders Takip",
         url_name="dini_ders_panel",
-        roller=EGITIM_MODULU_ROLLER,
+        roller=NEHARI_GIRIS_ROLLER,
         active_names=(
             "dini_ders_panel",
             "dini_ders_rapor",
@@ -509,7 +510,7 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         key="gunluk_takip",
         label="Günlük Takip",
         url_name="gunluk_takip_panel",
-        roller=EGITIM_MODULU_ROLLER,
+        roller=NEHARI_GIRIS_ROLLER,
         active_names=(
             "gunluk_takip_panel",
             "gunluk_takip_etut",
@@ -554,7 +555,7 @@ PANEL_NAV_ITEMS: tuple[PanelNavItem, ...] = (
         key="yazili_takip",
         label="Yazılı Takip",
         url_name="yazili_kamp_listesi",
-        roller=EGITIM_MODULU_ROLLER,
+        roller=NEHARI_GIRIS_ROLLER,
         active_names=(
             "yazili_kamp_listesi",
             "yazili_kamp_detay",

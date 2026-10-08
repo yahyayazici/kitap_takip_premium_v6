@@ -40,13 +40,14 @@ def yetkili_ktt_sinavlari(user: User) -> QuerySet[KttSinav]:
         return qs
 
     hoca = _etut_hocasi(user)
-    if not hoca:
-        return KttSinav.objects.none()
-
-    q = Q(etut_hocasi=hoca)
+    q = Q()
+    if hoca:
+        q |= Q(etut_hocasi=hoca)
     ortak = ktt_sinif_paylasim_q(user)
     if ortak:
         q |= ortak
+    if not q:
+        return KttSinav.objects.none()
     return qs.filter(q).distinct()
 
 
@@ -86,8 +87,27 @@ def ktt_silebilir(user: User, ktt: KttSinav) -> bool:
     return hoca is not None and ktt.etut_hocasi_id == hoca.id
 
 
+def _nehari_siniflari(user: User) -> list[SinifSube] | None:
+    from takip.permissions.scope import yetkili_talebeler
+    from takip.permissions.service import kullanici_rol_slugleri
+
+    if "nehari_mesul" not in kullanici_rol_slugleri(user):
+        return None
+    sinif_ids = (
+        yetkili_talebeler(user)
+        .exclude(sinif_sube_id__isnull=True)
+        .values_list("sinif_sube_id", flat=True)
+        .distinct()
+    )
+    return list(SinifSube.objects.filter(pk__in=sinif_ids, aktif=True).order_by("sinif", "sube"))
+
+
 def ktt_sinif_secenekleri(user: User) -> list[SinifSube]:
     from takip.permissions.scope import tum_talebe_kapsami_var
+
+    nehari_siniflar = _nehari_siniflari(user)
+    if nehari_siniflar is not None:
+        return nehari_siniflar
 
     if user.is_superuser or tum_talebe_kapsami_var(user) or ktt_tam_yetki(user):
         return list(SinifSube.objects.filter(aktif=True).order_by("sinif", "sube"))
@@ -129,6 +149,10 @@ def ktt_sinif_etiketleri(user: User) -> set[str]:
 
 def ktt_hoca_sinif_etiketleri(user: User) -> set[str]:
     """Paylaşım için yalnızca hocanın zimmetindeki sınıflar (idare kapsamı hariç)."""
+    nehari_siniflar = _nehari_siniflari(user)
+    if nehari_siniflar is not None:
+        return {f"{ss.sinif}-{ss.sube}" for ss in nehari_siniflar}
+
     hoca = _etut_hocasi(user)
     if not hoca:
         return set()
