@@ -200,6 +200,45 @@ class CisaRaporTests(TestCase):
         self.assertIn("<h2>Fen Bilimleri</h2>", html)
         self.assertNotIn("<h2>Sınıf</h2>", html)
 
+    def test_inkilap_konulari_turkceden_ayrilir(self):
+        konular = (
+            (1, "BÜYÜK HARF KULLANILMASI", "yanlis"),
+            (2, "PARAGRAFTA ANLAM VE YAPI", "dogru"),
+            (3, "M. KEMAL'İN ÇOCUKLUK DÖNEMİ", "yanlis"),
+            (4, "BİR KAHRAMAN DOĞUYOR", "dogru"),
+            (5, "20. YÜZYIL BAŞLARINDA OSMANLI", "dogru"),
+            (6, "BUHRANLAR BÜYÜK KAHRAMAN DOĞURUR", "dogru"),
+            (7, "M. KEMAL'İN FİKİR HAYATI", "dogru"),
+        )
+        for no, konu, sonuc in konular:
+            DenemeSoruSonucu.objects.create(
+                deneme=self.ocak,
+                talebe=self.ali,
+                ders_ad="Türkçe",
+                ders_key="turkce",
+                soru_no=no + 40,
+                konu_ad=konu,
+                sonuc=sonuc,
+            )
+        rapor = cisa_rapor(self.ali, [self.ocak.id])
+        basliklar = {
+            grup["ders"]: [satir["konu"] for satir in grup["satirlar"]]
+            for grup in rapor["konular"]
+        }
+        self.assertIn("BÜYÜK HARF KULLANILMASI", basliklar["Türkçe"])
+        self.assertIn("PARAGRAFTA ANLAM VE YAPI", basliklar["Türkçe"])
+        for konu in (
+            "M. KEMAL'İN ÇOCUKLUK DÖNEMİ",
+            "BİR KAHRAMAN DOĞUYOR",
+            "20. YÜZYIL BAŞLARINDA OSMANLI",
+            "BUHRANLAR BÜYÜK KAHRAMAN DOĞURUR",
+            "M. KEMAL'İN FİKİR HAYATI",
+        ):
+            self.assertIn(konu, basliklar["İnkılap"])
+            self.assertNotIn(konu, basliklar["Türkçe"])
+        dersler = [grup["ders"] for grup in rapor["konular"]]
+        self.assertLess(dersler.index("Türkçe"), dersler.index("İnkılap"))
+
     def test_secilmeyen_ve_taslak_girmez(self):
         liste = cisa_deneme_listesi(self.ali)
         adlar = [d["ad"] for d in liste]
