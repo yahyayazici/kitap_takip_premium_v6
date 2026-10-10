@@ -1,62 +1,49 @@
 {% load pdf_extras %}
-<table class="results{% if kompakt %} results-kompakt{% endif %}">
+<table class="dokum{% if kompakt %} dokum-kompakt{% endif %}">
     <thead>
         <tr>
-            <th class="th-sira" style="width:{% if kompakt %}8{% else %}7{% endif %}%;">Sıra</th>
-            <th class="left th-talebe" style="width:{% if kompakt %}30{% else %}22{% endif %}%;">Talebe Adı Soyadı</th>
-            <th class="th-sinif" style="width:{% if kompakt %}10{% else %}8{% endif %}%;">Sınıf</th>
-            <th class="th-dyb" style="width:7%;">Doğru</th>
-            <th class="th-dyb" style="width:7%;">Yanlış</th>
-            <th class="th-dyb" style="width:7%;">Boş</th>
-            <th class="th-net" style="width:8%;">Net</th>
+            <th class="sol" style="width:{% if kompakt %}10{% else %}7{% endif %}%;">Sıra</th>
+            <th class="sol" style="width:{% if kompakt %}28{% else %}24{% endif %}%;">Talebe adı soyadı</th>
+            <th style="width:{% if kompakt %}12{% else %}9{% endif %}%;">Sınıf</th>
+            <th style="width:8%;">Doğru</th>
+            <th style="width:8%;">Yanlış</th>
+            <th style="width:7%;">Boş</th>
+            <th class="sol" style="width:{% if kompakt %}16{% else %}16{% endif %}%;">Net</th>
             {% if not kompakt %}
-            <th class="th-basari" style="width:18%;">Başarı (%)</th>
+            <th style="width:14%;">Başarı (%)</th>
             {% endif %}
-            <th class="th-puan" style="width:{% if kompakt %}16{% else %}16{% endif %}%;">Puan (100)</th>
+            <th style="width:{% if kompakt %}11{% else %}7{% endif %}%;">Puan (100)</th>
         </tr>
     </thead>
     <tbody>
         {% for sonuc in kolon %}
-        {% with sira=forloop.counter|add:sira_offset %}
+        {% with sira=forloop.counter|add:sira_offset bant=sonuc.puan|pdf_bant %}
         <tr>
-            <td class="rank-cell">
-                {% if sira == 1 %}
-                <svg class="rank-medal" viewBox="0 0 12 10" xmlns="http://www.w3.org/2000/svg"><path d="M1.2 8.2h9.6L8.8 3.2 6 6.1 3.2 3.2z" fill="#d4a017"/><rect x="1.1" y="8" width="9.8" height="1.3" rx="0.3" fill="#d4a017"/></svg>
-                {% elif sira == 2 %}
-                <svg class="rank-medal" viewBox="0 0 12 10" xmlns="http://www.w3.org/2000/svg"><path d="M1.2 8.2h9.6L8.8 3.2 6 6.1 3.2 3.2z" fill="#8e9aab"/><rect x="1.1" y="8" width="9.8" height="1.3" rx="0.3" fill="#8e9aab"/></svg>
-                {% elif sira == 3 %}
-                <svg class="rank-medal" viewBox="0 0 12 10" xmlns="http://www.w3.org/2000/svg"><path d="M1.2 8.2h9.6L8.8 3.2 6 6.1 3.2 3.2z" fill="#c47a3a"/><rect x="1.1" y="8" width="9.8" height="1.3" rx="0.3" fill="#c47a3a"/></svg>
+            <td class="sol">
+                {% if sonuc.puan|pdf_puan == ozet.en_yuksek_puan|pdf_puan %}
+                <span class="sira-rozet">{{ sira }}</span>
+                {% else %}
+                <span class="sira-duz">{{ sira }}</span>
                 {% endif %}
-                <span class="rank-no{% if sira == 1 %} is-gold{% elif sira == 2 %} is-silver{% elif sira == 3 %} is-bronze{% endif %}">{{ sira }}</span>
             </td>
-            <td class="left name-cell">
-                <div class="student-name">{{ sonuc.talebe.ad_soyad }}</div>
+            <td class="sol ad">{{ sonuc.talebe.ad_soyad }}</td>
+            <td><span class="sinif-hap">{{ sonuc.talebe.sinif_sube|default:"—" }}</span></td>
+            <td>{{ sonuc.dogru }}</td>
+            <td>{{ sonuc.yanlis }}</td>
+            <td>{{ sonuc.bos }}</td>
+            <td class="sol net">
+                <span class="yazi-{{ bant }}">{{ sonuc.net|pdf_puan }}</span>
+                <span class="mini"><i class="dolu-{{ bant }}" style="width:{{ sonuc.puan|pdf_bar_pct }}%;"></i></span>
             </td>
-            <td class="sinif-cell">{{ sonuc.talebe.sinif_sube|default:"—" }}</td>
-            <td class="num-cell dyb-cell">{{ sonuc.dogru }}</td>
-            <td class="num-cell dyb-cell">{{ sonuc.yanlis }}</td>
-            <td class="num-cell dyb-cell">{{ sonuc.bos }}</td>
-            <td class="num-cell net-cell">{{ sonuc.net }}</td>
             {% if not kompakt %}
-            <td class="basari-cell">
-                <table class="basari-row" cellpadding="0" cellspacing="0">
-                    <tr>
-                        <td class="basari-bar-cell">
-                            <div class="basari-track">
-                                <div class="basari-fill" style="width: {{ sonuc.puan|pdf_bar_pct }}%;"></div>
-                            </div>
-                        </td>
-                        <td class="basari-pct">%{{ sonuc.puan|pdf_puan }}</td>
-                    </tr>
-                </table>
-            </td>
+            <td class="yazi-{{ bant }}">%{{ sonuc.puan|pdf_puan }}</td>
             {% endif %}
-            <td class="puan-cell"><span class="puan-mark">{{ sonuc.puan|pdf_puan }}</span></td>
+            <td class="puan yazi-{{ bant }}">{{ sonuc.puan|pdf_puan }}</td>
         </tr>
         {% endwith %}
         {% empty %}
         <tr>
-            <td colspan="{% if kompakt %}8{% else %}9{% endif %}" class="left" style="padding:8px;">—</td>
+            <td class="sol" colspan="{% if kompakt %}8{% else %}9{% endif %}">Sonuç yok</td>
         </tr>
         {% endfor %}
     </tbody>
