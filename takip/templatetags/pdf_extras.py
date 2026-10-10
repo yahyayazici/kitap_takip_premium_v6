@@ -136,6 +136,37 @@ def pdf_bar_pct(value):
 
 
 @register.filter
+def pdf_bant(value) -> str:
+    """KTT başarı bandı: 85+ yüksek, 70–85 iyi, 50–70 orta, altı düşük."""
+    try:
+        sayi = Decimal(str(value))
+    except (InvalidOperation, TypeError, ValueError):
+        return "dusuk"
+    if sayi >= 85:
+        return "yuksek"
+    if sayi >= 70:
+        return "iyi"
+    if sayi >= 50:
+        return "orta"
+    return "dusuk"
+
+
+@register.filter
+def pdf_cember(value) -> str:
+    """SVG halkası için 0–100 doluluk ve boşluk, nokta ayraçlı."""
+    try:
+        sayi = Decimal(str(value)).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+    except (InvalidOperation, TypeError, ValueError):
+        sayi = Decimal("0.0")
+    if sayi < 0:
+        sayi = Decimal("0.0")
+    if sayi > 100:
+        sayi = Decimal("100.0")
+    kalan = Decimal("100.0") - sayi
+    return f"{sayi:.1f} {kalan:.1f}"
+
+
+@register.filter
 def pdf_density_class(count) -> str:
     """Satır sayısına göre tek sayfa PDF yoğunluk sınıfı."""
     try:

@@ -3,583 +3,374 @@
 <html lang="tr">
 <head>
     <meta charset="utf-8">
-    <title>{{ ktt.ad }} · Başarı Listesi</title>
+    <title>{{ ktt.ad }} · KTT</title>
     <style>
-        {% include "includes/pdf_karne_fonts.html" %}
-        {% include "includes/pdf_karne_a4_css.html" %}
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-Regular.ttf' %}") format("truetype");
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-Medium.ttf' %}") format("truetype");
+            font-weight: 500;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-SemiBold.ttf' %}") format("truetype");
+            font-weight: 600;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-Bold.ttf' %}") format("truetype");
+            font-weight: 700;
+            font-style: normal;
+        }
 
         @page {
             size: {{ pdf_sayfa.size_css|default:"A4 portrait" }};
-            margin: 6mm 8mm 5mm;
+            margin: 0;
         }
 
-        /* KTT veli PDF — Seçkin Okur kalıbı: şeffaf özet, çizgi ikon, lacivert başlık */
-        .pdf-karne.ktt-detay-pdf {
-            font-size: 10px;
-            color: #243044;
-        }
+        * { box-sizing: border-box; }
 
-        .pdf-karne.ktt-detay-pdf .gap6 { height: 8px; }
-        .pdf-karne.ktt-detay-pdf .gap8 { height: 10px; }
-
-        .pdf-karne.ktt-detay-pdf .ktt-mast {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .pdf-karne.ktt-detay-pdf .ktt-mast-logo {
-            width: 56px;
-            padding: 0 8px 0 0;
-            vertical-align: middle;
-        }
-
-        .pdf-karne.ktt-detay-pdf .ktt-logo {
-            display: block;
-            width: 48px;
-            height: 48px;
-            border: 0;
-            border-radius: 0;
-            object-fit: contain;
-        }
-
-        .pdf-karne.ktt-detay-pdf .ktt-mast-brand {
-            vertical-align: middle;
-            padding: 1px 0 0 0;
-        }
-
-        .pdf-karne.ktt-detay-pdf .ktt-org {
-            font-family: "Poppins", "PdfTurkish", sans-serif;
-            font-size: 8.5px;
-            font-weight: 600;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: #163a73;
-            line-height: 1.1;
-        }
-
-        .pdf-karne.ktt-detay-pdf .ktt-exam {
-            margin-top: 2px;
-            font-family: "Poppins", "PdfTurkish", sans-serif;
-            font-size: 13px;
-            font-weight: 700;
-            color: #122a4a;
-            line-height: 1.15;
-        }
-
-        .pdf-karne.ktt-detay-pdf .ktt-exam-meta {
-            margin-top: 2px;
-            font-size: 7.5px;
-            font-weight: 400;
-            color: #7a8aa0;
-            line-height: 1.25;
-        }
-
-        .pdf-karne.ktt-detay-pdf .ktt-mast-right {
-            text-align: right;
-            vertical-align: middle;
-            padding: 0 0 0 10px;
-            white-space: nowrap;
-        }
-
-        .pdf-karne.ktt-detay-pdf .ktt-mast-date {
-            font-size: 8.5px;
-            font-weight: 400;
-            color: #8b98aa;
-        }
-
-        .pdf-karne.ktt-detay-pdf .ktt-rule {
-            height: 2px;
-            background: #163a73;
-            font-size: 0;
-            line-height: 0;
-        }
-
-        .pdf-karne.ktt-detay-pdf .ktt-kpi {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 6px 0;
-            background: transparent;
-            border: 0;
-        }
-
-        .pdf-karne.ktt-detay-pdf .ktt-kpi-cell {
-            width: 25%;
-            padding: 4px 6px 4px 10px;
-            vertical-align: middle;
-            background: transparent;
-            border: 0;
-            border-left: 3px solid #1e4fa3;
-        }
-
-        .pdf-karne.ktt-detay-pdf .ktt-kpi-cell.tone-navy { border-left-color: #1e4fa3; }
-        .pdf-karne.ktt-detay-pdf .ktt-kpi-cell.tone-coral { border-left-color: #e24b2c; }
-        .pdf-karne.ktt-detay-pdf .ktt-kpi-cell.tone-teal { border-left-color: #0f766e; }
-        .pdf-karne.ktt-detay-pdf .ktt-kpi-cell.tone-gold { border-left-color: #c9a227; }
-
-        .pdf-karne.ktt-detay-pdf .ktt-kpi-inner {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .pdf-karne.ktt-detay-pdf .ktt-kpi-icon {
-            width: 34px;
-            padding: 0 8px 0 0;
-            vertical-align: middle;
-        }
-
-        .pdf-karne.ktt-detay-pdf .ktt-kpi-icon svg {
-            display: block;
-            width: 28px;
-            height: 28px;
-        }
-
-        .pdf-karne.ktt-detay-pdf .ktt-kpi-copy {
-            vertical-align: middle;
+        html, body {
+            margin: 0;
             padding: 0;
-        }
-
-        .pdf-karne.ktt-detay-pdf .ktt-kpi-val {
-            font-family: "Poppins", "PdfTurkish", sans-serif;
-            font-size: 16px;
-            font-weight: 700;
-            font-variant-numeric: tabular-nums;
-            letter-spacing: -0.03em;
-            line-height: 1.1;
-        }
-
-        .pdf-karne.ktt-detay-pdf .ktt-kpi-cell.tone-navy .ktt-kpi-val { color: #1e4fa3; }
-        .pdf-karne.ktt-detay-pdf .ktt-kpi-cell.tone-coral .ktt-kpi-val { color: #c2410c; }
-        .pdf-karne.ktt-detay-pdf .ktt-kpi-cell.tone-teal .ktt-kpi-val { color: #0f766e; }
-        .pdf-karne.ktt-detay-pdf .ktt-kpi-cell.tone-gold .ktt-kpi-val { color: #b45309; }
-
-        .pdf-karne.ktt-detay-pdf .ktt-kpi-label {
-            margin-top: 2px;
-            font-size: 7.5px;
-            font-weight: 500;
-            color: #7b8a9d;
-            letter-spacing: 0.01em;
-        }
-
-        .pdf-karne.ktt-detay-pdf .table-panel {
-            border: 0;
-            border-radius: 0;
-            box-shadow: none;
-        }
-
-        .pdf-karne.ktt-detay-pdf .table-panel-accent { display: none; }
-        .pdf-karne.ktt-detay-pdf .table-panel-head { display: none; }
-
-        .pdf-karne.ktt-detay-pdf .results-wrap {
-            column-count: 1 !important;
-            padding: 0;
-        }
-
-        .pdf-karne.ktt-detay-pdf table.results {
-            width: 100%;
-            table-layout: fixed;
-        }
-
-        .pdf-karne.ktt-detay-pdf table.results thead th,
-        .pdf-karne.ktt-detay-pdf.density-s table.results thead th,
-        .pdf-karne.ktt-detay-pdf.density-m table.results thead th,
-        .pdf-karne.ktt-detay-pdf.density-l table.results thead th,
-        .pdf-karne.ktt-detay-pdf.density-xl table.results thead th {
-            padding: 8px 4px;
-            font-family: "Poppins", "PdfTurkish", sans-serif;
+            background: #ffffff;
+            color: #0a2350;
+            font-family: "Poppins", sans-serif;
             font-size: 8px;
-            font-weight: 600;
-            letter-spacing: 0.02em;
-            text-transform: none;
-            color: #fff;
-            background: #163a73;
-            border-bottom: 0;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
 
-        .pdf-karne.ktt-detay-pdf table.results thead th.left {
-            text-align: left;
-            padding-left: 8px;
+        .kapak {
+            position: relative;
+            overflow: hidden;
+            background: #0a2350;
+            color: #ffffff;
+            padding: 7mm 11mm 0;
         }
-
-        .pdf-karne.ktt-detay-pdf table.results tbody td {
-            padding: 6px 4px;
-            font-size: 10px;
-            border-top: 1px solid #eef2f7;
-            vertical-align: middle;
-            background: #fff;
+        .desen {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 62mm;
+            height: 100%;
         }
-
-        .pdf-karne.ktt-detay-pdf table.results tbody tr:nth-child(even) td {
-            background: #f5f7fa;
+        .ust { width: 100%; border-collapse: collapse; }
+        .ust td { vertical-align: middle; padding: 0; }
+        .marka-logo { display: block; width: 28px; height: 28px; }
+        .marka-yazi { padding-left: 8px; }
+        .marka-ad {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            color: #ffffff;
+            line-height: 1.1;
         }
-
-        .pdf-karne.ktt-detay-pdf table.results tbody td.name-cell,
-        .pdf-karne.ktt-detay-pdf table.results .student-name,
-        .pdf-karne.ktt-detay-pdf.density-s table.results .student-name,
-        .pdf-karne.ktt-detay-pdf.density-m table.results .student-name,
-        .pdf-karne.ktt-detay-pdf.density-l table.results .student-name,
-        .pdf-karne.ktt-detay-pdf.density-xl table.results .student-name {
-            font-family: "Poppins", "PdfTurkish", sans-serif;
-            font-size: 9.5px;
-            font-weight: 400;
-            line-height: 1.3;
-            white-space: normal;
-            word-wrap: break-word;
-            text-transform: none;
-            color: #1a334f;
-        }
-
-        .pdf-karne.ktt-detay-pdf .sinif-cell {
-            font-size: 8.5px;
-            font-weight: 400;
-            color: #6b7a90;
-        }
-
-        .pdf-karne.ktt-detay-pdf .rank-cell {
+        .ust-tarih {
+            text-align: right;
+            font-size: 8px;
+            color: #d5deea;
             white-space: nowrap;
         }
+        .kicker {
+            margin-top: 5mm;
+            font-size: 7px;
+            font-weight: 600;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            color: #c9a84c;
+        }
+        .sinav-ad {
+            margin: 2px 0 0;
+            font-size: 20px;
+            font-weight: 600;
+            line-height: 1.15;
+            color: #ffffff;
+        }
+        .meta {
+            width: 100%;
+            margin-top: 5mm;
+            border-collapse: collapse;
+        }
+        .meta td {
+            width: 33%;
+            vertical-align: top;
+            padding: 0 12px;
+            border-left: 1px solid rgba(255, 255, 255, 0.22);
+        }
+        .meta td:first-child { border-left: 0; padding-left: 0; }
+        .meta-etiket {
+            font-size: 6.5px;
+            font-weight: 600;
+            letter-spacing: 0.7px;
+            color: #9aabbf;
+        }
+        .meta-deger {
+            margin-top: 2px;
+            font-size: 10px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+        .alt-cizgi { width: 100%; border-collapse: collapse; margin-top: 4mm; }
+        .alt-cizgi td { height: 3px; padding: 0; font-size: 0; }
+        .alt-cizgi .bos { width: 68%; }
+        .alt-cizgi .altin { width: 32%; background: #c9a84c; }
 
-        .pdf-karne.ktt-detay-pdf .rank-medal {
-            display: inline-block;
-            width: 11px;
-            height: 9px;
-            vertical-align: middle;
-            margin-right: 3px;
+        .icerik { padding: 5mm 11mm 0; }
+        .olculer { width: 100%; border-collapse: collapse; }
+        .olculer td { vertical-align: middle; padding: 0 8px 0 0; }
+        .olcu-etiket {
+            font-size: 6.5px;
+            font-weight: 600;
+            letter-spacing: 0.7px;
+            color: #8b97a8;
+        }
+        .olcu-sayi {
+            margin-top: 1px;
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1;
+            color: #0a2350;
+        }
+        .olcu-sayi.mavi { color: #2f6fd6; }
+        .olcu-sayi.altin { color: #c9a84c; }
+        .ayrac { width: 1px; background: #e6ebf1; padding: 0; }
+        .halka-tablo { border-collapse: collapse; }
+        .halka-tablo td { vertical-align: middle; padding: 0; }
+        .yuzde-buyuk {
+            padding-left: 6px;
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1;
+            color: #0a2350;
         }
 
-        .pdf-karne.ktt-detay-pdf .rank-no {
-            display: inline-block;
-            min-width: 12px;
-            font-family: "Poppins", "PdfTurkish", sans-serif;
-            font-size: 10.5px;
+        .liste { margin-top: 4mm; }
+        .dokum { width: 100%; border-collapse: collapse; }
+        .dokum th {
+            padding: 3px 2px 4px;
+            border-bottom: 1.5px solid #0a2350;
+            font-size: 6px;
             font-weight: 600;
-            font-variant-numeric: tabular-nums;
-            color: #5a6a80;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            color: #8b97a8;
+            text-align: center;
+        }
+        .dokum th.sol, .dokum td.sol { text-align: left; }
+        .dokum td {
+            padding: 2.4px 2px;
+            border-bottom: 1px solid #e7edf2;
+            font-size: 7.6px;
+            font-weight: 500;
+            color: #0a2350;
             text-align: center;
             line-height: 1.15;
             vertical-align: middle;
         }
-
-        .pdf-karne.ktt-detay-pdf .rank-no.is-gold { color: #c9a227; font-weight: 700; }
-        .pdf-karne.ktt-detay-pdf .rank-no.is-silver { color: #7b8ba0; font-weight: 700; }
-        .pdf-karne.ktt-detay-pdf .rank-no.is-bronze { color: #c47a3a; font-weight: 700; }
-
-        .pdf-karne.ktt-detay-pdf .dyb-cell {
-            font-size: 10px;
-            font-weight: 400;
-            font-variant-numeric: tabular-nums;
-            color: #33425a;
-        }
-
-        .pdf-karne.ktt-detay-pdf .net-cell {
-            font-size: 10.5px;
-            font-weight: 700;
-            font-variant-numeric: tabular-nums;
-            color: #163a73;
-        }
-
-        .pdf-karne.ktt-detay-pdf .basari-cell {
-            padding-left: 6px;
-            padding-right: 6px;
-        }
-
-        .pdf-karne.ktt-detay-pdf .basari-row {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .pdf-karne.ktt-detay-pdf .basari-bar-cell {
-            width: 62%;
-            padding: 0 5px 0 0;
-            vertical-align: middle;
-        }
-
-        .pdf-karne.ktt-detay-pdf .basari-track {
-            display: block;
-            width: 100%;
-            height: 8px;
-            background: #d5deea;
+        .dokum td.ad {
+            font-weight: 600;
+            white-space: nowrap;
             overflow: hidden;
         }
+        .dokum-kompakt td { padding: 2px 1px; font-size: 6.6px; }
+        .dokum-kompakt th { font-size: 5.4px; padding: 2px 1px; }
+        .bol { width: 100%; border-collapse: separate; border-spacing: 8px 0; }
+        .bol td { width: 50%; vertical-align: top; }
 
-        .pdf-karne.ktt-detay-pdf .basari-fill {
-            display: block;
-            height: 8px;
-            background: #2b6fd4;
+        .sira-rozet {
+            display: inline-block;
+            width: 13px;
+            height: 13px;
+            border-radius: 13px;
+            background: #c9a84c;
+            color: #ffffff;
+            font-size: 7px;
+            font-weight: 700;
+            line-height: 13px;
+            text-align: center;
         }
+        .sira-duz {
+            display: inline-block;
+            min-width: 13px;
+            font-size: 7.5px;
+            font-weight: 600;
+            color: #0a2350;
+            text-align: center;
+        }
+        .sinif-hap {
+            display: inline-block;
+            padding: 0 4px;
+            border-radius: 7px;
+            background: #e7f0fb;
+            color: #2f6fd6;
+            font-size: 6.5px;
+            font-weight: 600;
+            line-height: 11px;
+        }
+        .mini {
+            display: inline-block;
+            width: 22px;
+            height: 3px;
+            margin-left: 3px;
+            border-radius: 3px;
+            background: #e7edf3;
+            vertical-align: middle;
+            overflow: hidden;
+        }
+        .mini i { display: block; height: 3px; }
+        .yazi-yuksek { color: #0a2350; }
+        .yazi-iyi { color: #2f6fd6; }
+        .yazi-orta { color: #c9a84c; }
+        .yazi-dusuk { color: #e15a2c; }
+        .dolu-yuksek { background: #0a2350; }
+        .dolu-iyi { background: #2f6fd6; }
+        .dolu-orta { background: #c9a84c; }
+        .dolu-dusuk { background: #e15a2c; }
+        .puan { font-weight: 700; }
 
-        .pdf-karne.ktt-detay-pdf .basari-pct {
-            width: 38%;
-            padding: 0;
-            font-size: 8px;
-            font-weight: 500;
-            font-variant-numeric: tabular-nums;
-            color: #5b6b82;
-            white-space: nowrap;
-            text-align: right;
+        .lejant { margin-top: 3mm; font-size: 6.5px; color: #5c6d84; }
+        .lejant i {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            margin: 0 3px 0 8px;
+            border-radius: 2px;
             vertical-align: middle;
         }
+        .lejant i:first-child { margin-left: 0; }
 
-        .pdf-karne.ktt-detay-pdf .puan-mark {
-            display: inline-block;
-            font-family: "Poppins", "PdfTurkish", sans-serif;
-            font-size: 11px;
-            font-weight: 700;
-            font-variant-numeric: tabular-nums;
-            color: #122a4a;
-            letter-spacing: -0.02em;
-            line-height: 1.1;
-        }
-
-        .pdf-karne.ktt-detay-pdf .ktt-split-layout {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 6px 0;
-            table-layout: fixed;
-        }
-
-        .pdf-karne.ktt-detay-pdf .ktt-split-col {
-            width: 50%;
-            vertical-align: top;
-        }
-
-        .pdf-karne.ktt-detay-pdf .results-kompakt tbody td {
-            padding: 4px 3px;
-        }
-
-        .pdf-karne.ktt-detay-pdf .results-kompakt .student-name {
-            font-size: 8.5px;
-            font-weight: 400;
-        }
-
-        .pdf-karne.ktt-detay-pdf .results-kompakt .rank-no {
-            font-size: 10px;
-            min-width: 16px;
-        }
-
-        .pdf-karne.ktt-detay-pdf .results-kompakt .puan-mark {
-            font-size: 11px;
-        }
-
-        .pdf-karne.ktt-detay-pdf .results-kompakt .dyb-cell {
-            font-size: 9px;
-        }
-
-        .pdf-karne.ktt-detay-pdf .results-kompakt thead th {
-            padding: 6px 2px;
-            font-size: 7px;
-            color: #fff;
-            background: #163a73;
-        }
-
-        .pdf-karne.ktt-detay-pdf .analiz-panel {
-            padding: 10px 12px;
-        }
-
-        .pdf-karne.ktt-detay-pdf .eval-title {
-            font-size: 10px;
-            font-weight: 700;
-        }
-
-        .pdf-karne.ktt-detay-pdf .analiz-body,
-        .pdf-karne.ktt-detay-pdf .eval-body {
-            font-size: 9px;
-            line-height: 1.45;
-        }
-
-        .pdf-karne.ktt-detay-pdf .analiz-uyari {
-            font-size: 8px;
-        }
-
-        .pdf-karne.ktt-detay-pdf .pdf-sheet,
-        .pdf-karne.ktt-detay-pdf .table-panel,
-        .pdf-karne.ktt-detay-pdf .results-wrap,
-        .pdf-karne.ktt-detay-pdf table.results {
-            page-break-inside: auto;
-            height: auto;
-        }
-        .pdf-karne.ktt-detay-pdf .basari-track-tbl {
-            width: 100%;
-            border-collapse: collapse;
-            height: 7px;
-        }
-        .pdf-karne.ktt-detay-pdf .basari-track-tbl td {
-            height: 7px;
-            font-size: 0;
-            line-height: 0;
-            padding: 0;
-            border: 0;
-        }
-        .pdf-karne.ktt-detay-pdf .footer-table { margin-top: 6px; }
-        .pdf-karne.ktt-detay-pdf .footer-table td { padding-top: 4px; font-size: 7px; color: #9aa6b7; }
+        .altbilgi { padding: 4mm 11mm 6mm; }
+        .alt-cizgi-ince { border-top: 1px solid #e4e9ef; padding-top: 4px; }
+        .alt-tablo { width: 100%; border-collapse: collapse; }
+        .alt-tablo td { font-size: 7px; color: #5c6d84; padding: 0; }
+        .alt-sag { text-align: right; }
     </style>
 </head>
-<body class="pdf-karne ktt-detay-pdf {{ sonuclar|length|pdf_density_class }}">
-
-<div class="pdf-sheet">
-            <table class="ktt-mast" width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                    <td class="ktt-mast-logo" width="56" valign="middle">
-                        <img class="ktt-logo" width="48" height="48" style="width:48px;height:48px;" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="{{ panel_short }}">
-                    </td>
-                    <td class="ktt-mast-brand" valign="middle">
-                        <div class="ktt-org">{{ panel_org }}</div>
-                        <div class="ktt-exam">{{ ktt.ad }}</div>
-                        <div class="ktt-exam-meta">{{ ktt.ders.ad }} · {{ ktt.sinif_goster }} · {{ ktt.soru_sayisi }} soru · Net = Doğru − Yanlış/4</div>
-                    </td>
-                    <td class="ktt-mast-right" width="120" valign="middle">
-                        <div class="ktt-mast-date">Tarih: {{ ktt.sinav_tarihi|date:"d.m.Y" }}</div>
-                    </td>
-                </tr>
-            </table>
-
-    <div class="gap6"></div>
-    <div class="ktt-rule">&nbsp;</div>
-    <div class="gap6"></div>
-
-            <table class="ktt-kpi" cellpadding="0" cellspacing="0">
-                <tr>
-                    <td class="ktt-kpi-cell tone-navy" width="25%">
-                        <table class="ktt-kpi-inner" cellpadding="0" cellspacing="0">
-                            <tr>
-                                <td class="ktt-kpi-icon">
-                                    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                                        <defs>
-                                            <linearGradient id="kpiHead" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d7e8ff"/><stop offset="1" stop-color="#3b7ee0"/></linearGradient>
-                                            <linearGradient id="kpiBody" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7eb3ff"/><stop offset="1" stop-color="#1e4fa3"/></linearGradient>
-                                        </defs>
-                                        <ellipse cx="16" cy="30" rx="10" ry="1.5" fill="#1e4fa3" opacity="0.18"/>
-                                        <circle cx="21" cy="10.2" r="4.1" fill="url(#kpiHead)"/>
-                                        <path d="M15.2 28.2c0-4.1 2.6-6.8 5.8-6.8s5.8 2.7 5.8 6.8" fill="url(#kpiBody)"/>
-                                        <circle cx="12" cy="9.6" r="5.1" fill="url(#kpiHead)"/>
-                                        <ellipse cx="10.4" cy="7.8" rx="2.1" ry="1.1" fill="#fff" opacity="0.45"/>
-                                        <path d="M4.2 28.2c0-5 3.4-8.1 7.8-8.1s7.8 3.1 7.8 8.1" fill="url(#kpiBody)"/>
-                                    </svg>
-                                </td>
-                                <td class="ktt-kpi-copy">
-                                    <div class="ktt-kpi-val">{{ ozet.ogrenci_sayisi }}</div>
-                                    <div class="ktt-kpi-label">Talebe</div>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                    <td class="ktt-kpi-cell tone-coral" width="25%">
-                        <table class="ktt-kpi-inner" cellpadding="0" cellspacing="0">
-                            <tr>
-                                <td class="ktt-kpi-icon">
-                                    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                                        <defs>
-                                            <linearGradient id="kpiRing" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8a6a"/><stop offset="1" stop-color="#c2410c"/></linearGradient>
-                                            <radialGradient id="kpiGoldDot" cx="0.38" cy="0.32" r="0.7"><stop offset="0" stop-color="#ffe9a3"/><stop offset="1" stop-color="#d4a017"/></radialGradient>
-                                        </defs>
-                                        <ellipse cx="16" cy="30" rx="9" ry="1.4" fill="#c2410c" opacity="0.16"/>
-                                        <circle cx="16" cy="15" r="11" fill="url(#kpiRing)"/>
-                                        <circle cx="16" cy="15" r="7.4" fill="#fff"/>
-                                        <circle cx="16" cy="15" r="4.6" fill="url(#kpiRing)"/>
-                                        <circle cx="16" cy="15" r="2.1" fill="url(#kpiGoldDot)"/>
-                                        <ellipse cx="13.4" cy="12.2" rx="3.1" ry="1.5" fill="#fff" opacity="0.38"/>
-                                    </svg>
-                                </td>
-                                <td class="ktt-kpi-copy">
-                                    <div class="ktt-kpi-val">{{ ozet.ortalama_net|pdf_puan }}</div>
-                                    <div class="ktt-kpi-label">Ortalama Net</div>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                    <td class="ktt-kpi-cell tone-teal" width="25%">
-                        <table class="ktt-kpi-inner" cellpadding="0" cellspacing="0">
-                            <tr>
-                                <td class="ktt-kpi-icon">
-                                    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                                        <defs>
-                                            <linearGradient id="kpiBarA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5ee0d0"/><stop offset="1" stop-color="#0f766e"/></linearGradient>
-                                            <linearGradient id="kpiBarB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7eb3ff"/><stop offset="1" stop-color="#1e4fa3"/></linearGradient>
-                                            <linearGradient id="kpiBarC" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset="1" stop-color="#c9a227"/></linearGradient>
-                                        </defs>
-                                        <ellipse cx="16" cy="30" rx="10" ry="1.4" fill="#0f766e" opacity="0.16"/>
-                                        <rect x="5" y="16" width="6" height="11" rx="1" fill="url(#kpiBarA)"/>
-                                        <polygon points="5,16 8,13.2 14,13.2 11,16" fill="#9af0e4"/>
-                                        <rect x="13" y="8" width="6" height="19" rx="1" fill="url(#kpiBarB)"/>
-                                        <polygon points="13,8 16,5.2 22,5.2 19,8" fill="#a8cbff"/>
-                                        <rect x="21" y="12" width="6" height="15" rx="1" fill="url(#kpiBarC)"/>
-                                        <polygon points="21,12 24,9.2 30,9.2 27,12" fill="#ffe9b0"/>
-                                    </svg>
-                                </td>
-                                <td class="ktt-kpi-copy">
-                                    <div class="ktt-kpi-val">{{ ozet.ortalama_puan|pdf_puan }}</div>
-                                    <div class="ktt-kpi-label">Ortalama Puan</div>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                    <td class="ktt-kpi-cell tone-gold" width="25%">
-                        <table class="ktt-kpi-inner" cellpadding="0" cellspacing="0">
-                            <tr>
-                                <td class="ktt-kpi-icon">
-                                    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                                        <defs>
-                                            <linearGradient id="kpiMedal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe9a8"/><stop offset="1" stop-color="#c9a227"/></linearGradient>
-                                            <linearGradient id="kpiRibbon" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5b9cff"/><stop offset="1" stop-color="#1e4fa3"/></linearGradient>
-                                        </defs>
-                                        <ellipse cx="16" cy="30" rx="9" ry="1.4" fill="#c9a227" opacity="0.2"/>
-                                        <path d="M11.2 16.5 8.6 28.2 16 24.6l7.4 3.6-2.6-11.7" fill="url(#kpiRibbon)"/>
-                                        <circle cx="16" cy="12.4" r="8.2" fill="#a88412"/>
-                                        <circle cx="16" cy="12.4" r="7.1" fill="url(#kpiMedal)"/>
-                                        <circle cx="16" cy="12.4" r="3.4" fill="#fff4c8"/>
-                                        <polygon points="16,9.4 16.9,11.6 19.3,11.8 17.5,13.4 18.1,15.8 16,14.6 13.9,15.8 14.5,13.4 12.7,11.8 15.1,11.6" fill="#c9a227"/>
-                                        <ellipse cx="13.4" cy="9.8" rx="2.8" ry="1.4" fill="#fff" opacity="0.42"/>
-                                    </svg>
-                                </td>
-                                <td class="ktt-kpi-copy">
-                                    <div class="ktt-kpi-val">{{ ozet.en_yuksek_puan|pdf_puan }}</div>
-                                    <div class="ktt-kpi-label">En Yüksek Puan</div>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
-
-    <div class="gap8"></div>
-
-            <div class="table-panel">
-                <div class="table-panel-accent"></div>
-                <div class="table-panel-head">
-                    <div class="section-kicker">Sonuç Listesi</div>
-                    <div class="section-title">KTT Sonuç Tablosu</div>
-                </div>
-                <div class="results-wrap">
-                    {% if sonuc_split %}
-                    <table class="ktt-split-layout" cellpadding="0" cellspacing="0">
+<body>
+<div class="sayfa">
+    <header class="kapak">
+        <svg class="desen" viewBox="0 0 240 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <g fill="none" stroke="#ffffff" stroke-opacity="0.09" stroke-width="10">
+                <circle cx="170" cy="36" r="24"/>
+                <circle cx="210" cy="78" r="18"/>
+                <circle cx="156" cy="110" r="28"/>
+            </g>
+        </svg>
+        <table class="ust">
+            <tr>
+                <td>
+                    <table>
                         <tr>
-                            <td class="ktt-split-col">
-                                {% include "includes/ktt_pdf_sonuc_kolon.html" with kolon=sonuclar_sol sira_offset=0 kompakt=True %}
+                            <td><img class="marka-logo" src="{% static 'images/cinili-saray-logo-white.png' %}" alt="{{ panel_short }}"></td>
+                            <td class="marka-yazi"><div class="marka-ad">{{ panel_org }}</div></td>
+                        </tr>
+                    </table>
+                </td>
+                <td class="ust-tarih">Tarih: {{ ktt.sinav_tarihi|date:"d.m.Y" }}</td>
+            </tr>
+        </table>
+        <div class="kicker">{{ ktt.ders.ad }}</div>
+        <h1 class="sinav-ad">{{ ktt.ad }}</h1>
+        <table class="meta">
+            <tr>
+                <td>
+                    <div class="meta-etiket">SINIF</div>
+                    <div class="meta-deger">{{ ktt.sinif_goster }}</div>
+                </td>
+                <td>
+                    <div class="meta-etiket">SORU</div>
+                    <div class="meta-deger">{{ ktt.soru_sayisi }} soru</div>
+                </td>
+                <td>
+                    <div class="meta-etiket">NET</div>
+                    <div class="meta-deger">Net = Doğru − Yanlış/4</div>
+                </td>
+            </tr>
+        </table>
+        <table class="alt-cizgi">
+            <tr><td class="bos"></td><td class="altin"></td></tr>
+        </table>
+    </header>
+
+    <main class="icerik">
+        <table class="olculer">
+            <tr>
+                <td width="18%">
+                    <div class="olcu-etiket">TALEBE</div>
+                    <div class="olcu-sayi">{{ ozet.ogrenci_sayisi }}</div>
+                </td>
+                <td class="ayrac"></td>
+                <td width="22%" style="padding-left:10px;">
+                    <div class="olcu-etiket">ORTALAMA NET</div>
+                    <div class="olcu-sayi mavi">{{ ozet.ortalama_net|pdf_puan }}</div>
+                </td>
+                <td class="ayrac"></td>
+                <td width="34%" style="padding-left:8px;">
+                    <table class="halka-tablo">
+                        <tr>
+                            <td>
+                                <svg width="36" height="36" viewBox="0 0 42 42" aria-hidden="true">
+                                    <circle cx="21" cy="21" r="15.9" fill="none" stroke="#e6eef5" stroke-width="4.2"/>
+                                    <circle cx="21" cy="21" r="15.9" fill="none" stroke="#2f6fd6" stroke-width="4.2"
+                                        stroke-linecap="round"
+                                        stroke-dasharray="{{ ozet.ortalama_puan|pdf_cember }}"
+                                        transform="rotate(-90 21 21)"/>
+                                </svg>
                             </td>
-                            <td class="ktt-split-col">
-                                {% include "includes/ktt_pdf_sonuc_kolon.html" with kolon=sonuclar_sag sira_offset=split_at kompakt=True %}
+                            <td>
+                                <div class="olcu-etiket">ORTALAMA PUAN</div>
+                                <div class="yuzde-buyuk">{{ ozet.ortalama_puan|pdf_puan }}</div>
                             </td>
                         </tr>
                     </table>
-                    {% else %}
-                    {% include "includes/ktt_pdf_sonuc_kolon.html" with kolon=sonuclar sira_offset=0 kompakt=False %}
-                    {% endif %}
-                </div>
-            </div>
+                </td>
+                <td class="ayrac"></td>
+                <td style="padding-left:10px;">
+                    <div class="olcu-etiket">EN YÜKSEK PUAN</div>
+                    <div class="olcu-sayi">{{ ozet.en_yuksek_puan|pdf_puan }}</div>
+                </td>
+            </tr>
+        </table>
 
-    {% if analiz_goster %}
-    <div class="gap8"></div>
-    <table class="layout" width="100%" cellpadding="0" cellspacing="0">
-    {% include "includes/ktt_analiz_pdf.html" %}
-    </table>
-    {% endif %}
-
-            <table class="footer-table" cellpadding="0" cellspacing="0">
+        <section class="liste">
+            {% if sonuc_split %}
+            <table class="bol">
                 <tr>
-                    <td class="footer-left">{{ panel_org }} · {{ olusturma_tarihi|date:"d.m.Y H:i" }}</td>
-                    <td class="footer-right">{{ panel_footer }}</td>
+                    <td>{% include "includes/ktt_pdf_sonuc_kolon.html" with kolon=sonuclar_sol sira_offset=0 kompakt=True %}</td>
+                    <td>{% include "includes/ktt_pdf_sonuc_kolon.html" with kolon=sonuclar_sag sira_offset=split_at kompakt=True %}</td>
                 </tr>
             </table>
-</div>
+            {% else %}
+            {% include "includes/ktt_pdf_sonuc_kolon.html" with kolon=sonuclar sira_offset=0 kompakt=False %}
+            {% endif %}
+            <div class="lejant">
+                <i class="dolu-yuksek"></i>85+
+                <i class="dolu-iyi"></i>70–85
+                <i class="dolu-orta"></i>50–70
+                <i class="dolu-dusuk"></i>50 altı
+            </div>
+        </section>
+    </main>
 
+    <footer class="altbilgi">
+        <div class="alt-cizgi-ince">
+            <table class="alt-tablo">
+                <tr>
+                    <td>{{ panel_org }}</td>
+                    <td class="alt-sag">{{ olusturma_tarihi|date:"d.m.Y H:i" }}</td>
+                </tr>
+            </table>
+        </div>
+    </footer>
+</div>
 </body>
 </html>
