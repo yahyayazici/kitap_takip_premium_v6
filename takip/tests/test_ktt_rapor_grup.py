@@ -264,6 +264,13 @@ class KttRaporGrupTests(TestCase):
         self.assertEqual(ayse["ozet"], "2 test · 30 soru · 18 doğru · 6 yanlış · 6 boş")
         self.assertEqual(ayse["basari"], "60")
         self.assertEqual(ayse["testler"][0]["ktt_id"], self.ktt_a.pk)
+        self.assertEqual(len(ayse["dersler"]), 1)
+        self.assertEqual(ayse["dersler"][0]["ad"], "Türkçe")
+        self.assertEqual(ayse["dersler"][0]["soru"], 30)
+        self.assertEqual(ayse["dersler"][0]["dogru"], 18)
+        self.assertEqual(ayse["dersler"][0]["yanlis"], 6)
+        self.assertEqual(ayse["dersler"][0]["bos"], 6)
+        self.assertEqual(ayse["dersler"][0]["net"], "16,5")
         mehmet = satirlar[1]
         self.assertEqual(mehmet["soru"], 20)
         self.assertEqual(mehmet["dogru"], 10)
@@ -283,6 +290,27 @@ class KttRaporGrupTests(TestCase):
         self.assertEqual(len(satirlar), 1)
         self.assertEqual(satirlar[0]["talebe"].pk, self.talebe_a.pk)
         self.assertEqual(satirlar[0]["ozet"], "1 test · 10 soru · 6 doğru · 2 yanlış · 2 boş")
+
+    def test_ders_dokumu_ktt_dersine_gore_toplar(self):
+        fen = Ders.objects.create(ad="Fen", sira=2, aktif=True)
+        self.ktt_b.ders = fen
+        self.ktt_b.save(update_fields=["ders"])
+        sonuclar = list(
+            KttSonucu.objects.select_related("ktt", "ktt__ders", "talebe")
+        )
+        satirlar = ktt_rapor_talebe_satirlari(sonuclar)
+        ayse = next(s for s in satirlar if s["talebe"].pk == self.talebe_a.pk)
+        self.assertEqual([d["ad"] for d in ayse["dersler"]], ["Türkçe", "Fen"])
+        self.assertEqual(ayse["dersler"][0]["soru"], 20)
+        self.assertEqual(ayse["dersler"][0]["dogru"], 12)
+        self.assertEqual(ayse["dersler"][0]["yanlis"], 4)
+        self.assertEqual(ayse["dersler"][0]["bos"], 4)
+        self.assertEqual(ayse["dersler"][0]["net"], "11")
+        self.assertEqual(ayse["dersler"][1]["soru"], 10)
+        self.assertEqual(ayse["dersler"][1]["dogru"], 6)
+        self.assertEqual(ayse["dersler"][1]["yanlis"], 2)
+        self.assertEqual(ayse["dersler"][1]["bos"], 2)
+        self.assertEqual(ayse["dersler"][1]["net"], "5,5")
 
     def test_pdf_adi_talebe_ve_tarih_araligini_icerir(self):
         self.assertEqual(
@@ -311,6 +339,10 @@ class KttRaporGrupTests(TestCase):
         self.assertIn(beklenen, pdf["Content-Disposition"])
         html = _pdf.call_args.args[0]
         self.assertIn("2 test · 30 soru · 18 doğru · 6 yanlış · 6 boş", html)
+        self.assertIn("Ders Dökümü", html)
+        self.assertIn("Türkçe", html)
+        self.assertNotIn("Workwin Türkçe", html)
+        self.assertNotIn("Fen Bilimleri", html)
         self.assertIn("box-shadow: none", html)
 
         bos = self.client.get(
@@ -342,6 +374,9 @@ class KttRaporGrupTests(TestCase):
         yanit = self.client.get(reverse("ktt_rapor"))
         self.assertContains(yanit, "2 test · 30 soru · 18 doğru · 6 yanlış · 6 boş")
         self.assertContains(yanit, "1 test · 20 soru · 10 doğru · 5 yanlış · 5 boş")
+        self.assertContains(yanit, "<th>Ders</th>")
+        self.assertNotContains(yanit, "<th>Test</th>")
+        self.assertNotContains(yanit, "<th>Tarih</th>")
         self.assertContains(yanit, "Toplam net")
         self.assertContains(yanit, "25,25")
 

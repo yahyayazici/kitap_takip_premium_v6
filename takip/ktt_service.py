@@ -565,6 +565,7 @@ def ktt_rapor_talebe_satirlari(sonuclar) -> list[dict]:
             satir = {
                 "talebe": talebe,
                 "testler": [],
+                "dersler": {},
                 "test": 0,
                 "soru": 0,
                 "dogru": 0,
@@ -590,6 +591,25 @@ def ktt_rapor_talebe_satirlari(sonuclar) -> list[dict]:
                 "ktt_id": sonuc.ktt_id,
             }
         )
+        ders = sonuc.ktt.ders if sonuc.ktt.ders_id else None
+        ders_anahtar = ders.pk if ders else 0
+        kova = satir["dersler"].get(ders_anahtar)
+        if kova is None:
+            kova = {
+                "ad": ders.ad if ders else "Ders yok",
+                "sira": ders.sira if ders else 10_000,
+                "soru": 0,
+                "dogru": 0,
+                "yanlis": 0,
+                "bos": 0,
+                "net": Decimal(0),
+            }
+            satir["dersler"][ders_anahtar] = kova
+        kova["soru"] += soru
+        kova["dogru"] += dogru
+        kova["yanlis"] += yanlis
+        kova["bos"] += bos
+        kova["net"] += Decimal(sonuc.net or 0)
         satir["test"] += 1
         satir["soru"] += soru
         satir["dogru"] += dogru
@@ -608,6 +628,13 @@ def ktt_rapor_talebe_satirlari(sonuclar) -> list[dict]:
             basari = Decimal(0)
         satir["basari"] = _tr_sayi(basari, 1)
         satir["net"] = _tr_sayi(satir["net"], 2)
+        dersler = sorted(
+            satir["dersler"].values(),
+            key=lambda ders: (ders["sira"], (ders["ad"] or "").casefold()),
+        )
+        for ders in dersler:
+            ders["net"] = _tr_sayi(ders["net"], 2)
+        satir["dersler"] = dersler
         satir["ozet"] = ktt_rapor_ozet_metni(
             satir["test"],
             satir["soru"],
