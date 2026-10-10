@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import re
-from datetime import timedelta
-from decimal import Decimal
+from datetime import datetime, timedelta
+from decimal import Decimal, ROUND_HALF_UP
 
 from django.contrib.auth.models import User
 from django.db.models import Avg, Count, Max, Q, QuerySet, Sum
@@ -456,14 +456,14 @@ def ktt_test_soru_toplami(qs: QuerySet[KttSonucu]) -> int:
     return int(toplam["toplam"] or 0)
 
 
-def _tr_sayi(deger, ondalik: int = 2) -> str:
+def _tr_sayi(deger, ondalik: int = 2, kirp: bool = True) -> str:
     if isinstance(deger, Decimal):
         sayi = deger
     else:
         sayi = Decimal(str(deger or 0))
     sayi = sayi.quantize(Decimal(10) ** -ondalik)
     metin = f"{sayi:.{ondalik}f}".replace(".", ",")
-    if ondalik:
+    if ondalik and kirp:
         metin = metin.rstrip("0").rstrip(",")
     return metin or "0"
 
@@ -627,13 +627,45 @@ def ktt_rapor_talebe_satirlari(sonuclar) -> list[dict]:
         else:
             basari = Decimal(0)
         satir["basari"] = _tr_sayi(basari, 1)
+        yuzde = basari.quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+        if yuzde > 100:
+            yuzde = Decimal("100.0")
+        if yuzde < 0:
+            yuzde = Decimal("0.0")
+        satir["basari_tam"] = int(yuzde.quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+        satir["basari_cember"] = f"{yuzde:.1f}"
+        satir["basari_bosluk"] = f"{(Decimal('100.0') - yuzde):.1f}"
+        satir["net_tam"] = _tr_sayi(satir["net"], 2, kirp=False)
         satir["net"] = _tr_sayi(satir["net"], 2)
         dersler = sorted(
             satir["dersler"].values(),
             key=lambda ders: (ders["sira"], (ders["ad"] or "").casefold()),
         )
-        for ders in dersler:
-            ders["net"] = _tr_sayi(ders["net"], 2)
+        kalan_pay = Decimal("100")
+        for sira_no, ders in enumerate(dersler):
+            ham_net = ders["net"]
+            ders["net_tam"] = _tr_sayi(ham_net, 2, kirp=False)
+            ders["net"] = _tr_sayi(ham_net, 2)
+            if ders["soru"]:
+                ders_yuzde = (
+                    Decimal(ders["dogru"]) * Decimal(100) / Decimal(ders["soru"])
+                ).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+            else:
+                ders_yuzde = Decimal(0)
+            ders["basari"] = int(ders_yuzde)
+            ders["renk"] = _ktt_ders_rengi(ders["ad"])
+            if not satir["soru"]:
+                pay = Decimal(0)
+            elif sira_no == len(dersler) - 1:
+                pay = kalan_pay
+            else:
+                pay = (
+                    Decimal(ders["soru"]) * Decimal(100) / Decimal(satir["soru"])
+                ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+                kalan_pay -= pay
+            if pay < 0:
+                pay = Decimal(0)
+            ders["pay"] = f"{pay:.2f}"
         satir["dersler"] = dersler
         satir["ozet"] = ktt_rapor_ozet_metni(
             satir["test"],
@@ -718,6 +750,26 @@ def _ktt_ders_kovasi(ad: str) -> str:
     if ham.startswith("din"):
         return "Din"
     return ""
+
+
+_KTT_DERS_RENK = {
+    "Türkçe": "#2f6fd6",
+    "Matematik": "#0a2350",
+    "Paragraf": "#5aa9e6",
+    "Fen": "#1e9e8a",
+    "İngilizce": "#c9a84c",
+    "Sosyal": "#3e6b8a",
+    "Din": "#8a7560",
+}
+_KTT_RENK_YEDEK = ("#2f6fd6", "#0a2350", "#5aa9e6", "#1e9e8a", "#c9a84c")
+
+
+def _ktt_ders_rengi(ad: str) -> str:
+    kova = _ktt_ders_kovasi(ad)
+    if kova in _KTT_DERS_RENK:
+        return _KTT_DERS_RENK[kova]
+    anahtar = (ad or "").casefold()
+    return _KTT_RENK_YEDEK[sum(ord(harf) for harf in anahtar) % len(_KTT_RENK_YEDEK)]
 
 
 def ktt_hafta_ders_sorulari(user: User, gun=None) -> list[dict]:
@@ -886,4 +938,16 @@ def ktt_rapor_filtre_etiketleri(filtre: dict, secenekler: dict) -> dict:
         ),
         "baslangic": filtre.get("baslangic") or "Tüm tarihler",
         "bitis": filtre.get("bitis") or "Bugün",
+        "baslangic_yazi": _ktt_tarih_yaz(filtre.get("baslangic") or "", "Tüm tarihler"),
+        "bitis_yazi": _ktt_tarih_yaz(filtre.get("bitis") or "", "Bugün"),
     }
+
+
+def _ktt_tarih_yaz(metin: str, bos: str = "") -> str:
+    ham = (metin or "").strip()
+    if not ham:
+        return bos
+    try:
+        return datetime.strptime(ham, "%Y-%m-%d").strftime("%d.%m.%Y")
+    except ValueError:
+        return ham

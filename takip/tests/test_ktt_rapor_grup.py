@@ -271,6 +271,11 @@ class KttRaporGrupTests(TestCase):
         self.assertEqual(ayse["dersler"][0]["yanlis"], 6)
         self.assertEqual(ayse["dersler"][0]["bos"], 6)
         self.assertEqual(ayse["dersler"][0]["net"], "16,5")
+        self.assertEqual(ayse["dersler"][0]["net_tam"], "16,50")
+        self.assertEqual(ayse["dersler"][0]["basari"], 60)
+        self.assertEqual(ayse["dersler"][0]["renk"], "#2f6fd6")
+        self.assertEqual(ayse["basari_tam"], 60)
+        self.assertEqual(ayse["basari_cember"], "60.0")
         mehmet = satirlar[1]
         self.assertEqual(mehmet["soru"], 20)
         self.assertEqual(mehmet["dogru"], 10)
@@ -311,6 +316,9 @@ class KttRaporGrupTests(TestCase):
         self.assertEqual(ayse["dersler"][1]["yanlis"], 2)
         self.assertEqual(ayse["dersler"][1]["bos"], 2)
         self.assertEqual(ayse["dersler"][1]["net"], "5,5")
+        self.assertEqual(ayse["dersler"][0]["renk"], "#2f6fd6")
+        self.assertEqual(ayse["dersler"][1]["renk"], "#1e9e8a")
+        self.assertEqual(ayse["dersler"][1]["basari"], 60)
 
     def test_pdf_adi_talebe_ve_tarih_araligini_icerir(self):
         self.assertEqual(
@@ -339,11 +347,14 @@ class KttRaporGrupTests(TestCase):
         self.assertIn(beklenen, pdf["Content-Disposition"])
         html = _pdf.call_args.args[0]
         self.assertIn("2 test · 30 soru · 18 doğru · 6 yanlış · 6 boş", html)
-        self.assertIn("Ders Dökümü", html)
+        self.assertIn("DERS DÖKÜMÜ", html)
+        self.assertIn("SONUÇ DÖKÜMÜ", html)
+        self.assertIn("21.09.2026 — 27.09.2026", html)
         self.assertIn("Türkçe", html)
+        self.assertIn("16,50", html)
+        self.assertIn("#2f6fd6", html)
         self.assertNotIn("Workwin Türkçe", html)
         self.assertNotIn("Fen Bilimleri", html)
-        self.assertIn("box-shadow: none", html)
 
         bos = self.client.get(
             reverse("ktt_rapor_talebe_pdf", args=[self.talebe_b.pk]),

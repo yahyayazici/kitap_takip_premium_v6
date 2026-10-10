@@ -5,191 +5,442 @@
     <meta charset="utf-8">
     <title>{{ satir.talebe.ad_soyad }} · KTT</title>
     <style>
-        {% include "includes/pdf_rapor_landscape_css.html" %}
-        .hero-deco {
-            opacity: 1;
-            width: 58px;
-            height: 58px;
-            right: 18px;
-            margin-top: -29px;
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-Regular.ttf' %}") format("truetype");
+            font-weight: 400;
+            font-style: normal;
         }
-        .hero-inner { padding-right: 88px; }
-        .meta-panel,
-        .stat-cell,
-        .table-panel {
-            box-shadow: none;
-            overflow: visible;
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-Medium.ttf' %}") format("truetype");
+            font-weight: 500;
+            font-style: normal;
         }
-        .stat-deco { display: none; }
-        .stats-table {
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-SemiBold.ttf' %}") format("truetype");
+            font-weight: 600;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: "Poppins";
+            src: url("{% static 'fonts/Poppins-Bold.ttf' %}") format("truetype");
+            font-weight: 700;
+            font-style: normal;
+        }
+
+        @page { size: A4 portrait; margin: 0; }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: #ffffff;
+            color: #0a2350;
+            font-family: "Poppins", sans-serif;
+            font-size: 10px;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .sayfa {
+            min-height: 297mm;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .kapak {
+            position: relative;
+            overflow: hidden;
+            background: #0a2350;
+            color: #ffffff;
+            padding: 8mm 14mm 0;
+        }
+
+        .desen {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 72mm;
+            height: 100%;
+        }
+
+        .ust { width: 100%; border-collapse: collapse; }
+        .ust td { vertical-align: middle; padding: 0; }
+        .marka-logo { display: block; width: 42px; height: 42px; }
+        .marka-yazi { padding-left: 10px; }
+        .marka-ad {
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.1;
+            color: #ffffff;
+        }
+        .marka-alt {
+            margin-top: 2px;
+            font-size: 7.5px;
+            font-weight: 600;
+            letter-spacing: 1.3px;
+            color: #c9a84c;
+        }
+        .kicker {
+            margin-top: 8mm;
+            font-size: 8px;
+            font-weight: 600;
+            letter-spacing: 1.6px;
+            color: #c9a84c;
+        }
+        .ad {
+            margin: 4px 0 0;
+            font-size: 28px;
+            font-weight: 600;
+            line-height: 1.15;
+            color: #ffffff;
+        }
+
+        .meta {
             width: 100%;
-            margin-left: 0;
-            border-spacing: 8px 0;
+            margin-top: 7mm;
+            border-collapse: collapse;
         }
+        .meta td {
+            width: 25%;
+            vertical-align: top;
+            padding: 0 14px 0 14px;
+            border-left: 1px solid rgba(255, 255, 255, 0.22);
+        }
+        .meta td:first-child { border-left: 0; padding-left: 0; }
+        .meta-etiket {
+            font-size: 7px;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            color: #9aabbf;
+        }
+        .meta-deger {
+            margin-top: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .alt-cizgi { width: 100%; border-collapse: collapse; margin-top: 6mm; }
+        .alt-cizgi td { height: 3px; padding: 0; font-size: 0; }
+        .alt-cizgi .bos { width: 68%; }
+        .alt-cizgi .altin { width: 32%; background: #c9a84c; }
+
+        .icerik { flex: 1 1 auto; padding: 9mm 14mm 0; }
+
+        .olculer { width: 100%; border-collapse: collapse; }
+        .olculer td { vertical-align: middle; padding: 0; }
+        .olcu-etiket {
+            font-size: 7.5px;
+            font-weight: 600;
+            letter-spacing: 0.9px;
+            color: #8b97a8;
+        }
+        .olcu-sayi {
+            margin-top: 2px;
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1;
+            color: #0a2350;
+        }
+        .olcu-sayi.mavi { color: #2f6fd6; }
+        .olcu-alt {
+            margin-top: 4px;
+            font-size: 8.5px;
+            color: #8b97a8;
+        }
+        .ayrac {
+            width: 1px;
+            background: #e6ebf1;
+        }
+        .halka-hucre { padding-left: 8px; }
+        .halka-tablo { border-collapse: collapse; }
+        .halka-tablo td { vertical-align: middle; padding: 0; }
+        .yuzde-buyuk {
+            font-size: 22px;
+            font-weight: 700;
+            color: #c9a84c;
+            line-height: 1;
+            padding-left: 8px;
+        }
+
+        .bolum { margin-top: 11mm; }
+        .bolum-etiket {
+            font-size: 7.5px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: #8b97a8;
+        }
+        .ozet {
+            margin-top: 3px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #0a2350;
+        }
+
+        .serit {
+            display: flex;
+            width: 100%;
+            height: 8px;
+            margin-top: 8px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #e7edf3;
+        }
+        .serit span { display: block; height: 8px; }
+
+        .dokum {
+            width: 100%;
+            margin-top: 8px;
+            border-collapse: collapse;
+        }
+        .dokum th {
+            padding: 7px 4px 8px;
+            border-bottom: 1.5px solid #0a2350;
+            font-size: 7.5px;
+            font-weight: 600;
+            letter-spacing: 0.7px;
+            color: #8b97a8;
+            text-align: center;
+            text-transform: uppercase;
+        }
+        .dokum th.sol { text-align: left; }
+        .dokum td {
+            padding: 8px 4px;
+            border-bottom: 1px solid #e7edf2;
+            font-size: 11px;
+            font-weight: 500;
+            color: #0a2350;
+            text-align: center;
+        }
+        .dokum td.sol { text-align: left; }
+        .dokum td.yanlis { color: #ca5a2c; font-weight: 600; }
+        .dokum td.net { font-weight: 700; }
+        .kare {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            margin-right: 6px;
+            border-radius: 1px;
+            vertical-align: middle;
+        }
+        .ders-ad { vertical-align: middle; font-weight: 600; }
+        .mini {
+            display: inline-block;
+            width: 54px;
+            height: 5px;
+            margin-right: 6px;
+            border-radius: 5px;
+            background: #e7edf3;
+            vertical-align: middle;
+            overflow: hidden;
+        }
+        .mini i {
+            display: block;
+            height: 5px;
+            border-radius: 5px;
+        }
+        .yuzde {
+            font-size: 10px;
+            font-weight: 700;
+            vertical-align: middle;
+        }
+        .toplam td {
+            background: #0a2350;
+            color: #ffffff;
+            border-bottom: 0;
+            font-weight: 600;
+            padding-top: 9px;
+            padding-bottom: 9px;
+        }
+        .toplam td.net { color: #c9a84c; }
+        .toplam .mini { background: rgba(255, 255, 255, 0.18); }
+
+        .altbilgi {
+            padding: 0 14mm 8mm;
+        }
+        .alt-cizgi-ince {
+            border-top: 1px solid #e4e9ef;
+            padding-top: 6px;
+        }
+        .alt-tablo { width: 100%; border-collapse: collapse; }
+        .alt-tablo td {
+            font-size: 8px;
+            color: #5c6d84;
+            padding: 0;
+        }
+        .alt-sag { text-align: right; }
     </style>
 </head>
 <body>
+<div class="sayfa">
+    <header class="kapak">
+        <svg class="desen" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <g fill="none" stroke="#ffffff" stroke-opacity="0.09" stroke-width="10">
+                <circle cx="168" cy="46" r="28"/>
+                <circle cx="206" cy="92" r="22"/>
+                <circle cx="150" cy="118" r="34"/>
+                <circle cx="214" cy="168" r="18"/>
+                <circle cx="176" cy="196" r="26"/>
+            </g>
+            <g stroke="#ffffff" stroke-opacity="0.08" stroke-width="1.4">
+                <path d="M132 28l28 28M188 70l22 22M140 150l30 30"/>
+            </g>
+        </svg>
 
-<table class="layout">
-    <tr>
-        <td colspan="3">
-            <table class="header-table" cellpadding="0" cellspacing="0">
-                <tr>
-                    <td class="header-logo-cell">
-                        <div class="brand-logo-wrap">
-                            <img class="brand-logo" src="{% static 'images/cinili-saray-logo-icon.png' %}" alt="{{ panel_short }}">
-                        </div>
-                    </td>
-                    <td class="header-text-cell">
-                        <div class="brand-name">{{ panel_org }}</div>
-                        <div class="brand-sub">KTT Raporu</div>
-                    </td>
-                    <td class="header-right"></td>
-                </tr>
-            </table>
-        </td>
-    </tr>
+        <table class="ust">
+            <tr>
+                <td>
+                    <table>
+                        <tr>
+                            <td>
+                                <img class="marka-logo" src="{% static 'images/cinili-saray-logo-white.png' %}" alt="{{ panel_short }}">
+                            </td>
+                            <td class="marka-yazi">
+                                <div class="marka-ad">{{ panel_org }}</div>
+                                <div class="marka-alt">KTT RAPORU</div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
 
-    <tr><td colspan="3" class="gap16"></td></tr>
+        <div class="kicker">SONUÇ DÖKÜMÜ</div>
+        <h1 class="ad">{{ satir.talebe.ad_soyad }}</h1>
 
-    <tr>
-        <td colspan="3" class="hero">
-            <svg class="hero-deco" width="58" height="58" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <circle cx="32" cy="32" r="30" fill="#FFFFFF"/>
-                <rect x="20" y="18" width="24" height="30" rx="3.5" stroke="#173B73" stroke-width="2.2"/>
-                <rect x="26" y="13" width="12" height="8" rx="2" fill="#173B73"/>
-                <path d="M26 33.2l3.6 3.6L38 28" stroke="#173B73" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <div class="hero-inner">
-                <div class="hero-tag">Sonuç Dökümü</div>
-                <div class="hero-title">{{ satir.talebe.ad_soyad }}</div>
-                <div class="hero-meta">
-                    Bireysel rapor · {{ satir.test }} test ·
-                    {{ satir.talebe.sinif_sube|default:"—" }} · {{ filtre.ders }} ·
-                    {{ filtre.baslangic }} — {{ filtre.bitis }}
-                </div>
+        <table class="meta">
+            <tr>
+                <td>
+                    <div class="meta-etiket">KAPSAM</div>
+                    <div class="meta-deger">Bireysel rapor</div>
+                </td>
+                <td>
+                    <div class="meta-etiket">TARİH ARALIĞI</div>
+                    <div class="meta-deger">{{ filtre.baslangic_yazi }} — {{ filtre.bitis_yazi }}</div>
+                </td>
+                <td>
+                    <div class="meta-etiket">SINIF</div>
+                    <div class="meta-deger">{{ satir.talebe.sinif_sube|default:filtre.sinif }}</div>
+                </td>
+                <td>
+                    <div class="meta-etiket">DERS / KTT</div>
+                    <div class="meta-deger">{{ filtre.ders }}</div>
+                </td>
+            </tr>
+        </table>
+
+        <table class="alt-cizgi">
+            <tr>
+                <td class="bos"></td>
+                <td class="altin"></td>
+            </tr>
+        </table>
+    </header>
+
+    <main class="icerik">
+        <table class="olculer">
+            <tr>
+                <td width="30%">
+                    <div class="olcu-etiket">ÇÖZÜLEN SORU</div>
+                    <div class="olcu-sayi">{{ satir.soru }}</div>
+                    <div class="olcu-alt">Seçilen aralık · {{ satir.test }} test</div>
+                </td>
+                <td class="ayrac"></td>
+                <td width="30%" style="padding-left:16px;">
+                    <div class="olcu-etiket">TOPLAM NET</div>
+                    <div class="olcu-sayi mavi">{{ satir.net }}</div>
+                    <div class="olcu-alt">Kağıt netleri</div>
+                </td>
+                <td class="ayrac"></td>
+                <td class="halka-hucre">
+                    <table class="halka-tablo">
+                        <tr>
+                            <td>
+                                <svg width="54" height="54" viewBox="0 0 42 42" aria-hidden="true">
+                                    <circle cx="21" cy="21" r="15.9" fill="none" stroke="#e6eef5" stroke-width="4.2"/>
+                                    <circle cx="21" cy="21" r="15.9" fill="none" stroke="#2f6fd6" stroke-width="4.2"
+                                        stroke-linecap="round"
+                                        stroke-dasharray="{{ satir.basari_cember }} {{ satir.basari_bosluk }}"
+                                        transform="rotate(-90 21 21)"/>
+                                </svg>
+                            </td>
+                            <td>
+                                <div class="olcu-etiket">BAŞARI ORANI</div>
+                                <div class="yuzde-buyuk">%{{ satir.basari }}</div>
+                                <div class="olcu-alt">{{ satir.dogru }} doğru</div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+        <section class="bolum">
+            <div class="bolum-etiket">DERS DÖKÜMÜ</div>
+            <div class="ozet">{{ satir.ozet }}</div>
+            <div class="serit">
+                {% for d in satir.dersler %}
+                <span style="width:{{ d.pay }}%; background:{{ d.renk }};"></span>
+                {% endfor %}
             </div>
-        </td>
-    </tr>
-
-    <tr><td colspan="3" class="gap16"></td></tr>
-
-    <tr>
-        <td colspan="3">
-            <div class="meta-panel">
-                <table class="meta-table" cellspacing="0" cellpadding="0">
+            <table class="dokum">
+                <thead>
                     <tr>
-                        <td class="meta-item">
-                            <div class="meta-label">Kapsam</div>
-                            <div class="meta-value">Bireysel rapor</div>
-                        </td>
-                        <td class="meta-item">
-                            <div class="meta-label">Tarih Aralığı</div>
-                            <div class="meta-value">{{ filtre.baslangic }} — {{ filtre.bitis }}</div>
-                        </td>
-                        <td class="meta-item">
-                            <div class="meta-label">Sınıf</div>
-                            <div class="meta-value">{{ satir.talebe.sinif_sube|default:filtre.sinif }}</div>
-                        </td>
-                        <td class="meta-item">
-                            <div class="meta-label">Ders / KTT</div>
-                            <div class="meta-value">{{ filtre.ders }}</div>
+                        <th class="sol" style="width:24%;">Ders</th>
+                        <th style="width:10%;">Soru</th>
+                        <th style="width:10%;">Doğru</th>
+                        <th style="width:11%;">Yanlış</th>
+                        <th style="width:9%;">Boş</th>
+                        <th style="width:13%;">Net</th>
+                        <th style="width:23%;">Başarı</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in satir.dersler %}
+                    <tr>
+                        <td class="sol"><span class="kare" style="background:{{ d.renk }};"></span><span class="ders-ad">{{ d.ad }}</span></td>
+                        <td>{{ d.soru }}</td>
+                        <td>{{ d.dogru }}</td>
+                        <td class="{% if d.yanlis %}yanlis{% endif %}">{{ d.yanlis }}</td>
+                        <td>{{ d.bos }}</td>
+                        <td class="net">{{ d.net_tam }}</td>
+                        <td>
+                            <span class="mini"><i style="width:{{ d.basari }}%; background:{{ d.renk }};"></i></span>
+                            <span class="yuzde" style="color:{{ d.renk }};">%{{ d.basari }}</span>
                         </td>
                     </tr>
-                </table>
-            </div>
-        </td>
-    </tr>
+                    {% endfor %}
+                    <tr class="toplam">
+                        <td class="sol">Toplam</td>
+                        <td>{{ satir.soru }}</td>
+                        <td>{{ satir.dogru }}</td>
+                        <td>{{ satir.yanlis }}</td>
+                        <td>{{ satir.bos }}</td>
+                        <td class="net">{{ satir.net }}</td>
+                        <td>
+                            <span class="mini"><i style="width:{{ satir.basari_tam }}%; background:#c9a84c;"></i></span>
+                            <span class="yuzde" style="color:#c9a84c;">%{{ satir.basari_tam }}</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
 
-    <tr><td colspan="3" class="gap16"></td></tr>
-
-    <tr>
-        <td colspan="3">
-            <table class="stats-table" cellpadding="0">
+    <footer class="altbilgi">
+        <div class="alt-cizgi-ince">
+            <table class="alt-tablo">
                 <tr>
-                    <td width="33%" class="stat-cell tone-blue">
-                        <div class="stat-accent"></div>
-                        <div class="stat-deco"></div>
-                        <div class="stat-label">Çözülen soru</div>
-                        <div class="stat-metric">{{ satir.soru }}</div>
-                        <div class="stat-sub">Seçilen aralık</div>
-                    </td>
-                    <td width="33%" class="stat-cell tone-green">
-                        <div class="stat-accent"></div>
-                        <div class="stat-deco"></div>
-                        <div class="stat-label">Toplam net</div>
-                        <div class="stat-metric">{{ satir.net }}</div>
-                        <div class="stat-sub">Kağıt netleri</div>
-                    </td>
-                    <td width="34%" class="stat-cell tone-orange">
-                        <div class="stat-accent"></div>
-                        <div class="stat-deco"></div>
-                        <div class="stat-label">Başarı oranı</div>
-                        <div class="stat-metric">%{{ satir.basari }}</div>
-                        <div class="stat-sub">{{ satir.dogru }} doğru</div>
-                    </td>
+                    <td>{{ panel_org }}</td>
+                    <td class="alt-sag">{{ olusturma_tarihi|date:"d.m.Y H:i" }}</td>
                 </tr>
             </table>
-        </td>
-    </tr>
-
-    <tr><td colspan="3" class="gap20"></td></tr>
-
-    <tr>
-        <td colspan="3">
-            <div class="table-panel">
-                <div class="table-panel-accent"></div>
-                <div class="table-panel-head">
-                    <div class="section-kicker">Ders Dökümü</div>
-                    <div class="section-title">{{ satir.ozet }}</div>
-                </div>
-                <table class="results" style="margin-top:10px;">
-                    <thead>
-                        <tr>
-                            <th class="left" style="width:40%;">Ders</th>
-                            <th style="width:12%;">Soru</th>
-                            <th style="width:12%;">Doğru</th>
-                            <th style="width:12%;">Yanlış</th>
-                            <th style="width:12%;">Boş</th>
-                            <th style="width:12%;">Net</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for d in satir.dersler %}
-                        <tr>
-                            <td class="left"><div class="ktt-name">{{ d.ad }}</div></td>
-                            <td class="num-cell">{{ d.soru }}</td>
-                            <td class="num-cell">{{ d.dogru }}</td>
-                            <td class="num-cell">{{ d.yanlis }}</td>
-                            <td class="num-cell">{{ d.bos }}</td>
-                            <td class="num-cell">{{ d.net }}</td>
-                        </tr>
-                        {% endfor %}
-                        <tr>
-                            <td class="left"><div class="student-name">Toplam</div></td>
-                            <td class="num-cell">{{ satir.soru }}</td>
-                            <td class="num-cell">{{ satir.dogru }}</td>
-                            <td class="num-cell">{{ satir.yanlis }}</td>
-                            <td class="num-cell">{{ satir.bos }}</td>
-                            <td class="num-cell">{{ satir.net }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </td>
-    </tr>
-
-    <tr>
-        <td colspan="3">
-            <table class="footer-table" cellpadding="0" cellspacing="0">
-                <tr>
-                    <td class="footer-left">{{ panel_org }} · {{ olusturma_tarihi|date:"d.m.Y H:i" }}</td>
-                    <td class="footer-right"></td>
-                </tr>
-            </table>
-        </td>
-    </tr>
-</table>
-
+        </div>
+    </footer>
+</div>
 </body>
 </html>
