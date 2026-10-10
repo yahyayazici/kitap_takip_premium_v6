@@ -231,7 +231,17 @@
             background: #f6efda;
             color: #8f7428;
         }
-        .yanlis { color: #c2410c; font-weight: 600; }
+        .dokum td.yanlis,
+        .dokum .yanlis { color: #c2410c; font-weight: 600; }
+        .dokum td.yazi-yuksek,
+        .dokum .yazi-yuksek { color: #0a2350; }
+        .dokum td.yazi-iyi,
+        .dokum .yazi-iyi { color: #2f6fd6; }
+        .dokum td.yazi-orta,
+        .dokum .yazi-orta { color: #c9a84c; }
+        .dokum td.yazi-dusuk,
+        .dokum .yazi-dusuk { color: #e15a2c; }
+        .dokum td.puan { font-weight: 700; }
         .mini {
             display: inline-block;
             width: 38px;
@@ -335,18 +345,10 @@
                         <tr>
                             <td>
                                 <svg width="74" height="74" viewBox="0 0 42 42" aria-hidden="true">
-                                    <defs>
-                                        <linearGradient id="kttHalka" x1="0" y1="0" x2="1" y2="1">
-                                            <stop offset="0" stop-color="#6aade0"/>
-                                            <stop offset="0.42" stop-color="#3d7aaf"/>
-                                            <stop offset="1" stop-color="#2a5584"/>
-                                        </linearGradient>
-                                    </defs>
-                                    <circle cx="21" cy="21" r="15.9" fill="none" stroke="#e7eef6" stroke-width="6.2"/>
-                                    <circle cx="21" cy="21" r="15.9" fill="none" stroke="url(#kttHalka)" stroke-width="6.2"
-                                        stroke-linecap="round"
-                                        stroke-dasharray="{{ ozet.ortalama_puan|pdf_cember }}"
-                                        transform="rotate(-90 21 21)"/>
+                                    <circle cx="21" cy="21" r="15.9155" fill="none" stroke="#e7eef6" stroke-width="6.6"/>
+                                    {% for dilim in ozet.ortalama_puan|pdf_halka_dilimleri %}
+                                    <path d="{{ dilim.yol }}" fill="none" stroke="{{ dilim.renk }}" stroke-width="6.6" stroke-linecap="{{ dilim.uc }}"/>
+                                    {% endfor %}
                                 </svg>
                             </td>
                             <td>

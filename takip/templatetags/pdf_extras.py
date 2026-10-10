@@ -1,3 +1,4 @@
+import math
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
 from django import template
@@ -186,6 +187,64 @@ def pdf_cember(value) -> str:
         sayi = Decimal("100.0")
     kalan = Decimal("100.0") - sayi
     return f"{sayi:.1f} {kalan:.1f}"
+
+
+def _halka_renk(t: float) -> str:
+    """Sol üst açık mavi → sağ alt lacivert."""
+    t = max(0.0, min(1.0, t))
+    acik = (158, 210, 246)
+    koyu = (22, 64, 118)
+    r = round(acik[0] + (koyu[0] - acik[0]) * t)
+    g = round(acik[1] + (koyu[1] - acik[1]) * t)
+    b = round(acik[2] + (koyu[2] - acik[2]) * t)
+    return f"#{r:02x}{g:02x}{b:02x}"
+
+
+@register.filter
+def pdf_halka_dilimleri(value):
+    """Halka gradyanı. WeasyPrint stroke url() gradyanını eksik boyar; dilimler düz renktir."""
+    try:
+        sayi = float(Decimal(str(value)))
+    except (InvalidOperation, TypeError, ValueError):
+        sayi = 0.0
+    sayi = max(0.0, min(100.0, sayi))
+    if sayi <= 0:
+        return []
+    adet = 18
+    dilim = sayi / adet
+    r = 15.9155
+    cx = cy = 21.0
+    parcalar = []
+    for i in range(adet):
+        a0 = i * dilim / 100 * 360
+        a1 = (i + 1) * dilim / 100 * 360
+        if i:
+            a0 -= 0.35
+        if i < adet - 1:
+            a1 += 0.35
+        t0 = math.radians(-90 + a0)
+        t1 = math.radians(-90 + a1)
+        x0 = cx + r * math.cos(t0)
+        y0 = cy + r * math.sin(t0)
+        x1 = cx + r * math.cos(t1)
+        y1 = cy + r * math.sin(t1)
+        alpha = math.radians((a0 + a1) / 2)
+        sx = math.sin(alpha)
+        sy = -math.cos(alpha)
+        ton = (sx + sy + 2) / 4
+        buyuk = 1 if (a1 - a0) > 180 else 0
+        uc = "round" if i in (0, adet - 1) else "butt"
+        parcalar.append(
+            {
+                "renk": _halka_renk(ton),
+                "uc": uc,
+                "yol": (
+                    f"M {x0:.2f},{y0:.2f} "
+                    f"A {r:.4f},{r:.4f} 0 {buyuk},1 {x1:.2f},{y1:.2f}"
+                ),
+            }
+        )
+    return parcalar
 
 
 @register.filter

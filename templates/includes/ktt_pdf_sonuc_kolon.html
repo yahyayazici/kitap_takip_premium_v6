@@ -33,16 +33,16 @@
                 {% endwith %}
             </td>
             <td>{{ sonuc.dogru }}</td>
-            <td{% if sonuc.yanlis %} class="yanlis"{% endif %}>{{ sonuc.yanlis }}</td>
+            <td>{% if sonuc.yanlis %}<span class="yanlis">{{ sonuc.yanlis }}</span>{% else %}{{ sonuc.yanlis }}{% endif %}</td>
             <td>{{ sonuc.bos }}</td>
             <td class="sol net">
                 <span class="yazi-{{ bant }}">{{ sonuc.net|pdf_puan }}</span>
                 <span class="mini"><i class="dolu-{{ bant }}" style="width:{{ sonuc.puan|pdf_bar_pct }}%;"></i></span>
             </td>
             {% if not kompakt %}
-            <td class="yazi-{{ bant }}">%{{ sonuc.puan|pdf_puan }}</td>
+            <td><span class="yazi-{{ bant }}">%{{ sonuc.puan|pdf_puan }}</span></td>
             {% endif %}
-            <td class="puan yazi-{{ bant }}">{{ sonuc.puan|pdf_puan }}</td>
+            <td class="puan"><span class="yazi-{{ bant }}">{{ sonuc.puan|pdf_puan }}</span></td>
         </tr>
         {% endwith %}
         {% empty %}
