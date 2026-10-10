@@ -129,6 +129,28 @@ def pdf_puan(value):
     return f"{sayi:.2f}".replace(".", ",")
 
 
+def _pdf_ayir(value, kusur: bool) -> str:
+    metin = pdf_puan(value)
+    if "," not in metin:
+        return "" if kusur else metin
+    tam, onda = metin.split(",", 1)
+    if kusur:
+        return f",{onda}"
+    return tam
+
+
+@register.filter
+def pdf_tam(value):
+    """13,70 → 13"""
+    return _pdf_ayir(value, False)
+
+
+@register.filter
+def pdf_kusur(value):
+    """13,70 → ,70"""
+    return _pdf_ayir(value, True)
+
+
 @register.filter
 def pdf_bar_pct(value):
     """Başarı çubuğu doluluk yüzdesi (0–100)."""
