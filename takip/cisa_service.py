@@ -22,6 +22,7 @@ from takip.deneme_soru_karne import konu_ders_adi
 from takip.models import Talebe
 
 _DERS_SIRA = {kod: i for i, (kod, _etiket) in enumerate(DENEME_KARNE_DERSLERI)}
+_DERS_SIRA["inkilap"] = _DERS_SIRA.get("sosyal", 1) + 0.5
 _DERS_AD = {
     "turkce": "Türkçe",
     "türkçe": "Türkçe",
@@ -76,11 +77,16 @@ def _yuzde(pay: int, payda: int) -> int | None:
     )
 
 
+def _ders_kucuk(metin: str) -> str:
+    yazi = (metin or "").strip().replace("İ", "i").replace("I", "ı").lower()
+    return yazi.replace("ı", "i")
+
+
 def _ders_kodu(ders_key: str, ders_ad: str) -> str:
-    ham = (ders_key or "").strip().lower()
-    if ham in _DERS_SIRA or ham in _DERS_AD:
+    ham = _ders_kucuk(ders_key)
+    if ham in _DERS_SIRA or ham in _DERS_AD or ham in _KOD:
         return _KOD.get(ham, ham)
-    ad = (ders_ad or "").strip().lower()
+    ad = _ders_kucuk(ders_ad)
     return _KOD.get(ad, ham or ad or "diger")
 
 
@@ -94,15 +100,16 @@ _BILINEN_DERS = set(_KOD.values()) | set(_DERS_SIRA)
 
 
 def _satir_ders(ders_key: str, ders_ad: str, konu: str) -> tuple[str, str]:
-    """8. sınıf karnesinde ders «Sınıf» yazılmışsa konudan dersi ayır."""
+    """8. sınıf karnesinde ders «Sınıf» veya Türkçe yazılmış İnkılap konusunu ayır."""
     kod = _ders_kodu(ders_key, ders_ad)
     baslik = _ders_baslik(kod, ders_ad)
-    if kod in _BILINEN_DERS:
-        return kod, baslik
     ipucu = konu_ders_adi(konu)
     if not ipucu:
         return kod, baslik
-    return _ders_kodu("", ipucu), ipucu
+    ipucu_kod = _ders_kodu("", ipucu)
+    if kod not in _BILINEN_DERS or (kod == "turkce" and ipucu_kod == "inkilap"):
+        return ipucu_kod, ipucu
+    return kod, baslik
 
 
 def cisa_deneme_listesi(talebe: Talebe) -> list[dict]:

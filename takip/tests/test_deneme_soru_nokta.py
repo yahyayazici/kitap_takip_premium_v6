@@ -106,6 +106,11 @@ class SoruSatirParserTests(SimpleTestCase):
         self.assertEqual(konu_ders_adi("KAZA VE KADER"), "Din Kültürü")
         self.assertEqual(konu_ders_adi("İKLİM VE HAVA OLAYLARI"), "Fen Bilimleri")
         self.assertEqual(konu_ders_adi("MEVSİMLERİN OLUŞUMU"), "Fen Bilimleri")
+        self.assertEqual(konu_ders_adi("M. KEMAL'İN ÇOCUKLUK DÖNEMİ"), "İnkılap")
+        self.assertEqual(konu_ders_adi("BİR KAHRAMAN DOĞUYOR"), "İnkılap")
+        self.assertEqual(konu_ders_adi("20. YÜZYIL BAŞLARINDA OSMANLI"), "İnkılap")
+        self.assertEqual(konu_ders_adi("BÜYÜK HARF KULLANILMASI"), None)
+        self.assertEqual(konu_ders_adi("PARAGRAFTA ANLAM VE YAPI"), "Türkçe")
 
     def test_yuzde_esigi(self):
         self.assertEqual(_nokta_yuzde(1, 3), 33)
