@@ -18,6 +18,7 @@ from takip.deneme_models import (
     DenemeSoruSonucu,
 )
 from takip.deneme_service import DENEME_KARNE_DERSLERI, tr_ondalik
+from takip.deneme_soru_karne import konu_ders_adi
 from takip.models import Talebe
 
 _DERS_SIRA = {kod: i for i, (kod, _etiket) in enumerate(DENEME_KARNE_DERSLERI)}
@@ -87,6 +88,21 @@ def _ders_baslik(kod: str, ders_ad: str) -> str:
     if ders_ad.strip():
         return ders_ad.strip()
     return _DERS_AD.get(kod, kod)
+
+
+_BILINEN_DERS = set(_KOD.values()) | set(_DERS_SIRA)
+
+
+def _satir_ders(ders_key: str, ders_ad: str, konu: str) -> tuple[str, str]:
+    """8. sınıf karnesinde ders «Sınıf» yazılmışsa konudan dersi ayır."""
+    kod = _ders_kodu(ders_key, ders_ad)
+    baslik = _ders_baslik(kod, ders_ad)
+    if kod in _BILINEN_DERS:
+        return kod, baslik
+    ipucu = konu_ders_adi(konu)
+    if not ipucu:
+        return kod, baslik
+    return _ders_kodu("", ipucu), ipucu
 
 
 def cisa_deneme_listesi(talebe: Talebe) -> list[dict]:
@@ -294,14 +310,14 @@ def _konu_dokumu(talebe: Talebe, ids: list[int], sinif: Q):
     for kayit in DenemeSoruSonucu.objects.filter(deneme_id__in=ids, talebe=talebe).only(
         "ders_key", "ders_ad", "konu_ad", "sonuc"
     ):
-        kod = _ders_kodu(kayit.ders_key, kayit.ders_ad)
         konu = (kayit.konu_ad or "").strip() or "Belirtilmemiş"
+        kod, ders_baslik = _satir_ders(kayit.ders_key, kayit.ders_ad, konu)
         anahtar = (kod, konu.casefold())
         kova = kendi.get(anahtar)
         if kova is None:
             kova = {
                 "kod": kod,
-                "ders": _ders_baslik(kod, kayit.ders_ad),
+                "ders": ders_baslik,
                 "konu": konu,
                 "dogru": 0,
                 "yanlis": 0,
@@ -320,8 +336,8 @@ def _konu_dokumu(talebe: Talebe, ids: list[int], sinif: Q):
         DenemeSoruSonucu.objects.filter(sinif, deneme_id__in=ids)
         .only("ders_key", "ders_ad", "konu_ad", "sonuc")
     ):
-        kod = _ders_kodu(kayit.ders_key, kayit.ders_ad)
         konu = (kayit.konu_ad or "").strip() or "Belirtilmemiş"
+        kod, _yok = _satir_ders(kayit.ders_key, kayit.ders_ad, konu)
         anahtar = (kod, konu.casefold())
         sinif_kova[anahtar][1] += 1
         if kayit.sonuc == DenemeSoruSonucu.Sonuc.DOGRU:
@@ -538,14 +554,14 @@ def cisa_sinif_raporu(talebeler: list[Talebe], deneme_ids: list[int], baslik: st
         deneme_id__in=gorulen_sinav,
         talebe_id__in=list(toplam_net),
     ).only("talebe_id", "ders_key", "ders_ad", "konu_ad", "sonuc"):
-        kod = _ders_kodu(kayit.ders_key, kayit.ders_ad)
         konu = (kayit.konu_ad or "").strip() or "Belirtilmemiş"
+        kod, ders_baslik = _satir_ders(kayit.ders_key, kayit.ders_ad, konu)
         anahtar = (kod, konu.casefold())
         kova = konu_ogrenci.get(anahtar)
         if kova is None:
             kova = {
                 "kod": kod,
-                "ders": _ders_baslik(kod, kayit.ders_ad),
+                "ders": ders_baslik,
                 "konu": konu,
                 "talebe": {},
             }

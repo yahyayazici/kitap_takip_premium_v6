@@ -171,6 +171,94 @@ def _ders_adi(metin: str) -> str | None:
     return None
 
 
+def _ders_basligi(metin: str) -> str | None:
+    """8. sınıf karnesi başlığı: «TÜRKÇE 20», «8. SINIF FEN BİLİMLERİ»."""
+    temiz = " ".join((metin or "").split())
+    if not temiz or _satir_soru(temiz):
+        return None
+    if len(temiz.split()) > 8:
+        return None
+    n = normalize_ad(temiz)
+    n = re.sub(r"\b\d+\b", " ", n)
+    for cop in ("soru", "net", "dersi", "sinif", "sinifi", "lgs", "brans"):
+        n = re.sub(rf"\b{cop}\b", " ", n)
+    n = re.sub(r"\s+", " ", n).strip()
+    if not n:
+        return None
+    return _ders_adi(n)
+
+
+_KONU_DERS = (
+    ("hava olay", "Fen Bilimleri"),
+    ("birey ve toplum", "Sosyal Bilgiler"),
+    ("milli mucadele", "İnkılap"),
+    ("uslu ifade", "Matematik"),
+    ("gorsel yorum", "Türkçe"),
+    ("fotosentez", "Fen Bilimleri"),
+    ("periyodik", "Fen Bilimleri"),
+    ("esitsizlik", "Matematik"),
+    ("noktalama", "Türkçe"),
+    ("fiilimsi", "Türkçe"),
+    ("peygamber", "Din Kültürü"),
+    ("geometrik", "Matematik"),
+    ("olasilik", "Matematik"),
+    ("ozdeslik", "Matematik"),
+    ("dogrusal", "Matematik"),
+    ("cebirsel", "Matematik"),
+    ("karekok", "Matematik"),
+    ("ataturk", "İnkılap"),
+    ("inkilap", "İnkılap"),
+    ("paragraf", "Türkçe"),
+    ("sozcuk", "Türkçe"),
+    ("mevsim", "Fen Bilimleri"),
+    ("iklim", "Fen Bilimleri"),
+    ("genetik", "Fen Bilimleri"),
+    ("basinc", "Fen Bilimleri"),
+    ("kader", "Din Kültürü"),
+    ("zekat", "Din Kültürü"),
+    ("oruc", "Din Kültürü"),
+    ("namaz", "Din Kültürü"),
+    ("kuran", "Din Kültürü"),
+    ("hadis", "Din Kültürü"),
+    ("ayet", "Din Kültürü"),
+    ("ahlak", "Din Kültürü"),
+    ("carpan", "Matematik"),
+    ("ucgen", "Matematik"),
+    ("yazim", "Türkçe"),
+    ("mitoz", "Fen Bilimleri"),
+    ("mayoz", "Fen Bilimleri"),
+    ("lozan", "İnkılap"),
+    ("hello", "İngilizce"),
+    ("movie", "İngilizce"),
+    ("dna", "Fen Bilimleri"),
+)
+
+
+def konu_ders_adi(metin: str) -> str | None:
+    """Ders adı «Sınıf» kalmış satırda konudan dersi bulur."""
+    n = normalize_ad(metin)
+    if not n:
+        return None
+    for kalip, ad in _KONU_DERS:
+        if " " in kalip:
+            kok, son = kalip.rsplit(" ", 1)
+            desen = rf"(?:^|\s){re.escape(kok)}\s+{re.escape(son)}\w*(?:\s|$)"
+        else:
+            desen = rf"(?:^|\s){re.escape(kalip)}"
+        if re.search(desen, n):
+            return ad
+    return None
+
+
+def _kimlik_yazi(metin: str) -> bool:
+    n = normalize_ad(metin)
+    if not n:
+        return False
+    if n in _KIMLIK_AD or n in _BASLIK_ROL:
+        return True
+    return n.split()[0] in {"sinif", "sinifi", "sube"}
+
+
 def _durak(metin: str) -> bool:
     n = normalize_ad(metin)
     if not n or n in _DURAK_TAM:
@@ -582,7 +670,9 @@ def _baslik_aday(metin: str) -> bool:
     harfler = [ch for ch in temiz if ch.isalpha()]
     if len(harfler) < 3 or not all(ch.isupper() for ch in harfler):
         return False
-    if _durak(temiz) or _ad_aday(temiz) or _ders_adi(temiz):
+    if _durak(temiz) or _ad_aday(temiz) or _ders_adi(temiz) or _ders_basligi(temiz):
+        return False
+    if _kimlik_yazi(temiz):
         return False
     return True
 
@@ -628,7 +718,7 @@ def _sutun_sinirlari(ankorlar: list[float], genislik: float) -> list[tuple[float
 
 
 def _ankorlar(segmentler: list[_Parca]) -> list[float]:
-    xs = [s.x0 for s in segmentler if _ders_adi(s.text)]
+    xs = [s.x0 for s in segmentler if _ders_basligi(s.text)]
     if xs:
         return xs
     sirali = sorted(segmentler, key=lambda s: -s.y)
@@ -650,24 +740,25 @@ def _sutun_sorulari(segmentler: list[_Parca], genislik: float) -> list[_SoruSati
         ders = ""
         bekleyen = ""
         for s in kolon:
-            if s.text[:1].isdigit():
-                bilinen = None
-            else:
-                bilinen = _ders_adi(s.text)
+            if _kimlik_yazi(s.text) and not _ders_basligi(s.text):
+                bekleyen = ""
+                continue
+            bilinen = None if s.text[:1].isdigit() else _ders_basligi(s.text)
             if bilinen:
                 ders = bilinen
                 bekleyen = ""
                 continue
             soru = _satir_soru(s.text)
-            if soru and ders:
-                no, konu, sonuc = soru
-                cikti.append(_SoruSatiri("", "", ders, no, konu, sonuc))
-                bekleyen = ""
-                continue
-            if soru and bekleyen:
-                ders = _ders_adi(bekleyen) or _tr_baslik(bekleyen)
-                no, konu, sonuc = soru
-                cikti.append(_SoruSatiri("", "", ders, no, konu, sonuc))
+            if soru:
+                if bekleyen:
+                    yeni = _ders_basligi(bekleyen)
+                    if yeni:
+                        ders = yeni
+                    elif not ders and not _kimlik_yazi(bekleyen):
+                        ders = _tr_baslik(bekleyen)
+                if ders and not _kimlik_yazi(ders):
+                    no, konu, sonuc = soru
+                    cikti.append(_SoruSatiri("", "", ders, no, konu, sonuc))
                 bekleyen = ""
                 continue
             if _baslik_aday(s.text):
@@ -873,7 +964,7 @@ def _dosya_bytes(dosya) -> tuple[str, bytes]:
 
 
 def _ders_kaydet(ham: str) -> str:
-    return (_ders_adi(ham) or _tr_baslik(ham) or ham).strip()[:120]
+    return (_ders_basligi(ham) or _ders_adi(ham) or _tr_baslik(ham) or ham).strip()[:120]
 
 
 def import_soru_karneleri(dosyalar, *, deneme: DenemeSinavi) -> SoruImportStats:
@@ -918,6 +1009,10 @@ def import_soru_karneleri(dosyalar, *, deneme: DenemeSinavi) -> SoruImportStats:
                 stats.eslesmeyen.append(etiket)
             continue
         ders_ad = _ders_kaydet(satir.ders)
+        if not _ders_adi(ders_ad):
+            ipucu = konu_ders_adi(satir.konu) or konu_ders_adi(satir.ders)
+            if ipucu:
+                ders_ad = ipucu
         ders_key = normalize_ad(ders_ad)[:120]
         if not ders_key:
             continue
