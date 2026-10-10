@@ -16,11 +16,13 @@ from takip.deneme_models import DenemeSinavi, DenemeSoruSonucu
 from takip.deneme_soru_karne import (
     _Parca,
     _ders_adi,
+    _ders_basligi,
     _satir_soru,
     _soru_satirini_birlestir,
     _sutun_sorulari,
     _tr_baslik,
     import_soru_karneleri,
+    konu_ders_adi,
 )
 from takip.models import EtutHocasi, PersonelProfili, SinifSube, Talebe
 
@@ -72,6 +74,38 @@ class SoruSatirParserTests(SimpleTestCase):
         self.assertEqual(_ders_adi("İNGİLİZCE"), "İngilizce")
         self.assertEqual(_ders_adi("SOSYAL BİLGİLER"), "Sosyal Bilgiler")
         self.assertEqual(_tr_baslik("GEOMETRİ"), "Geometri")
+        self.assertIsNone(_ders_adi("SINIF"))
+        self.assertEqual(_ders_basligi("TÜRKÇE 20"), "Türkçe")
+        self.assertEqual(_ders_basligi("8. SINIF FEN BİLİMLERİ"), "Fen Bilimleri")
+        self.assertEqual(_ders_basligi("DİN KÜLTÜRÜ VE AHLAK BİLGİSİ"), "Din Kültürü")
+        self.assertIsNone(_ders_basligi("SINIF"))
+
+    def test_sekiz_sinif_basligi_soruyu_yutmaz(self):
+        segmentler = [
+            _Parca("SINIF", 40, 80, 760),
+            _Parca("TÜRKÇE 20", 40, 130, 740),
+            _Parca("1 Sözcükte Anlam A A +", 40, 210, 720),
+            _Parca("MATEMATİK 20", 300, 410, 740),
+            _Parca("3 Üslü İfadeler D C -", 300, 470, 720),
+            _Parca("FEN BİLİMLERİ", 40, 160, 500),
+            _Parca("1 İklim ve Hava Olayları A A +", 40, 250, 480),
+            _Parca("DİN KÜLTÜRÜ VE AHLAK BİLGİSİ", 300, 540, 500),
+            _Parca("2 Kaza ve Kader A B -", 300, 470, 480),
+        ]
+        satirlar = _sutun_sorulari(segmentler, 595)
+        bulunan = {(s.ders, s.soru_no, s.konu, s.sonuc) for s in satirlar}
+        self.assertEqual(
+            bulunan,
+            {
+                ("Türkçe", 1, "Sözcükte Anlam", "dogru"),
+                ("Matematik", 3, "Üslü İfadeler", "yanlis"),
+                ("Fen Bilimleri", 1, "İklim ve Hava Olayları", "dogru"),
+                ("Din Kültürü", 2, "Kaza ve Kader", "yanlis"),
+            },
+        )
+        self.assertEqual(konu_ders_adi("KAZA VE KADER"), "Din Kültürü")
+        self.assertEqual(konu_ders_adi("İKLİM VE HAVA OLAYLARI"), "Fen Bilimleri")
+        self.assertEqual(konu_ders_adi("MEVSİMLERİN OLUŞUMU"), "Fen Bilimleri")
 
     def test_yuzde_esigi(self):
         self.assertEqual(_nokta_yuzde(1, 3), 33)

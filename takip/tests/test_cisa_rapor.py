@@ -9,8 +9,10 @@ from decimal import Decimal
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
+from django.template.loader import render_to_string
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from takip.cisa_service import cisa_deneme_listesi, cisa_rapor, cisa_sinif_raporu
 from takip.deneme_models import (
@@ -161,6 +163,42 @@ class CisaRaporTests(TestCase):
         self.assertEqual(rapor["kayiplar"][0]["konu"], "Paragraf")
         self.assertEqual(rapor["kayiplar"][0]["kaynak"], "yanlıştan")
         self.assertNotIn("Sözcükte anlam", [k["konu"] for k in rapor["kayiplar"]])
+
+    def test_sinif_diye_yazilmis_konu_dersine_ayrilir(self):
+        for no, konu, sonuc in (
+            (1, "KAZA VE KADER", "yanlis"),
+            (2, "KADERLE İLGİLİ KAVRAMLAR", "bos"),
+            (3, "İNSAN İRADESİ VE KADER", "dogru"),
+            (4, "İKLİM VE HAVA OLAYLARI", "yanlis"),
+            (5, "MEVSİMLERİN OLUŞUMU", "dogru"),
+        ):
+            DenemeSoruSonucu.objects.create(
+                deneme=self.ocak,
+                talebe=self.ali,
+                ders_ad="Sınıf",
+                ders_key="sinif",
+                soru_no=no + 20,
+                konu_ad=konu,
+                sonuc=sonuc,
+            )
+        rapor = cisa_rapor(self.ali, [self.ocak.id])
+        basliklar = {grup["ders"]: [s["konu"] for s in grup["satirlar"]] for grup in rapor["konular"]}
+        self.assertIn("KAZA VE KADER", basliklar["Din Kültürü"])
+        self.assertIn("KADERLE İLGİLİ KAVRAMLAR", basliklar["Din Kültürü"])
+        self.assertIn("İNSAN İRADESİ VE KADER", basliklar["Din Kültürü"])
+        self.assertIn("İKLİM VE HAVA OLAYLARI", basliklar["Fen Bilimleri"])
+        self.assertIn("MEVSİMLERİN OLUŞUMU", basliklar["Fen Bilimleri"])
+        self.assertNotIn("Sınıf", basliklar)
+        kayip_ders = {k["konu"]: k["ders"] for k in rapor["kayiplar"]}
+        self.assertEqual(kayip_ders["KAZA VE KADER"], "Din Kültürü")
+        self.assertEqual(kayip_ders["İKLİM VE HAVA OLAYLARI"], "Fen Bilimleri")
+        html = render_to_string(
+            "cisa_pdf.html",
+            {"rapor": rapor, "olusturma_tarihi": timezone.now()},
+        )
+        self.assertIn("<h2>Din Kültürü</h2>", html)
+        self.assertIn("<h2>Fen Bilimleri</h2>", html)
+        self.assertNotIn("<h2>Sınıf</h2>", html)
 
     def test_secilmeyen_ve_taslak_girmez(self):
         liste = cisa_deneme_listesi(self.ali)
