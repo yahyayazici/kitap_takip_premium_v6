@@ -56,7 +56,7 @@
             overflow: hidden;
             background: #0a2350;
             color: #ffffff;
-            padding: 15mm 14mm 0;
+            padding: 8mm 14mm 0;
         }
 
         .desen {
@@ -69,11 +69,7 @@
 
         .ust { width: 100%; border-collapse: collapse; }
         .ust td { vertical-align: middle; padding: 0; }
-        .marka { border-collapse: separate; border-spacing: 1.6px; }
-        .marka td { width: 7px; height: 7px; padding: 0; font-size: 0; line-height: 0; }
-        .t-b { background: #ffffff; }
-        .t-m { background: #5aa9e6; }
-        .t-a { background: #c9a84c; }
+        .marka-logo { display: block; width: 42px; height: 42px; }
         .marka-yazi { padding-left: 10px; }
         .marka-ad {
             font-size: 13px;
@@ -88,16 +84,8 @@
             letter-spacing: 1.3px;
             color: #c9a84c;
         }
-        .ust-tarih {
-            text-align: right;
-            font-size: 9px;
-            font-weight: 500;
-            color: #d5deea;
-            white-space: nowrap;
-        }
-
         .kicker {
-            margin-top: 16mm;
+            margin-top: 8mm;
             font-size: 8px;
             font-weight: 600;
             letter-spacing: 1.6px;
@@ -113,7 +101,7 @@
 
         .meta {
             width: 100%;
-            margin-top: 13mm;
+            margin-top: 7mm;
             border-collapse: collapse;
         }
         .meta td {
@@ -136,7 +124,7 @@
             color: #ffffff;
         }
 
-        .alt-cizgi { width: 100%; border-collapse: collapse; margin-top: 10mm; }
+        .alt-cizgi { width: 100%; border-collapse: collapse; margin-top: 6mm; }
         .alt-cizgi td { height: 3px; padding: 0; font-size: 0; }
         .alt-cizgi .bos { width: 68%; }
         .alt-cizgi .altin { width: 32%; background: #c9a84c; }
@@ -309,11 +297,7 @@
                     <table>
                         <tr>
                             <td>
-                                <table class="marka">
-                                    <tr><td class="t-b"></td><td class="t-m"></td><td class="t-a"></td></tr>
-                                    <tr><td class="t-m"></td><td class="t-b"></td><td class="t-m"></td></tr>
-                                    <tr><td class="t-a"></td><td class="t-m"></td><td class="t-b"></td></tr>
-                                </table>
+                                <img class="marka-logo" src="{% static 'images/cinili-saray-logo-white.png' %}" alt="{{ panel_short }}">
                             </td>
                             <td class="marka-yazi">
                                 <div class="marka-ad">{{ panel_org }}</div>
@@ -322,7 +306,6 @@
                         </tr>
                     </table>
                 </td>
-                <td class="ust-tarih">{{ olusturma_tarihi|date:"d.m.Y H:i" }}</td>
             </tr>
         </table>
 
