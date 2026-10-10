@@ -209,6 +209,24 @@
             font-weight: 700;
         }
         h2.kayip { color: #c62828; margin-top: 6mm; }
+        .ders-blok { margin: 0 0 1mm; }
+        .ders-blok h2 {
+            margin: 0 0 2mm;
+            padding: 1.8mm 3mm;
+            text-align: left;
+            color: #083888;
+            background: #f5f7fb;
+            border: 0.25mm solid #c5d2e4;
+            border-left: 2.4mm solid #8aa4c4;
+            border-radius: 1.6mm;
+        }
+        .ders-blok.turkce h2 { background: #f5f7fb; border-color: #c5d2e4; border-left-color: #8aa4c4; }
+        .ders-blok.sosyal h2 { background: #faf8f3; border-color: #e0d6be; border-left-color: #c4b48e; }
+        .ders-blok.inkilap h2 { background: #e8f0ff; border-color: #c5d2e4; border-left-color: #083888; }
+        .ders-blok.din h2 { background: #f8f6f4; border-color: #ddd4cc; border-left-color: #b7a79e; }
+        .ders-blok.ingilizce h2 { background: #f4f8f9; border-color: #c7d8df; border-left-color: #8aafb8; }
+        .ders-blok.matematik h2 { background: #f7f6f4; border-color: #ddd6c8; border-left-color: #b3a890; }
+        .ders-blok.fen h2 { background: #f4f8f5; border-color: #c8ddd0; border-left-color: #8fb5a0; }
         .sayfa {
             break-before: page;
             page-break-before: always;
@@ -316,25 +334,10 @@
     {% endif %}
 
     {% if rapor.konular %}
-    <section class="sayfa sayfa-denemeler">
-        <h2>Kazanım alınan denemeler</h2>
-        <div class="cizgi"></div>
-        <table class="dokum">
-            <tbody>
-                {% for deneme in rapor.denemeler %}
-                {% if deneme.soru_karnesi %}
-                <tr>
-                    <td><strong>{{ deneme.ad }}</strong></td>
-                    <td class="n">{{ deneme.tarih|date:"d.m.Y" }}</td>
-                </tr>
-                {% endif %}
-                {% endfor %}
-            </tbody>
-        </table>
-    </section>
     <section class="sayfa sayfa-kazanim">
     {% for grup in rapor.konular %}
     {% if not forloop.first %}<div class="cizgi ara"></div>{% endif %}
+    <section class="ders-blok {{ grup.kod }}">
     <h2>{{ grup.ders }}</h2>
     <table class="dokum">
         <thead>
@@ -362,7 +365,24 @@
             {% endfor %}
         </tbody>
     </table>
+    </section>
     {% endfor %}
+    </section>
+    <section class="sayfa sayfa-denemeler">
+        <h2>Kazanım alınan denemeler</h2>
+        <div class="cizgi"></div>
+        <table class="dokum">
+            <tbody>
+                {% for deneme in rapor.denemeler %}
+                {% if deneme.soru_karnesi %}
+                <tr>
+                    <td><strong>{{ deneme.ad }}</strong></td>
+                    <td class="n">{{ deneme.tarih|date:"d.m.Y" }}</td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
     </section>
     {% else %}
     <section class="sayfa sayfa-denemeler">

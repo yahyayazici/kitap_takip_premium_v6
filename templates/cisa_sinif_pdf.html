@@ -110,6 +110,23 @@
         table.dyb b { display: block; font-size: 14px; font-weight: 700; line-height: 1.1; color: #083888; }
         table.dyb span { display: block; margin-top: 0.4mm; font-size: 8px; font-weight: 600; color: #5c6b80; }
         h2 { margin: 2mm 0; text-align: center; font-size: 13px; font-weight: 700; }
+        .ders-blok h2 {
+            margin: 0 0 2mm;
+            padding: 1.8mm 3mm;
+            text-align: left;
+            color: #083888;
+            background: #f5f7fb;
+            border: 0.25mm solid #c5d2e4;
+            border-left: 2.4mm solid #8aa4c4;
+            border-radius: 1.6mm;
+        }
+        .ders-blok.turkce h2 { background: #f5f7fb; border-color: #c5d2e4; border-left-color: #8aa4c4; }
+        .ders-blok.sosyal h2 { background: #faf8f3; border-color: #e0d6be; border-left-color: #c4b48e; }
+        .ders-blok.inkilap h2 { background: #e8f0ff; border-color: #c5d2e4; border-left-color: #083888; }
+        .ders-blok.din h2 { background: #f8f6f4; border-color: #ddd4cc; border-left-color: #b7a79e; }
+        .ders-blok.ingilizce h2 { background: #f4f8f9; border-color: #c7d8df; border-left-color: #8aafb8; }
+        .ders-blok.matematik h2 { background: #f7f6f4; border-color: #ddd6c8; border-left-color: #b3a890; }
+        .ders-blok.fen h2 { background: #f4f8f5; border-color: #c8ddd0; border-left-color: #8fb5a0; }
         h2.kayip { color: #c62828; margin-top: 4mm; }
         .sayfa { break-before: page; page-break-before: always; }
         .cizgi.ara { margin: 5mm 0 3mm; }
@@ -205,6 +222,7 @@
         <div class="cizgi"></div>
         {% for grup in rapor.konular %}
         {% if not forloop.first %}<div class="cizgi ara"></div>{% endif %}
+        <section class="ders-blok {{ grup.kod }}">
         <h2>{{ grup.ders }}</h2>
         <table class="dokum konular">
             <colgroup>
@@ -229,6 +247,7 @@
                 {% endfor %}
             </tbody>
         </table>
+        </section>
         {% endfor %}
     </section>
     {% endif %}
@@ -239,6 +258,7 @@
         <div class="cizgi"></div>
         {% for grup in rapor.siralamalar %}
         {% if not forloop.first %}<div class="cizgi ara"></div>{% endif %}
+        <section class="ders-blok {{ grup.kod }}">
         <h2>{{ grup.ad }}</h2>
         <table class="dokum">
             <tbody>
@@ -250,6 +270,7 @@
                 {% endfor %}
             </tbody>
         </table>
+        </section>
         {% endfor %}
     </section>
     {% endif %}
