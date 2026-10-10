@@ -113,6 +113,30 @@ EKITAP_SAYFA_GENISLIK = int(os.environ.get("EKITAP_SAYFA_GENISLIK", "2000"))
 EKITAP_OCR = os.environ.get("EKITAP_OCR", "true").lower() not in ("0", "false", "no")
 EKITAP_ARKA_PLAN_ISLEME = os.environ.get("EKITAP_ARKA_PLAN_ISLEME", "True").lower() == "true"
 
+# —— Sınav okuma alt alan adı ——
+# config.middleware.SinavHostMiddleware bu host'u config.sinav_urls'e bağlar.
+# Ana sitenin deneme tablolarına yazmaz. Giriş SINAV_YONETICI_SIFRE ile yapılır;
+# boşsa kapalıdır. Siteye bağlama işi sınav okuma bitince ayrıca yapılacak.
+SINAV_HOST = os.environ.get("SINAV_HOST", "sinav.cinilisarayproje.com").strip().lower()
+SINAV_EK_HOSTLAR = [
+    h.strip().lower()
+    for h in os.environ.get("SINAV_EK_HOSTLAR", "sinav.localhost,sinav.127.0.0.1").split(",")
+    if h.strip()
+]
+SINAV_HOSTLARI = frozenset([SINAV_HOST, *SINAV_EK_HOSTLAR]) - {""}
+for _sinav_host in SINAV_HOSTLARI:
+    if _sinav_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_sinav_host)
+    _sinav_origin = f"https://{_sinav_host}"
+    if _sinav_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(_sinav_origin)
+    if DEBUG:
+        for _port in ("8000", "8001", "8015"):
+            _yerel = f"http://{_sinav_host}:{_port}"
+            if _yerel not in CSRF_TRUSTED_ORIGINS:
+                CSRF_TRUSTED_ORIGINS.append(_yerel)
+SINAV_YONETICI_SIFRE = os.environ.get("SINAV_YONETICI_SIFRE", "")
+
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
@@ -138,6 +162,7 @@ if CLOUDINARY_URL:
 INSTALLED_APPS += [
     "django.contrib.staticfiles",
     "takip",
+    "sinav_okuma",
 ]
 
 MIDDLEWARE = [
@@ -148,6 +173,7 @@ MIDDLEWARE = [
     "config.middleware.CanonicalHostMiddleware",
     "config.middleware.EkranHostMiddleware",
     "config.middleware.EKitapHostMiddleware",
+    "config.middleware.SinavHostMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "config.middleware.SlideSessionMiddleware",
     "django.middleware.common.CommonMiddleware",

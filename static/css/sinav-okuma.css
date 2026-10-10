@@ -1,0 +1,248 @@
+/* Sınav okuma alanı — yalnızca --cs-* tokenları */
+
+body {
+    margin: 0;
+    font-family: var(--cs-font);
+    background: var(--cs-background);
+    color: var(--cs-text-primary);
+    overflow-x: clip;
+}
+
+.so-sayfa {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: var(--cs-page-gutter);
+    display: grid;
+    gap: var(--cs-section-gap);
+    min-width: 0;
+}
+
+.so-ust {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: var(--cs-space-4);
+    flex-wrap: wrap;
+}
+
+.so-kicker {
+    margin: 0 0 4px;
+    color: var(--cs-text-muted);
+    font-size: 13px;
+    letter-spacing: 0.02em;
+}
+
+.so-ust h1,
+.so-giris h1 {
+    margin: 0;
+    font-size: 28px;
+    line-height: 1.2;
+}
+
+.so-alt {
+    margin: 6px 0 0;
+    color: var(--cs-text-secondary);
+}
+
+.so-nav {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.so-not {
+    margin: 0;
+    color: var(--cs-text-secondary);
+    background: var(--cs-surface);
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-md);
+    padding: 12px 14px;
+}
+
+.so-kart {
+    background: var(--cs-surface);
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-lg);
+    box-shadow: var(--cs-shadow-md);
+    padding: var(--cs-space-4);
+    min-width: 0;
+    max-width: 100%;
+}
+
+.so-kart h2 {
+    margin: 0 0 8px;
+    font-size: 18px;
+}
+
+.so-kart p {
+    margin: 0;
+    color: var(--cs-text-secondary);
+}
+
+.so-form {
+    display: grid;
+    gap: 12px;
+    max-width: 720px;
+    margin-top: 12px;
+}
+
+.so-form label {
+    font-size: 14px;
+    color: var(--cs-text-secondary);
+}
+
+.so-form input,
+.so-form select,
+.so-form textarea {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: var(--cs-input-h);
+    font: inherit;
+    font-size: 16px;
+    color: var(--cs-text-primary);
+    background: var(--cs-surface);
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-md);
+    padding: 8px 12px;
+}
+
+.so-form textarea {
+    min-height: 88px;
+    resize: vertical;
+}
+
+.so-birincil,
+.so-hayalet,
+.so-tehlike {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--cs-btn-h);
+    min-width: var(--cs-touch-min);
+    padding: 0 var(--cs-space-4);
+    border-radius: var(--cs-radius-md);
+    font: inherit;
+    font-size: 15px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.so-birincil {
+    background: var(--cs-primary);
+    color: var(--cs-text-inverse);
+    border: 1px solid var(--cs-primary);
+}
+
+.so-hayalet {
+    background: var(--cs-surface);
+    color: var(--cs-primary);
+    border: 1px solid var(--cs-border);
+}
+
+.so-tehlike {
+    background: var(--cs-surface);
+    color: var(--cs-text-primary);
+    border: 1px solid var(--cs-border-strong);
+}
+
+.so-satir-islem {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.so-mesajlar {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+}
+
+.so-mesaj {
+    background: var(--cs-surface);
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-md);
+    padding: 10px 12px;
+}
+
+.so-tablo-cerceve {
+    overflow: auto;
+    margin-top: 12px;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.so-tablo {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 720px;
+}
+
+.so-tablo th,
+.so-tablo td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--cs-border);
+    vertical-align: top;
+}
+
+.so-tablo th {
+    color: var(--cs-text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.so-sayi {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.so-giris {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: var(--cs-page-gutter);
+}
+
+.so-giris-kart {
+    width: min(420px, 100%);
+    background: var(--cs-surface);
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-lg);
+    box-shadow: var(--cs-shadow-md);
+    padding: 28px 24px;
+    display: grid;
+    gap: 12px;
+}
+
+.so-hata {
+    margin: 0;
+    color: var(--cs-text-primary);
+}
+
+@media (max-width: 900px) {
+    .so-ust h1,
+    .so-giris h1 {
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 640px) {
+    .so-ust {
+        align-items: stretch;
+    }
+
+    .so-nav {
+        width: 100%;
+    }
+
+    .so-nav form,
+    .so-nav a,
+    .so-nav button {
+        flex: 1 1 auto;
+    }
+}

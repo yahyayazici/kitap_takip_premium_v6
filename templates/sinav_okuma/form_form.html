@@ -1,0 +1,35 @@
+{% extends "sinav_okuma/base.html" %}
+{% block title %}{% if kayit %}{{ kayit.ad }}{% else %}Yeni form{% endif %} · Sınav okuma{% endblock %}
+{% block baslik %}{% if kayit %}{{ kayit.ad }}{% else %}Yeni form{% endif %}{% endblock %}
+{% block icerik %}
+<section class="so-kart">
+    <p>Her satır: tür, başlangıç, bitiş. Örnek: <code>numara 21 25</code> ve <code>sik 51 65</code>.</p>
+    <form method="post" class="so-form">
+        {% csrf_token %}
+        <label for="form-ad">Ad</label>
+        <input id="form-ad" name="ad" required maxlength="120" value="{{ posted.ad }}">
+        <label for="form-aciklama">Açıklama</label>
+        <input id="form-aciklama" name="aciklama" value="{{ posted.aciklama }}">
+        <label for="form-uzunluk">Satır uzunluğu</label>
+        <input id="form-uzunluk" name="satir_uzunluk" inputmode="numeric" required value="{{ posted.satir_uzunluk }}">
+        <label for="form-kodlama">Harf düzeni</label>
+        <select id="form-kodlama" name="kodlama">
+            <option value="cp1254" {% if posted.kodlama != "utf-8" %}selected{% endif %}>cp1254</option>
+            <option value="utf-8" {% if posted.kodlama == "utf-8" %}selected{% endif %}>utf-8</option>
+        </select>
+        <label for="form-alanlar">Alanlar</label>
+        <textarea id="form-alanlar" name="alanlar" rows="12" required>{{ posted.alanlar }}</textarea>
+        <div class="so-satir-islem">
+            <button class="so-birincil" type="submit">Kaydet</button>
+            <a class="so-hayalet" href="{% url 'sinav_okuma:form_listesi' %}">Formlar</a>
+        </div>
+    </form>
+</section>
+{% if kayit %}
+<form method="post" onsubmit="return confirm('Bu form silinsin mi?');">
+    {% csrf_token %}
+    <input type="hidden" name="aksiyon" value="sil">
+    <button class="so-tehlike" type="submit">Formu sil</button>
+</form>
+{% endif %}
+{% endblock %}

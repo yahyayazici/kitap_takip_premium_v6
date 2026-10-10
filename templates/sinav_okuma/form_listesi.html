@@ -1,0 +1,42 @@
+{% extends "sinav_okuma/base.html" %}
+{% block title %}Formlar · Sınav okuma{% endblock %}
+{% block baslik %}Optik formlar{% endblock %}
+{% block icerik %}
+<section class="so-kart">
+    <div class="so-satir-islem">
+        <h2 style="margin:0;">Kâğıt düzenleri</h2>
+        <a class="so-birincil" href="{% url 'sinav_okuma:form_ekle' %}">Yeni form</a>
+    </div>
+    <p style="margin-top:8px;">Her kâğıt ayrı bir formdur. Kolonlar 1’den başlar, bitiş dahildir. Şık bölgeleri art arda eklenir.</p>
+    {% if formlar %}
+    <div class="so-tablo-cerceve">
+        <table class="so-tablo">
+            <thead>
+                <tr>
+                    <th>Form</th>
+                    <th>Satır</th>
+                    <th>Şık bölgeleri</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for form in formlar %}
+                <tr>
+                    <td>{{ form.ad }}{% if form.aciklama %}<div class="so-alt">{{ form.aciklama }}</div>{% endif %}</td>
+                    <td>{{ form.satir_uzunluk }} · {{ form.kodlama }}</td>
+                    <td>
+                        {% for alan in form.alanlar.all %}
+                            {% if alan.tur == "sik" %}{{ alan.baslangic }}–{{ alan.bitis }} {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td><a class="so-hayalet" href="{% url 'sinav_okuma:form_kaydet' form.pk %}">Düzenle</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="margin-top:12px;">Henüz form yok.</p>
+    {% endif %}
+</section>
+{% endblock %}

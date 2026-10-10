@@ -1,0 +1,137 @@
+{% extends "sinav_okuma/base.html" %}
+{% block title %}{{ sinav.ad }} · Sınav okuma{% endblock %}
+{% block baslik %}{{ sinav.ad }}{% endblock %}
+{% block alt %}<p class="so-alt">{{ sinav.tarih|date:"d.m.Y" }}{% if sinav.sinif_etiket %} · {{ sinav.sinif_etiket }}{% endif %}{% if sinav.form %} · {{ sinav.form.ad }}{% endif %}</p>{% endblock %}
+{% block icerik %}
+<section class="so-kart">
+    <h2>Optik form</h2>
+    <p>Kâğıdın kolon haritası. Cevap anahtarından ayrıdır; aynı form birçok sınavda kullanılır.</p>
+    {% if not formlar %}
+    <p style="margin-top:12px;">Henüz form yok. Önce bir optik form tanımlayın.</p>
+    {% else %}
+    <form method="post" class="so-form">
+        {% csrf_token %}
+        <label for="optik-form">Form</label>
+        <select id="optik-form" name="form_id" required>
+            {% for form in formlar %}
+            <option value="{{ form.pk }}" {% if sinav.form_id == form.pk %}selected{% endif %}>{{ form.ad }}</option>
+            {% endfor %}
+        </select>
+        <button class="so-birincil" type="submit">Formu kaydet</button>
+    </form>
+    {% endif %}
+</section>
+
+<section class="so-kart">
+    <h2>Cevap anahtarı ve kazanımlar</h2>
+    <p>Excel yükleyin. Her satır bir soru: ders, A soru numarası, B soru numarası, cevap ve kazanımlar. B numarası aynı sorunun B kitapçıktaki yeridir. Net = doğru − yanlış/4. Puan = toplam net / soru sayısı × 100.</p>
+    <form method="post" enctype="multipart/form-data" class="so-form">
+        {% csrf_token %}
+        <label for="anahtar-excel">.xlsx dosyası</label>
+        <input id="anahtar-excel" type="file" name="anahtar_excel" accept=".xlsx" required>
+        <button class="so-birincil" type="submit">Anahtarı yükle</button>
+    </form>
+    {% if belge %}
+    <p style="margin-top:12px;">{{ belge.soru_sayisi }} soru{% if sinav.anahtar_dosya %} · {{ sinav.anahtar_dosya }}{% endif %}{% if sinav.anahtar_ad %} · {{ sinav.anahtar_ad }}{% endif %}. {% if belge.b_var %}A ve B anahtarı hazır.{% else %}A anahtarı hazır. B sütunu yok.{% endif %}</p>
+    {% if form_sik and form_sik != belge.soru_sayisi %}
+    <p style="margin-top:8px;">Seçili form {{ form_sik }} şık bekliyor, anahtarda {{ belge.soru_sayisi }} soru var. Optik dosya bu halde okunmaz.</p>
+    {% endif %}
+    <div class="so-tablo-cerceve">
+        <table class="so-tablo">
+            <thead>
+                <tr>
+                    <th>Ders</th>
+                    <th>Test</th>
+                    <th class="so-sayi">A</th>
+                    <th class="so-sayi">B</th>
+                    <th>Cevap</th>
+                    <th>Kazanım</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for soru in anahtar_sorulari %}
+                <tr>
+                    <td>{{ soru.ders_ad }}</td>
+                    <td>{{ soru.test_ad|default:"—" }}</td>
+                    <td class="so-sayi">{{ soru.a_no }}</td>
+                    <td class="so-sayi">{{ soru.b_no|default:"—" }}</td>
+                    <td>{{ soru.cevap }}</td>
+                    <td>{% if soru.kazanim_kodu %}{{ soru.kazanim_kodu }} · {% endif %}{{ soru.kazanim|linebreaksbr }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</section>
+
+{% if sinav.anahtar_a and sinav.form_id %}
+<section class="so-kart">
+    <h2>Optik dosyası</h2>
+    <p>Kayıtlı form: <strong>{{ sinav.form.ad }}</strong>. Yeni dosya bu sınavın önceki okumasının yerine geçer.</p>
+    <form method="post" action="{% url 'sinav_okuma:sinav_oku' sinav.pk %}" enctype="multipart/form-data" class="so-form">
+        {% csrf_token %}
+        <label for="optik-dosya">.dat dosyası</label>
+        <input id="optik-dosya" type="file" name="optik_dosya" accept=".dat,.txt" required>
+        <button class="so-birincil" type="submit">Oku ve kaydet</button>
+    </form>
+</section>
+{% endif %}
+
+<section class="so-kart">
+    <h2>Okunan sonuçlar</h2>
+    {% if satirlar %}
+    <p style="margin-top:8px;">{{ satirlar|length }} satır{% if sinav.son_dosya %} · {{ sinav.son_dosya }}{% endif %} · puanlanan {{ puanlanan }}</p>
+    {% if sinav.okuma_notu %}
+    <p style="margin-top:8px;">{{ sinav.okuma_notu|linebreaksbr }}</p>
+    {% endif %}
+    <div class="so-tablo-cerceve">
+        <table class="so-tablo">
+            <thead>
+                <tr>
+                    <th>Ad</th>
+                    <th>No</th>
+                    <th>Sınıf</th>
+                    <th class="so-sayi">Doğru</th>
+                    <th class="so-sayi">Yanlış</th>
+                    <th class="so-sayi">Boş</th>
+                    <th class="so-sayi">Net</th>
+                    <th class="so-sayi">Puan</th>
+                    <th>Not</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for satir in satirlar %}
+                <tr>
+                    <td>{{ satir.ad }}</td>
+                    <td>{{ satir.ogrenci_no|default:"—" }}</td>
+                    <td>{{ satir.sinif_metni|default:"—" }}</td>
+                    {% if satir.puanlandi %}
+                    <td class="so-sayi">{{ satir.dogru }}</td>
+                    <td class="so-sayi">{{ satir.yanlis }}</td>
+                    <td class="so-sayi">{{ satir.bos }}</td>
+                    <td class="so-sayi">{{ satir.net }}</td>
+                    <td class="so-sayi">{{ satir.puan|default:"—" }}</td>
+                    {% else %}
+                    <td class="so-sayi">—</td>
+                    <td class="so-sayi">—</td>
+                    <td class="so-sayi">—</td>
+                    <td class="so-sayi">—</td>
+                    <td class="so-sayi">—</td>
+                    {% endif %}
+                    <td>{{ satir.uyarilar|default:"—" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="margin-top:12px;">Henüz dosya okunmadı.</p>
+    {% endif %}
+</section>
+
+<form method="post" action="{% url 'sinav_okuma:sinav_sil' sinav.pk %}" onsubmit="return confirm('Bu sınav ve okunan satırlar silinsin mi?');">
+    {% csrf_token %}
+    <button class="so-tehlike" type="submit">Sınavı sil</button>
+</form>
+{% endblock %}
