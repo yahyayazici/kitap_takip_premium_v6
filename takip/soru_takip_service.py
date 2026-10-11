@@ -741,11 +741,14 @@ def kayit_kaydet(
             dogru, yanlis, bos = olcum
             toplam = dogru + yanlis + bos
         else:
-            if dogru + yanlis + bos != toplam:
+            if dogru + yanlis > toplam:
                 hatalar.append(
-                    f"{ders.ad}: Doğru + yanlış + boş = {toplam} olmalı."
+                    f"{ders.ad}: Doğru + yanlış, toplam sorudan fazla olamaz."
                 )
                 continue
+            # KTT gibi: boş, kalan sorudur. Elle yazılmamışsa kendiliğinden dolar.
+            if dogru + yanlis + bos != toplam:
+                bos = toplam - dogru - yanlis
             if olcum_ayri:
                 dogru += olcum[0]
                 yanlis += olcum[1]

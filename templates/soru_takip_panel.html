@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Soru Takip · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/soru-takip-premium.css' %}?v=st-pv1">
+<link rel="stylesheet" href="{% static 'css/soru-takip-premium.css' %}?v=st-pv2">
 {% endblock %}
 {% block content %}
 <div class="st-page st-list-page">
@@ -22,7 +22,7 @@
         <form method="get" class="st-filter-grid">
             <div class="st-field">
                 <label for="st-sinif">Sınıf / Şube</label>
-                <select id="st-sinif" name="sinif_sube" onchange="this.form.submit()">
+                <select id="st-sinif" name="sinif_sube" onchange="var t=document.getElementById('st-talebe');if(t){t.value='';}this.form.submit();">
                     <option value="">Tümü</option>
                     {% for sid, sinif, sube in sinif_subeler %}
                     <option value="{{ sid }}" {% if sinif_sube_id == sid|stringformat:"s" %}selected{% endif %}>{{ sinif }} / {{ sube }}</option>
@@ -62,7 +62,7 @@
                     </p>
                 </div>
 
-                <p class="st-olcum-giris">KTT ve deneme sonuçları bu güne otomatik işlenir. Kutulara yalnızca onların dışında çözülen soruları yazın.</p>
+                <p class="st-olcum-giris">KTT ve deneme sonuçları bu güne otomatik işlenir. Kutulara yalnızca onların dışında çözülen soruları yazın. Boş, toplam − doğru − yanlış olarak kendiliğinden dolar.</p>
 
                 <div class="st-table-wrap">
                     <table class="st-table">
@@ -85,10 +85,10 @@
                                     <span class="st-olcum-not">İşlendi: {{ satir.olcum_soru }} soru ({{ satir.olcum_dogru }}D · {{ satir.olcum_yanlis }}Y · {{ satir.olcum_bos }}B). Tekrar yazmayın.</span>
                                     {% endif %}
                                 </td>
-                                <td><input type="number" min="0" name="ders_{{ satir.ders.id }}_toplam" value="{{ satir.elle_toplam }}" class="st-num-input"></td>
-                                <td><input type="number" min="0" name="ders_{{ satir.ders.id }}_dogru" value="{{ satir.elle_dogru }}" class="st-num-input"></td>
-                                <td><input type="number" min="0" name="ders_{{ satir.ders.id }}_yanlis" value="{{ satir.elle_yanlis }}" class="st-num-input"></td>
-                                <td><input type="number" min="0" name="ders_{{ satir.ders.id }}_bos" value="{{ satir.elle_bos }}" class="st-num-input"></td>
+                                <td><input type="number" min="0" inputmode="numeric" name="ders_{{ satir.ders.id }}_toplam" value="{{ satir.elle_toplam }}" class="st-num-input st-toplam"></td>
+                                <td><input type="number" min="0" inputmode="numeric" name="ders_{{ satir.ders.id }}_dogru" value="{{ satir.elle_dogru }}" class="st-num-input st-dogru"></td>
+                                <td><input type="number" min="0" inputmode="numeric" name="ders_{{ satir.ders.id }}_yanlis" value="{{ satir.elle_yanlis }}" class="st-num-input st-yanlis"></td>
+                                <td><input type="number" min="0" inputmode="numeric" name="ders_{{ satir.ders.id }}_bos" value="{{ satir.elle_bos }}" class="st-num-input st-bos" readonly tabindex="-1" title="Otomatik: toplam − doğru − yanlış" aria-label="{{ satir.ders.ad }} boş"></td>
                                 <td><span class="st-net">{{ satir.net }}</span></td>
                             </tr>
                             {% endfor %}
@@ -103,8 +103,8 @@
 
                 <div class="st-form-actions">
                     <button type="submit" class="st-btn st-btn-primary">Kaydet</button>
-                    {% if kayit %}
-                    <a href="{% url 'soru_takip_sil' kayit.pk %}" class="st-btn" onclick="return confirm('Bu günün kaydı silinsin mi?');">Sil</a>
+                    {% if kayit and silebilir %}
+                    <button type="submit" class="st-btn" formaction="{% url 'soru_takip_sil' kayit.pk %}" formmethod="post" onclick="return confirm('Bu günün kaydı silinsin mi?');">Sil</button>
                     {% endif %}
                 </div>
             </form>
@@ -159,4 +159,7 @@
     </section>
     {% endif %}
 </div>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/soru-takip-panel.js' %}?v=st-pv3"></script>
 {% endblock %}
