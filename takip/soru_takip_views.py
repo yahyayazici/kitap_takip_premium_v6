@@ -113,9 +113,14 @@ def soru_takip_panel(request):
     if talebe_id:
         talebe = tum_talebeler.filter(pk=talebe_id).first()
 
-    # Talebe seçildiyse sınıfı ona kilitle; sınıf/talebe çakışmasında 404 verme.
+    # Şube değişince önceki talebe bu şubede değilse seçimi bırak.
+    # Yalnızca talebe ile gelindiyse sınıfı ona hizala; çakışmada 404 verme.
     if talebe and talebe.sinif_sube_id:
-        sinif_sube_id = str(talebe.sinif_sube_id)
+        talebe_sinif = str(talebe.sinif_sube_id)
+        if sinif_sube_id and str(sinif_sube_id) != talebe_sinif:
+            talebe = None
+        else:
+            sinif_sube_id = talebe_sinif
 
     talebeler = tum_talebeler
     if sinif_sube_id:
@@ -198,19 +203,23 @@ def soru_takip_detay(request, pk):
 @require_permission("soru_takip", "delete")
 def soru_takip_sil(request, pk):
     kayit = get_object_or_404(yetkili_soru_kayitlari(request.user), pk=pk)
+    from django.urls import reverse
+
+    panel = (
+        f"{reverse('soru_takip_panel')}?talebe={kayit.talebe_id}"
+        f"&tarih={kayit.tarih:%Y-%m-%d}"
+    )
+    # Bağlantı ön yüklemesi GET atar; silme yalnız açık onaylı POST ile olur.
+    if request.method != "POST":
+        return redirect(panel)
+
     if not kayit_silebilir(request.user, kayit):
         messages.error(request, "Silme yetkiniz yok.")
         return redirect("soru_takip_panel")
 
-    talebe_id = kayit.talebe_id
-    tarih = kayit.tarih
     kayit.delete()
     messages.success(request, "Kayıt silindi.")
-    from django.urls import reverse
-
-    return redirect(
-        f"{reverse('soru_takip_panel')}?talebe={talebe_id}&tarih={tarih:%Y-%m-%d}"
-    )
+    return redirect(panel)
 
 
 @login_required
