@@ -87,6 +87,7 @@ _DURAK_TAM = _METRIC | {
     "sira",
     "sirasi",
     "okul",
+    "okul adi",
     "kitapcik",
     "genel",
     "kurum",
@@ -690,7 +691,43 @@ def _baslik_aday(metin: str) -> bool:
     return True
 
 
+_AD_SINIF_RE = re.compile(
+    r"^(?P<ad>.*?)\s*[-–]\s*(?P<sinif>\d{1,2})\s*/\s*(?P<sube>[A-Za-zÇĞİÖŞÜçğıöşü])$"
+)
+
+
+def _ad_sinif_basligi(segmentler: list[_Parca]) -> tuple[str, str] | None:
+    """Konu Analizi sayfası sağ üstü: «Mehmet Murat Gölbaşı - 8/A».
+
+    PDF bazen adı ve «- 8/A» kısmını ayrı parça verir; o zaman aynı
+    satırda soldaki en yakın parça ad sayılır.
+    """
+    for s in sorted(segmentler, key=lambda p: -p.y):
+        m = _AD_SINIF_RE.match(" ".join(s.text.split()))
+        if not m:
+            continue
+        sinif = f"{int(m.group('sinif'))}-{m.group('sube').upper()}"
+        ad = m.group("ad").strip()
+        if not ad:
+            soldakiler = [
+                p
+                for p in segmentler
+                if p is not s and abs(p.y - s.y) <= 6 and p.x1 <= s.x0 + 2
+            ]
+            if soldakiler:
+                ad = " ".join(max(soldakiler, key=lambda p: p.x1).text.split())
+        kelimeler = ad.split()
+        if 2 <= len(kelimeler) <= 5 and all(
+            re.fullmatch(r"[A-Za-zÇĞİÖŞÜçğıöşüİı'.-]+", k) for k in kelimeler
+        ):
+            return ad, sinif
+    return None
+
+
 def _kimlik_ust(segmentler: list[_Parca], ad: str, sinif: str) -> tuple[str, str]:
+    baslik = _ad_sinif_basligi(segmentler)
+    if baslik:
+        return baslik
     ders_y = [s.y for s in segmentler if _ders_adi(s.text)]
     tavan = max(ders_y) if ders_y else None
 
