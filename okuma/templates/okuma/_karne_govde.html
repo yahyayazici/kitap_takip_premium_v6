@@ -1,0 +1,64 @@
+<section class="kahraman">
+  <p class="ust-yazi">{{ deneme.ad }} · {{ deneme.tarih|date:"j F Y" }}</p>
+  <h1>{{ sonuc.ogrenci.ad_soyad|default:"İsimsiz öğrenci" }}</h1>
+  <p>No {{ sonuc.ogrenci.numara }}{% if sonuc.sube %} · {{ deneme.sinif_seviyesi }}{{ sonuc.sube }} şubesi{% endif %} · {{ sonuc.kitapcik }} kitapçığı</p>
+</section>
+
+<div class="izgara-4">
+  <div class="olcu"><div class="ad">Toplam net</div><div class="deger renkli">{{ sonuc.net|floatformat:2 }}</div><div class="not">kurum ort. {{ kurum_ort.net|floatformat:2 }}</div></div>
+  {% if sonuc.puan is not None %}<div class="olcu"><div class="ad">Puan{% if deneme.puan_modu == "lgs_tablo" %} (tahmini){% endif %}</div><div class="deger">{{ sonuc.puan|floatformat:2 }}</div><div class="not">kurum ort. {{ kurum_ort.puan|floatformat:2 }}</div></div>{% endif %}
+  <div class="olcu"><div class="ad">Kurum sırası</div><div class="deger">{{ sonuc.sira_kurum }}<span class="soluk" style="font-size:20px">/{{ sonuc.katilimci }}</span></div><div class="not">şube sırası {{ sonuc.sira_sube|default:"—" }}</div></div>
+  <div class="olcu"><div class="ad">Doğru · Yanlış · Boş</div><div class="deger">{{ sonuc.dogru }}<span class="soluk" style="font-size:20px"> · {{ sonuc.yanlis }} · {{ sonuc.bos }}</span></div><div class="not">{{ deneme.toplam_soru }} soru</div></div>
+</div>
+
+<section class="bolum">
+  <div class="bolum-baslik"><div><h2>Ders sonuçları</h2></div></div>
+  <div class="kart sikisik tablo-kap">
+    <table>
+      <thead><tr><th>Ders</th><th class="sayi">Doğru</th><th class="sayi">Yanlış</th><th class="sayi">Boş</th><th class="sayi">Net</th><th style="width:22%">Başarı</th><th class="sayi">Şube ort.</th><th class="sayi">Kurum ort.</th></tr></thead>
+      <tbody>
+      {% for ts, kurum, sube in test_satirlari %}
+        <tr><td><b>{{ ts.test.ders }}</b><div class="kucuk-yazi">{{ ts.test.soru_sayisi }} soru</div></td><td class="sayi">{{ ts.dogru }}</td><td class="sayi">{{ ts.yanlis }}</td><td class="sayi">{{ ts.bos }}</td><td class="sayi"><b>{{ ts.net|floatformat:2 }}</b></td>
+          <td>{% widthratio ts.dogru ts.test.soru_sayisi 100 as yuzde %}<div class="cubuk {% if yuzde|add:0 < 50 %}dusuk{% elif yuzde|add:0 < 70 %}orta{% else %}iyi{% endif %}"><i style="width:{{ yuzde }}%"></i></div></td>
+          <td class="sayi soluk">{{ sube|floatformat:2|default:"—" }}</td><td class="sayi soluk">{{ kurum|floatformat:2 }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="bolum">
+  <div class="bolum-baslik"><div><h2>Cevaplar</h2><p>A kitapçığı sırasıyla. Üstte öğrencinin cevabı, altta doğru cevap.</p></div></div>
+  <div class="kart">
+    {% for t, sorular in soru_satirlari %}
+    <div class="ders-blok"><div class="ad">{{ t.ders }}</div>
+      <div class="cevaplar">{% for s in sorular %}<span class="{{ s.durum }}" title="{{ forloop.counter }}. soru">{{ s.cevap }}<small>{{ s.anahtar }}</small></span>{% endfor %}</div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+{% if eksikler %}
+<section class="bolum">
+  <div class="bolum-baslik"><div><h2>Çalışılması gerekenler</h2><p>Başarısı %50'nin altında kalan kazanımlar.</p></div></div>
+  <div class="kart">
+    <ul class="liste">{% for k in eksikler %}<li><span class="rozet hata">%{{ k.oran|floatformat:0 }}</span><div><b>{{ k.ders }}</b>{% if k.kazanim.kod %} · <span class="soluk">{{ k.kazanim.kod }}</span>{% endif %}<div>{{ k.kazanim.metin }}</div></div></li>{% endfor %}</ul>
+  </div>
+</section>
+{% endif %}
+
+<section class="bolum">
+  <div class="bolum-baslik"><div><h2>Kazanım karnesi</h2></div></div>
+  <div class="kart sikisik tablo-kap">
+    <table>
+      <thead><tr><th>Kazanım</th><th class="sayi">Sorular</th><th style="width:18%">Öğrenci</th><th class="sayi">%</th><th class="sayi">Kurum</th></tr></thead>
+      <tbody>
+      {% for k, kurum in kazanimlar %}
+        <tr><td><span class="kucuk-yazi">{{ k.ders }}{% if k.kazanim.kod %} · {{ k.kazanim.kod }}{% endif %}</span><div>{{ k.kazanim.metin }}</div></td><td class="sayi soluk">{{ k.soru_nolari|join:", " }}</td>
+          <td><div class="cubuk {% if k.oran < 50 %}dusuk{% elif k.oran < 70 %}orta{% else %}iyi{% endif %}"><i style="width:{{ k.oran|floatformat:0 }}%"></i></div></td>
+          <td class="sayi"><b>{{ k.oran|floatformat:0 }}</b></td><td class="sayi soluk">{{ kurum|floatformat:0 }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>

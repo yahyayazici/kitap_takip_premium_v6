@@ -1,0 +1,40 @@
+{% load static %}<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <title>{% block baslik %}Denemeler{% endblock %} · {{ KURUM_ADI }} Optik</title>
+  <link rel="stylesheet" href="{% static 'okuma/okuma.css' %}">
+</head>
+<body>
+  <header class="gnav">
+    <div class="gnav-ic">
+      <a class="logo" href="{% url 'deneme_listesi' %}" aria-label="Ana sayfa">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="2.5" width="17" height="19" rx="3.5" stroke="currentColor" stroke-width="1.6"/><circle cx="8.5" cy="8" r="1.6" fill="currentColor"/><circle cx="12" cy="8" r="1.6" stroke="currentColor" stroke-width="1.2"/><circle cx="15.5" cy="8" r="1.6" stroke="currentColor" stroke-width="1.2"/><circle cx="8.5" cy="12.5" r="1.6" stroke="currentColor" stroke-width="1.2"/><circle cx="12" cy="12.5" r="1.6" stroke="currentColor" stroke-width="1.2"/><circle cx="15.5" cy="12.5" r="1.6" fill="currentColor"/><path d="M8 17h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <span>{{ KURUM_ADI }} Optik</span>
+      </a>
+      {% if user.is_authenticated %}
+      {% with ad=request.resolver_match.url_name %}
+      <a href="{% url 'deneme_listesi' %}" class="{% if ad == 'deneme_listesi' or 'deneme' in ad or ad in 'satirlar sonuclar karne kazanim_raporu madde_analizi' %}aktif{% endif %}">Denemeler</a>
+      <a href="{% url 'ogrenciler' %}" class="{% if 'ogrenci' in ad %}aktif{% endif %}">Öğrenciler</a>
+      <a href="{% url 'sablonlar' %}" class="{% if 'sablon' in ad %}aktif{% endif %}">Optik tanımları</a>
+      {% if user.is_superuser and OKUMA_KULLANICI_YONETIMI %}<a href="{% url 'kullanicilar' %}" class="{% if 'kullanici' in ad %}aktif{% endif %}">Kullanıcılar</a>{% endif %}
+      {% endwith %}
+      <span class="bosluk"></span>
+      <span class="kullanici">{{ user.get_full_name|default:user.username }}</span>
+      <form method="post" action="{% url 'cikis' %}">{% csrf_token %}<button>Çıkış</button></form>
+      {% endif %}
+    </div>
+  </header>
+  {% block yerel_menu %}{% endblock %}
+  {% block govde %}
+  <main class="{% block main_sinif %}{% endblock %}">
+    {% if messages %}<ul class="bildirimler">{% for m in messages %}<li class="{{ m.tags }}">{{ m }}</li>{% endfor %}</ul>{% endif %}
+    {% block icerik %}{% endblock %}
+  </main>
+  <footer class="altbilgi">{{ KURUM_ADI }} · Deneme Okuma ve Analiz</footer>
+  {% endblock %}
+</body>
+</html>

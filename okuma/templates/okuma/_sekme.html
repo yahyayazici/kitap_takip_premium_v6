@@ -1,0 +1,15 @@
+<div class="lnav">
+  <div class="lnav-ic">
+    <a class="baslik" href="{% url 'deneme_detay' deneme.pk %}">{{ deneme.ad }}</a>
+    <nav>
+      <a href="{% url 'deneme_detay' deneme.pk %}" class="{% if aktif == 'detay' %}aktif{% endif %}">Genel bakış</a>
+      <a href="{% url 'anahtar' deneme.pk %}" class="{% if aktif == 'anahtar' %}aktif{% endif %}">Cevap anahtarı</a>
+      <a href="{% url 'satirlar' deneme.pk %}" class="{% if aktif == 'satirlar' %}aktif{% endif %}">Okunan satırlar</a>
+      <a href="{% url 'sonuclar' deneme.pk %}" class="{% if aktif == 'sonuclar' %}aktif{% endif %}">Sonuçlar</a>
+      <a href="{% url 'kazanim_raporu' deneme.pk %}" class="{% if aktif == 'kazanim' %}aktif{% endif %}">Kazanımlar</a>
+      <a href="{% url 'madde_analizi' deneme.pk %}" class="{% if aktif == 'madde' %}aktif{% endif %}">Soru analizi</a>
+      <a href="{% url 'deneme_duzenle' deneme.pk %}" class="{% if aktif == 'ayarlar' %}aktif{% endif %}">Ayarlar</a>
+      <a class="btn kucuk" href="{% url 'karneler' deneme.pk %}">Karneler</a>
+    </nav>
+  </div>
+</div>

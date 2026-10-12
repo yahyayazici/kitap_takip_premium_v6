@@ -1,0 +1,45 @@
+{% extends "okuma/base.html" %}{% load okuma_etiket %}
+{% block baslik %}Soru analizi · {{ deneme.ad }}{% endblock %}
+{% block yerel_menu %}{% include "okuma/_sekme.html" with aktif="madde" %}{% endblock %}
+{% block main_sinif %}genis{% endblock %}
+{% block icerik %}
+<section class="kahraman">
+  <h1>Soru analizi.</h1>
+  <p>Her sorunun zorluğu, ayırt ediciliği ve şık dağılımı. Cevap anahtarını buradan düzeltebilir ya da soruyu iptal edebilirsiniz; sonuçlar hemen yeniden hesaplanır.</p>
+</section>
+
+<div class="kart">
+  <h3>Test güvenirliği</h3>
+  <p class="kucuk-yazi" style="margin:0 0 18px">KR-20 katsayısı. 0,70 ve üzeri iyi kabul edilir; az öğrencili denemelerde oynak olur.</p>
+  <div class="degerler">{% for ders, deger in kr20.items %}<div><b class="{% if deger is not None and deger >= 0.7 %}renkli{% endif %}">{{ deger|floatformat:2|default:"—" }}</b><span>{{ ders }}</span></div>{% endfor %}</div>
+</div>
+
+<section class="bolum">
+  <div class="bolum-baslik"><div><h2>Sorular</h2><p><b>p</b> doğru yapanların oranı · <b>r</b> en başarılı %27 ile en başarısız %27 arasındaki fark (≥0,40 çok iyi, 0,20 altı zayıf). Doğru şık kalın.</p></div></div>
+  <div class="kart sikisik tablo-kap">
+    <table>
+      <thead><tr><th>Soru</th><th class="sayi">p</th><th class="sayi">r</th>{% for c in secenekler %}<th class="sayi">{{ c }}</th>{% endfor %}<th class="sayi">Boş</th><th class="sayi">Çift</th><th>Not</th><th>Cevap · Ek doğru · İptal</th></tr></thead>
+      <tbody>
+      {% for m, soru in tablo %}
+        <tr id="soru-{{ soru.pk }}" {% if m.iptal %}style="opacity:.55"{% endif %}>
+          <td><b>{{ m.test }} {{ m.no }}</b></td>
+          <td class="sayi">{{ m.p|floatformat:2|default:"—" }}<div class="kucuk-yazi">{{ m.zorluk_etiket }}</div></td>
+          <td class="sayi">{% if m.r is not None and m.r < 0.2 %}<span class="rozet hata">{{ m.r|floatformat:2 }}</span>{% else %}{{ m.r|floatformat:2|default:"—" }}{% endif %}<div class="kucuk-yazi">{{ m.ayirt_etiket }}</div></td>
+          {% for c in secenekler %}<td class="sayi">{% if c in m.dogru_cevap %}<b style="color:var(--yesil)">{{ m.secenekler|get_item:c }}</b>{% else %}<span class="soluk">{{ m.secenekler|get_item:c }}</span>{% endif %}</td>{% endfor %}
+          <td class="sayi soluk">{{ m.secenekler|get_item:" " }}</td><td class="sayi soluk">{{ m.secenekler|get_item:"*" }}</td>
+          <td>{% for u in m.uyarilar %}<span class="rozet uyari" style="white-space:normal;margin:2px 0">{{ u }}</span>{% endfor %}</td>
+          <td>{% if soru %}
+            <form class="satir-form" method="post" action="{% url 'soru_guncelle' soru.pk %}">{% csrf_token %}
+              <select name="dogru" aria-label="Doğru cevap" style="width:64px">{% for c in secenekler %}<option {% if soru.dogru == c %}selected{% endif %}>{{ c }}</option>{% endfor %}</select>
+              <input type="text" name="ek_dogrular" value="{{ soru.ek_dogrular }}" maxlength="4" style="width:52px" aria-label="Ek doğru şıklar" placeholder="—">
+              <input type="checkbox" name="iptal" {% if soru.iptal %}checked{% endif %} aria-label="İptal">
+              <button class="btn kucuk ikincil">Kaydet</button>
+            </form>{% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

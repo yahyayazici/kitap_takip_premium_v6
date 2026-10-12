@@ -1,0 +1,25 @@
+{% extends "okuma/base.html" %}
+{% block baslik %}Kullanıcılar{% endblock %}
+{% block icerik %}
+<section class="kahraman">
+  <h1>Kullanıcılar.</h1>
+  <p>Panele kimlerin girebileceğini yönetin. Yöneticiler kullanıcı ekleyip çıkarabilir.</p>
+  <div class="eylemler"><a class="btn buyuk" href="{% url 'kullanici_olustur' %}">Yeni kullanıcı</a></div>
+</section>
+<div class="kart sikisik tablo-kap">
+  <table>
+    <thead><tr><th>Kullanıcı</th><th>Rol</th><th>Durum</th><th>Son giriş</th><th></th></tr></thead>
+    <tbody>
+    {% for k in kullanicilar %}
+      <tr>
+        <td><b>{{ k.get_full_name|default:k.username }}</b><div class="kucuk-yazi">{{ k.username }}</div></td>
+        <td>{% if k.is_superuser %}<span class="rozet mavi">Yönetici</span>{% else %}<span class="rozet gri">Öğretmen</span>{% endif %}</td>
+        <td>{% if k.is_active %}<span class="rozet tamam">Aktif</span>{% else %}<span class="rozet hata">Kapalı</span>{% endif %}</td>
+        <td class="soluk">{{ k.last_login|date:"j M Y H:i"|default:"—" }}</td>
+        <td class="sayi"><a class="btn kucuk gri" href="{% url 'kullanici_duzenle' k.pk %}">Düzenle</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

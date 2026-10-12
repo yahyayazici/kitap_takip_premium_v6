@@ -1,0 +1,66 @@
+{% extends "okuma/base.html" %}
+{% block baslik %}Öğrenciler{% endblock %}
+{% block icerik %}
+<section class="kahraman">
+  <h1>Öğrenciler.</h1>
+  <p>Öğrenciler optikte yalnızca numaralarını kodlar; sonuçlarda adları bu listeden gelir.</p>
+  <div class="eylemler">
+    <a class="btn buyuk" href="{% url 'ogrenci_toplu' %}">Liste yükle</a>
+    <a class="baglanti-ok" href="#tek-ekle">Tek öğrenci ekle</a>
+  </div>
+</section>
+
+<div class="izgara-4">
+  <div class="olcu"><div class="ad">Kayıtlı öğrenci</div><div class="deger">{{ toplam }}</div></div>
+  <div class="olcu {% if isimsiz %}eksik{% else %}tamam{% endif %}"><div class="ad">Adı girilmemiş</div><div class="deger">{{ isimsiz }}</div>{% if isimsiz %}<div class="not"><a href="?filtre=isimsiz">göster</a></div>{% endif %}</div>
+  <div class="olcu"><div class="ad">Şube</div><div class="deger">{{ siniflar|length }}</div></div>
+  <div class="olcu"><div class="ad">Listede</div><div class="deger">{{ ogrenciler|length }}</div><div class="not">filtreye göre</div></div>
+</div>
+
+<section class="bolum">
+  <form method="get" class="arac-cubugu">
+    <div style="flex:1;min-width:220px;max-width:340px"><input type="search" name="q" value="{{ q }}" placeholder="Numara ya da ad ara" aria-label="Ara"></div>
+    <div class="segment">
+      <a href="?" class="{% if not sinif and not filtre %}secili{% endif %}">Tümü</a>
+      {% for s in siniflar %}{% with kod=s.sinif_seviyesi|add:"-"|add:s.sube %}<a href="?sinif={{ kod }}" class="{% if sinif == kod %}secili{% endif %}">{{ s.sinif_seviyesi }}{{ s.sube|default:" şubesiz" }} <span class="soluk">{{ s.adet }}</span></a>{% endwith %}{% endfor %}
+      <a href="?filtre=isimsiz" class="{% if filtre == 'isimsiz' %}secili{% endif %}">İsimsiz</a>
+      <a href="?filtre=pasif" class="{% if filtre == 'pasif' %}secili{% endif %}">Pasif</a>
+    </div>
+  </form>
+  <div class="kart sikisik tablo-kap">
+    <table>
+      <thead><tr><th class="sayi">Numara</th><th>Ad soyad</th><th>Sınıf</th><th class="sayi">Deneme</th><th></th></tr></thead>
+      <tbody>
+      {% for o in ogrenciler %}
+        <tr>
+          <td class="sayi"><b>{{ o.numara }}</b></td>
+          <td>{% if o.ad_soyad %}{{ o.ad_soyad }}{% else %}<span class="rozet uyari">Ad girilmemiş</span>{% endif %}</td>
+          <td>{% if o.sinif_seviyesi or o.sube %}{{ o.sinif_seviyesi }}{{ o.sube }}{% else %}<span class="soluk">—</span>{% endif %}</td>
+          <td class="sayi soluk">{{ o.deneme_sayisi }}</td>
+          <td class="sayi"><a class="btn kucuk gri" href="{% url 'ogrenci_duzenle' o.pk %}">Düzenle</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5"><div class="bos-durum"><h3>Öğrenci yok.</h3><p>Listeyi Excel'den yapıştırarak hızlıca ekleyebilirsiniz.</p><a class="btn" href="{% url 'ogrenci_toplu' %}">Liste yükle</a></div></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="bolum" id="tek-ekle">
+  <div class="bolum-baslik"><div><h2>Tek öğrenci ekle</h2></div></div>
+  <div class="kart">
+    <form method="post">{% csrf_token %}
+      {% for e in form.non_field_errors %}<div class="form-hata">{{ e }}</div>{% endfor %}
+      <div class="form-izgara">
+        {% with alan=form.numara %}{% include "okuma/_alan.html" %}{% endwith %}
+        {% with alan=form.ad_soyad %}{% include "okuma/_alan.html" %}{% endwith %}
+        {% with alan=form.sinif_seviyesi %}{% include "okuma/_alan.html" %}{% endwith %}
+        {% with alan=form.sube %}{% include "okuma/_alan.html" %}{% endwith %}
+      </div>
+      <input type="hidden" name="aktif" value="on">
+      <button class="btn">Ekle</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

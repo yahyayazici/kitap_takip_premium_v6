@@ -136,6 +136,27 @@ Arama motorlarına kapalıdır (`noindex` + `robots.txt`).
 
 Yerelde deneme: `EKITAP_YONETICI_SIFRE=deneme python manage.py runserver` → `http://ekitap.localhost:8000/`.
 
+## Optik alt alan adı (`optik.cinilisarayproje.com`)
+
+Deneme optik okuma ve analiz paneli (5–8. sınıflar). Aynı Render servisinde çalışır (ayrı sunucu/ücret yok).
+Giriş ana sitenin kullanıcılarıyla yapılır; panel yalnızca **Deneme modülü yetkisi** olan personele ve
+süper kullanıcılara açıktır (veli/talebe hesapları 403 alır). Arama motorlarına kapalıdır.
+
+1. **Kodu yayınla:** `main`'e birleşince Render deploy eder; `okuma` uygulamasının migration'ları
+   (optik form tanımı ve 5–8. sınıf × 90/75 soruluk deneme türleri dahil) başlangıçta çalışır.
+2. **Render → Settings → Custom Domains → Add Custom Domain:** `optik.cinilisarayproje.com`.
+3. **Namecheap → Advanced DNS → Add New Record:**
+
+   | Tür | Host | Değer | TTL |
+   |-----|------|-------|-----|
+   | **CNAME** | `optik` | `kitap-takip-premium-v6.onrender.com` | Automatic |
+
+4. Render'da domain **Verified** olunca HTTPS sertifikası otomatik gelir (5–30 dk).
+5. `https://optik.cinilisarayproje.com/` → ana site hesabıyla giriş → Öğrenciler → Liste yükle →
+   Yeni deneme → cevap anahtarı → optik dosyası.
+
+Yerelde deneme: `python manage.py runserver` → `http://optik.localhost:8000/`.
+
 ### Soru tespiti (büyüteç ve soru görünümü)
 
 PDF yüklenince sayfalar hazırlandıktan sonra yazı katmanındaki soru numaraları okunur, her soru için

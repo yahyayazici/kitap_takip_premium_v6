@@ -1,0 +1,30 @@
+{% extends "okuma/base.html" %}
+{% block baslik %}{{ ogrenci }}{% endblock %}
+{% block icerik %}
+<section class="kahraman">
+  <p class="ust-yazi"><a href="{% url 'ogrenciler' %}">Öğrenciler</a></p>
+  <h1>{{ ogrenci.ad_soyad|default:"İsimsiz öğrenci" }}</h1>
+  <p>No {{ ogrenci.numara }}{% if ogrenci.sinif_seviyesi %} · {{ ogrenci.sinif_seviyesi }}{{ ogrenci.sube }}{% endif %}</p>
+</section>
+<div class="izgara-2" style="align-items:start">
+  <div class="kart">
+    <form method="post">{% csrf_token %}
+      {% include "okuma/_form.html" %}
+      <div style="display:flex;gap:12px;margin-top:8px"><button class="btn buyuk">Kaydet</button><a class="btn buyuk gri" href="{% url 'ogrenciler' %}">Vazgeç</a></div>
+    </form>
+  </div>
+  <div>
+    <div class="kart">
+      <h3>Denemeleri</h3>
+      {% if sonuclar %}
+      <ul class="liste">{% for s in sonuclar %}<li><div style="flex:1"><a href="{% url 'karne' s.deneme.pk s.pk %}"><b>{{ s.deneme.ad }}</b></a><div class="kucuk-yazi">{{ s.deneme.tarih|date:"j F Y" }} · {{ s.sira_kurum }}/{{ s.katilimci }}. sıra</div></div><div class="sayi"><b>{{ s.net|floatformat:2 }}</b> <span class="kucuk-yazi">net</span></div></li>{% endfor %}</ul>
+      {% else %}<p class="soluk">Henüz deneme sonucu yok.</p>{% endif %}
+    </div>
+    <div class="kart">
+      <h3>Öğrenciyi sil</h3>
+      <p class="kucuk-yazi">Tüm deneme sonuçları da silinir. Okunan optik satırları kalır ama eşleşmesiz olur. Ayrılan öğrenciler için silmek yerine “Aktif”i kapatın.</p>
+      <form method="post" action="{% url 'ogrenci_sil' ogrenci.pk %}" onsubmit="return confirm('Öğrenci ve tüm sonuçları silinsin mi?')">{% csrf_token %}<button class="btn tehlike">Sil</button></form>
+    </div>
+  </div>
+</div>
+{% endblock %}

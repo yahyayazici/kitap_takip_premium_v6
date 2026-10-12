@@ -1,0 +1,30 @@
+{% extends "okuma/base.html" %}
+{% block baslik %}{{ tur.ad }}{% endblock %}
+{% block icerik %}
+<section class="kahraman">
+  <p class="ust-yazi"><a href="{% url 'sablonlar' %}">Optik tanımları</a></p>
+  <h1>{{ tur.ad }}</h1>
+  <p>Soru sayısı, optikteki kutu sayısını geçemez. Değişiklik yalnız bundan sonra açılan denemeleri etkiler.</p>
+</section>
+<form method="post">{% csrf_token %}
+  {{ formset.management_form }}
+  {% for e in formset.non_form_errors %}<div class="form-hata">{{ e }}</div>{% endfor %}
+  <div class="kart sikisik tablo-kap">
+    <table>
+      <thead><tr><th>Oturum</th><th>Ders</th><th class="sayi">Soru sayısı</th><th class="sayi">Optikteki kutu</th><th class="sayi">Katsayı</th></tr></thead>
+      <tbody>
+      {% for f in formset %}
+        <tr>
+          <td class="soluk">{{ f.instance.oturum }}{{ f.id }}</td>
+          <td>{{ f.ders }}{% for e in f.non_field_errors %}<div class="hata-metni kucuk-yazi" style="color:var(--kirmizi)">{{ e }}</div>{% endfor %}</td>
+          <td class="sayi" style="width:130px">{{ f.soru_sayisi }}</td>
+          <td class="sayi" style="width:130px">{{ f.optik_blok }}</td>
+          <td class="sayi" style="width:130px">{{ f.katsayi }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div style="display:flex;gap:12px;margin-top:20px"><button class="btn buyuk">Kaydet</button><a class="btn buyuk gri" href="{% url 'sablonlar' %}">Vazgeç</a></div>
+</form>
+{% endblock %}

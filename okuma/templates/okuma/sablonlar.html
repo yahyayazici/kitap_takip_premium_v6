@@ -1,0 +1,41 @@
+{% extends "okuma/base.html" %}
+{% block baslik %}Optik tanımları{% endblock %}
+{% block icerik %}
+<section class="kahraman">
+  <h1>Optik tanımları.</h1>
+  <p>Tek optik form, her sınıf için 90 ve 75 soruluk deneme türü. 75 soruluk denemede Türkçe, Matematik ve Fen bloklarının ilk 15 kutusu kodlanır.</p>
+</section>
+
+<section>
+  <div class="bolum-baslik"><div><h2>Deneme türleri</h2><p>Yeni deneme açarken seçilir. Dersler, soru sayıları ve optikteki yerleri buradan gelir.</p></div></div>
+  <div class="izgara">
+    {% for t in turler %}
+    <a class="kart karo" href="{% url 'deneme_turu' t.pk %}">
+      <div class="etiket">{{ t.deneme_sayisi }} deneme · optikte {{ t.optik_uzunluk }} kutu</div>
+      <h3>{{ t.ad }}</h3>
+      <div class="blok-serit" aria-hidden="true">
+        {% for d in t.dersler.all %}<span style="flex:{{ d.optik_blok }}" title="{{ d.ders }}: {{ d.soru_sayisi }}/{{ d.optik_blok }}"><i style="width:{% widthratio d.soru_sayisi d.optik_blok 100 %}%"></i></span>{% endfor %}
+      </div>
+      <div class="kucuk-yazi" style="margin-top:10px">{% for d in t.dersler.all %}{{ d.get_lgs_ders_display }} {{ d.soru_sayisi }}{% if not forloop.last %} · {% endif %}{% endfor %}</div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="bolum">
+  <div class="bolum-baslik"><div><h2>Optik form</h2><p>Okuyucu dosyasında her bilginin hangi sütunda olduğu.</p></div><a class="btn ikincil" href="{% url 'sablon_olustur' %}">Yeni form tanımı</a></div>
+  <div class="izgara">
+    {% for s in sablonlar %}
+    <a class="kart karo" href="{% url 'sablon_duzenle' s.pk %}">
+      <div class="etiket">{{ s.kodlama }} · {{ s.deneme_sayisi }} denemede okundu</div>
+      <h3>{{ s.ad }}</h3>
+      <div class="alt">
+        <div><b>{{ s.numara_bas }}</b><span>numara sütunu</span></div>
+        <div><b>{{ s.kitapcik_bas|default:"—" }}</b><span>kitapçık</span></div>
+        <div><b>{{ s.cevap_bas }}</b><span>cevaplar</span></div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

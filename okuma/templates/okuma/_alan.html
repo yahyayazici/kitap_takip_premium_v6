@@ -1,0 +1,14 @@
+{% if alan.field.widget.input_type == "checkbox" %}
+<div class="alan anahtar{% if alan.errors %} hatali{% endif %}">
+  <div><label for="{{ alan.id_for_label }}">{{ alan.label }}</label>{% if alan.help_text %}<span class="yardim">{{ alan.help_text }}</span>{% endif %}</div>
+  {{ alan }}
+</div>
+{% elif alan.is_hidden %}{{ alan }}
+{% else %}
+<div class="alan{% if alan.errors %} hatali{% endif %}">
+  <label for="{{ alan.id_for_label }}">{{ alan.label }}</label>
+  {{ alan }}
+  {% if alan.help_text %}<span class="yardim">{{ alan.help_text|safe }}</span>{% endif %}
+  {% for e in alan.errors %}<span class="hata-metni">{{ e }}</span>{% endfor %}
+</div>
+{% endif %}

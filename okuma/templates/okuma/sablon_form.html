@@ -1,0 +1,64 @@
+{% extends "okuma/base.html" %}
+{% block baslik %}{% if sablon %}{{ sablon.ad }}{% else %}Yeni şablon{% endif %}{% endblock %}
+{% block main_sinif %}genis{% endblock %}
+{% block icerik %}
+<section class="kahraman">
+  <p class="ust-yazi"><a href="{% url 'sablonlar' %}">Optik şablonlar</a></p>
+  <h1>{% if sablon %}{{ sablon.ad }}{% else %}Yeni şablon.{% endif %}</h1>
+  <p>Sütun numaraları 1'den başlar. Örnek bir dosya seçip “Önizle” derseniz, kaydetmeden önce ilk satırların nasıl okunacağını görürsünüz.</p>
+</section>
+<form method="post" enctype="multipart/form-data">{% csrf_token %}
+<div class="izgara-2" style="align-items:start">
+  <div class="kart">
+    {% for e in form.non_field_errors %}<div class="form-hata">{{ e }}</div>{% endfor %}
+    {% with alan=form.ad %}{% include "okuma/_alan.html" %}{% endwith %}
+    <div class="form-izgara">
+      {% with alan=form.numara_bas %}{% include "okuma/_alan.html" %}{% endwith %}
+      {% with alan=form.numara_uzunluk %}{% include "okuma/_alan.html" %}{% endwith %}
+      {% with alan=form.kitapcik_bas %}{% include "okuma/_alan.html" %}{% endwith %}
+      {% with alan=form.cevap_bas %}{% include "okuma/_alan.html" %}{% endwith %}
+      {% with alan=form.sinif_bas %}{% include "okuma/_alan.html" %}{% endwith %}
+      {% with alan=form.sinif_uzunluk %}{% include "okuma/_alan.html" %}{% endwith %}
+      {% with alan=form.sube_bas %}{% include "okuma/_alan.html" %}{% endwith %}
+      {% with alan=form.sube_uzunluk %}{% include "okuma/_alan.html" %}{% endwith %}
+      {% with alan=form.ad_bas %}{% include "okuma/_alan.html" %}{% endwith %}
+      {% with alan=form.ad_uzunluk %}{% include "okuma/_alan.html" %}{% endwith %}
+      {% with alan=form.kodlama %}{% include "okuma/_alan.html" %}{% endwith %}
+    </div>
+    {% with alan=form.aciklama %}{% include "okuma/_alan.html" %}{% endwith %}
+    <div style="display:flex;gap:12px"><button class="btn buyuk">Kaydet</button><a class="btn buyuk gri" href="{% url 'sablonlar' %}">Vazgeç</a></div>
+  </div>
+  <div class="kart">
+    <h3>Önizle</h3>
+    <p class="kucuk-yazi" style="margin:0 0 18px">Okuyucudan çıkan bir .dat/.txt dosyası seçin.</p>
+    <div class="alan"><label for="ornek">Örnek dosya</label><input type="file" name="ornek" id="ornek"></div>
+    <div class="alan"><label for="soru_sayisi">Soru sayısı</label><input type="number" name="soru_sayisi" id="soru_sayisi" value="{{ onizleme.soru|default:90 }}" min="1" max="300"></div>
+    <button class="btn ikincil" name="onizle" value="1">Önizle</button>
+  </div>
+</div>
+</form>
+{% if onizleme %}
+<section class="bolum">
+  <div class="bolum-baslik"><div><h2>Önizleme</h2><p>İlk {{ onizleme.satirlar|length }} satır bu ayarlarla böyle okunuyor.</p></div></div>
+  <div class="kart sikisik tablo-kap">
+    <table>
+      <thead><tr><th class="sayi">#</th><th class="sayi">Numara</th><th>Kitapçık</th><th>Sınıf</th><th>Şube</th><th>Ad soyad</th><th>Cevaplar</th><th>Not</th></tr></thead>
+      <tbody>
+      {% for o in onizleme.satirlar %}
+        <tr><td class="sayi soluk">{{ o.satir_no }}</td><td class="sayi"><b>{{ o.numara|default:"—" }}</b></td><td>{{ o.kitapcik|default:"—" }}</td><td>{{ o.sinif|default:"—" }}</td><td>{{ o.sube|default:"—" }}</td><td>{{ o.ad_soyad|default:"—" }}</td><td class="ham">{{ o.cevaplar|truncatechars:42 }}</td><td>{% for h in o.hatalar %}<span class="rozet hata">{{ h }}</span> {% endfor %}{% for u in o.uyarilar %}<span class="rozet uyari">{{ u }}</span> {% endfor %}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+{% if sablon %}
+<section class="bolum">
+  <div class="kart">
+    <h3>Şablonu sil</h3>
+    <p class="kucuk-yazi">Bu şablonla okunmuş dosya varsa silinemez.</p>
+    <form method="post" action="{% url 'sablon_sil' sablon.pk %}" onsubmit="return confirm('Şablon silinsin mi?')">{% csrf_token %}<button class="btn tehlike">Sil</button></form>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

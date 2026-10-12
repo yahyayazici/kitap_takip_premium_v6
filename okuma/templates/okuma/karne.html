@@ -1,0 +1,7 @@
+{% extends "okuma/base.html" %}
+{% block baslik %}{{ sonuc.ogrenci.ad_soyad|default:sonuc.ogrenci.numara }} · Karne{% endblock %}
+{% block yerel_menu %}{% include "okuma/_sekme.html" with aktif="karne" %}{% endblock %}
+{% block icerik %}
+<div class="yazdirma-gizle arac-cubugu"><a class="baglanti-ok" href="{% url 'sonuclar' deneme.pk %}">Tüm sonuçlar</a><div class="sag"><button class="btn gri kucuk" onclick="window.print()">Yazdır</button></div></div>
+{% include "okuma/_karne_govde.html" %}
+{% endblock %}

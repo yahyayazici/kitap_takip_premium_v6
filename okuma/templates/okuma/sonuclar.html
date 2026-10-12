@@ -1,0 +1,107 @@
+{% extends "okuma/base.html" %}
+{% block baslik %}Sonuçlar · {{ deneme.ad }}{% if katilmayanlar %}
+<section class="bolum" id="katilmayanlar">
+  <div class="bolum-baslik"><div><h2>Katılmayanlar</h2><p>{{ deneme.sinif_seviyesi }}. sınıf listesinde olup optiği okunmayan {{ katilmayanlar|length }} öğrenci.</p></div></div>
+  <div class="kart sikisik tablo-kap">
+    <table>
+      <thead><tr><th class="sayi">Numara</th><th>Ad soyad</th><th>Şube</th></tr></thead>
+      <tbody>{% for o in katilmayanlar %}<tr><td class="sayi"><b>{{ o.numara }}</b></td><td><a href="{% url 'ogrenci_duzenle' o.pk %}">{{ o.ad_soyad|default:"—" }}</a></td><td>{{ o.sinif_seviyesi }}{{ o.sube }}</td></tr>{% endfor %}</tbody>
+    </table>
+  </div>
+  <p class="kucuk-yazi" style="margin-top:12px">Optiği okunduğu hâlde burada görünen öğrenci, numarasını yanlış kodlamış olabilir: <a href="{% url 'satirlar' deneme.pk %}?durum=hata">hatalı satırlara bakın</a>.</p>
+</section>
+{% endif %}
+{% endblock %}
+{% block yerel_menu %}{% include "okuma/_sekme.html" with aktif="sonuclar" %}{% if katilmayanlar %}
+<section class="bolum" id="katilmayanlar">
+  <div class="bolum-baslik"><div><h2>Katılmayanlar</h2><p>{{ deneme.sinif_seviyesi }}. sınıf listesinde olup optiği okunmayan {{ katilmayanlar|length }} öğrenci.</p></div></div>
+  <div class="kart sikisik tablo-kap">
+    <table>
+      <thead><tr><th class="sayi">Numara</th><th>Ad soyad</th><th>Şube</th></tr></thead>
+      <tbody>{% for o in katilmayanlar %}<tr><td class="sayi"><b>{{ o.numara }}</b></td><td><a href="{% url 'ogrenci_duzenle' o.pk %}">{{ o.ad_soyad|default:"—" }}</a></td><td>{{ o.sinif_seviyesi }}{{ o.sube }}</td></tr>{% endfor %}</tbody>
+    </table>
+  </div>
+  <p class="kucuk-yazi" style="margin-top:12px">Optiği okunduğu hâlde burada görünen öğrenci, numarasını yanlış kodlamış olabilir: <a href="{% url 'satirlar' deneme.pk %}?durum=hata">hatalı satırlara bakın</a>.</p>
+</section>
+{% endif %}
+{% endblock %}
+{% block main_sinif %}genis{% if katilmayanlar %}
+<section class="bolum" id="katilmayanlar">
+  <div class="bolum-baslik"><div><h2>Katılmayanlar</h2><p>{{ deneme.sinif_seviyesi }}. sınıf listesinde olup optiği okunmayan {{ katilmayanlar|length }} öğrenci.</p></div></div>
+  <div class="kart sikisik tablo-kap">
+    <table>
+      <thead><tr><th class="sayi">Numara</th><th>Ad soyad</th><th>Şube</th></tr></thead>
+      <tbody>{% for o in katilmayanlar %}<tr><td class="sayi"><b>{{ o.numara }}</b></td><td><a href="{% url 'ogrenci_duzenle' o.pk %}">{{ o.ad_soyad|default:"—" }}</a></td><td>{{ o.sinif_seviyesi }}{{ o.sube }}</td></tr>{% endfor %}</tbody>
+    </table>
+  </div>
+  <p class="kucuk-yazi" style="margin-top:12px">Optiği okunduğu hâlde burada görünen öğrenci, numarasını yanlış kodlamış olabilir: <a href="{% url 'satirlar' deneme.pk %}?durum=hata">hatalı satırlara bakın</a>.</p>
+</section>
+{% endif %}
+{% endblock %}
+{% block icerik %}
+<section class="kahraman">
+  <h1>Sonuçlar.</h1>
+  {% with k=sube_tablosu|last %}
+  <p>{{ k.kisi }} öğrenci · kurum ortalaması {{ k.net|floatformat:2 }} net{% if k.puan %} · {{ k.puan|floatformat:1 }} puan{% endif %}</p>
+  {% endwith %}
+</section>
+
+<div class="kart sikisik tablo-kap">
+  <table>
+    <thead><tr><th>Şube</th><th class="sayi">Kişi</th>{% for d in dersler %}<th class="sayi">{{ d }}</th>{% endfor %}<th class="sayi">Net</th><th class="sayi">Puan</th></tr></thead>
+    <tbody>
+    {% for s in sube_tablosu %}
+      <tr class="{% if forloop.last %}toplam{% endif %}"><td>{% if forloop.last %}Kurum{% elif s.ad == "—" %}Şubesiz{% else %}{{ deneme.sinif_seviyesi }}{{ s.ad }}{% endif %}</td><td class="sayi">{{ s.kisi }}</td>{% for n in s.netler %}<td class="sayi">{{ n|floatformat:2 }}</td>{% endfor %}<td class="sayi">{{ s.net|floatformat:2 }}</td><td class="sayi">{{ s.puan|floatformat:2|default:"—" }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<section class="bolum">
+  <div class="arac-cubugu">
+    <div class="segment">
+      <a href="?" class="{% if not sube %}secili{% endif %}">Tüm şubeler</a>
+      {% for s in subeler %}<a href="?sube={{ s }}" class="{% if sube == s %}secili{% endif %}">{{ deneme.sinif_seviyesi }}{{ s }}</a>{% endfor %}
+    </div>
+    <div class="sag"><a class="btn gri kucuk" href="{% url 'karneler' deneme.pk %}{% if sube %}?sube={{ sube }}{% endif %}">Karneleri yazdır</a><a class="btn ikincil kucuk" href="{% url 'sonuclar_excel' deneme.pk %}">Excel olarak indir</a></div>
+  </div>
+  <div class="kart sikisik tablo-kap">
+    <table>
+      <thead>
+        <tr><th class="sayi">Sıra</th><th>Öğrenci</th><th>Şube</th>
+          {% for t in testler %}<th class="sayi" title="{{ t.ad }}">{{ t.ders|truncatechars:10 }}</th>{% endfor %}
+          <th class="sayi">D</th><th class="sayi">Y</th><th class="sayi">B</th><th class="sayi">Net</th>{% if deneme.puan_modu != "yok" %}<th class="sayi">Puan</th>{% endif %}<th class="sayi">Dilim</th></tr>
+      </thead>
+      <tbody>
+      {% for s in sonuclar %}
+        <tr>
+          <td class="sayi"><b>{{ s.sira_kurum }}</b><div class="kucuk-yazi">şube {{ s.sira_sube }}</div></td>
+          <td><a href="{% url 'karne' deneme.pk s.pk %}"><b>{{ s.ogrenci.ad_soyad|default:"İsimsiz öğrenci" }}</b></a><div class="kucuk-yazi">No {{ s.ogrenci.numara }} · {{ s.kitapcik }} kitapçığı</div></td>
+          <td>{% if s.sube %}{{ deneme.sinif_seviyesi }}{{ s.sube }}{% else %}<span class="soluk">—</span>{% endif %}</td>
+          {% for ts in s.test_sonuclari.all %}<td class="sayi" title="{{ ts.dogru }} doğru · {{ ts.yanlis }} yanlış · {{ ts.bos }} boş">{{ ts.net|floatformat:2 }}</td>{% endfor %}
+          <td class="sayi soluk">{{ s.dogru }}</td><td class="sayi soluk">{{ s.yanlis }}</td><td class="sayi soluk">{{ s.bos }}</td>
+          <td class="sayi"><b>{{ s.net|floatformat:2 }}</b></td>
+          {% if deneme.puan_modu != "yok" %}<td class="sayi"><b>{{ s.puan|floatformat:2|default:"—" }}</b></td>{% endif %}
+          <td class="sayi soluk">%{{ s.yuzdelik|floatformat:0 }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="20"><div class="bos-durum"><h3>Henüz sonuç yok.</h3><p>Cevap anahtarını ve optik dosyasını yükleyin.</p></div></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if deneme.puan_modu == "lgs_tablo" %}<p class="kucuk-yazi" style="margin-top:14px">Puan, {{ deneme.lgs_yili }} LGS katsayılarıyla hesaplanmış tahmini değerdir. Dilim, kurum içi sıraya göredir.</p>{% endif %}
+</section>
+{% if katilmayanlar %}
+<section class="bolum" id="katilmayanlar">
+  <div class="bolum-baslik"><div><h2>Katılmayanlar</h2><p>{{ deneme.sinif_seviyesi }}. sınıf listesinde olup optiği okunmayan {{ katilmayanlar|length }} öğrenci.</p></div></div>
+  <div class="kart sikisik tablo-kap">
+    <table>
+      <thead><tr><th class="sayi">Numara</th><th>Ad soyad</th><th>Şube</th></tr></thead>
+      <tbody>{% for o in katilmayanlar %}<tr><td class="sayi"><b>{{ o.numara }}</b></td><td><a href="{% url 'ogrenci_duzenle' o.pk %}">{{ o.ad_soyad|default:"—" }}</a></td><td>{{ o.sinif_seviyesi }}{{ o.sube }}</td></tr>{% endfor %}</tbody>
+    </table>
+  </div>
+  <p class="kucuk-yazi" style="margin-top:12px">Optiği okunduğu hâlde burada görünen öğrenci, numarasını yanlış kodlamış olabilir: <a href="{% url 'satirlar' deneme.pk %}?durum=hata">hatalı satırlara bakın</a>.</p>
+</section>
+{% endif %}
+{% endblock %}

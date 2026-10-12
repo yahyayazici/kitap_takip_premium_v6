@@ -1,0 +1,37 @@
+{% extends "okuma/base.html" %}
+{% block baslik %}{% if deneme %}Ayarlar · {{ deneme.ad }}{% else %}Yeni deneme{% endif %}{% endblock %}
+{% block yerel_menu %}{% if deneme %}{% include "okuma/_sekme.html" with aktif="ayarlar" %}{% endif %}{% endblock %}
+{% block icerik %}
+<section class="kahraman">
+  <h1>{% if deneme %}Deneme ayarları.{% else %}Yeni deneme.{% endif %}</h1>
+  <p>{% if deneme %}Puan modu ya da yanlış katsayısı değişirse sonuçlar yeniden hesaplanır.{% else %}Önce denemeyi tanımlayın; ardından cevap anahtarını ve optik dosyasını yükleyeceksiniz.{% endif %}</p>
+</section>
+<div class="izgara-2" style="align-items:start">
+  <div class="kart">
+    <form method="post">{% csrf_token %}
+      {% include "okuma/_form.html" %}
+      <div style="display:flex;gap:12px;margin-top:8px">
+        <button class="btn buyuk">Kaydet</button>
+        {% if deneme %}<a class="btn buyuk gri" href="{% url 'deneme_detay' deneme.pk %}">Vazgeç</a>{% endif %}
+      </div>
+    </form>
+  </div>
+  <div>
+    <div class="kart">
+      <h3>Puan modları</h3>
+      <ul class="liste">
+        <li><div><b>Geçmiş yıl katsayıları</b><div class="kucuk-yazi">MEB'in son yayımlanan yıl verisiyle: taban puan + her dersin neti × katsayısı. Sonuç tahminidir.</div></div></li>
+        <li><div><b>Deneme içi standart puan</b><div class="kucuk-yazi">MEB formülü bu denemeye girenlerin ortalaması ve standart sapmasıyla uygulanır. En yüksek 500, en düşük 100 olur.</div></div></li>
+        <li><div><b>Yalnız net</b><div class="kucuk-yazi">Puan hesaplanmaz; sıralama nete göre yapılır.</div></div></li>
+      </ul>
+    </div>
+    {% if deneme %}
+    <div class="kart">
+      <h3>Denemeyi sil</h3>
+      <p class="kucuk-yazi">Okunan satırlar ve tüm sonuçlarla birlikte kalıcı olarak silinir. Öğrenci kayıtları silinmez.</p>
+      <form method="post" action="{% url 'deneme_sil' deneme.pk %}" onsubmit="return confirm('“{{ deneme.ad|escapejs }}” ve tüm sonuçları silinsin mi?')">{% csrf_token %}<button class="btn tehlike">Denemeyi sil</button></form>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

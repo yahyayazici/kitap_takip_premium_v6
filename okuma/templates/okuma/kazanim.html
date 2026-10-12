@@ -1,0 +1,36 @@
+{% extends "okuma/base.html" %}
+{% block baslik %}Kazanımlar · {{ deneme.ad }}{% endblock %}
+{% block yerel_menu %}{% include "okuma/_sekme.html" with aktif="kazanim" %}{% endblock %}
+{% block main_sinif %}genis{% endblock %}
+{% block icerik %}
+<section class="kahraman">
+  <h1>Kazanım analizi.</h1>
+  <p>Her kazanımda doğru cevap oranı, kurum ve şube bazında. %{{ esik }}'nin altı eksik sayılır.</p>
+</section>
+<div class="arac-cubugu kucuk-yazi">
+  <span class="rozet" style="background:var(--isi-1)">&lt;35</span><span class="rozet" style="background:var(--isi-2)">35–50</span><span class="rozet" style="background:var(--isi-3)">50–65</span><span class="rozet" style="background:var(--isi-4)">65–80</span><span class="rozet" style="background:var(--isi-5)">80+</span>
+  <span>Doğru ÷ (öğrenci × soru); yanlışlar götürmez.</span>
+</div>
+<div class="kart sikisik tablo-kap">
+  <table>
+    <thead><tr><th>Kazanım</th><th class="sayi">Sorular</th><th style="width:14%">Kurum</th><th class="sayi">%</th>{% for s in subeler %}<th class="orta">{% if s %}{{ deneme.sinif_seviyesi }}{{ s }}{% else %}Şubesiz{% endif %}</th>{% endfor %}</tr></thead>
+    <tbody>
+    {% regroup tablo by 0.ders as dersler %}
+    {% for ders in dersler %}
+      <tr><td colspan="{{ subeler|length|add:4 }}" style="background:var(--yuzey-2)"><b>{{ ders.grouper }}</b></td></tr>
+      {% for k, hucreler in ders.list %}
+      <tr>
+        <td>{% if k.kazanim.kod %}<span class="kucuk-yazi">{{ k.kazanim.kod }}</span>{% endif %}<div>{{ k.kazanim.metin }}</div></td>
+        <td class="sayi soluk">{{ k.soru_nolari|join:", " }}</td>
+        <td><div class="cubuk {% if k.oran < 50 %}dusuk{% elif k.oran < 70 %}orta{% else %}iyi{% endif %}"><i style="width:{{ k.oran|floatformat:0 }}%"></i></div></td>
+        <td class="sayi"><b>{{ k.oran|floatformat:0 }}</b></td>
+        {% for oran, renk in hucreler %}<td class="isi {{ renk }}">{% if oran is not None %}{{ oran|floatformat:0 }}{% else %}—{% endif %}</td>{% endfor %}
+      </tr>
+      {% endfor %}
+    {% empty %}
+      <tr><td colspan="5"><div class="bos-durum">Kazanım verisi yok.</div></td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "okuma/base.html" %}
+{% block baslik %}{% if kullanici %}{{ kullanici.username }}{% else %}Yeni kullanıcı{% endif %}{% endblock %}
+{% block icerik %}
+<section class="kahraman">
+  <p class="ust-yazi"><a href="{% url 'kullanicilar' %}">Kullanıcılar</a></p>
+  <h1>{% if kullanici %}{{ kullanici.get_full_name|default:kullanici.username }}{% else %}Yeni kullanıcı.{% endif %}</h1>
+  {% if kullanici %}<p>{{ kullanici.username }}</p>{% endif %}
+</section>
+<div class="izgara-2" style="align-items:start">
+  <div class="kart">
+    <h3>Bilgiler</h3>
+    <form method="post">{% csrf_token %}
+      {% include "okuma/_form.html" %}
+      <button class="btn buyuk">{% if kullanici %}Kaydet{% else %}Oluştur{% endif %}</button>
+    </form>
+  </div>
+  {% if sifre_form %}
+  <div class="kart">
+    <h3>Şifre değiştir</h3>
+    <form method="post">{% csrf_token %}
+      {% with form=sifre_form %}{% include "okuma/_form.html" %}{% endwith %}
+      <button class="btn buyuk ikincil" name="sifre" value="1">Şifreyi değiştir</button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

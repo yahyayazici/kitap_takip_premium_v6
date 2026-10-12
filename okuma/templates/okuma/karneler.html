@@ -1,0 +1,23 @@
+{% extends "okuma/base.html" %}
+{% block baslik %}Karneler · {{ deneme.ad }}{% endblock %}
+{% block yerel_menu %}{% include "okuma/_sekme.html" with aktif="karneler" %}{% endblock %}
+{% block icerik %}
+<div class="yazdirma-gizle">
+  <section class="kahraman">
+    <h1>Karneler.</h1>
+    <p>{{ karneler|length }} öğrenci{% if sube %} · {{ deneme.sinif_seviyesi }}{{ sube }} şubesi{% endif %}. Yazdırınca her öğrenci ayrı sayfaya düşer; “PDF olarak kaydet” ile tek dosya alabilirsiniz.</p>
+    <div class="eylemler"><button class="btn buyuk" onclick="window.print()">Yazdır / PDF</button></div>
+  </section>
+  <div class="arac-cubugu">
+    <div class="segment">
+      <a href="?" class="{% if sube is None %}secili{% endif %}">Tümü</a>
+      {% for s in subeler %}<a href="?sube={{ s }}" class="{% if sube == s %}secili{% endif %}">{% if s %}{{ deneme.sinif_seviyesi }}{{ s }}{% else %}Şubesiz{% endif %}</a>{% endfor %}
+    </div>
+  </div>
+</div>
+{% for k in karneler %}
+<div class="karne-sayfa">{% with sonuc=k.sonuc kazanimlar=k.kazanimlar eksikler=k.eksikler test_satirlari=k.test_satirlari kurum_ort=k.kurum_ort soru_satirlari=k.soru_satirlari %}{% include "okuma/_karne_govde.html" %}{% endwith %}</div>
+{% empty %}
+<div class="kart bos-durum"><h3>Bu seçimde sonuç yok.</h3></div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "okuma/base.html" %}
+{% block baslik %}Liste yükle · Öğrenciler{% endblock %}
+{% block icerik %}
+<section class="kahraman">
+  <p class="ust-yazi"><a href="{% url 'ogrenciler' %}">Öğrenciler</a></p>
+  <h1>Listeyi yükleyin.</h1>
+  <p>Excel'den sütunları kopyalayıp yapıştırın ya da dosyayı seçin. Aynı numara varsa bilgileri güncellenir; yeni numaralar eklenir.</p>
+</section>
+{% if sonuc and sonuc.hatalar %}
+<div class="kart" style="margin-bottom:20px">
+  <h3>Dikkat edilmesi gerekenler</h3>
+  <ul class="liste">{% for h in sonuc.hatalar %}<li><span class="rozet uyari">!</span>{{ h }}</li>{% endfor %}</ul>
+  <a class="btn ikincil" href="{% url 'ogrenciler' %}">Öğrenci listesine dön</a>
+</div>
+{% endif %}
+<div class="izgara-2" style="align-items:start">
+  <div class="kart">
+    <form method="post" enctype="multipart/form-data">{% csrf_token %}
+      {% include "okuma/_form.html" %}
+      <button class="btn buyuk">İçe aktar</button>
+    </form>
+  </div>
+  <div class="kart">
+    <h3>Kabul edilen biçimler</h3>
+    <ul class="liste">
+      <li><div><b>Excel'den kopyala-yapıştır</b><div class="kucuk-yazi">Numara · Ad Soyad · Sınıf · Şube sütunlarını seçip yapıştırın.</div><div class="ham" style="margin-top:6px">48	Ahmet Selim Gündüz	7	A</div></div></li>
+      <li><div><b>Boşlukla</b><div class="kucuk-yazi">Numara, ardından ad soyad; sonda isteğe bağlı sınıf-şube.</div><div class="ham" style="margin-top:6px">57 Mehmet Kaya 7B</div></div></li>
+      <li><div><b>Excel dosyası</b><div class="kucuk-yazi">İlk sayfada “Numara” başlıklı sütun yeterli. Ad ve soyad ayrı sütunlarda olabilir; “Sınıf” sütununa 7A, 7-A, 7/A yazılabilir.</div></div></li>
+      <li><div><b>e-Okul listesi</b><div class="kucuk-yazi">“Öğrenci No”, “Adı”, “Soyadı” başlıkları da tanınır.</div></div></li>
+    </ul>
+  </div>
+</div>
+{% endblock %}

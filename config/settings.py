@@ -113,6 +113,32 @@ EKITAP_SAYFA_GENISLIK = int(os.environ.get("EKITAP_SAYFA_GENISLIK", "2000"))
 EKITAP_OCR = os.environ.get("EKITAP_OCR", "true").lower() not in ("0", "false", "no")
 EKITAP_ARKA_PLAN_ISLEME = os.environ.get("EKITAP_ARKA_PLAN_ISLEME", "True").lower() == "true"
 
+# —— Optik (deneme okuma ve analiz) alt alan adı ——
+# config.middleware.OptikHostMiddleware bu host'u config.optik_urls'e bağlar.
+# Giriş ana sitenin kullanıcılarıyla; panel yalnızca deneme modülü yetkisi olanlara açıktır.
+OPTIK_HOST = os.environ.get("OPTIK_HOST", "optik.cinilisarayproje.com").strip().lower()
+OPTIK_EK_HOSTLAR = [
+    h.strip().lower()
+    for h in os.environ.get("OPTIK_EK_HOSTLAR", "optik.localhost,optik.127.0.0.1").split(",")
+    if h.strip()
+]
+OPTIK_HOSTLARI = frozenset([OPTIK_HOST, *OPTIK_EK_HOSTLAR]) - {""}
+for _optik_host in OPTIK_HOSTLARI:
+    if _optik_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_optik_host)
+    _optik_origin = f"https://{_optik_host}"
+    if _optik_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(_optik_origin)
+    if DEBUG:
+        for _port in ("8000", "8001"):
+            _yerel = f"http://{_optik_host}:{_port}"
+            if _yerel not in CSRF_TRUSTED_ORIGINS:
+                CSRF_TRUSTED_ORIGINS.append(_yerel)
+OKUMA_ERISIM = "takip.panel_permissions.deneme_modulu_erisimi_var"
+OKUMA_KULLANICI_YONETIMI = False
+OKUMA_API_TOKEN = os.environ.get("OKUMA_API_TOKEN", "")
+KURUM_ADI = os.environ.get("KURUM_ADI", "Çinili Saray")
+
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
@@ -138,6 +164,7 @@ if CLOUDINARY_URL:
 INSTALLED_APPS += [
     "django.contrib.staticfiles",
     "takip",
+    "okuma",
 ]
 
 MIDDLEWARE = [
@@ -148,6 +175,7 @@ MIDDLEWARE = [
     "config.middleware.CanonicalHostMiddleware",
     "config.middleware.EkranHostMiddleware",
     "config.middleware.EKitapHostMiddleware",
+    "config.middleware.OptikHostMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "config.middleware.SlideSessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -175,6 +203,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "takip.context_processors.panel_branding",
+                "okuma.context_processors.kurum",
             ],
         },
     },

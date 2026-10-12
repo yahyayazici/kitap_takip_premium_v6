@@ -1,0 +1,9 @@
+{% extends "okuma/base.html" %}
+{% block baslik %}Erişim yok{% endblock %}
+{% block icerik %}
+<section class="kahraman" style="text-align:center;margin-top:64px">
+  <h1>Bu bölüme erişiminiz yok.</h1>
+  <p style="margin-left:auto;margin-right:auto">Optik paneli yalnızca deneme yetkisi olan personel içindir. Yetkiye ihtiyacınız varsa yöneticinize başvurun.</p>
+  <div class="eylemler" style="justify-content:center"><form method="post" action="{% url 'cikis' %}">{% csrf_token %}<button class="btn gri">Başka hesapla giriş yap</button></form></div>
+</section>
+{% endblock %}

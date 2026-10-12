@@ -1,0 +1,29 @@
+{% extends "okuma/base.html" %}
+{% block baslik %}Cevap anahtarı · {{ deneme.ad }}{% endblock %}
+{% block yerel_menu %}{% include "okuma/_sekme.html" with aktif="anahtar" %}{% endblock %}
+{% block icerik %}
+<section class="kahraman">
+  <h1>Cevap anahtarı.</h1>
+  <p>Her ders için A kitapçığının cevaplarını yazın. B kitapçığı varsa, A'daki her sorunun B'deki sırasını ekleyin. Kazanımlar için <a href="{% url 'deneme_detay' deneme.pk %}">Excel yükleyin</a>.</p>
+</section>
+{% if eksik_b %}<ul class="bildirimler"><li class="warning">Bazı derslerde B kitapçığı sırası eksik. B kitapçığı kodlayan öğrenciler bu tamamlanana kadar hesaplanmaz.</li></ul>{% endif %}
+{% for t in testler %}
+<div class="kart" id="test-{{ t.test.pk }}">
+  <div class="bolum-baslik" style="margin-bottom:12px">
+    <div><h3>{{ t.test.ders }}</h3><p>{{ t.test.oturum }} · {{ t.test.soru_sayisi }} soru{% if t.sorular %} · {{ t.kazanimli }} sorunun kazanımı var{% endif %}</p></div>
+    {% if t.sorular %}<span class="rozet tamam">Girildi</span>{% else %}<span class="rozet uyari">Eksik</span>{% endif %}
+  </div>
+  <form method="post">{% csrf_token %}
+    <input type="hidden" name="test" value="{{ t.test.pk }}">
+    <div class="form-izgara">
+      <div class="alan"><label for="a-{{ t.test.pk }}">A kitapçığı cevapları</label><input class="mono" type="text" id="a-{{ t.test.pk }}" name="a_cevaplar" value="{{ t.a_metin }}" placeholder="ABCDABCD…" autocomplete="off" spellcheck="false"><span class="yardim">{{ t.test.soru_sayisi }} harf. İptal soru için X.</span></div>
+      <div class="alan"><label for="b-{{ t.test.pk }}">B kitapçığındaki sıra <span class="soluk">(isteğe bağlı)</span></label><input type="text" id="b-{{ t.test.pk }}" name="b_sirasi" value="{{ t.b_metin }}" placeholder="13 14 18 19 20 10 …" autocomplete="off"><span class="yardim">A'daki 1., 2., 3.… sorunun B'deki numarası.</span></div>
+    </div>
+    <button class="btn">Kaydet</button>
+  </form>
+  {% if t.sorular %}
+  <div class="anahtar-izgara">{% for s in t.sorular %}<span class="{% if s.iptal %}iptal{% endif %}{% if s.kazanimlar.all %} kazanimli{% endif %}" title="{{ s.no }}. soru{% for k in s.kazanimlar.all %} · {{ k }}{% endfor %}">{% if s.iptal %}X{% else %}{{ s.dogru }}{% endif %}<small>{{ s.no }}</small></span>{% endfor %}</div>
+  {% endif %}
+</div>
+{% endfor %}
+{% endblock %}

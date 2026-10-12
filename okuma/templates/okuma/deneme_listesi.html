@@ -1,0 +1,30 @@
+{% extends "okuma/base.html" %}
+{% block icerik %}
+<section class="kahraman">
+  <p class="ust-yazi">{{ KURUM_ADI }}</p>
+  <h1>Denemeler.</h1>
+  <p>Cevap anahtarını yükleyin, optiği okutun. Netler, sıralamalar ve kazanım analizi kendiliğinden hazırlanır.</p>
+  <div class="eylemler">
+    <a class="btn buyuk" href="{% url 'deneme_olustur' %}">Yeni deneme</a>
+    <a class="baglanti-ok" href="{% url 'ogrenciler' %}">Öğrenci listesi</a>
+  </div>
+</section>
+
+{% if isimsiz_sayisi %}
+<ul class="bildirimler"><li class="warning">{{ isimsiz_sayisi }} öğrencinin adı girilmemiş; sonuçlarda yalnızca numaraları görünüyor. <a href="{% url 'ogrenci_toplu' %}">Listeyi yükleyin</a></li></ul>
+{% endif %}
+
+<div class="izgara">
+  {% for d in denemeler %}
+  <a class="kart karo" href="{% url 'deneme_detay' d.pk %}">
+    <div class="etiket">{{ d.tarih|date:"j F Y" }} · {{ d.sinif_seviyesi }}. sınıf</div>
+    <h3>{{ d.ad }}</h3>
+    <div class="alt">
+      <div><b>{{ d.ogrenci_sayisi }}</b><span>öğrenci</span></div>
+      <div><b>{{ d.ortalama_net|floatformat:1|default:"—" }}</b><span>ortalama net</span></div>
+    </div>
+  </a>
+  {% endfor %}
+  <a class="kart karo yeni" href="{% url 'deneme_olustur' %}"><span class="arti">+</span><span>Yeni deneme</span></a>
+</div>
+{% endblock %}

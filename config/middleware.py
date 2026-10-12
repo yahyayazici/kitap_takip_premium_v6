@@ -109,3 +109,25 @@ class EKitapHostMiddleware:
                 response["X-Robots-Tag"] = "noindex, nofollow, noarchive, nosnippet, noimageindex"
                 return response
         return self.get_response(request)
+
+
+class OptikHostMiddleware:
+    """``optik.<domain>`` isteklerini deneme okuma modülünün URL yapılandırmasına bağlar.
+
+    Ekran ve e-kitap gibi aynı servis ve veritabanında çalışır; ana panelin
+    hiçbir adresi bu host'ta tanımlı değildir. Arama motorlarına kapalıdır.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+        self.hostlar = frozenset(getattr(settings, "OPTIK_HOSTLARI", ()) or ())
+
+    def __call__(self, request):
+        if self.hostlar:
+            host = request.get_host().split(":")[0].lower()
+            if host in self.hostlar:
+                request.urlconf = "config.optik_urls"
+                response = self.get_response(request)
+                response["X-Robots-Tag"] = "noindex, nofollow, noarchive"
+                return response
+        return self.get_response(request)

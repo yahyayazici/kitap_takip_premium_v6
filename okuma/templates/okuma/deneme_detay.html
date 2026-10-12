@@ -1,0 +1,76 @@
+{% extends "okuma/base.html" %}
+{% block baslik %}{{ deneme.ad }}{% endblock %}
+{% block yerel_menu %}{% include "okuma/_sekme.html" with aktif="detay" %}{% endblock %}
+{% block icerik %}
+<section class="kahraman">
+  <p class="ust-yazi">{{ deneme.tarih|date:"j F Y" }} · {% if deneme.tur %}{{ deneme.tur }}{% else %}{{ deneme.sinif_seviyesi }}. sınıf{% endif %}</p>
+  <h1>{{ deneme.ad }}</h1>
+  <p>{{ deneme.get_puan_modu_display }}{% if deneme.puan_modu == "lgs_tablo" %} ({{ deneme.lgs_yili }}){% endif %} · {{ deneme.yanlis_katsayi|default:"Yanlış götürmez" }}{% if deneme.yanlis_katsayi %} yanlış bir doğruyu götürür{% endif %}</p>
+</section>
+
+<div class="izgara-4">
+  <div class="olcu {% if anahtar_tamam %}tamam{% else %}eksik{% endif %}"><div class="ad">Cevap anahtarı</div><div class="deger">{{ deneme.toplam_soru }}</div><div class="not">soru · {{ testler|length }} ders{% if not anahtar_tamam %} · <a href="{% url 'anahtar' deneme.pk %}">eksik</a>{% else %} · {{ deneme.kitapciklar }}{% endif %}</div></div>
+  <div class="olcu {% if satir_toplam %}tamam{% else %}eksik{% endif %}"><div class="ad">Optik okuma</div><div class="deger">{{ satir_toplam }}</div><div class="not">satır · {{ yuklemeler|length }} dosya</div></div>
+  <div class="olcu {% if satir_toplam and not durumlar.hata %}tamam{% else %}eksik{% endif %}"><div class="ad">Kontrol</div><div class="deger">{{ durumlar.hata }}</div><div class="not">hatalı · {{ durumlar.uyari }} uyarı{% if durumlar.hata %} · <a href="{% url 'satirlar' deneme.pk %}?durum=hata">düzelt</a>{% endif %}</div></div>
+  <div class="olcu {% if sonuc_sayisi %}tamam{% else %}eksik{% endif %}"><div class="ad">Sonuç</div><div class="deger">{{ sonuc_sayisi }}</div><div class="not">öğrenci{% if sonuc_sayisi %} · <a href="{% url 'sonuclar' deneme.pk %}">gör</a>{% endif %}{% if katilmayan_sayisi %} · <a href="{% url 'sonuclar' deneme.pk %}#katilmayanlar">{{ katilmayan_sayisi }} katılmadı</a>{% endif %}</div></div>
+</div>
+
+<div class="bolum izgara-2" style="align-items:start">
+  <div class="kart">
+    <h3>1 · Cevap anahtarı</h3>
+    <p class="kucuk-yazi" style="margin:0 0 18px">Kazanımlı Excel'i yükleyin (Test · Ders · A Soru · B Soru · Cevap · Kazanım Kodu · Kazanım-1…6) ya da <a href="{% url 'anahtar' deneme.pk %}">anahtarı elle girin</a>. Okunan satırlar korunur.</p>
+    <form method="post" enctype="multipart/form-data" action="{% url 'anahtar_yukle' deneme.pk %}">{% csrf_token %}
+      {% with form=anahtar_form %}{% include "okuma/_form.html" %}{% endwith %}
+      <button class="btn">{% if testler %}Yeniden yükle{% else %}Yükle{% endif %}</button>
+    </form>
+  </div>
+  <div class="kart">
+    <h3>2 · Optik okuma</h3>
+    {% if anahtar_tamam %}
+    <p class="kucuk-yazi" style="margin:0 0 18px">Okuyucunun ürettiği dosyayı seçin. Öğrenciler numarayla tanınır; isimler öğrenci listesinden gelir.</p>
+    <form method="post" enctype="multipart/form-data" action="{% url 'optik_yukle' deneme.pk %}">{% csrf_token %}
+      {% with form=optik_form %}{% include "okuma/_form.html" %}{% endwith %}
+      <button class="btn">Oku</button>
+    </form>
+    {% else %}
+    <div class="bos-durum"><p>Önce cevap anahtarını girin.</p><a class="btn ikincil" href="{% url 'anahtar' deneme.pk %}">Anahtarı gir</a></div>
+    {% endif %}
+  </div>
+</div>
+
+{% if testler %}
+<section class="bolum">
+  <div class="bolum-baslik">
+    <div><h2>Testler</h2><p>Optik formdaki sırayla.</p></div>
+    <form method="post" action="{% url 'hesapla' deneme.pk %}" class="satir-icinde">{% csrf_token %}<button class="btn ikincil">Yeniden hesapla</button></form>
+  </div>
+  <div class="kart sikisik tablo-kap">
+    <table>
+      <thead><tr><th>Oturum</th><th>Ders</th><th class="sayi">Soru</th><th class="sayi">Optik kutu</th><th class="sayi">Katsayı</th><th>Puan dersi</th><th class="sayi">Kazanımlı</th><th class="sayi">İptal</th></tr></thead>
+      <tbody>
+      {% for t in testler %}
+        <tr><td class="soluk">{{ t.oturum|default:"—" }}</td><td><b>{{ t.ders }}</b></td><td class="sayi">{{ t.soru_sayisi }}</td><td class="sayi soluk">{{ t.blok }}</td><td class="sayi">{{ t.katsayi|floatformat:"-2" }}</td><td>{{ t.get_lgs_ders_display|default:"—" }}</td><td class="sayi">{% if t.soru_var %}{{ t.kazanimli }}/{{ t.soru_sayisi }}{% else %}<a href="{% url 'anahtar' deneme.pk %}">anahtar yok</a>{% endif %}</td><td class="sayi">{{ t.iptal|default:"—" }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+
+{% if yuklemeler %}
+<section class="bolum">
+  <div class="bolum-baslik"><div><h2>Yüklenen dosyalar</h2></div></div>
+  <div class="kart sikisik tablo-kap">
+    <table>
+      <thead><tr><th>Dosya</th><th>Şablon</th><th class="sayi">Satır</th><th>Yükleyen</th><th>Zaman</th><th></th></tr></thead>
+      <tbody>
+      {% for y in yuklemeler %}
+        <tr><td><b>{{ y.dosya_adi }}</b></td><td class="soluk">{{ y.sablon }}</td><td class="sayi">{{ y.satir_sayisi }}</td><td>{{ y.yukleyen|default:"—" }}</td><td class="soluk">{{ y.olusturma|date:"j M H:i" }}</td>
+          <td class="sayi"><form method="post" action="{% url 'yukleme_sil' deneme.pk y.pk %}" class="satir-icinde" onsubmit="return confirm('Bu dosyanın tüm satırları silinsin mi?')">{% csrf_token %}<button class="btn tehlike kucuk">Sil</button></form></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+{% endblock %}
