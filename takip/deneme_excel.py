@@ -3,6 +3,8 @@
 Desteklenen formatlar:
 1) Düz başlık (Ad Soyad + Türkçe Doğru / …)
 2) Okyanus genel sonuç raporu (üst satır branş, alt satır Doğru/Yanlış/Boş/Net)
+3) SinavSonucListe (üstte kurum/sınav/tarih, başlık «TURK D / INK Y / MAT N …»,
+   puandan sonra Genel Sıra / FirmaSube / Sinif / Sube / Il / Ilce sıraları)
 """
 
 from __future__ import annotations
@@ -48,6 +50,21 @@ BRANS_TANIMLARI: tuple[tuple[str, str, tuple[str, ...]], ...] = (
 )
 
 BRANS_KODLARI = [k for k, _, _ in BRANS_TANIMLARI]
+
+# SinavSonucListe kısaltmaları; yalnız tam kelime ("Türkiye Geneli" Türkçe olmasın)
+BRANS_KISALTMALARI = {"turk": "turkce", "ink": "sosyal"}
+
+AD_BASLIKLARI = {"ad soyad", "adsoyad", "isim", "ogrenci", "öğrenci"}
+
+# Puan sütunundan sonra gelen, yalnız sıra yazan sütunlar (SinavSonucListe).
+# Kurum (FirmaSube) ve sınıf sırası alınmaz; onları site kendi hesaplar ve
+# karnede katılımcı sayısıyla birlikte gösterir.
+PUAN_SONRASI_SIRA_ETIKETLERI = {
+    "genel": "Genel Sıra",
+    "sube": "Şube Sırası",
+    "il": "İl Sırası",
+    "ilce": "İlçe Sırası",
+}
 
 # Benzerlik eşiği: altında öneri göstermeyiz
 BENZERLIK_ESIGI = 0.62
@@ -241,6 +258,9 @@ def _brans_kodu(baslik: str) -> str | None:
     if _toplam_grubu_mu(baslik):
         return None
     tokens = anahtar.split()
+    for tok in tokens:
+        if tok in BRANS_KISALTMALARI:
+            return BRANS_KISALTMALARI[tok]
     for kod, _, anahtarlar in BRANS_TANIMLARI:
         for a in anahtarlar:
             if len(a) <= 3:
@@ -387,15 +407,27 @@ def _dybn_alani(anahtar: str) -> str | None:
     return None
 
 
+def _baslik_alani(anahtar: str, ham: str) -> str | None:
+    """«Türkçe Doğru» ya da kısaltma «TURK D» başlığının D/Y/B/N alanı."""
+    son = anahtar.split()[-1] if anahtar else ""
+    alt = ham.lower()
+    if "dogru" in anahtar or son == "d":
+        return "dogru"
+    if "yanlis" in anahtar or "yanlış" in alt or son == "y":
+        return "yanlis"
+    if "bos" in anahtar or "boş" in alt or son == "b":
+        return "bos"
+    if "net" in anahtar or son == "n":
+        return "net"
+    return None
+
+
 def _okyanus_format_mi(satirlar: list[list[str]]) -> bool:
     if len(satirlar) < 2:
         return False
     alt = satirlar[1]
     ust = satirlar[0]
-    ad_altta = any(
-        normalize_ad(c) in {"ad soyad", "adsoyad", "isim", "ogrenci", "öğrenci"}
-        for c in alt
-    )
+    ad_altta = any(normalize_ad(c) in AD_BASLIKLARI for c in alt)
     brans_ustte = any(_brans_kodu(c) for c in ust if c)
     return ad_altta and brans_ustte
 
@@ -409,11 +441,11 @@ def _duz_baslik_haritasi(
         anahtar = normalize_ad(baslik)
         if not anahtar:
             continue
-        if anahtar in {"ad soyad", "adsoyad", "isim", "ogrenci", "öğrenci"}:
+        if anahtar in AD_BASLIKLARI:
             harita.setdefault("ad_soyad", idx)
             continue
-        if anahtar in {"sinif", "sınıf", "class"}:
-            harita.setdefault("sinif", idx)
+        if anahtar in {"sinif", "sınıf", "class", "sinif sube"} and "sinif" not in harita:
+            harita["sinif"] = idx
             continue
         if anahtar in {"toplam net", "genel net"}:
             harita.setdefault("toplam", {})["net"] = idx
@@ -421,29 +453,27 @@ def _duz_baslik_haritasi(
 
         kod = _brans_kodu(baslik)
         if kod:
-            if "dogru" in anahtar or anahtar.endswith(" d"):
-                harita["brans"].setdefault(kod, {})["dogru"] = idx
-            elif "yanlis" in anahtar or "yanlış" in baslik.lower():
-                harita["brans"].setdefault(kod, {})["yanlis"] = idx
-            elif "bos" in anahtar or "boş" in baslik.lower():
-                harita["brans"].setdefault(kod, {})["bos"] = idx
-            elif "net" in anahtar:
-                harita["brans"].setdefault(kod, {})["net"] = idx
+            alan = _baslik_alani(anahtar, baslik)
+            if alan:
+                harita["brans"].setdefault(kod, {})[alan] = idx
 
         if "toplam" in anahtar or "genel" in anahtar:
-            if "dogru" in anahtar:
-                harita.setdefault("toplam", {})["dogru"] = idx
-            elif "yanlis" in anahtar or "yanlış" in baslik.lower():
-                harita.setdefault("toplam", {})["yanlis"] = idx
-            elif "bos" in anahtar or "boş" in baslik.lower():
-                harita.setdefault("toplam", {})["bos"] = idx
-            elif "net" in anahtar:
-                harita.setdefault("toplam", {})["net"] = idx
+            alan = _baslik_alani(anahtar, baslik)
+            if alan:
+                harita.setdefault("toplam", {})[alan] = idx
 
     puan_idx = _puan_kolonunu_sec(baslik_satir, baslik_satir, veri_satirlari)
     if puan_idx is not None:
         harita["puan"] = puan_idx
-    harita["dis_siralama"] = _dis_siralama_kolonlari(baslik_satir)
+    dis_siralama = _dis_siralama_kolonlari(baslik_satir)
+    if puan_idx is not None:
+        etiketler = {etiket for _, etiket in dis_siralama}
+        for idx in range(puan_idx + 1, len(baslik_satir)):
+            etiket = PUAN_SONRASI_SIRA_ETIKETLERI.get(normalize_ad(baslik_satir[idx]))
+            if etiket and etiket not in etiketler:
+                dis_siralama.append((idx, etiket))
+                etiketler.add(etiket)
+    harita["dis_siralama"] = dis_siralama
     return harita
 
 
@@ -740,6 +770,14 @@ def _satirdan_sonuclari_cek(
             kayit.dis_siralama[etiket] = deger
 
 
+def _baslik_satiri_indeksi(satirlar: list[list[str]]) -> int:
+    """«Ad Soyad» başlığının bulunduğu ilk satır; bulunamazsa 0."""
+    for idx, satir in enumerate(satirlar[:15]):
+        if any(normalize_ad(c) in AD_BASLIKLARI for c in satir):
+            return idx
+    return 0
+
+
 def deneme_excel_onizle(dosya) -> DenemeImportOnizleme:
     onizleme = DenemeImportOnizleme()
     try:
@@ -752,12 +790,19 @@ def deneme_excel_onizle(dosya) -> DenemeImportOnizleme:
         onizleme.hatalar.append("Excel dosyası boş.")
         return onizleme
 
+    # Üstteki kurum / sınav adı / tarih satırlarını atla (SinavSonucListe)
+    bas = _baslik_satiri_indeksi(satirlar)
+    if bas > 1:
+        satirlar = satirlar[bas - 1 :]
+
     if _okyanus_format_mi(satirlar):
         veri_satirlari = satirlar[2:]
         harita = _okyanus_baslik_haritasi(satirlar[0], satirlar[1], veri_satirlari)
         baslangic_no = 3
         onizleme.format = "okyanus"
     else:
+        if bas >= 1 and not any(normalize_ad(c) in AD_BASLIKLARI for c in satirlar[0]):
+            satirlar = satirlar[1:]
         veri_satirlari = satirlar[1:]
         harita = _duz_baslik_haritasi(satirlar[0], veri_satirlari)
         baslangic_no = 2
@@ -805,7 +850,42 @@ def deneme_excel_onizle(dosya) -> DenemeImportOnizleme:
     if not onizleme.satirlar:
         onizleme.hatalar.append("Öğrenci satırı bulunamadı.")
 
+    _eksik_bos_hesapla(onizleme.satirlar, harita)
     return onizleme
+
+
+def _eksik_bos_hesapla(satirlar: list[DenemeImportSatir], harita: dict[str, Any]) -> None:
+    """Boş sütunu olmayan listede (SinavSonucListe) boşu soru sayısından çıkar.
+
+    Dersin soru sayısı, o derste en çok işaretleyen talebenin D+Y'sidir.
+    """
+    eksik = [
+        kod
+        for kod, alanlar in harita.get("brans", {}).items()
+        if "bos" not in alanlar and "dogru" in alanlar and "yanlis" in alanlar
+    ]
+    if not eksik:
+        return
+    soru_sayisi = {
+        kod: max(
+            (
+                int(s.branslar[kod]["dogru"]) + int(s.branslar[kod]["yanlis"])
+                for s in satirlar
+                if kod in s.branslar
+            ),
+            default=0,
+        )
+        for kod in eksik
+    }
+    toplam_bos_var = "bos" in harita.get("toplam", {})
+    for satir in satirlar:
+        for kod in eksik:
+            veri = satir.branslar.get(kod)
+            if not veri:
+                continue
+            veri["bos"] = max(0, soru_sayisi[kod] - int(veri["dogru"]) - int(veri["yanlis"]))
+        if satir.toplam and not toplam_bos_var:
+            satir.toplam["bos"] = sum(int(v.get("bos", 0)) for v in satir.branslar.values())
 
 
 def session_key(deneme_id: int) -> str:
