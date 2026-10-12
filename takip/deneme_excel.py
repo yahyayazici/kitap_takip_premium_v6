@@ -596,6 +596,7 @@ class DenemeImportOnizleme:
     dosya_hash: str = ""
     dosya_adi: str = ""
     tekrar_yukleme_uyarisi: str = ""
+    aciklama: str = ""
 
     @property
     def toplam_ogrenci(self) -> int:
@@ -625,6 +626,7 @@ class DenemeImportOnizleme:
             "dosya_hash": self.dosya_hash,
             "dosya_adi": self.dosya_adi,
             "tekrar_yukleme_uyarisi": self.tekrar_yukleme_uyarisi,
+            "aciklama": self.aciklama,
         }
 
     @classmethod
@@ -636,6 +638,7 @@ class DenemeImportOnizleme:
             dosya_hash=data.get("dosya_hash", ""),
             dosya_adi=data.get("dosya_adi", ""),
             tekrar_yukleme_uyarisi=data.get("tekrar_yukleme_uyarisi", ""),
+            aciklama=data.get("aciklama", ""),
         )
 
 

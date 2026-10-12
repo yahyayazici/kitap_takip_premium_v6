@@ -109,3 +109,27 @@ class EKitapHostMiddleware:
                 response["X-Robots-Tag"] = "noindex, nofollow, noarchive, nosnippet, noimageindex"
                 return response
         return self.get_response(request)
+
+
+class SinavHostMiddleware:
+    """``sinav.<domain>`` isteklerini sınav okuma URL yapılandırmasına bağlar.
+
+    Ana panelin hiçbir adresi bu host'ta tanımlı değildir. Oturum çerezi host'a
+    özgü olduğundan sınav okuma oturumu ana site oturumundan ayrıdır. Okunan
+    sonuçlar ana sitedeki deneme tablolarına yazılmaz.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+        self.hostlar = frozenset(getattr(settings, "SINAV_HOSTLARI", ()) or ())
+
+    def __call__(self, request):
+        if self.hostlar:
+            host = request.get_host().split(":")[0].lower()
+            if host in self.hostlar:
+                request.urlconf = "config.sinav_urls"
+                request.sinav_hostunda = True
+                response = self.get_response(request)
+                response["X-Robots-Tag"] = "noindex, nofollow, noarchive, nosnippet, noimageindex"
+                return response
+        return self.get_response(request)

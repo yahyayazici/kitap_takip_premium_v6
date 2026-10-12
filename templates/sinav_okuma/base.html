@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>{% block title %}Sınav okuma{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/cs-design-tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'css/sinav-okuma.css' %}">
+</head>
+<body>
+    <div class="so-sayfa">
+        <header class="so-ust">
+            <div>
+                <p class="so-kicker">Ayrı alan</p>
+                <h1>{% block baslik %}Sınav okuma{% endblock %}</h1>
+                {% block alt %}{% endblock %}
+            </div>
+            <nav class="so-nav">
+                <a class="so-hayalet" href="{% url 'sinav_okuma:sinav_listesi' %}">Sınavlar</a>
+                <a class="so-hayalet" href="{% url 'sinav_okuma:form_listesi' %}">Formlar</a>
+                <form method="post" action="{% url 'sinav_okuma:cikis' %}">
+                    {% csrf_token %}
+                    <button class="so-hayalet" type="submit">Çıkış</button>
+                </form>
+            </nav>
+        </header>
+        <p class="so-not">Bu alan ana siteden ayrıdır. Okunan sonuçlar burada kalır. Siteye bağlama, sınav okuma bitince yapılacak.</p>
+        {% if messages %}
+        <ul class="so-mesajlar">
+            {% for message in messages %}
+            <li class="so-mesaj">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% block icerik %}{% endblock %}
+    </div>
+</body>
+</html>

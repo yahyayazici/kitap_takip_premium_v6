@@ -299,7 +299,7 @@ def deneme_onizleme(request, pk):
     deneme = get_object_or_404(DenemeSinavi, pk=pk)
     onizleme = _onizleme_yukle(request, pk)
     if not onizleme:
-        messages.error(request, "Önizleme verisi bulunamadı. Excel'i tekrar yükleyin.")
+        messages.error(request, "Önizleme verisi bulunamadı. Dosyayı tekrar yükleyin.")
         return redirect("yonetim:deneme_detay", pk=pk)
 
     if request.method == "POST":

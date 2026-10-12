@@ -1,0 +1,46 @@
+{% extends "sinav_okuma/base.html" %}
+{% block title %}Sınavlar · Sınav okuma{% endblock %}
+{% block baslik %}Sınavlar{% endblock %}
+{% block icerik %}
+<section class="so-kart">
+    <h2>Yeni sınav</h2>
+    <p>Ad ve tarih yeter. Form, cevap anahtarı ve optik dosya sınavın sayfasında durur.</p>
+    <form method="post" class="so-form">
+        {% csrf_token %}
+        <label for="sinav-ad">Ad</label>
+        <input id="sinav-ad" name="ad" required maxlength="200">
+        <label for="sinav-tarih">Tarih</label>
+        <input id="sinav-tarih" name="tarih" type="date" required>
+        <button class="so-birincil" type="submit">Sınavı oluştur</button>
+    </form>
+</section>
+<section class="so-kart">
+    <h2>Kayıtlı sınavlar</h2>
+    {% if sinavlar %}
+    <div class="so-tablo-cerceve">
+        <table class="so-tablo">
+            <thead>
+                <tr>
+                    <th>Sınav</th>
+                    <th>Tarih</th>
+                    <th>Form</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sinav in sinavlar %}
+                <tr>
+                    <td>{{ sinav.ad }}</td>
+                    <td>{{ sinav.tarih|date:"d.m.Y" }}</td>
+                    <td>{{ sinav.form.ad|default:"—" }}</td>
+                    <td><a class="so-hayalet" href="{% url 'sinav_okuma:sinav_detay' sinav.pk %}">Aç</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="margin-top:12px;">Henüz sınav yok.</p>
+    {% endif %}
+</section>
+{% endblock %}
