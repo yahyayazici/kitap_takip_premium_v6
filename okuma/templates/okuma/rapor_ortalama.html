@@ -1,0 +1,46 @@
+{% extends "okuma/base.html" %}{% load okuma_etiket %}
+{% block baslik %}Ortalama listesi{% endblock %}
+{% block icerik %}
+{% include "okuma/_rapor_ust.html" with baslik="Ortalama listesi." %}
+{% if denemeler %}
+<section>
+  <div class="bolum-baslik"><div><h2>Ortalama netler</h2><p>Seçilen denemelerdeki tüm öğrencilerin ortalaması.</p></div></div>
+  <div class="kart sikisik tablo-kap">
+    <table>
+      <thead>
+        <tr>{% for k, ad in dersler %}<th colspan="3" class="orta">{{ ad }}</th>{% endfor %}<th colspan="3" class="orta">Toplam</th><th class="sayi" rowspan="2">Puan</th></tr>
+        <tr>{% for k, ad in dersler %}<th class="sayi">D</th><th class="sayi">Y</th><th class="sayi">N</th>{% endfor %}<th class="sayi">D</th><th class="sayi">Y</th><th class="sayi">N</th></tr>
+      </thead>
+      <tbody><tr class="toplam">
+        {% for k, ad in dersler %}{% with v=ortalama.dersler|get_item:k %}<td class="sayi">{{ v.0|floatformat:1 }}</td><td class="sayi">{{ v.1|floatformat:1 }}</td><td class="sayi">{{ v.2|floatformat:2 }}</td>{% endwith %}{% endfor %}
+        <td class="sayi">{{ ortalama.dogru|floatformat:1 }}</td><td class="sayi">{{ ortalama.yanlis|floatformat:1 }}</td><td class="sayi">{{ ortalama.net|floatformat:2 }}</td><td class="sayi">{{ ortalama.puan|floatformat:2|default:"—" }}</td>
+      </tr></tbody>
+    </table>
+  </div>
+</section>
+
+<section class="bolum">
+  <div class="bolum-baslik"><div><h2>Öğrenci listesi</h2><p>Puana göre sıralı. {% if denemeler|length > 1 %}Değerler öğrencinin girdiği denemelerin ortalamasıdır.{% endif %}</p></div></div>
+  <div class="kart sikisik tablo-kap">
+    <table>
+      <thead>
+        <tr><th rowspan="2" class="sayi">Sıra</th><th rowspan="2">Şube</th><th rowspan="2">Ad soyad</th>{% for k, ad in dersler %}<th colspan="3" class="orta">{{ ad }}</th>{% endfor %}<th colspan="3" class="orta">Toplam</th><th rowspan="2" class="sayi">Puan</th>{% if denemeler|length > 1 %}<th rowspan="2" class="sayi">Deneme</th>{% endif %}</tr>
+        <tr>{% for k, ad in dersler %}<th class="sayi">D</th><th class="sayi">Y</th><th class="sayi">N</th>{% endfor %}<th class="sayi">D</th><th class="sayi">Y</th><th class="sayi">N</th></tr>
+      </thead>
+      <tbody>
+      {% for s in satirlar %}
+        <tr>
+          <td class="sayi"><b>{{ s.sira }}</b></td><td>{{ sinif }}-{{ s.sube|default:"?" }}</td>
+          <td style="white-space:nowrap"><a href="{% url 'ogrenci_duzenle' s.ogrenci.pk %}"><b>{{ s.ogrenci.ad_soyad|default:s.ogrenci.numara }}</b></a></td>
+          {% for k, ad in dersler %}{% with v=s.dersler|get_item:k %}<td class="sayi soluk">{{ v.0|floatformat:"-1" }}</td><td class="sayi soluk">{{ v.1|floatformat:"-1" }}</td><td class="sayi">{{ v.2|floatformat:2 }}</td>{% endwith %}{% endfor %}
+          <td class="sayi soluk">{{ s.dogru|floatformat:"-1" }}</td><td class="sayi soluk">{{ s.yanlis|floatformat:"-1" }}</td><td class="sayi"><b>{{ s.net|floatformat:2 }}</b></td>
+          <td class="sayi"><b>{{ s.puan|floatformat:2|default:"—" }}</b></td>
+          {% if denemeler|length > 1 %}<td class="sayi soluk">{{ s.deneme_sayisi }}</td>{% endif %}
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

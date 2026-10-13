@@ -17,7 +17,8 @@
       </a>
       {% if user.is_authenticated %}
       {% with ad=request.resolver_match.url_name %}
-      <a href="{% url 'deneme_listesi' %}" class="{% if ad == 'deneme_listesi' or 'deneme' in ad or ad in 'satirlar sonuclar karne kazanim_raporu madde_analizi' %}aktif{% endif %}">Denemeler</a>
+      <a href="{% url 'deneme_listesi' %}" class="{% if ad|slice:':5' != 'rapor' and 'deneme_turu' not in ad %}{% if ad == 'deneme_listesi' or 'deneme' in ad or ad in 'satirlar sonuclar karne karneler anahtar kazanim_raporu madde_analizi' %}aktif{% endif %}{% endif %}">Denemeler</a>
+      <a href="{% url 'raporlar' %}" class="{% if ad|slice:':5' == 'rapor' %}aktif{% endif %}">Raporlar</a>
       <a href="{% url 'ogrenciler' %}" class="{% if 'ogrenci' in ad %}aktif{% endif %}">Öğrenciler</a>
       <a href="{% url 'sablonlar' %}" class="{% if 'sablon' in ad %}aktif{% endif %}">Optik tanımları</a>
       {% if user.is_superuser and OKUMA_KULLANICI_YONETIMI %}<a href="{% url 'kullanicilar' %}" class="{% if 'kullanici' in ad %}aktif{% endif %}">Kullanıcılar</a>{% endif %}

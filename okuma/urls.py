@@ -1,6 +1,6 @@
 from django.urls import path
 
-from okuma import api, views, yonetim_views
+from okuma import api, rapor_views, views, yonetim_views
 
 urlpatterns = [
     path("", views.deneme_listesi, name="deneme_listesi"),
@@ -22,6 +22,11 @@ urlpatterns = [
     path("deneme/<int:pk>/kazanim/", views.kazanim_raporu, name="kazanim_raporu"),
     path("deneme/<int:pk>/madde/", views.madde_analizi, name="madde_analizi"),
     path("soru/<int:soru_pk>/", views.soru_guncelle, name="soru_guncelle"),
+    path("raporlar/", rapor_views.raporlar, name="raporlar"),
+    path("raporlar/ortalama/", rapor_views.rapor_ortalama, name="rapor_ortalama"),
+    path("raporlar/kazanim/", rapor_views.rapor_kazanim, name="rapor_kazanim"),
+    path("raporlar/sinif-konu/", rapor_views.rapor_sinif_konu, name="rapor_sinif_konu"),
+    path("raporlar/gelisim/", rapor_views.rapor_gelisim, name="rapor_gelisim"),
     path("ogrenciler/", yonetim_views.ogrenciler, name="ogrenciler"),
     path("ogrenciler/toplu/", yonetim_views.ogrenci_toplu, name="ogrenci_toplu"),
     path("ogrenciler/<int:pk>/", yonetim_views.ogrenci_duzenle, name="ogrenci_duzenle"),

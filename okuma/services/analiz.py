@@ -88,12 +88,38 @@ class MaddeSatiri:
     no: int
     dogru_cevap: str
     iptal: bool
+    test_id: int = 0
+    soru_id: int = 0
+    b_no: int | None = None
+    konular: list = field(default_factory=list)
+    n: int = 0
     p: float | None = None
     r: float | None = None
     secenekler: dict[str, int] = field(default_factory=dict)
     ust: dict[str, int] = field(default_factory=dict)
     alt: dict[str, int] = field(default_factory=dict)
     uyarilar: list[str] = field(default_factory=list)
+
+    def oran(self, secenek: str) -> float:
+        return 100 * self.secenekler.get(secenek, 0) / self.n if self.n else 0
+
+    @property
+    def basari(self) -> float:
+        return 100 * (self.p or 0)
+
+    @property
+    def dogru_sayisi(self) -> int:
+        return sum(self.secenekler.get(c, 0) for c in self.dogru_cevap if c in "ABCDE")
+
+    @property
+    def bos(self) -> int:
+        return self.secenekler.get(" ", 0)
+
+    @property
+    def sik_dagilimi(self) -> list[tuple[str, int, float, bool]]:
+        """[(şık, adet, yüzde, doğru mu), ...] A–D (E işaretlenmişse o da)."""
+        siklar = "ABCDE" if self.secenekler.get("E") else "ABCD"
+        return [(c, self.secenekler.get(c, 0), self.oran(c), c in self.dogru_cevap) for c in siklar]
 
     @property
     def zorluk_etiket(self) -> str:
@@ -126,13 +152,19 @@ class MaddeSatiri:
 SECENEKLER = ["A", "B", "C", "D", "E", " ", "*"]
 
 
-def madde_analizi(deneme: Deneme) -> tuple[list[MaddeSatiri], dict[str, float | None]]:
+def madde_analizi(deneme: Deneme, sube: str | None = None) -> tuple[list[MaddeSatiri], dict[str, float | None]]:
     """Klasik test kuramı: güçlük p, alt-üst %27 ayırt edicilik r, çeldirici dağılımı, KR-20."""
     harita = harita_kur(deneme)
-    sonuclar = _sonuclar(deneme)
+    sonuclar = _sonuclar(deneme, sube)
     n = len(sonuclar)
     test_ad = {t.pk: t.ders for t in harita.testler}
     soru_no = {s.pk: s.no for t in harita.testler for s in t.sorular.all()}
+    b_no = {
+        s.pk: next((ks.no for ks in s.kitapcik_siralari.all() if ks.kitapcik == "B"), None)
+        for t in harita.testler
+        for s in t.sorular.all()
+    }
+    konular = {s.pk: list(s.kazanimlar.all()) for s in Soru.objects.filter(test__deneme=deneme).prefetch_related("kazanimlar")}
 
     sirali = sorted(sonuclar, key=lambda s: s.net, reverse=True)
     g = max(1, round(n * UST_ALT_ORAN)) if n >= 4 else 0
@@ -141,7 +173,17 @@ def madde_analizi(deneme: Deneme) -> tuple[list[MaddeSatiri], dict[str, float | 
     satirlar = []
     for s in harita.sorular:
         dogru_cevap = "/".join(sorted(s.dogrular)) or "X"
-        m = MaddeSatiri(test=test_ad[s.test_id], no=soru_no[s.soru_id], dogru_cevap=dogru_cevap, iptal=s.iptal)
+        m = MaddeSatiri(
+            test=test_ad[s.test_id],
+            no=soru_no[s.soru_id],
+            dogru_cevap=dogru_cevap,
+            iptal=s.iptal,
+            test_id=s.test_id,
+            soru_id=s.soru_id,
+            b_no=b_no.get(s.soru_id),
+            konular=konular.get(s.soru_id, []),
+            n=n,
+        )
         m.secenekler = {c: 0 for c in SECENEKLER}
         for sonuc in sonuclar:
             m.secenekler[sonuc.cevaplar_a[s.a_index]] = m.secenekler.get(sonuc.cevaplar_a[s.a_index], 0) + 1

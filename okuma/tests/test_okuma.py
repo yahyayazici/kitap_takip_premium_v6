@@ -500,3 +500,56 @@ class AnaSiteBaglantisiTest(TestCase):
         r = self.client.post("/giris/", {"username": "yon2", "password": "x-test-1234"}, HTTP_HOST="optik.localhost")
         self.assertEqual(r.status_code, 302)
         self.assertEqual(r["Location"], "/")
+
+
+@OPTIK
+class RaporTest(TemelTest):
+    def setUp(self):
+        super().setUp()
+        # İki deneme: ikincisinde 2 numara düşüyor.
+        self.yukle(satir_uret("1", "A", "ABCDBCA", sube="A"), satir_uret("2", "B", "DCBAACB", sube="B"), satir_uret("3", "A", "AB     ", sube="A"))
+        deneme_hesapla(self.deneme)
+        self.d2 = Deneme.objects.create(ad="D2", tarih=datetime.date(2026, 11, 1), sinif_seviyesi="7", sablon=self.sablon)
+        anahtar_yukle(self.d2, excel_uret())
+        optik_yukle(self.d2, self.sablon, "x.dat", "\r\n".join([satir_uret("1", "A", "ABCDBCA"), satir_uret("2", "A", "DDDDDDD")]).encode("cp1254"))
+        deneme_hesapla(self.d2)
+        self.client.force_login(User.objects.create_superuser("r", password="x-test-1234"))
+        self.q = f"?sinif=7&d={self.deneme.pk}&d={self.d2.pk}"
+
+    def test_ortalama_listesi(self):
+        from okuma.services.raporlar import ortalama_listesi
+
+        satirlar, ort = ortalama_listesi([self.deneme, self.d2])
+        bir = next(s for s in satirlar if s.ogrenci.numara == "1")
+        self.assertEqual((bir.sira, bir.deneme_sayisi, bir.dogru), (1, 2, 7))
+        self.assertIsNotNone(ort["net"])
+
+    def test_kazanim_yuzde_araligi(self):
+        from okuma.services.raporlar import kazanim_yuzde_analizi
+
+        gruplar = kazanim_yuzde_analizi([self.deneme], alt=0, ust=50)
+        adlar = {o["ogrenci"].numara for g in gruplar for o in g["ogrenciler"]}
+        self.assertIn("3", adlar)
+        self.assertNotIn("1", adlar)
+
+    def test_gelisim_dusen_ve_risk(self):
+        from okuma.services.raporlar import gelisim_raporu
+
+        g = gelisim_raporu([self.deneme, self.d2])
+        iki = next(s for s in g["satirlar"] if s.ogrenci.numara == "2")
+        self.assertEqual(iki.kategori, "Düşen")
+        self.assertIn("Sert düşüş", iki.riskler)
+        uc = next(s for s in g["satirlar"] if s.ogrenci.numara == "3")
+        self.assertIn("Devamsızlık", uc.riskler)
+
+    def test_sayfalar_ve_excel(self):
+        for ad in ["raporlar/", "raporlar/ortalama/", "raporlar/kazanim/", "raporlar/sinif-konu/", "raporlar/gelisim/"]:
+            self.assertEqual(self.client.get("/" + ad).status_code, 200, ad)
+            if ad != "raporlar/":
+                self.assertEqual(self.client.get(f"/{ad}{self.q}").status_code, 200, ad)
+                r = self.client.get(f"/{ad}{self.q}&format=xlsx")
+                self.assertEqual(r["Content-Type"][:30], "application/vnd.openxmlformats", ad)
+        pk = self.deneme.pk
+        test = self.deneme.testler.first()
+        self.assertContains(self.client.get(f"/deneme/{pk}/madde/?ders={test.pk}&sube=A"), "Ortalama başarı")
+        self.assertEqual(self.client.get(f"/deneme/{pk}/madde/?format=xlsx").status_code, 200)

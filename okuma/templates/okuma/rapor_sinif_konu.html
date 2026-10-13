@@ -1,0 +1,25 @@
+{% extends "okuma/base.html" %}
+{% block baslik %}Sınıf konu analizi{% endblock %}
+{% block icerik %}
+{% include "okuma/_rapor_ust.html" with baslik="Sınıf konu analizi." %}
+{% if denemeler %}
+<div class="kart sikisik tablo-kap">
+  <table>
+    <thead><tr><th>Ders</th><th>Konu / kazanım</th><th class="sayi">Soru</th>{% for s in konu_subeleri %}<th class="orta">{% if s %}{{ sinif }}-{{ s }}{% else %}Şubesiz{% endif %}</th>{% endfor %}{% if konu_subeleri|length > 1 %}<th class="orta">Genel</th>{% endif %}</tr></thead>
+    <tbody>
+    {% for s in satirlar %}
+      <tr>
+        <td style="white-space:nowrap"><b>{{ s.kayit.ders_adi }}</b></td>
+        <td>{% if s.kayit.kazanim.kod %}<span class="kucuk-yazi">{{ s.kayit.kazanim.kod }}</span> {% endif %}{{ s.kayit.kazanim.metin }}</td>
+        <td class="sayi soluk">{{ s.kayit.soru_sayisi }}</td>
+        {% for v in s.subeler %}<td class="isi {% if v is None %}bos{% elif v < 35 %}c1{% elif v < 50 %}c2{% elif v < 65 %}c3{% elif v < 80 %}c4{% else %}c5{% endif %}">{% if v is not None %}%{{ v|floatformat:2 }}{% else %}—{% endif %}</td>{% endfor %}
+        {% if konu_subeleri|length > 1 %}<td class="isi"><b>%{{ s.genel|floatformat:2 }}</b></td>{% endif %}
+      </tr>
+    {% empty %}
+      <tr><td colspan="5"><div class="bos-durum">Seçilen denemelerde kazanım bilgisi yok.</div></td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

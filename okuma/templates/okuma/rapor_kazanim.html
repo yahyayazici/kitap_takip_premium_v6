@@ -1,0 +1,33 @@
+{% extends "okuma/base.html" %}
+{% block baslik %}Konu kazanım yüzde analizi{% endblock %}
+{% block icerik %}
+{% include "okuma/_rapor_ust.html" with baslik="Konu kazanım yüzde analizi." %}
+{% if denemeler %}
+<p class="kucuk-yazi" style="margin:-8px 0 16px">Doğru yüzdesi %{{ alt|floatformat:0 }}–%{{ ust|floatformat:0 }} arasında kalan öğrenciler. Yüzde = doğru ÷ (doğru + yanlış + boş) × 100.</p>
+<div class="arac-cubugu">
+  <div class="segment">
+    <a href="?sinif={{ sinif }}&sube={{ sube }}&alt={{ alt|floatformat:0 }}&ust={{ ust|floatformat:0 }}{% for d in denemeler %}&d={{ d.pk }}{% endfor %}" class="{% if not ders %}secili{% endif %}">Tüm dersler</a>
+    {% for k, ad in dersler %}<a href="?sinif={{ sinif }}&sube={{ sube }}&alt={{ alt|floatformat:0 }}&ust={{ ust|floatformat:0 }}&ders={{ k }}{% for d in denemeler %}&d={{ d.pk }}{% endfor %}" class="{% if ders == k %}secili{% endif %}">{{ ad }}</a>{% endfor %}
+  </div>
+</div>
+{% for g in gruplar %}
+<div class="konu-grubu">
+  <div class="bolum-baslik"><div><h3>{% if g.kayit.kazanim.kod %}{{ g.kayit.kazanim.kod }} {% endif %}{{ g.kayit.kazanim.metin }} <span class="sayi-rozet">{{ g.ogrenciler|length }} öğrenci</span></h3><p>{{ g.kayit.ders_adi }} · {{ g.kayit.soru_sayisi }} soru</p></div></div>
+  <div class="kart sikisik tablo-kap">
+    <table>
+      <thead><tr><th>Öğrenci</th><th>Şube</th><th class="sayi">Doğru %</th><th class="sayi">Doğru</th><th class="sayi">Yanlış</th><th class="sayi">Boş</th><th class="sayi">Net</th><th class="sayi">Toplam</th></tr></thead>
+      <tbody>
+      {% for o in g.ogrenciler %}
+        <tr><td><b>{{ o.ogrenci.ad_soyad|default:o.ogrenci.numara }}</b></td><td>{{ sinif }}-{{ o.sube|default:"?" }}</td>
+          <td class="sayi {% if o.yuzde < 35 %}yuzde-renk-dusuk{% elif o.yuzde < 50 %}yuzde-renk-orta{% else %}yuzde-renk-iyi{% endif %}">%{{ o.yuzde|floatformat:1 }}</td>
+          <td class="sayi">{{ o.dogru }}</td><td class="sayi">{{ o.yanlis }}</td><td class="sayi">{{ o.bos }}</td><td class="sayi">{{ o.net|floatformat:2 }}</td><td class="sayi soluk">{{ o.toplam }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% empty %}
+<div class="kart bos-durum"><h3>Bu aralıkta öğrenci yok.</h3><p>Aralığı genişletmeyi deneyin.</p></div>
+{% endfor %}
+{% endif %}
+{% endblock %}

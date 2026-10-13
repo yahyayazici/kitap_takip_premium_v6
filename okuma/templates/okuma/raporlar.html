@@ -1,0 +1,16 @@
+{% extends "okuma/base.html" %}
+{% block baslik %}Raporlar{% endblock %}
+{% block icerik %}
+<section class="kahraman">
+  <h1>Raporlar.</h1>
+  <p>Bir ya da birden çok denemeyi seçip şube, konu ve öğrenci bazında inceleyin. Her rapor Excel ve PDF olarak alınabilir. Tek denemenin soru analizi, denemenin kendi sayfasındadır.</p>
+</section>
+<div class="izgara">
+  {% for ad, baslik, aciklama in raporlar %}
+  <a class="kart karo" href="{% url ad %}">
+    <h3>{{ baslik }}</h3>
+    <p class="kucuk-yazi" style="margin:8px 0 0;font-size:14px;line-height:1.45">{{ aciklama }}</p>
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+<form method="get" class="secim-paneli">
+  <div class="satir">
+    <div class="alan" style="min-width:140px"><label for="sinif">Sınıf</label>
+      <select name="sinif" id="sinif" onchange="this.form.querySelectorAll('input[name=d]').forEach(c=>c.checked=false);this.form.submit()">
+        {% for s in siniflar %}<option value="{{ s }}" {% if s == sinif %}selected{% endif %}>{{ s }}. sınıf</option>{% empty %}<option value="">Sonucu olan deneme yok</option>{% endfor %}
+      </select>
+    </div>
+    <div class="alan" style="min-width:140px"><label for="sube">Şube</label>
+      <select name="sube" id="sube">
+        <option value="">Tüm şubeler</option>
+        {% for s in subeler %}<option value="{{ s }}" {% if s == sube %}selected{% endif %}>{{ sinif }}-{{ s }}</option>{% endfor %}
+      </select>
+    </div>
+    {% if rapor == "rapor_kazanim" %}
+    <div class="alan" style="width:110px"><label for="alt">Doğru % en az</label><input type="number" name="alt" id="alt" value="{{ alt|floatformat:0 }}" min="0" max="100"></div>
+    <div class="alan" style="width:110px"><label for="ust">Doğru % en çok</label><input type="number" name="ust" id="ust" value="{{ ust|floatformat:0 }}" min="0" max="100"></div>
+    {% if ders %}<input type="hidden" name="ders" value="{{ ders }}">{% endif %}
+    {% endif %}
+    <button class="btn">Raporu oluştur</button>
+  </div>
+  <div class="deneme-secimi">
+    {% for d in sinif_denemeleri %}<label><input type="checkbox" name="d" value="{{ d.pk }}" {% if d.pk|stringformat:"s" in secili_idler %}checked{% endif %}>{{ d.ad }} · {{ d.tarih|date:"j.m.Y" }}</label>{% empty %}<span class="soluk">Bu sınıfta sonucu olan deneme yok.</span>{% endfor %}
+  </div>
+  {% if sinif_denemeleri|length > 1 %}<p class="kucuk-yazi" style="margin:8px 0 0"><a href="#" onclick="this.closest('form').querySelectorAll('input[name=d]').forEach(c=>c.checked=true);return false">Hepsini seç</a></p>{% endif %}
+</form>

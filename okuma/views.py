@@ -15,6 +15,7 @@ from okuma.erisim import erisim_gerekli, erisimi_var, yetki_yok
 from okuma.forms import AnahtarForm, DenemeDuzenleForm, DenemeForm, OptikForm, SatirForm, SoruForm
 from okuma.models import Deneme, Ogrenci, OptikSablon, OptikSatir, Soru, Sonuc
 from okuma.services import analiz
+from okuma.services.excel import excel_yaniti
 from okuma.services.anahtar_excel import AnahtarHatasi, anahtar_elle, anahtar_yukle
 from okuma.services.yapi import yapiyi_kur
 from okuma.services.optik import numara_normalize, optik_yukle
@@ -430,14 +431,55 @@ def kazanim_raporu(request, pk):
 
 @erisim_gerekli
 def madde_analizi(request, pk):
+    """Soru analizi: ders sekmesi, şube filtresi, şık dağılımı, konu ve madde istatistikleri."""
     deneme = get_object_or_404(Deneme, pk=pk)
-    satirlar, kr20 = analiz.madde_analizi(deneme)
-    sorular = {(s.test.ders, s.no): s for s in Soru.objects.filter(test__deneme=deneme).select_related("test")}
-    tablo = [(m, sorular.get((m.test, m.no))) for m in satirlar]
+    sube = request.GET.get("sube", "")
+    testler = list(deneme.testler.order_by("sira"))
+    secili = next((t for t in testler if str(t.pk) == request.GET.get("ders")), testler[0] if testler else None)
+    satirlar, kr20 = analiz.madde_analizi(deneme, sube or None)
+    sorular = {s.pk: s for s in Soru.objects.filter(test__deneme=deneme)}
+    ders_satirlari = [m for m in satirlar if secili and m.test_id == secili.pk]
+
+    gecerli = [m for m in ders_satirlari if not m.iptal]
+    n = gecerli[0].n if gecerli else 0
+    toplam = n * len(gecerli)
+    dogru = sum(m.secenekler.get(c, 0) for m in gecerli for c in m.dogru_cevap if c in "ABCDE")
+    bos = sum(m.bos for m in gecerli)
+    ozet = {
+        "ortalama_basari": sum(m.basari for m in gecerli) / len(gecerli) if gecerli else 0,
+        "soru": len(ders_satirlari),
+        "dogru_orani": 100 * dogru / toplam if toplam else 0,
+        "yanlis_orani": 100 * (toplam - dogru - bos) / toplam if toplam else 0,
+        "bos_orani": 100 * bos / toplam if toplam else 0,
+        "ogrenci": n,
+        "kr20": kr20.get(secili.ders) if secili else None,
+    }
+
+    if request.GET.get("format") == "xlsx":
+        sayfalar = []
+        for t in testler:
+            veri = [
+                [m.no, m.b_no or "", m.dogru_cevap, "; ".join(str(k) for k in m.konular), round(m.basari, 1),
+                 m.bos, *[f"%{o:.1f} ({a})" for _, a, o, _ in m.sik_dagilimi], m.p, m.r, "; ".join(m.uyarilar)]
+                for m in satirlar if m.test_id == t.pk
+            ]
+            sayfalar.append((t.ders, ["A", "B", "Cevap", "Konu", "Başarı %", "Boş", "A", "B", "C", "D", "p", "r", "Not"], veri))
+        return excel_yaniti(f"soru-analizi-{deneme.pk}{('-' + sube) if sube else ''}", sayfalar)
+
     return render(
         request,
         "okuma/madde.html",
-        {"deneme": deneme, "tablo": tablo, "kr20": kr20, "secenekler": "ABCDE"},
+        {
+            "deneme": deneme,
+            "tablo": [(m, sorular.get(m.soru_id)) for m in ders_satirlari],
+            "kr20": kr20,
+            "testler": testler,
+            "secili": secili,
+            "sube": sube,
+            "subeler": deneme.sonuclar.exclude(sube="").values_list("sube", flat=True).distinct().order_by("sube"),
+            "ozet": ozet,
+            "secenekler": "ABCDE",
+        },
     )
 
 
@@ -454,4 +496,7 @@ def soru_guncelle(request, soru_pk):
         _yeniden_hesapla(request, deneme)
     else:
         messages.error(request, "Soru güncellenemedi.")
-    return redirect(f"{reverse('madde_analizi', args=[deneme.pk])}#soru-{soru.pk}")
+    geri = request.POST.get("geri", "")
+    if url_has_allowed_host_and_scheme(geri, allowed_hosts={request.get_host()}):
+        return redirect(f"{geri}#soru-{soru.pk}")
+    return redirect(f"{reverse('madde_analizi', args=[deneme.pk])}?ders={soru.test_id}#soru-{soru.pk}")

@@ -1,0 +1,71 @@
+{% extends "okuma/base.html" %}
+{% block baslik %}Gelişim raporu{% endblock %}
+{% block icerik %}
+{% include "okuma/_rapor_ust.html" with baslik="Gelişim raporu." %}
+{% if denemeler %}
+<div class="izgara-4">
+  <div class="olcu"><div class="ad">Toplam öğrenci</div><div class="deger">{{ g.ozet.ogrenci }}</div></div>
+  <div class="olcu"><div class="ad">Toplam sınav</div><div class="deger">{{ g.ozet.sinav }}</div></div>
+  <div class="olcu"><div class="ad">Genel ortalama net</div><div class="deger renkli">{{ g.ozet.genel_ort_net|floatformat:2 }}</div></div>
+  <div class="olcu"><div class="ad">Katılım oranı</div><div class="deger">%{{ g.ozet.katilim|floatformat:0 }}</div></div>
+</div>
+
+<ul class="bildirimler" style="margin-top:20px">
+  {% if g.ozet.riskli %}<li class="warning"><b>Risk özeti: {{ g.ozet.riskli }}</b> öğrenci dikkat istiyor. {% for ad, adet in g.riskler.items %}{{ ad }}: {{ adet }}{% if not forloop.last %} · {% endif %}{% endfor %}</li>
+  {% else %}<li class="success"><b>Risk özeti: 0</b> · risk altında öğrenci yok.</li>{% endif %}
+</ul>
+
+{% if g.deneme_ozet|length > 1 %}
+<section class="bolum">
+  <div class="bolum-baslik"><div><h2>Deneme deneme</h2></div></div>
+  <div class="kart sikisik tablo-kap"><table>
+    <thead><tr><th>Deneme</th><th>Tarih</th><th class="sayi">Katılan</th><th class="sayi">Ortalama net</th></tr></thead>
+    <tbody>{% for d in g.deneme_ozet %}<tr><td><b>{{ d.deneme.ad }}</b></td><td class="soluk">{{ d.deneme.tarih|date:"j.m.Y" }}</td><td class="sayi">{{ d.kisi }}</td><td class="sayi"><b>{{ d.ort_net|floatformat:2 }}</b></td></tr>{% endfor %}</tbody>
+  </table></div>
+</section>
+{% endif %}
+
+<section class="bolum">
+  <div class="bolum-baslik"><div><h2>Şube karşılaştırması</h2><p>% değişim: ilk ve son deneme ortalama netleri arasındaki fark.</p></div></div>
+  <div class="kart sikisik tablo-kap"><table>
+    <thead><tr><th>Şube</th><th class="sayi">Öğrenci</th><th class="sayi">Ort. net</th><th class="sayi">Katılım</th><th class="sayi">% değişim</th></tr></thead>
+    <tbody>{% for s in g.subeler %}<tr><td><b>{% if s.sube %}{{ sinif }}-{{ s.sube }}{% else %}Şubesiz{% endif %}</b></td><td class="sayi">{{ s.ogrenci }}</td><td class="sayi">{{ s.ort_net|floatformat:2|default:"—" }}</td><td class="sayi">%{{ s.katilim|floatformat:0 }}</td>
+      <td class="sayi {% if s.degisim > 0 %}egilim-yukari{% elif s.degisim < 0 %}egilim-asagi{% endif %}">{% if s.degisim > 0 %}+{% endif %}%{{ s.degisim|floatformat:1 }}</td></tr>{% endfor %}</tbody>
+  </table></div>
+</section>
+
+<section class="bolum">
+  <div class="bolum-baslik"><div><h2>En başarılı 10 öğrenci</h2></div></div>
+  <div class="kart sikisik tablo-kap"><table>
+    <thead><tr><th class="sayi">Sıra</th><th>Ad soyad</th><th>Şube</th><th class="sayi">Ort. net</th><th class="sayi">Ort. puan</th><th class="orta">Eğilim</th><th>Kategori</th></tr></thead>
+    <tbody>{% for s in g.ilk_on %}<tr><td class="sayi"><b>{{ s.sira }}</b></td><td><b>{{ s.ogrenci.ad_soyad|default:s.ogrenci.numara }}</b></td><td>{{ sinif }}-{{ s.sube|default:"?" }}</td><td class="sayi">{{ s.ort_net|floatformat:2 }}</td><td class="sayi">{{ s.ort_puan|floatformat:2|default:"—" }}</td>
+      <td class="orta {% if s.trend > 0 %}egilim-yukari{% elif s.trend < 0 %}egilim-asagi{% endif %}">{% if s.trend > 0 %}▲ +{{ s.trend|floatformat:1 }}{% elif s.trend < 0 %}▼ {{ s.trend|floatformat:1 }}{% else %}—{% endif %}</td>
+      <td><span class="rozet {% if s.kategori == 'Yükselen' %}tamam{% elif s.kategori == 'Düşen' %}hata{% else %}gri{% endif %}">{{ s.kategori }}</span></td></tr>{% endfor %}</tbody>
+  </table></div>
+</section>
+
+<div class="bolum izgara-2" style="align-items:start">
+  <div class="kart">
+    <h3>Kategori dağılımı</h3>
+    <ul class="liste">{% for ad, adet in g.kategoriler.items %}<li><span class="rozet {% if ad == 'Yükselen' %}tamam{% elif ad == 'Düşen' %}hata{% else %}gri{% endif %}">{{ ad }}</span><b style="margin-left:auto">{{ adet }}</b></li>{% endfor %}</ul>
+    <p class="kucuk-yazi">Son iki deneme arasında 3 net ve üzeri artış “Yükselen”, 3 net ve üzeri düşüş “Düşen”.</p>
+  </div>
+  <div class="kart">
+    <h3>Risk dağılımı</h3>
+    {% if g.riskler %}<ul class="liste">{% for ad, adet in g.riskler.items %}<li><span class="rozet uyari">{{ ad }}</span><b style="margin-left:auto">{{ adet }}</b></li>{% endfor %}</ul>{% else %}<p class="soluk">Risk altında öğrenci yok.</p>{% endif %}
+    <p class="kucuk-yazi">Sert düşüş: son iki deneme arasında 5+ net kayıp · Düşük başarı: ortalama net genel ortalamanın %70'inin altında · Devamsızlık: denemelerin %75'inden azına katılım.</p>
+  </div>
+</div>
+
+{% if g.riskli_ogrenciler %}
+<section class="bolum">
+  <div class="bolum-baslik"><div><h2>Risk altındaki öğrenciler</h2></div></div>
+  <div class="kart sikisik tablo-kap"><table>
+    <thead><tr><th>Ad soyad</th><th>Şube</th><th class="sayi">Ort. net</th><th class="sayi">Katılım</th><th class="orta">Eğilim</th><th>Risk</th></tr></thead>
+    <tbody>{% for s in g.riskli_ogrenciler %}<tr><td><b>{{ s.ogrenci.ad_soyad|default:s.ogrenci.numara }}</b></td><td>{{ sinif }}-{{ s.sube|default:"?" }}</td><td class="sayi">{{ s.ort_net|floatformat:2 }}</td><td class="sayi">%{% widthratio s.katilim 1 100 %}</td>
+      <td class="orta {% if s.trend < 0 %}egilim-asagi{% endif %}">{% if s.trend %}{{ s.trend|floatformat:1 }}{% else %}—{% endif %}</td><td>{% for r in s.riskler %}<span class="rozet uyari">{{ r }}</span> {% endfor %}</td></tr>{% endfor %}</tbody>
+  </table></div>
+</section>
+{% endif %}
+{% endif %}
+{% endblock %}

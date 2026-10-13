@@ -1,0 +1,8 @@
+<section class="kahraman" style="margin-bottom:24px">
+  <p class="ust-yazi"><a href="{% url 'raporlar' %}">Raporlar</a></p>
+  <h1>{{ baslik }}</h1>
+  {% if denemeler %}<p>{{ sinif }}. sınıf{% if sube %} · {{ sinif }}-{{ sube }} şubesi{% endif %} · {{ denemeler|length }} deneme: {% for d in denemeler %}{{ d.ad }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>{% endif %}
+  {% if denemeler %}<div class="eylemler rapor-eylemleri"><a class="btn ikincil" href="?{{ sorgu }}&format=xlsx">Excel</a><button class="btn gri" onclick="window.print()">PDF / Yazdır</button></div>{% endif %}
+</section>
+{% include "okuma/_rapor_secim.html" %}
+{% if not denemeler %}<div class="kart bos-durum"><h3>Deneme seçin.</h3><p>Yukarıdan sınıfı ve bir ya da birden çok denemeyi seçip “Raporu oluştur”a basın.</p></div>{% endif %}
