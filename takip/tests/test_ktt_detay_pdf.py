@@ -86,6 +86,8 @@ class KttDetayPdfTests(TestCase):
         self.assertIn('class="yanlis"', html)
         self.assertIn(".dokum .yanlis", html)
         self.assertIn(".dokum .yazi-iyi", html)
+        self.assertIn('class="sol ad"><span>Talebe', html)
+        self.assertIn(".dokum td.ad span", html)
         self.assertNotIn("ktt-split-layout", html)
         self.assertNotIn('class="bol"', html)
         self.assertEqual(html.count("Deneme"), 24)
