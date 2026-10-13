@@ -1712,10 +1712,11 @@ body.v3-body .ep-page > header.ep-head .ep-input {
     background: none !important;
 }
 
-.pg-studio-hero-copy {
-    width: min(100%, 34rem);
-    max-width: 34rem;
+.pg-studio > header.page-head > .pg-studio-hero-copy {
+    width: 100%;
+    max-width: none;
     margin-inline: auto;
+    text-align: center !important;
 }
 
 .pg-studio > header.page-head > .pg-studio-hero-side {
@@ -1742,13 +1743,26 @@ body.v3-body .ep-page > header.ep-head .ep-input {
     line-height: 1.3 !important;
 }
 
-.pg-studio > header.page-head h1 {
-    margin: 0 !important;
+.pg-studio > header.page-head > .pg-studio-hero-copy h1 {
+    display: block !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    overflow: visible !important;
     font-family: var(--cs-font) !important;
-    font-size: clamp(2.15rem, 6vw, 3.6rem) !important;
+    font-size: clamp(2.85rem, 5.4vw, 4.5rem) !important;
     font-weight: 700 !important;
-    letter-spacing: -0.048em !important;
-    line-height: 1.02 !important;
+    letter-spacing: -0.04em !important;
+    line-height: 1.15 !important;
+    text-align: center !important;
+    background: none !important;
+    color: var(--cs-primary) !important;
+    -webkit-text-fill-color: currentcolor !important;
+}
+
+.pg-studio > header.page-head > .pg-studio-hero-copy .pg-studio-title {
+    display: inline-block !important;
+    padding: 0.02em 0.04em 0.28em !important;
+    line-height: 1.05 !important;
     background-image: linear-gradient(105deg, var(--cs-primary-mid) 0%, var(--cs-accent) 58%, var(--cs-accent-soft) 100%) !important;
     -webkit-background-clip: text !important;
     background-clip: text !important;
@@ -1756,14 +1770,15 @@ body.v3-body .ep-page > header.ep-head .ep-input {
     -webkit-text-fill-color: transparent !important;
 }
 
-.pg-studio > header.page-head .muted,
-.pg-studio > header.page-head p:not(.kicker) {
-    margin: var(--cs-space-4) auto 0 !important;
-    max-width: 28rem;
+.pg-studio > header.page-head > .pg-studio-hero-copy .muted,
+.pg-studio > header.page-head > .pg-studio-hero-copy p:not(.kicker) {
+    margin: var(--cs-space-2) auto 0 !important;
+    max-width: 36rem;
     color: var(--cs-text-secondary) !important;
-    font-size: 0.95rem !important;
+    font-size: 1.05rem !important;
     font-weight: 400 !important;
     line-height: 1.55 !important;
+    text-align: center !important;
 }
 
 .pg-studio > header .profile-head-actions {
@@ -2301,9 +2316,8 @@ body.v3-body .ep-page > header.ep-head .ep-input {
         padding-inline: 0 !important;
     }
 
-    .pg-studio-hero-copy {
-        width: 100%;
-        max-width: none;
+    .pg-studio > header.page-head > .pg-studio-hero-copy h1 {
+        font-size: clamp(2.35rem, 11vw, 3.1rem) !important;
     }
 
     .pg-studio > header .profile-head-actions {
