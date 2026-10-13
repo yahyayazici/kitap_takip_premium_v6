@@ -146,7 +146,7 @@ class PuanlamaTest(TemelTest):
     def test_lgs_tablo_puani(self):
         self.yukle(satir_uret("1", "A", "ABCDBCA"))
         deneme_hesapla(self.deneme)
-        t = LGS_KATSAYILARI[2025]
+        t = LGS_KATSAYILARI[2022]
         # Tam net, LGS soru sayısına oranlanır: Türkçe 4/4 → 20/20, Matematik 3/3 → 20/20.
         beklenen = Decimal(str(t["taban"])) + 20 * Decimal(str(t["turkce"])) + 20 * Decimal(str(t["matematik"]))
         self.assertEqual(self.deneme.sonuclar.get().puan, beklenen.quantize(Decimal("0.001")))
@@ -166,6 +166,15 @@ class PuanlamaTest(TemelTest):
         netler = {"turkce": 19 - 1 / 3, "inkilap": 10, "din": 7 - 1, "yabanci_dil": 9 - 1 / 3, "matematik": 18 - 2 / 3, "fen": 18 - 2 / 3}
         puan = t["taban"] + sum(t[k] * v for k, v in netler.items())
         self.assertAlmostEqual(puan, 460.72, places=1)
+
+    def test_2022_kurum_okuma_sitesiyle_ayni(self):
+        # XYS sıralı listesi: Ahmet Sevban Taşdan 463,100 — Hüseyin Kemal İnce 457,180
+        t = LGS_KATSAYILARI[2022]
+        for netler, beklenen in [
+            ({"turkce": 19 - 1 / 3, "inkilap": 10, "din": 6, "yabanci_dil": 9 - 1 / 3, "matematik": 18 - 2 / 3, "fen": 18 - 2 / 3}, 463.100),
+            ({"turkce": 18 - 2 / 3, "inkilap": 10, "din": 10, "yabanci_dil": 6, "matematik": 19 - 1 / 3, "fen": 16 - 4 / 3}, 457.180),
+        ]:
+            self.assertAlmostEqual(t["taban"] + sum(t[k] * v for k, v in netler.items()), beklenen, delta=0.2)
 
     def test_deneme_ici_puan_100_500(self):
         self.deneme.puan_modu = Deneme.PuanModu.DENEME_ICI

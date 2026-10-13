@@ -19,5 +19,10 @@ LGS_KATSAYILARI = {
 
 LGS_YILLARI = sorted(LGS_KATSAYILARI)
 
+# Kurumun kullandığı okuma sitesi (XYS) 2022 katsayılarıyla hesaplıyor: Kurumsal Deneme-1'de
+# 20 öğrencinin hepsinde sıra aynı, puan farkı en fazla 0,2. Karşılaştırılabilirlik için varsayılan budur.
+VARSAYILAN_YIL = 2022
+YIL_ETIKETLERI = {2022: "2022 — kurumun okuma sitesiyle aynı", 2025: "2025 — en güncel yayımlanan"}
+
 # LGS'de derslerin soru sayısı; farklı soru sayılı denemelerde net bu sayıya oranlanır.
 LGS_SORU_SAYISI = {"turkce": 20, "matematik": 20, "fen": 20, "inkilap": 10, "din": 10, "yabanci_dil": 10}

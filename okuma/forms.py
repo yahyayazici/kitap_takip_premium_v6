@@ -3,7 +3,7 @@ from django.contrib.auth.forms import SetPasswordForm, UserCreationForm
 from django.contrib.auth.models import User
 
 from okuma.models import Deneme, DenemeTuru, DenemeTuruDers, Ogrenci, OptikSablon, Soru
-from okuma.services.lgs import LGS_YILLARI
+from okuma.services.lgs import LGS_YILLARI, VARSAYILAN_YIL, YIL_ETIKETLERI
 from okuma.services.optik import numara_normalize
 
 
@@ -17,8 +17,8 @@ class DenemeForm(forms.ModelForm):
     lgs_yili = forms.TypedChoiceField(
         label="LGS katsayı yılı",
         coerce=int,
-        choices=[(y, y) for y in reversed(LGS_YILLARI)],
-        initial=LGS_YILLARI[-1],
+        choices=[(y, YIL_ETIKETLERI.get(y, str(y))) for y in reversed(LGS_YILLARI)],
+        initial=VARSAYILAN_YIL,
         help_text="Yalnızca “geçmiş yıl katsayıları” modunda kullanılır.",
     )
 

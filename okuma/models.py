@@ -123,7 +123,7 @@ class Deneme(models.Model):
         help_text="LGS'de 3 yanlış 1 doğruyu götürür; değiştirmeyin. Yanlış götürmüyorsa 0.",
     )
     puan_modu = models.CharField("Puan modu", max_length=20, choices=PuanModu.choices, default=PuanModu.LGS_TABLO)
-    lgs_yili = models.PositiveSmallIntegerField("LGS katsayı yılı", default=2025)
+    lgs_yili = models.PositiveSmallIntegerField("LGS katsayı yılı", default=2022)
     kitapciklar = models.CharField("Kitapçık türleri", max_length=20, default="A,B")
     sablon = models.ForeignKey(
         OptikSablon, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Varsayılan optik şablon"
