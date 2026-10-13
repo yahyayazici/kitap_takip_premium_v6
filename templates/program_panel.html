@@ -11,22 +11,24 @@
 
 <header class="page-head pg-studio-hero">
     <div class="pg-studio-hero-copy">
-        <p class="kicker">{{ bugun|date:"d F Y, l" }}</p>
         <h1>Günlük Program.</h1>
         <p class="muted">Personel program görünümü. Günün akışı, süreleri ve kategorileri tek bakışta.</p>
     </div>
-    {% if secili_program or yonetim_modulu %}
-    <div class="profile-head-actions">
-        {% if secili_program %}
-        {% url 'program_pdf' secili_program.pk as program_pdf_href %}
-        {% include "includes/pdf_sayfa_secici.html" with pdf_href=program_pdf_href pdf_sayfa=pdf_sayfa pdf_btn_class="primary-btn" pdf_btn_label="PDF İndir" %}
-        <a href="{% url 'program_excel' secili_program.pk %}" class="ghost-btn">Excel İndir</a>
-        {% endif %}
-        {% if yonetim_modulu %}
-        <a href="{% url 'yonetim:program_listesi' %}" class="ghost-btn">Yönetim</a>
+    <div class="pg-studio-hero-side">
+        <p class="kicker">{{ bugun|date:"d F Y, l" }}</p>
+        {% if secili_program or yonetim_modulu %}
+        <div class="profile-head-actions">
+            {% if secili_program %}
+            {% url 'program_pdf' secili_program.pk as program_pdf_href %}
+            {% include "includes/pdf_sayfa_secici.html" with pdf_href=program_pdf_href pdf_sayfa=pdf_sayfa pdf_btn_class="primary-btn" pdf_btn_label="PDF İndir" %}
+            <a href="{% url 'program_excel' secili_program.pk %}" class="ghost-btn">Excel İndir</a>
+            {% endif %}
+            {% if yonetim_modulu %}
+            <a href="{% url 'yonetim:program_listesi' %}" class="ghost-btn">Yönetim</a>
+            {% endif %}
+        </div>
         {% endif %}
     </div>
-    {% endif %}
 </header>
 
 <section class="program-selector-card dashboard-card">
