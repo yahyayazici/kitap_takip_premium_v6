@@ -222,8 +222,7 @@
             });
 
             if (countEl) {
-                countEl.textContent =
-                    visible === totalUnique ? String(totalUnique) : visible + " / " + totalUnique;
+                countEl.textContent = visible + " / " + totalUnique;
             }
             if (emptyEl) {
                 emptyEl.hidden = visible !== 0;

@@ -1,26 +1,27 @@
 {% load static %}
 {% if request.htmx %}
 <title hx-swap-oob="true">KTT</title>
-<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=ktt-list9" hx-swap-oob="true">
+<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=ktt-studio1" hx-swap-oob="true">
 {% endif %}
 {% if request.htmx %}<div id="main-content" class="page-content">{% endif %}
 <div class="ktt-page ktt-list-page" data-page-title="KTT">
-    <header class="page-head patterned-page-head ktt-page-head ktt-hero">
+    <header class="page-head patterned-page-head ktt-page-head ktt-hero ktt-studio-hero">
         <div class="ktt-head-main">
-            <p class="kicker">KAZANIM TARAMA TESTİ</p>
-            <h1>Konu Tarama Testleri (KTT)</h1>
-            <div class="ktt-head-actions profile-head-actions">
-                {% if olusturabilir and form %}
-                <button type="button" class="ktt-solid-btn primary-btn" id="ktt-open-form" aria-controls="ktt-form-modal" aria-expanded="false">
-                    + KTT Ekle
-                </button>
-                {% endif %}
-                <a href="{% url 'ktt_rapor' %}" class="ktt-outline-btn green ghost-btn">Rapor &amp; Analiz</a>
-                <a href="{% url 'ktt_akilli_ozet' %}" class="ktt-outline-btn ghost-btn">Akıllı Takip</a>
-                {% if pdf_yetkisi %}
-                <a href="{% url 'ktt_hafta_pdf' %}" class="ktt-outline-btn ghost-btn">Haftalık PDF</a>
-                {% endif %}
-            </div>
+            <p class="kicker">Kazanım Tarama Testi</p>
+            <h1><span class="ktt-studio-title">Konu Tarama Testleri.</span></h1>
+            <p class="muted">Her dersin kazanımı, her talebenin katılımı. Tek ekranda.</p>
+        </div>
+        <div class="ktt-head-actions profile-head-actions">
+            {% if olusturabilir and form %}
+            <button type="button" class="ktt-solid-btn primary-btn" id="ktt-open-form" aria-controls="ktt-form-modal" aria-expanded="false">
+                + KTT Ekle
+            </button>
+            {% endif %}
+            <a href="{% url 'ktt_rapor' %}" class="ktt-outline-btn green ghost-btn">Rapor &amp; Analiz</a>
+            <a href="{% url 'ktt_akilli_ozet' %}" class="ktt-outline-btn ghost-btn">Akıllı Takip</a>
+            {% if pdf_yetkisi %}
+            <a href="{% url 'ktt_hafta_pdf' %}" class="ktt-outline-btn ghost-btn">Haftalık PDF</a>
+            {% endif %}
         </div>
     </header>
 
@@ -112,7 +113,7 @@
 {% endif %}
 
 {% if request.htmx %}
-<script src="{% static 'js/ktt-list.js' %}?v=ktt-filter2"></script>
+<script src="{% static 'js/ktt-list.js' %}?v=ktt-studio1"></script>
 {% if olusturabilir and form and form.errors %}
 <script>document.documentElement.dataset.kttFormOpen = "1";</script>
 {% endif %}

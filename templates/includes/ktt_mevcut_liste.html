@@ -1,14 +1,14 @@
 <section class="ktt-table-card ktt-list-only">
     <div class="ktt-list-toolbar" id="ktt-list-filter">
         <div class="ktt-list-heading">
-            <h2>Mevcut Konu Tarama Testleri</h2>
+            <h2>Mevcut testler</h2>
             {% if sinavlar %}
             <span class="ktt-list-count" data-ktt-count>{{ sinavlar|length }}</span>
             {% endif %}
         </div>
         {% if sinavlar %}
         <div class="ktt-list-filters">
-            <input type="search" data-ktt-filter="q" placeholder="KTT ara…" autocomplete="off" aria-label="KTT ara">
+            <input type="search" data-ktt-filter="q" placeholder="KTT ara" autocomplete="off" aria-label="KTT ara">
             <select data-ktt-filter="ders" aria-label="Ders">
                 <option value="">Tüm dersler</option>
             </select>
@@ -29,11 +29,11 @@
                     <strong class="ktt-acc-title">{{ ktt.ad }}</strong>
                     <span class="ktt-acc-meta">
                         <span>{{ ktt.sinif_goster }}</span>
-                        <span class="ktt-ders-pill">{{ ktt.ders.ad }}</span>
+                        <span class="ktt-ders-pill ktt-tone-{{ ktt.ders.ad|slugify }}">{{ ktt.ders.ad }}</span>
                         <span>{{ ktt.sinav_tarihi|date:"d.m.Y" }}</span>
                     </span>
                 </span>
-                <span class="ktt-acc-badge">{{ ktt.sonuc_sayisi }} öğrenci</span>
+                <span class="ktt-acc-badge">{{ ktt.sonuc_sayisi }} talebe</span>
                 <span class="ktt-acc-chevron" aria-hidden="true"></span>
             </summary>
             <div class="ktt-acc-body">
@@ -47,7 +47,7 @@
                 <div class="ktt-actions">
                     <a href="{% url 'ktt_sonuc_gir' ktt.pk %}" class="ktt-btn ktt-btn-blue">Sonuç Gir / Gör</a>
                     <a href="{% url 'ktt_detay' ktt.pk %}" class="ktt-btn ktt-btn-ghost">Detay</a>
-                    {% include "includes/ktt_sil_form.html" with ktt=ktt silebilir=ktt.silebilir %}
+                    {% include "includes/ktt_sil_form.html" with ktt=ktt silebilir=ktt.silebilir ikon=1 %}
                 </div>
             </div>
         </details>
@@ -58,29 +58,34 @@
         <table class="ktt-table">
             <thead>
                 <tr>
-                    <th>KTT Adı</th>
-                    <th>Sınıf</th>
+                    <th>Test</th>
                     <th>Ders</th>
+                    <th>Sınıf</th>
                     <th>Soru</th>
                     <th>Tarih</th>
                     <th>Katılım</th>
-                    <th>İşlemler</th>
+                    <th><span class="ktt-sr">İşlemler</span></th>
                 </tr>
             </thead>
             <tbody>
                 {% for ktt in sinavlar %}
                 <tr data-ktt-row data-ad="{{ ktt.ad }}" data-ders="{{ ktt.ders.ad }}" data-sinif="{{ ktt.sinif_goster }}">
                     <td><strong>{{ ktt.ad }}</strong></td>
+                    <td><span class="ktt-ders-pill ktt-tone-{{ ktt.ders.ad|slugify }}">{{ ktt.ders.ad }}</span></td>
                     <td>{{ ktt.sinif_goster }}</td>
-                    <td><span class="ktt-ders-pill">{{ ktt.ders.ad }}</span></td>
                     <td>{{ ktt.soru_sayisi }}</td>
                     <td>{{ ktt.sinav_tarihi|date:"d.m.Y" }}</td>
-                    <td><span class="ktt-katilim">{{ ktt.sonuc_sayisi }} öğrenci</span></td>
+                    <td>
+                        <span class="ktt-katilim ktt-tone-{{ ktt.ders.ad|slugify }}">
+                            <span class="ktt-katilim-track" aria-hidden="true"><span class="ktt-katilim-bar" style="--ktt-n: {{ ktt.sonuc_sayisi }}"></span></span>
+                            {{ ktt.sonuc_sayisi }} talebe
+                        </span>
+                    </td>
                     <td>
                         <div class="ktt-actions">
                             <a href="{% url 'ktt_sonuc_gir' ktt.pk %}" class="ktt-btn ktt-btn-blue">Sonuçlar</a>
                             <a href="{% url 'ktt_detay' ktt.pk %}" class="ktt-btn ktt-btn-ghost">Detay</a>
-                            {% include "includes/ktt_sil_form.html" with ktt=ktt silebilir=ktt.silebilir form_style="display:inline;" %}
+                            {% include "includes/ktt_sil_form.html" with ktt=ktt silebilir=ktt.silebilir ikon=1 form_style="display:inline;" %}
                         </div>
                     </td>
                 </tr>
