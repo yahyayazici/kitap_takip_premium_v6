@@ -375,13 +375,26 @@ def _karne_verisi(deneme: Deneme, sonuc: Sonuc, ortak: dict) -> dict:
     ]
     harita = ortak["harita"]
     soru_satirlari = []
-    for t in harita.testler:
-        sorular = []
-        for s in [x for x in harita.sorular if x.test_id == t.pk]:
-            c = sonuc.cevaplar_a[s.a_index]
-            durum = "iptal" if s.iptal else ("bos" if c == " " else ("dogru" if c in s.dogrular else "yanlis"))
-            sorular.append({"cevap": c.strip() or "–", "anahtar": "/".join(sorted(s.dogrular)) or "X", "durum": durum})
-        soru_satirlari.append((t, sorular))
+    if sonuc.a_sirali:
+        for t in harita.testler:
+            sorular = []
+            for s in [x for x in harita.sorular if x.test_id == t.pk]:
+                c = sonuc.cevaplar_a[s.a_index]
+                durum = "iptal" if s.iptal else ("bos" if c == " " else ("dogru" if c in s.dogrular else "yanlis"))
+                sorular.append({"cevap": c.strip() or "–", "anahtar": "/".join(sorted(s.dogrular)) or "X", "durum": durum})
+            soru_satirlari.append((t, sorular))
+    else:
+        # Eşleşmesiz kitapçık: cevaplar ve anahtar kitapçığın kendi sırasında.
+        i = 0
+        for t in harita.testler:
+            anahtar = harita.bagimsiz.get(sonuc.kitapcik, {}).get(t.pk, "")
+            sorular = []
+            for dogru in anahtar:
+                c = sonuc.cevaplar_a[i] if i < len(sonuc.cevaplar_a) else " "
+                i += 1
+                durum = "iptal" if dogru == "X" else ("bos" if c == " " else ("dogru" if c == dogru else "yanlis"))
+                sorular.append({"cevap": c.strip() or "–", "anahtar": dogru, "durum": durum})
+            soru_satirlari.append((t, sorular))
     return {
         "sonuc": sonuc,
         "kazanimlar": [(k, ortak["kurum_kazanim"].get(k.kazanim.pk)) for k in kazanimlar],
@@ -433,7 +446,12 @@ def anahtar(request, pk):
     if request.method == "POST":
         test = get_object_or_404(deneme.testler, pk=request.POST.get("test"))
         try:
-            anahtar_elle(test, request.POST.get("a_cevaplar", ""), request.POST.get("b_sirasi", ""))
+            anahtar_elle(
+                test,
+                request.POST.get("a_cevaplar", ""),
+                request.POST.get("b_sirasi", ""),
+                request.POST.get("b_cevaplar", ""),
+            )
         except AnahtarHatasi as exc:
             messages.error(request, str(exc))
         else:
@@ -443,16 +461,18 @@ def anahtar(request, pk):
 
     testler = []
     eksik_b = False
-    for t in deneme.testler.prefetch_related("sorular__kitapcik_siralari", "sorular__kazanimlar"):
+    for t in deneme.testler.prefetch_related("sorular__kitapcik_siralari", "sorular__kazanimlar", "kitapcik_anahtarlari"):
         sorular = sorted(t.sorular.all(), key=lambda x: x.no)
         b = [next((ks.no for ks in s.kitapcik_siralari.all() if ks.kitapcik == "B"), None) for s in sorular]
         b_tam = bool(sorular) and all(b)
-        eksik_b |= bool(sorular) and not b_tam and "B" in deneme.kitapcik_listesi
+        b_anahtari = any(ka.kitapcik == "B" for ka in t.kitapcik_anahtarlari.all())
+        eksik_b |= bool(sorular) and not b_tam and not b_anahtari and "B" in deneme.kitapcik_listesi
         testler.append({
             "test": t,
             "sorular": sorular,
             "a_metin": "".join("X" if s.iptal else (s.dogru or "?") for s in sorular),
             "b_metin": " ".join(str(x) for x in b) if b_tam else "",
+            "b_cevaplar": next((ka.cevaplar for ka in t.kitapcik_anahtarlari.all() if ka.kitapcik == "B"), ""),
             "kazanimli": sum(1 for s in sorular if s.kazanimlar.all()),
         })
     return render(request, "okuma/anahtar.html", {"deneme": deneme, "testler": testler, "eksik_b": eksik_b})
@@ -521,6 +541,7 @@ def madde_analizi(request, pk):
             "subeler": deneme.sonuclar.exclude(sube="").values_list("sube", flat=True).distinct().order_by("sube"),
             "ozet": ozet,
             "secenekler": "ABCDE",
+            "eslesmesiz_sayisi": deneme.sonuclar.filter(a_sirali=False).count(),
         },
     )
 

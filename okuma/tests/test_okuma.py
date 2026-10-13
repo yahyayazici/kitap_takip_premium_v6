@@ -656,3 +656,124 @@ class YayineviAnahtarTest(TestCase):
         wb.save(buf)
         with self.assertRaisesMessage(AnahtarHatasi, "Cevap anahtarı tablosu bulunamadı"):
             anahtar_yukle(Deneme.objects.create(ad="Y", tarih=datetime.date(2026, 10, 1), sinif_seviyesi="7"), buf.getvalue())
+
+
+@OPTIK
+class FarkliAnahtarBicimleriTest(TestCase):
+    """Kazanımsız, ayrı sayfalı, yan yana ve dizi biçimli anahtarlar; eşleşmesiz B kitapçığı."""
+
+    A = {"Türkçe": "CBDA", "Matematik": "DCD"}
+    B = {"Türkçe": "ADBC", "Matematik": "DCD"}  # B, A'nın ters sırası ama eşleştirme verilmemiş
+
+    def setUp(self):
+        self.sablon = OptikSablon.objects.get(ad__startswith="Çinili Saray")
+        self.d = Deneme.objects.create(ad="5-1", tarih=datetime.date(2026, 10, 13), sinif_seviyesi="5", sablon=self.sablon)
+
+    def _kaydet(self, wb):
+        buf = io.BytesIO()
+        wb.save(buf)
+        return buf.getvalue()
+
+    def _ayri_sayfalar(self):
+        wb = openpyxl.Workbook()
+        for i, (harf, anahtar) in enumerate([("A", self.A), ("B", self.B)]):
+            ws = wb.active if i == 0 else wb.create_sheet()
+            ws.title = f"Kitapçık - {harf}"
+            ws.append([None, "YANIT - 5.SINIF 1"])
+            ws.append(["Ders Adı", f"Kitapçık - {harf}", f"Doğru Cevap {harf}"])
+            for ders, cevaplar in anahtar.items():
+                for no, c in enumerate(cevaplar, 1):
+                    ws.append([ders, no, c])
+        return self._kaydet(wb)
+
+    def test_ayri_sayfa_eslesmesiz_b(self):
+        from okuma.models import KitapcikAnahtari
+
+        ozet = anahtar_yukle(self.d, self._ayri_sayfalar())
+        self.assertEqual(ozet.eslesmesiz, ["B"])
+        self.assertIn("eşleştirmesi yok", ozet.uyari)
+        self.assertEqual(KitapcikAnahtari.objects.get(test__ders="Türkçe", kitapcik="B").cevaplar, "ADBC")
+        # B öğrencisi kendi anahtarıyla tam doğru; A öğrencisi de.
+        satir_b = satir_uret("2", "B", "ADBCDCD")
+        satir_a = satir_uret("1", "A", "CBDADCD")
+        optik_yukle(self.d, self.sablon, "x.dat", "\r\n".join([satir_a, satir_b]).encode("cp1254"))
+        deneme_hesapla(self.d)
+        b = self.d.sonuclar.get(ogrenci__numara="2")
+        self.assertEqual((b.dogru, b.a_sirali, b.kitapcik), (7, False, "B"))
+        self.assertEqual(self.d.sonuclar.get(ogrenci__numara="1").dogru, 7)
+        # Soru analizine yalnız A öğrencisi girer; sayfalar açılır
+        maddeler, _ = analiz.madde_analizi(self.d)
+        self.assertEqual(maddeler[0].n, 1)
+        self.client.force_login(User.objects.create_superuser("k", password="x-test-1234"))
+        r = self.client.get(f"/deneme/{self.d.pk}/karne/{b.pk}/")
+        self.assertContains(r, "ADBC"[0])
+        self.assertContains(self.client.get(f"/deneme/{self.d.pk}/madde/"), "eşleştirmesi olmayan")
+
+    def test_kitapcik_bos_ise_eslesmesiz_anahtarla_tahmin(self):
+        anahtar_yukle(self.d, self._ayri_sayfalar())
+        from okuma.services.puanlama import harita_kur
+
+        # 10 doğru eşiği küçük testte sağlanmaz; harita B'yi bağımsız mod olarak tanımalı
+        self.assertEqual(harita_kur(self.d).kitapcik_modu("B"), "bagimsiz")
+
+    def test_yan_yana_tablolar(self):
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.append(["A KİTAPÇIĞI", None, None, None, "B KİTAPÇIĞI"])
+        ws.append(["Ders", "Soru No", "Cevap", None, "Ders", "Soru No", "Cevap"])
+        satirlar_a = [(d, i, c) for d, cs in self.A.items() for i, c in enumerate(cs, 1)]
+        satirlar_b = [(d, i, c) for d, cs in self.B.items() for i, c in enumerate(cs, 1)]
+        for a, b in zip(satirlar_a, satirlar_b):
+            ws.append([*a, None, *b])
+        from okuma.services.anahtar_excel import anahtar_oku
+
+        okuma_ = anahtar_oku(self._kaydet(wb))
+        self.assertEqual(len(okuma_.sorular), 7)
+        self.assertEqual(okuma_.bagimsiz["B"]["Türkçe"], "ADBC")
+
+    def test_dizi_bicimi(self):
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.append(["A Kitapçığı"])
+        ws.append(["Türkçe", "CBDA"])
+        ws.append(["Matematik", "D", "C", "D"])
+        from okuma.services.anahtar_excel import anahtar_oku
+
+        okuma_ = anahtar_oku(self._kaydet(wb))
+        self.assertEqual([(s.test, s.a_no, s.cevap) for s in okuma_.sorular][:2], [("Türkçe", 1, "C"), ("Türkçe", 2, "B")])
+        self.assertEqual(len(okuma_.sorular), 7)
+
+    def test_elle_b_cevaplari(self):
+        from okuma.models import KitapcikAnahtari
+        from okuma.services.anahtar_excel import anahtar_elle
+
+        anahtar_yukle(self.d, self._ayri_sayfalar())
+        t = self.d.testler.get(ders="Matematik")
+        anahtar_elle(t, "DCD", "", "CCD")
+        self.assertEqual(KitapcikAnahtari.objects.get(test=t, kitapcik="B").cevaplar, "CCD")
+        anahtar_elle(t, "DCD", "3 2 1", "")
+        self.assertFalse(KitapcikAnahtari.objects.filter(test=t, kitapcik="B").exists())
+        self.assertEqual(t.sorular.get(no=1).kitapcik_siralari.get(kitapcik="B").no, 3)
+
+
+class GercekYayineviDosyalariTest(TestCase):
+    """Kullanıcının paylaştığı yayınevi dosyaları (varsa)."""
+
+    DOSYALAR = {
+        "5sinif_yanit": "/Users/yahyayazici/.claude/uploads/0a1e3892-85db-4d14-b335-16cc3dfb8d65/ac49d55a-YANIT_-_5.SINIF_1_1.xlsx",
+        "8sinif_start": "/Users/yahyayazici/.claude/uploads/0a1e3892-85db-4d14-b335-16cc3dfb8d65/20cefb6e-2026-2027__8__Start_Deneme_kazanim_kodlari.xlsx",
+    }
+
+    def test_dosyalar(self):
+        from okuma.services.anahtar_excel import anahtar_oku
+
+        for ad, yol in self.DOSYALAR.items():
+            if not Path(yol).exists():
+                continue
+            okuma_ = anahtar_oku(Path(yol).read_bytes())
+            if ad == "5sinif_yanit":
+                self.assertEqual(len(okuma_.sorular), 75)
+                self.assertEqual(sum(len(c) for c in okuma_.bagimsiz["B"].values()), 75)
+            else:
+                self.assertEqual(len(okuma_.sorular), 90)
+                self.assertFalse(okuma_.bagimsiz)

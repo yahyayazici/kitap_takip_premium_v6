@@ -286,6 +286,21 @@ def ana_siteye_aktar(deneme: Deneme, kullanici=None) -> AktarimSonucu:
         t = talebeler.get(s.pk)
         if t is None:
             continue
+        if not s.a_sirali:
+            # Eşleşmesiz kitapçık: kendi sırası ve kendi anahtarıyla (konu bilinmez).
+            i = 0
+            for test in harita.testler:
+                ders_key = normalize_ad(test.ders)[:120]
+                for no, dogru in enumerate(harita.bagimsiz.get(s.kitapcik, {}).get(test.pk, ""), start=1):
+                    c = s.cevaplar_a[i] if i < len(s.cevaplar_a) else " "
+                    i += 1
+                    if dogru == "X":
+                        continue
+                    soru_kayitlari[(t.pk, ders_key, no)] = DenemeSoruSonucu(
+                        deneme=ana, talebe=t, ders_ad=test.ders[:120], ders_key=ders_key, soru_no=no, konu_ad="",
+                        sonuc="bos" if c == " " else ("dogru" if c == dogru else "yanlis"), sira=test.sira * 1000 + no,
+                    )
+            continue
         for sb in harita.sorular:
             if sb.iptal:
                 continue

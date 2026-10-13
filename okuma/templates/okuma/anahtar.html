@@ -6,7 +6,7 @@
   <h1>Cevap anahtarı.</h1>
   <p>Her ders için A kitapçığının cevaplarını yazın. B kitapçığı varsa, A'daki her sorunun B'deki sırasını ekleyin. Kazanımlar için <a href="{% url 'deneme_detay' deneme.pk %}">Excel yükleyin</a>.</p>
 </section>
-{% if eksik_b %}<ul class="bildirimler"><li class="warning">Bazı derslerde B kitapçığı sırası eksik. B kitapçığı kodlayan öğrenciler bu tamamlanana kadar hesaplanmaz.</li></ul>{% endif %}
+{% if eksik_b %}<ul class="bildirimler"><li class="warning">Bazı derslerde B kitapçığı için ne sıra ne de cevaplar girilmiş. B kitapçığı kodlayan öğrenciler bu tamamlanana kadar hesaplanmaz.</li></ul>{% endif %}
 {% for t in testler %}
 <div class="kart" id="test-{{ t.test.pk }}">
   <div class="bolum-baslik" style="margin-bottom:12px">
@@ -17,7 +17,8 @@
     <input type="hidden" name="test" value="{{ t.test.pk }}">
     <div class="form-izgara">
       <div class="alan"><label for="a-{{ t.test.pk }}">A kitapçığı cevapları</label><input class="mono" type="text" id="a-{{ t.test.pk }}" name="a_cevaplar" value="{{ t.a_metin }}" placeholder="ABCDABCD…" autocomplete="off" spellcheck="false"><span class="yardim">{{ t.test.soru_sayisi }} harf. İptal soru için X.</span></div>
-      <div class="alan"><label for="b-{{ t.test.pk }}">B kitapçığındaki sıra <span class="soluk">(isteğe bağlı)</span></label><input type="text" id="b-{{ t.test.pk }}" name="b_sirasi" value="{{ t.b_metin }}" placeholder="13 14 18 19 20 10 …" autocomplete="off"><span class="yardim">A'daki 1., 2., 3.… sorunun B'deki numarası.</span></div>
+      <div class="alan"><label for="b-{{ t.test.pk }}">B kitapçığındaki sıra <span class="soluk">(varsa)</span></label><input type="text" id="b-{{ t.test.pk }}" name="b_sirasi" value="{{ t.b_metin }}" placeholder="13 14 18 19 20 10 …" autocomplete="off"><span class="yardim">A'daki 1., 2., 3.… sorunun B'deki numarası. Tam analiz için.</span></div>
+      <div class="alan"><label for="bc-{{ t.test.pk }}">ya da B kitapçığı cevapları <span class="soluk">(sıra bilinmiyorsa)</span></label><input class="mono" type="text" id="bc-{{ t.test.pk }}" name="b_cevaplar" value="{{ t.b_cevaplar }}" placeholder="DCBDDCBACBDAACB" autocomplete="off" spellcheck="false"><span class="yardim">B kitapçığı kendi anahtarıyla puanlanır; soru/kazanım analizine girmez.</span></div>
     </div>
     <button class="btn">Kaydet</button>
   </form>

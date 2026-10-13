@@ -24,6 +24,7 @@
   </div>
 </div>
 
+{% if eslesmesiz_sayisi %}<ul class="bildirimler"><li class="warning">{{ eslesmesiz_sayisi }} öğrenci soru eşleştirmesi olmayan kitapçığı kodladığı için bu analizde yok (puanları doğru). Eşleştirmeyi <a href="{% url 'anahtar' deneme.pk %}">Cevap anahtarı</a> sayfasından ekleyebilirsiniz.</li></ul>{% endif %}
 <div class="izgara-6">
   <div class="olcu kucuk"><div class="ad">Ortalama başarı</div><div class="deger">%{{ ozet.ortalama_basari|floatformat:1 }}</div></div>
   <div class="olcu kucuk"><div class="ad">Toplam soru</div><div class="deger">{{ ozet.soru }}</div></div>

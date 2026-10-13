@@ -15,7 +15,8 @@ UST_ALT_ORAN = 0.27
 
 
 def _sonuclar(deneme: Deneme, sube: str | None = None):
-    qs = deneme.sonuclar.select_related("ogrenci").order_by("sira_kurum")
+    # Eşleşmesiz kitapçıkla puanlananların cevapları A sırasında değil: soru/kazanım analizine girmez.
+    qs = deneme.sonuclar.filter(a_sirali=True).select_related("ogrenci").order_by("sira_kurum")
     if sube:
         qs = qs.filter(sube=sube)
     return list(qs)
@@ -79,6 +80,8 @@ def kazanim_raporu(deneme: Deneme, sonuclar: list[Sonuc] | None = None) -> list[
 
 
 def ogrenci_kazanimlari(sonuc: Sonuc) -> list[KazanimSatiri]:
+    if not sonuc.a_sirali:
+        return []
     return kazanim_raporu(sonuc.deneme, [sonuc])
 
 

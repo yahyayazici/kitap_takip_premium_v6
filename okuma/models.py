@@ -245,6 +245,24 @@ class KitapcikSira(models.Model):
         constraints = [models.UniqueConstraint(fields=["soru", "kitapcik"], name="kitapcik_sira_benzersiz")]
 
 
+class KitapcikAnahtari(models.Model):
+    """Soru eşleştirmesi verilmemiş kitapçığın kendi sırasındaki cevap anahtarı.
+
+    Yayınevi B kitapçığı için yalnız "1-C, 2-B …" verip A'daki karşılığını
+    vermediyse bu kitapçık kendi anahtarıyla puanlanır; soru/kazanım analizine
+    girmez (hangi sorunun hangisi olduğu bilinmez).
+    """
+
+    test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name="kitapcik_anahtarlari")
+    kitapcik = models.CharField("Kitapçık", max_length=1)
+    cevaplar = models.CharField("Cevaplar (kitapçık sırasıyla, X = iptal)", max_length=100)
+
+    class Meta:
+        verbose_name = "Eşleşmesiz kitapçık anahtarı"
+        verbose_name_plural = "Eşleşmesiz kitapçık anahtarları"
+        constraints = [models.UniqueConstraint(fields=["test", "kitapcik"], name="kitapcik_anahtari_benzersiz")]
+
+
 class OptikYukleme(models.Model):
     deneme = models.ForeignKey(Deneme, on_delete=models.CASCADE, related_name="yuklemeler")
     sablon = models.ForeignKey(OptikSablon, on_delete=models.PROTECT)
@@ -294,7 +312,9 @@ class Sonuc(models.Model):
     kitapcik = models.CharField(max_length=1)
     sube = models.CharField(max_length=10, blank=True)
     # Kitapçıktan bağımsız, A sırasına çevrilmiş cevaplar (testler art arda).
+    # a_sirali=False ise kitapçık eşleşmesiz puanlanmıştır ve cevaplar kitapçığın kendi sırasındadır.
     cevaplar_a = models.TextField()
+    a_sirali = models.BooleanField(default=True)
     dogru = models.PositiveSmallIntegerField(default=0)
     yanlis = models.PositiveSmallIntegerField(default=0)
     bos = models.PositiveSmallIntegerField(default=0)

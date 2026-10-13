@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 import openpyxl
 from django.db import transaction
 
-from okuma.models import Deneme, Kazanim, KitapcikSira, Soru, Test
+from okuma.models import Deneme, Kazanim, KitapcikAnahtari, KitapcikSira, Soru, Test
 
 LGS_KATSAYI = {"turkce": 4, "matematik": 4, "fen": 4, "inkilap": 1, "din": 1, "yabanci_dil": 1}
 
@@ -43,6 +43,7 @@ class AnahtarOzet:
     kazanim_sayisi: int = 0
     kitapciklar: list[str] = field(default_factory=list)
     uyari: str = ""
+    eslesmesiz: list[str] = field(default_factory=list)
 
 
 def _norm(s) -> str:
@@ -86,166 +87,76 @@ def lgs_ders_tahmin(ders: str) -> str:
     return ""
 
 
-# ── Sütun tanıma ───────────────────────────────────────────────────────────
-# Başlıklar küçük harf, Türkçe karaktersiz ve boşluksuz karşılaştırılır.
-KOD_DESENI = re.compile(
-    r"^\s*((?:[A-Za-zÇĞİÖŞÜçğıöşü]{1,4}\.){0,3}[A-Za-zÇĞİÖŞÜçğıöşü]{0,3}\d+(?:\.[0-9A-Za-z]+)+)\.?\s*(?:[-–—:]\s*|\s+)(\S.*)$"
-)
+from okuma.services.anahtar_okuyucu import OkumaHatasi, kayitlari_oku, kod_metin_ayir  # noqa: E402,F401
 
 
-def kod_metin_ayir(deger: str) -> tuple[str, str]:
-    """'8.3.2.1 - Bağlamdan…' → ('8.3.2.1', 'Bağlamdan…'); kod yoksa ('', metin)."""
-    deger = str(deger or "").strip()
-    m = KOD_DESENI.match(deger)
-    if m:
-        return m.group(1).rstrip("."), m.group(2).strip()
-    return "", deger
+@dataclass
+class AnahtarOkuma:
+    sorular: list[AnahtarSoru]  # ana kitapçık (A) soruları; eşleştirme varsa kitapcik_no dolu
+    bagimsiz: dict[str, dict[str, str]]  # eşleşmesiz kitapçık → {test adı: "CBDA…"}
+    uyarilar: list[str]
 
 
-def _sutun_turu(h: str) -> tuple[str, str] | None:
-    """Başlığın ne olduğunu söyler: ('a',''), ('kitapcik','B'), ('cevap',''), ('test',''), ('testno',''),
-    ('ders',''), ('kod',''), ('kodmetin',''), ('metin','')."""
-    if not h:
-        return None
-    if re.fullmatch(r"a(kitapcigi?)?(soru(su)?)?(no|numarasi|sira(si)?)?", h) and h != "a":
-        return ("a", "")
-    if (m := re.fullmatch(r"([b-e])(kitapcigi?)?(soru(su)?)?(no|numarasi|sira(si)?)?", h)) and len(h) > 1:
-        return ("kitapcik", m.group(1).upper())
-    if "cevap" in h or h in {"dogru", "dogrusik", "anahtar", "dc", "dogrucvp", "cvp"}:
-        return ("cevap", "")
-    if "kazanim" in h and "kod" in h and ("metin" in h or "veya" in h or "adi" in h):
-        return ("kodmetin", "")
-    if h in {"kazanimkodu", "kazanimkod", "kod", "kazanimno", "kazanimnumarasi", "mebkodu"}:
-        return ("kod", "")
-    if h.startswith("kazanim") or h.startswith("konu") or h in {"altkonu", "ogrenmecikti", "ogrenmeciktisi"}:
-        return ("metin", "")
-    if h in {"testno", "testnumarasi", "testsirasi", "bolumno"}:
-        return ("testno", "")
-    if "testadi" in h or "aciklama" in h or h in {"test", "testismi", "bolum", "oturum", "testler"}:
-        return ("test", "")
-    if h in {"ders", "dersadi", "dersler", "brans", "bransadi", "alan", "derskodu"}:
-        return ("ders", "")
-    if h in {"soruno", "sorunumarasi", "soru", "sirano", "no"}:
-        return ("soruno", "")
-    return None
+def _ders_anahtari(ad: str) -> str:
+    return lgs_ders_tahmin(ad) or _norm(ad)
 
 
-def _basliklari_bul(satirlar) -> tuple[int, dict] | None:
-    """Soru no + cevap sütunu olan ilk satırı başlık kabul eder; sütun haritasını döndürür."""
-    for i, satir in enumerate(satirlar):
-        harita: dict = {"kitapcik": {}, "metin": []}
-        for j, h in enumerate(satir or ()):
-            tur = _sutun_turu(_norm(h))
-            if tur is None:
-                continue
-            ad, ek = tur
-            if ad == "kitapcik":
-                harita["kitapcik"].setdefault(ek, j)
-            elif ad == "metin":
-                harita["metin"].append(j)
-            else:
-                harita.setdefault(ad, j)
-        if "a" not in harita and "soruno" in harita:
-            harita["a"] = harita["soruno"]
-        if "a" in harita and "cevap" in harita and ({"test", "testno", "ders"} & harita.keys()):
-            return i, harita
-    return None
-
-
-def _tamsayi(v) -> int | None:
-    if v in (None, ""):
-        return None
+def anahtar_oku(veri: bytes) -> AnahtarOkuma:
+    """Excel'i (biçimi ne olursa olsun) ana kitapçık soruları + eşleşmesiz kitapçık anahtarlarına çevirir."""
     try:
-        f = float(str(v).replace(",", ".").strip())
-    except ValueError:
-        return None
-    return int(f) if f == int(f) else None
+        kayitlar = kayitlari_oku(veri)
+    except OkumaHatasi as exc:
+        raise AnahtarHatasi(str(exc))
 
+    harfler = sorted({k.kitapcik for k in kayitlar})
+    ana = "A" if "A" in harfler else harfler[0]
+    ana_kayitlar = [k for k in kayitlar if k.kitapcik == ana]
+    sorular = [
+        AnahtarSoru(test=k.test, ders=k.ders, a_no=k.no, kitapcik_no=dict(k.eslesme), cevap=k.cevap,
+                    kazanim_kodu=k.kod, kazanimlar=k.metinler)
+        for k in ana_kayitlar
+    ]
+    ana_testler: dict[str, list[AnahtarSoru]] = {}
+    for s_ in sorular:
+        ana_testler.setdefault(s_.test, []).append(s_)
+    ana_sirasi = list(ana_testler)
 
-IPTAL = {"X", "IPTAL", "İPTAL", "-", "—"}
+    bagimsiz: dict[str, dict[str, str]] = {}
+    uyarilar: list[str] = []
+    for harf in harfler:
+        if harf == ana:
+            continue
+        diger: dict[str, list] = {}
+        for k in kayitlar:
+            if k.kitapcik == harf:
+                diger.setdefault(k.test, []).append(k)
+        for sira, (test_adi, liste) in enumerate(diger.items()):
+            hedef = next((t for t in ana_sirasi if _ders_anahtari(t) == _ders_anahtari(test_adi)), None)
+            if hedef is None:
+                hedef = test_adi if test_adi in ana_testler else (ana_sirasi[sira] if sira < len(ana_sirasi) else None)
+            if hedef is None:
+                raise AnahtarHatasi(f"{harf} kitapçığındaki “{test_adi}” A kitapçığında bulunamadı.")
+            a_liste = ana_testler[hedef]
+            eslesmeli = all(harf in s_.kitapcik_no for s_ in a_liste)
+            if eslesmeli:
+                # Eşleştirme var: B anahtarı yalnız sağlama için kullanılır.
+                b_cevap = {k.no: k.cevap for k in liste}
+                uymayan = [s_.a_no for s_ in a_liste if b_cevap.get(s_.kitapcik_no[harf]) not in (None, s_.cevap)]
+                if uymayan:
+                    uyarilar.append(
+                        f"{hedef}: {harf} kitapçığı anahtarı eşleştirmeyle {len(uymayan)} soruda uyuşmuyor "
+                        f"(A'da {', '.join(map(str, uymayan[:6]))}…). Şıklar karıştırılmış olabilir; anahtarı kontrol edin."
+                    )
+                continue
+            nolar = sorted(k.no for k in liste)
+            if nolar != list(range(1, len(liste) + 1)):
+                raise AnahtarHatasi(f"{harf} kitapçığı · {test_adi}: soru numaraları 1–{len(liste)} arasında eksiksiz olmalı.")
+            bagimsiz.setdefault(harf, {})[hedef] = "".join(k.cevap for k in sorted(liste, key=lambda x: x.no))
+    return AnahtarOkuma(sorular=sorular, bagimsiz=bagimsiz, uyarilar=uyarilar)
 
 
 def excel_oku(veri: bytes) -> list[AnahtarSoru]:
-    """Yayınevinden bağımsız cevap anahtarı okuyucu.
-
-    Bütün sayfalarda, başlığın yerini ve sütun adlarını kendisi bulur:
-    A/B/C/D soru no, doğru cevap, test adı/no, ders, kazanım kodu ve metni
-    (ayrı ya da "8.3.2.1 - metin" biçiminde tek hücrede).
-    """
-    try:
-        wb = openpyxl.load_workbook(io.BytesIO(veri), data_only=True, read_only=True)
-    except Exception as exc:
-        raise AnahtarHatasi(f"Dosya Excel olarak açılamadı: {exc}")
-
-    for ws in wb.worksheets:
-        satirlar = list(ws.iter_rows(values_only=True))
-        bulunan = _basliklari_bul(satirlar)
-        if bulunan:
-            break
-    else:
-        raise AnahtarHatasi(
-            "Cevap anahtarı tablosu bulunamadı. Başlık satırında en az şu sütunlar olmalı: "
-            "soru numarası (\"A Soru No\" ya da \"Soru No\"), doğru cevap (\"Cevap\" / \"Doğru Cevap\") "
-            "ve ders ya da test adı."
-        )
-    baslik_idx, h = bulunan
-
-    def hucre(satir, ad):
-        j = h.get(ad)
-        return satir[j] if j is not None and j < len(satir) else None
-
-    sorular: list[AnahtarSoru] = []
-    for satir_no, satir in enumerate(satirlar[baslik_idx + 1 :], start=baslik_idx + 2):
-        if not satir or all(v in (None, "") for v in satir):
-            continue
-        a_no = _tamsayi(hucre(satir, "a"))
-        if a_no is None:
-            continue  # ara başlık, toplam satırı vb.
-        cevap = str(hucre(satir, "cevap") or "").strip().upper().replace("İ", "I")
-        if not cevap:
-            continue
-        if cevap in IPTAL or cevap == "IPTAL":
-            cevap = "X"
-        if cevap not in {"A", "B", "C", "D", "E", "X"}:
-            raise AnahtarHatasi(f"{satir_no}. satır: geçersiz cevap {cevap!r}. İptal soru için X yazın.")
-
-        test_adi = str(hucre(satir, "test") or "").strip()
-        test_no = _tamsayi(hucre(satir, "testno"))
-        ders = str(hucre(satir, "ders") or "").strip() or test_adi
-        test = test_adi or ders or (f"{test_no}. Test" if test_no else "")
-        if not test:
-            raise AnahtarHatasi(f"{satir_no}. satır: ders / test adı boş.")
-        ders = ders or test
-
-        kitapcik_no = {}
-        for k, j in h["kitapcik"].items():
-            if j < len(satir) and (no := _tamsayi(satir[j])) is not None:
-                kitapcik_no[k] = no
-
-        kod = str(hucre(satir, "kod") or "").strip()
-        metinler = []
-        if h.get("kodmetin") is not None:
-            k2, m2 = kod_metin_ayir(hucre(satir, "kodmetin"))
-            kod = kod or k2
-            if m2:
-                metinler.append(m2)
-        for j in h["metin"]:
-            if j < len(satir) and satir[j] not in (None, ""):
-                k2, m2 = kod_metin_ayir(satir[j])
-                kod = kod or k2
-                metinler.append(m2 or str(satir[j]).strip())
-        if kod and not metinler:
-            metinler.append(kod)
-
-        sorular.append(
-            AnahtarSoru(
-                test=test, ders=ders, a_no=a_no, kitapcik_no=kitapcik_no, cevap=cevap,
-                kazanim_kodu=kod[:40], kazanimlar=metinler,
-            )
-        )
-    if not sorular:
-        raise AnahtarHatasi("Başlık bulundu ama altında soru satırı yok.")
-    return sorular
+    return anahtar_oku(veri).sorular
 
 
 def _dogrula(sorular: list[AnahtarSoru]) -> dict[str, list[AnahtarSoru]]:
@@ -293,7 +204,8 @@ def anahtar_yukle(deneme: Deneme, veri: bytes) -> AnahtarOzet:
     Deneme türü seçilmişse dersler sabittir; Excel bu yapıya oturtulur.
     Tür yoksa testler Excel'e göre baştan oluşturulur.
     """
-    testler = _dogrula(excel_oku(veri))
+    okuma = anahtar_oku(veri)
+    testler = _dogrula(okuma.sorular)
     deneme.sonuclar.all().delete()
     mevcut = list(deneme.testler.order_by("sira"))
     lgs = deneme.sinav_turu == Deneme.SinavTuru.LGS
@@ -344,12 +256,31 @@ def anahtar_yukle(deneme: Deneme, veri: bytes) -> AnahtarOzet:
         ozet.test_sayisi += 1
         ozet.soru_sayisi += len(liste)
 
+    # Eşleşmesiz kitapçıklar kendi anahtarlarıyla puanlanır.
+    KitapcikAnahtari.objects.filter(test__deneme=deneme).delete()
+    excel_testi = {liste[0].test: test for test, liste in eslesme}
+    for harf, anahtarlar in okuma.bagimsiz.items():
+        for test_adi, cevaplar in anahtarlar.items():
+            test = excel_testi[test_adi]
+            if len(cevaplar) != test.soru_sayisi:
+                raise AnahtarHatasi(f"{harf} kitapçığı · {test.ders}: {test.soru_sayisi} soru olmalı, {len(cevaplar)} var.")
+            KitapcikAnahtari.objects.create(test=test, kitapcik=harf, cevaplar=cevaplar)
+        kitapciklar.add(harf)
+        ozet.eslesmesiz.append(harf)
+
     deneme.kitapciklar = ",".join(sorted(kitapciklar))
     deneme.hesaplanma = None
     deneme.save(update_fields=["kitapciklar", "hesaplanma"])
     ozet.kazanim_sayisi = len(kazanim_idler)
     ozet.kitapciklar = sorted(kitapciklar)
-    ozet.uyari = _sinif_uyarisi(deneme, [s for _, liste in eslesme for s in liste])
+    uyarilar = [_sinif_uyarisi(deneme, [s for _, liste in eslesme for s in liste]), *okuma.uyarilar]
+    if ozet.eslesmesiz:
+        uyarilar.append(
+            f"{', '.join(ozet.eslesmesiz)} kitapçığı için A ile soru eşleştirmesi yok: bu kitapçığın puan ve netleri "
+            "doğru hesaplanır, ama soru ve kazanım analizine yalnız eşleşen kitapçıklar girer. Eşleştirmeyi "
+            "“Cevap anahtarı” sayfasından ekleyebilirsiniz."
+        )
+    ozet.uyari = " ".join(u for u in uyarilar if u)
     return ozet
 
 
@@ -375,7 +306,7 @@ def _sira_listesi(metin: str) -> list[int]:
 
 
 @transaction.atomic
-def anahtar_elle(test: Test, a_cevaplar: str, b_sirasi: str = "") -> None:
+def anahtar_elle(test: Test, a_cevaplar: str, b_sirasi: str = "", b_cevaplar: str = "") -> None:
     """Tek bir testin anahtarını elle kurar. Mevcut kazanım bağları korunur.
 
     a_cevaplar: A kitapçığı cevapları (ör. "ABCD AXCB…"; X = iptal). Boşluk ve rakamlar yok sayılır.
@@ -387,6 +318,9 @@ def anahtar_elle(test: Test, a_cevaplar: str, b_sirasi: str = "") -> None:
     b = _sira_listesi(b_sirasi)
     if b and sorted(b) != list(range(1, test.soru_sayisi + 1)):
         raise AnahtarHatasi(f"{test.ders}: B sırası 1–{test.soru_sayisi} sayılarını birer kez içermeli.")
+    b_anahtar = re.sub(r"[^A-EX]", "", (b_cevaplar or "").upper().replace("İ", "I"))
+    if b_anahtar and not b and len(b_anahtar) != test.soru_sayisi:
+        raise AnahtarHatasi(f"{test.ders}: B kitapçığı için {test.soru_sayisi} cevap gerekli, {len(b_anahtar)} girildi.")
 
     test.sorular.filter(no__gt=test.soru_sayisi).delete()
     for no, cevap in enumerate(cevaplar, start=1):
@@ -398,7 +332,17 @@ def anahtar_elle(test: Test, a_cevaplar: str, b_sirasi: str = "") -> None:
         elif b_sirasi is not None and not b_sirasi.strip():
             KitapcikSira.objects.filter(soru=soru, kitapcik="B").delete()
 
+    # B için ya sıra (tam eşleştirme) ya da kendi anahtarı (eşleşmesiz) tutulur.
+    if b or not b_anahtar:
+        KitapcikAnahtari.objects.filter(test=test, kitapcik="B").delete()
+    if b_anahtar and not b:
+        KitapcikSira.objects.filter(soru__test=test, kitapcik="B").delete()
+        KitapcikAnahtari.objects.update_or_create(test=test, kitapcik="B", defaults={"cevaplar": b_anahtar})
+
     deneme = test.deneme
-    var_b = KitapcikSira.objects.filter(soru__test__deneme=deneme, kitapcik="B").exists()
+    var_b = (
+        KitapcikSira.objects.filter(soru__test__deneme=deneme, kitapcik="B").exists()
+        or KitapcikAnahtari.objects.filter(test__deneme=deneme, kitapcik="B").exists()
+    )
     deneme.kitapciklar = "A,B" if var_b else "A"
     deneme.save(update_fields=["kitapciklar"])

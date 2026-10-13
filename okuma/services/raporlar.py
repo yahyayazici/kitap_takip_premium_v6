@@ -147,7 +147,7 @@ def kazanim_sayimlari(denemeler, sube=None):
             s.pk: list(s.kazanimlar.all())
             for s in Soru.objects.filter(test__deneme=d).prefetch_related("kazanimlar")
         }
-        sonuclar = sonuc_listesi([d], sube)
+        sonuclar = [s for s in sonuc_listesi([d], sube) if s.a_sirali]
         for sonuc in sonuclar:
             ogrenci_bilgi[sonuc.ogrenci_id] = (sonuc.ogrenci, sonuc.sube)
         for sb in harita.sorular:

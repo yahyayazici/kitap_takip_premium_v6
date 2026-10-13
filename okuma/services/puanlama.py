@@ -10,13 +10,13 @@ Kurallar (MEB/ÖSYM uygulamasıyla uyumlu):
 from __future__ import annotations
 
 import statistics
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import ROUND_HALF_UP, Decimal
 
 from django.db import transaction
 from django.utils import timezone
 
-from okuma.models import Deneme, OptikSatir, Sonuc, TestSonuc
+from okuma.models import Deneme, KitapcikAnahtari, OptikSatir, Sonuc, TestSonuc
 from okuma.services.lgs import LGS_KATSAYILARI, LGS_SORU_SAYISI
 
 IKI = Decimal("0.01")
@@ -39,6 +39,19 @@ class DenemeHaritasi:
     # kitapçık -> her A-index için optik dizideki konum
     konum: dict[str, list[int]]
     toplam: int
+    # Eşleşmesiz kitapçık anahtarları: kitapçık -> {test_id: "CBDA…"} (kitapçığın kendi sırası)
+    bagimsiz: dict[str, dict[int, str]] = field(default_factory=dict)
+    # test_id -> optik dizide testin başladığı konum
+    ofset: dict[int, int] = field(default_factory=dict)
+
+    def kitapcik_modu(self, kitapcik: str) -> str | None:
+        """'a': A sırasına çevrilebilir; 'bagimsiz': kendi anahtarıyla puanlanır; None: puanlanamaz."""
+        if kitapcik in self.konum and self.konum[kitapcik] and all(i >= 0 for i in self.konum[kitapcik]):
+            return "a"
+        anahtarlar = self.bagimsiz.get(kitapcik, {})
+        if self.testler and all(t.pk in anahtarlar for t in self.testler):
+            return "bagimsiz"
+        return None
 
 
 def harita_kur(deneme: Deneme) -> DenemeHaritasi:
@@ -47,7 +60,9 @@ def harita_kur(deneme: Deneme) -> DenemeHaritasi:
     konum: dict[str, list[int]] = {k: [] for k in deneme.kitapcik_listesi}
     konum.setdefault("A", [])
     ofset = 0
+    ofsetler = {}
     for test in testler:
+        ofsetler[test.pk] = ofset
         for soru in sorted(test.sorular.all(), key=lambda s: s.no):
             sorular.append(
                 SoruBilgi(
@@ -63,7 +78,33 @@ def harita_kur(deneme: Deneme) -> DenemeHaritasi:
                 no = soru.no if k == "A" else siralar.get(k)
                 konum[k].append(ofset + no - 1 if no else -1)
         ofset += test.blok
-    return DenemeHaritasi(testler=testler, sorular=sorular, konum=konum, toplam=ofset)
+    bagimsiz: dict[str, dict[int, str]] = {}
+    for ka in KitapcikAnahtari.objects.filter(test__deneme=deneme):
+        bagimsiz.setdefault(ka.kitapcik, {})[ka.test_id] = ka.cevaplar
+    return DenemeHaritasi(testler=testler, sorular=sorular, konum=konum, toplam=ofset, bagimsiz=bagimsiz, ofset=ofsetler)
+
+
+def bagimsiz_say(harita: DenemeHaritasi, kitapcik: str, cevaplar: str):
+    """Eşleşmesiz kitapçığı kendi anahtarıyla sayar: (test bazında [d, y, b], kitapçık sırasıyla cevaplar)."""
+    sayim = {}
+    sirali = []
+    for t in harita.testler:
+        anahtar = harita.bagimsiz[kitapcik][t.pk]
+        bas = harita.ofset[t.pk]
+        d = y = b = 0
+        for i, dogru in enumerate(anahtar):
+            c = cevaplar[bas + i] if bas + i < len(cevaplar) else " "
+            sirali.append(c)
+            if dogru == "X":
+                continue
+            if c == " ":
+                b += 1
+            elif c == dogru:
+                d += 1
+            else:
+                y += 1
+        sayim[t.pk] = [d, y, b]
+    return sayim, "".join(sirali)
 
 
 def a_sirasina_cevir(harita: DenemeHaritasi, kitapcik: str, cevaplar: str) -> str:
@@ -98,10 +139,14 @@ def kitapcik_tahmin_et(deneme: Deneme, cevaplar: str) -> str | None:
     if not harita.sorular:
         return None
     puanlar = []
-    for k in harita.konum:
-        if any(i < 0 for i in harita.konum[k]):
+    for k in set(harita.konum) | set(harita.bagimsiz):
+        mod = harita.kitapcik_modu(k)
+        if mod == "a":
+            sayim = _say(harita, a_sirasina_cevir(harita, k, cevaplar))
+        elif mod == "bagimsiz":
+            sayim, _ = bagimsiz_say(harita, k, cevaplar)
+        else:
             continue
-        sayim = _say(harita, a_sirasina_cevir(harita, k, cevaplar))
         puanlar.append((sum(v[0] for v in sayim.values()), k))
     if not puanlar:
         return None
@@ -176,10 +221,14 @@ def deneme_hesapla(deneme: Deneme) -> int:
     sonuclar: dict[int, Sonuc] = {}
 
     for satir in satirlar:
-        if satir.kitapcik not in harita.konum or any(i < 0 for i in harita.konum[satir.kitapcik]):
+        mod = harita.kitapcik_modu(satir.kitapcik)
+        if mod == "a":
+            cevaplar_a = a_sirasina_cevir(harita, satir.kitapcik, satir.cevaplar)
+            sayim = _say(harita, cevaplar_a)
+        elif mod == "bagimsiz":
+            sayim, cevaplar_a = bagimsiz_say(harita, satir.kitapcik, satir.cevaplar)
+        else:
             continue
-        cevaplar_a = a_sirasina_cevir(harita, satir.kitapcik, satir.cevaplar)
-        sayim = _say(harita, cevaplar_a)
         d = sum(v[0] for v in sayim.values())
         y = sum(v[1] for v in sayim.values())
         b = sum(v[2] for v in sayim.values())
@@ -192,6 +241,7 @@ def deneme_hesapla(deneme: Deneme) -> int:
                 kitapcik=satir.kitapcik,
                 sube=satir.ogrenci.sube or satir.sube,
                 cevaplar_a=cevaplar_a,
+                a_sirali=mod == "a",
                 dogru=d,
                 yanlis=y,
                 bos=b,
