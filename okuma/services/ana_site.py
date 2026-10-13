@@ -274,7 +274,6 @@ def ana_siteye_aktar(deneme: Deneme, kullanici=None) -> AktarimSonucu:
 
     # 5) Soru soru sonuçlar — öğrencinin kendi kitapçığındaki soru numarasıyla (karne 2. sayfa)
     harita = harita_kur(deneme)
-    testler = {t.pk: t for t in harita.testler}
     soru_bilgi = {}
     for t in harita.testler:
         for soru in t.sorular.all():
@@ -286,12 +285,13 @@ def ana_siteye_aktar(deneme: Deneme, kullanici=None) -> AktarimSonucu:
         t = talebeler.get(s.pk)
         if t is None:
             continue
-        if not s.a_sirali:
-            # Eşleşmesiz kitapçık: kendi sırası ve kendi anahtarıyla (konu bilinmez).
-            i = 0
-            for test in harita.testler:
-                ders_key = normalize_ad(test.ders)[:120]
-                for no, dogru in enumerate(harita.bagimsiz.get(s.kitapcik, {}).get(test.pk, ""), start=1):
+        i = 0
+        for test in harita.testler:
+            kitapcik, mod = (s.test_kitapcik or {}).get(str(test.pk), [s.kitapcik, "a"])
+            ders_key = normalize_ad(test.ders)[:120]
+            if mod == "bagimsiz":
+                # Eşleşmesiz kitapçık: kendi sırası ve kendi anahtarıyla (konu bilinmez).
+                for no, dogru in enumerate(harita.bagimsiz.get(kitapcik, {}).get(test.pk, ""), start=1):
                     c = s.cevaplar_a[i] if i < len(s.cevaplar_a) else " "
                     i += 1
                     if dogru == "X":
@@ -300,26 +300,18 @@ def ana_siteye_aktar(deneme: Deneme, kullanici=None) -> AktarimSonucu:
                         deneme=ana, talebe=t, ders_ad=test.ders[:120], ders_key=ders_key, soru_no=no, konu_ad="",
                         sonuc="bos" if c == " " else ("dogru" if c == dogru else "yanlis"), sira=test.sira * 1000 + no,
                     )
-            continue
-        for sb in harita.sorular:
-            if sb.iptal:
                 continue
-            test = testler[sb.test_id]
-            a_no, siralar, konu = soru_bilgi[sb.soru_id]
-            no = a_no if s.kitapcik == "A" else siralar.get(s.kitapcik, a_no)
-            c = s.cevaplar_a[sb.a_index]
-            durum = "bos" if c == " " else ("dogru" if c in sb.dogrular else "yanlis")
-            ders_key = normalize_ad(test.ders)[:120]
-            soru_kayitlari[(t.pk, ders_key, no)] = DenemeSoruSonucu(
-                deneme=ana,
-                talebe=t,
-                ders_ad=test.ders[:120],
-                ders_key=ders_key,
-                soru_no=no,
-                konu_ad=konu,
-                sonuc=durum,
-                sira=test.sira * 1000 + no,
-            )
+            for sb in harita.test_sorulari[test.pk]:
+                c = s.cevaplar_a[i] if i < len(s.cevaplar_a) else " "
+                i += 1
+                if sb.iptal or not mod:
+                    continue  # iptal soru ya da katılmadığı oturum
+                a_no, siralar, konu = soru_bilgi[sb.soru_id]
+                no = a_no if kitapcik == "A" else siralar.get(kitapcik, a_no)
+                soru_kayitlari[(t.pk, ders_key, no)] = DenemeSoruSonucu(
+                    deneme=ana, talebe=t, ders_ad=test.ders[:120], ders_key=ders_key, soru_no=no, konu_ad=konu,
+                    sonuc="bos" if c == " " else ("dogru" if c in sb.dogrular else "yanlis"), sira=test.sira * 1000 + no,
+                )
     DenemeSoruSonucu.objects.bulk_create(soru_kayitlari.values(), batch_size=500)
 
     return AktarimSonucu(ana_deneme_id=ana.pk, aktarilan=len(yazilan), eslesmeyen=eslesmeyen, yeni=yeni, durum=ana.durum)

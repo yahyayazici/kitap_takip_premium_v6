@@ -82,10 +82,10 @@
   <div class="bolum-baslik"><div><h2>Yüklenen dosyalar</h2></div></div>
   <div class="kart sikisik tablo-kap">
     <table>
-      <thead><tr><th>Dosya</th><th>Şablon</th><th class="sayi">Satır</th><th>Yükleyen</th><th>Zaman</th><th></th></tr></thead>
+      <thead><tr><th>Dosya</th><th>Oturum</th><th>Şablon</th><th class="sayi">Satır</th><th>Yükleyen</th><th>Zaman</th><th></th></tr></thead>
       <tbody>
       {% for y in yuklemeler %}
-        <tr><td><b>{{ y.dosya_adi }}</b></td><td class="soluk">{{ y.sablon }}</td><td class="sayi">{{ y.satir_sayisi }}</td><td>{{ y.yukleyen|default:"—" }}</td><td class="soluk">{{ y.olusturma|date:"j M H:i" }}</td>
+        <tr><td><b>{{ y.dosya_adi }}</b></td><td>{{ y.oturum|default:"Tümü" }}</td><td class="soluk">{{ y.sablon }}</td><td class="sayi">{{ y.satir_sayisi }}</td><td>{{ y.yukleyen|default:"—" }}</td><td class="soluk">{{ y.olusturma|date:"j M H:i" }}</td>
           <td class="sayi"><form method="post" action="{% url 'yukleme_sil' deneme.pk y.pk %}" class="satir-icinde" onsubmit="return confirm('Bu dosyanın tüm satırları silinsin mi?')">{% csrf_token %}<button class="btn tehlike kucuk">Sil</button></form></td></tr>
       {% endfor %}
       </tbody>

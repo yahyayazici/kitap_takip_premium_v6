@@ -19,7 +19,9 @@ ORNEK = Path(settings.BASE_DIR) / "ornek_veri"
 
 # Testler optik alan adının URL yapılandırmasıyla, kullanıcı yönetimi açık ve
 # yalnız personel erişimiyle çalışır (ana sitenin rol sistemi burada devreye girmez).
-OPTIK = override_settings(ROOT_URLCONF="config.optik_urls", OKUMA_ERISIM=None, OKUMA_KULLANICI_YONETIMI=True)
+OPTIK = override_settings(
+    ROOT_URLCONF="config.optik_urls", OKUMA_ERISIM=None, OKUMA_KULLANICI_YONETIMI=True, OKUMA_ANA_SITE=False
+)
 
 # İki test: Türkçe 4 soru, Matematik 3 soru. B kitapçığında sıralar ters.
 ANAHTAR = [
@@ -555,8 +557,8 @@ class RaporTest(TemelTest):
         self.assertEqual(self.client.get(f"/deneme/{pk}/madde/?format=xlsx").status_code, 200)
 
 
-@OPTIK
 @override_settings(OKUMA_ANA_SITE=True)
+@OPTIK
 class AnaSiteAktarimTest(TemelTest):
     """Optik → ana site deneme modülü (taslak), ana sitede yayınla / kaldır."""
 
@@ -777,3 +779,54 @@ class GercekYayineviDosyalariTest(TestCase):
             else:
                 self.assertEqual(len(okuma_.sorular), 90)
                 self.assertFalse(okuma_.bagimsiz)
+
+
+@OPTIK
+class OturumVeEslestirmeTest(TemelTest):
+    """Sözel / sayısal ayrı okunur, her oturumun kitapçığı ayrı olabilir; eşleşmeyene öneri."""
+
+    def test_oturumlar_ayri_ve_farkli_kitapcik(self):
+        # Sözel: Türkçe (A: ABCD), Sayısal: Matematik (B kitapçığında ters: ACB)
+        self.yukle(satir_uret("1", "A", "ABCD   "), oturum="Sözel")
+        self.yukle(satir_uret("1", "B", "    ACB"), oturum="Sayısal")
+        deneme_hesapla(self.deneme)
+        s = self.deneme.sonuclar.get()
+        self.assertEqual((s.dogru, s.yanlis, s.bos), (7, 0, 0))
+        self.assertEqual(s.kitapcik, "Sözel A · Sayısal B")
+        self.assertEqual(s.eksik_oturum, "")
+        self.assertTrue(s.a_sirali)
+        self.assertEqual(s.cevaplar_a, "ABCDBCA")
+
+    def test_katilmadigi_oturum_ve_tekrar(self):
+        y1 = self.yukle(satir_uret("1", "A", "ABCD   "), oturum="Sözel")
+        y2 = self.yukle(satir_uret("1", "A", "DDDD   "), oturum="Sözel")
+        self.assertTrue(y1.satirlar.get().dahil)
+        self.assertFalse(y2.satirlar.get().dahil)  # aynı oturum ikinci kez
+        deneme_hesapla(self.deneme)
+        s = self.deneme.sonuclar.get()
+        self.assertEqual(s.dogru, 4)
+        self.assertEqual(s.eksik_oturum, "Sayısal oturumuna katılmadı")
+
+    def test_eslesmeyen_icin_oneri_ve_esleme(self):
+        from okuma.models import Ogrenci
+        from okuma.services.eslestirme import oneriler
+
+        Ogrenci.objects.create(numara="57", ad_soyad="Mehmet Kaya", sinif_seviyesi="7", sube="A")
+        Ogrenci.objects.create(numara="12", ad_soyad="Ali Can", sinif_seviyesi="7", sube="A")
+        y = self.yukle(satir_uret("75", "A", "ABCDBCA"), otomatik_ogrenci=False)
+        satir = y.satirlar.get()
+        self.assertIsNone(satir.ogrenci)
+        ilk, neden = oneriler(self.deneme, satir)[0]
+        self.assertEqual(ilk.numara, "57")
+        self.assertIn("numara benzer", neden)
+
+        self.client.force_login(User.objects.create_superuser("e", password="x-test-1234"))
+        self.assertContains(self.client.get(f"/deneme/{self.deneme.pk}/satirlar/"), "Bu kim?")
+        self.client.post(f"/satir/{satir.pk}/", {"ogrenci_id": ilk.pk, "numara": "", "kitapcik": "A", "dahil": "on"})
+        satir.refresh_from_db()
+        self.assertEqual((satir.ogrenci_id, satir.numara, satir.dahil), (ilk.pk, "57", True))
+        self.assertEqual(self.deneme.sonuclar.get().ogrenci.numara, "57")
+
+    def test_optik_formunda_oturum_secimi(self):
+        self.client.force_login(User.objects.create_superuser("f", password="x-test-1234"))
+        self.assertContains(self.client.get(f"/deneme/{self.deneme.pk}/"), "Yalnız Sayısal")

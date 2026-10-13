@@ -48,12 +48,29 @@ class AnahtarForm(forms.Form):
 
 class OptikForm(forms.Form):
     dosya = forms.FileField(label="Optik okuyucu dosyası", help_text=".dat veya .txt")
+    oturum = forms.ChoiceField(
+        label="Bu dosyada hangi oturum var?",
+        required=False,
+        help_text="Sözel ve sayısal ayrı okutulduysa her dosyayı kendi oturumuyla yükleyin; her oturumun kitapçığı ayrı olabilir.",
+    )
     sablon = forms.ModelChoiceField(label="Optik şablon", queryset=OptikSablon.objects.all())
     otomatik_ogrenci = forms.BooleanField(
         label="Kayıtsız numaralar için öğrenci aç",
         required=False,
         help_text="Kapalıysa listede olmayan numaralar hatalı satır olarak işaretlenir.",
     )
+
+
+    def __init__(self, *args, deneme=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        oturumlar = []
+        if deneme is not None:
+            for o in deneme.testler.order_by("sira").values_list("oturum", flat=True):
+                if o and o not in oturumlar:
+                    oturumlar.append(o)
+        self.fields["oturum"].choices = [("", "Tüm oturumlar (tek optik)")] + [(o, f"Yalnız {o}") for o in oturumlar]
+        if len(oturumlar) < 2:
+            self.fields["oturum"].widget = forms.HiddenInput()
 
 
 class SatirForm(forms.Form):

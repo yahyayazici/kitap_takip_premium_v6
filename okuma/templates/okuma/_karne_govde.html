@@ -1,7 +1,7 @@
 <section class="kahraman">
   <p class="ust-yazi">{{ deneme.ad }} · {{ deneme.tarih|date:"j F Y" }}</p>
   <h1>{{ sonuc.ogrenci.ad_soyad|default:"İsimsiz öğrenci" }}</h1>
-  <p>No {{ sonuc.ogrenci.numara }}{% if sonuc.sube %} · {{ deneme.sinif_seviyesi }}{{ sonuc.sube }} şubesi{% endif %} · {{ sonuc.kitapcik }} kitapçığı</p>
+  <p>No {{ sonuc.ogrenci.numara }}{% if sonuc.sube %} · {{ deneme.sinif_seviyesi }}{{ sonuc.sube }} şubesi{% endif %} · {{ sonuc.kitapcik }} kitapçığı{% if sonuc.eksik_oturum %} · {{ sonuc.eksik_oturum }}{% endif %}</p>
 </section>
 
 <div class="izgara-4">

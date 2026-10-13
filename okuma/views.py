@@ -161,6 +161,7 @@ def deneme_detay(request, pk):
             "ana_site": _ana_site_bilgisi(deneme),
             "anahtar_form": AnahtarForm(),
             "optik_form": OptikForm(
+                deneme=deneme,
                 initial={
                     "sablon": deneme.sablon or OptikSablon.objects.first(),
                     # Öğrenci listesi girildiyse kayıtsız numara büyük ihtimalle yanlış kodlamadır.
@@ -197,7 +198,7 @@ def anahtar_yukle_view(request, pk):
 @require_POST
 def optik_yukle_view(request, pk):
     deneme = get_object_or_404(Deneme, pk=pk)
-    form = OptikForm(request.POST, request.FILES)
+    form = OptikForm(request.POST, request.FILES, deneme=deneme)
     if form.is_valid():
         dosya = form.cleaned_data["dosya"]
         try:
@@ -208,13 +209,19 @@ def optik_yukle_view(request, pk):
                 dosya.read(),
                 kullanici=request.user,
                 otomatik_ogrenci=form.cleaned_data["otomatik_ogrenci"],
+                oturum=form.cleaned_data.get("oturum") or "",
             )
         except ValueError as exc:
             messages.error(request, str(exc))
             return redirect("deneme_detay", pk=pk)
         hata = yukleme.satirlar.filter(durum=OptikSatir.Durum.HATA).count()
-        messages.success(request, f"{yukleme.satirlar.count()} satır okundu.")
-        if hata:
+        eslesmeyen = yukleme.satirlar.filter(ogrenci__isnull=True).count()
+        messages.success(
+            request, f"{yukleme.satirlar.count()} satır okundu" + (f" ({yukleme.oturum})." if yukleme.oturum else ".")
+        )
+        if eslesmeyen:
+            messages.warning(request, f"{eslesmeyen} satır bir öğrenciyle eşleşmedi; “Okunan satırlar”da “Bu kim?” listesinden seçin.")
+        elif hata:
             messages.warning(request, f"{hata} satır hatalı; düzeltmeden hesaba katılmaz.")
         _yeniden_hesapla(request, deneme)
     return redirect("deneme_detay", pk=pk)
@@ -232,15 +239,34 @@ def yukleme_sil(request, pk, yukleme_pk):
 
 @erisim_gerekli
 def satirlar(request, pk):
+    from okuma.services.eslestirme import _okunanlar, oneriler
+
     deneme = get_object_or_404(Deneme, pk=pk)
     qs = OptikSatir.objects.filter(yukleme__deneme=deneme).select_related("ogrenci", "yukleme")
     durum = request.GET.get("durum")
     if durum:
         qs = qs.filter(durum=durum)
+    satir_listesi = list(qs)
+    # Eşleşmeyen satırlar için "bu kim?" önerileri (en çok 60 satır)
+    adaylar = list(Ogrenci.objects.filter(aktif=True, sinif_seviyesi=deneme.sinif_seviyesi))
+    okunan_onbellek: dict[str, set] = {}
+    for satir in [x for x in satir_listesi if x.ogrenci_id is None][:60]:
+        o = satir.yukleme.oturum
+        if o not in okunan_onbellek:
+            okunan_onbellek[o] = _okunanlar(deneme, o, None)
+        satir.oneriler = oneriler(deneme, satir, adaylar=adaylar, okunan=okunan_onbellek[o])
+    oturumlu = deneme.yuklemeler.exclude(oturum="").exists()
     return render(
         request,
         "okuma/satirlar.html",
-        {"deneme": deneme, "satirlar": qs, "durum": durum, "durumlar": OptikSatir.Durum.choices},
+        {
+            "deneme": deneme,
+            "satirlar": satir_listesi,
+            "durum": durum,
+            "durumlar": OptikSatir.Durum.choices,
+            "eslesmeyen": sum(1 for x in satir_listesi if x.ogrenci_id is None),
+            "oturumlu": oturumlu,
+        },
     )
 
 
@@ -251,25 +277,45 @@ def satir_duzenle(request, satir_pk):
     deneme = satir.yukleme.deneme
     form = SatirForm(request.POST)
     if form.is_valid():
-        numara = numara_normalize(form.cleaned_data["numara"])
+        from okuma.services.ana_site import ana_site_acik
+        from okuma.services.optik import oturum_cakisir
+
         kitapcik = form.cleaned_data["kitapcik"].strip().upper()
         hatalar = []
-        if not numara.isdigit():
-            hatalar.append("Numara geçersiz")
+        ogrenci = None
+        secilen = request.POST.get("ogrenci_id", "")
+        if secilen.isdigit():
+            # "Bu kim?" listesinden seçildi
+            ogrenci = Ogrenci.objects.filter(pk=int(secilen)).first()
+            numara = ogrenci.numara if ogrenci else ""
+        else:
+            numara = numara_normalize(form.cleaned_data["numara"])
+            if not numara.isdigit():
+                hatalar.append("Numara geçersiz")
+            else:
+                ogrenci = Ogrenci.objects.filter(numara=numara).first()
+                if ogrenci is None and not ana_site_acik():
+                    ogrenci = Ogrenci.objects.create(
+                        numara=numara, sinif_seviyesi=deneme.sinif_seviyesi, ad_soyad=satir.ad_soyad
+                    )
+        if not hatalar and ogrenci is None:
+            hatalar.append(f"{numara} numaralı öğrenci listede yok; listeden seçin")
         if kitapcik not in deneme.kitapcik_listesi:
             hatalar.append("Kitapçık geçersiz")
-        cakisan = (
-            OptikSatir.objects.filter(yukleme__deneme=deneme, numara=numara, dahil=True).exclude(pk=satir.pk).exists()
+        diger = set(
+            OptikSatir.objects.filter(yukleme__deneme=deneme, dahil=True)
+            .exclude(pk=satir.pk)
+            .values_list("numara", "yukleme__oturum")
         )
-        if cakisan and form.cleaned_data["dahil"]:
-            hatalar.append("Bu numara başka bir satırda da hesaba katılıyor")
-        satir.numara, satir.kitapcik = numara, kitapcik
+        if numara and form.cleaned_data["dahil"] and oturum_cakisir(diger, numara, satir.yukleme.oturum):
+            hatalar.append("Bu öğrenci bu oturumda başka bir satırda da hesaba katılıyor")
+        satir.kitapcik = kitapcik
+        if numara:
+            satir.numara = numara
         if not hatalar:
-            satir.ogrenci, _ = Ogrenci.objects.get_or_create(
-                numara=numara, defaults={"sinif_seviyesi": deneme.sinif_seviyesi, "ad_soyad": satir.ad_soyad}
-            )
+            satir.ogrenci = ogrenci
             satir.durum = OptikSatir.Durum.TAMAM
-            satir.mesaj = "Elle düzeltildi"
+            satir.mesaj = "Elle eşleştirildi" if secilen else "Elle düzeltildi"
             satir.dahil = form.cleaned_data["dahil"]
         else:
             satir.durum = OptikSatir.Durum.HATA
@@ -279,7 +325,8 @@ def satir_duzenle(request, satir_pk):
         if hatalar:
             messages.error(request, f"Satır {satir.satir_no}: {satir.mesaj}")
         else:
-            messages.success(request, f"Satır {satir.satir_no} güncellendi.")
+            ad = ogrenci.ad_soyad or ogrenci.numara
+            messages.success(request, f"Satır {satir.satir_no} → {ad}.")
             _yeniden_hesapla(request, deneme)
     geri = request.POST.get("geri", "")
     if url_has_allowed_host_and_scheme(geri, allowed_hosts={request.get_host()}):
@@ -375,26 +422,24 @@ def _karne_verisi(deneme: Deneme, sonuc: Sonuc, ortak: dict) -> dict:
     ]
     harita = ortak["harita"]
     soru_satirlari = []
-    if sonuc.a_sirali:
-        for t in harita.testler:
-            sorular = []
-            for s in [x for x in harita.sorular if x.test_id == t.pk]:
-                c = sonuc.cevaplar_a[s.a_index]
-                durum = "iptal" if s.iptal else ("bos" if c == " " else ("dogru" if c in s.dogrular else "yanlis"))
-                sorular.append({"cevap": c.strip() or "–", "anahtar": "/".join(sorted(s.dogrular)) or "X", "durum": durum})
-            soru_satirlari.append((t, sorular))
-    else:
-        # Eşleşmesiz kitapçık: cevaplar ve anahtar kitapçığın kendi sırasında.
-        i = 0
-        for t in harita.testler:
-            anahtar = harita.bagimsiz.get(sonuc.kitapcik, {}).get(t.pk, "")
-            sorular = []
-            for dogru in anahtar:
+    i = 0
+    for t in harita.testler:
+        kitapcik, mod = (sonuc.test_kitapcik or {}).get(str(t.pk), [sonuc.kitapcik, "a"])
+        sorular = []
+        if mod == "bagimsiz":
+            # Eşleşmesiz kitapçık: cevaplar ve anahtar kitapçığın kendi sırasında.
+            for dogru in harita.bagimsiz.get(kitapcik, {}).get(t.pk, ""):
                 c = sonuc.cevaplar_a[i] if i < len(sonuc.cevaplar_a) else " "
                 i += 1
                 durum = "iptal" if dogru == "X" else ("bos" if c == " " else ("dogru" if c == dogru else "yanlis"))
                 sorular.append({"cevap": c.strip() or "–", "anahtar": dogru, "durum": durum})
-            soru_satirlari.append((t, sorular))
+        else:
+            for sb in harita.test_sorulari[t.pk]:
+                c = sonuc.cevaplar_a[i] if i < len(sonuc.cevaplar_a) else " "
+                i += 1
+                durum = "iptal" if sb.iptal else ("bos" if c == " " else ("dogru" if c in sb.dogrular else "yanlis"))
+                sorular.append({"cevap": c.strip() or "–", "anahtar": "/".join(sorted(sb.dogrular)) or "X", "durum": durum})
+        soru_satirlari.append((t, sorular))
     return {
         "sonuc": sonuc,
         "kazanimlar": [(k, ortak["kurum_kazanim"].get(k.kazanim.pk)) for k in kazanimlar],

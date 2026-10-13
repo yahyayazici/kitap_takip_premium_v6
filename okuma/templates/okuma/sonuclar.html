@@ -76,7 +76,7 @@
       {% for s in sonuclar %}
         <tr>
           <td class="sayi"><b>{{ s.sira_kurum }}</b><div class="kucuk-yazi">şube {{ s.sira_sube }}</div></td>
-          <td><a href="{% url 'karne' deneme.pk s.pk %}"><b>{{ s.ogrenci.ad_soyad|default:"İsimsiz öğrenci" }}</b></a><div class="kucuk-yazi">No {{ s.ogrenci.numara }} · {{ s.kitapcik }} kitapçığı</div></td>
+          <td><a href="{% url 'karne' deneme.pk s.pk %}"><b>{{ s.ogrenci.ad_soyad|default:"İsimsiz öğrenci" }}</b></a><div class="kucuk-yazi">No {{ s.ogrenci.numara }} · {{ s.kitapcik|default:"—" }} kitapçığı</div>{% if s.eksik_oturum %}<span class="rozet uyari" style="margin-top:4px">{{ s.eksik_oturum }}</span>{% endif %}</td>
           <td>{% if s.sube %}{{ deneme.sinif_seviyesi }}{{ s.sube }}{% else %}<span class="soluk">—</span>{% endif %}</td>
           {% for ts in s.test_sonuclari.all %}<td class="sayi" title="{{ ts.dogru }} doğru · {{ ts.yanlis }} yanlış · {{ ts.bos }} boş">{{ ts.net|floatformat:2 }}</td>{% endfor %}
           <td class="sayi soluk">{{ s.dogru }}</td><td class="sayi soluk">{{ s.yanlis }}</td><td class="sayi soluk">{{ s.bos }}</td>

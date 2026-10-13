@@ -89,6 +89,11 @@ def dosyayi_ayristir(metin: str, sablon: OptikSablon, soru_sayisi: int) -> list[
     return sonuc
 
 
+def oturum_cakisir(gorulen: set[tuple[str, str]], numara: str, oturum: str) -> bool:
+    """Aynı numaranın aynı oturumu iki kez okunmuş mu? Boş oturum = bütün oturumlar."""
+    return any(n == numara and (not o or not oturum or o == oturum) for n, o in gorulen)
+
+
 @transaction.atomic
 def optik_yukle(
     deneme: Deneme,
@@ -98,20 +103,27 @@ def optik_yukle(
     *,
     kullanici=None,
     otomatik_ogrenci: bool = True,
+    oturum: str = "",
 ) -> OptikYukleme:
+    """Optik dosyasını okur. `oturum` doluysa (ör. "Sözel") dosyadan yalnız o oturumun testleri alınır;
+    aynı öğrencinin diğer oturumu başka bir dosyadan, kendi kitapçığıyla okunabilir."""
     from okuma.services.puanlama import kitapcik_tahmin_et
 
     soru_sayisi = deneme.optik_uzunluk
     if not deneme.toplam_soru:
         raise ValueError("Önce cevap anahtarını yükleyin; soru sayısı bilinmiyor.")
+    if oturum and not deneme.testler.filter(oturum=oturum).exists():
+        raise ValueError(f"Bu denemede “{oturum}” oturumu yok.")
 
     okunanlar = dosyayi_ayristir(metni_coz(veri, sablon.kodlama), sablon, soru_sayisi)
-    yukleme = OptikYukleme.objects.create(deneme=deneme, sablon=sablon, dosya_adi=dosya_adi, yukleyen=kullanici)
+    yukleme = OptikYukleme.objects.create(
+        deneme=deneme, sablon=sablon, dosya_adi=dosya_adi, yukleyen=kullanici, oturum=oturum
+    )
 
     gorulen = set(
         OptikSatir.objects.filter(yukleme__deneme=deneme, dahil=True)
         .exclude(yukleme=yukleme)
-        .values_list("numara", flat=True)
+        .values_list("numara", "yukleme__oturum")
     )
     kitapciklar = deneme.kitapcik_listesi
 
@@ -137,7 +149,7 @@ def optik_yukle(
                 ogrenci.save(update_fields=["ad_soyad"])
 
         if o.kitapcik not in kitapciklar:
-            tahmin = kitapcik_tahmin_et(deneme, o.cevaplar)
+            tahmin = kitapcik_tahmin_et(deneme, o.cevaplar, oturum)
             eski = o.kitapcik or "boş"
             if tahmin:
                 o.kitapcik = tahmin
@@ -147,11 +159,11 @@ def optik_yukle(
                 o.kitapcik = ""
 
         dahil = True
-        if o.numara and o.numara in gorulen:
-            o.hatalar.append("Bu numara bu denemede zaten okundu")
+        if o.numara and oturum_cakisir(gorulen, o.numara, oturum):
+            o.hatalar.append("Bu numara bu denemede zaten okundu" + (f" ({oturum})" if oturum else ""))
             dahil = False
         if o.numara:
-            gorulen.add(o.numara)
+            gorulen.add((o.numara, oturum))
 
         durum = OptikSatir.Durum.HATA if o.hatalar else (OptikSatir.Durum.UYARI if o.uyarilar else OptikSatir.Durum.TAMAM)
         OptikSatir.objects.create(

@@ -266,6 +266,8 @@ class KitapcikAnahtari(models.Model):
 class OptikYukleme(models.Model):
     deneme = models.ForeignKey(Deneme, on_delete=models.CASCADE, related_name="yuklemeler")
     sablon = models.ForeignKey(OptikSablon, on_delete=models.PROTECT)
+    # Boş: dosya bütün oturumları içerir. Dolu (ör. "Sözel"): yalnız o oturumun testleri bu dosyadan okunur.
+    oturum = models.CharField("Oturum", max_length=40, blank=True)
     dosya_adi = models.CharField(max_length=255)
     yukleyen = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     olusturma = models.DateTimeField(auto_now_add=True)
@@ -309,7 +311,11 @@ class Sonuc(models.Model):
     deneme = models.ForeignKey(Deneme, on_delete=models.CASCADE, related_name="sonuclar")
     ogrenci = models.ForeignKey(Ogrenci, on_delete=models.CASCADE, related_name="sonuclar")
     satir = models.ForeignKey(OptikSatir, on_delete=models.SET_NULL, null=True, blank=True)
-    kitapcik = models.CharField(max_length=1)
+    # Görüntü için: tek kitapçıksa "A", oturumlara göre farklıysa "Sözel A · Sayısal B".
+    kitapcik = models.CharField(max_length=40)
+    # test_id → [kitapçık, mod]; mod: "a" (A sırasına çevrildi), "bagimsiz" (kendi anahtarı), "" (okunmadı)
+    test_kitapcik = models.JSONField(default=dict, blank=True)
+    eksik_oturum = models.CharField("Katılmadığı oturum", max_length=80, blank=True)
     sube = models.CharField(max_length=10, blank=True)
     # Kitapçıktan bağımsız, A sırasına çevrilmiş cevaplar (testler art arda).
     # a_sirali=False ise kitapçık eşleşmesiz puanlanmıştır ve cevaplar kitapçığın kendi sırasındadır.

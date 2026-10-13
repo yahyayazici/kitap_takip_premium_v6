@@ -43,6 +43,8 @@ class DenemeHaritasi:
     bagimsiz: dict[str, dict[int, str]] = field(default_factory=dict)
     # test_id -> optik dizide testin başladığı konum
     ofset: dict[int, int] = field(default_factory=dict)
+    # test_id -> o testin soruları (A sırasıyla)
+    test_sorulari: dict[int, list[SoruBilgi]] = field(default_factory=dict)
 
     def kitapcik_modu(self, kitapcik: str) -> str | None:
         """'a': A sırasına çevrilebilir; 'bagimsiz': kendi anahtarıyla puanlanır; None: puanlanamaz."""
@@ -81,7 +83,53 @@ def harita_kur(deneme: Deneme) -> DenemeHaritasi:
     bagimsiz: dict[str, dict[int, str]] = {}
     for ka in KitapcikAnahtari.objects.filter(test__deneme=deneme):
         bagimsiz.setdefault(ka.kitapcik, {})[ka.test_id] = ka.cevaplar
-    return DenemeHaritasi(testler=testler, sorular=sorular, konum=konum, toplam=ofset, bagimsiz=bagimsiz, ofset=ofsetler)
+    test_sorulari: dict[int, list[SoruBilgi]] = {t.pk: [] for t in testler}
+    for sb in sorular:
+        test_sorulari[sb.test_id].append(sb)
+    return DenemeHaritasi(
+        testler=testler, sorular=sorular, konum=konum, toplam=ofset, bagimsiz=bagimsiz, ofset=ofsetler,
+        test_sorulari=test_sorulari,
+    )
+
+
+def test_cevaplari(harita: DenemeHaritasi, test, kitapcik: str, cevaplar: str) -> tuple[str | None, str]:
+    """Bir testin öğrenci cevapları: ('a', A sırasıyla) | ('bagimsiz', kitapçık sırasıyla) | (None, boşluk)."""
+    sorular = harita.test_sorulari[test.pk]
+    konumlar = harita.konum.get(kitapcik)
+    if konumlar and sorular and all(konumlar[s.a_index] >= 0 for s in sorular):
+        return "a", "".join(cevaplar[konumlar[s.a_index]] if konumlar[s.a_index] < len(cevaplar) else " " for s in sorular)
+    anahtar = harita.bagimsiz.get(kitapcik, {}).get(test.pk)
+    if anahtar:
+        bas = harita.ofset[test.pk]
+        return "bagimsiz", cevaplar[bas : bas + len(anahtar)].ljust(len(anahtar))
+    return None, " " * len(sorular)
+
+
+def test_say(harita: DenemeHaritasi, test, kitapcik: str, mod: str | None, parca: str) -> list[int]:
+    """[doğru, yanlış, boş]; iptal sorular sayılmaz."""
+    d = y = b = 0
+    if mod == "bagimsiz":
+        ciftler = zip(harita.bagimsiz[kitapcik][test.pk], parca)
+        for dogru, c in ciftler:
+            if dogru == "X":
+                continue
+            if c == " ":
+                b += 1
+            elif c == dogru:
+                d += 1
+            else:
+                y += 1
+        return [d, y, b]
+    for sb, c in zip(harita.test_sorulari[test.pk], parca):
+        if sb.iptal:
+            continue
+        if c == " ":
+            b += 1
+        elif c in sb.dogrular:
+            d += 1
+        else:
+            y += 1
+    return [d, y, b]
 
 
 def bagimsiz_say(harita: DenemeHaritasi, kitapcik: str, cevaplar: str):
@@ -133,21 +181,24 @@ def net_hesapla(dogru: int, yanlis: int, k: int) -> Decimal:
     return net.quantize(IKI, rounding=ROUND_HALF_UP)
 
 
-def kitapcik_tahmin_et(deneme: Deneme, cevaplar: str) -> str | None:
-    """Kitapçık alanı boş/hatalıysa, cevapları her anahtarla puanlayıp açık ara öndekini seçer."""
+def kitapcik_tahmin_et(deneme: Deneme, cevaplar: str, oturum: str = "") -> str | None:
+    """Kitapçık alanı boş/hatalıysa, cevapları her anahtarla puanlayıp açık ara öndekini seçer.
+
+    oturum verilirse yalnız o oturumun testlerine bakılır (sözel/sayısal ayrı okunduğunda)."""
     harita = harita_kur(deneme)
     if not harita.sorular:
         return None
+    testler = [t for t in harita.testler if not oturum or t.oturum == oturum]
     puanlar = []
     for k in set(harita.konum) | set(harita.bagimsiz):
-        mod = harita.kitapcik_modu(k)
-        if mod == "a":
-            sayim = _say(harita, a_sirasina_cevir(harita, k, cevaplar))
-        elif mod == "bagimsiz":
-            sayim, _ = bagimsiz_say(harita, k, cevaplar)
+        toplam = 0
+        for t in testler:
+            mod, parca = test_cevaplari(harita, t, k, cevaplar)
+            if mod is None:
+                break
+            toplam += test_say(harita, t, k, mod, parca)[0]
         else:
-            continue
-        puanlar.append((sum(v[0] for v in sayim.values()), k))
+            puanlar.append((toplam, k))
     if not puanlar:
         return None
     puanlar.sort(reverse=True)
@@ -212,7 +263,7 @@ def deneme_hesapla(deneme: Deneme) -> int:
     satirlar = (
         OptikSatir.objects.filter(yukleme__deneme=deneme, dahil=True, ogrenci__isnull=False)
         .exclude(kitapcik="")
-        .select_related("ogrenci")
+        .select_related("ogrenci", "yukleme")
         .order_by("yukleme__olusturma", "satir_no")
     )
     k = deneme.yanlis_katsayi
@@ -220,28 +271,60 @@ def deneme_hesapla(deneme: Deneme) -> int:
     netler: dict[int, dict[int, Decimal]] = {}
     sonuclar: dict[int, Sonuc] = {}
 
+    # Öğrencinin satırları: tek optik (bütün oturumlar) ya da oturum oturum ayrı okunmuş olabilir.
+    ogrenciye_gore: dict[int, list[OptikSatir]] = {}
     for satir in satirlar:
-        mod = harita.kitapcik_modu(satir.kitapcik)
-        if mod == "a":
-            cevaplar_a = a_sirasina_cevir(harita, satir.kitapcik, satir.cevaplar)
-            sayim = _say(harita, cevaplar_a)
-        elif mod == "bagimsiz":
-            sayim, cevaplar_a = bagimsiz_say(harita, satir.kitapcik, satir.cevaplar)
+        ogrenciye_gore.setdefault(satir.ogrenci_id, []).append(satir)
+
+    for liste in ogrenciye_gore.values():
+        kaynak = {}
+        for satir in liste:  # sonra okunan öncekinin yerine geçer
+            for t in harita.testler:
+                if not satir.yukleme.oturum or t.oturum == satir.yukleme.oturum:
+                    kaynak[t.pk] = satir
+        parcalar, sayim, test_kitapcik, eksik = [], {}, {}, []
+        for t in harita.testler:
+            satir = kaynak.get(t.pk)
+            kitapcik = satir.kitapcik if satir else ""
+            if satir is None:
+                mod, parca = "", " " * len(harita.test_sorulari[t.pk])
+                if (ad := t.oturum or t.ders) not in eksik:
+                    eksik.append(ad)
+            else:
+                mod, parca = test_cevaplari(harita, t, kitapcik, satir.cevaplar)
+                mod = mod or ""
+            sayim[t.pk] = test_say(harita, t, kitapcik, mod, parca)
+            test_kitapcik[str(t.pk)] = [kitapcik, mod]
+            parcalar.append(parca)
+        if not any(m for _, m in test_kitapcik.values()):
+            continue  # hiçbir testi puanlanamadı (kitapçık anahtarı yok)
+
+        oturum_kitapcik: dict[str, str] = {}
+        for t in harita.testler:
+            kit, _ = test_kitapcik[str(t.pk)]
+            if kit:
+                oturum_kitapcik.setdefault(t.oturum or t.ders, kit)
+        if len(set(oturum_kitapcik.values())) <= 1:
+            kitapcik_metni = next(iter(oturum_kitapcik.values()), "")
         else:
-            continue
+            kitapcik_metni = " · ".join(f"{o} {kit}" for o, kit in oturum_kitapcik.items())
+
         d = sum(v[0] for v in sayim.values())
         y = sum(v[1] for v in sayim.values())
         b = sum(v[2] for v in sayim.values())
         test_netleri = {tid: net_hesapla(v[0], v[1], k) for tid, v in sayim.items()}
+        ogrenci = liste[0].ogrenci
         sonuc, _ = Sonuc.objects.update_or_create(
             deneme=deneme,
-            ogrenci=satir.ogrenci,
+            ogrenci=ogrenci,
             defaults=dict(
-                satir=satir,
-                kitapcik=satir.kitapcik,
-                sube=satir.ogrenci.sube or satir.sube,
-                cevaplar_a=cevaplar_a,
-                a_sirali=mod == "a",
+                satir=liste[0],
+                kitapcik=kitapcik_metni[:40],
+                test_kitapcik=test_kitapcik,
+                eksik_oturum=(", ".join(eksik) + " oturumuna katılmadı")[:80] if eksik else "",
+                sube=ogrenci.sube or liste[0].sube,
+                cevaplar_a="".join(parcalar),
+                a_sirali=all(m in ("a", "") for _, m in test_kitapcik.values()),
                 dogru=d,
                 yanlis=y,
                 bos=b,

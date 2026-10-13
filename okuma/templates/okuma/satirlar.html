@@ -7,6 +7,7 @@
   <h1>Okunan satırlar.</h1>
   <p>Optikten gelen her satır. Hatalı satırlar düzeltilene kadar hesaba katılmaz; kaydettiğinizde sonuçlar yeniden hesaplanır.</p>
 </section>
+{% if eslesmeyen %}<ul class="bildirimler"><li class="warning"><b>{{ eslesmeyen }} satır bir öğrenciyle eşleşmedi.</b> Satırın yanındaki “Bu kim?” listesinden seçin: önce numarası ya da adı benzeyen, bu denemede henüz okunmamış öğrenciler gelir.</li></ul>{% endif %}
 <div class="arac-cubugu">
   <div class="segment">
     <a href="?" class="{% if not durum %}secili{% endif %}">Tümü</a>
@@ -15,26 +16,33 @@
 </div>
 <div class="kart sikisik tablo-kap">
   <table>
-    <thead><tr><th class="sayi">#</th><th>Durum</th><th>Öğrenci</th><th>Okunan</th><th>Numara · Kitapçık · Hesaba kat</th></tr></thead>
+    <thead><tr><th class="sayi">#</th>{% if oturumlu %}<th>Oturum</th>{% endif %}<th>Durum</th><th>Öğrenci</th><th>Okunan</th><th>Düzelt · Kitapçık · Hesaba kat</th></tr></thead>
     <tbody>
     {% for s in satirlar %}
       <tr>
         <td class="sayi soluk">{{ s.satir_no }}</td>
+        {% if oturumlu %}<td>{{ s.yukleme.oturum|default:"Tümü" }}</td>{% endif %}
         <td><span class="rozet {{ s.durum }}">{{ s.get_durum_display }}</span>{% if s.mesaj %}<div class="kucuk-yazi" style="margin-top:4px;max-width:280px">{{ s.mesaj }}</div>{% endif %}</td>
         <td>{% if s.ogrenci %}<a href="{% url 'ogrenci_duzenle' s.ogrenci.pk %}"><b>{{ s.ogrenci.ad_soyad|default:"İsimsiz" }}</b></a><div class="kucuk-yazi">No {{ s.ogrenci.numara }}{% if s.ogrenci.sube %} · {{ s.ogrenci.sinif_seviyesi }}{{ s.ogrenci.sube }}{% endif %}</div>{% else %}<span class="soluk">Eşleşmedi</span>{% endif %}</td>
         <td><div class="ham">{{ s.ham|slice:":50" }}</div><div class="kucuk-yazi">no {{ s.numara|default:"—" }} · kitapçık {{ s.kitapcik|default:"—" }}{% if s.ad_soyad %} · {{ s.ad_soyad }}{% endif %}</div></td>
         <td>
           <form class="satir-form" method="post" action="{% url 'satir_duzenle' s.pk %}">{% csrf_token %}
             <input type="hidden" name="geri" value="{{ request.get_full_path }}">
+            {% if s.oneriler %}
+            <select name="ogrenci_id" aria-label="Bu kim?" style="width:220px" onchange="this.form.numara.style.display=this.value?'none':''">
+              <option value="">Bu kim? (numara yaz →)</option>
+              {% for o, neden in s.oneriler %}<option value="{{ o.pk }}">{{ o.numara }} · {{ o.ad_soyad|default:"İsimsiz"|truncatechars:24 }}{% if o.sube %} · {{ o.sinif_seviyesi }}{{ o.sube }}{% endif %} — {{ neden }}</option>{% endfor %}
+            </select>
+            {% endif %}
             <input type="text" name="numara" value="{{ s.numara }}" aria-label="Numara" style="width:80px" inputmode="numeric">
             <input type="text" name="kitapcik" value="{{ s.kitapcik }}" maxlength="1" style="width:44px;text-align:center" aria-label="Kitapçık">
             <input type="checkbox" name="dahil" {% if s.dahil %}checked{% endif %} aria-label="Hesaba kat">
-            <button class="btn kucuk ikincil">Kaydet</button>
+            <button class="btn kucuk {% if s.oneriler %}{% else %}ikincil{% endif %}">{% if s.oneriler %}Eşleştir{% else %}Kaydet{% endif %}</button>
           </form>
         </td>
       </tr>
     {% empty %}
-      <tr><td colspan="5"><div class="bos-durum">Bu filtrede satır yok.</div></td></tr>
+      <tr><td colspan="6"><div class="bos-durum">Bu filtrede satır yok.</div></td></tr>
     {% endfor %}
     </tbody>
   </table>
