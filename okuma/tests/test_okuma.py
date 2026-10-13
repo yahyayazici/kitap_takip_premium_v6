@@ -146,7 +146,7 @@ class PuanlamaTest(TemelTest):
     def test_lgs_tablo_puani(self):
         self.yukle(satir_uret("1", "A", "ABCDBCA"))
         deneme_hesapla(self.deneme)
-        t = LGS_KATSAYILARI[2024]
+        t = LGS_KATSAYILARI[2025]
         # Tam net, LGS soru sayısına oranlanır: Türkçe 4/4 → 20/20, Matematik 3/3 → 20/20.
         beklenen = Decimal(str(t["taban"])) + 20 * Decimal(str(t["turkce"])) + 20 * Decimal(str(t["matematik"]))
         self.assertEqual(self.deneme.sonuclar.get().puan, beklenen.quantize(Decimal("0.001")))
@@ -158,7 +158,14 @@ class PuanlamaTest(TemelTest):
         self.assertAlmostEqual(puan, 409.166, places=3)
         for yil, k in LGS_KATSAYILARI.items():
             tam = k["taban"] + 20 * (k["turkce"] + k["matematik"] + k["fen"]) + 10 * (k["inkilap"] + k["din"] + k["yabanci_dil"])
-            self.assertAlmostEqual(tam, 500, delta=0.1, msg=yil)
+            self.assertAlmostEqual(tam, 500, delta=0.5, msg=yil)  # katsayılar 3 haneye yuvarlı
+
+    def test_2025_katsayilari_kurum_ornegi(self):
+        # Kurumsal Deneme-1 birincisi: Tr 19D1Y, İnk 10D, Din 7D3Y, İng 9D1Y, Mat 18D2Y, Fen 18D2Y → ≈461
+        t = LGS_KATSAYILARI[2025]
+        netler = {"turkce": 19 - 1 / 3, "inkilap": 10, "din": 7 - 1, "yabanci_dil": 9 - 1 / 3, "matematik": 18 - 2 / 3, "fen": 18 - 2 / 3}
+        puan = t["taban"] + sum(t[k] * v for k, v in netler.items())
+        self.assertAlmostEqual(puan, 460.72, places=1)
 
     def test_deneme_ici_puan_100_500(self):
         self.deneme.puan_modu = Deneme.PuanModu.DENEME_ICI
