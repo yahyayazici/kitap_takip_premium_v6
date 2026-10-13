@@ -35,6 +35,12 @@ def _yonetici_ve_acik(u) -> bool:
 yonetici_gerekli = user_passes_test(_yonetici_ve_acik)
 
 
+def _ana_site_acik() -> bool:
+    from okuma.services.ana_site import ana_site_acik
+
+    return ana_site_acik()
+
+
 # ── Öğrenciler ──────────────────────────────────────────────────────────────
 
 
@@ -80,8 +86,26 @@ def ogrenciler(request):
             "siniflar": siniflar,
             "toplam": Ogrenci.objects.filter(aktif=True).count(),
             "isimsiz": Ogrenci.objects.filter(aktif=True, ad_soyad="").count(),
+            "ana_site": _ana_site_acik(),
+            "bagli": Ogrenci.objects.filter(aktif=True).exclude(dis_kimlik="").count(),
         },
     )
+
+
+@erisim_gerekli
+@require_POST
+def ogrenci_ana_siteden(request):
+    from okuma.services.ana_site import ana_site_acik, talebeleri_esitle
+
+    if not ana_site_acik():
+        raise Http404
+    sonuc = talebeleri_esitle()
+    messages.success(
+        request,
+        f"Ana siteden {sonuc.eklenen} talebe eklendi, {sonuc.guncellenen} güncellendi."
+        + (f" {sonuc.numarasiz} talebenin numarası yok." if sonuc.numarasiz else ""),
+    )
+    return redirect("ogrenciler")
 
 
 @erisim_gerekli

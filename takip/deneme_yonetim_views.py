@@ -167,6 +167,10 @@ def deneme_detay(request, pk):
             "yukleyebilir": deneme_yukleyebilir(request.user),
             "sil_yetkisi": deneme_silebilir(request.user),
             "pdf_yetkisi": can(request.user, "deneme", "export_pdf"),
+            # Optik panelinden taslak olarak aktarılmış, yayın bekleyen sonuç sayısı.
+            "taslak_sonuc_sayisi": (
+                deneme.sonuclar.count() if deneme.durum == DenemeSinavi.Durum.TASLAK else 0
+            ),
             "kazanim_satir": DenemeKazanimSonucu.objects.filter(deneme=deneme).count(),
             "kazanim_talebe": (
                 DenemeKazanimSonucu.objects.filter(deneme=deneme)
@@ -203,6 +207,29 @@ def deneme_sil(request, pk):
     deneme_sinavini_sil(request.user, deneme)
     messages.success(request, f"«{ad}» arşive alındı. Sonuçlar ve kazanımlar duruyor.")
     return redirect("yonetim:deneme_listesi")
+
+
+@yonetici_gerekli
+def deneme_yayin(request, pk):
+    """Taslak denemeyi yayınla (velilere/talebelere görünür) ya da yayından kaldır."""
+    if not deneme_yukleyebilir(request.user):
+        messages.error(request, "Deneme yayınlama yetkiniz yok.")
+        return redirect("yonetim:deneme_listesi")
+
+    deneme = get_object_or_404(DenemeSinavi, pk=pk)
+    if request.method != "POST":
+        return redirect("yonetim:deneme_detay", pk=pk)
+    if deneme.durum == DenemeSinavi.Durum.AKTIF:
+        deneme.durum = DenemeSinavi.Durum.TASLAK
+        messages.success(request, f"«{deneme.ad}» yayından kaldırıldı; veliler artık görmüyor.")
+    else:
+        if not deneme.sonuclar.exists():
+            messages.error(request, "Yayınlanacak sonuç yok.")
+            return redirect("yonetim:deneme_detay", pk=pk)
+        deneme.durum = DenemeSinavi.Durum.AKTIF
+        messages.success(request, f"«{deneme.ad}» yayınlandı; veliler ve talebeler sonuçları görüyor.")
+    deneme.save(update_fields=["durum", "guncellenme"])
+    return redirect("yonetim:deneme_detay", pk=pk)
 
 
 @yonetici_gerekli

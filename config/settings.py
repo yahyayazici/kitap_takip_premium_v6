@@ -136,6 +136,8 @@ for _optik_host in OPTIK_HOSTLARI:
                 CSRF_TRUSTED_ORIGINS.append(_yerel)
 OKUMA_ERISIM = "takip.panel_permissions.deneme_modulu_erisimi_var"
 OKUMA_KULLANICI_YONETIMI = False
+# Optik sonuçları ana sitenin deneme modülüne aktarılır; öğrenciler talebelerden gelir.
+OKUMA_ANA_SITE = True
 OKUMA_API_TOKEN = os.environ.get("OKUMA_API_TOKEN", "")
 KURUM_ADI = os.environ.get("KURUM_ADI", "Çinili Saray")
 

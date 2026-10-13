@@ -28,6 +28,12 @@
         </div>
         <div class="yonetim-page-head-actions">
             <a href="{% url 'yonetim:deneme_listesi' %}" class="ghost-btn">Liste</a>
+            {% if yukleyebilir and deneme.durum == 'aktif' %}
+            <form method="post" action="{% url 'yonetim:deneme_yayin' deneme.pk %}" onsubmit="return confirm('«{{ deneme.ad|escapejs }}» yayından kaldırılsın mı? Veliler ve talebeler artık görmez.');">
+                {% csrf_token %}
+                <button type="submit" class="ghost-btn">Yayından kaldır</button>
+            </form>
+            {% endif %}
             {% if pdf_yetkisi and sonuclar %}
             <a href="{% url 'deneme_karne_zip' deneme.pk %}" class="ghost-btn">Bireysel Karneler</a>
             {% endif %}
@@ -39,6 +45,19 @@
             {% endif %}
         </div>
     </header>
+
+    {% if taslak_sonuc_sayisi %}
+    <section class="yonetim-card" style="margin-bottom:20px;border-left:4px solid #f59e0b;">
+        <h2>Yayın bekliyor</h2>
+        <p>{{ taslak_sonuc_sayisi }} öğrencinin sonucu optik panelinden aktarıldı; puanlar, kazanımlar ve soru soru sonuçlar hazır. Bu deneme şu an <strong>taslak</strong>: veliler ve talebeler görmüyor.</p>
+        {% if yukleyebilir %}
+        <form method="post" action="{% url 'yonetim:deneme_yayin' deneme.pk %}" style="margin-top:12px;" onsubmit="return confirm('«{{ deneme.ad|escapejs }}» yayınlansın mı? Veliler ve talebeler sonuçları görecek.');">
+            {% csrf_token %}
+            <button type="submit" class="primary-btn">Yayınla</button>
+        </form>
+        {% endif %}
+    </section>
+    {% endif %}
 
     {% if yukleyebilir %}
     <section class="yonetim-card" style="margin-bottom:20px;">

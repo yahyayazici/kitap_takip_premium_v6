@@ -553,3 +553,62 @@ class RaporTest(TemelTest):
         test = self.deneme.testler.first()
         self.assertContains(self.client.get(f"/deneme/{pk}/madde/?ders={test.pk}&sube=A"), "Ortalama başarı")
         self.assertEqual(self.client.get(f"/deneme/{pk}/madde/?format=xlsx").status_code, 200)
+
+
+@OPTIK
+@override_settings(OKUMA_ANA_SITE=True)
+class AnaSiteAktarimTest(TemelTest):
+    """Optik → ana site deneme modülü (taslak), ana sitede yayınla / kaldır."""
+
+    def setUp(self):
+        super().setUp()
+        from takip.models import EtutHocasi, SinifSube, Talebe
+
+        self.admin = User.objects.create_superuser("aktarim", "a@b.com", "x-test-1234")
+        hoca = EtutHocasi.objects.create(ad_soyad="Hoca", user=self.admin)
+        sinif = SinifSube.objects.create(sinif="7", sube="A")
+        hoca.sorumlu_sinif_subeler.add(sinif)
+        self.t1 = Talebe.objects.create(ad_soyad="Ali Veli", sinif_sube=sinif, etut_hocasi=hoca, talebe_no="48")
+        self.t2 = Talebe.objects.create(ad_soyad="Can Kaya", sinif_sube=sinif, etut_hocasi=hoca, talebe_no="49")
+        self.client.force_login(self.admin)
+
+    def test_esitle_aktar_yayinla(self):
+        from takip.deneme_models import DenemeKazanimSonucu, DenemeSinavi, DenemeSoruSonucu
+        from okuma.models import Ogrenci
+
+        r = self.client.post("/ogrenciler/ana-siteden/")
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(Ogrenci.objects.get(numara="48").dis_kimlik, str(self.t1.pk))
+
+        # 48 ve 49 okunur; 99 ana sitede yok → aktarılmaz.
+        self.yukle(satir_uret("48", "A", "ABCDBCA"), satir_uret("49", "B", "DCBA   "), satir_uret("99", "A", "AAAAAAA"))
+        deneme_hesapla(self.deneme)
+        r = self.client.post(f"/deneme/{self.deneme.pk}/ana-siteye-aktar/")
+        self.assertEqual(r.status_code, 302)
+        self.deneme.refresh_from_db()
+        ana = DenemeSinavi.objects.get(pk=self.deneme.ana_site_deneme_id)
+        self.assertEqual(ana.durum, DenemeSinavi.Durum.TASLAK)
+        self.assertEqual(ana.sonuclar.count(), 2)
+        s1 = ana.sonuclar.get(talebe=self.t1)
+        self.assertEqual((s1.toplam_dogru, s1.kurum_sirasi), (7, 1))
+        self.assertEqual({b.brans for b in s1.brans_satirlari.all()}, {"turkce", "matematik"})
+        self.assertTrue(DenemeKazanimSonucu.objects.filter(deneme=ana, talebe=self.t1).exists())
+        # B kitapçığındaki öğrencinin soru numaraları kendi kitapçığına göre
+        self.assertEqual(DenemeSoruSonucu.objects.filter(deneme=ana, talebe=self.t2).count(), 7)
+        self.assertEqual(
+            DenemeSoruSonucu.objects.get(deneme=ana, talebe=self.t2, ders_ad="Türkçe", soru_no=4).sonuc, "dogru"
+        )
+
+        # Yeniden aktarım aynı denemeyi günceller
+        self.client.post(f"/deneme/{self.deneme.pk}/ana-siteye-aktar/")
+        self.assertEqual(DenemeSinavi.objects.filter(pk=ana.pk).count(), 1)
+        self.assertEqual(ana.sonuclar.count(), 2)
+
+        # Ana sitede yayınla → aktif; tekrar → taslak
+        with override_settings(ROOT_URLCONF="config.urls"):
+            self.client.post(f"/yonetim/denemeler/{ana.pk}/yayin/")
+            ana.refresh_from_db()
+            self.assertEqual(ana.durum, DenemeSinavi.Durum.AKTIF)
+            self.client.post(f"/yonetim/denemeler/{ana.pk}/yayin/")
+            ana.refresh_from_db()
+            self.assertEqual(ana.durum, DenemeSinavi.Durum.TASLAK)

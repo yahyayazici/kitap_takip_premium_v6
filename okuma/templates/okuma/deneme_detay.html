@@ -38,6 +38,26 @@
   </div>
 </div>
 
+
+{% if ana_site and sonuc_sayisi %}
+<section class="bolum">
+  <div class="kart" style="display:flex;gap:24px;align-items:center;flex-wrap:wrap;justify-content:space-between">
+    <div style="flex:1;min-width:260px">
+      <h3>Ana siteye aktar</h3>
+      <p class="kucuk-yazi" style="margin:6px 0 0;font-size:14px">
+        {% if ana_site.durum == "aktif" %}<span class="rozet tamam">Yayında</span> Veliler ve talebeler bu denemeyi görüyor. Yeniden aktarırsanız sonuçlar güncellenir.
+        {% elif ana_site.durum %}<span class="rozet uyari">Taslak</span> Ana sitede, ama velilere görünmüyor. Ana sitedeki deneme sayfasında <b>Yayınla</b> deyin.
+        {% else %}Sonuçlar, puanlar, kazanımlar ve soru soru cevaplar ana sitenin deneme modülüne <b>taslak</b> olarak aktarılır. Ana sitede “Yayınla” deyince velilere gider.{% endif %}
+        {% if deneme.ana_site_aktarim %}<br>Son aktarım: {{ deneme.ana_site_aktarim|date:"j F Y H:i" }}{% endif %}
+      </p>
+    </div>
+    <div class="rapor-eylemleri">
+      {% if ana_site.adres and ana_site.durum %}<a class="btn ikincil" href="{{ ana_site.adres }}" target="_blank" rel="noopener">Ana sitede aç</a>{% endif %}
+      <form method="post" action="{% url 'ana_siteye_aktar' deneme.pk %}" class="satir-icinde" {% if ana_site.durum == "aktif" %}onsubmit="return confirm('Deneme yayında. Sonuçlar güncellenecek ve velilere yeni hâli görünecek. Devam edilsin mi?')"{% endif %}>{% csrf_token %}<button class="btn">{% if ana_site.durum %}Yeniden aktar{% else %}Ana siteye aktar{% endif %}</button></form>
+    </div>
+  </div>
+</section>
+{% endif %}
 {% if testler %}
 <section class="bolum">
   <div class="bolum-baslik">

@@ -4,7 +4,7 @@ import openpyxl
 from django.contrib import messages
 from django.contrib.auth.views import LoginView
 from django.db.models import Avg, Count, Q
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -39,6 +39,19 @@ def _katilmayanlar(deneme: Deneme):
         .exclude(sonuclar__deneme=deneme)
         .order_by("sube", "ad_soyad")
     )
+
+
+def _ana_site_bilgisi(deneme: Deneme) -> dict | None:
+    from okuma.services.ana_site import ana_site_acik, ana_site_deneme_adresi
+
+    if not ana_site_acik():
+        return None
+    durum = None
+    if deneme.ana_site_deneme_id:
+        from takip.deneme_models import DenemeSinavi
+
+        durum = DenemeSinavi.objects.filter(pk=deneme.ana_site_deneme_id).values_list("durum", flat=True).first()
+    return {"adres": ana_site_deneme_adresi(deneme.ana_site_deneme_id), "durum": durum}
 
 
 def deneme_listesi(request):
@@ -98,6 +111,32 @@ def deneme_sil(request, pk):
 
 
 @erisim_gerekli
+@require_POST
+def ana_siteye_aktar_view(request, pk):
+    from okuma.services.ana_site import ana_site_acik, ana_siteye_aktar
+
+    deneme = get_object_or_404(Deneme, pk=pk)
+    if not ana_site_acik():
+        raise Http404
+    try:
+        sonuc = ana_siteye_aktar(deneme, request.user)
+    except ValueError as exc:
+        messages.error(request, str(exc))
+        return redirect("deneme_detay", pk=pk)
+    durum = "yayında; veliler güncel sonucu görüyor" if sonuc.durum == "aktif" else "taslak; ana sitede “Yayınla” deyince velilere görünür"
+    messages.success(request, f"{sonuc.aktarilan} öğrencinin sonucu ana siteye aktarıldı ({durum}).")
+    if sonuc.eslesmeyen:
+        messages.warning(
+            request,
+            f"{len(sonuc.eslesmeyen)} öğrenci ana sitedeki bir talebeyle eşleşmedi ve aktarılmadı: "
+            + ", ".join(sonuc.eslesmeyen[:12])
+            + (" …" if len(sonuc.eslesmeyen) > 12 else "")
+            + ". Öğrenciler sayfasında “Ana siteden al” deyin ya da numaraları kontrol edin.",
+        )
+    return redirect("deneme_detay", pk=pk)
+
+
+@erisim_gerekli
 def deneme_detay(request, pk):
     deneme = get_object_or_404(Deneme, pk=pk)
     testler = deneme.testler.annotate(
@@ -119,6 +158,7 @@ def deneme_detay(request, pk):
             "satir_toplam": satirlar.count(),
             "sonuc_sayisi": deneme.sonuclar.count(),
             "katilmayan_sayisi": _katilmayanlar(deneme).count() if deneme.sonuclar.exists() else 0,
+            "ana_site": _ana_site_bilgisi(deneme),
             "anahtar_form": AnahtarForm(),
             "optik_form": OptikForm(
                 initial={

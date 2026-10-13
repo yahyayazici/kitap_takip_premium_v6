@@ -130,6 +130,9 @@ class Deneme(models.Model):
     )
     aciklama = models.TextField("Açıklama", blank=True)
     hesaplanma = models.DateTimeField("Son hesaplama", null=True, blank=True)
+    # Ana sitedeki (takip.DenemeSinavi) karşılığı; uygulamalar ayrık kalsın diye FK değil.
+    ana_site_deneme_id = models.PositiveIntegerField("Ana site deneme no", null=True, blank=True)
+    ana_site_aktarim = models.DateTimeField("Ana siteye son aktarım", null=True, blank=True)
     olusturan = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     olusturma = models.DateTimeField(auto_now_add=True)
 

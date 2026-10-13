@@ -3,9 +3,11 @@
 {% block icerik %}
 <section class="kahraman">
   <h1>Öğrenciler.</h1>
-  <p>Öğrenciler optikte yalnızca numaralarını kodlar; sonuçlarda adları bu listeden gelir.</p>
+  <p>Öğrenciler optikte yalnızca numaralarını kodlar; sonuçlarda adları bu listeden gelir.{% if ana_site %} Liste ana sitedeki talebelerden alınır: optik numarası = talebe numarası.{% endif %}</p>
   <div class="eylemler">
-    <a class="btn buyuk" href="{% url 'ogrenci_toplu' %}">Liste yükle</a>
+    {% if ana_site %}<form method="post" action="{% url 'ogrenci_ana_siteden' %}" class="satir-icinde">{% csrf_token %}<button class="btn buyuk">Ana siteden al</button></form>
+    <a class="baglanti-ok" href="{% url 'ogrenci_toplu' %}">Elle liste yükle</a>{% else %}
+    <a class="btn buyuk" href="{% url 'ogrenci_toplu' %}">Liste yükle</a>{% endif %}
     <a class="baglanti-ok" href="#tek-ekle">Tek öğrenci ekle</a>
   </div>
 </section>
@@ -13,7 +15,8 @@
 <div class="izgara-4">
   <div class="olcu"><div class="ad">Kayıtlı öğrenci</div><div class="deger">{{ toplam }}</div></div>
   <div class="olcu {% if isimsiz %}eksik{% else %}tamam{% endif %}"><div class="ad">Adı girilmemiş</div><div class="deger">{{ isimsiz }}</div>{% if isimsiz %}<div class="not"><a href="?filtre=isimsiz">göster</a></div>{% endif %}</div>
-  <div class="olcu"><div class="ad">Şube</div><div class="deger">{{ siniflar|length }}</div></div>
+  {% if ana_site %}<div class="olcu {% if bagli == toplam %}tamam{% else %}eksik{% endif %}"><div class="ad">Ana siteye bağlı</div><div class="deger">{{ bagli }}</div><div class="not">talebe kaydıyla eşleşen</div></div>
+  {% else %}<div class="olcu"><div class="ad">Şube</div><div class="deger">{{ siniflar|length }}</div></div>{% endif %}
   <div class="olcu"><div class="ad">Listede</div><div class="deger">{{ ogrenciler|length }}</div><div class="not">filtreye göre</div></div>
 </div>
 
