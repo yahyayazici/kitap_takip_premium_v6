@@ -3,18 +3,19 @@
 
 {% block title %}Programlar{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/program-sure.css' %}?v=pg-head3">
+<link rel="stylesheet" href="{% static 'css/program-sure.css' %}?v=pg-studio1">
 {% endblock %}
 
 {% block content %}
-<div class="program-page">
+<div class="program-page pg-studio">
 
-<header class="page-head patterned-page-head pg-hero">
-    <div>
-        <p class="kicker">PROGRAM MODÜLÜ</p>
-        <h1>Günlük Program</h1>
-        <p class="muted">{{ bugun|date:"d F Y, l" }} · Personel program görünümü</p>
+<header class="page-head pg-studio-hero">
+    <div class="pg-studio-hero-copy">
+        <p class="kicker">{{ bugun|date:"d F Y, l" }}</p>
+        <h1>Günlük Program.</h1>
+        <p class="muted">Personel program görünümü. Günün akışı, süreleri ve kategorileri tek bakışta.</p>
     </div>
+    {% if secili_program or yonetim_modulu %}
     <div class="profile-head-actions">
         {% if secili_program %}
         {% url 'program_pdf' secili_program.pk as program_pdf_href %}
@@ -25,45 +26,57 @@
         <a href="{% url 'yonetim:program_listesi' %}" class="ghost-btn">Yönetim</a>
         {% endif %}
     </div>
+    {% endif %}
 </header>
 
 <section class="program-selector-card dashboard-card">
-    <div class="card-heading">
-        <div><p class="card-kicker">SEÇİM</p><h2>Program Seç</h2></div>
-    </div>
-    <form method="get" class="program-selector-form">
-        <label for="program-select">Görüntülenecek program</label>
-        <select id="program-select" name="program" class="cs-input" onchange="this.form.submit()">
-            {% for program in secilebilir_programlar %}
-            <option value="{{ program.pk }}" {% if secili_program and secili_program.pk == program.pk %}selected{% endif %}>{{ program.ad }} · {{ program.tarih_araligi_goster }}</option>
-            {% empty %}
-            <option value="">Program yok</option>
-            {% endfor %}
-        </select>
+    <form method="get" class="pg-studio-picker-form">
+        <div class="pg-studio-picker-brand">
+            <span class="pg-studio-picker-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                    <rect x="3.5" y="4.5" width="17" height="16" rx="3" stroke="currentColor" stroke-width="1.7"/>
+                    <path d="M3.5 9h17M8 3.5v3M16 3.5v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                </svg>
+            </span>
+            <div>
+                <p class="card-kicker">Seçim</p>
+                <h2>Program Seç</h2>
+            </div>
+        </div>
+        <div class="program-selector-form pg-studio-picker-field">
+            <label for="program-select">Görüntülenecek program</label>
+            <select id="program-select" name="program" class="cs-input" onchange="this.form.submit()">
+                {% for program in secilebilir_programlar %}
+                <option value="{{ program.pk }}" {% if secili_program and secili_program.pk == program.pk %}selected{% endif %}>{{ program.ad }} · {{ program.tarih_araligi_goster }}</option>
+                {% empty %}
+                <option value="">Program yok</option>
+                {% endfor %}
+            </select>
+        </div>
     </form>
 </section>
 
 {% if secili_program %}
 <div class="program-body-stack">
-{% include "includes/program_sure_ozeti.html" with baslangic_kapali=True %}
+{% include "includes/program_sure_ozeti.html" with baslangic_kapali=False studio=True %}
 
 <section class="report-table-card program-schedule-card">
     <div class="card-heading">
         <div>
             <p class="card-kicker">{{ secili_program.tarih_araligi_goster }}</p>
             <h2>{{ secili_program.ad }}</h2>
+            {% if secili_program.aciklama %}<p class="program-desc">{{ secili_program.aciklama }}</p>{% endif %}
         </div>
         {% if secili_program.yayinda_mi %}
         <span class="status-pill status-okunuyor">Bugün geçerli</span>
         {% endif %}
     </div>
-    {% if secili_program.aciklama %}<p class="program-desc">{{ secili_program.aciklama }}</p>{% endif %}
 
-    {% include "includes/program_schedule_table.html" with satirlar=satirlar %}
+    {% include "includes/program_schedule_table.html" with satirlar=satirlar studio=True %}
 </section>
 </div>
 {% else %}
-<section class="dashboard-card"><div class="report-empty">Bugün için tanımlı program bulunamadı.</div></section>
+<section class="dashboard-card pg-studio-empty"><div class="report-empty">Bugün için tanımlı program bulunamadı.</div></section>
 {% endif %}
 
 </div>

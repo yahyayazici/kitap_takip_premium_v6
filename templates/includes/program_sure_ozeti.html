@@ -1,11 +1,11 @@
 {# Program süre özeti — üstten dönem tıkla, panel açılır #}
 {% if sure_donemler %}
-<section class="pg-sure" data-pg-sure aria-label="Süre analizi">
+<section class="pg-sure{% if studio %} pg-sure-studio{% endif %}" data-pg-sure aria-label="Süre analizi">
     <div class="pg-sure-top">
         <div>
-            <p class="pg-sure-kicker">Süre analizi</p>
+            <p class="pg-sure-kicker">{% if studio %}Süre Analizi{% else %}Süre analizi{% endif %}</p>
             <h2 class="pg-sure-title">Kaç saat ne yapıyoruz?</h2>
-            <p class="pg-sure-hint">Günlük / haftalık / aylık / yıllık seçmek için üstteki düğmeye tıklayın.</p>
+            <p class="pg-sure-hint">{% if studio %}Dönem seçin, süreler anında hesaplanır.{% else %}Günlük / haftalık / aylık / yıllık seçmek için üstteki düğmeye tıklayın.{% endif %}</p>
         </div>
         <div class="pg-sure-tabs" role="tablist" aria-label="Dönem">
             <button type="button" class="pg-sure-tab{% if not baslangic_kapali %} is-active{% endif %}" data-donem="gun" role="tab" aria-selected="{% if not baslangic_kapali %}true{% else %}false{% endif %}">Günlük</button>
@@ -32,11 +32,22 @@
             <article class="pg-sure-chip pg-sure-chip-{{ s.kod }}">
                 <span class="pg-sure-chip-ad">{{ s.ad }}</span>
                 <strong>{{ s.etiket }}</strong>
+                {% if studio %}
+                <em>Günlük {{ s.gunluk_etiket }} · {% if key == "gun" %}günde{% elif key == "hafta" %}haftada{% elif key == "ay" %}ayda{% else %}yılda{% endif %}</em>
+                {% else %}
                 <em>%{{ s.yuzde }}</em>
+                {% endif %}
             </article>
             {% empty %}
             <p class="pg-sure-empty">Etkin satır yok.</p>
             {% endfor %}
+            {% if studio and ozet.satirlar %}
+            <article class="pg-sure-chip pg-sure-chip-toplam">
+                <span class="pg-sure-chip-ad">Gösterilen toplam</span>
+                <strong>{{ ozet.toplam_etiket }}</strong>
+                <em>Listelenen kalemlerin toplamı · {% if key == "gun" %}günde{% elif key == "hafta" %}haftada{% elif key == "ay" %}ayda{% else %}yılda{% endif %}</em>
+            </article>
+            {% endif %}
         </div>
     </div>
     {% endfor %}
@@ -48,12 +59,14 @@
   root.dataset.bound = "1";
   var tabs = root.querySelectorAll(".pg-sure-tab");
   var panels = root.querySelectorAll("[data-donem-panel]");
+  var lockOpen = root.classList.contains("pg-sure-studio");
   tabs.forEach(function (tab) {
     tab.addEventListener("click", function () {
       var d = tab.getAttribute("data-donem");
       var already = tab.classList.contains("is-active") && !tab.getAttribute("data-force-open");
-      // İkinci tık: paneli kapat (üstten seçtikçe açılsın)
+      // İkinci tık: paneli kapat (üstten seçtikçe açılsın). Studio görünümünde dönem her zaman açık kalır.
       if (already) {
+        if (lockOpen) return;
         tab.classList.remove("is-active");
         tab.setAttribute("aria-selected", "false");
         panels.forEach(function (p) {

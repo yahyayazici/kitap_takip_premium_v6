@@ -10,7 +10,7 @@
             <h3 class="pg-view-title">{{ satir.faaliyet_adi }}</h3>
             <p class="pg-view-meta">
                 <span class="pg-view-tag">{{ satir.tur_etiket }}</span>
-                <span class="pg-view-sure">({{ satir.sure_dakika }} dk)</span>
+                <span class="pg-view-sure">{% if studio %}{{ satir.sure_dakika }} dk{% else %}({{ satir.sure_dakika }} dk){% endif %}</span>
             </p>
         </div>
     </article>
@@ -19,4 +19,4 @@
     {% endfor %}
 </div>
 
-{% include "includes/program_schedule_mobile.html" with satirlar=satirlar %}
+{% include "includes/program_schedule_mobile.html" with satirlar=satirlar studio=studio %}
