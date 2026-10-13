@@ -187,6 +187,8 @@ def anahtar_yukle_view(request, pk):
                 f"{ozet.test_sayisi} test, {ozet.soru_sayisi} soru, {ozet.kazanim_sayisi} kazanım yüklendi. "
                 f"Kitapçıklar: {', '.join(ozet.kitapciklar)}.",
             )
+            if ozet.uyari:
+                messages.warning(request, ozet.uyari)
             _yeniden_hesapla(request, deneme)
     return redirect("deneme_detay", pk=pk)
 

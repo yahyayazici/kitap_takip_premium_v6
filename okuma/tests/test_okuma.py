@@ -612,3 +612,47 @@ class AnaSiteAktarimTest(TemelTest):
             self.client.post(f"/yonetim/denemeler/{ana.pk}/yayin/")
             ana.refresh_from_db()
             self.assertEqual(ana.durum, DenemeSinavi.Durum.TASLAK)
+
+
+
+class YayineviAnahtarTest(TestCase):
+    """Farklı yayınevi şablonları: başlık aşağıda, farklı sütun adları, 'kod - metin' tek hücrede."""
+
+    def _excel(self):
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.append([1, "SINAV ADI"])
+        ws.append(["SINAV ADI", None, None, None, None, "LGS BAŞLANGIÇ DENEMESİ"])
+        for _ in range(30):
+            ws.append([])  # sınav ayarları bloğu
+        ws.append(["Test\nNo", None, "Açıklama\nTest Adı vs.", None, "A\nSoru No", None, "B\nSoru No", None, "Doğru\nCevap", None, "Kazanım Kodu veya Kazanım Metni"])
+        for test_no, ad, n, kod in [(1, "Sözel (TÜR)", 4, "8.3.2.1"), (5, "Sayısal (MAT)", 3, "8.1.1.1")]:
+            for i in range(1, n + 1):
+                ws.append([test_no, None, ad, None, i, None, n + 1 - i, None, "ABCD"[i % 4], None, f"{kod}. - Kazanım {i}"])
+        ws.append([None, None, "TOPLAM", None, None, None, None, None, None])
+        buf = io.BytesIO()
+        wb.save(buf)
+        return buf.getvalue()
+
+    def test_otomatik_algilama(self):
+        from okuma.services.anahtar_excel import excel_oku
+
+        sorular = excel_oku(self._excel())
+        self.assertEqual(len(sorular), 7)
+        ilk = sorular[0]
+        self.assertEqual((ilk.test, ilk.a_no, ilk.kitapcik_no, ilk.cevap, ilk.kazanim_kodu, ilk.kazanimlar),
+                         ("Sözel (TÜR)", 1, {"B": 4}, "B", "8.3.2.1", ["Kazanım 1"]))
+
+    def test_yukleme_ve_sinif_uyarisi(self):
+        d = Deneme.objects.create(ad="X", tarih=datetime.date(2026, 10, 1), sinif_seviyesi="7")
+        ozet = anahtar_yukle(d, self._excel())
+        self.assertEqual([t.lgs_ders for t in d.testler.all()], ["turkce", "matematik"])
+        self.assertIn("8. sınıf", ozet.uyari)
+
+    def test_tablo_yoksa_anlasilir_hata(self):
+        wb = openpyxl.Workbook()
+        wb.active.append(["Ad", "Soyad"])
+        buf = io.BytesIO()
+        wb.save(buf)
+        with self.assertRaisesMessage(AnahtarHatasi, "Cevap anahtarı tablosu bulunamadı"):
+            anahtar_yukle(Deneme.objects.create(ad="Y", tarih=datetime.date(2026, 10, 1), sinif_seviyesi="7"), buf.getvalue())

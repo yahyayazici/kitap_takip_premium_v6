@@ -42,6 +42,7 @@ class AnahtarOzet:
     soru_sayisi: int = 0
     kazanim_sayisi: int = 0
     kitapciklar: list[str] = field(default_factory=list)
+    uyari: str = ""
 
 
 def _norm(s) -> str:
@@ -51,11 +52,28 @@ def _norm(s) -> str:
     return re.sub(r"[^a-z0-9]", "", s)
 
 
+# Yayınevlerinin ders kısaltmaları: "Sözel (TÜR)", "Sayısal (MAT)" …
+DERS_KISALTMA = {
+    "tur": "turkce", "trk": "turkce", "turkce": "turkce",
+    "tar": "inkilap", "ink": "inkilap", "inkilap": "inkilap", "sos": "inkilap", "sosyal": "inkilap", "tc": "inkilap",
+    "din": "din", "dkab": "din", "dkb": "din",
+    "ing": "yabanci_dil", "yd": "yabanci_dil", "ydil": "yabanci_dil", "eng": "yabanci_dil", "alm": "yabanci_dil", "arp": "yabanci_dil",
+    "mat": "matematik", "matematik": "matematik",
+    "fen": "fen", "fenbilimleri": "fen", "fb": "fen",
+}
+
+
 def lgs_ders_tahmin(ders: str) -> str:
+    # Parantez içindeki kısaltma en güvenilir ipucu: "Sözel (TÜR)" → TÜR
+    for parca in re.findall(r"\(([^)]*)\)", str(ders or "")):
+        if (kod := DERS_KISALTMA.get(_norm(parca))):
+            return kod
     d = _norm(ders)
+    if d in DERS_KISALTMA:
+        return DERS_KISALTMA[d]
     if "turkce" in d:
         return "turkce"
-    if d.startswith("mat"):
+    if d.startswith("mat") or "matematik" in d:
         return "matematik"
     if "fen" in d:
         return "fen"
@@ -63,71 +81,170 @@ def lgs_ders_tahmin(ders: str) -> str:
         return "inkilap"
     if "din" in d:
         return "din"
-    if "ingilizce" in d or "almanca" in d or "arapca" in d or "dil" in d:
+    if "ingilizce" in d or "almanca" in d or "arapca" in d or "yabancidil" in d or d.endswith("dil"):
         return "yabanci_dil"
     return ""
 
 
+# ── Sütun tanıma ───────────────────────────────────────────────────────────
+# Başlıklar küçük harf, Türkçe karaktersiz ve boşluksuz karşılaştırılır.
+KOD_DESENI = re.compile(
+    r"^\s*((?:[A-Za-zÇĞİÖŞÜçğıöşü]{1,4}\.){0,3}[A-Za-zÇĞİÖŞÜçğıöşü]{0,3}\d+(?:\.[0-9A-Za-z]+)+)\.?\s*(?:[-–—:]\s*|\s+)(\S.*)$"
+)
+
+
+def kod_metin_ayir(deger: str) -> tuple[str, str]:
+    """'8.3.2.1 - Bağlamdan…' → ('8.3.2.1', 'Bağlamdan…'); kod yoksa ('', metin)."""
+    deger = str(deger or "").strip()
+    m = KOD_DESENI.match(deger)
+    if m:
+        return m.group(1).rstrip("."), m.group(2).strip()
+    return "", deger
+
+
+def _sutun_turu(h: str) -> tuple[str, str] | None:
+    """Başlığın ne olduğunu söyler: ('a',''), ('kitapcik','B'), ('cevap',''), ('test',''), ('testno',''),
+    ('ders',''), ('kod',''), ('kodmetin',''), ('metin','')."""
+    if not h:
+        return None
+    if re.fullmatch(r"a(kitapcigi?)?(soru(su)?)?(no|numarasi|sira(si)?)?", h) and h != "a":
+        return ("a", "")
+    if (m := re.fullmatch(r"([b-e])(kitapcigi?)?(soru(su)?)?(no|numarasi|sira(si)?)?", h)) and len(h) > 1:
+        return ("kitapcik", m.group(1).upper())
+    if "cevap" in h or h in {"dogru", "dogrusik", "anahtar", "dc", "dogrucvp", "cvp"}:
+        return ("cevap", "")
+    if "kazanim" in h and "kod" in h and ("metin" in h or "veya" in h or "adi" in h):
+        return ("kodmetin", "")
+    if h in {"kazanimkodu", "kazanimkod", "kod", "kazanimno", "kazanimnumarasi", "mebkodu"}:
+        return ("kod", "")
+    if h.startswith("kazanim") or h.startswith("konu") or h in {"altkonu", "ogrenmecikti", "ogrenmeciktisi"}:
+        return ("metin", "")
+    if h in {"testno", "testnumarasi", "testsirasi", "bolumno"}:
+        return ("testno", "")
+    if "testadi" in h or "aciklama" in h or h in {"test", "testismi", "bolum", "oturum", "testler"}:
+        return ("test", "")
+    if h in {"ders", "dersadi", "dersler", "brans", "bransadi", "alan", "derskodu"}:
+        return ("ders", "")
+    if h in {"soruno", "sorunumarasi", "soru", "sirano", "no"}:
+        return ("soruno", "")
+    return None
+
+
+def _basliklari_bul(satirlar) -> tuple[int, dict] | None:
+    """Soru no + cevap sütunu olan ilk satırı başlık kabul eder; sütun haritasını döndürür."""
+    for i, satir in enumerate(satirlar):
+        harita: dict = {"kitapcik": {}, "metin": []}
+        for j, h in enumerate(satir or ()):
+            tur = _sutun_turu(_norm(h))
+            if tur is None:
+                continue
+            ad, ek = tur
+            if ad == "kitapcik":
+                harita["kitapcik"].setdefault(ek, j)
+            elif ad == "metin":
+                harita["metin"].append(j)
+            else:
+                harita.setdefault(ad, j)
+        if "a" not in harita and "soruno" in harita:
+            harita["a"] = harita["soruno"]
+        if "a" in harita and "cevap" in harita and ({"test", "testno", "ders"} & harita.keys()):
+            return i, harita
+    return None
+
+
+def _tamsayi(v) -> int | None:
+    if v in (None, ""):
+        return None
+    try:
+        f = float(str(v).replace(",", ".").strip())
+    except ValueError:
+        return None
+    return int(f) if f == int(f) else None
+
+
+IPTAL = {"X", "IPTAL", "İPTAL", "-", "—"}
+
+
 def excel_oku(veri: bytes) -> list[AnahtarSoru]:
-    wb = openpyxl.load_workbook(io.BytesIO(veri), data_only=True, read_only=True)
-    ws = wb.worksheets[0]
-    satirlar = list(ws.iter_rows(values_only=True))
+    """Yayınevinden bağımsız cevap anahtarı okuyucu.
 
-    baslik_idx = None
-    for i, satir in enumerate(satirlar[:30]):
-        normlar = [_norm(h) for h in satir]
-        if "asoru" in normlar and "cevap" in normlar:
-            baslik_idx = i
+    Bütün sayfalarda, başlığın yerini ve sütun adlarını kendisi bulur:
+    A/B/C/D soru no, doğru cevap, test adı/no, ders, kazanım kodu ve metni
+    (ayrı ya da "8.3.2.1 - metin" biçiminde tek hücrede).
+    """
+    try:
+        wb = openpyxl.load_workbook(io.BytesIO(veri), data_only=True, read_only=True)
+    except Exception as exc:
+        raise AnahtarHatasi(f"Dosya Excel olarak açılamadı: {exc}")
+
+    for ws in wb.worksheets:
+        satirlar = list(ws.iter_rows(values_only=True))
+        bulunan = _basliklari_bul(satirlar)
+        if bulunan:
             break
-    if baslik_idx is None:
-        raise AnahtarHatasi("Başlık satırı bulunamadı ('A Soru' ve 'Cevap' sütunları gerekli).")
+    else:
+        raise AnahtarHatasi(
+            "Cevap anahtarı tablosu bulunamadı. Başlık satırında en az şu sütunlar olmalı: "
+            "soru numarası (\"A Soru No\" ya da \"Soru No\"), doğru cevap (\"Cevap\" / \"Doğru Cevap\") "
+            "ve ders ya da test adı."
+        )
+    baslik_idx, h = bulunan
 
-    basliklar = [_norm(h) for h in satirlar[baslik_idx]]
-
-    def sutun(ad: str) -> int | None:
-        return basliklar.index(ad) if ad in basliklar else None
-
-    s_test, s_ders, s_a, s_cevap, s_kod = (sutun(x) for x in ("test", "ders", "asoru", "cevap", "kazanimkodu"))
-    if s_ders is None and s_test is None:
-        raise AnahtarHatasi("'Test' ya da 'Ders' sütunu gerekli.")
-    kitapcik_sutun = {
-        m.group(1).upper(): i for i, h in enumerate(basliklar) if (m := re.fullmatch(r"([b-e])soru", h))
-    }
-    kazanim_sutun = [i for i, h in enumerate(basliklar) if re.fullmatch(r"kazanim\d*", h)]
+    def hucre(satir, ad):
+        j = h.get(ad)
+        return satir[j] if j is not None and j < len(satir) else None
 
     sorular: list[AnahtarSoru] = []
     for satir_no, satir in enumerate(satirlar[baslik_idx + 1 :], start=baslik_idx + 2):
         if not satir or all(v in (None, "") for v in satir):
             continue
-        a_no = satir[s_a]
-        if a_no in (None, ""):
+        a_no = _tamsayi(hucre(satir, "a"))
+        if a_no is None:
+            continue  # ara başlık, toplam satırı vb.
+        cevap = str(hucre(satir, "cevap") or "").strip().upper().replace("İ", "I")
+        if not cevap:
             continue
-        try:
-            a_no = int(a_no)
-        except (TypeError, ValueError):
-            raise AnahtarHatasi(f"{satir_no}. satır: A soru numarası sayı değil ({a_no!r}).")
-        cevap = str(satir[s_cevap] or "").strip().upper()
+        if cevap in IPTAL or cevap == "IPTAL":
+            cevap = "X"
         if cevap not in {"A", "B", "C", "D", "E", "X"}:
             raise AnahtarHatasi(f"{satir_no}. satır: geçersiz cevap {cevap!r}. İptal soru için X yazın.")
-        ders = str(satir[s_ders] if s_ders is not None else satir[s_test]).strip()
-        test = str(satir[s_test] if s_test is not None else ders).strip()
+
+        test_adi = str(hucre(satir, "test") or "").strip()
+        test_no = _tamsayi(hucre(satir, "testno"))
+        ders = str(hucre(satir, "ders") or "").strip() or test_adi
+        test = test_adi or ders or (f"{test_no}. Test" if test_no else "")
+        if not test:
+            raise AnahtarHatasi(f"{satir_no}. satır: ders / test adı boş.")
+        ders = ders or test
+
         kitapcik_no = {}
-        for k, i in kitapcik_sutun.items():
-            if satir[i] not in (None, ""):
-                kitapcik_no[k] = int(satir[i])
+        for k, j in h["kitapcik"].items():
+            if j < len(satir) and (no := _tamsayi(satir[j])) is not None:
+                kitapcik_no[k] = no
+
+        kod = str(hucre(satir, "kod") or "").strip()
+        metinler = []
+        if h.get("kodmetin") is not None:
+            k2, m2 = kod_metin_ayir(hucre(satir, "kodmetin"))
+            kod = kod or k2
+            if m2:
+                metinler.append(m2)
+        for j in h["metin"]:
+            if j < len(satir) and satir[j] not in (None, ""):
+                k2, m2 = kod_metin_ayir(satir[j])
+                kod = kod or k2
+                metinler.append(m2 or str(satir[j]).strip())
+        if kod and not metinler:
+            metinler.append(kod)
+
         sorular.append(
             AnahtarSoru(
-                test=test,
-                ders=ders,
-                a_no=a_no,
-                kitapcik_no=kitapcik_no,
-                cevap=cevap,
-                kazanim_kodu=str(satir[s_kod] or "").strip() if s_kod is not None else "",
-                kazanimlar=[str(satir[i]).strip() for i in kazanim_sutun if satir[i] not in (None, "")],
+                test=test, ders=ders, a_no=a_no, kitapcik_no=kitapcik_no, cevap=cevap,
+                kazanim_kodu=kod[:40], kazanimlar=metinler,
             )
         )
     if not sorular:
-        raise AnahtarHatasi("Excel'de soru satırı bulunamadı.")
+        raise AnahtarHatasi("Başlık bulundu ama altında soru satırı yok.")
     return sorular
 
 
@@ -232,7 +349,25 @@ def anahtar_yukle(deneme: Deneme, veri: bytes) -> AnahtarOzet:
     deneme.save(update_fields=["kitapciklar", "hesaplanma"])
     ozet.kazanim_sayisi = len(kazanim_idler)
     ozet.kitapciklar = sorted(kitapciklar)
+    ozet.uyari = _sinif_uyarisi(deneme, [s for _, liste in eslesme for s in liste])
     return ozet
+
+
+def _sinif_uyarisi(deneme: Deneme, sorular: list[AnahtarSoru]) -> str:
+    """Kazanım kodlarındaki sınıf (MAT.7…, F.8…, 8.3.2.1) denemenin sınıfından farklıysa uyarır."""
+    sayim: dict[str, int] = {}
+    for s in sorular:
+        if m := re.search(r"(?:^|[A-Za-z.])([5-8])\.", s.kazanim_kodu or ""):
+            sayim[m.group(1)] = sayim.get(m.group(1), 0) + 1
+    if not sayim:
+        return ""
+    en_cok = max(sayim, key=sayim.get)
+    if en_cok != str(deneme.sinif_seviyesi) and sayim[en_cok] >= len(sorular) / 2:
+        return (
+            f"Dikkat: kazanım kodlarının çoğu {en_cok}. sınıfa ait, bu deneme {deneme.sinif_seviyesi}. sınıf. "
+            "Doğru dosyayı yüklediğinizden emin olun."
+        )
+    return ""
 
 
 def _sira_listesi(metin: str) -> list[int]:
