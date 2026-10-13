@@ -15,6 +15,19 @@
   <div class="olcu {% if sonuc_sayisi %}tamam{% else %}eksik{% endif %}"><div class="ad">Sonuç</div><div class="deger">{{ sonuc_sayisi }}</div><div class="not">öğrenci{% if sonuc_sayisi %} · <a href="{% url 'sonuclar' deneme.pk %}">gör</a>{% endif %}{% if katilmayan_sayisi %} · <a href="{% url 'sonuclar' deneme.pk %}#katilmayanlar">{{ katilmayan_sayisi }} katılmadı</a>{% endif %}</div></div>
 </div>
 
+{% if anahtar_suphesi %}
+<section class="bolum">
+  <div class="kart" style="border-left:4px solid #ff9f0a">
+    <h3>Cevap anahtarı yanlış olabilir</h3>
+    <p class="kucuk-yazi" style="margin:6px 0 14px;font-size:14px">Aşağıdaki kitapçık ve derslerde öğrencilerin çoğu birçok soruda anahtardakinden farklı <b>aynı şıkkı</b> işaretlemiş. Bu genelde yayınevinin o kitapçık için verdiği anahtarın hatalı ya da başka bir denemeye ait olduğunu gösterir. Kitapçığın kendi cevap anahtarıyla karşılaştırıp <a href="{% url 'anahtar' deneme.pk %}">Cevap anahtarı</a> sayfasından düzeltin.</p>
+    <div class="tablo-kap"><table>
+      <thead><tr><th>Kitapçık</th><th>Ders</th><th class="sayi">Şüpheli soru</th><th class="sayi">Öğrenci</th><th>Öğrencilerin çoğunluğu</th></tr></thead>
+      <tbody>{% for s in anahtar_suphesi %}<tr><td><b>{{ s.kitapcik }}</b></td><td>{{ s.ders }}</td><td class="sayi"><span class="rozet uyari">{{ s.supheli }}/{{ s.soru }}</span></td><td class="sayi soluk">{{ s.ogrenci }}</td><td class="ham" style="font-size:13px;color:var(--metin)">{{ s.cogunluk_anahtari }}</td></tr>{% endfor %}</tbody>
+    </table></div>
+  </div>
+</section>
+{% endif %}
+
 <div class="bolum izgara-2" style="align-items:start">
   <div class="kart">
     <h3>1 · Cevap anahtarı</h3>

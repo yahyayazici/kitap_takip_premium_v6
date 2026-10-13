@@ -41,6 +41,15 @@ def _katilmayanlar(deneme: Deneme):
     )
 
 
+def _anahtar_suphesi(deneme: Deneme):
+    from okuma.services.anahtar_kontrol import anahtar_kontrol
+
+    try:
+        return anahtar_kontrol(deneme)
+    except Exception:  # kontrol yardımcıdır; sayfayı asla düşürmesin
+        return []
+
+
 def _ana_site_bilgisi(deneme: Deneme) -> dict | None:
     from okuma.services.ana_site import ana_site_acik, ana_site_deneme_adresi
 
@@ -159,6 +168,7 @@ def deneme_detay(request, pk):
             "sonuc_sayisi": deneme.sonuclar.count(),
             "katilmayan_sayisi": _katilmayanlar(deneme).count() if deneme.sonuclar.exists() else 0,
             "ana_site": _ana_site_bilgisi(deneme),
+            "anahtar_suphesi": _anahtar_suphesi(deneme) if satirlar.exists() else [],
             "anahtar_form": AnahtarForm(),
             "optik_form": OptikForm(
                 deneme=deneme,

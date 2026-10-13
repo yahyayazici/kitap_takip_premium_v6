@@ -830,3 +830,23 @@ class OturumVeEslestirmeTest(TemelTest):
     def test_optik_formunda_oturum_secimi(self):
         self.client.force_login(User.objects.create_superuser("f", password="x-test-1234"))
         self.assertContains(self.client.get(f"/deneme/{self.deneme.pk}/"), "Yalnız Sayısal")
+
+
+@OPTIK
+class AnahtarKontrolTest(TemelTest):
+    def test_yanlis_anahtar_yakalanir(self):
+        from okuma.services.anahtar_kontrol import anahtar_kontrol
+
+        # 6 öğrenci Türkçe'de anahtardan (ABCD) farklı olarak hep DCBA işaretliyor
+        self.yukle(*[satir_uret(str(i), "A", "DCBABCA") for i in range(1, 7)])
+        suphe = anahtar_kontrol(self.deneme)
+        self.assertEqual([(s.kitapcik, s.ders, s.supheli) for s in suphe], [("A", "Türkçe", 4)])
+        self.assertEqual(suphe[0].cogunluk_anahtari, "DCBA")
+        self.client.force_login(User.objects.create_superuser("ak", password="x-test-1234"))
+        self.assertContains(self.client.get(f"/deneme/{self.deneme.pk}/"), "Cevap anahtarı yanlış olabilir")
+
+    def test_dogru_anahtarda_uyari_yok(self):
+        from okuma.services.anahtar_kontrol import anahtar_kontrol
+
+        self.yukle(*[satir_uret(str(i), "A", "ABCDBCA") for i in range(1, 7)])
+        self.assertEqual(anahtar_kontrol(self.deneme), [])
