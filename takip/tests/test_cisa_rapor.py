@@ -234,10 +234,34 @@ class CisaRaporTests(TestCase):
             "BUHRANLAR BÜYÜK KAHRAMAN DOĞURUR",
             "M. KEMAL'İN FİKİR HAYATI",
         ):
-            self.assertIn(konu, basliklar["İnkılap"])
+            self.assertIn(konu, basliklar["İnkılap Tarihi"])
             self.assertNotIn(konu, basliklar["Türkçe"])
         dersler = [grup["ders"] for grup in rapor["konular"]]
-        self.assertLess(dersler.index("Türkçe"), dersler.index("İnkılap"))
+        self.assertLess(dersler.index("Türkçe"), dersler.index("İnkılap Tarihi"))
+
+    def test_ayni_ders_ve_ayni_konu_birlesir(self):
+        """Farklı denemelerden gelen ders/konu yazımları tek satırda toplanır."""
+        kayitlar = (
+            ("İnkılap", "inkilap", "BİR KAHRAMAN DOĞUYOR", "dogru"),
+            ("T.C. İnkılap Tarihi ve Atatürkçülük", "t c inkilap tarihi ve ataturkculuk", "8.1.1. Avrupa'daki gelişmeler", "dogru"),
+            ("Türkçe", "turkce", "NOKTALAMA İŞARETLERİ", "yanlis"),
+            ("Türkçe", "turkce", "T.8.3.1. Noktalama işaretlerinin işlevlerini kavrar.", "dogru"),
+            ("Türkçe", "turkce", "SÖZ SANATLARI", "dogru"),
+            ("Türkçe", "turkce", "T.8.3.7. Metindeki söz sanatlarını tespit eder.", "dogru"),
+        )
+        for no, (ders_ad, ders_key, konu, sonuc) in enumerate(kayitlar, start=60):
+            DenemeSoruSonucu.objects.create(
+                deneme=self.ocak, talebe=self.ali, ders_ad=ders_ad, ders_key=ders_key,
+                soru_no=no, konu_ad=konu, sonuc=sonuc,
+            )
+        rapor = cisa_rapor(self.ali, [self.ocak.id])
+        dersler = [grup["ders"] for grup in rapor["konular"]]
+        self.assertEqual(dersler.count("İnkılap Tarihi"), 1)
+        turkce = {s["konu"]: s for g in rapor["konular"] if g["ders"] == "Türkçe" for s in g["satirlar"]}
+        self.assertIn("NOKTALAMA İŞARETLERİ", turkce)
+        self.assertNotIn("Noktalama işaretlerinin işlevlerini kavrar.", turkce)
+        self.assertEqual((turkce["NOKTALAMA İŞARETLERİ"]["soru"], turkce["NOKTALAMA İŞARETLERİ"]["dogru"]), (2, 1))
+        self.assertEqual(turkce["SÖZ SANATLARI"]["soru"], 2)
 
     def test_secilmeyen_ve_taslak_girmez(self):
         liste = cisa_deneme_listesi(self.ali)

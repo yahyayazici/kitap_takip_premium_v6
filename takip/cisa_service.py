@@ -6,6 +6,8 @@ satırlardan toplanır; aynı soru iki kez sayılmaz.
 
 from __future__ import annotations
 
+import re
+
 from collections import defaultdict
 from decimal import Decimal, ROUND_HALF_UP
 
@@ -19,6 +21,7 @@ from takip.deneme_models import (
 )
 from takip.deneme_service import DENEME_KARNE_DERSLERI, tr_ondalik
 from takip.deneme_soru_karne import konu_ders_adi
+from takip.konu_birlestir import KonuBirlestirici, ders_etiketi, ders_kodu
 from takip.models import Talebe
 
 _DERS_SIRA = {kod: i for i, (kod, _etiket) in enumerate(DENEME_KARNE_DERSLERI)}
@@ -100,16 +103,29 @@ _BILINEN_DERS = set(_KOD.values()) | set(_DERS_SIRA)
 
 
 def _satir_ders(ders_key: str, ders_ad: str, konu: str) -> tuple[str, str]:
-    """8. sınıf karnesinde ders «Sınıf» veya Türkçe yazılmış İnkılap konusunu ayır."""
-    kod = _ders_kodu(ders_key, ders_ad)
-    baslik = _ders_baslik(kod, ders_ad)
+    """Satırın ders kodu ve başlığı. Ders adı hangi yazımla gelirse gelsin içerikten tanınır
+    (ör. "T.C. İnkılap Tarihi ve Atatürkçülük" = "İnkılap" = 8. sınıf sosyal); Türkçe yazılmış
+    İnkılap konusu konunun kendisinden ayrılır."""
+    kod = ders_kodu(ders_key, ders_ad) or _ders_kodu(ders_key, ders_ad)
     ipucu = konu_ders_adi(konu)
-    if not ipucu:
-        return kod, baslik
-    ipucu_kod = _ders_kodu("", ipucu)
-    if kod not in _BILINEN_DERS or (kod == "turkce" and ipucu_kod == "inkilap"):
-        return ipucu_kod, ipucu
-    return kod, baslik
+    if ipucu:
+        ipucu_kod = ders_kodu(ipucu) or _ders_kodu("", ipucu)
+        if kod not in _BILINEN_DERS or (kod == "turkce" and ipucu_kod == "sosyal"):
+            kod = ipucu_kod
+    return kod, ders_etiketi(kod)
+
+
+def _seviye(talebe: Talebe | None) -> str:
+    m = re.search(r"\d+", (getattr(talebe, "sinif", "") or "")) if talebe is not None else None
+    return m.group(0) if m else ""
+
+
+def _konu_birlestiricileri(kayitlar) -> dict[str, KonuBirlestirici]:
+    """Ders koduna göre o dersteki bütün konu adlarını içeriklerine göre gruplar."""
+    adlar: dict[str, set[str]] = defaultdict(set)
+    for kod, konu in kayitlar:
+        adlar[kod].add(konu)
+    return {kod: KonuBirlestirici(liste) for kod, liste in adlar.items()}
 
 
 def cisa_deneme_listesi(talebe: Talebe) -> list[dict]:
@@ -228,6 +244,7 @@ def cisa_rapor(talebe: Talebe, deneme_ids: list[int]) -> dict | None:
         "matematik": "Matematik",
         "fen": "Fen Bilimleri",
     }
+    _okunur["sosyal"] = ders_etiketi("sosyal", _seviye(talebe))
     for kod, kova in ders_toplam.items():
         kova["ad"] = _okunur.get(kod, kova["ad"])
 
@@ -313,48 +330,61 @@ def cisa_rapor(talebe: Talebe, deneme_ids: list[int]) -> dict | None:
 
 
 def _konu_dokumu(talebe: Talebe, ids: list[int], sinif: Q):
+    seviye = _seviye(talebe)
+    kendi_kayit = [
+        (k.sonuc, *_satir_ders(k.ders_key, k.ders_ad, (k.konu_ad or "").strip() or "Belirtilmemiş"),
+         (k.konu_ad or "").strip() or "Belirtilmemiş")
+        for k in DenemeSoruSonucu.objects.filter(deneme_id__in=ids, talebe=talebe).only(
+            "ders_key", "ders_ad", "konu_ad", "sonuc"
+        )
+    ]
+    sinif_kayit = [
+        (k.sonuc, _satir_ders(k.ders_key, k.ders_ad, (k.konu_ad or "").strip() or "Belirtilmemiş")[0],
+         (k.konu_ad or "").strip() or "Belirtilmemiş")
+        for k in DenemeSoruSonucu.objects.filter(sinif, deneme_id__in=ids).only(
+            "ders_key", "ders_ad", "konu_ad", "sonuc"
+        )
+    ]
+    # Aynı konu farklı adlarla gelmiş olabilir ("NOKTALAMA İŞARETLERİ" / "T.8.3.1. Noktalama…").
+    birlestirici = _konu_birlestiricileri(
+        [(kod, konu) for _, kod, _b, konu in kendi_kayit] + [(kod, konu) for _, kod, konu in sinif_kayit]
+    )
+
     kendi: dict[tuple, dict] = {}
-    for kayit in DenemeSoruSonucu.objects.filter(deneme_id__in=ids, talebe=talebe).only(
-        "ders_key", "ders_ad", "konu_ad", "sonuc"
-    ):
-        konu = (kayit.konu_ad or "").strip() or "Belirtilmemiş"
-        kod, ders_baslik = _satir_ders(kayit.ders_key, kayit.ders_ad, konu)
-        anahtar = (kod, konu.casefold())
+    for sonuc, kod, _baslik, konu in kendi_kayit:
+        b = birlestirici[kod]
+        anahtar = (kod, b.anahtar(konu))
         kova = kendi.get(anahtar)
         if kova is None:
             kova = {
                 "kod": kod,
-                "ders": ders_baslik,
-                "konu": konu,
+                "ders": ders_etiketi(kod, seviye),
+                "konu": b.baslik(konu),
+                "anahtar": anahtar,
                 "dogru": 0,
                 "yanlis": 0,
                 "bos": 0,
             }
             kendi[anahtar] = kova
-        if kayit.sonuc == DenemeSoruSonucu.Sonuc.DOGRU:
+        if sonuc == DenemeSoruSonucu.Sonuc.DOGRU:
             kova["dogru"] += 1
-        elif kayit.sonuc == DenemeSoruSonucu.Sonuc.YANLIS:
+        elif sonuc == DenemeSoruSonucu.Sonuc.YANLIS:
             kova["yanlis"] += 1
         else:
             kova["bos"] += 1
 
     sinif_kova: dict[tuple, list[int]] = defaultdict(lambda: [0, 0])
-    for kayit in (
-        DenemeSoruSonucu.objects.filter(sinif, deneme_id__in=ids)
-        .only("ders_key", "ders_ad", "konu_ad", "sonuc")
-    ):
-        konu = (kayit.konu_ad or "").strip() or "Belirtilmemiş"
-        kod, _yok = _satir_ders(kayit.ders_key, kayit.ders_ad, konu)
-        anahtar = (kod, konu.casefold())
+    for sonuc, kod, konu in sinif_kayit:
+        anahtar = (kod, birlestirici[kod].anahtar(konu))
         sinif_kova[anahtar][1] += 1
-        if kayit.sonuc == DenemeSoruSonucu.Sonuc.DOGRU:
+        if sonuc == DenemeSoruSonucu.Sonuc.DOGRU:
             sinif_kova[anahtar][0] += 1
 
     satirlar = []
     for kova in kendi.values():
         toplam = kova["dogru"] + kova["yanlis"] + kova["bos"]
         yuzde = _yuzde(kova["dogru"], toplam)
-        sinif_cift = sinif_kova.get((kova["kod"], kova["konu"].casefold()))
+        sinif_cift = sinif_kova.get(kova["anahtar"])
         sinif_yuzde = _yuzde(sinif_cift[0], sinif_cift[1]) if sinif_cift else None
         satirlar.append(
             {
@@ -488,6 +518,8 @@ def cisa_sinif_raporu(talebeler: list[Talebe], deneme_ids: list[int], baslik: st
         "matematik": "Matematik",
         "fen": "Fen Bilimleri",
     }
+    sinif_seviyesi = _seviye(talebeler[0]) if talebeler else ""
+    okunur["sosyal"] = ders_etiketi("sosyal", sinif_seviyesi)
     dersler = []
     siralamalar = []
     son_id = sinavlar[-1].id if sinavlar else None
@@ -557,19 +589,24 @@ def cisa_sinif_raporu(talebeler: list[Talebe], deneme_ids: list[int], baslik: st
         siralamalar.append({"kod": kod, "ad": okunur.get(kod, kod), "talebeler": sira})
 
     konu_ogrenci: dict[tuple, dict] = {}
+    soru_kayitlari = []
     for kayit in DenemeSoruSonucu.objects.filter(
         deneme_id__in=gorulen_sinav,
         talebe_id__in=list(toplam_net),
     ).only("talebe_id", "ders_key", "ders_ad", "konu_ad", "sonuc"):
         konu = (kayit.konu_ad or "").strip() or "Belirtilmemiş"
-        kod, ders_baslik = _satir_ders(kayit.ders_key, kayit.ders_ad, konu)
-        anahtar = (kod, konu.casefold())
+        kod, _baslik = _satir_ders(kayit.ders_key, kayit.ders_ad, konu)
+        soru_kayitlari.append((kayit, kod, konu))
+    birlestirici = _konu_birlestiricileri([(kod, konu) for _, kod, konu in soru_kayitlari])
+    for kayit, kod, konu in soru_kayitlari:
+        b = birlestirici[kod]
+        anahtar = (kod, b.anahtar(konu))
         kova = konu_ogrenci.get(anahtar)
         if kova is None:
             kova = {
                 "kod": kod,
-                "ders": ders_baslik,
-                "konu": konu,
+                "ders": ders_etiketi(kod, sinif_seviyesi),
+                "konu": b.baslik(konu),
                 "talebe": {},
             }
             konu_ogrenci[anahtar] = kova
