@@ -208,10 +208,27 @@ def talebe_risk_skoru(talebe: Talebe) -> tuple[int, list[str]]:
 
 
 def _mudahale_adaylari(user: User, *, limit: int = 10) -> list[dict[str, Any]]:
-    qs = yetkili_talebeler(user).select_related("sinif_sube", "etut_hocasi")[:200]
+    """Risk adayları. Tek tek talebe sorgusu atılmaz; panel açılışını kilitliyordu."""
+    from django.core.cache import cache
+
+    bugun = localdate()
+    anahtar = f"mudahale-aday:v1:{user.pk}:{bugun.isoformat()}:{limit}"
+    hazir = cache.get(anahtar)
+    if hazir is not None:
+        return hazir
+    adaylar = _mudahale_adaylari_hesapla(user, limit=limit)
+    cache.set(anahtar, adaylar, 600)
+    return adaylar
+
+
+def _mudahale_adaylari_hesapla(user: User, *, limit: int = 10) -> list[dict[str, Any]]:
+    talebeler = list(
+        yetkili_talebeler(user).select_related("sinif_sube", "etut_hocasi")[:200]
+    )
+    skorlar = _risk_skorlari_toplu(talebeler)
     adaylar = []
-    for talebe in qs:
-        skor, nedenler = talebe_risk_skoru(talebe)
+    for talebe in talebeler:
+        skor, nedenler = skorlar.get(talebe.id, (0, []))
         if skor >= 40:
             adaylar.append(
                 {
@@ -224,6 +241,150 @@ def _mudahale_adaylari(user: User, *, limit: int = 10) -> list[dict[str, Any]]:
             )
     adaylar.sort(key=lambda x: x["skor"], reverse=True)
     return adaylar[:limit]
+
+
+def _risk_skorlari_toplu(talebeler: list[Talebe]) -> dict[int, tuple[int, list[str]]]:
+    """talebe_risk_skoru ile aynı kurallar, birkaç toplu sorguyla."""
+    from collections import defaultdict
+
+    from django.db.models import Count, F, OuterRef, Q, Subquery, Sum
+
+    from takip.deneme_models import DenemeSinavi, DenemeSonucu
+    from takip.gelisim_service import _ay_araligi
+    from takip.gunluk_takip_models import GunlukTakipKaydi
+    from takip.namaz_yoklama_models import NamazYoklamaKaydi
+    from takip.soru_takip_models import GunlukSoruDersSatiri
+
+    if not talebeler:
+        return {}
+    ids = [t.id for t in talebeler]
+    bugun = localdate()
+    ay_bas, ay_bit = _ay_araligi(bugun)
+    if bugun.month == 12:
+        soru_bit = bugun.replace(day=31)
+    else:
+        soru_bit = bugun.replace(month=bugun.month + 1, day=1) - timedelta(days=1)
+    hafta_bas = bugun - timedelta(days=bugun.weekday())
+
+    devam = {
+        row["talebe_id"]: row
+        for row in GunlukTakipKaydi.objects.filter(
+            talebe_id__in=ids,
+            tarih__gte=ay_bas,
+            tarih__lte=ay_bit,
+        )
+        .values("talebe_id")
+        .annotate(
+            toplam=Count("id"),
+            devamsiz=Count("id", filter=Q(devam=GunlukTakipKaydi.DevamDurumu.GELMEDI)),
+            etut_katilan=Count("id", filter=Q(etut_katilim=True)),
+        )
+    }
+    namaz = {
+        row["talebe_id"]: row
+        for row in NamazYoklamaKaydi.objects.filter(
+            talebe_id__in=ids,
+            oturum__tarih__gte=ay_bas,
+            oturum__tarih__lte=ay_bit,
+        )
+        .values("talebe_id")
+        .annotate(
+            toplam=Count("id"),
+            gelmedi=Count("id", filter=Q(durum="gelmedi")),
+        )
+    }
+    soru = {
+        row["kayit__talebe_id"]: int(row["toplam"] or 0)
+        for row in GunlukSoruDersSatiri.objects.filter(
+            kayit__talebe_id__in=ids,
+            kayit__tarih__gte=ay_bas,
+            kayit__tarih__lte=soru_bit,
+        )
+        .values("kayit__talebe_id")
+        .annotate(toplam=Sum("toplam_soru"))
+    }
+    aktif_okuma = set(
+        Zimmet.objects.filter(talebe_id__in=ids, durum="okunuyor").values_list(
+            "talebe_id", flat=True
+        )
+    )
+    onceki_kayit = (
+        OkumaKaydi.objects.filter(zimmet_id=OuterRef("zimmet_id"))
+        .filter(
+            Q(tarih__lt=OuterRef("tarih"))
+            | Q(tarih=OuterRef("tarih"), id__lt=OuterRef("id"))
+        )
+        .order_by("-tarih", "-id")
+    )
+    hafta_sayfa: dict[int, int] = defaultdict(int)
+    for tid, son, onceki, taban in (
+        OkumaKaydi.objects.filter(
+            zimmet__talebe_id__in=ids,
+            tarih__gte=hafta_bas,
+            tarih__lte=bugun,
+        )
+        .annotate(
+            onceki_sayfa=Subquery(onceki_kayit.values("son_sayfa")[:1]),
+            taban_sayfa=F("zimmet__baslangic_sayfasi"),
+        )
+        .values_list("zimmet__talebe_id", "son_sayfa", "onceki_sayfa", "taban_sayfa")
+    ):
+        taban_deger = onceki if onceki is not None else (taban or 0)
+        hafta_sayfa[tid] += max(0, int(son or 0) - int(taban_deger or 0))
+
+    deneme_net: dict[int, list[float]] = defaultdict(list)
+    for tid, net in (
+        DenemeSonucu.objects.filter(
+            talebe_id__in=ids,
+            deneme__durum=DenemeSinavi.Durum.AKTIF,
+        )
+        .order_by("talebe_id", "-deneme__sinav_tarihi", "-id")
+        .values_list("talebe_id", "toplam_net")
+    ):
+        kova = deneme_net[tid]
+        if len(kova) < 2:
+            kova.append(float(net or 0))
+
+    sonuc: dict[int, tuple[int, list[str]]] = {}
+    for talebe in talebeler:
+        nedenler: list[str] = []
+        skor = 0
+        netler = deneme_net.get(talebe.id) or []
+        if len(netler) >= 2:
+            son, onceki = netler[0], netler[1]
+            if onceki > 0 and son < onceki * 0.85:
+                skor += 25
+                nedenler.append(f"Deneme neti düşüşte ({onceki:.1f} → {son:.1f})")
+        gun = devam.get(talebe.id)
+        toplam_gun = int(gun["toplam"]) if gun else 0
+        devamsiz = int(gun["devamsiz"]) if gun else 0
+        etut_katilan = int(gun["etut_katilan"]) if gun else 0
+        etut_oran = round((etut_katilan / toplam_gun) * 100, 1) if toplam_gun else 0
+        if devamsiz >= 2:
+            skor += 20
+            nedenler.append(f"Bu ay {devamsiz} devamsızlık")
+        if etut_oran < 70:
+            skor += 15
+            nedenler.append(f"Etüt katılımı düşük (%{etut_oran})")
+        nam = namaz.get(talebe.id)
+        namaz_toplam = int(nam["toplam"]) if nam else 0
+        namaz_gelmedi = int(nam["gelmedi"]) if nam else 0
+        namaz_oran = (
+            round(((namaz_toplam - namaz_gelmedi) / namaz_toplam) * 100, 1)
+            if namaz_toplam
+            else 0
+        )
+        if namaz_oran < 75:
+            skor += 10
+            nedenler.append(f"Namaz katılımı düşük (%{namaz_oran})")
+        if soru.get(talebe.id, 0) < 50:
+            skor += 15
+            nedenler.append("Bu ay soru hacmi düşük")
+        if hafta_sayfa.get(talebe.id, 0) < 20 and talebe.id in aktif_okuma:
+            skor += 10
+            nedenler.append("Haftalık okuma tempo düşük")
+        sonuc[talebe.id] = (min(100, skor), nedenler)
+    return sonuc
 
 
 def _deneme_kazanimlari(deneme, talebe_id: int | None, *, limit: int = 8) -> list[dict[str, Any]]:

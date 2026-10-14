@@ -32,6 +32,50 @@ class KurumZekasiFallbackTests(TestCase):
         self.assertIn("12.5", raw)
 
 
+class MudahaleAdayTopluTests(TestCase):
+    def test_toplu_skor_tek_tek_skorla_ayni(self):
+        from django.core.cache import cache
+        from django.utils.timezone import localdate
+
+        from takip.ai_context import _mudahale_adaylari_hesapla, talebe_risk_skoru
+        from takip.gunluk_takip_models import GunlukTakipKaydi
+        from takip.models import EtutHocasi, Talebe
+
+        cache.clear()
+        self.user = User.objects.create_superuser("qa_risk", "qa_risk@example.com", "x")
+        hoca_user = User.objects.create_user("qa_hoca", password="x")
+        hoca = EtutHocasi.objects.create(ad_soyad="Risk Hoca", user=hoca_user)
+        gelen = Talebe.objects.create(
+            ad_soyad="Gelen Talebe",
+            etut_hocasi=hoca,
+            dini_ders_hocasi=hoca,
+        )
+        gelmeyen = Talebe.objects.create(
+            ad_soyad="Gelmeyen Talebe",
+            etut_hocasi=hoca,
+            dini_ders_hocasi=hoca,
+        )
+        bugun = localdate()
+        for gun in (1, 2):
+            GunlukTakipKaydi.objects.create(
+                talebe=gelmeyen,
+                tarih=bugun.replace(day=gun),
+                devam=GunlukTakipKaydi.DevamDurumu.GELMEDI,
+                etut_katilim=False,
+            )
+        adaylar = {
+            row["talebe_id"]: row
+            for row in _mudahale_adaylari_hesapla(self.user, limit=10)
+        }
+        for talebe in (gelen, gelmeyen):
+            skor, nedenler = talebe_risk_skoru(talebe)
+            if skor >= 40:
+                self.assertEqual(adaylar[talebe.id]["skor"], skor)
+                self.assertEqual(adaylar[talebe.id]["nedenler"], nedenler[:3])
+            else:
+                self.assertNotIn(talebe.id, adaylar)
+
+
 class DuyuruGorselFallbackTests(TestCase):
     def test_missing_file_is_not_gorsel_var(self):
         from django.core.files.base import ContentFile
