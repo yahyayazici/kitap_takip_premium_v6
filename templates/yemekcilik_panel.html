@@ -165,8 +165,12 @@
                 </select>
             </label>
             <label class="yc-check">
-                <input type="checkbox" name="hafta_sonu_cikar" value="1" {% if toplu_hafta_sonu %}checked{% endif %}>
-                Hafta Sonlarını Çıkar (Cumartesi / Pazar görev yazma)
+                <input type="checkbox" name="cumartesi_cikar" value="1" {% if toplu_cumartesi_cikar %}checked{% endif %}>
+                Cumartesiyi çıkar (görev yazma)
+            </label>
+            <label class="yc-check">
+                <input type="checkbox" name="pazar_cikar" value="1" {% if toplu_pazar_cikar %}checked{% endif %}>
+                Pazarı çıkar (görev yazma)
             </label>
             <label class="yc-check">
                 <input type="checkbox" name="kaydet" value="1">
@@ -181,11 +185,11 @@
             {% if toplu_satirlar %}
             <div class="yc-pdf-actions">
             <a class="yc-btn yc-btn-success" target="_blank"
-               href="{% url 'yemekcilik_pdf' %}?baslangic={{ toplu_baslangic }}&sure={{ toplu_sure }}&hafta_sonu_cikar={% if toplu_hafta_sonu %}1{% else %}0{% endif %}&boyut=a4">
+               href="{% url 'yemekcilik_pdf' %}?baslangic={{ toplu_baslangic }}&sure={{ toplu_sure }}&cumartesi_cikar={% if toplu_cumartesi_cikar %}1{% else %}0{% endif %}&pazar_cikar={% if toplu_pazar_cikar %}1{% else %}0{% endif %}&boyut=a4">
                 A4 Yazdır / PDF
             </a>
             <a class="yc-btn yc-btn-success" target="_blank"
-               href="{% url 'yemekcilik_pdf' %}?baslangic={{ toplu_baslangic }}&sure={{ toplu_sure }}&hafta_sonu_cikar={% if toplu_hafta_sonu %}1{% else %}0{% endif %}&boyut=a3">
+               href="{% url 'yemekcilik_pdf' %}?baslangic={{ toplu_baslangic }}&sure={{ toplu_sure }}&cumartesi_cikar={% if toplu_cumartesi_cikar %}1{% else %}0{% endif %}&pazar_cikar={% if toplu_pazar_cikar %}1{% else %}0{% endif %}&boyut=a3">
                 A3 Yazdır / PDF
             </a>
             </div>

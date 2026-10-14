@@ -202,24 +202,77 @@ def havuz_kayitlari(sinif: str) -> list[YemekciHavuzKaydi]:
     )
 
 
-def _is_workday(gun: date, hafta_sonu_cikar: bool) -> bool:
-    if not hafta_sonu_cikar:
-        return True
-    return gun.weekday() < 5  # Pzt–Cum
+def _cikar_bayraklari(
+    hafta_sonu_cikar: bool | None = None,
+    *,
+    cumartesi_cikar: bool | None = None,
+    pazar_cikar: bool | None = None,
+    ayar: YemekciAyar | None = None,
+) -> tuple[bool, bool]:
+    """Cumartesi ve pazar ayrı. Eski tek bayrak ikisini birden yönetir."""
+    if cumartesi_cikar is None and pazar_cikar is None:
+        if hafta_sonu_cikar is not None:
+            return bool(hafta_sonu_cikar), bool(hafta_sonu_cikar)
+        if ayar is None:
+            ayar = ayarlari_al()
+        return ayar.cumartesi_cikar, ayar.pazar_cikar
+    if cumartesi_cikar is None or pazar_cikar is None:
+        if ayar is not None:
+            taban_cmt, taban_paz = ayar.cumartesi_cikar, ayar.pazar_cikar
+        elif hafta_sonu_cikar is not None:
+            taban_cmt = taban_paz = bool(hafta_sonu_cikar)
+        else:
+            taban_cmt = taban_paz = True
+        if cumartesi_cikar is None:
+            cumartesi_cikar = taban_cmt
+        if pazar_cikar is None:
+            pazar_cikar = taban_paz
+    return bool(cumartesi_cikar), bool(pazar_cikar)
 
 
-def workday_index(tarih: date, baslangic: date, hafta_sonu_cikar: bool) -> int:
-    """baslangic dahil, tarih gününe kadar (dahil) kaçıncı çalışma günü (0-based)."""
+def _is_workday(
+    gun: date,
+    hafta_sonu_cikar: bool | None = None,
+    *,
+    cumartesi_cikar: bool | None = None,
+    pazar_cikar: bool | None = None,
+) -> bool:
+    cmt, paz = _cikar_bayraklari(
+        hafta_sonu_cikar,
+        cumartesi_cikar=cumartesi_cikar,
+        pazar_cikar=pazar_cikar,
+    )
+    wd = gun.weekday()
+    if wd == 5:
+        return not cmt
+    if wd == 6:
+        return not paz
+    return True
+
+
+def workday_index(
+    tarih: date,
+    baslangic: date,
+    hafta_sonu_cikar: bool | None = None,
+    *,
+    cumartesi_cikar: bool | None = None,
+    pazar_cikar: bool | None = None,
+) -> int:
+    """baslangic dahil, tarih gününe kadar (dahil) kaçıncı görev günü (0-based)."""
     if tarih < baslangic:
         return 0
+    cmt, paz = _cikar_bayraklari(
+        hafta_sonu_cikar,
+        cumartesi_cikar=cumartesi_cikar,
+        pazar_cikar=pazar_cikar,
+    )
     idx = 0
     gun = baslangic
     while gun < tarih:
-        if _is_workday(gun, hafta_sonu_cikar):
+        if _is_workday(gun, cumartesi_cikar=cmt, pazar_cikar=paz):
             idx += 1
         gun += timedelta(days=1)
-    if not _is_workday(tarih, hafta_sonu_cikar):
-        # hafta sonu: son iş günü indeksini kullan (gösterim için yine hesaplanır)
+    if not _is_workday(tarih, cumartesi_cikar=cmt, pazar_cikar=paz):
         return max(0, idx - 1) if idx else 0
     return idx
 
@@ -229,14 +282,18 @@ def aralik_gunleri(
     bitis: date,
     *,
     hafta_sonu_cikar: bool | None = None,
+    cumartesi_cikar: bool | None = None,
+    pazar_cikar: bool | None = None,
 ) -> list[date]:
-    ayar = ayarlari_al()
-    if hafta_sonu_cikar is None:
-        hafta_sonu_cikar = ayar.hafta_sonu_cikar
+    cmt, paz = _cikar_bayraklari(
+        hafta_sonu_cikar,
+        cumartesi_cikar=cumartesi_cikar,
+        pazar_cikar=pazar_cikar,
+    )
     gunler: list[date] = []
     gun = baslangic
     while gun <= bitis:
-        if _is_workday(gun, hafta_sonu_cikar):
+        if _is_workday(gun, cumartesi_cikar=cmt, pazar_cikar=paz):
             gunler.append(gun)
         gun += timedelta(days=1)
     return gunler
@@ -258,7 +315,14 @@ def _talebe_karti(talebe: Talebe | None) -> dict[str, Any] | None:
     }
 
 
-def gorevli_hesapla(tarih: date, sinif: str, ayar: YemekciAyar | None = None) -> dict[str, Any]:
+def gorevli_hesapla(
+    tarih: date,
+    sinif: str,
+    ayar: YemekciAyar | None = None,
+    *,
+    cumartesi_cikar: bool | None = None,
+    pazar_cikar: bool | None = None,
+) -> dict[str, Any]:
     """Bir sınıf için o günün görevlisi (manuel override öncelikli).
 
     ``ayar`` verilmezse tek satırlık YemekciAyar tekrar sorgulanır — bu
@@ -268,6 +332,12 @@ def gorevli_hesapla(tarih: date, sinif: str, ayar: YemekciAyar | None = None) ->
     """
     if ayar is None:
         ayar = ayarlari_al()
+    cmt, paz = _cikar_bayraklari(
+        cumartesi_cikar=cumartesi_cikar,
+        pazar_cikar=pazar_cikar,
+        ayar=ayar,
+    )
+    gorev_gunu = _is_workday(tarih, cumartesi_cikar=cmt, pazar_cikar=paz)
     override = (
         YemekciGunAtama.objects.filter(tarih=tarih, sinif=sinif)
         .select_related("talebe", "talebe__sinif_sube")
@@ -281,13 +351,18 @@ def gorevli_hesapla(tarih: date, sinif: str, ayar: YemekciAyar | None = None) ->
             "talebe": _talebe_karti(override.talebe),
             "manuel": True,
             "atama_id": override.pk,
-            "hafta_sonu": not _is_workday(tarih, ayar.hafta_sonu_cikar),
+            "hafta_sonu": not gorev_gunu,
         }
 
     kayitlar = havuz_kayitlari(sinif)
     talebe = None
-    if kayitlar and _is_workday(tarih, ayar.hafta_sonu_cikar):
-        idx = workday_index(tarih, ayar.dongu_baslangic, ayar.hafta_sonu_cikar)
+    if kayitlar and gorev_gunu:
+        idx = workday_index(
+            tarih,
+            ayar.dongu_baslangic,
+            cumartesi_cikar=cmt,
+            pazar_cikar=paz,
+        )
         kayit = kayitlar[idx % len(kayitlar)]
         talebe = kayit.talebe
     elif override:
@@ -300,7 +375,7 @@ def gorevli_hesapla(tarih: date, sinif: str, ayar: YemekciAyar | None = None) ->
         "talebe": _talebe_karti(talebe),
         "manuel": bool(override and override.manuel),
         "atama_id": override.pk if override else None,
-        "hafta_sonu": not _is_workday(tarih, ayar.hafta_sonu_cikar),
+        "hafta_sonu": not gorev_gunu,
     }
 
 
@@ -316,13 +391,16 @@ def gunun_yemekcileri(tarih: date | None = None) -> list[dict[str, Any]]:
     mantığının KENDİSİ değişmedi, sadece ne sıklıkla çalıştığı).
     """
     tarih = tarih or localdate()
-    cache_key = f"yemekci:gunun_yemekcileri:{tarih.isoformat()}"
+    ayar = ayarlari_al()
+    cache_key = (
+        f"yemekci:gunun_yemekcileri:{tarih.isoformat()}"
+        f":{int(ayar.cumartesi_cikar)}:{int(ayar.pazar_cikar)}"
+    )
     cached = cache.get(cache_key)
     if cached is not None:
         return cached
 
     havuzlari_kur(seed_talebeler=True)
-    ayar = ayarlari_al()
     sonuc = [gorevli_hesapla(tarih, s, ayar) for s in SINIF_SEVIYELERI]
     cache.set(cache_key, sonuc, 10)
     return sonuc
@@ -333,17 +411,35 @@ def aralik_uret(
     bitis: date,
     *,
     hafta_sonu_cikar: bool | None = None,
+    cumartesi_cikar: bool | None = None,
+    pazar_cikar: bool | None = None,
     kaydet: bool = False,
     user: User | None = None,
 ) -> list[dict[str, Any]]:
     """Tarih aralığı için satır listesi; kaydet=True ise YemekciGunAtama yazar."""
-    gunler = aralik_gunleri(baslangic, bitis, hafta_sonu_cikar=hafta_sonu_cikar)
+    cmt, paz = _cikar_bayraklari(
+        hafta_sonu_cikar,
+        cumartesi_cikar=cumartesi_cikar,
+        pazar_cikar=pazar_cikar,
+    )
+    gunler = aralik_gunleri(
+        baslangic,
+        bitis,
+        cumartesi_cikar=cmt,
+        pazar_cikar=paz,
+    )
     satirlar: list[dict[str, Any]] = []
     ayar = ayarlari_al()
     for gun in gunler:
         hucreler = {}
         for sinif in SINIF_SEVIYELERI:
-            kart = gorevli_hesapla(gun, sinif, ayar)
+            kart = gorevli_hesapla(
+                gun,
+                sinif,
+                ayar,
+                cumartesi_cikar=cmt,
+                pazar_cikar=paz,
+            )
             hucreler[sinif] = kart
             if kaydet and kart.get("talebe"):
                 YemekciGunAtama.objects.update_or_create(

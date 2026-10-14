@@ -29,7 +29,17 @@ class YemekciAyar(models.Model):
     hafta_sonu_cikar = models.BooleanField(
         default=True,
         verbose_name="Hafta sonlarını çıkar",
-        help_text="Cumartesi/Pazar görev yazılmaz.",
+        help_text="Eski birleşik ayar. Cumartesi ve Pazar ayrı tutulur; ikisi de çıkınca bu da açıktır.",
+    )
+    cumartesi_cikar = models.BooleanField(
+        default=True,
+        verbose_name="Cumartesiyi çıkar",
+        help_text="İşaretliyse cumartesi gününe görev yazılmaz.",
+    )
+    pazar_cikar = models.BooleanField(
+        default=True,
+        verbose_name="Pazarı çıkar",
+        help_text="İşaretliyse pazar gününe görev yazılmaz.",
     )
     dongu_baslangic = models.DateField(
         verbose_name="Döngü başlangıç tarihi",

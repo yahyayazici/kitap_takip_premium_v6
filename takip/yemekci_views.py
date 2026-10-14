@@ -71,27 +71,41 @@ def yemekcilik_panel(request):
     ay = int(request.GET.get("ay") or tarih.month)
 
     toplu_satirlar = None
+    ayar = ayarlari_al()
     if sekme == "toplu" and request.method == "POST" and request.POST.get("action") == "toplu_hesapla":
         bas = _parse_date(request.POST.get("baslangic"), tarih)
         sure = int(request.POST.get("sure") or 15)
-        hafta_sonu = request.POST.get("hafta_sonu_cikar") == "1"
-        bitis = bas + timedelta(days=max(sure - 1, 0))
-        # süre gün sayısı çalışma günü değil takvim — aralik_uret workdays filtreler
-        # bitiş: bas'tan sure kadar workday üretmek için geniş aralık
+        cumartesi_cikar = request.POST.get("cumartesi_cikar") == "1"
+        pazar_cikar = request.POST.get("pazar_cikar") == "1"
+        # süre gün sayısı takvim günü değil; aralik_uret görev günlerini süzer
         bitis = bas + timedelta(days=sure * 2)
         gunler_hedef = sure
         satirlar = aralik_uret(
             bas,
             bitis,
-            hafta_sonu_cikar=hafta_sonu,
+            cumartesi_cikar=cumartesi_cikar,
+            pazar_cikar=pazar_cikar,
             kaydet=request.POST.get("kaydet") == "1",
             user=request.user,
         )
         toplu_satirlar = satirlar[:gunler_hedef]
-        ayar = ayarlari_al()
-        if ayar.hafta_sonu_cikar != hafta_sonu:
-            ayar.hafta_sonu_cikar = hafta_sonu
-            ayar.save(update_fields=["hafta_sonu_cikar", "guncellenme"])
+        birlikte = cumartesi_cikar and pazar_cikar
+        degisen = []
+        if ayar.cumartesi_cikar != cumartesi_cikar:
+            ayar.cumartesi_cikar = cumartesi_cikar
+            degisen.append("cumartesi_cikar")
+        if ayar.pazar_cikar != pazar_cikar:
+            ayar.pazar_cikar = pazar_cikar
+            degisen.append("pazar_cikar")
+        if ayar.hafta_sonu_cikar != birlikte:
+            ayar.hafta_sonu_cikar = birlikte
+            degisen.append("hafta_sonu_cikar")
+        if degisen:
+            degisen.append("guncellenme")
+            ayar.save(update_fields=degisen)
+    else:
+        cumartesi_cikar = ayar.cumartesi_cikar
+        pazar_cikar = ayar.pazar_cikar
 
     ctx = panel_baglami(tarih=tarih, sekme=sekme, ay=ay, yil=yil)
     ctx.update(
@@ -101,9 +115,8 @@ def yemekcilik_panel(request):
             "toplu_satirlar": toplu_satirlar,
             "toplu_baslangic": request.POST.get("baslangic") or tarih.isoformat(),
             "toplu_sure": request.POST.get("sure") or "15",
-            "toplu_hafta_sonu": request.POST.get("hafta_sonu_cikar", "1") == "1"
-            if request.method == "POST"
-            else ayarlari_al().hafta_sonu_cikar,
+            "toplu_cumartesi_cikar": cumartesi_cikar,
+            "toplu_pazar_cikar": pazar_cikar,
             "onceki": (tarih - timedelta(days=1)).isoformat(),
             "sonraki": (tarih + timedelta(days=1)).isoformat(),
             "siniflar": ["5", "6", "7", "8"],
@@ -114,18 +127,28 @@ def yemekcilik_panel(request):
 
 @login_required
 def yemekcilik_pdf(request, pk=None):
-    """Toplu aralık PDF — query: baslangic, sure, hafta_sonu_cikar, boyut=a4|a3."""
+    """Toplu aralık PDF — query: baslangic, sure, cumartesi_cikar, pazar_cikar, boyut=a4|a3."""
     if not _erisim(request):
         return redirect("dashboard")
 
     bas = _parse_date(request.GET.get("baslangic"))
     sure = int(request.GET.get("sure") or 15)
-    hafta_sonu = request.GET.get("hafta_sonu_cikar", "1") == "1"
+    if "cumartesi_cikar" in request.GET or "pazar_cikar" in request.GET:
+        cumartesi_cikar = request.GET.get("cumartesi_cikar") == "1"
+        pazar_cikar = request.GET.get("pazar_cikar") == "1"
+    else:
+        eski = request.GET.get("hafta_sonu_cikar", "1") == "1"
+        cumartesi_cikar = pazar_cikar = eski
     boyut = (request.GET.get("boyut") or "a4").lower()
     if boyut not in {"a4", "a3"}:
         boyut = "a4"
     bitis = bas + timedelta(days=sure * 2)
-    satirlar = aralik_uret(bas, bitis, hafta_sonu_cikar=hafta_sonu)[:sure]
+    satirlar = aralik_uret(
+        bas,
+        bitis,
+        cumartesi_cikar=cumartesi_cikar,
+        pazar_cikar=pazar_cikar,
+    )[:sure]
 
     html_metni = render_to_string(
         "yemekcilik_pdf.html",
