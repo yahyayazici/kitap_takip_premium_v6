@@ -30,12 +30,10 @@ if not ok:
     raise SystemExit(f"WeasyPrint çalışmıyor: {msg}")
 PY
 
-# E-Kitap: soru tespiti hiç yapılmamış bölümler (ör. bu özellikten önce yüklenen
-# kitaplar) için arka planda soruları bul. Sunucunun açılmasını bekletmez;
-# yarıda kalırsa bir sonraki açılışta yeniden dener.
-# --eski: daha eski tespit algoritmasıyla taranmış bölümler yeniden taranır (soru kimlikleri
-# ve elle düzeltilmiş/onaylı sorular korunur).
-nohup python manage.py ekitap_sorulari_bul --eksik --eski > /tmp/ekitap-sorulari-bul.log 2>&1 &
+# E-kitap soru taraması burada BAŞLATILMAZ. Aynı küçük makinede PDF/OCR
+# gunicorn'un 2 işçisini dakikalarca bekletiyordu; giriş ve tıklama kuyruğa
+# düşüyordu. Tarama yönetimdeki "Soruları bul" ile ya da elle
+# `ekitap_sorulari_bul` komutuyla çalışır.
 
 # cairo/pango gunicorn --preload ile fork sonrası bozulabiliyor
 exec gunicorn config.wsgi:application \

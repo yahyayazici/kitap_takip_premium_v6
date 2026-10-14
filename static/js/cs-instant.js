@@ -641,53 +641,9 @@
         });
     }
 
-    var warmGen = 0;
-
     function scheduleWarm() {
-        if (navigator.connection && navigator.connection.saveData) {
-            return;
-        }
-        var gen = ++warmGen;
-        window.setTimeout(function () {
-            if (gen !== warmGen || document.hidden) {
-                return;
-            }
-            var urls = [];
-            var seen = Object.create(null);
-            function addUrl(anchor) {
-                if (!anchor || urls.length >= 4) {
-                    return;
-                }
-                var url = hrefFromAnchor(anchor);
-                if (!url || seen[url] || cache.has(stripHash(url))) {
-                    return;
-                }
-                seen[url] = 1;
-                urls.push(url);
-            }
-            document.querySelectorAll("#cs-page a[href]").forEach(function (anchor) {
-                var box = anchor.getBoundingClientRect();
-                if (box.width < 8 || box.height < 8) {
-                    return;
-                }
-                addUrl(anchor);
-            });
-            document.querySelectorAll(
-                ".v3-nav-link[href], .v3-nav-dropdown-link[href], #ogretmen-nav a[href], #talebe-nav a[href], #veli-nav a[href]"
-            ).forEach(addUrl);
-            var index = 0;
-            function next() {
-                if (gen !== warmGen || index >= urls.length || document.hidden) {
-                    return;
-                }
-                var url = urls[index];
-                index += 1;
-                getHtml(url, { priority: "low" }).finally(function () {
-                    window.setTimeout(next, 240);
-                });
-            }
-            next();
-        }, 500);
+        /* Sayfa açılınca menüdeki adresleri toplu indirmek, 2 işçili sunucuda
+           asıl tıklamayı kuyruğa sokuyordu. Üzerine gelince tek link yine alınır. */
     }
 
     function armSubmitter(el) {
