@@ -42,3 +42,24 @@ class DenemeGeriYukleTests(TestCase):
         self.client.post(reverse("yonetim:deneme_geri_yukle", args=[bos.pk]))
         bos.refresh_from_db()
         self.assertEqual(bos.durum, DenemeSinavi.Durum.TASLAK)
+
+
+class PanelDenemeGeriYukleTests(DenemeGeriYukleTests):
+    """Paneldeki «Deneme Arşivi» (/denemeler/) sayfasından silme ve geri yükleme."""
+
+    def test_panelden_sil_ve_geri_yukle(self):
+        self.client.post(reverse("deneme_sil", args=[self.deneme.pk]))
+        self.deneme.refresh_from_db()
+        self.assertEqual(self.deneme.durum, DenemeSinavi.Durum.ARSIV)
+        liste = self.client.get(reverse("deneme_listesi"))
+        self.assertContains(liste, "Silinen denemeler (1)")
+        silinenler = self.client.get(reverse("deneme_listesi") + "?silinenler=1")
+        self.assertContains(silinenler, "<strong>Kurumsal Deneme-1</strong>")
+        self.client.post(reverse("deneme_geri_yukle", args=[self.deneme.pk]))
+        self.deneme.refresh_from_db()
+        self.assertEqual(self.deneme.durum, DenemeSinavi.Durum.AKTIF)
+
+    def test_silme_get_ile_yapilamaz(self):
+        self.client.get(reverse("deneme_sil", args=[self.deneme.pk]))
+        self.deneme.refresh_from_db()
+        self.assertEqual(self.deneme.durum, DenemeSinavi.Durum.AKTIF)

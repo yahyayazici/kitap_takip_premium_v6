@@ -4,10 +4,11 @@ import io
 import zipfile
 
 from django.contrib import messages
-from django.db.models import Avg
+from django.db.models import Avg, Count
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.template.loader import render_to_string
 from django.utils.text import slugify
 from django.utils.timezone import localdate, now
@@ -29,6 +30,7 @@ from takip.deneme_service import (
     denemelere_goster_sira,
     yetkili_denemeler,
 )
+from takip.models import DenemeSinavi
 from takip.permissions.decorators import require_permission
 from takip.permissions.service import can
 from takip.pdf_utils import (
@@ -108,6 +110,21 @@ def _arsiv_kartlarini_hazirla(user, denemeler):
 def deneme_listesi(request):
     from takip.deneme_service import deneme_arsiv_filtre_secenekleri, deneme_arsiv_filtrele
 
+    sil_yetkisi = deneme_silebilir(request.user)
+    # ?silinenler=1 → silinen (arşive alınan) denemeler; yalnız silme yetkisi olan görür ve geri yükler.
+    silinenler = sil_yetkisi and request.GET.get("silinenler") == "1"
+    if silinenler:
+        silinen_liste = (
+            DenemeSinavi.objects.filter(durum=DenemeSinavi.Durum.ARSIV)
+            .annotate(sonuc_say=Count("sonuclar"))
+            .order_by("-sinav_tarihi", "-id")
+        )
+        return render(
+            request,
+            "deneme_silinenler.html",
+            {"silinenler": silinen_liste},
+        )
+
     denemeler = yetkili_denemeler(request.user).filter(
         durum="aktif",
     )
@@ -146,7 +163,10 @@ def deneme_listesi(request):
             "cizgi_y": cizgi_y,
             "fark": fark,
         },
-        "sil_yetkisi": deneme_silebilir(request.user),
+        "sil_yetkisi": sil_yetkisi,
+        "silinen_sayisi": (
+            DenemeSinavi.objects.filter(durum=DenemeSinavi.Durum.ARSIV).count() if sil_yetkisi else 0
+        ),
         "cisa_acik": can(request.user, "deneme", "export_pdf"),
         "filtre": filtre,
         **deneme_arsiv_filtre_secenekleri(),
@@ -445,6 +465,20 @@ def deneme_detayli_pdf(request, pk):
         pdf_verisi,
         f"{deneme.ad} - Detayli Basari Listesi.pdf",
     )
+
+
+@login_required
+@require_permission("deneme", "delete")
+@require_POST
+def deneme_geri_yukle(request, pk):
+    """Silinen (arşive alınan) denemeyi geri getirir; sonucu varsa yayında döner."""
+    if request.method != "POST" or not deneme_silebilir(request.user):
+        return redirect("deneme_listesi")
+    deneme = get_object_or_404(DenemeSinavi, pk=pk, durum=DenemeSinavi.Durum.ARSIV)
+    deneme.durum = DenemeSinavi.Durum.AKTIF if deneme.sonuclar.exists() else DenemeSinavi.Durum.TASLAK
+    deneme.save(update_fields=["durum", "guncellenme"])
+    messages.success(request, f"«{deneme.ad}» geri yüklendi.")
+    return redirect(f"{reverse('deneme_listesi')}?silinenler=1")
 
 
 @login_required

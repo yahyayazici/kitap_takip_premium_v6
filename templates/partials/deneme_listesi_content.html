@@ -9,6 +9,7 @@
             <p class="dn-kicker">Denemeler</p>
             <h1><span class="dn-studio-title">Deneme Arşivi</span></h1>
             <p class="dn-sub">Kurum geneli deneme sınav sonuçları. {{ arsiv_ozet.sayi }} deneme. {{ arsiv_ozet.katilim }} talebe{% if arsiv_ozet.yayin_sayisi %}. {{ arsiv_ozet.yayin_sayisi }} yayın{% endif %}.</p>
+            {% if sil_yetkisi %}<p class="dn-sub"><a href="{% url 'deneme_listesi' %}?silinenler=1" hx-boost="false">Silinen denemeler{% if silinen_sayisi %} ({{ silinen_sayisi }}){% endif %} →</a></p>{% endif %}
         </div>
     </header>
     <section class="ek-arsiv-hero dn-summary" aria-label="Arşiv özeti">

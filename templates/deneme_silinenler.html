@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load static deneme_panel %}
+{% block title %}Silinen denemeler · {{ panel_short }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/etut-kontrol.css' %}?v=ek52">
+<link rel="stylesheet" href="{% static 'css/ogretmen-deneme-kontrol.css' %}?v=dk41">
+<link rel="stylesheet" href="{% static 'css/deneme-dil-v2.css' %}?v=dl5">
+{% endblock %}
+{% block content %}
+{% deneme_panel_switch "denemeler" %}
+<div class="deneme-page ek-arsiv dn-studio" data-page-title="Silinen denemeler">
+    <header class="dn-studio-hero">
+        <div class="dn-studio-copy">
+            <p class="dn-kicker"><a href="{% url 'deneme_listesi' %}">← Deneme Arşivi</a></p>
+            <h1><span class="dn-studio-title">Silinen denemeler</span></h1>
+            <p class="dn-sub">Silinen denemeler burada durur; sonuçları, kazanımları ve karneleri kaybolmaz. «Geri yükle» deyince listeye döner ve sonucu olan deneme velilere yeniden görünür.</p>
+        </div>
+    </header>
+    <section class="ek-arsiv-list">
+        <div class="table-wrap">
+            <table class="table">
+                <thead><tr><th>Deneme</th><th>Tarih</th><th>Sınıf</th><th>Yayın</th><th>Sonuç</th><th></th></tr></thead>
+                <tbody>
+                {% for d in silinenler %}
+                    <tr>
+                        <td><strong>{{ d.ad }}</strong></td>
+                        <td>{{ d.sinav_tarihi|date:"j F Y" }}</td>
+                        <td>{{ d.sinif_seviyesi|default:"—" }}</td>
+                        <td>{{ d.yayin|default:"—" }}</td>
+                        <td>{{ d.sonuc_say }} talebe</td>
+                        <td>
+                            <form method="post" action="{% url 'deneme_geri_yukle' d.pk %}" onsubmit="return confirm('«{{ d.ad|escapejs }}» geri yüklensin mi?');">
+                                {% csrf_token %}
+                                <button type="submit" class="primary-btn">Geri yükle</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6">Silinen deneme yok.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

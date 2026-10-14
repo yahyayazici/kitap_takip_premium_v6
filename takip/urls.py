@@ -365,6 +365,7 @@ urlpatterns = [
     ),
 
     path("denemeler/", deneme_views.deneme_listesi, name="deneme_listesi"),
+    path("denemeler/<int:pk>/geri-yukle/", deneme_views.deneme_geri_yukle, name="deneme_geri_yukle"),
     path("denemeler/cisa/", cisa_views.cisa_denemeler, name="cisa_denemeler"),
     path("denemeler/<int:pk>/", deneme_views.deneme_detay, name="deneme_detay"),
     path("denemeler/<int:pk>/sil/", deneme_views.deneme_sil, name="deneme_sil"),
