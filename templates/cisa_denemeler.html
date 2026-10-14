@@ -8,12 +8,16 @@
 {% endblock %}
 
 {% block content %}
-<div class="cisa-rapor">
-    <a class="cisa-geri" href="{% url 'deneme_listesi' %}">← Denemelere dön</a>
-    <header class="cisa-baslik">
-        <p>ÇİSA</p>
-        <h1>Deneme raporları</h1>
-        <span>Denemeleri seçin, öğrenci raporlarını indirin.</span>
+<div class="cisa-rapor dn-studio">
+    <header class="cisa-baslik dn-studio-hero">
+        <div class="dn-studio-copy">
+            <p class="dn-kicker">ÇİSA</p>
+            <h1><span class="dn-studio-title">Deneme raporları</span></h1>
+            <p class="dn-sub">Denemeleri seçin, öğrenci raporlarını indirin.</p>
+        </div>
+        <div class="dn-studio-actions">
+            <a class="ghost-btn cisa-geri" href="{% url 'deneme_listesi' %}">Denemelere dön</a>
+        </div>
     </header>
 
     {% if gruplar|length > 1 %}

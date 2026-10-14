@@ -7,15 +7,13 @@
 <link rel="stylesheet" href="{% static 'css/deneme-dil-v2.css' %}?v=dl5">
 {% endblock %}
 {% block content %}
-<div class="result-entry-page deneme-detail-page">
-    <header class="result-entry-header">
-        <div>
-            <p class="result-kicker">{{ deneme.sinav_tarihi|date:"d F Y"|upper }}</p>
-            <h1>{% if deneme.goster_sira %}{{ deneme.goster_sira }}. Deneme — {% endif %}{{ deneme.ad }}</h1>
+<div class="result-entry-page deneme-detail-page ktt-studio-page dn-studio">
+    <header class="result-entry-header ktt-studio-hero">
+        <div class="ktt-studio-copy">
+            <p class="result-kicker">{{ deneme.sinav_tarihi|date:"d F Y" }}</p>
+            <h1><span class="ktt-studio-title">{% if deneme.goster_sira %}{{ deneme.goster_sira }}. Deneme. {% endif %}{{ deneme.ad }}</span></h1>
             <p class="result-description">
-                {{ deneme.sinif_seviyesi }}. sınıf · {{ deneme.get_tur_display }}
-                {% if deneme.yayin %} · {{ deneme.yayin }}{% endif %}
-                · {{ sonuclar|length }} sonuç
+                {{ deneme.sinif_seviyesi }}. sınıf. {{ deneme.get_tur_display }}{% if deneme.yayin %}. {{ deneme.yayin }}{% endif %}. {{ sonuclar|length }} sonuç
             </p>
         </div>
         <div class="result-header-actions">

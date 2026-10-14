@@ -6,11 +6,11 @@
 <link rel="stylesheet" href="{% static 'css/deneme-dil-v2.css' %}?v=dl6">
 {% endblock %}
 {% block content %}
-<div class="ek-page">
-  <header class="ek-head">
-    <div>
-      <p class="ek-kicker">{{ hoca.ad_soyad|tr_baslik }} · {{ deneme.sinav_tarihi|date:"d.m.Y" }}</p>
-      <h1>{{ deneme.ad }}</h1>
+<div class="ek-page dn-studio">
+  <header class="ek-head dn-studio-hero">
+    <div class="dn-studio-copy">
+      <p class="ek-kicker">{{ hoca.ad_soyad|tr_baslik }}. {{ deneme.sinav_tarihi|date:"d.m.Y" }}</p>
+      <h1><span class="dn-studio-title">{{ deneme.ad }}</span></h1>
       <p class="ek-desc">
         {{ sinif_ad }} geneli {% if etut_ortalama %}{{ etut_ortalama }}{% else %}—{% endif %}
       </p>
@@ -28,7 +28,7 @@
     </div>
   </header>
 
-  <div class="ek-actions" style="margin-bottom:1rem;">
+  <div class="ek-actions dn-sekme">
     <a href="?sekme=siralama&gorunum={{ gorunum }}" class="{% if sekme == 'siralama' %}primary-btn{% else %}ghost-btn{% endif %}">Genel sıralama</a>
     <a href="?sekme=kazanim&gorunum={{ gorunum }}" class="{% if sekme == 'kazanim' %}primary-btn{% else %}ghost-btn{% endif %}">Detaylı kazanım</a>
   </div>

@@ -3,15 +3,15 @@
 <title hx-swap-oob="true">Denemeler</title>
 {% endif %}
 {% if request.htmx %}<div id="main-content" class="page-content">{% endif %}
-<div class="deneme-page ek-arsiv" data-page-title="Denemeler">
-    <section class="ek-arsiv-hero">
-        <span class="ek-arsiv-hero-glow" aria-hidden="true"></span>
-        <div class="ek-arsiv-hero-id">
-            <h1>Deneme Arşivi</h1>
-            <i class="ek-arsiv-rule" aria-hidden="true"></i>
-            <span>Kurum geneli deneme sınav sonuçları.</span>
-            <p>{{ arsiv_ozet.sayi }} deneme · {{ arsiv_ozet.katilim }} talebe{% if arsiv_ozet.yayin_sayisi %} · {{ arsiv_ozet.yayin_sayisi }} yayın{% endif %}</p>
+<div class="deneme-page ek-arsiv dn-studio" data-page-title="Denemeler">
+    <header class="dn-studio-hero">
+        <div class="dn-studio-copy">
+            <p class="dn-kicker">Denemeler</p>
+            <h1><span class="dn-studio-title">Deneme Arşivi</span></h1>
+            <p class="dn-sub">Kurum geneli deneme sınav sonuçları. {{ arsiv_ozet.sayi }} deneme. {{ arsiv_ozet.katilim }} talebe{% if arsiv_ozet.yayin_sayisi %}. {{ arsiv_ozet.yayin_sayisi }} yayın{% endif %}.</p>
         </div>
+    </header>
+    <section class="ek-arsiv-hero dn-summary" aria-label="Arşiv özeti">
         <div class="ek-arsiv-hero-score">
             <b>{% if arsiv_ozet.genel != None %}{{ arsiv_ozet.genel }}{% else %}—{% endif %}</b>
             <small>tüm denemelerin ortalaması, 500 üzerinden</small>

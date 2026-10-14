@@ -3,18 +3,20 @@
 {% block title %}ÇİSA · {{ talebe.ad_soyad }}{% endblock %}
 
 {% block content %}
-<div class="page-content">
-    <header class="page-head patterned-page-head">
-        <div>
-            <p class="kicker">ÇİSA · {{ talebe.ad_soyad }}</p>
-            <h1>Hangi denemelerin raporunu alalım?</h1>
-            <p class="profile-meta">İşaretlediğin denemeler rapora girer. Silinen denemeler listede yoktur. Konu dökümü, soru karnesi yüklü denemelerden gelir.</p>
+<div class="dn-studio cisa-sec">
+    <header class="dn-studio-hero">
+        <div class="dn-studio-copy">
+            <p class="dn-kicker">ÇİSA. {{ talebe.ad_soyad }}</p>
+            <h1><span class="dn-studio-title">Hangi denemelerin raporunu alalım?</span></h1>
+            <p class="dn-sub">İşaretlediğin denemeler rapora girer. Silinen denemeler listede yoktur. Konu dökümü, soru karnesi yüklü denemelerden gelir.</p>
         </div>
+        <div class="dn-studio-actions">
         {% if talebe.sinif_sube_id %}
         <a class="ghost-btn" href="{% url 'ogretmen_deneme_kontrol_ogrenci_detay' talebe.sinif_sube_id talebe.id %}">Deneme kontrole dön</a>
         {% else %}
         <a class="ghost-btn" href="{% url 'talebe_detay' talebe.id %}">Talebeye dön</a>
         {% endif %}
+        </div>
     </header>
 
     {% if denemeler %}

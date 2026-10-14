@@ -6,13 +6,18 @@
 <link rel="stylesheet" href="{% static 'css/deneme-dil-v2.css' %}?v=dl5">
 {% endblock %}
 {% block content %}
-<div class="dash-home ogretmen-dash dk-page">
+<div class="dash-home ogretmen-dash dk-page dn-studio">
 {% deneme_panel_switch "kontrol" %}
-{% include "ogretmen/hero.html" with title=talebe.ad_soyad|tr_baslik eyebrow="Deneme" meta=sinif.etiket|add:" · Deneme gelişimi" show_date=True %}
-
-<div class="dk-back">
-    <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' sinif.id %}" class="ghost-btn">← {{ sinif.etiket }} listesine dön</a>
-</div>
+<header class="dn-studio-hero">
+    <div class="dn-studio-copy">
+        <p class="dn-kicker">Deneme. {{ sinif.etiket }}</p>
+        <h1><span class="dn-studio-title">{{ talebe.ad_soyad|tr_baslik }}</span></h1>
+        <p class="dn-sub">Deneme gelişimi</p>
+    </div>
+    <div class="dn-studio-actions">
+        <a href="{% url 'ogretmen_deneme_kontrol_merkezi_sinif' sinif.id %}" class="ghost-btn">{{ sinif.etiket }} listesine dön</a>
+    </div>
+</header>
 
 {% include "includes/deneme_gelisim_karti.html" %}
 
