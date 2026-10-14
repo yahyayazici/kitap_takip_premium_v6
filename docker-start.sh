@@ -2,11 +2,28 @@
 set -euo pipefail
 
 python manage.py migrate --no-input
-python manage.py seed_ktt_konu_havuzu
-python manage.py backfill_ktt_konu_eslestirme
-python manage.py backfill_dini_tamamlanma_tarihi
-python manage.py ensure_veli_hesaplari
-python manage.py seed_ekran_sablonlari
+
+# Bu doldurmalar her açılışta tekrar çalışır. Biri kilitlenirse sağlık
+# kontrolü geçmez ve Render'daki kurulum dönmeye devam eder. 90 saniyede
+# bitmezse site yine de ayağa kalkar; komut bir sonraki açılışta sürer.
+soft() {
+  python -c '
+import subprocess, sys
+cmd = sys.argv[1:]
+try:
+    result = subprocess.run(cmd, timeout=90)
+except subprocess.TimeoutExpired:
+    print("süre doldu, site açılışına devam:", " ".join(cmd), flush=True)
+    sys.exit(0)
+sys.exit(result.returncode)
+' "$@"
+}
+
+soft python manage.py seed_ktt_konu_havuzu
+soft python manage.py backfill_ktt_konu_eslestirme
+soft python manage.py backfill_dini_tamamlanma_tarihi
+soft python manage.py ensure_veli_hesaplari
+soft python manage.py seed_ekran_sablonlari
 
 if [ -n "${ADMIN_PASSWORD:-}" ]; then
   python manage.py reset_admin --username "${ADMIN_USERNAME:-admin}" --password "$ADMIN_PASSWORD"
