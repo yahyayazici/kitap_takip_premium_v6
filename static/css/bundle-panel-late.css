@@ -6916,3 +6916,366 @@ body.v3-body .ep-page > header.ep-head .ep-input {
         grid-area: meta;
     }
 }
+
+/* —— KTT test içi: sonuç girişi ve sonuç tablosu —— */
+body.v3-body .result-entry-page.ktt-studio-page {
+    --ktt-tone-paragraf: color-mix(in srgb, var(--cs-accent) 32%, var(--cs-danger));
+    display: flex;
+    flex-direction: column;
+    gap: var(--cs-section-gap);
+    width: 100%;
+    max-width: none;
+    padding-bottom: var(--cs-space-8);
+}
+
+body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    text-align: center !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: var(--cs-space-5) 0 var(--cs-space-2) !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    background-image: none !important;
+    background-size: auto !important;
+    box-shadow: none !important;
+    animation: none !important;
+    overflow: visible !important;
+    color: var(--cs-text-primary) !important;
+    min-height: 0 !important;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero::before,
+body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero::after {
+    display: none !important;
+    content: none !important;
+    animation: none !important;
+    background: none !important;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page .ktt-studio-copy {
+    width: 100% !important;
+    max-width: none !important;
+    text-align: center !important;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero .result-kicker {
+    margin: 0 0 var(--cs-space-2) !important;
+    color: var(--ktt-tone-paragraf) !important;
+    font-size: 0.8125rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+    text-align: center !important;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero h1 {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: none !important;
+    color: var(--cs-primary) !important;
+    font-family: var(--cs-font) !important;
+    font-size: clamp(2.4rem, 5vw, 4.15rem) !important;
+    font-weight: 700 !important;
+    line-height: 1.12 !important;
+    letter-spacing: -0.04em !important;
+    text-align: center !important;
+    -webkit-text-fill-color: currentcolor !important;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page .ktt-studio-title {
+    display: inline-block !important;
+    max-width: 100%;
+    padding: 0.04em 0.04em 0.2em !important;
+    line-height: 1.05 !important;
+    background-image: linear-gradient(100deg, var(--cs-primary-mid) 0%, var(--cs-accent) 46%, var(--ktt-tone-paragraf) 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    color: transparent !important;
+    -webkit-text-fill-color: transparent !important;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero .result-description {
+    margin: var(--cs-space-2) auto 0 !important;
+    max-width: 36rem;
+    color: var(--cs-text-secondary) !important;
+    font-size: 1.05rem !important;
+    font-weight: 400 !important;
+    line-height: 1.5 !important;
+    text-align: center !important;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero .result-header-actions {
+    align-self: flex-end;
+    justify-content: flex-end !important;
+    width: auto !important;
+    max-width: 100%;
+    margin-top: var(--cs-space-5) !important;
+    gap: var(--cs-space-3) !important;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero .result-header-actions > a,
+body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero .result-header-actions > button,
+body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero .result-header-actions > form > button,
+body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero .result-secondary-button,
+body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero .result-back-button,
+body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero .ghost-btn,
+body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero .primary-btn {
+    min-height: var(--cs-btn-h) !important;
+    height: var(--cs-btn-h) !important;
+    min-width: 0 !important;
+    padding: 0 16px !important;
+    border-radius: var(--cs-radius-md) !important;
+    background: var(--cs-surface) !important;
+    color: var(--cs-text-primary) !important;
+    border: 1px solid var(--cs-border) !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero .result-header-actions > a.primary-btn {
+    background: var(--cs-primary) !important;
+    color: var(--cs-text-inverse) !important;
+    border-color: var(--cs-primary) !important;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero .result-header-actions > form > button {
+    background: var(--cs-surface) !important;
+    color: var(--cs-danger) !important;
+    border: 1px solid color-mix(in srgb, var(--cs-danger) 45%, var(--cs-border)) !important;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero .result-header-actions > a:hover,
+body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero .result-header-actions > button:hover,
+body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero .result-secondary-button:hover,
+body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero .result-back-button:hover {
+    background: var(--cs-background) !important;
+    color: var(--cs-text-primary) !important;
+    border-color: var(--cs-border) !important;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero .result-header-actions > a.primary-btn:hover {
+    background: var(--cs-primary-dark) !important;
+    color: var(--cs-text-inverse) !important;
+    border-color: var(--cs-primary-dark) !important;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero .pdf-sayfa-sec {
+    display: inline-flex !important;
+    align-items: center;
+    gap: var(--cs-space-2);
+}
+
+body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero .pdf-sayfa-sec-label {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    margin: -1px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+    color: var(--cs-text-secondary) !important;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero .pdf-sayfa-sec-select {
+    min-height: var(--cs-btn-h) !important;
+    height: var(--cs-btn-h) !important;
+    padding: 0 12px !important;
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-md) !important;
+    background: var(--cs-surface) !important;
+    color: var(--cs-text-primary) !important;
+    font-size: 0.875rem !important;
+    box-shadow: none !important;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page .result-card {
+    margin: 0;
+    padding: var(--cs-space-5) var(--cs-space-5) var(--cs-space-4);
+    border: 1px solid var(--cs-border-subtle);
+    border-radius: var(--cs-radius-xl);
+    background: var(--cs-surface);
+    box-shadow: var(--cs-shadow-sm);
+}
+
+body.v3-body .result-entry-page.ktt-studio-page .ktt-sonuc-save-bar {
+    margin: 0 0 var(--cs-space-4);
+    padding: 0 0 var(--cs-space-4);
+    border-bottom: 1px solid var(--cs-border-subtle);
+}
+
+body.v3-body .result-entry-page.ktt-studio-page .ktt-sonuc-save-bar .primary-btn {
+    min-height: var(--cs-btn-h);
+    height: var(--cs-btn-h);
+    padding: 0 18px;
+    border-radius: var(--cs-radius-md);
+    background: var(--cs-primary);
+    color: var(--cs-text-inverse);
+    border: 1px solid var(--cs-primary);
+    box-shadow: none;
+    font-weight: 600;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page .report-data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page .report-data-table thead th {
+    padding: 10px 12px !important;
+    border-bottom: 1px solid var(--cs-border-subtle) !important;
+    background: transparent !important;
+    color: var(--cs-text-secondary) !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.04em !important;
+    line-height: 1.2 !important;
+    text-transform: uppercase !important;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page #kttSonucTable thead th:nth-child(n + 3),
+body.v3-body .result-entry-page.ktt-studio-page #kttSonucTable tbody td:nth-child(n + 3),
+body.v3-body .result-entry-page.ktt-studio-page .ktt-detay-table thead th:not(:first-child),
+body.v3-body .result-entry-page.ktt-studio-page .ktt-detay-table tbody td:not(:first-child) {
+    text-align: center;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page .report-data-table tbody td {
+    padding: 8px 12px !important;
+    border-bottom: 1px solid var(--cs-border-subtle);
+    background: transparent;
+    color: var(--cs-text-primary);
+    font-size: 0.875rem !important;
+    line-height: 1.3 !important;
+    vertical-align: middle !important;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page .report-data-table tbody tr:nth-child(even) td {
+    background: color-mix(in srgb, var(--cs-background) 70%, var(--cs-surface));
+}
+
+body.v3-body .result-entry-page.ktt-studio-page .report-data-table tbody tr:hover td {
+    background: color-mix(in srgb, var(--cs-accent) 8%, var(--cs-surface));
+}
+
+body.v3-body .result-entry-page.ktt-studio-page #kttSonucTable .ktt-talebe-cell strong,
+body.v3-body .result-entry-page.ktt-studio-page .ktt-detay-table tbody td:first-child {
+    color: var(--cs-text-primary);
+    font-size: 0.875rem;
+    font-weight: 650;
+    letter-spacing: 0;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page #kttSonucTable input.input,
+body.v3-body .result-entry-page.ktt-studio-page #kttSonucTable input[type="number"] {
+    width: 72px !important;
+    min-height: var(--cs-input-h) !important;
+    height: var(--cs-input-h) !important;
+    padding: 4px 8px !important;
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-md) !important;
+    background: var(--cs-surface) !important;
+    color: var(--cs-text-primary) !important;
+    font-size: 0.9375rem !important;
+    text-align: center;
+    box-shadow: none !important;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page #kttSonucTable input.input:focus,
+body.v3-body .result-entry-page.ktt-studio-page #kttSonucTable input[type="number"]:focus {
+    outline: none;
+    border-color: var(--cs-accent) !important;
+    box-shadow: var(--cs-shadow-focus) !important;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page .num-col,
+body.v3-body .result-entry-page.ktt-studio-page .profile-score {
+    font-variant-numeric: tabular-nums;
+    font-weight: 650;
+    color: var(--cs-text-primary) !important;
+    white-space: nowrap;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page #kttSonucTable td.ktt-puan,
+body.v3-body .result-entry-page.ktt-studio-page .profile-score {
+    color: var(--cs-primary) !important;
+    font-weight: 700;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page .ktt-katilmayan-bar {
+    margin: 0;
+    padding: var(--cs-space-4) var(--cs-space-5);
+    border: 1px solid color-mix(in srgb, var(--cs-danger) 32%, var(--cs-border));
+    border-radius: var(--cs-radius-lg);
+    background: var(--cs-danger-bg);
+}
+
+body.v3-body .result-entry-page.ktt-studio-page .ktt-katilmayan-note {
+    color: var(--cs-danger);
+    font-size: 0.875rem;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page .ktt-katilmayan-btn {
+    min-height: var(--cs-btn-h) !important;
+    border-color: color-mix(in srgb, var(--cs-danger) 45%, var(--cs-border)) !important;
+    color: var(--cs-danger) !important;
+    background: var(--cs-surface) !important;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page .ktt-row-katilmayan td {
+    background: var(--cs-danger-bg) !important;
+}
+
+body.v3-body .result-entry-page.ktt-studio-page .ktt-katilmayan-tag {
+    border-radius: var(--cs-radius-sm);
+    background: color-mix(in srgb, var(--cs-danger) 14%, var(--cs-surface));
+    color: var(--cs-danger);
+}
+
+body.v3-body .result-entry-page.ktt-studio-page .ktt-check-input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--cs-danger);
+}
+
+body.v3-body .result-entry-page.ktt-studio-page .report-empty {
+    padding: var(--cs-space-8) var(--cs-space-4);
+    color: var(--cs-text-muted);
+    text-align: center;
+}
+
+@media (max-width: 640px) {
+    body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero h1 {
+        font-size: clamp(2.15rem, 11vw, 2.8rem) !important;
+    }
+
+    body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero .result-header-actions {
+        align-self: stretch;
+        flex-direction: column;
+        width: 100% !important;
+    }
+
+    body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero .result-header-actions > a,
+    body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero .result-header-actions > form,
+    body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero .result-header-actions > form > button,
+    body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero .primary-btn {
+        width: 100% !important;
+    }
+
+    body.v3-body .result-entry-page.ktt-studio-page #kttSonucTable input.input,
+    body.v3-body .result-entry-page.ktt-studio-page #kttSonucTable input[type="number"],
+    body.v3-body .result-entry-page.ktt-studio-page > header.result-entry-header.ktt-studio-hero .pdf-sayfa-sec-select {
+        font-size: 16px !important;
+    }
+}

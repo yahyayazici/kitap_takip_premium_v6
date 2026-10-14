@@ -2,15 +2,15 @@
 {% load static %}
 {% block title %}{{ ktt.ad }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=nizam2">
+<link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=ktt-ic-studio1">
 {% endblock %}
 {% block content %}
-<div class="result-entry-page">
-    <header class="result-entry-header">
-        <div>
-            <p class="result-kicker">{{ ktt.sinav_tarihi|date:"d.m.Y" }}</p>
-            <h1>{{ ktt.ad }}</h1>
-            <p class="result-description">{{ ktt.ders.ad }} · {{ ktt.sinif_seviyesi }}. sınıf · {{ ktt.soru_sayisi }} soru</p>
+<div class="result-entry-page ktt-studio-page">
+    <header class="result-entry-header ktt-studio-hero">
+        <div class="ktt-studio-copy">
+            <p class="result-kicker">{{ ktt.sinav_tarihi|date:"d F Y" }}</p>
+            <h1><span class="ktt-studio-title">{{ ktt.ad }}</span></h1>
+            <p class="result-description">{{ ktt.ders.ad }}. {{ ktt.sinif_seviyesi }}. sınıf. {{ ktt.soru_sayisi }} soru</p>
         </div>
         <div class="result-header-actions">
             {% if sonuc_girebilir %}
@@ -30,8 +30,8 @@
     </header>
 
     <section class="result-card">
-        <div class="responsive-table">
-            <table class="report-data-table">
+        <div class="responsive-table cs-h-scroll">
+            <table class="report-data-table ktt-detay-table">
                 <thead>
                     <tr>
                         <th>Talebe</th>
