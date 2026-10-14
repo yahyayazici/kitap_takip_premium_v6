@@ -13,10 +13,19 @@
             {% endif %}
             <a href="{% url 'yonetim:deneme_rapor' %}" class="ghost-btn">Rapor</a>
             <a href="{% url 'yonetim:deneme_yonetici_ozeti' %}" class="ghost-btn">Yönetici Özeti</a>
+            {% if arsiv %}
+            <a href="{% url 'yonetim:deneme_listesi' %}" class="ghost-btn">← Aktif denemeler</a>
+            {% else %}
+            <a href="{% url 'yonetim:deneme_listesi' %}?arsiv=1" class="ghost-btn">Silinenler / Arşiv{% if arsiv_sayisi %} ({{ arsiv_sayisi }}){% endif %}</a>
+            {% endif %}
         </div>
     </header>
+    {% if arsiv %}
+    <p style="margin:0 0 1rem;color:#64748b;">Silinen denemeler burada durur; sonuçları, kazanımları ve karneleri kaybolmaz. <strong>Geri yükle</strong> deyince listeye döner (sonucu olanlar velilere yeniden görünür).</p>
+    {% endif %}
 
     <form method="get" class="yonetim-filter-bar" style="display:flex;flex-wrap:wrap;gap:0.75rem;margin:0 0 1rem;align-items:end;">
+        {% if arsiv %}<input type="hidden" name="arsiv" value="1">{% endif %}
         <div>
             <label for="egitim_yili">Eğitim yılı</label>
             <select class="cs-input" id="egitim_yili" name="egitim_yili">
@@ -93,7 +102,12 @@
                     <td>
                         <div class="yonetim-action-group">
                             <a href="{% url 'yonetim:deneme_detay' d.pk %}" class="yonetim-action-btn">Yönet</a>
-                            {% if sil_yetkisi %}
+                            {% if sil_yetkisi and arsiv %}
+                            <form method="post" action="{% url 'yonetim:deneme_geri_yukle' d.pk %}" class="yonetim-inline-action" onsubmit="return confirm('«{{ d.ad|escapejs }}» geri yüklensin mi?');">
+                                {% csrf_token %}
+                                <button type="submit" class="yonetim-action-btn">Geri yükle</button>
+                            </form>
+                            {% elif sil_yetkisi %}
                             <form method="post" action="{% url 'yonetim:deneme_sil' d.pk %}" class="yonetim-inline-action" onsubmit="return confirm('«{{ d.ad|escapejs }}» arşive alınsın mı? Sonuçlar ve kazanımlar silinmez, listeden kalkar.');">
                                 {% csrf_token %}
                                 <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger">Sil</button>

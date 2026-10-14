@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.db.models import Count
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from takip.deneme_excel import (
     deneme_excel_onizle,
@@ -57,9 +58,11 @@ def deneme_listesi(request):
 
     from takip.deneme_service import deneme_arsiv_filtre_secenekleri, deneme_arsiv_filtrele
 
-    denemeler = DenemeSinavi.objects.exclude(
-        durum=DenemeSinavi.Durum.ARSIV
-    ).select_related("egitim_yili").annotate(
+    # ?arsiv=1 → silinmiş (arşive alınmış) denemeler; buradan geri yüklenebilir.
+    arsiv = request.GET.get("arsiv") == "1"
+    temel = DenemeSinavi.objects.all()
+    temel = temel.filter(durum=DenemeSinavi.Durum.ARSIV) if arsiv else temel.exclude(durum=DenemeSinavi.Durum.ARSIV)
+    denemeler = temel.select_related("egitim_yili").annotate(
         sonuc_sayisi=Count("sonuclar"),
     ).order_by("-sinav_tarihi", "-id")
     denemeler, filtre = deneme_arsiv_filtrele(denemeler, request.GET)
@@ -72,6 +75,8 @@ def deneme_listesi(request):
             "yukleyebilir": deneme_yukleyebilir(request.user),
             "sil_yetkisi": deneme_silebilir(request.user),
             "filtre": filtre,
+            "arsiv": arsiv,
+            "arsiv_sayisi": DenemeSinavi.objects.filter(durum=DenemeSinavi.Durum.ARSIV).count(),
             **deneme_arsiv_filtre_secenekleri(),
         },
     )
@@ -207,6 +212,25 @@ def deneme_sil(request, pk):
     deneme_sinavini_sil(request.user, deneme)
     messages.success(request, f"«{ad}» arşive alındı. Sonuçlar ve kazanımlar duruyor.")
     return redirect("yonetim:deneme_listesi")
+
+
+@yonetici_gerekli
+def deneme_geri_yukle(request, pk):
+    """Arşive alınmış (silinmiş) denemeyi geri getirir; sonuçları varsa yayında olarak döner."""
+    if not deneme_silebilir(request.user):
+        messages.error(request, "Deneme geri yükleme yetkiniz yok.")
+        return redirect("yonetim:deneme_listesi")
+    deneme = get_object_or_404(DenemeSinavi, pk=pk)
+    if request.method != "POST" or deneme.durum != DenemeSinavi.Durum.ARSIV:
+        return redirect("yonetim:deneme_detay", pk=pk)
+    deneme.durum = DenemeSinavi.Durum.AKTIF if deneme.sonuclar.exists() else DenemeSinavi.Durum.TASLAK
+    deneme.save(update_fields=["durum", "guncellenme"])
+    messages.success(
+        request,
+        f"«{deneme.ad}» geri yüklendi"
+        + (" ve yayında; veliler yeniden görüyor." if deneme.durum == DenemeSinavi.Durum.AKTIF else " (taslak)."),
+    )
+    return redirect(f"{reverse('yonetim:deneme_listesi')}?arsiv=1")
 
 
 @yonetici_gerekli

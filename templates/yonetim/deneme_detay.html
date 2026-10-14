@@ -37,7 +37,12 @@
             {% if pdf_yetkisi and sonuclar %}
             <a href="{% url 'deneme_karne_zip' deneme.pk %}" class="ghost-btn">Bireysel Karneler</a>
             {% endif %}
-            {% if sil_yetkisi %}
+            {% if sil_yetkisi and deneme.durum == 'arsiv' %}
+            <form method="post" action="{% url 'yonetim:deneme_geri_yukle' deneme.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="primary-btn">Geri yükle</button>
+            </form>
+            {% elif sil_yetkisi %}
             <form method="post" action="{% url 'yonetim:deneme_sil' deneme.pk %}" onsubmit="return confirm('«{{ deneme.ad|escapejs }}» arşive alınsın mı? Sonuçlar ve kazanımlar silinmez, listeden kalkar.');">
                 {% csrf_token %}
                 <button type="submit" class="yonetim-action-btn yonetim-action-btn-danger">Denemeyi Sil</button>

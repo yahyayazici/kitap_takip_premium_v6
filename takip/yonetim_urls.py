@@ -761,6 +761,11 @@ urlpatterns = [
         name="deneme_detay",
     ),
     path(
+        "denemeler/<int:pk>/geri-yukle/",
+        deneme_yonetim_views.deneme_geri_yukle,
+        name="deneme_geri_yukle",
+    ),
+    path(
         "denemeler/<int:pk>/yayin/",
         deneme_yonetim_views.deneme_yayin,
         name="deneme_yayin",
