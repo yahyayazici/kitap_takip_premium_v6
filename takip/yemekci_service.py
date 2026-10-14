@@ -277,6 +277,52 @@ def workday_index(
     return idx
 
 
+def dongu_sira(
+    tarih: date,
+    baslangic: date,
+    toplam: int,
+    *,
+    hafta_sonu_cikar: bool | None = None,
+    cumartesi_cikar: bool | None = None,
+    pazar_cikar: bool | None = None,
+) -> dict[str, Any]:
+    """Görev atamasını değiştirmez. 1 tabanlı döngü konumunu söyler.
+
+    Görev gününde ``bugun`` o günün sırasıdır. Görev olmayan günde
+    ``bugun`` boştur; ``kalinan`` son görev gününün sırası, ``siradaki``
+    bir sonraki görev gününün sırasıdır.
+    """
+    if toplam <= 0:
+        return {
+            "gorev_gunu": False,
+            "bugun": None,
+            "kalinan": None,
+            "siradaki": None,
+            "toplam": 0,
+        }
+    cmt, paz = _cikar_bayraklari(
+        hafta_sonu_cikar,
+        cumartesi_cikar=cumartesi_cikar,
+        pazar_cikar=pazar_cikar,
+    )
+    gorev = _is_workday(tarih, cumartesi_cikar=cmt, pazar_cikar=paz)
+    idx = workday_index(
+        tarih,
+        baslangic,
+        cumartesi_cikar=cmt,
+        pazar_cikar=paz,
+    )
+    kalinan = (idx % toplam) + 1
+    siradaki = ((idx + 1) % toplam) + 1
+    return {
+        "gorev_gunu": gorev,
+        "bugun": kalinan if gorev else None,
+        "kalinan": kalinan,
+        "siradaki": siradaki,
+        "toplam": toplam,
+    }
+
+
 def aralik_gunleri(
     baslangic: date,
     bitis: date,
@@ -338,6 +384,28 @@ def gorevli_hesapla(
         ayar=ayar,
     )
     gorev_gunu = _is_workday(tarih, cumartesi_cikar=cmt, pazar_cikar=paz)
+    kayitlar = havuz_kayitlari(sinif)
+    konum = dongu_sira(
+        tarih,
+        ayar.dongu_baslangic,
+        len(kayitlar),
+        cumartesi_cikar=cmt,
+        pazar_cikar=paz,
+    )
+    kalinan_ad = None
+    siradaki_ad = None
+    if konum["kalinan"]:
+        kalinan_ad = kayitlar[konum["kalinan"] - 1].talebe.ad_soyad
+    if konum["siradaki"]:
+        siradaki_ad = kayitlar[konum["siradaki"] - 1].talebe.ad_soyad
+    sira_alan = {
+        "sira": konum["bugun"],
+        "sira_toplam": konum["toplam"],
+        "kalinan_sira": konum["kalinan"],
+        "siradaki_sira": konum["siradaki"],
+        "kalinan_ad": kalinan_ad,
+        "siradaki_ad": siradaki_ad,
+    }
     override = (
         YemekciGunAtama.objects.filter(tarih=tarih, sinif=sinif)
         .select_related("talebe", "talebe__sinif_sube")
@@ -352,9 +420,9 @@ def gorevli_hesapla(
             "manuel": True,
             "atama_id": override.pk,
             "hafta_sonu": not gorev_gunu,
+            **sira_alan,
         }
 
-    kayitlar = havuz_kayitlari(sinif)
     talebe = None
     if kayitlar and gorev_gunu:
         idx = workday_index(
@@ -376,6 +444,7 @@ def gorevli_hesapla(
         "manuel": bool(override and override.manuel),
         "atama_id": override.pk if override else None,
         "hafta_sonu": not gorev_gunu,
+        **sira_alan,
     }
 
 
@@ -576,12 +645,28 @@ def panel_baglami(
             }
             for k in havuz_kayitlari(h.sinif)
         ]
+        konum = dongu_sira(
+            bugun,
+            ayar.dongu_baslangic,
+            len(kayitlar),
+            cumartesi_cikar=ayar.cumartesi_cikar,
+            pazar_cikar=ayar.pazar_cikar,
+        )
+        if konum["kalinan"]:
+            konum["kalinan_ad"] = kayitlar[konum["kalinan"] - 1]["ad"]
+        else:
+            konum["kalinan_ad"] = None
+        if konum["siradaki"]:
+            konum["siradaki_ad"] = kayitlar[konum["siradaki"] - 1]["ad"]
+        else:
+            konum["siradaki_ad"] = None
         havuz_detay.append(
             {
                 "sinif": h.sinif,
                 "etiket": h.etiket,
                 "renk": h.renk_kod,
                 "kayitlar": kayitlar,
+                "sira": konum,
                 "secenekler": [
                     {"id": t.pk, "ad": t.ad_soyad}
                     for t in secilebilir_talebeler(h.sinif)

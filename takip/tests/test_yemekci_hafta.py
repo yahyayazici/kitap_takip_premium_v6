@@ -4,7 +4,7 @@ from datetime import date
 
 from django.test import SimpleTestCase
 
-from takip.yemekci_service import aralik_gunleri, workday_index
+from takip.yemekci_service import aralik_gunleri, dongu_sira, workday_index
 
 
 class YemekciHaftaAyriTests(SimpleTestCase):
@@ -68,3 +68,29 @@ class YemekciHaftaAyriTests(SimpleTestCase):
             workday_index(self.pzt, self.bas, cumartesi_cikar=False, pazar_cikar=True),
             6,
         )
+
+    def test_dongu_sira_hafta_sonunu_atlayinca_yerinde_kalir(self):
+        cuma = dongu_sira(self.cuma, self.bas, 10, cumartesi_cikar=True, pazar_cikar=True)
+        self.assertTrue(cuma["gorev_gunu"])
+        self.assertEqual(cuma["bugun"], 5)
+        self.assertEqual(cuma["kalinan"], 5)
+        self.assertEqual(cuma["siradaki"], 6)
+
+        cmt = dongu_sira(self.cmt, self.bas, 10, cumartesi_cikar=True, pazar_cikar=True)
+        self.assertFalse(cmt["gorev_gunu"])
+        self.assertIsNone(cmt["bugun"])
+        self.assertEqual(cmt["kalinan"], 5)
+        self.assertEqual(cmt["siradaki"], 6)
+
+        pzt = dongu_sira(self.pzt, self.bas, 10, cumartesi_cikar=True, pazar_cikar=True)
+        self.assertEqual(pzt["bugun"], 6)
+        self.assertEqual(pzt["siradaki"], 7)
+
+        donus = dongu_sira(self.pzt, self.bas, 5, cumartesi_cikar=True, pazar_cikar=True)
+        self.assertEqual(donus["bugun"], 1)
+        self.assertEqual(donus["siradaki"], 2)
+
+        bos = dongu_sira(self.cuma, self.bas, 0, cumartesi_cikar=True, pazar_cikar=True)
+        self.assertIsNone(bos["kalinan"])
+        self.assertIsNone(bos["siradaki"])
+        self.assertEqual(bos["toplam"], 0)

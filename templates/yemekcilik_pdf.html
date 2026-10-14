@@ -17,7 +17,7 @@ small { color: #64748b; }
 </head>
 <body>
 <h1>Yemekçilik Listesi</h1>
-<p class="meta">Başlangıç: {{ baslangic|date:"d.m.Y" }} · {{ sure }} iş günü · {{ panel_short }}</p>
+<p class="meta">Başlangıç: {{ baslangic|date:"d.m.Y" }} · {{ sure }} iş günü · {{ panel_short }} · Liste seçilen tarihin döngü sırasından devam eder.</p>
 <table>
 <thead>
 <tr>
@@ -32,10 +32,10 @@ small { color: #64748b; }
 {% for s in satirlar %}
 <tr>
 <td>{{ s.tarih|date:"d.m.Y l" }}</td>
-<td>{% if s.hucreler.5.talebe %}{{ s.hucreler.5.talebe.ad }} <small>({{ s.hucreler.5.talebe.sinif_label }})</small>{% else %}—{% endif %}</td>
-<td>{% if s.hucreler.6.talebe %}{{ s.hucreler.6.talebe.ad }} <small>({{ s.hucreler.6.talebe.sinif_label }})</small>{% else %}—{% endif %}</td>
-<td>{% if s.hucreler.7.talebe %}{{ s.hucreler.7.talebe.ad }} <small>({{ s.hucreler.7.talebe.sinif_label }})</small>{% else %}—{% endif %}</td>
-<td>{% if s.hucreler.8.talebe %}{{ s.hucreler.8.talebe.ad }} <small>({{ s.hucreler.8.talebe.sinif_label }})</small>{% else %}—{% endif %}</td>
+<td>{% if s.hucreler.5.talebe %}{{ s.hucreler.5.talebe.ad }} <small>({{ s.hucreler.5.talebe.sinif_label }})</small>{% if s.hucreler.5.sira %} <small>{{ s.hucreler.5.sira }}. sıra{% if s.hucreler.5.manuel %} · elle{% endif %}</small>{% endif %}{% else %}—{% endif %}</td>
+<td>{% if s.hucreler.6.talebe %}{{ s.hucreler.6.talebe.ad }} <small>({{ s.hucreler.6.talebe.sinif_label }})</small>{% if s.hucreler.6.sira %} <small>{{ s.hucreler.6.sira }}. sıra{% if s.hucreler.6.manuel %} · elle{% endif %}</small>{% endif %}{% else %}—{% endif %}</td>
+<td>{% if s.hucreler.7.talebe %}{{ s.hucreler.7.talebe.ad }} <small>({{ s.hucreler.7.talebe.sinif_label }})</small>{% if s.hucreler.7.sira %} <small>{{ s.hucreler.7.sira }}. sıra{% if s.hucreler.7.manuel %} · elle{% endif %}</small>{% endif %}{% else %}—{% endif %}</td>
+<td>{% if s.hucreler.8.talebe %}{{ s.hucreler.8.talebe.ad }} <small>({{ s.hucreler.8.talebe.sinif_label }})</small>{% if s.hucreler.8.sira %} <small>{{ s.hucreler.8.sira }}. sıra{% if s.hucreler.8.manuel %} · elle{% endif %}</small>{% endif %}{% else %}—{% endif %}</td>
 </tr>
 {% endfor %}
 </tbody>

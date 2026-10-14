@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Yemekçilik Listesi · {{ panel_short }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/yemekcilik-premium.css' %}?v=yc2">
+<link rel="stylesheet" href="{% static 'css/yemekcilik-premium.css' %}?v=yc3">
 {% endblock %}
 
 {% block content %}
@@ -48,11 +48,22 @@
         <div class="yc-card-body">
             {% if y.hafta_sonu %}
             <p class="yc-empty">Hafta sonu · görev yok</p>
+            {% if y.kalinan_sira %}
+            <p class="yc-sira-not">Son görev {{ y.kalinan_sira }}. sıra: {{ y.kalinan_ad }}.</p>
+            {% endif %}
             {% elif y.talebe %}
             <strong class="yc-name">{{ y.talebe.ad }}</strong>
             <span class="yc-sube">{{ y.talebe.sinif_label }}</span>
+            {% if y.manuel %}
+            <p class="yc-sira-not">Elle değiştirildi, döngü sırası duruyor{% if y.kalinan_sira %}: {{ y.kalinan_sira }}. {{ y.kalinan_ad }}{% endif %}.</p>
+            {% elif y.sira %}
+            <p class="yc-sira-not">{{ y.sira }}. sıra / {{ y.sira_toplam }}</p>
+            {% endif %}
             {% else %}
             <p class="yc-empty">Havuzda talebe yok</p>
+            {% endif %}
+            {% if y.siradaki_ad %}
+            <p class="yc-sira-not">Sıradaki: {{ y.siradaki_sira }}. {{ y.siradaki_ad }}</p>
             {% endif %}
         </div>
         {% if duzenleyebilir and not y.hafta_sonu %}
@@ -126,12 +137,31 @@
             </form>
             {% endif %}
         </div>
+        {% if h.sira.toplam %}
+        <p class="yc-sira-not">
+            {% if h.sira.gorev_gunu %}
+            Bugün {{ h.sira.bugun }}. sırada: {{ h.sira.kalinan_ad }}. Sıradaki: {{ h.sira.siradaki }}. {{ h.sira.siradaki_ad }}.
+            {% else %}
+            Son görev {{ h.sira.kalinan }}. sıra: {{ h.sira.kalinan_ad }}. Sıradaki: {{ h.sira.siradaki }}. {{ h.sira.siradaki_ad }}.
+            {% endif %}
+        </p>
+        {% endif %}
         <ul class="yc-pool-list" data-yc-list>
             {% for k in h.kayitlar %}
-            <li class="yc-pool-item" draggable="{% if duzenleyebilir %}true{% else %}false{% endif %}" data-kayit-id="{{ k.id }}">
+            <li class="yc-pool-item{% if h.sira.toplam %}{% if h.sira.gorev_gunu and forloop.counter == h.sira.bugun %} is-kalinan{% elif not h.sira.gorev_gunu and forloop.counter == h.sira.kalinan %} is-kalinan{% endif %}{% if forloop.counter == h.sira.siradaki and forloop.counter != h.sira.kalinan %} is-siradaki{% endif %}{% endif %}" draggable="{% if duzenleyebilir %}true{% else %}false{% endif %}" data-kayit-id="{{ k.id }}">
                 <span class="yc-handle">☰</span>
                 <span class="yc-pool-sira">{{ forloop.counter }}.</span>
                 <span class="yc-pool-name">{{ k.ad }} <small>{{ k.sinif_label }}</small></span>
+                {% if h.sira.toplam %}
+                {% if h.sira.gorev_gunu and forloop.counter == h.sira.bugun %}
+                <span class="yc-sira-etiket">Bu sırada</span>
+                {% elif not h.sira.gorev_gunu and forloop.counter == h.sira.kalinan %}
+                <span class="yc-sira-etiket">Son sıra</span>
+                {% endif %}
+                {% if forloop.counter == h.sira.siradaki and forloop.counter != h.sira.kalinan %}
+                <span class="yc-sira-etiket is-next">Sıradaki</span>
+                {% endif %}
+                {% endif %}
                 {% if duzenleyebilir %}
                 <button type="button" class="yc-del" data-yc-sil="{{ k.id }}" aria-label="Sil">×</button>
                 {% endif %}
@@ -149,6 +179,17 @@
 <div class="yc-toplu">
     <aside class="yc-params">
         <h2>Toplu Liste Parametreleri</h2>
+        <div class="yc-sira-ozet">
+            <p class="yc-sira-not">Liste baştan karışmaz. Seçilen tarihin döngü sırasından devam eder.</p>
+            {% for h in havuzlar %}
+            {% if h.sira.toplam %}
+            <p class="yc-sira-not"><strong>{{ h.etiket }}:</strong>
+                {% if h.sira.gorev_gunu %}Bugün {{ h.sira.bugun }}. sırada {{ h.sira.kalinan_ad }}.{% else %}Son görev {{ h.sira.kalinan }}. sıra {{ h.sira.kalinan_ad }}.{% endif %}
+                Sıradaki {{ h.sira.siradaki }}. {{ h.sira.siradaki_ad }}.
+            </p>
+            {% endif %}
+            {% endfor %}
+        </div>
         <form method="post">
             {% csrf_token %}
             <input type="hidden" name="action" value="toplu_hesapla">
@@ -211,10 +252,10 @@
                     {% for s in toplu_satirlar %}
                     <tr>
                         <td>{{ s.tarih|date:"d F Y, l" }}</td>
-                        <td>{% if s.hucreler.5.talebe %}{{ s.hucreler.5.talebe.ad }} <small>({{ s.hucreler.5.talebe.sinif_label }})</small>{% else %}—{% endif %}</td>
-                        <td>{% if s.hucreler.6.talebe %}{{ s.hucreler.6.talebe.ad }} <small>({{ s.hucreler.6.talebe.sinif_label }})</small>{% else %}—{% endif %}</td>
-                        <td>{% if s.hucreler.7.talebe %}{{ s.hucreler.7.talebe.ad }} <small>({{ s.hucreler.7.talebe.sinif_label }})</small>{% else %}—{% endif %}</td>
-                        <td>{% if s.hucreler.8.talebe %}{{ s.hucreler.8.talebe.ad }} <small>({{ s.hucreler.8.talebe.sinif_label }})</small>{% else %}—{% endif %}</td>
+                        <td>{% if s.hucreler.5.talebe %}{{ s.hucreler.5.talebe.ad }} <small>({{ s.hucreler.5.talebe.sinif_label }})</small>{% if s.hucreler.5.sira %} <small>{{ s.hucreler.5.sira }}. sıra{% if s.hucreler.5.manuel %} · elle{% endif %}</small>{% endif %}{% else %}—{% endif %}</td>
+                        <td>{% if s.hucreler.6.talebe %}{{ s.hucreler.6.talebe.ad }} <small>({{ s.hucreler.6.talebe.sinif_label }})</small>{% if s.hucreler.6.sira %} <small>{{ s.hucreler.6.sira }}. sıra{% if s.hucreler.6.manuel %} · elle{% endif %}</small>{% endif %}{% else %}—{% endif %}</td>
+                        <td>{% if s.hucreler.7.talebe %}{{ s.hucreler.7.talebe.ad }} <small>({{ s.hucreler.7.talebe.sinif_label }})</small>{% if s.hucreler.7.sira %} <small>{{ s.hucreler.7.sira }}. sıra{% if s.hucreler.7.manuel %} · elle{% endif %}</small>{% endif %}{% else %}—{% endif %}</td>
+                        <td>{% if s.hucreler.8.talebe %}{{ s.hucreler.8.talebe.ad }} <small>({{ s.hucreler.8.talebe.sinif_label }})</small>{% if s.hucreler.8.sira %} <small>{{ s.hucreler.8.sira }}. sıra{% if s.hucreler.8.manuel %} · elle{% endif %}</small>{% endif %}{% else %}—{% endif %}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
