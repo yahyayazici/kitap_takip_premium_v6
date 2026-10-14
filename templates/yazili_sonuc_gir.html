@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 {% block title %}{{ sinav.ad }} · Puan Girişi{% endblock %}
 {% block content %}
-<div class="result-entry-page">
-    <header class="page-head patterned-page-head">
-        <div>
-            <p class="kicker">{{ sinav.get_tur_display|upper }}</p>
-            <h1>{{ sinav.ad }}</h1>
-            <p class="muted">
-                {{ sinav.sinav_tarihi|date:"d F Y" }} · {{ sinav.ders_goster }} ·
-                {% if sinav.tur == 'gercek' %}{{ sinav.donem_yazili_goster }}{% else %}{{ sinav.yazili_no }}. yazılı{% endif %} ·
-                {{ sinav.sinif_goster }} · Sadece puan (0–100)
+<div class="result-entry-page dn-studio eg-studio">
+    <header class="dn-studio-hero">
+        <div class="dn-studio-copy">
+            <p class="dn-kicker">{{ sinav.get_tur_display }}</p>
+            <h1><span class="dn-studio-title">{{ sinav.ad }}</span></h1>
+            <p class="dn-sub">
+                {{ sinav.sinav_tarihi|date:"d F Y" }}. {{ sinav.ders_goster }}.
+                {% if sinav.tur == 'gercek' %}{{ sinav.donem_yazili_goster }}{% else %}{{ sinav.yazili_no }}. yazılı{% endif %}.
+                {{ sinav.sinif_goster }}. Sadece puan (0–100)
             </p>
         </div>
-        <div class="result-header-actions">
+        <div class="result-header-actions dn-studio-actions">
             {% if pdf_yetkisi %}
             <a href="{% url 'yazili_sinav_sirali_pdf' sinav.pk %}" class="result-secondary-button" target="_blank">Sıralı PDF</a>
             <a href="{% url 'yazili_sinav_bireysel_pdf' sinav.pk %}" class="result-secondary-button" target="_blank">Bireysel PDF</a>

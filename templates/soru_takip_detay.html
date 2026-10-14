@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 {% block title %}Soru Kaydı · {{ kayit.talebe.ad_soyad }}{% endblock %}
 {% block content %}
-<div class="result-entry-page">
-    <header class="result-entry-header">
-        <div>
-            <p class="result-kicker">{{ kayit.tarih|date:"d F Y"|upper }}</p>
-            <h1>{{ kayit.talebe.ad_soyad }}</h1>
-            <p class="result-description">
-                Toplam {{ kayit.toplam_soru }} soru · Net {{ kayit.toplam_net }} · Başarı %{{ kayit.basari_orani }}
+<div class="result-entry-page dn-studio eg-studio">
+    <header class="result-entry-header dn-studio-hero">
+        <div class="dn-studio-copy">
+            <p class="dn-kicker">{{ kayit.tarih|date:"d F Y" }}</p>
+            <h1><span class="dn-studio-title">{{ kayit.talebe.ad_soyad }}</span></h1>
+            <p class="dn-sub">
+                Toplam {{ kayit.toplam_soru }} soru. Net {{ kayit.toplam_net }}. Başarı %{{ kayit.basari_orani }}
             </p>
         </div>
-        <div class="result-header-actions">
+        <div class="result-header-actions dn-studio-actions">
             <a href="{% url 'soru_takip_panel' %}?talebe={{ kayit.talebe_id }}&tarih={{ kayit.tarih|date:'Y-m-d' }}" class="result-secondary-button">Düzenle</a>
             <a href="{% url 'soru_takip_panel' %}" class="result-back-button">Soru Takip</a>
         </div>

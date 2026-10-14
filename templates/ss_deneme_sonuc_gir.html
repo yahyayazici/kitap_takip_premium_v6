@@ -6,17 +6,17 @@
 <link rel="stylesheet" href="{% static 'css/ss-deneme.css' %}?v=ss1">
 {% endblock %}
 {% block content %}
-<div class="ktt-page ss-page" id="ssSonucGirPage">
-    <header class="page-head patterned-page-head ktt-page-head ktt-hero">
-        <div class="ktt-head-main">
-            <p class="kicker">{{ deneme.sinav_tarihi|date:"d F Y"|upper }} · {{ deneme.soru_formati }} SORU</p>
-            <h1>{{ deneme.ad }}</h1>
-            <div class="ktt-head-actions">
-                <a href="{% url 'ss_deneme_detay' deneme.pk %}" class="ktt-outline-btn ghost-btn">Sıralı liste</a>
-                <a href="{% url 'ss_deneme_listesi' %}" class="result-back-button">Liste</a>
-            </div>
+<div class="ktt-page ss-page dn-studio eg-studio" id="ssSonucGirPage">
+    <header class="ktt-page-head dn-studio-hero">
+        <div class="dn-studio-copy">
+            <p class="dn-kicker">{{ deneme.sinav_tarihi|date:"d F Y" }} · {{ deneme.soru_formati }} soru</p>
+            <h1><span class="dn-studio-title">{{ deneme.ad }}</span></h1>
+            <p class="dn-sub">Her derste doğru + yanlış girin; boş otomatik dolar. Net = Doğru − Yanlış/4. Kayıt günlük soru takibe işlenir.</p>
         </div>
-        <p class="ktt-head-desc">Her derste doğru + yanlış girin; boş otomatik dolar. Net = Doğru − Yanlış/4. Kayıt günlük soru takibe işlenir.</p>
+        <div class="dn-studio-actions">
+            <a href="{% url 'ss_deneme_detay' deneme.pk %}" class="ghost-btn">Sıralı liste</a>
+            <a href="{% url 'ss_deneme_listesi' %}" class="ghost-btn">Liste</a>
+        </div>
     </header>
 
     <form method="post" id="ssSonucForm">

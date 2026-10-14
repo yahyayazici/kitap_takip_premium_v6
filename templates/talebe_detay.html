@@ -13,17 +13,17 @@
 {% endblock %}
 
 {% block content %}
-<div class="profile-page">
+<div class="profile-page dn-studio eg-studio">
 
-    <header class="page-head patterned-page-head profile-head">
-        <div class="profile-head-main">
+    <header class="profile-head dn-studio-hero">
+        <div class="profile-head-main dn-studio-copy">
             <div class="profile-avatar">
                 {% talebe_foto talebe size="lg" %}
             </div>
             <div>
-                <p class="kicker">TALEBE PROFİLİ</p>
-                <h1>{{ talebe.ad_soyad }}</h1>
-                <p class="profile-meta">
+                <p class="dn-kicker">Talebe profili</p>
+                <h1><span class="dn-studio-title">{{ talebe.ad_soyad }}</span></h1>
+                <p class="profile-meta dn-sub">
                     {% if talebe.sinif_sube %}
                         <span>{{ talebe.sinif_sube }}</span>
                     {% else %}
@@ -40,7 +40,7 @@
                 </p>
             </div>
         </div>
-        <div class="profile-head-badges">
+        <div class="profile-head-badges dn-studio-actions">
             {% if talebe.durum == "aktif" %}
                 <span class="status-pill status-okunuyor">Aktif Talebe</span>
             {% elif talebe.durum == "mezun" %}

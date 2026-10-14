@@ -5,26 +5,26 @@
 <link rel="stylesheet" href="{% static 'css/dini-ders-premium.css' %}?v=dd-s5">
 {% endblock %}
 {% block content %}
-<div class="dd-page dd-list-page">
+<div class="dd-page dd-list-page dn-studio eg-studio">
 
-<header class="page-head patterned-page-head dd-page-head dd-hero">
-    <div class="dd-head-main">
-        <p class="kicker">DİNİ DERS TAKİP</p>
-        <h1>Dini Ders Takip Matrisi</h1>
-        <p class="dd-head-desc">
+<header class="dd-page-head dn-studio-hero">
+    <div class="dn-studio-copy">
+        <p class="dn-kicker">Dini ders takip</p>
+        <h1><span class="dn-studio-title">Dini Ders Takip Matrisi</span></h1>
+        <p class="dn-sub">
             {% if seviye_kilitli %}
-            Atanan seviyenizin konu listesini seçin · Talebe × konu ilerleme işaretleme
+            Atanan seviyenizin konu listesini seçin. Talebe ve konu ilerleme işaretleme.
             {% else %}
-            Seviye ve takip alanı seçin · Talebe × konu ilerleme işaretleme
+            Seviye ve takip alanı seçin. Talebe ve konu ilerleme işaretleme.
             {% endif %}
         </p>
-        <div class="result-header-actions dd-head-actions">
-            {% if seviye and alan %}
-            <a href="{% url 'yonetim:dini_ders_konu_listesi' %}" class="result-secondary-button">Konu Listesini Düzenle</a>
-            {% endif %}
-            <a href="{% url 'dini_ders_rapor' %}{% if seviye and alan %}?seviye={{ seviye.id }}&alan={{ alan.id }}{% endif %}" class="result-secondary-button">Rapor</a>
-            <a href="{% url 'dashboard' %}" class="result-back-button">Ana Sayfa</a>
-        </div>
+    </div>
+    <div class="result-header-actions dd-head-actions dn-studio-actions">
+        {% if seviye and alan %}
+        <a href="{% url 'yonetim:dini_ders_konu_listesi' %}" class="ghost-btn">Konu Listesini Düzenle</a>
+        {% endif %}
+        <a href="{% url 'dini_ders_rapor' %}{% if seviye and alan %}?seviye={{ seviye.id }}&alan={{ alan.id }}{% endif %}" class="ghost-btn">Rapor</a>
+        <a href="{% url 'dashboard' %}" class="ghost-btn">Ana Sayfa</a>
     </div>
 </header>
 

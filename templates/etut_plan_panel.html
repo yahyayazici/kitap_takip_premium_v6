@@ -1,20 +1,20 @@
 {% extends "base.html" %}
 {% block title %}Haftalık Etüt Planı · {{ panel_short }}{% endblock %}
 {% block content %}
-<div class="program-page ep-panel">
-    <header class="page-head patterned-page-head ep-head">
-        <div class="ep-head-main">
-            <p class="kicker">HAFTALIK ETÜT PLANI</p>
-            <h1>Bu Hafta</h1>
-            <p class="muted">{{ hafta_baslangic|date:"d F" }} – {{ hafta_bitis|date:"d F Y" }}</p>
-            <div class="profile-head-actions ep-head-actions">
-                <a href="{% url 'etut_plan_arsiv' %}" class="ghost-btn">Arşiv</a>
-                {% if plan %}
-                <a href="{% url 'etut_plan_detay' plan.pk %}" class="primary-btn">Planı Yönet</a>
-                {% elif olusturabilir %}
-                <a href="{% url 'etut_plan_olustur' %}{% if hoca %}?hoca={{ hoca.id }}{% endif %}" class="primary-btn">Plan Oluştur</a>
-                {% endif %}
-            </div>
+<div class="program-page ep-panel dn-studio eg-studio">
+    <header class="ep-head dn-studio-hero">
+        <div class="dn-studio-copy">
+            <p class="dn-kicker">Haftalık etüt planı</p>
+            <h1><span class="dn-studio-title">Bu Hafta</span></h1>
+            <p class="dn-sub">{{ hafta_baslangic|date:"d F" }} – {{ hafta_bitis|date:"d F Y" }}</p>
+        </div>
+        <div class="profile-head-actions ep-head-actions dn-studio-actions">
+            <a href="{% url 'etut_plan_arsiv' %}" class="ghost-btn">Arşiv</a>
+            {% if plan %}
+            <a href="{% url 'etut_plan_detay' plan.pk %}" class="primary-btn">Planı Yönet</a>
+            {% elif olusturabilir %}
+            <a href="{% url 'etut_plan_olustur' %}{% if hoca %}?hoca={{ hoca.id }}{% endif %}" class="primary-btn">Plan Oluştur</a>
+            {% endif %}
         </div>
     </header>
 

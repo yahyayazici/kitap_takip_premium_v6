@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 {% block title %}Akademik Müdahale · {{ mudahale.talebe.ad_soyad }}{% endblock %}
 {% block content %}
-<div class="result-entry-page">
-    <header class="result-entry-header">
-        <div>
-            <p class="result-kicker">{{ mudahale.tarih|date:"d F Y"|upper }}</p>
-            <h1>{{ mudahale.talebe.ad_soyad }}</h1>
-            <p class="result-description">
+<div class="result-entry-page dn-studio eg-studio">
+    <header class="result-entry-header dn-studio-hero">
+        <div class="dn-studio-copy">
+            <p class="dn-kicker">{{ mudahale.tarih|date:"d F Y" }}</p>
+            <h1><span class="dn-studio-title">{{ mudahale.talebe.ad_soyad }}</span></h1>
+            <p class="dn-sub">
                 {{ mudahale.mudahale_turu.ikon }} {{ mudahale.mudahale_turu.ad }}
                 {% if mudahale.ders %} · {{ mudahale.ders.ad }}{% endif %}
                 {% if mudahale.sure_dakika %} · {{ mudahale.sure_dakika }} dk{% endif %}
             </p>
         </div>
-        <div class="result-header-actions">
+        <div class="result-header-actions dn-studio-actions">
             {% if duzenleyebilir %}
             <a href="{% url 'akademik_mudahale_duzenle' mudahale.pk %}" class="result-secondary-button">Düzenle</a>
             {% endif %}

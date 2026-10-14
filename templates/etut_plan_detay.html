@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 {% block title %}Etüt Planı · {{ plan.hafta_goster }}{% endblock %}
 {% block content %}
-<div class="result-entry-page">
-    <header class="result-entry-header">
-        <div>
-            <p class="result-kicker">{{ plan.hafta_goster }}</p>
-            <h1>{{ plan.etut_hocasi.ad_soyad }}</h1>
-            <p class="result-description">
-                {{ ozet.tamamlandi }}/{{ ozet.toplam }} tamamlandı ·
+<div class="result-entry-page dn-studio eg-studio">
+    <header class="result-entry-header dn-studio-hero">
+        <div class="dn-studio-copy">
+            <p class="dn-kicker">{{ plan.hafta_goster }}</p>
+            <h1><span class="dn-studio-title">{{ plan.etut_hocasi.ad_soyad }}</span></h1>
+            <p class="dn-sub">
+                {{ ozet.tamamlandi }}/{{ ozet.toplam }} tamamlandı.
                 {{ plan.get_durum_display }}
             </p>
         </div>
-        <div class="result-header-actions">
+        <div class="result-header-actions dn-studio-actions">
             <a href="{% url 'etut_plan_panel' %}" class="result-back-button">Bu Hafta</a>
             <a href="{% url 'etut_plan_arsiv' %}" class="ghost-btn">Arşiv</a>
         </div>

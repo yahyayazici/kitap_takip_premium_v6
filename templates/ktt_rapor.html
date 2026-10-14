@@ -5,10 +5,13 @@
 <link rel="stylesheet" href="{% static 'css/ktt-page.css' %}?v=ktt-rapor6">
 {% endblock %}
 {% block content %}
-<div class="ktt-page ktt-report-page">
-    <div class="ktt-report-head">
-        <h1>☑ KTT Raporlama & Analiz</h1>
-        <div class="ktt-report-actions">
+<div class="ktt-page ktt-report-page dn-studio eg-studio">
+    <header class="ktt-report-head dn-studio-hero">
+        <div class="dn-studio-copy">
+            <p class="dn-kicker">KTT</p>
+            <h1><span class="dn-studio-title">Raporlama ve analiz</span></h1>
+        </div>
+        <div class="ktt-report-actions dn-studio-actions">
             {% if excel_yetkisi %}
             <a href="{{ excel_url }}" class="ktt-outline-btn green">Excel İndir</a>
             {% endif %}
@@ -16,12 +19,12 @@
             {% include "includes/pdf_sayfa_secici.html" with pdf_href=pdf_url pdf_sayfa=pdf_sayfa pdf_btn_class="ktt-outline-btn red" pdf_btn_label="PDF İndir" %}
             <a href="{{ zip_url }}" class="ktt-outline-btn navy">Talebe ZIP</a>
             {% endif %}
-            <a href="{% url 'ktt_listesi' %}" class="ktt-outline-btn muted">KTT Listesi</a>
+            <a href="{% url 'ktt_listesi' %}" class="ghost-btn">KTT Listesi</a>
         </div>
-    </div>
+    </header>
 
     <section class="ktt-report-card">
-        <p class="ktt-section-title">⏷ Filtrele</p>
+        <p class="ktt-section-title">Filtrele</p>
         <form method="get">
             <div class="ktt-filter-grid">
                 <div>

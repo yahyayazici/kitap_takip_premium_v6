@@ -6,18 +6,18 @@
 {% endblock %}
 
 {% block content %}
-<div class="ep-page" data-ep-panel
+<div class="ep-page dn-studio eg-studio" data-ep-panel
      data-plan="{{ plan.pk|default:'' }}"
      data-hoca="{{ hoca.pk }}"
      data-duzenle="{% if duzenleyebilir %}1{% else %}0{% endif %}">
 
-<header class="ep-head">
-    <div>
-        <p class="ep-eyebrow">Haftalık Etüt Planı</p>
-        <h1>Etüt İçerik Planlama</h1>
-        <p class="ep-sub">Saatler admin tarafından tanımlı · Siz yalnızca etkinlik planlayın · {{ hafta_baslangic|date:"d F" }} – {{ hafta_bitis|date:"d F Y" }}</p>
+<header class="ep-head dn-studio-hero">
+    <div class="dn-studio-copy">
+        <p class="dn-kicker">Haftalık etüt planı</p>
+        <h1><span class="dn-studio-title">Etüt İçerik Planlama</span></h1>
+        <p class="dn-sub">Saatler admin tarafından tanımlı. Siz yalnızca etkinlik planlayın. {{ hafta_baslangic|date:"d F" }} – {{ hafta_bitis|date:"d F Y" }}</p>
     </div>
-    <div class="ep-actions">
+    <div class="ep-actions dn-studio-actions">
         {% if hocalar %}
         <form method="get" class="ep-hoca-select">
             <select name="hoca" class="ep-input" onchange="this.form.submit()">

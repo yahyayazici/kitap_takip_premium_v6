@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 {% block title %}{{ kamp.ad }} · Yazılı Takip{% endblock %}
 {% block content %}
-<div class="result-entry-page">
-    <header class="page-head patterned-page-head">
-        <div>
-            <p class="kicker">YAZILI KAMP</p>
-            <h1>{{ kamp.ad }}</h1>
-            <p class="muted">
-                {{ kamp.sinif_seviyesi }}. sınıf ·
-                {{ kamp.baslangic|date:"d.m.Y" }} — {{ kamp.bitis|date:"d.m.Y" }} ·
+<div class="result-entry-page dn-studio eg-studio">
+    <header class="dn-studio-hero">
+        <div class="dn-studio-copy">
+            <p class="dn-kicker">Yazılı kamp</p>
+            <h1><span class="dn-studio-title">{{ kamp.ad }}</span></h1>
+            <p class="dn-sub">
+                {{ kamp.sinif_seviyesi }}. sınıf.
+                {{ kamp.baslangic|date:"d.m.Y" }} — {{ kamp.bitis|date:"d.m.Y" }}.
                 {{ istatistik.sinav_sayisi }} sınav
             </p>
         </div>
-        <div class="result-header-actions">
+        <div class="result-header-actions dn-studio-actions">
             {% if pdf_yetkisi %}
             <a href="{% url 'yazili_kamp_pdf' kamp.pk %}" class="result-secondary-button">Kamp PDF</a>
             {% endif %}

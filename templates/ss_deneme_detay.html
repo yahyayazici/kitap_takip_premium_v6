@@ -6,17 +6,17 @@
 <link rel="stylesheet" href="{% static 'css/ss-deneme.css' %}?v=ss1">
 {% endblock %}
 {% block content %}
-<div class="ktt-page ss-page">
-    <header class="page-head patterned-page-head ktt-page-head ktt-hero">
-        <div class="ktt-head-main">
-            <p class="kicker">{{ deneme.sinav_tarihi|date:"d F Y"|upper }} · {{ deneme.soru_formati }} SORU</p>
-            <h1>{{ deneme.ad }}</h1>
-            <div class="ktt-head-actions">
-                {% if duzenleyebilir %}
-                <a href="{% url 'ss_deneme_sonuc_gir' deneme.pk %}" class="ktt-solid-btn primary-btn">Sonuç gir</a>
-                {% endif %}
-                <a href="{% url 'ss_deneme_listesi' %}" class="result-back-button">Liste</a>
-            </div>
+<div class="ktt-page ss-page dn-studio eg-studio">
+    <header class="ktt-page-head dn-studio-hero">
+        <div class="dn-studio-copy">
+            <p class="dn-kicker">{{ deneme.sinav_tarihi|date:"d F Y" }} · {{ deneme.soru_formati }} soru</p>
+            <h1><span class="dn-studio-title">{{ deneme.ad }}</span></h1>
+        </div>
+        <div class="dn-studio-actions">
+            {% if duzenleyebilir %}
+            <a href="{% url 'ss_deneme_sonuc_gir' deneme.pk %}" class="ktt-solid-btn primary-btn">Sonuç gir</a>
+            {% endif %}
+            <a href="{% url 'ss_deneme_listesi' %}" class="ghost-btn">Liste</a>
         </div>
     </header>
 
