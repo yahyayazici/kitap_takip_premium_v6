@@ -15,8 +15,8 @@ body.ekp-govde .ekp-sayfa-basi {
     max-width: none !important;
     height: auto !important;
     min-height: 0 !important;
-    margin: 0 0 var(--cs-space-5) !important;
-    padding: var(--cs-space-4) 0 var(--cs-space-2) !important;
+    margin: 0 !important;
+    padding: var(--cs-space-2) 0 var(--cs-space-3) !important;
     border: 0 !important;
     border-radius: 0 !important;
     background: transparent !important;
@@ -45,8 +45,8 @@ body.v3-body:not(.pv4-page) #cs-page header:has(h1) h1,
 body.yonetim-body #cs-page header:has(h1) h1,
 body.ekp-govde .ekp-sayfa-basi h1 {
     margin: 0 auto !important;
-    padding: 0.04em 0.06em 0.16em !important;
-    max-width: 18em !important;
+    padding: 0.02em 0.04em 0.06em !important;
+    max-width: min(18em, 100%) !important;
     background-image: linear-gradient(105deg, var(--cs-primary-mid) 0%, var(--cs-accent) 70%, var(--cs-accent-soft) 100%) !important;
     -webkit-background-clip: text !important;
     background-clip: text !important;
@@ -103,23 +103,51 @@ body.ekp-govde .ekp-sayfa-basi p {
     background: none !important;
 }
 
-body.v3-body:not(.pv4-page) #cs-page header:has(h1) :is([class*="actions"], [class*="action"]),
-body.yonetim-body #cs-page header:has(h1) :is([class*="actions"], [class*="action"]),
-body.ekp-govde .ekp-eylemler {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    align-self: flex-end !important;
-    justify-content: flex-end !important;
-    gap: var(--cs-space-3) !important;
-    width: auto !important;
-    max-width: 100% !important;
-    margin: var(--cs-space-4) 0 0 auto !important;
+/* Sayfa kabuğundaki 28px boşluk ile kart kenar boşluğu üst üste binmesin. */
+body.v3-body:not(.pv4-page) #cs-page :is(div, section):has(> header h1),
+body.yonetim-body #cs-page :is(div, section):has(> header h1),
+body.ekp-govde .ekp-ana:has(> .ekp-sayfa-basi) {
+    gap: var(--cs-space-4) !important;
 }
 
-body.v3-body:not(.pv4-page) #cs-page header:has(h1) > :is(a, button),
-body.yonetim-body #cs-page header:has(h1) > :is(a, button) {
-    align-self: flex-end !important;
-    margin-top: var(--cs-space-4) !important;
+body.v3-body:not(.pv4-page) #cs-page header:has(h1) + *,
+body.yonetim-body #cs-page header:has(h1) + *,
+body.ekp-govde .ekp-sayfa-basi + * {
+    margin-top: 0 !important;
+}
+
+/* Başlığın altındaki tarih/düğme sütunu kendi boş bandını açmasın. */
+body.v3-body:not(.pv4-page) #cs-page header:has(h1) > :not(:has(h1)),
+body.yonetim-body #cs-page header:has(h1) > :not(:has(h1)) {
+    margin-top: var(--cs-space-2) !important;
+}
+
+/* PDF ve diğer başlık düğmeleri alt yazının sağında durur; kendi satırını açmaz. */
+body.v3-body:not(.pv4-page) #cs-page header:has(h1) > :is(div, section):has(h1):has(> [class*="action"]),
+body.yonetim-body #cs-page header:has(h1) > :is(div, section):has(h1):has(> [class*="action"]) {
+    position: relative !important;
+}
+
+body.v3-body:not(.pv4-page) #cs-page header:has(h1) > :is([class*="action"], a, button),
+body.yonetim-body #cs-page header:has(h1) > :is([class*="action"], a, button),
+body.v3-body:not(.pv4-page) #cs-page header:has(h1) > :is(div, section):has(h1) > [class*="action"],
+body.yonetim-body #cs-page header:has(h1) > :is(div, section):has(h1) > [class*="action"],
+body.ekp-govde .ekp-sayfa-basi > .ekp-eylemler {
+    position: absolute !important;
+    right: 0 !important;
+    bottom: var(--cs-space-3) !important;
+    left: auto !important;
+    top: auto !important;
+    z-index: 2 !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    align-self: auto !important;
+    justify-content: flex-end !important;
+    gap: var(--cs-space-2) !important;
+    width: max-content !important;
+    max-width: calc((100% - min(40rem, 70%)) / 2 - var(--cs-space-3)) !important;
+    margin: 0 !important;
 }
 
 body.v3-body:not(.pv4-page) #cs-page header:has(h1) :is([class*="actions"], [class*="action"], .dash-hero-date) :is(a, button),
@@ -334,18 +362,25 @@ body.ekp-govde .ekp-avatar {
     color: var(--cs-text-inverse) !important;
 }
 
+@media (max-width: 1100px) {
+    body.v3-body:not(.pv4-page) #cs-page header:has(h1) > :is([class*="action"], a, button),
+    body.yonetim-body #cs-page header:has(h1) > :is([class*="action"], a, button),
+    body.v3-body:not(.pv4-page) #cs-page header:has(h1) > :is(div, section):has(h1) > [class*="action"],
+    body.yonetim-body #cs-page header:has(h1) > :is(div, section):has(h1) > [class*="action"],
+    body.ekp-govde .ekp-sayfa-basi > .ekp-eylemler {
+        position: static !important;
+        bottom: auto !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin-top: var(--cs-space-3) !important;
+    }
+}
+
 @media (max-width: 640px) {
     body.v3-body:not(.pv4-page) #cs-page header:has(h1) h1,
     body.yonetim-body #cs-page header:has(h1) h1,
     body.ekp-govde .ekp-sayfa-basi h1 {
         font-size: clamp(1.85rem, 8vw, 2.4rem) !important;
-    }
-
-    body.v3-body:not(.pv4-page) #cs-page header:has(h1) :is([class*="actions"], [class*="action"]),
-    body.yonetim-body #cs-page header:has(h1) :is([class*="actions"], [class*="action"]),
-    body.ekp-govde .ekp-eylemler {
-        align-self: stretch !important;
-        width: 100% !important;
     }
 
     body.v3-body:not(.pv4-page) #cs-page header:has(h1) :is([class*="actions"], [class*="action"]) :is(a, button),
