@@ -1,0 +1,361 @@
+/* Açık stüdyo — hoş geldiniz ekranı dışında kalan sayfalar.
+   panel-anasayfa-v4.css lacivert kutuyu en sona boyadığı için
+   bu dosya ondan sonra yüklenir. Renkler yalnızca --cs-* token.
+   Sayfa başlığı: içinde h1 olan üst başlık. Kart: sınıfı -card / -panel / -kpi / -stat ile biten yüzey. */
+
+body.v3-body:not(.pv4-page) #cs-page header:has(h1):not([class*="modal"]):not([class*="card-head"]):not([class*="panel-head"]):not([class*="-mob"]):not([class*="section-head"]):not([class*="group-head"]),
+body.yonetim-body #cs-page header:has(h1):not([class*="modal"]):not([class*="card-head"]):not([class*="panel-head"]):not([class*="-mob"]):not([class*="section-head"]):not([class*="group-head"]),
+body.ekp-govde .ekp-sayfa-basi {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    gap: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 0 var(--cs-space-5) !important;
+    padding: var(--cs-space-4) 0 var(--cs-space-2) !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    color: var(--cs-text-primary) !important;
+    text-align: center !important;
+    overflow: visible !important;
+    animation: none !important;
+    position: relative !important;
+}
+
+body.v3-body:not(.pv4-page) #cs-page header:has(h1)::before,
+body.v3-body:not(.pv4-page) #cs-page header:has(h1)::after,
+body.yonetim-body #cs-page header:has(h1)::before,
+body.yonetim-body #cs-page header:has(h1)::after,
+body.v3-body:not(.pv4-page) #cs-page header:has(h1) :is(.dash-hero-scene, .dash-hero-logo-wrap, .dash-hero-float, .pv4-hero-deco-icon, [class*="head-icon"]),
+body.yonetim-body #cs-page header:has(h1) :is(.dash-hero-scene, .dash-hero-logo-wrap, .dash-hero-float, [class*="head-icon"]) {
+    display: none !important;
+    content: none !important;
+    background: none !important;
+    animation: none !important;
+}
+
+body.v3-body:not(.pv4-page) #cs-page header:has(h1) h1,
+body.yonetim-body #cs-page header:has(h1) h1,
+body.ekp-govde .ekp-sayfa-basi h1 {
+    margin: 0 auto !important;
+    padding: 0.04em 0.06em 0.16em !important;
+    max-width: 18em !important;
+    background-image: linear-gradient(105deg, var(--cs-primary-mid) 0%, var(--cs-accent) 70%, var(--cs-accent-soft) 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    color: transparent !important;
+    -webkit-text-fill-color: transparent !important;
+    font-family: var(--cs-font), Poppins, sans-serif !important;
+    font-size: clamp(2.2rem, 4.6vw, 3.6rem) !important;
+    font-weight: 700 !important;
+    font-style: normal !important;
+    line-height: 1.08 !important;
+    letter-spacing: -0.04em !important;
+    text-align: center !important;
+    text-transform: none !important;
+    text-shadow: none !important;
+}
+
+body.v3-body:not(.pv4-page) #cs-page header:has(h1) h1 :is(.dn-studio-title, .ktt-studio-title, .st-studio-title, .pg-studio-title),
+body.yonetim-body #cs-page header:has(h1) h1 :is(.dn-studio-title, .ktt-studio-title, .st-studio-title, .pg-studio-title) {
+    font-size: inherit !important;
+    line-height: inherit !important;
+    letter-spacing: inherit !important;
+    color: transparent !important;
+    -webkit-text-fill-color: transparent !important;
+}
+
+body.v3-body:not(.pv4-page) #cs-page header:has(h1) :is(.kicker, [class*="kicker"], [class*="eyebrow"]),
+body.yonetim-body #cs-page header:has(h1) :is(.kicker, [class*="kicker"], [class*="eyebrow"]),
+body.ekp-govde .ekp-sayfa-basi [class*="kicker"] {
+    margin: 0 0 var(--cs-space-2) !important;
+    color: var(--cs-accent) !important;
+    font-family: var(--cs-font), Poppins, sans-serif !important;
+    font-size: 0.8125rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0 !important;
+    line-height: 1.4 !important;
+    text-align: center !important;
+    text-transform: none !important;
+    background: none !important;
+}
+
+body.v3-body:not(.pv4-page) #cs-page header:has(h1) p:not([class*="kicker"]):not([class*="eyebrow"]),
+body.yonetim-body #cs-page header:has(h1) p:not([class*="kicker"]):not([class*="eyebrow"]),
+body.ekp-govde .ekp-sayfa-basi p {
+    margin: var(--cs-space-2) auto 0 !important;
+    max-width: 42rem !important;
+    color: var(--cs-text-secondary) !important;
+    font-family: var(--cs-font), Poppins, sans-serif !important;
+    font-size: 1.02rem !important;
+    font-weight: 400 !important;
+    letter-spacing: 0 !important;
+    line-height: 1.5 !important;
+    text-align: center !important;
+    text-transform: none !important;
+    background: none !important;
+}
+
+body.v3-body:not(.pv4-page) #cs-page header:has(h1) :is([class*="actions"], [class*="action"]),
+body.yonetim-body #cs-page header:has(h1) :is([class*="actions"], [class*="action"]),
+body.ekp-govde .ekp-eylemler {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-self: flex-end !important;
+    justify-content: flex-end !important;
+    gap: var(--cs-space-3) !important;
+    width: auto !important;
+    max-width: 100% !important;
+    margin: var(--cs-space-4) 0 0 auto !important;
+}
+
+body.v3-body:not(.pv4-page) #cs-page header:has(h1) > :is(a, button),
+body.yonetim-body #cs-page header:has(h1) > :is(a, button) {
+    align-self: flex-end !important;
+    margin-top: var(--cs-space-4) !important;
+}
+
+body.v3-body:not(.pv4-page) #cs-page header:has(h1) :is([class*="actions"], [class*="action"], .dash-hero-date) :is(a, button),
+body.v3-body:not(.pv4-page) #cs-page header:has(h1) > :is(a, button),
+body.yonetim-body #cs-page header:has(h1) :is([class*="actions"], [class*="action"], .dash-hero-date) :is(a, button),
+body.yonetim-body #cs-page header:has(h1) > :is(a, button),
+body.ekp-govde .ekp-eylemler :is(a, button) {
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: var(--cs-btn-h) !important;
+    padding: 0 16px !important;
+    border-radius: var(--cs-radius-md) !important;
+    border: 1px solid var(--cs-border) !important;
+    background: var(--cs-surface) !important;
+    background-image: none !important;
+    color: var(--cs-text-primary) !important;
+    box-shadow: none !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+}
+
+body.v3-body:not(.pv4-page) #cs-page header:has(h1) :is(a, button):is(.primary-btn, .ktt-solid-btn, .ep-btn-primary, .library-add-btn, .dash-hero-btn, [class*="btn-primary"]),
+body.yonetim-body #cs-page header:has(h1) :is(a, button):is(.primary-btn, .dash-hero-btn, [class*="btn-primary"]),
+body.ekp-govde .ekp-dugme-ana {
+    background: var(--cs-primary) !important;
+    border-color: var(--cs-primary) !important;
+    color: var(--cs-text-inverse) !important;
+}
+
+body.yonetim-body #cs-page header.dash-hero .dash-hero-date,
+body.v3-body:not(.pv4-page) #cs-page header.dash-hero .dash-hero-date {
+    color: var(--cs-text-primary) !important;
+}
+
+body.yonetim-body #cs-page header.dash-hero .dash-hero-date-num,
+body.v3-body:not(.pv4-page) #cs-page header.dash-hero .dash-hero-date-num {
+    color: var(--cs-accent) !important;
+}
+
+/* İçerik yüzeyleri — sınıf adı -card / -panel / -kpi / -stat ile biten kutular */
+body.v3-body:not(.pv4-page) #cs-page :is(section, article, div, li):is(
+    [class$="-card"],
+    [class*="-card "],
+    [class$="-panel"],
+    [class*="-panel "],
+    [class$="-kpi"],
+    [class*="-kpi "],
+    [class$="-stat"],
+    [class*="-stat "]
+):not([class*="pool"]):not([class*="chip"]):not([class*="story"]):not([class*="phone"]):not([class*="-cards"]):not([class*="-stats"]):not([class*="kpi-grid"]):not([class*="kpi-row"]):not([class*="stat-grid"]):not(:has(h1)),
+body.yonetim-body #cs-page :is(section, article, div, li):is(
+    [class$="-card"],
+    [class*="-card "],
+    [class$="-panel"],
+    [class*="-panel "],
+    [class$="-kpi"],
+    [class*="-kpi "],
+    [class$="-stat"],
+    [class*="-stat "]
+):not([class*="pool"]):not([class*="chip"]):not([class*="-cards"]):not([class*="-stats"]):not([class*="kpi-grid"]):not([class*="stat-grid"]):not(:has(h1)),
+body.ekp-govde :is(.ekp-kart, .ekp-olcum-kart) {
+    background: var(--cs-surface) !important;
+    background-image: none !important;
+    border: 1px solid var(--cs-border) !important;
+    border-radius: var(--cs-radius-xl) !important;
+    box-shadow: var(--cs-shadow-sm) !important;
+}
+
+body.v3-body:not(.pv4-page) #cs-page :is([class$="-panel"], [class*="-panel "], [class$="-card"], [class*="-card "])::before,
+body.v3-body:not(.pv4-page) #cs-page :is([class$="-panel"], [class*="-panel "], [class$="-card"], [class*="-card "])::after,
+body.yonetim-body #cs-page :is([class$="-panel"], [class*="-panel "], [class$="-card"], [class*="-card "])::before,
+body.yonetim-body #cs-page :is([class$="-panel"], [class*="-panel "], [class$="-card"], [class*="-card "])::after {
+    display: none !important;
+    content: none !important;
+    background: none !important;
+}
+
+body.v3-body:not(.pv4-page) #cs-page :is(h2, h3),
+body.yonetim-body #cs-page :is(h2, h3),
+body.ekp-govde :is(h2, h3) {
+    font-family: var(--cs-font), Poppins, sans-serif;
+    letter-spacing: 0;
+}
+
+body.v3-body:not(.pv4-page) #cs-page :is(.card-kicker, .dash-eyebrow),
+body.yonetim-body #cs-page :is(.card-kicker, .dash-eyebrow) {
+    color: var(--cs-text-secondary) !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+    font-weight: 650 !important;
+}
+
+body.v3-body:not(.pv4-page) #cs-page :is(table thead th),
+body.yonetim-body #cs-page table thead th,
+body.ekp-govde table thead th {
+    background: var(--cs-surface-muted) !important;
+    color: var(--cs-text-secondary) !important;
+    font-weight: 650 !important;
+    letter-spacing: 0 !important;
+}
+
+body.v3-body:not(.pv4-page) #cs-page :is([class*="table-wrap"], [class*="grid-wrap"], .responsive-table, .cs-table-wrap, .ktt-desktop-table),
+body.yonetim-body #cs-page :is([class*="table-wrap"], .responsive-table, .cs-table-wrap) {
+    overflow: auto;
+    max-width: 100%;
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-lg);
+    background: var(--cs-surface);
+}
+
+body.v3-body:not(.pv4-page) #cs-page,
+body.yonetim-body #cs-page,
+body.ekp-govde .ekp-ana {
+    overflow-x: clip;
+}
+
+body.v3-body:not(.pv4-page) #cs-page :is(
+    input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="color"]):not([type="file"]):not([type="range"]),
+    select,
+    textarea
+),
+body.yonetim-body #cs-page :is(
+    input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="color"]):not([type="file"]):not([type="range"]),
+    select,
+    textarea
+) {
+    min-height: var(--cs-input-h);
+    border: 1px solid var(--cs-border);
+    border-radius: var(--cs-radius-md);
+    background: var(--cs-surface);
+    color: var(--cs-text-primary);
+    font-family: var(--cs-font), Poppins, sans-serif;
+}
+
+body.v3-body:not(.pv4-page) #cs-page :is(table, .ep-grid, .ep-week-grid, .st-table, [class*="-matrix"]) :is(input, select, textarea),
+body.yonetim-body #cs-page table :is(input, select, textarea) {
+    min-height: 36px;
+}
+
+body.v3-body:not(.pv4-page) #cs-page :is(a, button, summary):is(
+    [class$="-btn"],
+    [class*="-btn "],
+    .primary-btn,
+    .ghost-btn,
+    .small-button,
+    .dash-hero-btn
+),
+body.yonetim-body #cs-page :is(a, button, summary):is(
+    [class$="-btn"],
+    [class*="-btn "],
+    .primary-btn,
+    .ghost-btn,
+    .small-button
+) {
+    box-sizing: border-box;
+    min-height: var(--cs-btn-h);
+    border-radius: var(--cs-radius-md);
+}
+
+body.v3-body:not(.pv4-page) #cs-page :is(a, button):is(.primary-btn, .ktt-solid-btn, .ep-btn-primary, .library-add-btn, [class*="btn-primary"]),
+body.yonetim-body #cs-page :is(a, button):is(.primary-btn, [class*="btn-primary"]),
+body.ekp-govde .ekp-dugme-ana {
+    background: var(--cs-primary) !important;
+    background-image: none !important;
+    color: var(--cs-text-inverse) !important;
+    border: 1px solid var(--cs-primary) !important;
+    box-shadow: none !important;
+}
+
+body.v3-body:not(.pv4-page) #cs-page :is(a, button):is(.ghost-btn, [class*="btn-ghost"]),
+body.yonetim-body #cs-page :is(a, button):is(.ghost-btn, .yonetim-head-ghost, [class*="btn-ghost"]) {
+    background: var(--cs-surface) !important;
+    background-image: none !important;
+    color: var(--cs-text-primary) !important;
+    border: 1px solid var(--cs-border) !important;
+    box-shadow: none !important;
+}
+
+body.v3-body:not(.pv4-page) #cs-page :is(a, button):is(.btn-danger, [class*="btn-danger"]),
+body.yonetim-body #cs-page :is(a, button):is(.btn-danger, [class*="btn-danger"]) {
+    background: var(--cs-danger) !important;
+    color: var(--cs-text-inverse) !important;
+    border: 1px solid var(--cs-danger) !important;
+}
+
+/* Duyuru ekranı üst çubuğu */
+body.ekp-govde .ekp-header {
+    background: var(--cs-surface) !important;
+    color: var(--cs-text-primary) !important;
+    box-shadow: 0 1px 0 rgba(16, 33, 61, .06) !important;
+}
+
+body.ekp-govde .ekp-marka img {
+    height: 34px;
+    width: 34px;
+}
+
+body.ekp-govde .ekp-nav-link {
+    color: var(--cs-text-secondary) !important;
+}
+
+body.ekp-govde .ekp-nav-link:hover,
+body.ekp-govde .ekp-nav-link.ekp-aktif {
+    background: var(--cs-soft-blue) !important;
+    color: var(--cs-primary) !important;
+}
+
+body.ekp-govde .ekp-avatar {
+    background: var(--cs-primary) !important;
+    color: var(--cs-text-inverse) !important;
+}
+
+@media (max-width: 640px) {
+    body.v3-body:not(.pv4-page) #cs-page header:has(h1) h1,
+    body.yonetim-body #cs-page header:has(h1) h1,
+    body.ekp-govde .ekp-sayfa-basi h1 {
+        font-size: clamp(1.85rem, 8vw, 2.4rem) !important;
+    }
+
+    body.v3-body:not(.pv4-page) #cs-page header:has(h1) :is([class*="actions"], [class*="action"]),
+    body.yonetim-body #cs-page header:has(h1) :is([class*="actions"], [class*="action"]),
+    body.ekp-govde .ekp-eylemler {
+        align-self: stretch !important;
+        width: 100% !important;
+    }
+
+    body.v3-body:not(.pv4-page) #cs-page header:has(h1) :is([class*="actions"], [class*="action"]) :is(a, button),
+    body.v3-body:not(.pv4-page) #cs-page header:has(h1) > :is(a, button),
+    body.yonetim-body #cs-page header:has(h1) :is([class*="actions"], [class*="action"]) :is(a, button) {
+        width: 100%;
+    }
+
+    body.v3-body:not(.pv4-page) #cs-page :is(select, textarea, input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="file"])),
+    body.yonetim-body #cs-page :is(select, textarea, input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="file"])) {
+        font-size: 16px !important;
+    }
+}
