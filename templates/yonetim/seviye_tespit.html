@@ -1,0 +1,377 @@
+{% extends "yonetim/base.html" %}
+{% load static %}
+{% block title %}Seviye Tespit{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/seviye-tespit.css' %}?v=1">{% endblock %}
+{% block content %}
+<div class="st">
+
+    <header class="st-head">
+        <p class="kicker">Eğitim</p>
+        <h1>Seviye Tespit</h1>
+        <p class="st-alt">
+            {{ sinav_adi }}{% if takvim %} · {{ takvim.baslangic|date:"j F l" }}, {{ takvim.baslangic|date:"H.i" }}{% endif %}
+        </p>
+        {% if kalan %}<span class="st-geri-sayim">{{ kalan }}</span>{% endif %}
+    </header>
+
+    <nav class="st-sekmeler" aria-label="Bölümler">
+        <a href="?bolum=genel" {% if bolum == "genel" %}aria-current="page"{% endif %}>Genel Bakış</a>
+        <a href="?bolum=basvurular" {% if bolum == "basvurular" %}aria-current="page"{% endif %}>Başvurular <span class="st-sayac">{{ basvuru_sayisi }}</span></a>
+        <a href="?bolum=bildirimler" {% if bolum == "bildirimler" %}aria-current="page"{% endif %}>Bildirimler</a>
+        <a href="?bolum=ayarlar" {% if bolum == "ayarlar" %}aria-current="page"{% endif %}>Ayarlar</a>
+    </nav>
+
+    {% if bolum == "genel" %}
+    {# ——— GENEL BAKIŞ ——— #}
+    <section class="st-istatistik" aria-label="Özet">
+        <div class="st-kutu">
+            <span class="st-kutu-etiket">Başvuru</span>
+            <strong class="st-kutu-deger">{{ genel.toplam }}</strong>
+            <span class="st-kutu-not">{% if genel.bugun %}Bugün +{{ genel.bugun }}{% else %}Bugün yeni başvuru yok{% endif %}</span>
+        </div>
+        <div class="st-kutu">
+            <span class="st-kutu-etiket">Uygulama bildirimi</span>
+            <strong class="st-kutu-deger">{{ genel.bildirim }}</strong>
+            <span class="st-kutu-not">Android ve bilgisayar</span>
+        </div>
+        <div class="st-kutu">
+            <span class="st-kutu-etiket">Takvim</span>
+            <strong class="st-kutu-deger">{{ genel.takvim }}</strong>
+            <span class="st-kutu-not">iPhone</span>
+        </div>
+        <div class="st-kutu">
+            <span class="st-kutu-etiket">E-posta</span>
+            <strong class="st-kutu-deger">{{ genel.eposta }}</strong>
+            <span class="st-kutu-not">{% if kanallar.eposta %}Gönderim açık{% else %}Gönderim ayarlanmadı{% endif %}</span>
+        </div>
+    </section>
+
+    <div class="st-iki">
+        <section class="st-kart">
+            <h2 class="st-kart-baslik">Sınıflara göre</h2>
+            <ul class="st-cubuklar">
+                {% for s in genel.siniflar %}
+                <li>
+                    <span class="st-cubuk-etiket">{{ s.etiket }}</span>
+                    <span class="st-cubuk"><span style="width: {{ s.oran }}%"></span></span>
+                    <span class="st-cubuk-sayi">{{ s.sayi }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </section>
+
+        <section class="st-kart">
+            <h2 class="st-kart-baslik">Sıradaki hatırlatma</h2>
+            {% if siradaki %}
+            <div class="st-siradaki">
+                <span class="st-siradaki-zaman">{{ siradaki.zaman|date:"j F l, H.i" }}</span>
+                <strong>{{ siradaki.etiket }}</strong>
+                <span class="st-etiketler">{% for k in siradaki.kanallar %}<span class="st-etiket">{{ k }}</span>{% endfor %}</span>
+            </div>
+            {% else %}
+            <p class="st-soluk">Bekleyen hatırlatma yok.</p>
+            {% endif %}
+            <a class="st-bag" href="?bolum=bildirimler">Tüm bildirim takvimi</a>
+
+            <h2 class="st-kart-baslik st-ara">En çok başvuru gelen ilçeler</h2>
+            <ol class="st-liste-sayili">
+                {% for i in genel.ilceler %}
+                <li><span>{{ i.ilce|default:"—" }}</span><span class="st-soluk">{{ i.n }}</span></li>
+                {% empty %}
+                <li class="st-soluk">Henüz başvuru yok.</li>
+                {% endfor %}
+            </ol>
+        </section>
+    </div>
+
+    <section class="st-kart">
+        <div class="st-kart-ust">
+            <h2 class="st-kart-baslik">Son başvurular</h2>
+            <a class="st-bag" href="?bolum=basvurular">Tümünü gör</a>
+        </div>
+        <ul class="st-son">
+            {% for b in genel.son %}
+            <li>
+                <a href="{% url 'yonetim:sinav_basvuru_detay' b.pk %}">
+                    <span class="st-avatar" aria-hidden="true">{{ b.ad_soyad|slice:":1" }}</span>
+                    <span class="st-son-metin">
+                        <strong>{{ b.ad_soyad }}</strong>
+                        <span class="st-soluk">{% if b.sinif %}{{ b.sinif }}. sınıf · {% endif %}{{ b.okul_adi|default:b.ilce }}</span>
+                    </span>
+                    <span class="st-soluk st-son-zaman">{{ b.olusturulma|timesince }} önce</span>
+                </a>
+            </li>
+            {% empty %}
+            <li class="st-bos">Henüz başvuru yok.</li>
+            {% endfor %}
+        </ul>
+        {% if genel.ulasilamayan %}
+        <p class="st-not">{{ genel.ulasilamayan }} başvurunun hatırlatması kapalı (hatırlatma adımı eklenmeden önce yapılmış başvurular).</p>
+        {% endif %}
+    </section>
+
+    {% elif bolum == "basvurular" %}
+    {# ——— BAŞVURULAR ——— #}
+    <form method="get" class="st-arac" id="st-filtre">
+        <input type="hidden" name="bolum" value="basvurular">
+        <label class="st-ara-kutu">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+            <span class="st-gizli">Ara</span>
+            <input type="search" name="q" value="{{ arama }}" placeholder="Öğrenci, okul, telefon, e-posta">
+        </label>
+        <label class="st-secim">
+            <span class="st-gizli">Sınıf</span>
+            <select name="sinif" data-otomatik>
+                <option value="">Tüm sınıflar</option>
+                {% for value, label in sinif_secenekleri %}
+                <option value="{{ value }}" {% if sinif_filtre == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label class="st-secim">
+            <span class="st-gizli">Durum</span>
+            <select name="durum" data-otomatik>
+                <option value="">Tüm durumlar</option>
+                {% for d in durumlar %}
+                <option value="{{ d.pk }}" {% if durum_filtre == d.pk|stringformat:"s" or durum_filtre == d.kod %}selected{% endif %}>{{ d.ad }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        {% if sinav_secenekleri|length > 1 %}
+        <label class="st-secim">
+            <span class="st-gizli">Sınav</span>
+            <select name="sinav" data-otomatik>
+                <option value="" {% if not sinav_filtre %}selected{% endif %}>Tüm sınavlar</option>
+                {% for s in sinav_secenekleri %}
+                <option value="{{ s }}" {% if sinav_filtre == s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        {% endif %}
+        <span class="st-arac-bosluk"></span>
+        <a class="st-ikon-bag" href="{% url 'yonetim:sinav_basvuru_excel' %}?durum={{ durum_filtre }}&q={{ arama|urlencode }}&sinav={{ sinav_filtre|urlencode }}&sinif={{ sinif_filtre|urlencode }}" title="Excel olarak indir">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg>
+            Excel
+        </a>
+        <a class="st-ikon-bag" href="{% url 'sinav_basvuru_form' %}" target="_blank" rel="noopener" title="Başvuru formunu yeni sekmede aç">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"></path><path d="M20 4 10 14"></path><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"></path></svg>
+            Form
+        </a>
+    </form>
+
+    <form method="post" id="st-liste-form">
+        {% csrf_token %}
+        <input type="hidden" name="bolum" value="basvurular">
+        <input type="hidden" name="action" id="st-eylem" value="satir_durumlar">
+
+        <div class="st-toplu" id="st-toplu" hidden>
+            <span><strong id="st-secili">0</strong> başvuru seçildi</span>
+            <label class="st-secim">
+                <span class="st-gizli">Yeni durum</span>
+                <select name="toplu_durum_id" id="st-toplu-durum">
+                    <option value="">Durum seçin</option>
+                    {% for d in durumlar %}
+                    <option value="{{ d.pk }}">{{ d.ad }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button type="button" class="st-dugme" id="st-toplu-uygula">Uygula</button>
+            <button type="button" class="st-dugme-sade" id="st-toplu-vazgec">Vazgeç</button>
+        </div>
+
+        <div class="st-tablo-kap">
+            <table class="st-tablo">
+                <thead>
+                    <tr>
+                        <th class="st-sec"><input type="checkbox" id="st-hepsi" aria-label="Tümünü seç"></th>
+                        <th>Öğrenci</th>
+                        <th>Sınıf</th>
+                        <th>Veli</th>
+                        <th>Hatırlatma</th>
+                        <th>Durum</th>
+                        <th class="st-sag">Başvuru</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in basvurular %}
+                    <tr>
+                        <td class="st-sec"><input type="checkbox" name="basvuru_ids" value="{{ b.pk }}" class="st-satir-sec" aria-label="{{ b.ad_soyad }} seç"></td>
+                        <td>
+                            <a class="st-ogrenci" href="{% url 'yonetim:sinav_basvuru_detay' b.pk %}">
+                                <strong>{{ b.ad_soyad }}</strong>
+                                <span class="st-soluk">{{ b.okul_adi|default:"Okul belirtilmemiş" }}</span>
+                            </a>
+                        </td>
+                        <td>{% if b.sinif %}{{ b.sinif }}{% else %}<span class="st-soluk">—</span>{% endif %}</td>
+                        <td class="st-veli">
+                            <div>
+                                <a href="tel:{{ b.baba_telefon }}">{{ b.baba_telefon }}</a>
+                                <span class="st-soluk">{{ b.ilce }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="st-etiketler">
+                                {% if b.bildirim_cihaz %}<span class="st-etiket st-etiket--mavi">Bildirim</span>{% elif b.hatirlatma_turu == "takvim" %}<span class="st-etiket">Takvim</span>{% endif %}
+                                {% if b.veli_eposta %}<span class="st-etiket">E-posta</span>{% endif %}
+                                {% if not b.bildirim_cihaz and b.hatirlatma_turu != "takvim" and not b.veli_eposta %}<span class="st-soluk">—</span>{% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <label class="st-secim st-secim--satir">
+                                <span class="st-gizli">{{ b.ad_soyad }} durumu</span>
+                                <select name="durum_{{ b.pk }}" data-satir-durum>
+                                    {% for d in durumlar %}
+                                    <option value="{{ d.pk }}" {% if b.durum_id == d.pk %}selected{% endif %}>{{ d.ad }}</option>
+                                    {% endfor %}
+                                    {% if b.durum_id and not b.durum.aktif %}
+                                    <option value="{{ b.durum_id }}" selected>{{ b.durum.ad }} (pasif)</option>
+                                    {% endif %}
+                                </select>
+                            </label>
+                        </td>
+                        <td class="st-sag st-soluk">{{ b.olusturulma|date:"j M, H.i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="st-bos">{% if arama or sinif_filtre or durum_filtre %}Aramanıza uyan başvuru yok.{% else %}Henüz başvuru yok.{% endif %}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </form>
+
+    {% elif bolum == "bildirimler" %}
+    {# ——— BİLDİRİMLER ——— #}
+    <section class="st-kanallar" aria-label="Kanallar">
+        <div class="st-kanal {% if kanallar.bildirim %}st-kanal--acik{% endif %}">
+            <span class="st-nokta" aria-hidden="true"></span>
+            <div><strong>Uygulama bildirimi</strong><span class="st-soluk">{% if kanallar.bildirim %}Açık{% else %}Kapalı{% endif %}</span></div>
+        </div>
+        <div class="st-kanal {% if kanallar.eposta %}st-kanal--acik{% endif %}">
+            <span class="st-nokta" aria-hidden="true"></span>
+            <div><strong>E-posta</strong><span class="st-soluk">{% if kanallar.eposta %}Açık{% else %}E-posta hesabı ayarlanmadı{% endif %}</span></div>
+        </div>
+        <div class="st-kanal {% if kanallar.takvim %}st-kanal--acik{% endif %}">
+            <span class="st-nokta" aria-hidden="true"></span>
+            <div><strong>Takvim</strong><span class="st-soluk">{% if kanallar.takvim %}{% if takvim.bildirim_aktif %}Hatırlatmalar açık{% else %}Hatırlatmalar kapalı{% endif %}{% else %}Sınav takvimi yok{% endif %}</span></div>
+        </div>
+    </section>
+
+    <section class="st-kart">
+        <h2 class="st-kart-baslik">Bildirim takvimi</h2>
+        <ol class="st-zaman">
+            {% for z in zaman_cizelgesi %}
+            <li class="st-zaman-satir st-zaman--{{ z.durum }}">
+                <span class="st-zaman-nokta" aria-hidden="true"></span>
+                <div class="st-zaman-ne">
+                    <span class="st-zaman-ne-zaman">{% if z.zaman %}{{ z.zaman|date:"j F l · H.i" }}{% else %}{{ z.zaman_metni }}{% endif %}</span>
+                    <strong>{{ z.etiket }}</strong>
+                    <span class="st-etiketler">{% for k in z.kanallar %}<span class="st-etiket">{{ k }}</span>{% endfor %}</span>
+                </div>
+                <div class="st-zaman-sonuc">
+                    {% if z.durum == "bekliyor" %}
+                    <span class="st-soluk">Bekliyor</span>
+                    {% else %}
+                    <span>{{ z.cihaz }} cihaz{% if "E-posta" in z.kanallar %} · {{ z.eposta }} e-posta{% endif %}</span>
+                    {% if z.hata %}<span class="st-hata">{{ z.hata }} hata</span>{% endif %}
+                    {% endif %}
+                </div>
+            </li>
+            {% endfor %}
+        </ol>
+        {% if not takvim %}<p class="st-not">Sınav takvimi girilmediği için zamanlanmış hatırlatmalar yok. <a href="?bolum=ayarlar">Ayarlar</a>'dan ekleyin.</p>{% endif %}
+    </section>
+
+    {% if hatali_bildirimler %}
+    <section class="st-kart">
+        <h2 class="st-kart-baslik">Ulaşmayan bildirimler</h2>
+        <ul class="st-hatalar">
+            {% for h in hatali_bildirimler %}
+            <li>
+                <a href="{% url 'yonetim:sinav_basvuru_detay' h.basvuru_id %}"><strong>{{ h.basvuru.ad_soyad }}</strong></a>
+                <span class="st-soluk">{{ h.baslik }} · {{ h.olusturulma|date:"j M H.i" }}</span>
+                <span class="st-hata-metin">{{ h.push_hata|truncatechars:140 }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+
+    {% else %}
+    {# ——— AYARLAR ——— #}
+    <div class="st-iki">
+        <section class="st-kart">
+            <h2 class="st-kart-baslik">Sınav takvimi</h2>
+            <p class="st-kart-aciklama">Hatırlatmaların saatleri buna göre hesaplanır.</p>
+            <form method="post" class="st-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="takvim_kaydet">
+                <input type="hidden" name="bolum" value="ayarlar">
+                <label class="st-alan">
+                    <span>Tarih</span>
+                    <input type="date" name="tarih" required value="{% if takvim %}{{ takvim.baslangic|date:'Y-m-d' }}{% endif %}">
+                </label>
+                <div class="st-alan-ikili">
+                    <label class="st-alan">
+                        <span>Başlangıç</span>
+                        <input type="time" name="baslangic" required value="{% if takvim %}{{ takvim.baslangic|date:'H:i' }}{% endif %}">
+                    </label>
+                    <label class="st-alan">
+                        <span>Bitiş</span>
+                        <input type="time" name="bitis" required value="{% if takvim %}{{ takvim.bitis|date:'H:i' }}{% endif %}">
+                    </label>
+                </div>
+                <label class="st-alan">
+                    <span>Yer</span>
+                    <input type="text" name="yer" maxlength="200" value="{{ takvim.yer|default:'' }}" placeholder="Çinili Saray Öğrenci Yurdu, Başakşehir">
+                </label>
+                <label class="st-anahtar">
+                    <input type="checkbox" name="bildirim_aktif" {% if not takvim or takvim.bildirim_aktif %}checked{% endif %}>
+                    <span class="st-anahtar-iz" aria-hidden="true"></span>
+                    <span>Otomatik hatırlatmalar açık</span>
+                </label>
+                <button type="submit" class="st-dugme">Kaydet</button>
+            </form>
+        </section>
+
+        <section class="st-kart">
+            <h2 class="st-kart-baslik">Başvuru durumları</h2>
+            <p class="st-kart-aciklama">Başvuruları ayırmak için kullandığınız etiketler.</p>
+            <ul class="st-durumlar">
+                {% for d in tum_durumlar %}
+                <li class="{% if not d.aktif %}st-pasif{% endif %}">
+                    <span class="st-durum-ad">{{ d.ad }}</span>
+                    <span class="st-soluk">{{ d.basvuru_sayisi }} başvuru</span>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="bolum" value="ayarlar">
+                        <input type="hidden" name="action" value="durum_toggle">
+                        <input type="hidden" name="durum_id" value="{{ d.pk }}">
+                        <button type="submit" class="st-dugme-sade">{% if d.aktif %}Gizle{% else %}Göster{% endif %}</button>
+                    </form>
+                    {% if d.basvuru_sayisi == 0 %}
+                    <form method="post" onsubmit="return confirm('“{{ d.ad|escapejs }}” silinsin mi?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="bolum" value="ayarlar">
+                        <input type="hidden" name="action" value="durum_sil">
+                        <input type="hidden" name="durum_id" value="{{ d.pk }}">
+                        <button type="submit" class="st-dugme-sade st-tehlike">Sil</button>
+                    </form>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            <form method="post" class="st-ekle">
+                {% csrf_token %}
+                <input type="hidden" name="bolum" value="ayarlar">
+                <input type="hidden" name="action" value="durum_ekle">
+                <label class="st-gizli" for="st-yeni-durum">Yeni durum</label>
+                <input type="text" id="st-yeni-durum" name="durum_ad" required placeholder="Yeni durum, örn. Yedek liste">
+                <button type="submit" class="st-dugme-sade">Ekle</button>
+            </form>
+        </section>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+{% block extra_js %}<script src="{% static 'js/seviye-tespit.js' %}?v=1" defer></script>{% endblock %}
