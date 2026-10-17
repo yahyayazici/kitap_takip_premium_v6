@@ -151,3 +151,12 @@ class EpostaZamanlamaTests(TakvimliTestCase):
         self.assertTrue(log.eposta_gonderildi)
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("yarın", mail.outbox[0].body)
+
+
+class EpostaYapilandirmaTests(TakvimliTestCase):
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.console.EmailBackend", EMAIL_HOST="")
+    def test_konsol_backend_gonderildi_sayilmaz(self):
+        yanit = self.client.post(FORM_URL, veri())
+        self.assertEqual(yanit.status_code, 302)
+        log = SinavBildirimLog.objects.get(an_kodu=AN_KAYIT)
+        self.assertFalse(log.eposta_gonderildi)

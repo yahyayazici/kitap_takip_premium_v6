@@ -278,8 +278,24 @@ def eposta_metni(an_kodu: str, basvuru: SinavBasvuru, takvim: SinavTakvim | None
     return "", ""
 
 
+def sinav_eposta_aktif() -> bool:
+    """Gerçekten e-posta gönderebilen bir yapılandırma var mı?
+
+    Konsol/dosya backend'i e-postayı yalnızca sunucu kaydına yazar; veliye ulaşmaz,
+    bu yüzden "gönderildi" sayılmaz. (locmem yalnızca testlerde kullanılır.)
+    """
+    if not email_kanali_aktif():
+        return False
+    backend = (getattr(settings, "EMAIL_BACKEND", "") or "").lower()
+    if "locmem" in backend:
+        return True
+    if "smtp" in backend:
+        return bool((getattr(settings, "EMAIL_HOST", "") or "").strip())
+    return False
+
+
 def _eposta_gonder(an_kodu: str, basvuru: SinavBasvuru, takvim: SinavTakvim | None) -> bool:
-    if an_kodu not in EPOSTA_ANLARI or not basvuru.veli_eposta or not email_kanali_aktif():
+    if an_kodu not in EPOSTA_ANLARI or not basvuru.veli_eposta or not sinav_eposta_aktif():
         return False
     konu, govde = eposta_metni(an_kodu, basvuru, takvim)
     if not konu:
@@ -394,7 +410,7 @@ def bildirim_gonder(basvuru: SinavBasvuru, an_kodu: str, takvim: SinavTakvim | N
 def zamani_gelenleri_gonder(simdi: dt.datetime | None = None) -> int:
     """Zamanı gelmiş hatırlatmaları gönderir; yeni gönderim kaydı sayısını döner."""
     push_acik = push_bildirim_aktif()
-    eposta_acik = email_kanali_aktif()
+    eposta_acik = sinav_eposta_aktif()
     if not push_acik and not eposta_acik:
         return 0
     simdi = simdi or timezone.now()
