@@ -42,7 +42,7 @@ jobs:
       - name: Sınav başvuru testleri
         run: |
           set +e
-          python manage.py test takip.tests.test_sinav_basvuru_form takip.tests.test_sinav_basvuru_bildirim takip.tests.test_sinav_basvuru_hatirlatma takip.tests.test_seviye_tespit_yonetim takip.tests.test_seviye_tespit_salon -v 2 > test.txt 2>&1
+          python manage.py test takip.tests.test_sinav_basvuru_form takip.tests.test_sinav_basvuru_bildirim takip.tests.test_sinav_basvuru_hatirlatma takip.tests.test_seviye_tespit_yonetim takip.tests.test_seviye_tespit_salon takip.tests.test_seviye_tespit_sonuc -v 2 > test.txt 2>&1
           kod=$?
           cat test.txt
           if [ $kod -ne 0 ]; then

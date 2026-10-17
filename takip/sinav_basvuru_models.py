@@ -80,6 +80,12 @@ class SinavBasvuru(models.Model):
         verbose_name="Durum",
         default=varsayilan_basvuru_durumu,
     )
+    sonuc_karar = models.CharField(
+        max_length=12,
+        blank=True,
+        choices=[("kazandi", "Kazandı"), ("kazanamadi", "Kazanamadı")],
+        verbose_name="Sonuç kararı",
+    )
     notlar = models.TextField(blank=True, verbose_name="Yönetim notu")
     olusturulma = models.DateTimeField(auto_now_add=True, verbose_name="Başvuru zamanı")
     guncellenme = models.DateTimeField(auto_now=True, verbose_name="Güncellenme")

@@ -261,6 +261,11 @@ if os.environ.get("MEDIA_ROOT"):
 EKRAN_MEDIA_ROOT = Path(os.environ.get("EKRAN_MEDIA_ROOT", "") or (MEDIA_ROOT / "ekran-medya"))
 EKRAN_MEDIA_URL = "/ekran-medya/"
 
+# —— Seviye Tespit sonuç karneleri (PDF/PNG). Kalıcı diskin alt klasörü; herkese açık URL yok.
+SINAV_SONUC_MEDIA_ROOT = Path(
+    os.environ.get("SINAV_SONUC_MEDIA_ROOT", "") or (EKRAN_MEDIA_ROOT / "sinav-sonuc")
+)
+
 # —— Akıllı Tahta Dosya Merkezi medya deposu ——
 # Aynı gerekçe: video/PDF hacmi Cloudinary'nin ücretsiz sınırlarını aşar.
 AKILLI_TAHTA_MEDIA_ROOT = Path(

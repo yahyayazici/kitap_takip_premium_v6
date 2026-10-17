@@ -19,6 +19,7 @@ class SinavTakvim(models.Model):
     bitis = models.DateTimeField(verbose_name="Sınav bitişi")
     yer = models.CharField(max_length=200, blank=True, verbose_name="Yer")
     bildirim_aktif = models.BooleanField(default=True, verbose_name="Hatırlatmalar açık")
+    sonuc_mesaji = models.TextField(blank=True, verbose_name="Sonuç e-posta mesajı")
     olusturulma = models.DateTimeField(auto_now_add=True)
     guncellenme = models.DateTimeField(auto_now=True)
 
