@@ -1367,6 +1367,8 @@ class SinavBasvuruForm(StyledModelForm):
         model = SinavBasvuru
         fields = [
             "ad_soyad",
+            "sinif",
+            "okul_adi",
             "baba_adi",
             "baba_telefon",
             "anne_adi",
@@ -1379,6 +1381,8 @@ class SinavBasvuruForm(StyledModelForm):
             "ad_soyad": forms.TextInput(
                 attrs={"placeholder": "Öğrencinin adı ve soyadı", "autocomplete": "name"}
             ),
+            "sinif": forms.Select(attrs={"class": "sb-select"}),
+            "okul_adi": forms.TextInput(attrs={"placeholder": "Okuduğu okulun adı"}),
             "baba_adi": forms.TextInput(attrs={"placeholder": "Baba adı"}),
             "baba_telefon": forms.TextInput(
                 attrs={
@@ -1410,6 +1414,15 @@ class SinavBasvuruForm(StyledModelForm):
         self.fields["il"].choices = [(ISTANBUL, ISTANBUL)]
         self.fields["il"].initial = ISTANBUL
         self.fields["ilce"].choices = ISTANBUL_ILCE_CHOICES
+        from takip.sinav_basvuru_models import SINAV_BASVURU_SINIF_SECENEKLERI
+
+        self.fields["sinif"].required = True
+        self.fields["sinif"].choices = [("", "Sınıf seçin")] + list(
+            SINAV_BASVURU_SINIF_SECENEKLERI
+        )
+        self.fields["sinif"].error_messages["required"] = "Öğrencinin sınıfını seçin."
+        self.fields["okul_adi"].required = True
+        self.fields["okul_adi"].error_messages["required"] = "Okul adını yazın."
         if not self.is_bound and not self.initial.get("il"):
             self.initial["il"] = ISTANBUL
 
@@ -1428,6 +1441,12 @@ class SinavBasvuruForm(StyledModelForm):
 
     def clean_ad_soyad(self):
         return (self.cleaned_data.get("ad_soyad") or "").strip()
+
+    def clean_okul_adi(self):
+        okul = (self.cleaned_data.get("okul_adi") or "").strip()
+        if not okul:
+            raise forms.ValidationError("Okul adını yazın.")
+        return okul
 
     def clean_il(self):
         from takip.sinav_basvuru_choices import ISTANBUL

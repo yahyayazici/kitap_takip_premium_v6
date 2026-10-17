@@ -21,26 +21,26 @@
             <div class="sb-panel-head">
                 <p class="sb-eyebrow">Online başvuru</p>
                 <h2>{{ sinav_basvuru_baslik }}</h2>
-                <p>Başvuruya geçmeden önce bilgilendirmeyi okuyunuz.</p>
+                <p>4-5-6-7-8. sınıf erkek öğrenciler için</p>
             </div>
 
             <article class="sb-notice sb-notice--info" id="sb-bilgilendirme">
                 <header class="sb-notice-head">
-                    <span class="sb-notice-badge">Önemli</span>
                     <h3>Bilgilendirme</h3>
                 </header>
                 <div class="sb-notice-body">
                     <p>
-                        <strong>4A Proje Sınıfımız;</strong> akademik başarısı yüksek talebelerimizin
-                        daha yoğun ve sistemli bir eğitim programıyla desteklenmesi amacıyla oluşturulmuştur.
+                        Yazılılar öncesinde öğrencilerimizin her dersteki seviyesini görmek amacıyla
+                        bir <strong>deneme sınavı</strong> düzenliyoruz. Deneme; Türkçe, Matematik,
+                        Fen Bilimleri, Sosyal Bilgiler, Din Kültürü ve İngilizce derslerinden oluşur.
                     </p>
-                    <p>
-                        <strong>Programa kabul,</strong> yapılacak <strong>Alım Sınavı</strong> sonucuna
-                        ve belirlenen kontenjana göre gerçekleştirilecektir.
-                    </p>
+                    <ul class="sb-notice-list">
+                        <li><strong>Tarih:</strong> 24 Ekim 2026, Cumartesi</li>
+                        <li><strong>Saat:</strong> 11.00</li>
+                        <li><strong>Yer:</strong> Çinili Saray Öğrenci Yurdu, Başakşehir</li>
+                    </ul>
                     <p class="sb-notice-highlight">
-                        Başvuru, kesin kayıt hakkı oluşturmaz.
-                        <strong>Kesin kayıt hakkı sınav sonucuna göre belirlenecektir.</strong>
+                        Denemeye katılan her öğrenciye, <strong>her dersten 2 örnek yazılı</strong> hediye edilir.
                     </p>
                 </div>
             </article>
@@ -55,9 +55,25 @@
                 <p class="sb-form-kicker sb-field--full">Başvuru bilgileri</p>
 
                 <div class="sb-field sb-field--full">
-                    <label for="{{ form.ad_soyad.id_for_label }}">Ad soyad</label>
+                    <label for="{{ form.ad_soyad.id_for_label }}">Öğrenci ad soyad</label>
                     <input type="text" name="{{ form.ad_soyad.html_name }}" id="{{ form.ad_soyad.id_for_label }}" value="{{ form.ad_soyad.value|default:'' }}" autocomplete="name" autofocus required placeholder="Öğrencinin adı ve soyadı">
                     {% if form.ad_soyad.errors %}<p class="sb-field-error">{{ form.ad_soyad.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="sb-field">
+                    <label for="{{ form.sinif.id_for_label }}">Sınıf</label>
+                    <select name="{{ form.sinif.html_name }}" id="{{ form.sinif.id_for_label }}" class="sb-select" required>
+                        {% for value, label in form.sinif.field.choices %}
+                        <option value="{{ value }}" {% if form.sinif.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if form.sinif.errors %}<p class="sb-field-error">{{ form.sinif.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="sb-field">
+                    <label for="{{ form.okul_adi.id_for_label }}">Okul adı</label>
+                    <input type="text" name="{{ form.okul_adi.html_name }}" id="{{ form.okul_adi.id_for_label }}" value="{{ form.okul_adi.value|default:'' }}" required placeholder="Okuduğu okulun adı">
+                    {% if form.okul_adi.errors %}<p class="sb-field-error">{{ form.okul_adi.errors.0 }}</p>{% endif %}
                 </div>
 
                 <div class="sb-field">
@@ -126,15 +142,9 @@
                         <h3>Değerlendirme</h3>
                     </header>
                     <div class="sb-notice-body">
-                        <p>
-                            Sınav sonuçları, talebelerimizin başarı durumları ve belirlenen kontenjan
-                            doğrultusunda değerlendirilecektir.
-                        </p>
                         <ul class="sb-notice-list">
-                            <li>4A Proje Sınıfı’na yerleştirmeler başarı sıralamasına göre yapılacaktır.</li>
                             <li>Sınav neticeleri en geç 3 gün içerisinde açıklanacaktır.</li>
-                            <li>Sonuç ve kayıt süreci, velilere iletişim bilgileri üzerinden bildirilecektir.</li>
-                            <li>Başvuru ve sınava katılım, kesin kayıt hakkı oluşturmaz.</li>
+                            <li>Sonuçlar, velilere iletişim bilgileri üzerinden bildirilecektir.</li>
                         </ul>
                     </div>
                 </article>
@@ -147,8 +157,8 @@
                                {% if form.bilgilendirme_onay.value %}checked{% endif %}
                                required>
                         <span>
-                            Yukarıdaki <strong>Bilgilendirme</strong> ve <strong>Değerlendirme</strong>
-                            metinlerini okudum; başvurunun kesin kayıt hakkı oluşturmadığını kabul ediyorum.
+                            <strong>Bilgilendirme</strong> ve <strong>Değerlendirme</strong>
+                            metinlerini okudum, onaylıyorum.
                         </span>
                     </label>
                     {% if form.bilgilendirme_onay.errors %}

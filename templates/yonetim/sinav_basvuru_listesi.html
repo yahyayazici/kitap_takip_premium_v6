@@ -10,7 +10,7 @@
     </div>
     <div style="display:flex;flex-wrap:wrap;gap:0.6rem;">
         <a href="{% url 'yonetim:sinav_basvuru_mesaj_an_listesi' %}" class="secondary-btn">Mesaj anları</a>
-        <a href="{% url 'yonetim:sinav_basvuru_excel' %}?durum={{ durum_filtre }}&q={{ arama|urlencode }}" class="secondary-btn">Excel indir</a>
+        <a href="{% url 'yonetim:sinav_basvuru_excel' %}?durum={{ durum_filtre }}&q={{ arama|urlencode }}&sinav={{ sinav_filtre|urlencode }}&sinif={{ sinif_filtre|urlencode }}" class="secondary-btn">Excel indir</a>
         <a href="{% url 'sinav_basvuru_form' %}" class="secondary-btn" target="_blank" rel="noopener">Formu aç</a>
     </div>
 </header>
@@ -113,7 +113,25 @@
     <form method="get" class="yonetim-filter-bar" style="display:flex;flex-wrap:wrap;gap:0.75rem;margin:0 0 1rem;align-items:end;">
         <div>
             <label for="q">Ara</label>
-            <input class="cs-input" type="search" id="q" name="q" value="{{ arama }}" placeholder="Ad, baba/anne telefon…">
+            <input class="cs-input" type="search" id="q" name="q" value="{{ arama }}" placeholder="Ad, okul, baba/anne telefon…">
+        </div>
+        <div>
+            <label for="sinav">Sınav</label>
+            <select class="cs-input" id="sinav" name="sinav">
+                <option value="">Tümü</option>
+                {% for s in sinav_secenekleri %}
+                <option value="{{ s }}" {% if sinav_filtre == s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="sinif">Sınıf</label>
+            <select class="cs-input" id="sinif" name="sinif">
+                <option value="">Tümü</option>
+                {% for value, label in sinif_secenekleri %}
+                <option value="{{ value }}" {% if sinif_filtre == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
         </div>
         <div>
             <label for="durum">Durum filtre</label>
@@ -166,7 +184,9 @@
                 <thead>
                     <tr>
                         <th class="yonetim-center-col"><input type="checkbox" id="sec-hepsi" aria-label="Tümünü seç"></th>
-                        <th>Ad soyad</th>
+                        <th>Öğrenci ad soyad</th>
+                        <th>Sınıf</th>
+                        <th>Okul</th>
                         <th>Baba tel</th>
                         <th>Anne tel</th>
                         <th>İl / İlçe</th>
@@ -184,6 +204,8 @@
                             <input type="checkbox" name="basvuru_ids" value="{{ b.pk }}" class="basvuru-sec-mesaj" form="toplu-mesaj-form" style="display:none;" tabindex="-1" aria-hidden="true">
                         </td>
                         <td><strong>{{ b.ad_soyad }}</strong></td>
+                        <td>{% if b.sinif %}{{ b.sinif }}{% else %}—{% endif %}</td>
+                        <td>{{ b.okul_adi|default:"—" }}</td>
                         <td>{{ b.baba_telefon }}</td>
                         <td>{{ b.anne_telefon }}</td>
                         <td>{{ b.il }} / {{ b.ilce }}</td>
@@ -211,7 +233,7 @@
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="9" class="report-empty">Henüz başvuru yok.</td></tr>
+                    <tr><td colspan="11" class="report-empty">Henüz başvuru yok.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
