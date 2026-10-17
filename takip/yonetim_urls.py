@@ -629,6 +629,11 @@ urlpatterns = [
         name="seviye_tespit_salon_yazdir",
     ),
     path(
+        "seviye-tespit/karne/<int:pk>/",
+        sinav_basvuru_yonetim_views.seviye_tespit_karne,
+        name="seviye_tespit_karne",
+    ),
+    path(
         "sinav-basvurulari/toplu-mesaj/",
         sinav_basvuru_yonetim_views.sinav_basvuru_toplu_mesaj,
         name="sinav_basvuru_toplu_mesaj",

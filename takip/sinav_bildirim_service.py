@@ -349,7 +349,9 @@ def abonelik_kaydet(basvuru: SinavBasvuru, data: dict, user_agent: str = "") -> 
     return abonelik
 
 
-def abonelige_push(abonelik: SinavBasvuruPushAbonelik, *, baslik: str, mesaj: str) -> str:
+def abonelige_push(
+    abonelik: SinavBasvuruPushAbonelik, *, baslik: str, mesaj: str, url: str | None = None
+) -> str:
     """Tek aboneliğe push gönderir. Başarılıysa "", değilse okunabilir hata metni döner."""
     if not push_bildirim_aktif():
         return "VAPID anahtarları tanımlı değil."
@@ -357,7 +359,7 @@ def abonelige_push(abonelik: SinavBasvuruPushAbonelik, *, baslik: str, mesaj: st
     from pywebpush import WebPushException, webpush
 
     payload = json.dumps(
-        {"title": baslik, "body": mesaj, "url": basvuru_bildirim_url(abonelik.basvuru)}
+        {"title": baslik, "body": mesaj, "url": url or basvuru_bildirim_url(abonelik.basvuru)}
     )
     try:
         webpush(
@@ -390,13 +392,15 @@ def abonelige_push(abonelik: SinavBasvuruPushAbonelik, *, baslik: str, mesaj: st
         return f"{type(exc).__name__}: {exc}"[:500]
 
 
-def _push_gonder(basvuru: SinavBasvuru, *, baslik: str, mesaj: str) -> tuple[int, str]:
+def _push_gonder(
+    basvuru: SinavBasvuru, *, baslik: str, mesaj: str, url: str | None = None
+) -> tuple[int, str]:
     if not push_bildirim_aktif():
         return 0, ""
     ulasan = 0
     hatalar: list[str] = []
     for abonelik in list(SinavBasvuruPushAbonelik.objects.filter(basvuru=basvuru)):
-        hata = abonelige_push(abonelik, baslik=baslik, mesaj=mesaj)
+        hata = abonelige_push(abonelik, baslik=baslik, mesaj=mesaj, url=url)
         if hata:
             hatalar.append(hata)
         else:

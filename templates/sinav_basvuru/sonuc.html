@@ -1,0 +1,44 @@
+{% load static %}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>Sınav sonucu · Çinili Saray</title>
+    <link rel="icon" type="image/png" href="{% static 'images/cinili-saray-logo-icon-sm.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'images/cinili-saray-logo-icon.png' %}">
+    <link rel="stylesheet" href="{% static 'css/sinav-basvuru.css' %}">
+</head>
+<body>
+<main class="sb-page sb-thanks sb-sonuc">
+    <div class="sb-shell">
+        <header class="sb-brand">
+            <div class="sb-logo">
+                <img src="{% static 'images/cinili-saray-logo-transparent.png' %}" alt="Çinili Saray Öğrenci Yurdu">
+            </div>
+        </header>
+
+        <section class="sb-panel">
+            {% if sonuc %}
+            <p class="sb-eyebrow">Sınav sonucu</p>
+            <h2>{{ basvuru.ad_soyad }}</h2>
+            <p class="sb-lead">{{ basvuru.sinav_adi }}</p>
+            <div class="sb-sonuc-dosya">
+                {% if sonuc.karne_gorsel_mi %}
+                <img src="{{ dosya_url }}" alt="{{ basvuru.ad_soyad }} sınav sonucu">
+                {% else %}
+                <iframe src="{{ dosya_url }}" title="{{ basvuru.ad_soyad }} sınav sonucu"></iframe>
+                {% endif %}
+            </div>
+            <a class="sb-bildirim-btn" href="{{ dosya_url }}&indir=1">Sonucu indir</a>
+            {% else %}
+            <p class="sb-eyebrow">Sınav sonucu</p>
+            <h2>Henüz açıklanmadı</h2>
+            <p class="sb-lead">Sonuç açıklandığında size bildirim ve e-posta ile haber vereceğiz.</p>
+            {% endif %}
+        </section>
+    </div>
+</main>
+</body>
+</html>

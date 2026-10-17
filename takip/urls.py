@@ -67,6 +67,16 @@ urlpatterns = [
         name="sinav_basvuru_takvim",
     ),
     path(
+        "sinav-basvuru/sonuc/",
+        sinav_basvuru_views.sinav_basvuru_sonuc,
+        name="sinav_basvuru_sonuc",
+    ),
+    path(
+        "sinav-basvuru/sonuc/dosya/",
+        sinav_basvuru_views.sinav_basvuru_sonuc_dosya,
+        name="sinav_basvuru_sonuc_dosya",
+    ),
+    path(
         "sinav-basvuru/bildirim/<str:token>/abone/",
         sinav_basvuru_views.sinav_basvuru_bildirim_abone,
         name="sinav_basvuru_bildirim_abone",

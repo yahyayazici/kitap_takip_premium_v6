@@ -1,7 +1,7 @@
 {% extends "yonetim/base.html" %}
 {% load static %}
 {% block title %}{{ basvuru.ad_soyad }} · Seviye Tespit{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/seviye-tespit.css' %}?v=2">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/seviye-tespit.css' %}?v=3">{% endblock %}
 {% block content %}
 <div class="st">
 
@@ -36,6 +36,26 @@
             </dl>
         </section>
     </div>
+
+    {% if sonuc or basvuru.sonuc_karar %}
+    <section class="st-kart">
+        <div class="st-kart-ust">
+            <h2 class="st-kart-baslik">Sınav sonucu</h2>
+            {% if basvuru.sonuc_karar %}<span class="st-etiket {% if basvuru.sonuc_karar == 'kazandi' %}st-etiket--yesil{% endif %}">{{ basvuru.get_sonuc_karar_display }}</span>{% endif %}
+        </div>
+        {% if sonuc %}
+        <dl class="st-bilgi">
+            {% if sonuc.veri_var %}
+            <div><dt>Net</dt><dd>{{ sonuc.toplam_net }} <span class="st-soluk">({{ sonuc.toplam_dogru }} D · {{ sonuc.toplam_yanlis }} Y · {{ sonuc.toplam_bos }} B)</span></dd></div>
+            {% if sonuc.puan is not None %}<div><dt>Puan</dt><dd>{{ sonuc.puan|floatformat:2 }}</dd></div>{% endif %}
+            <div><dt>Sıra</dt><dd>Genel {{ sonuc.genel_sira|default:"—" }}{% if sonuc.sinif_sira %} · sınıfında {{ sonuc.sinif_sira }}{% endif %}</dd></div>
+            {% endif %}
+            <div><dt>Karne</dt><dd>{% if sonuc.karne %}<a href="{% url 'yonetim:seviye_tespit_karne' basvuru.pk %}" target="_blank" rel="noopener">{{ sonuc.karne_adi|default:"Karneyi aç" }}</a>{% else %}<span class="st-soluk">Yüklenmedi</span>{% endif %}</dd></div>
+            <div><dt>Veliye</dt><dd>{% if sonuc.gonderim_zamani %}{{ sonuc.gonderim_zamani|date:"j F Y, H.i" }} gönderildi{% else %}<span class="st-soluk">Gönderilmedi</span>{% endif %}</dd></div>
+        </dl>
+        {% endif %}
+    </section>
+    {% endif %}
 
     <section class="st-kart">
         <h2 class="st-kart-baslik">Gönderilen hatırlatmalar</h2>

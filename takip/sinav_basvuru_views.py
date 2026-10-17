@@ -6,7 +6,7 @@ import json
 import logging
 
 from django.conf import settings
-from django.http import Http404, HttpResponse, JsonResponse
+from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
@@ -156,3 +156,54 @@ def sinav_basvuru_bildirim_manifest(request, token):
     )
     response["Cache-Control"] = "no-store"
     return response
+
+
+def _yayinlanmis_sonuc(token: str):
+    from takip.sinav_sonuc_models import SinavSonuc
+
+    basvuru = tokendan_basvuru(token) if token else None
+    if not basvuru:
+        return None, None
+    sonuc = SinavSonuc.objects.filter(basvuru=basvuru).exclude(karne="").exclude(gonderim_zamani=None).first()
+    return basvuru, sonuc
+
+
+@require_GET
+def sinav_basvuru_sonuc(request):
+    token = request.GET.get("t", "").strip()
+    basvuru, sonuc = _yayinlanmis_sonuc(token)
+    if not basvuru:
+        raise Http404
+    yanit = render(
+        request,
+        "sinav_basvuru/sonuc.html",
+        {
+            "basvuru": basvuru,
+            "sonuc": sonuc,
+            "dosya_url": f"{reverse('sinav_basvuru_sonuc_dosya')}?t={token}",
+        },
+    )
+    yanit["Cache-Control"] = "private, no-store"
+    return yanit
+
+
+@require_GET
+def sinav_basvuru_sonuc_dosya(request):
+    import os
+
+    basvuru, sonuc = _yayinlanmis_sonuc(request.GET.get("t", "").strip())
+    if not sonuc:
+        raise Http404
+    try:
+        dosya = sonuc.karne.open("rb")
+    except FileNotFoundError as exc:
+        raise Http404 from exc
+    uzanti = os.path.splitext(sonuc.karne.name)[1].lower()
+    yanit = FileResponse(
+        dosya,
+        as_attachment=request.GET.get("indir") == "1",
+        filename=f"{basvuru.ad_soyad} - Sonuç{uzanti}",
+    )
+    yanit["Cache-Control"] = "private, no-store"
+    yanit["X-Frame-Options"] = "SAMEORIGIN"
+    return yanit

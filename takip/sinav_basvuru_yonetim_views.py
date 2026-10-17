@@ -42,6 +42,19 @@ from takip.sinav_salon_service import (
     salonlari_kaydet,
     yerlesim_bul,
 )
+from takip.sinav_sonuc_models import SinavSonuc
+from takip.sinav_sonuc_service import (
+    DERSLER,
+    VARSAYILAN_MESAJ,
+    KarneHatasi,
+    excel_onizle,
+    karne_kaydet,
+    mesaj_doldur,
+    sonuc_mesaji_sablonu,
+    sonuclari_arka_planda_gonder,
+    sonuclari_kaydet,
+    toplu_karne_kaydet,
+)
 from takip.sinav_basvuru_mesaj_service import (
     basvuru_mesaji_gonder,
     basvurularda_mesaj_gonder,
@@ -69,7 +82,7 @@ def _tum_durumlar():
     ).order_by("sira", "ad")
 
 
-BOLUMLER = ("genel", "basvurular", "salonlar", "bildirimler", "ayarlar")
+BOLUMLER = ("genel", "basvurular", "salonlar", "sonuclar", "bildirimler", "ayarlar")
 
 
 def _sinav_filtresi(request) -> str:
@@ -147,6 +160,10 @@ def sinav_basvuru_listesi(request):
         if action == "salon_kaydet":
             _salon_kaydet(request)
             return _geri(request, "salonlar")
+
+        if action.startswith("sonuc_") or action.startswith("karne_") or action.startswith("karar_"):
+            _sonuc_islemi(request, action)
+            return _geri(request, "sonuclar")
 
         if action == "kelebek":
             try:
@@ -302,8 +319,206 @@ def sinav_basvuru_listesi(request):
             "durumlar": _aktif_durumlar(),
             "tum_durumlar": _tum_durumlar(),
             "salon": salon_ozeti(SINAV_BASVURU_BASLIK) if bolum == "salonlar" else None,
+            "sonuc": _sonuc_baglami(request) if bolum == "sonuclar" else None,
         },
     )
+
+
+SONUC_ONIZLEME_KEY = "seviye_tespit_sonuc_onizleme"
+
+
+def _secili_sonuc_basvurulari(request):
+    ids = [int(i) for i in request.POST.getlist("basvuru_ids") if i.isdigit()]
+    return SinavBasvuru.objects.filter(pk__in=ids, sinav_adi=SINAV_BASVURU_BASLIK)
+
+
+def _sonuc_islemi(request, action: str) -> None:
+    if action == "sonuc_excel":
+        dosya = request.FILES.get("excel")
+        if not dosya:
+            messages.error(request, "Excel dosyası seçin.")
+            return
+        onizleme = excel_onizle(dosya, SINAV_BASVURU_BASLIK)
+        if not onizleme["satirlar"]:
+            messages.error(request, " ".join(onizleme["hatalar"]) or "Excel'de öğrenci satırı bulunamadı.")
+            return
+        request.session[SONUC_ONIZLEME_KEY] = onizleme
+        return
+
+    if action == "sonuc_excel_iptal":
+        request.session.pop(SONUC_ONIZLEME_KEY, None)
+        return
+
+    if action == "sonuc_excel_kaydet":
+        onizleme = request.session.get(SONUC_ONIZLEME_KEY)
+        if not onizleme:
+            messages.error(request, "Önizleme bulunamadı; Excel'i yeniden yükleyin.")
+            return
+        secimler = {}
+        for satir in onizleme["satirlar"]:
+            deger = request.POST.get(f"eslesme_{satir['satir_no']}", "")
+            secimler[satir["satir_no"]] = int(deger) if deger.isdigit() else None
+        adet = sonuclari_kaydet(SINAV_BASVURU_BASLIK, onizleme["satirlar"], secimler)
+        request.session.pop(SONUC_ONIZLEME_KEY, None)
+        atlanan = len(onizleme["satirlar"]) - adet
+        messages.success(
+            request,
+            f"{adet} öğrencinin sonucu kaydedildi" + (f", {atlanan} satır atlandı." if atlanan else "."),
+        )
+        return
+
+    if action == "karne_yukle":
+        basvuru = get_object_or_404(
+            SinavBasvuru, pk=request.POST.get("basvuru_id"), sinav_adi=SINAV_BASVURU_BASLIK
+        )
+        dosya = request.FILES.get("karne")
+        if not dosya:
+            messages.error(request, "Dosya seçin.")
+            return
+        try:
+            karne_kaydet(basvuru, dosya)
+        except KarneHatasi as exc:
+            messages.error(request, str(exc))
+        else:
+            messages.success(request, f"{basvuru.ad_soyad} karnesi yüklendi.")
+        return
+
+    if action == "karne_toplu":
+        dosyalar = request.FILES.getlist("karneler")
+        if not dosyalar:
+            messages.error(request, "Dosya seçin.")
+            return
+        sonuc = toplu_karne_kaydet(SINAV_BASVURU_BASLIK, dosyalar)
+        if sonuc["yuklenen"]:
+            messages.success(request, f"{len(sonuc['yuklenen'])} karne yüklendi.")
+        if sonuc["eslesmeyen"]:
+            messages.warning(
+                request,
+                "Adı bir öğrenciyle eşleşmeyen dosyalar (satırdan tek tek yükleyin): "
+                + ", ".join(sonuc["eslesmeyen"][:15])
+                + (" …" if len(sonuc["eslesmeyen"]) > 15 else ""),
+            )
+        for hata in sonuc["hatali"][:5]:
+            messages.error(request, hata)
+        return
+
+    if action == "karar_satir":
+        say = 0
+        for anahtar, deger in request.POST.items():
+            if not anahtar.startswith("karar_") or deger not in ("", "kazandi", "kazanamadi"):
+                continue
+            pk = anahtar.removeprefix("karar_")
+            if not pk.isdigit():
+                continue
+            say += SinavBasvuru.objects.filter(
+                pk=int(pk), sinav_adi=SINAV_BASVURU_BASLIK
+            ).exclude(sonuc_karar=deger).update(sonuc_karar=deger)
+        if say:
+            messages.success(request, "Karar kaydedildi.")
+        return
+
+    if action == "karar_toplu":
+        karar = request.POST.get("toplu_karar", "")
+        if karar not in ("", "kazandi", "kazanamadi"):
+            return
+        say = _secili_sonuc_basvurulari(request).update(sonuc_karar=karar)
+        etiket = {"kazandi": "Kazandı", "kazanamadi": "Kazanamadı"}.get(karar, "Karar yok")
+        messages.success(request, f"{say} öğrenci “{etiket}” işaretlendi.")
+        return
+
+    if action == "sonuc_mesaj":
+        metin = request.POST.get("sonuc_mesaji", "").strip()
+        takvim = guncel_takvim()
+        if not takvim:
+            messages.error(request, "Önce Ayarlar'dan sınav takvimini girin.")
+            return
+        takvim.sonuc_mesaji = "" if metin == VARSAYILAN_MESAJ else metin
+        takvim.save(update_fields=["sonuc_mesaji", "guncellenme"])
+        messages.success(request, "Mesaj kaydedildi.")
+        return
+
+    if action == "sonuc_gonder":
+        if request.POST.get("kapsam") == "bekleyen":
+            qs = SinavSonuc.objects.filter(basvuru__sinav_adi=SINAV_BASVURU_BASLIK)
+        else:
+            qs = SinavSonuc.objects.filter(basvuru__in=_secili_sonuc_basvurulari(request))
+        hazir = [
+            s.pk
+            for s in qs.exclude(karne="").exclude(karne_surum=0)
+            if s.gonderilen_surum != s.karne_surum
+        ]
+        if not hazir:
+            messages.error(request, "Gönderilecek yeni karne yok. Önce karne yükleyin.")
+            return
+        sonuclari_arka_planda_gonder(hazir)
+        messages.success(
+            request,
+            f"{len(hazir)} veliye sonuç gönderiliyor. Birkaç dakika içinde listede “Gönderildi” görünür.",
+        )
+        return
+
+    messages.error(request, "Geçersiz işlem.")
+
+
+def _sonuc_baglami(request) -> dict:
+    basvurular = (
+        SinavBasvuru.objects.filter(sinav_adi=SINAV_BASVURU_BASLIK)
+        .select_related("sonuc")
+        .annotate(bildirim_cihaz=Count("push_abonelikleri", distinct=True))
+    )
+    toplam = basvurular.count()
+    sinif = request.GET.get("sinif", "").strip()
+    karar = request.GET.get("karar", "").strip()
+    if sinif:
+        basvurular = basvurular.filter(sinif=sinif)
+    if karar == "yok":
+        basvurular = basvurular.filter(sonuc_karar="")
+    elif karar:
+        basvurular = basvurular.filter(sonuc_karar=karar)
+
+    satirlar = []
+    dersler_var: set[str] = set()
+    for b in basvurular:
+        sonuc = getattr(b, "sonuc", None)
+        if sonuc and sonuc.branslar:
+            dersler_var.update(sonuc.branslar)
+        satirlar.append({"b": b, "s": sonuc})
+    satirlar.sort(
+        key=lambda r: (
+            r["s"].genel_sira if r["s"] and r["s"].genel_sira else 10**6,
+            r["b"].ad_soyad.casefold(),
+        )
+    )
+    dersler = [(kod, ad, kisa) for kod, ad, kisa in DERSLER if kod in dersler_var]
+    for r in satirlar:
+        branslar = (r["s"].branslar if r["s"] else {}) or {}
+        r["netler"] = [branslar.get(kod, {}).get("net", "") for kod, _, _ in dersler]
+
+    tum = SinavSonuc.objects.filter(basvuru__sinav_adi=SINAV_BASVURU_BASLIK)
+    guncel = SinavBasvuru.objects.filter(sinav_adi=SINAV_BASVURU_BASLIK)
+    sablon = sonuc_mesaji_sablonu(SINAV_BASVURU_BASLIK)
+    ornek = satirlar[0]["b"] if satirlar else None
+    bekleyen = sum(
+        1 for s in tum.exclude(karne="").exclude(karne_surum=0).only("karne_surum", "gonderilen_surum")
+        if s.gonderilen_surum != s.karne_surum
+    )
+    return {
+        "satirlar": satirlar,
+        "dersler": dersler,
+        "toplam": toplam,
+        "veri": tum.filter(veri_var=True).count(),
+        "karne": tum.exclude(karne="").count(),
+        "gonderilen": tum.exclude(gonderim_zamani=None).count(),
+        "bekleyen": bekleyen,
+        "kazandi": guncel.filter(sonuc_karar="kazandi").count(),
+        "kazanamadi": guncel.filter(sonuc_karar="kazanamadi").count(),
+        "sinif": sinif,
+        "karar": karar,
+        "onizleme": request.session.get(SONUC_ONIZLEME_KEY),
+        "adaylar": list(guncel.order_by("ad_soyad").values("pk", "ad_soyad", "sinif")),
+        "mesaj": sablon,
+        "mesaj_ornek": mesaj_doldur(sablon, ornek) if ornek else "",
+    }
 
 
 MAKS_SALON = 40
@@ -681,6 +896,7 @@ def sinav_basvuru_detay(request, pk):
             ],
             "bildirim_cihaz": basvuru.push_abonelikleri.count(),
             "yerlesim": yerlesim_bul(basvuru),
+            "sonuc": SinavSonuc.objects.filter(basvuru=basvuru).first(),
         },
     )
 
@@ -693,3 +909,22 @@ def sinav_basvuru_sil(request, pk):
     basvuru.delete()
     messages.success(request, f"{ad} başvurusu silindi.")
     return _geri(request)
+
+
+@yonetici_gerekli
+def seviye_tespit_karne(request, pk):
+    import os
+
+    from django.http import FileResponse, Http404
+
+    sonuc = get_object_or_404(SinavSonuc.objects.select_related("basvuru"), basvuru_id=pk)
+    if not sonuc.karne:
+        raise Http404
+    try:
+        dosya = sonuc.karne.open("rb")
+    except FileNotFoundError as exc:
+        raise Http404 from exc
+    uzanti = os.path.splitext(sonuc.karne.name)[1].lower()
+    yanit = FileResponse(dosya, filename=f"{sonuc.basvuru.ad_soyad} - Sonuç{uzanti}")
+    yanit["Cache-Control"] = "private, no-store"
+    return yanit

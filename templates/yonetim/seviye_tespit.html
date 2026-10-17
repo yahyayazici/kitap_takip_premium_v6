@@ -1,7 +1,7 @@
 {% extends "yonetim/base.html" %}
 {% load static %}
 {% block title %}Seviye Tespit{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/seviye-tespit.css' %}?v=2">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/seviye-tespit.css' %}?v=3">{% endblock %}
 {% block content %}
 <div class="st">
 
@@ -18,6 +18,7 @@
         <a href="?bolum=genel" {% if bolum == "genel" %}aria-current="page"{% endif %}>Genel Bakış</a>
         <a href="?bolum=basvurular" {% if bolum == "basvurular" %}aria-current="page"{% endif %}>Başvurular <span class="st-sayac">{{ basvuru_sayisi }}</span></a>
         <a href="?bolum=salonlar" {% if bolum == "salonlar" %}aria-current="page"{% endif %}>Salonlar</a>
+        <a href="?bolum=sonuclar" {% if bolum == "sonuclar" %}aria-current="page"{% endif %}>Sonuçlar</a>
         <a href="?bolum=bildirimler" {% if bolum == "bildirimler" %}aria-current="page"{% endif %}>Bildirimler</a>
         <a href="?bolum=ayarlar" {% if bolum == "ayarlar" %}aria-current="page"{% endif %}>Ayarlar</a>
     </nav>
@@ -371,6 +372,254 @@
     {% endif %}{% endfor %}
     {% endif %}
 
+    {% elif bolum == "sonuclar" %}
+    {# ——— SONUÇLAR ——— #}
+    <section class="st-istatistik" aria-label="Sonuç özeti">
+        <div class="st-kutu">
+            <span class="st-kutu-etiket">Sonucu girilen</span>
+            <strong class="st-kutu-deger">{{ sonuc.veri }}<small>/{{ sonuc.toplam }}</small></strong>
+            <span class="st-kutu-not">Excel'den</span>
+        </div>
+        <div class="st-kutu">
+            <span class="st-kutu-etiket">Karne yüklü</span>
+            <strong class="st-kutu-deger">{{ sonuc.karne }}</strong>
+            <span class="st-kutu-not">PDF veya görsel</span>
+        </div>
+        <div class="st-kutu">
+            <span class="st-kutu-etiket">Veliye gönderilen</span>
+            <strong class="st-kutu-deger">{{ sonuc.gonderilen }}</strong>
+            <span class="st-kutu-not">{% if sonuc.bekleyen %}{{ sonuc.bekleyen }} karne gönderilmeyi bekliyor{% else %}Bekleyen yok{% endif %}</span>
+        </div>
+        <div class="st-kutu">
+            <span class="st-kutu-etiket">Kazandı</span>
+            <strong class="st-kutu-deger">{{ sonuc.kazandi }}</strong>
+            <span class="st-kutu-not">{{ sonuc.kazanamadi }} kazanamadı</span>
+        </div>
+    </section>
+
+    {% if sonuc.onizleme %}
+    <section class="st-kart st-eslesme">
+        <div class="st-kart-ust">
+            <div>
+                <h2 class="st-kart-baslik">Excel eşleştirmesi</h2>
+                <p class="st-kart-aciklama">{{ sonuc.onizleme.dosya_adi }} · {{ sonuc.onizleme.satirlar|length }} satır. Eşleşmeleri kontrol edip kaydedin.</p>
+            </div>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="bolum" value="sonuclar">
+            <div class="st-tablo-kap">
+                <table class="st-tablo">
+                    <thead><tr><th>Excel'deki ad</th><th>Sınıf</th><th class="st-sag">Net</th><th class="st-sag">Puan</th><th>Öğrenci</th></tr></thead>
+                    <tbody>
+                        {% for r in sonuc.onizleme.satirlar %}
+                        <tr class="{% if r.eslesme == 'yok' %}st-satir--uyari{% endif %}">
+                            <td><strong>{{ r.excel_ad }}</strong></td>
+                            <td>{{ r.sinif|default:"—" }}</td>
+                            <td class="st-sag st-rakam">{{ r.toplam.net|default:"—" }}</td>
+                            <td class="st-sag st-rakam">{{ r.puan|default:"—" }}</td>
+                            <td>
+                                <label class="st-secim st-secim--satir">
+                                    <span class="st-gizli">{{ r.excel_ad }} kimin?</span>
+                                    <select name="eslesme_{{ r.satir_no }}">
+                                        <option value="">— Atla —</option>
+                                        {% for a in sonuc.adaylar %}
+                                        <option value="{{ a.pk }}" {% if r.basvuru_id == a.pk %}selected{% endif %}>{{ a.ad_soyad }}{% if a.sinif %} · {{ a.sinif }}{% endif %}</option>
+                                        {% endfor %}
+                                    </select>
+                                </label>
+                                {% if r.eslesme == "oneri" %}<span class="st-hata st-uyari">%{{ r.oran }} benzer, kontrol edin</span>{% elif r.eslesme == "yok" %}<span class="st-hata">Eşleşmedi</span>{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="st-form-alt st-ust-bosluk">
+                <button type="submit" name="action" value="sonuc_excel_kaydet" class="st-dugme">Sonuçları kaydet</button>
+                <button type="submit" name="action" value="sonuc_excel_iptal" class="st-dugme-sade" formnovalidate>Vazgeç</button>
+            </div>
+        </form>
+    </section>
+    {% else %}
+    <div class="st-iki">
+        <section class="st-kart">
+            <h2 class="st-kart-baslik">Sonuç Excel'i</h2>
+            <p class="st-kart-aciklama">Optik okumadan çıkan, denemelere yüklediğiniz Excel. Öğrenciler ad ve sınıfa göre eşleşir.</p>
+            <form method="post" enctype="multipart/form-data" class="st-yukle" data-yukle>
+                {% csrf_token %}
+                <input type="hidden" name="bolum" value="sonuclar">
+                <input type="hidden" name="action" value="sonuc_excel">
+                <label class="st-dosya">
+                    <input type="file" name="excel" accept=".xlsx,.xls" required data-otomatik-gonder>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"></path><path d="m7 9 5-5 5 5"></path><path d="M5 20h14"></path></svg>
+                    <span><strong>Excel seçin</strong><small>{% if sonuc.veri %}Yeniden yüklerseniz sonuçlar güncellenir{% else %}.xlsx{% endif %}</small></span>
+                </label>
+            </form>
+        </section>
+        <section class="st-kart">
+            <h2 class="st-kart-baslik">Karneler</h2>
+            <p class="st-kart-aciklama">Birden çok PDF veya PNG seçebilirsiniz. Dosya adı öğrencinin adı olmalı, örneğin <em>Ahmet Yılmaz.pdf</em>.</p>
+            <form method="post" enctype="multipart/form-data" class="st-yukle" data-yukle>
+                {% csrf_token %}
+                <input type="hidden" name="bolum" value="sonuclar">
+                <input type="hidden" name="action" value="karne_toplu">
+                <label class="st-dosya">
+                    <input type="file" name="karneler" accept=".pdf,.png,.jpg,.jpeg,.webp" multiple required data-otomatik-gonder>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5"></path><path d="M12 17v-6"></path><path d="m9 14 3-3 3 3"></path></svg>
+                    <span><strong>Karneleri seçin</strong><small>PDF, PNG veya JPG · en fazla 10 MB</small></span>
+                </label>
+            </form>
+        </section>
+    </div>
+    {% endif %}
+
+    <section class="st-kart">
+        <div class="st-kart-ust">
+            <h2 class="st-kart-baslik">Veliye gidecek mesaj</h2>
+            <form method="post" {% if sonuc.bekleyen %}onsubmit="return confirm('{{ sonuc.bekleyen }} veliye sonuç gönderilsin mi?');"{% endif %}>
+                {% csrf_token %}
+                <input type="hidden" name="bolum" value="sonuclar">
+                <input type="hidden" name="action" value="sonuc_gonder">
+                <input type="hidden" name="kapsam" value="bekleyen">
+                <button type="submit" class="st-dugme" {% if not sonuc.bekleyen %}disabled{% endif %}>{% if sonuc.bekleyen %}{{ sonuc.bekleyen }} sonucu gönder{% else %}Gönderilecek karne yok{% endif %}</button>
+            </form>
+        </div>
+        <div class="st-mesaj">
+            <form method="post" class="st-form">
+                {% csrf_token %}
+                <input type="hidden" name="bolum" value="sonuclar">
+                <input type="hidden" name="action" value="sonuc_mesaj">
+                <label class="st-alan">
+                    <span>E-posta metni · karne ekte gider</span>
+                    <textarea name="sonuc_mesaji" rows="6">{{ sonuc.mesaj }}</textarea>
+                </label>
+                <p class="st-ipucu">{ad_soyad}, {ad} ve {sinif} öğrencinin bilgisiyle değişir. Uygulama bildirimi kısa olur: “Sınav sonucu açıklandı”, dokununca karne açılır.</p>
+                <button type="submit" class="st-dugme-sade">Mesajı kaydet</button>
+            </form>
+            {% if sonuc.mesaj_ornek %}
+            <div class="st-onizleme" aria-label="Örnek">
+                <span class="st-kart-alt-baslik">Örnek</span>
+                <p class="st-onizleme-konu">Sınav sonucu · {{ sinav_adi }}</p>
+                <div class="st-onizleme-govde">{{ sonuc.mesaj_ornek|linebreaksbr }}</div>
+                <span class="st-ek">📎 Karne dosyası</span>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <form method="get" class="st-arac" id="st-filtre">
+        <input type="hidden" name="bolum" value="sonuclar">
+        <label class="st-secim">
+            <span class="st-gizli">Sınıf</span>
+            <select name="sinif" data-otomatik>
+                <option value="">Tüm sınıflar</option>
+                {% for value, label in sinif_secenekleri %}
+                <option value="{{ value }}" {% if sonuc.sinif == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label class="st-secim">
+            <span class="st-gizli">Karar</span>
+            <select name="karar" data-otomatik>
+                <option value="">Tüm kararlar</option>
+                <option value="kazandi" {% if sonuc.karar == "kazandi" %}selected{% endif %}>Kazandı</option>
+                <option value="kazanamadi" {% if sonuc.karar == "kazanamadi" %}selected{% endif %}>Kazanamadı</option>
+                <option value="yok" {% if sonuc.karar == "yok" %}selected{% endif %}>Karar verilmedi</option>
+            </select>
+        </label>
+    </form>
+
+    <form method="post" enctype="multipart/form-data" id="st-karne-form" hidden>
+        {% csrf_token %}
+        <input type="hidden" name="bolum" value="sonuclar">
+        <input type="hidden" name="action" value="karne_yukle">
+        <input type="hidden" name="basvuru_id" id="st-karne-basvuru">
+        <input type="file" name="karne" id="st-karne-dosya" accept=".pdf,.png,.jpg,.jpeg,.webp">
+    </form>
+
+    <form method="post" id="st-sonuc-form">
+        {% csrf_token %}
+        <input type="hidden" name="bolum" value="sonuclar">
+        <input type="hidden" name="action" id="st-sonuc-eylem" value="karar_satir">
+        <input type="hidden" name="toplu_karar" id="st-toplu-karar">
+
+        <div class="st-toplu" id="st-sonuc-toplu" hidden>
+            <span><strong id="st-sonuc-secili">0</strong> öğrenci seçildi</span>
+            <button type="button" class="st-dugme-sade" data-toplu-karar="kazandi">Kazandı</button>
+            <button type="button" class="st-dugme-sade" data-toplu-karar="kazanamadi">Kazanamadı</button>
+            <button type="button" class="st-dugme-sade" data-toplu-karar="">Kararı kaldır</button>
+            <button type="button" class="st-dugme" id="st-sonuc-gonder">Sonucu gönder</button>
+            <button type="button" class="st-dugme-sade" id="st-sonuc-vazgec">Vazgeç</button>
+        </div>
+
+        <div class="st-tablo-kap">
+            <table class="st-tablo st-sonuc-tablo">
+                <thead>
+                    <tr>
+                        <th class="st-sec"><input type="checkbox" id="st-sonuc-hepsi" aria-label="Tümünü seç"></th>
+                        <th class="st-sag">Sıra</th>
+                        <th>Öğrenci</th>
+                        <th>Sınıf</th>
+                        {% for kod, ad, kisa in sonuc.dersler %}<th class="st-sag" title="{{ ad }}">{{ kisa }}</th>{% endfor %}
+                        <th class="st-sag">Net</th>
+                        <th class="st-sag">Puan</th>
+                        <th>Karne</th>
+                        <th>Karar</th>
+                        <th>Veli</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in sonuc.satirlar %}
+                    <tr>
+                        <td class="st-sec"><input type="checkbox" name="basvuru_ids" value="{{ r.b.pk }}" class="st-sonuc-sec" aria-label="{{ r.b.ad_soyad }} seç"></td>
+                        <td class="st-sag st-rakam">{% if r.s.genel_sira %}<strong>{{ r.s.genel_sira }}</strong>{% if r.s.sinif_sira %}<span class="st-soluk st-alt-sira">sınıfta {{ r.s.sinif_sira }}</span>{% endif %}{% else %}<span class="st-soluk">—</span>{% endif %}</td>
+                        <td>
+                            <a class="st-ogrenci" href="{% url 'yonetim:sinav_basvuru_detay' r.b.pk %}">
+                                <strong>{{ r.b.ad_soyad }}</strong>
+                                <span class="st-soluk">{{ r.b.okul_adi|default:"Okul belirtilmemiş" }}</span>
+                            </a>
+                        </td>
+                        <td>{{ r.b.sinif|default:"—" }}</td>
+                        {% for n in r.netler %}<td class="st-sag st-rakam st-soluk-rakam">{{ n|default:"—" }}</td>{% endfor %}
+                        <td class="st-sag st-rakam"><strong>{% if r.s.veri_var %}{{ r.s.toplam_net }}{% else %}<span class="st-soluk">—</span>{% endif %}</strong></td>
+                        <td class="st-sag st-rakam">{% if r.s.puan is not None and r.s.veri_var %}{{ r.s.puan|floatformat:2 }}{% else %}<span class="st-soluk">—</span>{% endif %}</td>
+                        <td>
+                            {% if r.s.karne %}
+                            <span class="st-karne">
+                                <a class="st-etiket st-etiket--mavi" href="{% url 'yonetim:seviye_tespit_karne' r.b.pk %}" target="_blank" rel="noopener" title="{{ r.s.karne_adi }}">{% if r.s.karne_gorsel_mi %}Görsel{% else %}PDF{% endif %}</a>
+                                <button type="button" class="st-dugme-sade st-kucuk" data-karne-yukle="{{ r.b.pk }}">Değiştir</button>
+                            </span>
+                            {% else %}
+                            <button type="button" class="st-dugme-sade st-kucuk" data-karne-yukle="{{ r.b.pk }}">+ Yükle</button>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <label class="st-secim st-secim--satir st-karar st-karar--{{ r.b.sonuc_karar|default:'yok' }}">
+                                <span class="st-gizli">{{ r.b.ad_soyad }} kararı</span>
+                                <select name="karar_{{ r.b.pk }}" data-karar>
+                                    <option value="" {% if not r.b.sonuc_karar %}selected{% endif %}>—</option>
+                                    <option value="kazandi" {% if r.b.sonuc_karar == "kazandi" %}selected{% endif %}>Kazandı</option>
+                                    <option value="kazanamadi" {% if r.b.sonuc_karar == "kazanamadi" %}selected{% endif %}>Kazanamadı</option>
+                                </select>
+                            </label>
+                        </td>
+                        <td class="st-gonderim">
+                            {% if r.s.guncel_gonderildi %}<span class="st-tamam">Gönderildi</span><span class="st-soluk">{{ r.s.gonderim_zamani|date:"j M H.i" }}</span>
+                            {% elif r.s.gonderildi %}<span class="st-hata st-uyari">Yeni karne gönderilmedi</span>
+                            {% elif r.s.karne %}<span class="st-soluk">Gönderilmedi</span>
+                            {% else %}<span class="st-soluk">—</span>{% endif %}
+                            {% if not r.b.veli_eposta and not r.b.bildirim_cihaz %}<span class="st-hata">Ulaşılamaz</span>{% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="12" class="st-bos">Bu filtreye uyan öğrenci yok.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </form>
+
     {% elif bolum == "bildirimler" %}
     {# ——— BİLDİRİMLER ——— #}
     <section class="st-kanallar" aria-label="Kanallar">
@@ -506,4 +755,4 @@
 
 </div>
 {% endblock %}
-{% block extra_js %}<script src="{% static 'js/seviye-tespit.js' %}?v=2" defer></script>{% endblock %}
+{% block extra_js %}<script src="{% static 'js/seviye-tespit.js' %}?v=3" defer></script>{% endblock %}

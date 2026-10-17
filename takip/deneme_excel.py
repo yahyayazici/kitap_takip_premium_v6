@@ -778,7 +778,7 @@ def _baslik_satiri_indeksi(satirlar: list[list[str]]) -> int:
     return 0
 
 
-def deneme_excel_onizle(dosya) -> DenemeImportOnizleme:
+def deneme_excel_onizle(dosya, talebe_eslestir_mi: bool = True) -> DenemeImportOnizleme:
     onizleme = DenemeImportOnizleme()
     try:
         satirlar = _excel_satirlari(dosya)
@@ -827,6 +827,10 @@ def deneme_excel_onizle(dosya) -> DenemeImportOnizleme:
         sinif = _satir_deger(satir, harita.get("sinif"))
         kayit = DenemeImportSatir(satir_no=satir_no, excel_ad_soyad=ad, sinif=sinif)
         _satirdan_sonuclari_cek(satir, harita, kayit)
+
+        if not talebe_eslestir_mi:
+            onizleme.satirlar.append(kayit)
+            continue
 
         talebe, eslesme, oneriler = talebe_eslestir(ad, sinif)
         kayit.eslesme = eslesme
