@@ -5,7 +5,7 @@ Bildirim anları:
 - uc_gun: sınavdan 3 gün önce 19.00
 - bir_gun: sınavdan 1 gün önce 19.00
 - sabah: sınav başlangıcından 2,5 saat önce
-- bitis: sınav bitişinden 15 dakika sonra
+- bitis: sınav bitişinden 80 dakika sonra (13.10 bitişte 14.30)
 
 Uygulama bildirimi tüm anlarda gider; e-posta kayıt (takvim dosyası ekli), 1 gün kala
 ve sınav bitince anlarında gider.
@@ -135,7 +135,7 @@ def zamanlanmis_anlar(takvim: SinavTakvim) -> list[tuple[str, dt.datetime]]:
         (AN_UC_GUN, aksam(3)),
         (AN_BIR_GUN, aksam(1)),
         (AN_SABAH, baslangic - dt.timedelta(minutes=150)),
-        (AN_BITIS, _yerel(takvim.bitis) + dt.timedelta(minutes=15)),
+        (AN_BITIS, _yerel(takvim.bitis) + dt.timedelta(minutes=80)),
     ]
 
 
@@ -270,7 +270,7 @@ def eposta_metni(an_kodu: str, basvuru: SinavBasvuru, takvim: SinavTakvim | None
     if an_kodu == AN_BITIS:
         govde = (
             "Sayın Veli,\n\n"
-            f"{basvuru.ad_soyad} {basvuru.sinav_adi} sınavını tamamlamıştır. "
+            f"{basvuru.ad_soyad}, {basvuru.sinav_adi}'nı tamamlamıştır. "
             "Katılımınız için teşekkür ederiz.\n\n"
             "Sınav neticeleri en geç 3 gün içerisinde açıklanacak ve tarafınıza bildirilecektir.\n"
         )
@@ -421,7 +421,11 @@ def zamani_gelenleri_gonder(simdi: dt.datetime | None = None) -> int:
     )
     for takvim in takvimler:
         for an_kodu, plan in zamanlanmis_anlar(takvim):
-            if not (plan <= simdi < plan + GONDERIM_PENCERESI):
+            son = plan + GONDERIM_PENCERESI
+            if an_kodu != AN_BITIS:
+                # Sınav öncesi hatırlatmalar sınav başladıktan sonra gönderilmez.
+                son = min(son, takvim.baslangic)
+            if not (plan <= simdi < son):
                 continue
             kosullar = []
             if push_acik:
