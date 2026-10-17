@@ -61,6 +61,16 @@ urlpatterns = [
         sinav_basvuru_views.sinav_basvuru_tesekkur,
         name="sinav_basvuru_tesekkur",
     ),
+    path(
+        "sinav-basvuru/bildirim/<str:token>/abone/",
+        sinav_basvuru_views.sinav_basvuru_bildirim_abone,
+        name="sinav_basvuru_bildirim_abone",
+    ),
+    path(
+        "sinav-basvuru/bildirim/<str:token>/manifest.webmanifest",
+        sinav_basvuru_views.sinav_basvuru_bildirim_manifest,
+        name="sinav_basvuru_bildirim_manifest",
+    ),
 
     path(
         "veli-anketi/",

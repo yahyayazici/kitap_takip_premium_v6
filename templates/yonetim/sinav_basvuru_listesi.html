@@ -191,6 +191,7 @@
                         <th>Anne tel</th>
                         <th>İl / İlçe</th>
                         <th>Doğum tarihi</th>
+                        <th>Bildirim</th>
                         <th>Durum</th>
                         <th>Tarih</th>
                         <th class="yonetim-action-col">İşlem</th>
@@ -210,6 +211,7 @@
                         <td>{{ b.anne_telefon }}</td>
                         <td>{{ b.il }} / {{ b.ilce }}</td>
                         <td>{{ b.dogum_tarihi|date:"d.m.Y" }}</td>
+                        <td>{% if b.bildirim_cihaz %}Açık{% else %}—{% endif %}</td>
                         <td>
                             <select class="cs-input" name="durum_{{ b.pk }}" style="min-width:9rem;">
                                 {% for d in durumlar %}
@@ -233,7 +235,7 @@
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="11" class="report-empty">Henüz başvuru yok.</td></tr>
+                    <tr><td colspan="12" class="report-empty">Henüz başvuru yok.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>

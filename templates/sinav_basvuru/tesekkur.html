@@ -8,6 +8,12 @@
     <link rel="icon" type="image/png" href="{% static 'images/cinili-saray-logo-icon-sm.png' %}">
     <link rel="apple-touch-icon" href="{% static 'images/cinili-saray-logo-icon.png' %}">
     <link rel="stylesheet" href="{% static 'css/sinav-basvuru.css' %}">
+    {% if bildirim %}
+    <link rel="manifest" href="{{ bildirim.manifest_url }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Çinili Saray">
+    {% endif %}
 </head>
 <body>
 <main class="sb-page sb-thanks">
@@ -145,9 +151,32 @@
             <p class="sb-lead">
                 Başvurunuz alındı. 24 Ekim Cumartesi saat 11.00'de öğrencimizi bekliyoruz.
             </p>
+            {% if bildirim %}
+            <div class="sb-bildirim" data-sbb
+                 data-vapid-key="{{ bildirim.vapid_key }}"
+                 data-abone-url="{{ bildirim.abone_url }}"
+                 data-csrf="{{ csrf_token }}">
+                <div class="sb-bildirim-ikon" aria-hidden="true">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+                </div>
+                <h3>Hatırlatmaları açın</h3>
+                <p>Sınava 3 gün ve 1 gün kala, sınav sabahı ve sınav bitince telefonunuza bildirim gönderelim.</p>
+                <button type="button" class="sb-bildirim-btn" data-sbb-ac>Bildirimleri aç</button>
+                <p class="sb-bildirim-durum" data-sbb-durum role="status" hidden></p>
+                <div class="sb-bildirim-ios" data-sbb-ios hidden>
+                    <p><strong>iPhone kullanıyorsanız</strong> bildirim için sayfayı ana ekrana eklemeniz gerekir:</p>
+                    <ol>
+                        <li>Safari'nin altındaki <strong>Paylaş</strong> düğmesine dokunun.</li>
+                        <li><strong>Ana Ekrana Ekle</strong>'yi seçin.</li>
+                        <li>Ana ekrandaki <strong>Çinili Saray</strong> simgesinden açıp <strong>Bildirimleri aç</strong>'a dokunun.</li>
+                    </ol>
+                </div>
+            </div>
+            {% endif %}
             <a class="sb-link" href="{% url 'sinav_basvuru_form' %}">Yeni başvuru</a>
         </section>
     </div>
 </main>
+{% if bildirim %}<script src="{% static 'js/sinav-basvuru-bildirim.js' %}"></script>{% endif %}
 </body>
 </html>

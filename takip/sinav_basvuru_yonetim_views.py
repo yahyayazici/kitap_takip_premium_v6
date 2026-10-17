@@ -44,7 +44,9 @@ def _tum_durumlar():
 
 
 def _filtreli_basvurular(request):
-    basvurular = SinavBasvuru.objects.select_related("durum").all()
+    basvurular = SinavBasvuru.objects.select_related("durum").annotate(
+        bildirim_cihaz=Count("push_abonelikleri", distinct=True)
+    )
     durum = request.GET.get("durum", "").strip()
     arama = request.GET.get("q", "").strip()
     sinav = request.GET.get("sinav", "").strip()

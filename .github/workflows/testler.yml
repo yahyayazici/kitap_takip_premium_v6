@@ -1,0 +1,51 @@
+name: Testler
+
+on:
+  pull_request:
+  push:
+    branches: ["sts-*"]
+  workflow_dispatch:
+
+jobs:
+  django:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings
+      SECRET_KEY: ci-test-key
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Sistem kütüphaneleri (WeasyPrint)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libpango-1.0-0 libpangocairo-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libcairo2 libgdk-pixbuf-2.0-0 fonts-dejavu-core
+      - name: Paketler
+        run: pip install -r requirements.txt
+      - name: Django kontrolü
+        run: python manage.py check
+      - name: Eksik migration kontrolü
+        # Depoda bu PR'dan önce de var olan küçük farklar (denemesinavi, yemekciayar) olduğu için uyarı olarak bırakıldı.
+        continue-on-error: true
+        run: |
+          set +e
+          python manage.py makemigrations --check --dry-run -v 3 > migr.txt 2>&1
+          kod=$?
+          cat migr.txt
+          if [ $kod -ne 0 ]; then
+            head -c 60000 migr.txt | sed 's/%/%25/g' | awk 'BEGIN{ORS="%0A"} {print}' | sed 's/^/::error title=migration::/' ; echo
+            exit $kod
+          fi
+      - name: Sınav başvuru testleri
+        run: |
+          set +e
+          python manage.py test takip.tests.test_sinav_basvuru_form takip.tests.test_sinav_basvuru_bildirim -v 2 > test.txt 2>&1
+          kod=$?
+          cat test.txt
+          if [ $kod -ne 0 ]; then
+            tail -c 3800 test.txt | sed 's/%/%25/g' | awk 'BEGIN{ORS="%0A"} {print}' | sed 's/^/::error title=testler::/' ; echo
+            exit $kod
+          fi

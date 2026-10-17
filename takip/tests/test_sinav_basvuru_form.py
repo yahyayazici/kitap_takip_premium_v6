@@ -60,7 +60,8 @@ class SinavBasvuruFormTests(TestCase):
 
     def test_gecerli_basvuru_kaydedilir(self):
         yanit = self.client.post(FORM_URL, gecerli_veri())
-        self.assertRedirects(yanit, reverse("sinav_basvuru_tesekkur"))
+        self.assertEqual(yanit.status_code, 302)
+        self.assertTrue(yanit["Location"].startswith(reverse("sinav_basvuru_tesekkur") + "?t="))
         basvuru = SinavBasvuru.objects.get()
         self.assertEqual(basvuru.sinif, "6")
         self.assertEqual(basvuru.okul_adi, "Başakşehir Ortaokulu")

@@ -1083,3 +1083,30 @@ class SabahBeslenmeIslemLogAdmin(admin.ModelAdmin):
     list_display = ("siparis", "islem", "yapan", "zaman")
     list_filter = ("islem",)
     raw_id_fields = ("siparis", "yapan")
+
+from takip.sinav_bildirim_models import (  # noqa: E402
+    SinavBasvuruPushAbonelik,
+    SinavBildirimLog,
+    SinavTakvim,
+)
+
+
+@admin.register(SinavTakvim)
+class SinavTakvimAdmin(admin.ModelAdmin):
+    list_display = ("sinav_adi", "baslangic", "bitis", "yer", "bildirim_aktif")
+    list_editable = ("bildirim_aktif",)
+
+
+@admin.register(SinavBildirimLog)
+class SinavBildirimLogAdmin(admin.ModelAdmin):
+    list_display = ("basvuru", "an_kodu", "baslik", "gonderilen", "olusturulma")
+    list_filter = ("an_kodu",)
+    search_fields = ("basvuru__ad_soyad",)
+    readonly_fields = ("basvuru", "an_kodu", "baslik", "mesaj", "gonderilen", "olusturulma")
+
+
+@admin.register(SinavBasvuruPushAbonelik)
+class SinavBasvuruPushAbonelikAdmin(admin.ModelAdmin):
+    list_display = ("basvuru", "user_agent", "olusturulma")
+    search_fields = ("basvuru__ad_soyad",)
+    readonly_fields = ("basvuru", "endpoint", "p256dh", "auth", "user_agent", "olusturulma")
