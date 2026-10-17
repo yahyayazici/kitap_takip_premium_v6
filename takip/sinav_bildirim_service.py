@@ -318,36 +318,59 @@ def abonelik_kaydet(basvuru: SinavBasvuru, data: dict, user_agent: str = "") -> 
     return abonelik
 
 
-def _push_gonder(basvuru: SinavBasvuru, *, baslik: str, mesaj: str) -> int:
+def abonelige_push(abonelik: SinavBasvuruPushAbonelik, *, baslik: str, mesaj: str) -> str:
+    """Tek aboneliğe push gönderir. Başarılıysa "", değilse okunabilir hata metni döner."""
     if not push_bildirim_aktif():
-        return 0
+        return "VAPID anahtarları tanımlı değil."
 
     from pywebpush import WebPushException, webpush
 
-    payload = json.dumps({"title": baslik, "body": mesaj, "url": basvuru_bildirim_url(basvuru)})
-    ulasan = 0
-    for abonelik in SinavBasvuruPushAbonelik.objects.filter(basvuru=basvuru):
+    payload = json.dumps(
+        {"title": baslik, "body": mesaj, "url": basvuru_bildirim_url(abonelik.basvuru)}
+    )
+    try:
+        webpush(
+            subscription_info={
+                "endpoint": abonelik.endpoint,
+                "keys": {"p256dh": abonelik.p256dh, "auth": abonelik.auth},
+            },
+            data=payload,
+            vapid_private_key=settings.VAPID_PRIVATE_KEY,
+            vapid_claims=dict(_vapid_claims()),
+            ttl=6 * 60 * 60,
+        )
+        return ""
+    except WebPushException as exc:
+        yanit = getattr(exc, "response", None)
+        status = getattr(yanit, "status_code", None)
+        govde = ""
         try:
-            webpush(
-                subscription_info={
-                    "endpoint": abonelik.endpoint,
-                    "keys": {"p256dh": abonelik.p256dh, "auth": abonelik.auth},
-                },
-                data=payload,
-                vapid_private_key=settings.VAPID_PRIVATE_KEY,
-                vapid_claims=dict(_vapid_claims()),
-                ttl=6 * 60 * 60,
-            )
-            ulasan += 1
-        except WebPushException as exc:
-            status = getattr(getattr(exc, "response", None), "status_code", None)
-            if status in (404, 410):
-                abonelik.delete()
-            else:
-                logger.warning("sınav bildirimi gönderilemedi (basvuru=%s): %s", basvuru.pk, exc)
+            govde = (yanit.text or "")[:300] if yanit is not None else ""
         except Exception:  # noqa: BLE001
-            logger.exception("sınav bildirimi gönderilirken hata (basvuru=%s)", basvuru.pk)
-    return ulasan
+            govde = ""
+        hata = f"Push servisi reddetti (HTTP {status}): {govde or exc}"[:500]
+        if status in (404, 410):
+            abonelik.delete()
+            hata = f"Abonelik artık geçerli değil (HTTP {status}); silindi."
+        logger.warning("sınav bildirimi gönderilemedi (abonelik=%s): %s", abonelik.pk, hata)
+        return hata
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("sınav bildirimi gönderilirken hata (abonelik=%s)", abonelik.pk)
+        return f"{type(exc).__name__}: {exc}"[:500]
+
+
+def _push_gonder(basvuru: SinavBasvuru, *, baslik: str, mesaj: str) -> tuple[int, str]:
+    if not push_bildirim_aktif():
+        return 0, ""
+    ulasan = 0
+    hatalar: list[str] = []
+    for abonelik in list(SinavBasvuruPushAbonelik.objects.filter(basvuru=basvuru)):
+        hata = abonelige_push(abonelik, baslik=baslik, mesaj=mesaj)
+        if hata:
+            hatalar.append(hata)
+        else:
+            ulasan += 1
+    return ulasan, " | ".join(hatalar)[:1000]
 
 
 def bildirim_gonder(basvuru: SinavBasvuru, an_kodu: str, takvim: SinavTakvim | None = None) -> SinavBildirimLog | None:
@@ -362,9 +385,9 @@ def bildirim_gonder(basvuru: SinavBasvuru, an_kodu: str, takvim: SinavTakvim | N
             )
     except IntegrityError:
         return None
-    log.gonderilen = _push_gonder(basvuru, baslik=baslik, mesaj=mesaj)
+    log.gonderilen, log.push_hata = _push_gonder(basvuru, baslik=baslik, mesaj=mesaj)
     log.eposta_gonderildi = _eposta_gonder(an_kodu, basvuru, takvim)
-    log.save(update_fields=["gonderilen", "eposta_gonderildi"])
+    log.save(update_fields=["gonderilen", "push_hata", "eposta_gonderildi"])
     return log
 
 

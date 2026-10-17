@@ -1099,10 +1099,12 @@ class SinavTakvimAdmin(admin.ModelAdmin):
 
 @admin.register(SinavBildirimLog)
 class SinavBildirimLogAdmin(admin.ModelAdmin):
-    list_display = ("basvuru", "an_kodu", "baslik", "gonderilen", "olusturulma")
+    list_display = ("basvuru", "an_kodu", "baslik", "gonderilen", "eposta_gonderildi", "push_hata", "olusturulma")
     list_filter = ("an_kodu",)
     search_fields = ("basvuru__ad_soyad",)
-    readonly_fields = ("basvuru", "an_kodu", "baslik", "mesaj", "gonderilen", "olusturulma")
+    readonly_fields = (
+        "basvuru", "an_kodu", "baslik", "mesaj", "gonderilen", "eposta_gonderildi", "push_hata", "olusturulma",
+    )
 
 
 @admin.register(SinavBasvuruPushAbonelik)
@@ -1110,3 +1112,22 @@ class SinavBasvuruPushAbonelikAdmin(admin.ModelAdmin):
     list_display = ("basvuru", "user_agent", "olusturulma")
     search_fields = ("basvuru__ad_soyad",)
     readonly_fields = ("basvuru", "endpoint", "p256dh", "auth", "user_agent", "olusturulma")
+    actions = ["test_bildirimi_gonder"]
+
+    @admin.action(description="Seçilenlere test bildirimi gönder")
+    def test_bildirimi_gonder(self, request, queryset):
+        from django.contrib import messages
+
+        from takip.sinav_bildirim_service import abonelige_push
+
+        for abonelik in queryset.select_related("basvuru"):
+            etiket = f"{abonelik.basvuru} ({abonelik.user_agent[:40] or 'cihaz'})"
+            hata = abonelige_push(
+                abonelik,
+                baslik="Test bildirimi",
+                mesaj="Çinili Saray bildirimleri bu cihazda çalışıyor.",
+            )
+            if hata:
+                self.message_user(request, f"{etiket}: {hata}", level=messages.ERROR)
+            else:
+                self.message_user(request, f"{etiket}: gönderildi.", level=messages.SUCCESS)

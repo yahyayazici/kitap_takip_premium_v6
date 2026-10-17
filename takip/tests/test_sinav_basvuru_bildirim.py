@@ -192,3 +192,15 @@ class SinavHatirlatmaZamanlamaTests(TestCase):
     def test_vapid_yoksa_hic_calismaz(self, webpush):
         self.assertEqual(zamani_gelenleri_gonder(yerel(2026, 10, 21, 19, 5)), 0)
         self.assertFalse(SinavBildirimLog.objects.exists())
+
+
+@override_settings(**VAPID)
+class SinavBildirimHataKaydiTests(TestCase):
+    @mock.patch("pywebpush.webpush", side_effect=ValueError("bozuk anahtar"))
+    def test_gonderim_hatasi_kayda_yazilir(self, webpush):
+        basvuru = basvuru_olustur()
+        url = reverse("sinav_basvuru_bildirim_abone", args=[basvuru_token(basvuru)])
+        self.client.post(url, data=json.dumps(ABONELIK), content_type="application/json")
+        log = SinavBildirimLog.objects.get(basvuru=basvuru, an_kodu=AN_KAYIT)
+        self.assertEqual(log.gonderilen, 0)
+        self.assertIn("bozuk anahtar", log.push_hata)

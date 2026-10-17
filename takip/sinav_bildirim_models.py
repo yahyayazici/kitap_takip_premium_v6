@@ -73,6 +73,7 @@ class SinavBildirimLog(models.Model):
     mesaj = models.TextField(blank=True, verbose_name="Mesaj")
     gonderilen = models.PositiveSmallIntegerField(default=0, verbose_name="Ulaşan cihaz")
     eposta_gonderildi = models.BooleanField(default=False, verbose_name="E-posta gönderildi")
+    push_hata = models.TextField(blank=True, verbose_name="Bildirim hatası")
     olusturulma = models.DateTimeField(auto_now_add=True, verbose_name="Zaman")
 
     class Meta:
