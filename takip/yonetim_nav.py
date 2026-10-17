@@ -334,7 +334,7 @@ YONETIM_NAV_GROUPS: tuple[YonetimNavGroup, ...] = (
                 ),
             ),
             YonetimNavItem(
-                label="Sınav Başvuruları",
+                label="Seviye Tespit",
                 url_name="yonetim:sinav_basvuru_listesi",
                 active_names=(
                     "sinav_basvuru_listesi",
@@ -350,15 +350,6 @@ YONETIM_NAV_GROUPS: tuple[YonetimNavGroup, ...] = (
                 active_names=(
                     "veli_anketi_listesi",
                     "veli_anketi_excel",
-                ),
-            ),
-            YonetimNavItem(
-                label="Başvuru Mesaj Anları",
-                url_name="yonetim:sinav_basvuru_mesaj_an_listesi",
-                active_names=(
-                    "sinav_basvuru_mesaj_an_listesi",
-                    "sinav_basvuru_mesaj_an_duzenle",
-                    "sinav_basvuru_mesaj_an_toggle",
                 ),
             ),
             YonetimNavItem(

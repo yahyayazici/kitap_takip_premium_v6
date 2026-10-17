@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import datetime as dt
+
 from django.contrib import messages
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils import timezone
 from django.utils.text import slugify
 from django.views.decorators.http import require_http_methods, require_POST
 
@@ -15,7 +19,22 @@ from takip.models import (
     SinavBasvuruMesajLog,
     SinavBasvuruMesajSablon,
 )
+from config.branding import SINAV_BASVURU_BASLIK
+from takip.push_bildirim_service import push_bildirim_aktif
 from takip.sinav_basvuru_models import SINAV_BASVURU_SINIF_SECENEKLERI
+from takip.sinav_bildirim_models import SinavBildirimLog, SinavTakvim
+from takip.sinav_bildirim_service import (
+    AN_BIR_GUN,
+    AN_BITIS,
+    AN_ETIKETLERI,
+    AN_KAYIT,
+    AN_SABAH,
+    AN_UC_GUN,
+    EPOSTA_ANLARI,
+    guncel_takvim,
+    sinav_eposta_aktif,
+    zamanlanmis_anlar,
+)
 from takip.sinav_basvuru_mesaj_service import (
     basvuru_mesaji_gonder,
     basvurularda_mesaj_gonder,
@@ -43,13 +62,30 @@ def _tum_durumlar():
     ).order_by("sira", "ad")
 
 
+BOLUMLER = ("genel", "basvurular", "bildirimler", "ayarlar")
+
+
+def _sinav_filtresi(request) -> str:
+    """Parametre yoksa güncel sınav; "" (Tümü) seçilirse filtre yok."""
+    if "sinav" in request.GET:
+        return request.GET.get("sinav", "").strip()
+    return SINAV_BASVURU_BASLIK
+
+
+def _geri(request, bolum: str | None = None):
+    bolum = bolum or request.POST.get("bolum") or request.GET.get("bolum") or "basvurular"
+    if bolum not in BOLUMLER:
+        bolum = "basvurular"
+    return redirect(f"{reverse('yonetim:sinav_basvuru_listesi')}?bolum={bolum}")
+
+
 def _filtreli_basvurular(request):
     basvurular = SinavBasvuru.objects.select_related("durum").annotate(
         bildirim_cihaz=Count("push_abonelikleri", distinct=True)
     )
     durum = request.GET.get("durum", "").strip()
     arama = request.GET.get("q", "").strip()
-    sinav = request.GET.get("sinav", "").strip()
+    sinav = _sinav_filtresi(request)
     sinif = request.GET.get("sinif", "").strip()
 
     if sinav:
@@ -97,6 +133,10 @@ def sinav_basvuru_listesi(request):
     if request.method == "POST":
         action = request.POST.get("action", "").strip()
 
+        if action == "takvim_kaydet":
+            _takvim_kaydet(request)
+            return _geri(request, "ayarlar")
+
         if action == "durum_ekle":
             ad = request.POST.get("durum_ad", "").strip()
             kod = slugify(request.POST.get("durum_kod", "").strip() or ad, allow_unicode=True)
@@ -115,7 +155,7 @@ def sinav_basvuru_listesi(request):
                     mesaj_an_kodu=mesaj_an,
                 )
                 messages.success(request, f"“{ad}” durumu eklendi.")
-            return redirect("yonetim:sinav_basvuru_listesi")
+            return _geri(request)
 
         if action == "durum_sil":
             durum_id = request.POST.get("durum_id", "").strip()
@@ -129,7 +169,7 @@ def sinav_basvuru_listesi(request):
                 ad = durum.ad
                 durum.delete()
                 messages.success(request, f"“{ad}” silindi.")
-            return redirect("yonetim:sinav_basvuru_listesi")
+            return _geri(request)
 
         if action == "durum_toggle":
             durum = get_object_or_404(
@@ -141,17 +181,17 @@ def sinav_basvuru_listesi(request):
                 request,
                 f"“{durum.ad}” {'aktif' if durum.aktif else 'pasif'} yapıldı.",
             )
-            return redirect("yonetim:sinav_basvuru_listesi")
+            return _geri(request)
 
         if action == "toplu_durum":
             durum_id = request.POST.get("toplu_durum_id", "").strip()
             ids = request.POST.getlist("basvuru_ids")
             if not durum_id:
                 messages.error(request, "Toplu uygulama için durum seçin.")
-                return redirect("yonetim:sinav_basvuru_listesi")
+                return _geri(request)
             if not ids:
                 messages.error(request, "En az bir başvuru seçin.")
-                return redirect("yonetim:sinav_basvuru_listesi")
+                return _geri(request)
             yeni = get_object_or_404(SinavBasvuruDurum, pk=durum_id, aktif=True)
             qs = SinavBasvuru.objects.filter(pk__in=ids).select_related("durum")
             say = 0
@@ -160,7 +200,7 @@ def sinav_basvuru_listesi(request):
                     _durum_degistir_ve_mesaj(basvuru, yeni)
                     say += 1
             messages.success(request, f"{say} başvurunun durumu “{yeni.ad}” yapıldı.")
-            return redirect("yonetim:sinav_basvuru_listesi")
+            return _geri(request)
 
         if action == "satir_durumlar":
             aktif_ids = set(
@@ -186,24 +226,48 @@ def sinav_basvuru_listesi(request):
                 _durum_degistir_ve_mesaj(basvuru, yeni)
                 say += 1
             messages.success(request, f"{say} durum güncellendi.")
-            return redirect("yonetim:sinav_basvuru_listesi")
+            return _geri(request)
 
         messages.error(request, "Geçersiz işlem.")
-        return redirect("yonetim:sinav_basvuru_listesi")
+        return _geri(request)
+
+    bolum = request.GET.get("bolum", "genel")
+    if bolum not in BOLUMLER:
+        bolum = "genel"
 
     basvurular, durum, arama = _filtreli_basvurular(request)
-    manuel_sablonlar = SinavBasvuruMesajSablon.objects.filter(
-        an_kodu__in=MANUEL_ANLAR
-    ).order_by("sira")
+    takvim = guncel_takvim()
+    guncel = SinavBasvuru.objects.filter(sinav_adi=SINAV_BASVURU_BASLIK)
+    cizelge = _zaman_cizelgesi(takvim, guncel)
 
     return render(
         request,
-        "yonetim/sinav_basvuru_listesi.html",
+        "yonetim/seviye_tespit.html",
         {
+            "bolum": bolum,
+            "sinav_adi": SINAV_BASVURU_BASLIK,
+            "takvim": takvim,
+            "kalan": _kalan_metni(takvim),
+            "genel": _genel_bakis(guncel),
+            "zaman_cizelgesi": cizelge,
+            "siradaki": next((z for z in cizelge if z["durum"] == "bekliyor"), None),
+            "kanallar": {
+                "bildirim": push_bildirim_aktif(),
+                "eposta": sinav_eposta_aktif(),
+                "takvim": takvim is not None,
+            },
+            "hatali_bildirimler": list(
+                SinavBildirimLog.objects.filter(
+                    basvuru__sinav_adi=SINAV_BASVURU_BASLIK
+                )
+                .exclude(push_hata="")
+                .select_related("basvuru")[:10]
+            ),
             "basvurular": basvurular,
+            "basvuru_sayisi": guncel.count(),
             "durum_filtre": durum,
             "arama": arama,
-            "sinav_filtre": request.GET.get("sinav", "").strip(),
+            "sinav_filtre": _sinav_filtresi(request),
             "sinif_filtre": request.GET.get("sinif", "").strip(),
             "sinav_secenekleri": list(
                 SinavBasvuru.objects.exclude(sinav_adi="")
@@ -214,11 +278,149 @@ def sinav_basvuru_listesi(request):
             "sinif_secenekleri": SINAV_BASVURU_SINIF_SECENEKLERI,
             "durumlar": _aktif_durumlar(),
             "tum_durumlar": _tum_durumlar(),
-            "manuel_sablonlar": manuel_sablonlar,
-            "whatsapp_aktif": whatsapp_yapilandirilmis(),
-            "mesaj_an_secenekleri": SinavBasvuruMesajSablon.AnKodu.choices,
         },
     )
+
+
+def _takvim_kaydet(request) -> None:
+    tz = timezone.get_current_timezone()
+    try:
+        gun = dt.date.fromisoformat(request.POST.get("tarih", "").strip())
+        bas = dt.time.fromisoformat(request.POST.get("baslangic", "").strip())
+        bit = dt.time.fromisoformat(request.POST.get("bitis", "").strip())
+    except ValueError:
+        messages.error(request, "Tarih ve saatleri kontrol edin.")
+        return
+    baslangic = dt.datetime.combine(gun, bas, tzinfo=tz)
+    bitis = dt.datetime.combine(gun, bit, tzinfo=tz)
+    if bitis <= baslangic:
+        messages.error(request, "Bitiş saati başlangıçtan sonra olmalı.")
+        return
+    SinavTakvim.objects.update_or_create(
+        sinav_adi=SINAV_BASVURU_BASLIK,
+        defaults={
+            "baslangic": baslangic,
+            "bitis": bitis,
+            "yer": request.POST.get("yer", "").strip()[:200],
+            "bildirim_aktif": request.POST.get("bildirim_aktif") == "on",
+        },
+    )
+    messages.success(request, "Sınav takvimi kaydedildi; hatırlatmalar yeni saatlere göre gidecek.")
+
+
+def _kalan_metni(takvim: SinavTakvim | None) -> str:
+    if not takvim:
+        return ""
+    simdi = timezone.localtime()
+    bas = timezone.localtime(takvim.baslangic)
+    bit = timezone.localtime(takvim.bitis)
+    if simdi > bit:
+        return "Sınav tamamlandı"
+    if simdi >= bas:
+        return "Sınav sürüyor"
+    gun = (bas.date() - simdi.date()).days
+    if gun == 0:
+        return "Bugün"
+    if gun == 1:
+        return "Yarın"
+    return f"{gun} gün kaldı"
+
+
+def _genel_bakis(guncel) -> dict:
+    toplam = guncel.count()
+    sinif_sayilari = dict(
+        guncel.exclude(sinif="")
+        .order_by()
+        .values("sinif")
+        .annotate(n=Count("id", distinct=True))
+        .values_list("sinif", "n")
+    )
+    en_cok = max(sinif_sayilari.values(), default=0)
+    siniflar = [
+        {
+            "etiket": etiket,
+            "sayi": sinif_sayilari.get(kod, 0),
+            "oran": round(100 * sinif_sayilari.get(kod, 0) / en_cok) if en_cok else 0,
+        }
+        for kod, etiket in SINAV_BASVURU_SINIF_SECENEKLERI
+    ]
+    bildirim = guncel.filter(push_abonelikleri__isnull=False).distinct().count()
+    takvim = guncel.filter(hatirlatma_turu="takvim").count()
+    eposta = guncel.exclude(veli_eposta="").count()
+    ilceler = list(
+        guncel.order_by().values("ilce").annotate(n=Count("id", distinct=True)).order_by("-n", "ilce")[:5]
+    )
+    bugun = timezone.localdate()
+    return {
+        "toplam": toplam,
+        "bugun": guncel.filter(olusturulma__date=bugun).count(),
+        "bildirim": bildirim,
+        "takvim": takvim,
+        "eposta": eposta,
+        "ulasilamayan": guncel.filter(push_abonelikleri__isnull=True)
+        .exclude(hatirlatma_turu="takvim")
+        .distinct()
+        .count(),
+        "siniflar": siniflar,
+        "ilceler": ilceler,
+        "son": list(guncel.select_related("durum").order_by("-olusturulma")[:6]),
+    }
+
+
+def _zaman_cizelgesi(takvim: SinavTakvim | None, guncel) -> list[dict]:
+    loglar = SinavBildirimLog.objects.filter(basvuru__sinav_adi=SINAV_BASVURU_BASLIK)
+    ozet = {
+        row["an_kodu"]: row
+        for row in loglar.order_by().values("an_kodu").annotate(
+            kayit=Count("id"),
+            cihaz=Count("id", filter=Q(gonderilen__gt=0)),
+            eposta=Count("id", filter=Q(eposta_gonderildi=True)),
+            hata=Count("id", filter=~Q(push_hata="")),
+        )
+    }
+    takvim_anlari = {AN_UC_GUN, AN_BIR_GUN, AN_SABAH}
+    simdi = timezone.now()
+    satirlar = [
+        {
+            "kod": AN_KAYIT,
+            "etiket": "Başvuru alındı",
+            "zaman": None,
+            "zaman_metni": "Başvuru anında",
+            "durum": "surekli",
+        }
+    ]
+    if takvim:
+        for kod, plan in zamanlanmis_anlar(takvim):
+            satirlar.append(
+                {
+                    "kod": kod,
+                    "etiket": {
+                        AN_UC_GUN: "Sınava 3 gün kaldı",
+                        AN_BIR_GUN: "Sınav yarın",
+                        AN_SABAH: "Bugün sınav günü",
+                        AN_BITIS: "Sınav tamamlandı, teşekkürler",
+                    }.get(kod, AN_ETIKETLERI.get(kod, kod)),
+                    "zaman": plan,
+                    "zaman_metni": "",
+                    "durum": "gecti" if plan <= simdi else "bekliyor",
+                }
+            )
+    for satir in satirlar:
+        kod = satir["kod"]
+        veri = ozet.get(kod, {})
+        satir["kanallar"] = [
+            k
+            for k, var in (
+                ("Bildirim", True),
+                ("Takvim", kod in takvim_anlari),
+                ("E-posta", kod in EPOSTA_ANLARI),
+            )
+            if var
+        ]
+        satir["cihaz"] = veri.get("cihaz", 0)
+        satir["eposta"] = veri.get("eposta", 0)
+        satir["hata"] = veri.get("hata", 0)
+    return satirlar
 
 
 @yonetici_gerekli
@@ -285,12 +487,12 @@ def sinav_basvuru_toplu_mesaj(request):
     ids = request.POST.getlist("basvuru_ids")
     if an_kodu not in SinavBasvuruMesajSablon.AnKodu.values:
         messages.error(request, "Geçersiz mesaj anı.")
-        return redirect("yonetim:sinav_basvuru_listesi")
+        return _geri(request)
 
     qs = SinavBasvuru.objects.filter(pk__in=ids)
     if not qs.exists():
         messages.error(request, "Mesaj için başvuru seçin.")
-        return redirect("yonetim:sinav_basvuru_listesi")
+        return _geri(request)
 
     ozet = basvurularda_mesaj_gonder(qs, an_kodu, sadece_aktif=False)
     messages.success(
@@ -302,7 +504,7 @@ def sinav_basvuru_toplu_mesaj(request):
             f"{ozet['atlandi']} atlandı."
         ),
     )
-    return redirect("yonetim:sinav_basvuru_listesi")
+    return _geri(request)
 
 
 @yonetici_gerekli
@@ -379,6 +581,11 @@ def sinav_basvuru_detay(request, pk):
             "mesaj_loglari": loglar,
             "manuel_sablonlar": manuel_sablonlar,
             "whatsapp_aktif": whatsapp_yapilandirilmis(),
+            "bildirim_loglari": [
+                {"log": log, "etiket": AN_ETIKETLERI.get(log.an_kodu, log.an_kodu)}
+                for log in basvuru.bildirim_loglari.order_by("olusturulma")
+            ],
+            "bildirim_cihaz": basvuru.push_abonelikleri.count(),
         },
     )
 
@@ -390,4 +597,4 @@ def sinav_basvuru_sil(request, pk):
     ad = basvuru.ad_soyad
     basvuru.delete()
     messages.success(request, f"{ad} başvurusu silindi.")
-    return redirect("yonetim:sinav_basvuru_listesi")
+    return _geri(request)

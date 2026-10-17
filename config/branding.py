@@ -232,7 +232,7 @@ PANEL_MODULES = {
         "nav_group": "Eğitim",
     },
     "sinav_basvuru": {
-        "label": "Sınav Başvuruları",
+        "label": "Seviye Tespit",
         "enabled": True,
         "nav_group": "Eğitim",
     },
