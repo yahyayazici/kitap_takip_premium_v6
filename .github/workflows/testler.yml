@@ -29,6 +29,22 @@ jobs:
       - name: Django kontrolü
         run: python manage.py check
       - name: Eksik migration kontrolü
-        run: python manage.py makemigrations --check --dry-run
+        run: |
+          set +e
+          python manage.py makemigrations --check --dry-run -v 3 > migr.txt 2>&1
+          kod=$?
+          cat migr.txt
+          if [ $kod -ne 0 ]; then
+            head -c 60000 migr.txt | sed 's/%/%25/g' | awk 'BEGIN{ORS="%0A"} {print}' | sed 's/^/::error title=migration::/' ; echo
+            exit $kod
+          fi
       - name: Sınav başvuru testleri
-        run: python manage.py test takip.tests.test_sinav_basvuru_form takip.tests.test_sinav_basvuru_bildirim -v 2
+        run: |
+          set +e
+          python manage.py test takip.tests.test_sinav_basvuru_form takip.tests.test_sinav_basvuru_bildirim -v 2 > test.txt 2>&1
+          kod=$?
+          cat test.txt
+          if [ $kod -ne 0 ]; then
+            tail -c 60000 test.txt | sed 's/%/%25/g' | awk 'BEGIN{ORS="%0A"} {print}' | sed 's/^/::error title=testler::/' ; echo
+            exit $kod
+          fi
