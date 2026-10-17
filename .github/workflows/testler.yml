@@ -1,0 +1,34 @@
+name: Testler
+
+on:
+  pull_request:
+  push:
+    branches: ["sts-*"]
+  workflow_dispatch:
+
+jobs:
+  django:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings
+      SECRET_KEY: ci-test-key
+      DEBUG: "False"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Sistem kütüphaneleri (WeasyPrint)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libpango-1.0-0 libpangocairo-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libcairo2 libgdk-pixbuf-2.0-0 fonts-dejavu-core
+      - name: Paketler
+        run: pip install -r requirements.txt
+      - name: Django kontrolü
+        run: python manage.py check
+      - name: Eksik migration kontrolü
+        run: python manage.py makemigrations --check --dry-run
+      - name: Sınav başvuru testleri
+        run: python manage.py test takip.tests.test_sinav_basvuru_form takip.tests.test_sinav_basvuru_bildirim -v 2

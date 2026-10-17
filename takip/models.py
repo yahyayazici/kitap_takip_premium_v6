@@ -2313,6 +2313,11 @@ from takip.sinav_basvuru_mesaj_models import (  # noqa: E402,F401
     SinavBasvuruMesajLog,
     SinavBasvuruMesajSablon,
 )
+from takip.sinav_bildirim_models import (  # noqa: E402,F401
+    SinavBasvuruPushAbonelik,
+    SinavBildirimLog,
+    SinavTakvim,
+)
 
 from takip.ziyaret_arac_models import (  # noqa: E402,F401
     ZiyaretAracAtama,
