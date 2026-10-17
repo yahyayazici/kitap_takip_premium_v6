@@ -13,7 +13,7 @@ PANEL_TAGLINE = os.environ.get("PANEL_TAGLINE", "Öğrenmenin En Akıllı Yolu")
 PANEL_FOOTER = os.environ.get("PANEL_FOOTER", "Çinili Saray Proje")
 SINAV_BASVURU_BASLIK = os.environ.get(
     "SINAV_BASVURU_BASLIK",
-    "4A Proje Sınıfı Alım Sınavı",
+    "Yazılı Öncesi Seviye Tespit Sınavı",
 )
 
 

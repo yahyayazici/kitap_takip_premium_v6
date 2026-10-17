@@ -15,6 +15,7 @@ from takip.models import (
     SinavBasvuruMesajLog,
     SinavBasvuruMesajSablon,
 )
+from takip.sinav_basvuru_models import SINAV_BASVURU_SINIF_SECENEKLERI
 from takip.sinav_basvuru_mesaj_service import (
     basvuru_mesaji_gonder,
     basvurularda_mesaj_gonder,
@@ -46,6 +47,13 @@ def _filtreli_basvurular(request):
     basvurular = SinavBasvuru.objects.select_related("durum").all()
     durum = request.GET.get("durum", "").strip()
     arama = request.GET.get("q", "").strip()
+    sinav = request.GET.get("sinav", "").strip()
+    sinif = request.GET.get("sinif", "").strip()
+
+    if sinav:
+        basvurular = basvurular.filter(sinav_adi=sinav)
+    if sinif:
+        basvurular = basvurular.filter(sinif=sinif)
 
     if durum.isdigit():
         basvurular = basvurular.filter(durum_id=int(durum))
@@ -61,6 +69,7 @@ def _filtreli_basvurular(request):
             | Q(anne_adi__icontains=arama)
             | Q(il__icontains=arama)
             | Q(ilce__icontains=arama)
+            | Q(okul_adi__icontains=arama)
         )
     return basvurular, durum, arama
 
@@ -191,6 +200,15 @@ def sinav_basvuru_listesi(request):
             "basvurular": basvurular,
             "durum_filtre": durum,
             "arama": arama,
+            "sinav_filtre": request.GET.get("sinav", "").strip(),
+            "sinif_filtre": request.GET.get("sinif", "").strip(),
+            "sinav_secenekleri": list(
+                SinavBasvuru.objects.exclude(sinav_adi="")
+                .order_by("sinav_adi")
+                .values_list("sinav_adi", flat=True)
+                .distinct()
+            ),
+            "sinif_secenekleri": SINAV_BASVURU_SINIF_SECENEKLERI,
             "durumlar": _aktif_durumlar(),
             "tum_durumlar": _tum_durumlar(),
             "manuel_sablonlar": manuel_sablonlar,
@@ -208,6 +226,8 @@ def sinav_basvuru_excel(request):
         satirlar.append(
             [
                 b.ad_soyad,
+                b.get_sinif_display() if b.sinif else "",
+                b.okul_adi,
                 b.baba_adi,
                 b.baba_telefon,
                 telefon_normalize(b.baba_telefon),
@@ -227,7 +247,9 @@ def sinav_basvuru_excel(request):
         baslik="Sınav Başvuruları",
         alt_baslik="WhatsApp / SMS kampanya listesi",
         kolon_basliklari=[
-            "Ad soyad",
+            "Öğrenci ad soyad",
+            "Sınıf",
+            "Okul",
             "Baba adı",
             "Baba tel",
             "Baba tel (90…)",
@@ -242,9 +264,9 @@ def sinav_basvuru_excel(request):
             "Başvuru zamanı",
         ],
         satirlar=satirlar,
-        durum_kolonlari=[11],
+        durum_kolonlari=[13],
         vurgu_kolonlari=[0],
-        genislikler=[18, 14, 14, 14, 14, 14, 14, 10, 12, 12, 22, 12, 16],
+        genislikler=[18, 9, 20, 14, 14, 14, 14, 14, 14, 10, 12, 12, 22, 12, 16],
     )
     return excel_http_yanit(icerik, "sinav-basvurulari.xlsx")
 

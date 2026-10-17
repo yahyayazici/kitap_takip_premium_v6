@@ -25,6 +25,8 @@ def sablon_metnini_doldur(sablon: SinavBasvuruMesajSablon, basvuru: SinavBasvuru
         "ilce": basvuru.ilce or "",
         "baba_adi": basvuru.baba_adi or "",
         "anne_adi": basvuru.anne_adi or "",
+        "sinif": basvuru.sinif or "",
+        "okul_adi": basvuru.okul_adi or "",
     }
     try:
         return (sablon.metin or "").format(**ctx)

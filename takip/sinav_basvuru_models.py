@@ -36,8 +36,24 @@ def varsayilan_basvuru_durumu():
     return durum.pk
 
 
+SINAV_BASVURU_SINIF_SECENEKLERI = [
+    ("4", "4. sınıf"),
+    ("5", "5. sınıf"),
+    ("6", "6. sınıf"),
+    ("7", "7. sınıf"),
+    ("8", "8. sınıf"),
+]
+
+
 class SinavBasvuru(models.Model):
-    ad_soyad = models.CharField(max_length=150, verbose_name="Ad soyad")
+    ad_soyad = models.CharField(max_length=150, verbose_name="Öğrenci ad soyad")
+    sinif = models.CharField(
+        max_length=2,
+        blank=True,
+        choices=SINAV_BASVURU_SINIF_SECENEKLERI,
+        verbose_name="Sınıf",
+    )
+    okul_adi = models.CharField(max_length=150, blank=True, verbose_name="Okul adı")
     baba_adi = models.CharField(max_length=100, verbose_name="Baba adı")
     baba_telefon = models.CharField(max_length=20, verbose_name="Baba telefon")
     anne_adi = models.CharField(max_length=100, verbose_name="Anne adı")
