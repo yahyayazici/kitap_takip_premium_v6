@@ -2318,6 +2318,10 @@ from takip.sinav_bildirim_models import (  # noqa: E402,F401
     SinavBildirimLog,
     SinavTakvim,
 )
+from takip.sinav_salon_models import (  # noqa: E402,F401
+    SinavSalon,
+    SinavYerlesim,
+)
 
 from takip.ziyaret_arac_models import (  # noqa: E402,F401
     ZiyaretAracAtama,

@@ -1,3 +1,52 @@
+/* Salonlar — satır ekle/çıkar, toplam yer anında hesaplanır. */
+(function () {
+    "use strict";
+    var form = document.getElementById("st-salon-form");
+    if (!form) {
+        return;
+    }
+    var liste = document.getElementById("st-salon-satirlar");
+    var bilgi = document.getElementById("st-salon-kapasite");
+
+    function hesapla() {
+        var kisiEl = form.querySelector("input[name=masa_kisi]:checked");
+        var kisi = kisiEl ? parseInt(kisiEl.value, 10) : 1;
+        var masa = 0;
+        var satirlar = liste.querySelectorAll(".st-salon-satir");
+        satirlar.forEach(function (li) {
+            masa += parseInt(li.querySelector("input[name=salon_masa]").value, 10) || 0;
+        });
+        bilgi.textContent = satirlar.length + " salon · " + masa + " masa · " + (masa * kisi) + " kişilik yer";
+        liste.querySelectorAll("[data-salon-sil]").forEach(function (b) {
+            b.hidden = satirlar.length < 2;
+        });
+    }
+
+    document.getElementById("st-salon-ekle").addEventListener("click", function () {
+        var satirlar = liste.querySelectorAll(".st-salon-satir");
+        var son = satirlar[satirlar.length - 1];
+        var yeni = son.cloneNode(true);
+        var ad = yeni.querySelector("input[name=salon_ad]");
+        ad.value = "Salon " + (satirlar.length + 1);
+        yeni.querySelector("input[name=salon_masa]").value = son.querySelector("input[name=salon_masa]").value;
+        liste.appendChild(yeni);
+        ad.focus();
+        ad.select();
+        hesapla();
+    });
+
+    liste.addEventListener("click", function (e) {
+        var sil = e.target.closest("[data-salon-sil]");
+        if (sil && liste.children.length > 1) {
+            sil.closest(".st-salon-satir").remove();
+            hesapla();
+        }
+    });
+    form.addEventListener("input", hesapla);
+    form.addEventListener("change", hesapla);
+    hesapla();
+})();
+
 /* Seviye Tespit — filtreler kendiliğinden uygulanır, seçim yapılınca toplu işlem çubuğu çıkar,
  * satırdaki durum değişince kaydedilir. */
 (function () {

@@ -1,0 +1,167 @@
+{% load static %}<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ tur_adi }} · Seviye Tespit</title>
+    <link rel="icon" type="image/png" href="{% static 'images/cinili-saray-logo-icon-sm.png' %}">
+    <style>
+        @page { size: A4; margin: 14mm 12mm; }
+        * { box-sizing: border-box; }
+        html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body {
+            margin: 0;
+            background: #eef1f6;
+            color: #0f203c;
+            font: 13px/1.4 "Poppins", -apple-system, "Segoe UI", system-ui, sans-serif;
+        }
+        .arac {
+            position: sticky; top: 0; z-index: 2;
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 20px;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(15,32,60,0.08);
+        }
+        .arac strong { font-size: 15px; }
+        .arac span { color: #8491a3; }
+        .arac .bosluk { flex: 1; }
+        .arac button {
+            min-height: 40px; padding: 0 20px; border: 0; border-radius: 11px;
+            background: #2f6ff3; color: #fff; font: inherit; font-weight: 600; cursor: pointer;
+        }
+        .sayfa {
+            width: 210mm; min-height: 297mm; margin: 18px auto; padding: 14mm 12mm;
+            background: #fff; box-shadow: 0 4px 24px rgba(15,32,60,0.08);
+            page-break-after: always; break-after: page;
+        }
+        .sayfa:last-child { page-break-after: auto; break-after: auto; }
+        .ust { display: flex; align-items: center; gap: 14px; padding-bottom: 12px; margin-bottom: 16px; border-bottom: 2px solid #0f203c; }
+        .ust img { height: 46px; }
+        .ust .metin { flex: 1; }
+        .ust .kucuk { color: #546173; font-size: 11px; letter-spacing: 0.02em; }
+        .ust h1 { margin: 2px 0 0; font-size: 26px; letter-spacing: -0.02em; }
+        .ust .sag { text-align: right; color: #546173; font-size: 11.5px; }
+        .ust .sag b { display: block; color: #0f203c; font-size: 15px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase; color: #546173; padding: 6px 8px; border-bottom: 1px solid #c9d0db; }
+        td { padding: 7px 8px; border-bottom: 1px solid #e3e7ee; }
+        td.no, th.no { width: 34px; color: #8491a3; text-align: right; }
+        td.masa { font-weight: 600; white-space: nowrap; }
+        td.imza { width: 38%; }
+        tr:nth-child(even) td { background: #fafbfd; }
+        .alt { margin-top: 18px; display: flex; justify-content: space-between; color: #546173; font-size: 11px; }
+        /* Oturma planı */
+        .plan { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+        .plan.ikili { grid-template-columns: repeat(3, 1fr); }
+        .masa-k { position: relative; display: flex; gap: 4px; padding: 16px 4px 4px; border: 1px solid #c9d0db; border-radius: 8px; }
+        .masa-k .mno { position: absolute; top: 2px; left: 6px; font-size: 9.5px; font-weight: 700; color: #8491a3; }
+        .kol { flex: 1; min-width: 0; padding: 5px 6px; border-radius: 5px; background: #f1f3f7; }
+        .kol b { display: block; font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .kol i { font-style: normal; font-size: 9.5px; color: #546173; }
+        .kol.bos { background: none; border: 1px dashed #d5dae2; color: #b2bac6; font-size: 9.5px; display: grid; place-items: center; }
+        .tahta { margin-bottom: 10px; padding: 6px; border-radius: 6px; background: #0f203c; color: #fff; text-align: center; font-size: 10.5px; font-weight: 600; letter-spacing: 0.1em; }
+        .s4 { background: #eaf1ff; } .s5 { background: #e5f6ee; } .s6 { background: #fff2e2; } .s7 { background: #f1eafe; } .s8 { background: #ffe9ef; }
+        /* Masa etiketleri */
+        .etiketler { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; }
+        .etiket { height: 33mm; padding: 5mm 6mm; border: 1px dashed #c9d0db; margin: -0.5px; display: flex; flex-direction: column; justify-content: space-between; }
+        .etiket .e-ust { display: flex; justify-content: space-between; color: #546173; font-size: 10px; }
+        .etiket .e-ad { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+        .etiket .e-alt { display: flex; justify-content: space-between; align-items: baseline; }
+        .etiket .e-yer { font-size: 15px; font-weight: 700; }
+        .etiket .e-sinif { color: #546173; }
+        .bos-mesaj { max-width: 520px; margin: 80px auto; text-align: center; color: #546173; font-size: 15px; }
+        @media print {
+            body { background: #fff; }
+            .arac { display: none; }
+            .sayfa { width: auto; min-height: 0; margin: 0; padding: 0; box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="arac">
+        <strong>{{ tur_adi }}</strong>
+        <span>{{ kartlar|length }} salon</span>
+        <span class="bosluk"></span>
+        <button type="button" onclick="window.print()">Yazdır</button>
+    </div>
+
+    {% if not kartlar %}
+    <p class="bos-mesaj">Henüz oturma düzeni yok. Seviye Tespit &rsaquo; Salonlar'dan kelebek sistemini çalıştırın.</p>
+    {% endif %}
+
+    {% for k in kartlar %}
+    {% if tur == "etiket" %}
+    <section class="sayfa">
+        <div class="etiketler">
+            {% for y in k.yerlesimler %}
+            <div class="etiket">
+                <div class="e-ust"><span>{{ sinav_adi }}</span><span>{{ k.salon.ad }}</span></div>
+                <div class="e-ad">{{ y.basvuru.ad_soyad }}</div>
+                <div class="e-alt"><span class="e-yer">{{ y.yer_metni }}</span><span class="e-sinif">{{ y.basvuru.sinif }}. sınıf</span></div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% else %}
+    <section class="sayfa">
+        <header class="ust">
+            <img src="{% static 'images/cinili-saray-logo-transparent.png' %}" alt="">
+            <div class="metin">
+                <div class="kucuk">{{ sinav_adi }} · {{ tur_adi }}</div>
+                <h1>{{ k.salon.ad }}</h1>
+            </div>
+            <div class="sag">
+                <b>{{ k.dolu }} öğrenci</b>
+                {% if takvim %}{{ takvim.baslangic|date:"j F Y l" }} · {{ takvim.baslangic|date:"H.i" }}{% endif %}
+            </div>
+        </header>
+
+        {% if tur == "oturma" %}
+        <div class="tahta">TAHTA</div>
+        <div class="plan{% if k.salon.masa_kisi == 2 %} ikili{% endif %}">
+            {% for m in k.masalar %}
+            <div class="masa-k">
+                <span class="mno">{{ m.no }}</span>
+                {% for y in m.koltuklar %}
+                {% if y %}<div class="kol s{{ y.basvuru.sinif }}"><b>{{ y.basvuru.ad_soyad }}</b><i>{{ y.basvuru.sinif }}. sınıf</i></div>{% else %}<div class="kol bos">boş</div>{% endif %}
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <table>
+            <thead>
+                <tr>
+                    <th class="no">#</th>
+                    <th>Öğrenci</th>
+                    <th>Sınıf</th>
+                    {% if tur == "yoklama" %}<th>Masa</th><th>İmza</th>{% else %}<th>Okul</th><th>Yeri</th>{% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for y in k.alfabetik %}
+                <tr>
+                    <td class="no">{{ forloop.counter }}</td>
+                    <td>{{ y.basvuru.ad_soyad }}</td>
+                    <td>{{ y.basvuru.sinif }}</td>
+                    {% if tur == "yoklama" %}
+                    <td class="masa">{{ y.yer_metni }}</td>
+                    <td class="imza"></td>
+                    {% else %}
+                    <td>{{ y.basvuru.okul_adi }}</td>
+                    <td class="masa">{{ y.yer_metni }}</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if tur == "yoklama" %}
+        <div class="alt"><span>Gözetmen: ________________________</span><span>İmza: ____________</span></div>
+        {% endif %}
+        {% endif %}
+    </section>
+    {% endif %}
+    {% endfor %}
+</body>
+</html>
