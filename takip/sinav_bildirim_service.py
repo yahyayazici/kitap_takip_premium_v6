@@ -7,6 +7,9 @@ Bildirim anları:
 - sabah: sınav başlangıcından 2,5 saat önce
 - bitis: sınav bitişinden 15 dakika sonra
 
+Uygulama bildirimi tüm anlarda gider; e-posta kayıt (takvim dosyası ekli), 1 gün kala
+ve sınav bitince anlarında gider.
+
 Aynı başvuruya aynı an için yalnızca bir kez gönderilir (SinavBildirimLog tekil kısıtı).
 """
 
@@ -23,10 +26,13 @@ import time
 
 from django.conf import settings
 from django.core import signing
+from django.core.mail import EmailMessage, get_connection
 from django.db import IntegrityError, close_old_connections, transaction
+from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
 
+from takip.bildirim_service import email_kanali_aktif
 from takip.push_bildirim_service import _vapid_claims, push_bildirim_aktif
 from takip.sinav_basvuru_models import SinavBasvuru
 from takip.sinav_bildirim_models import (
@@ -52,6 +58,8 @@ AN_ETIKETLERI = {
     AN_SABAH: "Sınav sabahı",
     AN_BITIS: "Sınav bitince",
 }
+
+EPOSTA_ANLARI = frozenset({AN_KAYIT, AN_BIR_GUN, AN_BITIS})
 
 # Zamanı gelen bir hatırlatma en fazla bu kadar gecikmeyle gönderilir;
 # site uzun süre kapalı kalırsa eski hatırlatmalar sonradan topluca gitmez.
@@ -104,6 +112,17 @@ def _saat_metni(an: dt.datetime) -> str:
     return _yerel(an).strftime("%H.%M")
 
 
+def _tarih_yilli(an: dt.datetime) -> str:
+    yerel = _yerel(an)
+    return f"{yerel.day} {AYLAR[yerel.month - 1]} {yerel.year} {GUNLER[yerel.weekday()]}"
+
+
+def guncel_takvim() -> SinavTakvim | None:
+    from config.branding import SINAV_BASVURU_BASLIK
+
+    return SinavTakvim.objects.filter(sinav_adi=SINAV_BASVURU_BASLIK).first()
+
+
 def zamanlanmis_anlar(takvim: SinavTakvim) -> list[tuple[str, dt.datetime]]:
     baslangic = _yerel(takvim.baslangic)
     tz = baslangic.tzinfo
@@ -149,6 +168,137 @@ def bildirim_metni(an_kodu: str, basvuru: SinavBasvuru, takvim: SinavTakvim | No
             "Katılımınız için teşekkür ederiz. Sonuçlar en geç 3 gün içinde velilere bildirilecek.",
         )
     return "Çinili Saray", ""
+
+
+# —— Takvim dosyası (.ics) ——
+
+def _ics_metin(metin: str) -> str:
+    return (
+        (metin or "")
+        .replace("\\", "\\\\")
+        .replace(";", "\\;")
+        .replace(",", "\\,")
+        .replace("\n", "\\n")
+    )
+
+
+def _ics_zaman(an: dt.datetime) -> str:
+    return an.astimezone(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+
+
+def _ics_sure(fark: dt.timedelta) -> str:
+    toplam_dk = int(fark.total_seconds() // 60)
+    gun, kalan = divmod(toplam_dk, 24 * 60)
+    saat, dakika = divmod(kalan, 60)
+    sure = "-P"
+    if gun:
+        sure += f"{gun}D"
+    if saat or dakika or not gun:
+        sure += "T"
+        if saat:
+            sure += f"{saat}H"
+        if dakika or not saat:
+            sure += f"{dakika}M"
+    return sure
+
+
+def takvim_ics(takvim: SinavTakvim) -> str:
+    alarm_metinleri = {
+        AN_UC_GUN: "Sınava 3 gün kaldı",
+        AN_BIR_GUN: "Sınav yarın",
+        AN_SABAH: "Bugün sınav günü",
+    }
+    satirlar = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//Cinili Saray//Sinav//TR",
+        "CALSCALE:GREGORIAN",
+        "METHOD:PUBLISH",
+        "BEGIN:VEVENT",
+        f"UID:sinav-{takvim.pk}@cinilisarayproje.com",
+        f"DTSTAMP:{_ics_zaman(timezone.now())}",
+        f"DTSTART:{_ics_zaman(takvim.baslangic)}",
+        f"DTEND:{_ics_zaman(takvim.bitis)}",
+        f"SUMMARY:{_ics_metin(takvim.sinav_adi)}",
+        f"LOCATION:{_ics_metin(takvim.yer or 'Çinili Saray')}",
+        f"DESCRIPTION:{_ics_metin('Kurşun kalem, silgi ve kalemtıraş getiriniz.')}",
+    ]
+    for an_kodu, plan in zamanlanmis_anlar(takvim):
+        if an_kodu not in alarm_metinleri:
+            continue
+        satirlar += [
+            "BEGIN:VALARM",
+            "ACTION:DISPLAY",
+            f"DESCRIPTION:{_ics_metin(alarm_metinleri[an_kodu])}",
+            f"TRIGGER:{_ics_sure(takvim.baslangic - plan)}",
+            "END:VALARM",
+        ]
+    satirlar += ["END:VEVENT", "END:VCALENDAR"]
+    return "\r\n".join(satirlar) + "\r\n"
+
+
+# —— E-posta ——
+
+def eposta_metni(an_kodu: str, basvuru: SinavBasvuru, takvim: SinavTakvim | None) -> tuple[str, str]:
+    if takvim:
+        bilgi = (
+            f"Tarih: {_tarih_yilli(takvim.baslangic)}\n"
+            f"Saat: {_saat_metni(takvim.baslangic)}\n"
+            f"Yer: {takvim.yer or 'Çinili Saray'}\n"
+        )
+    else:
+        bilgi = ""
+    imza = "\nÇinili Saray\n"
+    if an_kodu == AN_KAYIT:
+        govde = (
+            "Sayın Veli,\n\n"
+            f"{basvuru.ad_soyad} için {basvuru.sinav_adi} başvurunuz alınmıştır.\n\n"
+            f"{bilgi}\n"
+            "Denemeye katılan her öğrenciye, her dersten 2 örnek yazılı hediye edilir.\n\n"
+            "Sınavı telefonunuzun takvimine eklemek için ekteki \"sinav.ics\" dosyasına "
+            "dokunabilirsiniz; takviminiz sınavdan önce size hatırlatma yapar.\n"
+        )
+        return f"Başvurunuz alındı · {basvuru.sinav_adi}", govde + imza
+    if an_kodu == AN_BIR_GUN:
+        govde = (
+            "Sayın Veli,\n\n"
+            f"{basvuru.ad_soyad} için {basvuru.sinav_adi} yarın yapılacaktır.\n\n"
+            f"{bilgi}\n"
+            "Lütfen kurşun kalem, silgi ve kalemtıraş getirmeyi unutmayınız.\n"
+        )
+        return f"Sınav yarın · {basvuru.sinav_adi}", govde + imza
+    if an_kodu == AN_BITIS:
+        govde = (
+            "Sayın Veli,\n\n"
+            f"{basvuru.ad_soyad} {basvuru.sinav_adi} sınavını tamamlamıştır. "
+            "Katılımınız için teşekkür ederiz.\n\n"
+            "Sınav neticeleri en geç 3 gün içerisinde açıklanacak ve tarafınıza bildirilecektir.\n"
+        )
+        return f"Sınav tamamlandı · {basvuru.sinav_adi}", govde + imza
+    return "", ""
+
+
+def _eposta_gonder(an_kodu: str, basvuru: SinavBasvuru, takvim: SinavTakvim | None) -> bool:
+    if an_kodu not in EPOSTA_ANLARI or not basvuru.veli_eposta or not email_kanali_aktif():
+        return False
+    konu, govde = eposta_metni(an_kodu, basvuru, takvim)
+    if not konu:
+        return False
+    try:
+        mesaj = EmailMessage(
+            subject=konu,
+            body=govde,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[basvuru.veli_eposta],
+            connection=get_connection(timeout=15),
+        )
+        if an_kodu == AN_KAYIT and takvim:
+            mesaj.attach("sinav.ics", takvim_ics(takvim), "text/calendar")
+        mesaj.send(fail_silently=False)
+        return True
+    except Exception:  # noqa: BLE001
+        logger.exception("sınav e-postası gönderilemedi (basvuru=%s, an=%s)", basvuru.pk, an_kodu)
+        return False
 
 
 # —— Abonelik ve gönderim ——
@@ -213,13 +363,16 @@ def bildirim_gonder(basvuru: SinavBasvuru, an_kodu: str, takvim: SinavTakvim | N
     except IntegrityError:
         return None
     log.gonderilen = _push_gonder(basvuru, baslik=baslik, mesaj=mesaj)
-    log.save(update_fields=["gonderilen"])
+    log.eposta_gonderildi = _eposta_gonder(an_kodu, basvuru, takvim)
+    log.save(update_fields=["gonderilen", "eposta_gonderildi"])
     return log
 
 
 def zamani_gelenleri_gonder(simdi: dt.datetime | None = None) -> int:
     """Zamanı gelmiş hatırlatmaları gönderir; yeni gönderim kaydı sayısını döner."""
-    if not push_bildirim_aktif():
+    push_acik = push_bildirim_aktif()
+    eposta_acik = email_kanali_aktif()
+    if not push_acik and not eposta_acik:
         return 0
     simdi = simdi or timezone.now()
     toplam = 0
@@ -231,11 +384,21 @@ def zamani_gelenleri_gonder(simdi: dt.datetime | None = None) -> int:
         for an_kodu, plan in zamanlanmis_anlar(takvim):
             if not (plan <= simdi < plan + GONDERIM_PENCERESI):
                 continue
+            kosullar = []
+            if push_acik:
+                kosullar.append(Q(push_abonelikleri__isnull=False))
+            if eposta_acik and an_kodu in EPOSTA_ANLARI:
+                kosullar.append(~Q(veli_eposta=""))
+            if not kosullar:
+                continue
+            ulasilabilir = kosullar[0]
+            for kosul in kosullar[1:]:
+                ulasilabilir |= kosul
             basvurular = (
                 SinavBasvuru.objects.filter(
+                    ulasilabilir,
                     sinav_adi=takvim.sinav_adi,
                     olusturulma__lt=plan,
-                    push_abonelikleri__isnull=False,
                 )
                 .exclude(bildirim_loglari__an_kodu=an_kodu)
                 .distinct()

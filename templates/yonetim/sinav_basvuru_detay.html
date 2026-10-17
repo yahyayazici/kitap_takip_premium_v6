@@ -24,6 +24,8 @@
                 <tr><th style="width:12rem;">Öğrenci ad soyad</th><td>{{ basvuru.ad_soyad }}</td></tr>
                 <tr><th>Sınıf</th><td>{{ basvuru.get_sinif_display|default:"—" }}</td></tr>
                 <tr><th>Okul adı</th><td>{{ basvuru.okul_adi|default:"—" }}</td></tr>
+                <tr><th>Veli e-posta</th><td>{% if basvuru.veli_eposta %}<a href="mailto:{{ basvuru.veli_eposta }}">{{ basvuru.veli_eposta }}</a>{% else %}—{% endif %}</td></tr>
+                <tr><th>Hatırlatma</th><td>{{ basvuru.get_hatirlatma_turu_display|default:"—" }}</td></tr>
                 <tr><th>Baba adı</th><td>{{ basvuru.baba_adi }}</td></tr>
                 <tr><th>Baba telefon</th><td><a href="tel:{{ basvuru.baba_telefon }}">{{ basvuru.baba_telefon }}</a></td></tr>
                 <tr><th>Anne adı</th><td>{{ basvuru.anne_adi }}</td></tr>

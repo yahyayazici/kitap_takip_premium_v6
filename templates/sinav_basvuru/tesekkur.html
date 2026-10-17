@@ -151,7 +151,16 @@
             <p class="sb-lead">
                 Başvurunuz alındı. 24 Ekim Cumartesi saat 11.00'de öğrencimizi bekliyoruz.
             </p>
-            {% if bildirim %}
+            {% if basvuru and basvuru.hatirlatma_turu == "takvim" %}
+            <div class="sb-bildirim">
+                <div class="sb-bildirim-ikon" aria-hidden="true">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4"></path><path d="M8 2v4"></path><path d="M3 10h18"></path></svg>
+                </div>
+                <h3>Hatırlatmalar takviminizde</h3>
+                <p>Sınava 3 gün ve 1 gün kala ve sınav sabahı telefonunuzun takvimi size hatırlatacak. Takvime eklemediyseniz aşağıdaki düğmeye dokunup “Ekle”yi seçin.</p>
+                {% if takvim_var %}<a class="sb-bildirim-btn" href="{% url 'sinav_basvuru_takvim' %}">Takvime ekle</a>{% endif %}
+            </div>
+            {% elif bildirim %}
             <div class="sb-bildirim" data-sbb
                  data-vapid-key="{{ bildirim.vapid_key }}"
                  data-abone-url="{{ bildirim.abone_url }}"
@@ -173,10 +182,13 @@
                 </div>
             </div>
             {% endif %}
+            {% if basvuru and basvuru.veli_eposta %}
+            <p class="sb-eposta-not">Sınav bilgileri <strong>{{ basvuru.veli_eposta }}</strong> adresine de e-postayla gönderildi. Gelen kutunuzda göremezseniz istenmeyen (spam) klasörüne bakın.</p>
+            {% endif %}
             <a class="sb-link" href="{% url 'sinav_basvuru_form' %}">Yeni başvuru</a>
         </section>
     </div>
 </main>
-{% if bildirim %}<script src="{% static 'js/sinav-basvuru-bildirim.js' %}"></script>{% endif %}
+{% if bildirim and basvuru.hatirlatma_turu != "takvim" %}<script src="{% static 'js/sinav-basvuru-bildirim.js' %}"></script>{% endif %}
 </body>
 </html>

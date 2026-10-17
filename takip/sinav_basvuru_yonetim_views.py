@@ -72,6 +72,7 @@ def _filtreli_basvurular(request):
             | Q(il__icontains=arama)
             | Q(ilce__icontains=arama)
             | Q(okul_adi__icontains=arama)
+            | Q(veli_eposta__icontains=arama)
         )
     return basvurular, durum, arama
 
@@ -230,6 +231,8 @@ def sinav_basvuru_excel(request):
                 b.ad_soyad,
                 b.get_sinif_display() if b.sinif else "",
                 b.okul_adi,
+                b.veli_eposta,
+                b.get_hatirlatma_turu_display() if b.hatirlatma_turu else "",
                 b.baba_adi,
                 b.baba_telefon,
                 telefon_normalize(b.baba_telefon),
@@ -252,6 +255,8 @@ def sinav_basvuru_excel(request):
             "Öğrenci ad soyad",
             "Sınıf",
             "Okul",
+            "Veli e-posta",
+            "Hatırlatma",
             "Baba adı",
             "Baba tel",
             "Baba tel (90…)",
@@ -266,9 +271,9 @@ def sinav_basvuru_excel(request):
             "Başvuru zamanı",
         ],
         satirlar=satirlar,
-        durum_kolonlari=[13],
+        durum_kolonlari=[15],
         vurgu_kolonlari=[0],
-        genislikler=[18, 9, 20, 14, 14, 14, 14, 14, 14, 10, 12, 12, 22, 12, 16],
+        genislikler=[18, 9, 20, 24, 14, 14, 14, 14, 14, 14, 14, 10, 12, 12, 22, 12, 16],
     )
     return excel_http_yanit(icerik, "sinav-basvurulari.xlsx")
 

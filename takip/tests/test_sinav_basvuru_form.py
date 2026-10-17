@@ -20,6 +20,8 @@ def gecerli_veri(**degisiklik):
         "ad_soyad": "Ahmet Yılmaz",
         "sinif": "6",
         "okul_adi": "Başakşehir Ortaokulu",
+        "veli_eposta": "veli@example.com",
+        "hatirlatma_turu": "takvim",
         "baba_adi": "Mehmet",
         "baba_telefon": "0532 111 22 33",
         "anne_adi": "Ayşe",
@@ -40,6 +42,8 @@ class SinavBasvuruFormTests(TestCase):
         icerik = yanit.content.decode()
         self.assertIn("Öğrenci ad soyad", icerik)
         self.assertIn("Okul adı", icerik)
+        self.assertIn("Veli e-posta", icerik)
+        self.assertIn("Hatırlatmaları açın", icerik)
         self.assertIn("24 Ekim 2026", icerik)
         self.assertIn("2 örnek yazılı", icerik)
         self.assertNotIn("4A Proje", icerik)

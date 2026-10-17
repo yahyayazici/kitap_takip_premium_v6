@@ -6,7 +6,7 @@ import json
 import logging
 
 from django.conf import settings
-from django.http import Http404, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
@@ -25,6 +25,8 @@ from takip.sinav_bildirim_service import (
     abonelik_kaydet,
     basvuru_bildirim_url,
     bildirim_gonder,
+    guncel_takvim,
+    takvim_ics,
     tokendan_basvuru,
 )
 
@@ -37,7 +39,17 @@ def sinav_basvuru_form(request):
     if request.method == "POST" and form.is_valid():
         basvuru = form.save(commit=False)
         basvuru.sinav_adi = SINAV_BASVURU_BASLIK
+        basvuru.hatirlatma_turu = form.cleaned_data.get("hatirlatma_turu") or ""
         basvuru.save()
+        abonelik = form.cleaned_data.get("abonelik")
+        if abonelik:
+            abonelik_kaydet(
+                basvuru, abonelik, user_agent=request.META.get("HTTP_USER_AGENT", "")
+            )
+        try:
+            bildirim_gonder(basvuru, AN_KAYIT)
+        except Exception:  # noqa: BLE001
+            logger.exception("Kayıt bildirimi gönderilemedi")
         try:
             basvuru_mesaji_gonder(
                 basvuru,
@@ -56,8 +68,20 @@ def sinav_basvuru_form(request):
             "sinav_basvuru_baslik": SINAV_BASVURU_BASLIK,
             "sinav_ust_baslik": SINAV_BASVURU_UST_BASLIK,
             "sinav_ana_baslik": SINAV_BASVURU_ANA_BASLIK,
+            "push_vapid": settings.VAPID_PUBLIC_KEY if push_bildirim_aktif() else "",
         },
     )
+
+
+@require_GET
+def sinav_basvuru_takvim(request):
+    takvim = guncel_takvim()
+    if not takvim:
+        raise Http404
+    response = HttpResponse(takvim_ics(takvim), content_type="text/calendar; charset=utf-8")
+    response["Content-Disposition"] = 'inline; filename="sinav.ics"'
+    response["Cache-Control"] = "no-store"
+    return response
 
 
 @require_http_methods(["GET"])
@@ -77,6 +101,7 @@ def sinav_basvuru_tesekkur(request):
         {
             "basvuru": basvuru,
             "bildirim": bildirim,
+            "takvim_var": guncel_takvim() is not None,
             "sinav_basvuru_baslik": SINAV_BASVURU_BASLIK,
             "sinav_ust_baslik": SINAV_BASVURU_UST_BASLIK,
             "sinav_ana_baslik": SINAV_BASVURU_ANA_BASLIK,
