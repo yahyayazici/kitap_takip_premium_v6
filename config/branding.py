@@ -17,6 +17,27 @@ SINAV_BASVURU_BASLIK = os.environ.get(
 )
 
 
+def _sinav_baslik_bol(baslik: str) -> tuple[str, str]:
+    """Başlığı ince üst satır + kalın ana satır olarak ikiye böler.
+
+    SINAV_BASVURU_UST_BASLIK tanımlıysa ve başlık onunla başlıyorsa ona göre böler;
+    değilse dört ve daha fazla kelimelik başlıkta son üç kelimeyi ana satır yapar.
+    """
+    baslik = (baslik or "").strip()
+    ust = os.environ.get("SINAV_BASVURU_UST_BASLIK", "").strip()
+    if ust and baslik.startswith(ust):
+        return ust, baslik[len(ust):].strip()
+    kelimeler = baslik.split()
+    if len(kelimeler) >= 4:
+        return " ".join(kelimeler[:-3]), " ".join(kelimeler[-3:])
+    return "", baslik
+
+
+SINAV_BASVURU_UST_BASLIK, SINAV_BASVURU_ANA_BASLIK = _sinav_baslik_bol(
+    SINAV_BASVURU_BASLIK
+)
+
+
 def panel_branding_context() -> dict[str, str]:
     return {
         "panel_name": PANEL_NAME,

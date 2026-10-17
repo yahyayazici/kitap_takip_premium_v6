@@ -100,6 +100,7 @@ body::after {
 }
 
 .sb-brand {
+    position: relative;
     text-align: center;
     animation: sb-rise 0.7s ease both;
 }
@@ -558,4 +559,64 @@ body::after {
         border-radius: 24px 24px 0 0;
         padding: 1.5rem 1rem 2rem;
     }
+}
+
+/* Başlık: ince üst satır + kalın ana satır */
+.sb-title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.12em;
+    margin-top: 0.35rem;
+}
+
+.sb-title-ust {
+    font-weight: 300;
+    font-size: 0.68em;
+    letter-spacing: 0.01em;
+    color: var(--sb-muted);
+}
+
+.sb-title-ana {
+    font-weight: 700;
+}
+
+/* Logonun yanında uçan, silik optik form */
+.sb-optik-wrap {
+    position: absolute;
+    top: 50%;
+    left: calc(50% + 200px);
+    width: 148px;
+    pointer-events: none;
+    z-index: -1;
+    transform: translateY(-50%) rotate(14deg);
+    animation: sb-optik-uc 7s ease-in-out infinite;
+}
+
+.sb-optik {
+    display: block;
+    width: 100%;
+    height: auto;
+    opacity: 0.42;
+    filter: drop-shadow(0 18px 22px rgba(60, 45, 30, 0.18)) blur(0.3px);
+}
+
+@keyframes sb-optik-uc {
+    0%, 100% { transform: translateY(-50%) rotate(14deg); }
+    50% { transform: translateY(calc(-50% - 12px)) rotate(10deg); }
+}
+
+@media (max-width: 640px) {
+    .sb-optik-wrap {
+        left: calc(50% + 112px);
+        width: 70px;
+    }
+
+    .sb-optik {
+        opacity: 0.3;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sb-optik-wrap { animation: none; }
 }
