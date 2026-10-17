@@ -421,7 +421,11 @@ def zamani_gelenleri_gonder(simdi: dt.datetime | None = None) -> int:
     )
     for takvim in takvimler:
         for an_kodu, plan in zamanlanmis_anlar(takvim):
-            if not (plan <= simdi < plan + GONDERIM_PENCERESI):
+            son = plan + GONDERIM_PENCERESI
+            if an_kodu != AN_BITIS:
+                # Sınav öncesi hatırlatmalar sınav başladıktan sonra gönderilmez.
+                son = min(son, takvim.baslangic)
+            if not (plan <= simdi < son):
                 continue
             kosullar = []
             if push_acik:

@@ -223,9 +223,17 @@ class SinavTesekkurSaatiTests(TestCase):
             basvuru=self.basvuru, endpoint=ABONELIK["endpoint"], p256dh="a", auth="b"
         )
 
+    def _bitis_var(self):
+        return SinavBildirimLog.objects.filter(basvuru=self.basvuru, an_kodu=AN_BITIS).exists()
+
     def test_tesekkur_bildirimi_1430da_gider(self, webpush):
-        self.assertEqual(zamani_gelenleri_gonder(yerel(2026, 10, 24, 14, 29)), 0)
-        self.assertEqual(zamani_gelenleri_gonder(yerel(2026, 10, 24, 14, 30)), 1)
-        self.assertTrue(
-            SinavBildirimLog.objects.filter(basvuru=self.basvuru, an_kodu=AN_BITIS).exists()
+        zamani_gelenleri_gonder(yerel(2026, 10, 24, 14, 29))
+        self.assertFalse(self._bitis_var())
+        zamani_gelenleri_gonder(yerel(2026, 10, 24, 14, 30))
+        self.assertTrue(self._bitis_var())
+
+    def test_sabah_hatirlatmasi_sinav_basladiktan_sonra_gitmez(self, webpush):
+        zamani_gelenleri_gonder(yerel(2026, 10, 24, 11, 5))
+        self.assertFalse(
+            SinavBildirimLog.objects.filter(basvuru=self.basvuru, an_kodu=AN_SABAH).exists()
         )
