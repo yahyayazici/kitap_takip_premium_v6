@@ -161,7 +161,7 @@ class SinavHatirlatmaZamanlamaTests(TestCase):
             yerel(2026, 10, 21, 19, 1),
             yerel(2026, 10, 23, 19, 1),
             yerel(2026, 10, 24, 8, 31),
-            yerel(2026, 10, 24, 13, 26),
+            yerel(2026, 10, 24, 14, 31),
         ]:
             zamani_gelenleri_gonder(an)
         self.assertEqual(self._anlar(), {AN_UC_GUN, AN_BIR_GUN, AN_SABAH, AN_BITIS})
@@ -204,3 +204,28 @@ class SinavBildirimHataKaydiTests(TestCase):
         log = SinavBildirimLog.objects.get(basvuru=basvuru, an_kodu=AN_KAYIT)
         self.assertEqual(log.gonderilen, 0)
         self.assertIn("bozuk anahtar", log.push_hata)
+
+
+@override_settings(**VAPID)
+@mock.patch("pywebpush.webpush")
+class SinavTesekkurSaatiTests(TestCase):
+    def setUp(self):
+        SinavTakvim.objects.update_or_create(
+            sinav_adi=SINAV_BASVURU_BASLIK,
+            defaults={
+                "baslangic": yerel(2026, 10, 24, 11, 0),
+                "bitis": yerel(2026, 10, 24, 13, 10),
+                "bildirim_aktif": True,
+            },
+        )
+        self.basvuru = basvuru_olustur(olusturulma=yerel(2026, 10, 18, 10, 0))
+        SinavBasvuruPushAbonelik.objects.create(
+            basvuru=self.basvuru, endpoint=ABONELIK["endpoint"], p256dh="a", auth="b"
+        )
+
+    def test_tesekkur_bildirimi_1430da_gider(self, webpush):
+        self.assertEqual(zamani_gelenleri_gonder(yerel(2026, 10, 24, 14, 29)), 0)
+        self.assertEqual(zamani_gelenleri_gonder(yerel(2026, 10, 24, 14, 30)), 1)
+        self.assertTrue(
+            SinavBildirimLog.objects.filter(basvuru=self.basvuru, an_kodu=AN_BITIS).exists()
+        )
