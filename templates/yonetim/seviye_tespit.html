@@ -3,7 +3,7 @@
 {% block title %}Seviye Tespit{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/seviye-tespit.css' %}?v=3">{% endblock %}
 {% block content %}
-<div class="st">
+<div class="st{% if bolum == "sonuclar" %} st--genis{% endif %}">
 
     <header class="st-head">
         <p class="kicker">Eğitim</p>
@@ -560,13 +560,11 @@
                         <th class="st-sec"><input type="checkbox" id="st-sonuc-hepsi" aria-label="Tümünü seç"></th>
                         <th class="st-sag">Sıra</th>
                         <th>Öğrenci</th>
-                        <th>Sınıf</th>
                         {% for kod, ad, kisa in sonuc.dersler %}<th class="st-sag" title="{{ ad }}">{{ kisa }}</th>{% endfor %}
                         <th class="st-sag">Net</th>
                         <th class="st-sag">Puan</th>
-                        <th>Karne</th>
+                        <th>Karne ve gönderim</th>
                         <th>Karar</th>
-                        <th>Veli</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -575,12 +573,11 @@
                         <td class="st-sec"><input type="checkbox" name="basvuru_ids" value="{{ r.b.pk }}" class="st-sonuc-sec" aria-label="{{ r.b.ad_soyad }} seç"></td>
                         <td class="st-sag st-rakam">{% if r.s.genel_sira %}<strong>{{ r.s.genel_sira }}</strong>{% if r.s.sinif_sira %}<span class="st-soluk st-alt-sira">sınıfta {{ r.s.sinif_sira }}</span>{% endif %}{% else %}<span class="st-soluk">—</span>{% endif %}</td>
                         <td>
-                            <a class="st-ogrenci" href="{% url 'yonetim:sinav_basvuru_detay' r.b.pk %}">
+                            <a class="st-ogrenci st-tek-satir" href="{% url 'yonetim:sinav_basvuru_detay' r.b.pk %}" title="{{ r.b.okul_adi }}">
                                 <strong>{{ r.b.ad_soyad }}</strong>
-                                <span class="st-soluk">{{ r.b.okul_adi|default:"Okul belirtilmemiş" }}</span>
+                                <span class="st-soluk">{% if r.b.sinif %}{{ r.b.sinif }}. sınıf{% endif %}</span>
                             </a>
                         </td>
-                        <td>{{ r.b.sinif|default:"—" }}</td>
                         {% for n in r.netler %}<td class="st-sag st-rakam st-soluk-rakam">{{ n|default:"—" }}</td>{% endfor %}
                         <td class="st-sag st-rakam"><strong>{% if r.s.veri_var %}{{ r.s.toplam_net }}{% else %}<span class="st-soluk">—</span>{% endif %}</strong></td>
                         <td class="st-sag st-rakam">{% if r.s.puan is not None and r.s.veri_var %}{{ r.s.puan|floatformat:2 }}{% else %}<span class="st-soluk">—</span>{% endif %}</td>
@@ -593,6 +590,13 @@
                             {% else %}
                             <button type="button" class="st-dugme-sade st-kucuk" data-karne-yukle="{{ r.b.pk }}">+ Yükle</button>
                             {% endif %}
+                        <div class="st-gonderim">
+                            {% if r.s.guncel_gonderildi %}<span class="st-tamam">Gönderildi</span><span class="st-soluk">{{ r.s.gonderim_zamani|date:"j M H.i" }}</span>
+                            {% elif r.s.gonderildi %}<span class="st-hata st-uyari">Yeni karne gönderilmedi</span>
+                            {% elif r.s.karne %}<span class="st-soluk">Gönderilmedi</span>
+                            {% endif %}
+                            {% if not r.b.veli_eposta and not r.b.bildirim_cihaz %}<span class="st-hata">Ulaşılamaz</span>{% endif %}
+                        </div>
                         </td>
                         <td>
                             <label class="st-secim st-secim--satir st-karar st-karar--{{ r.b.sonuc_karar|default:'yok' }}">
@@ -604,16 +608,9 @@
                                 </select>
                             </label>
                         </td>
-                        <td class="st-gonderim">
-                            {% if r.s.guncel_gonderildi %}<span class="st-tamam">Gönderildi</span><span class="st-soluk">{{ r.s.gonderim_zamani|date:"j M H.i" }}</span>
-                            {% elif r.s.gonderildi %}<span class="st-hata st-uyari">Yeni karne gönderilmedi</span>
-                            {% elif r.s.karne %}<span class="st-soluk">Gönderilmedi</span>
-                            {% else %}<span class="st-soluk">—</span>{% endif %}
-                            {% if not r.b.veli_eposta and not r.b.bildirim_cihaz %}<span class="st-hata">Ulaşılamaz</span>{% endif %}
-                        </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="12" class="st-bos">Bu filtreye uyan öğrenci yok.</td></tr>
+                    <tr><td colspan="10" class="st-bos">Bu filtreye uyan öğrenci yok.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
