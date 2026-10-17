@@ -107,6 +107,11 @@ class FormHatirlatmaTests(TakvimliTestCase):
         self.assertTrue(log.eposta_gonderildi)
         self.assertEqual(webpush.call_count, 1)
 
+    def test_formda_takvime_ekle_dugmesi_var(self):
+        icerik = self.client.get(FORM_URL).content.decode()
+        self.assertIn("data-hat-takvim", icerik)
+        self.assertIn(reverse("sinav_basvuru_takvim"), icerik)
+
     @override_settings(**VAPID)
     def test_form_vapid_anahtarini_sayfaya_koyar(self):
         icerik = self.client.get(FORM_URL).content.decode()

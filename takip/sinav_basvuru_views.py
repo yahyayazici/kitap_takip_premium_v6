@@ -69,6 +69,7 @@ def sinav_basvuru_form(request):
             "sinav_ust_baslik": SINAV_BASVURU_UST_BASLIK,
             "sinav_ana_baslik": SINAV_BASVURU_ANA_BASLIK,
             "push_vapid": settings.VAPID_PUBLIC_KEY if push_bildirim_aktif() else "",
+            "takvim_var": guncel_takvim() is not None,
         },
     )
 
