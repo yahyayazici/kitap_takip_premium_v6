@@ -8,7 +8,11 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
-from config.branding import SINAV_BASVURU_BASLIK
+from config.branding import (
+    SINAV_BASVURU_ANA_BASLIK,
+    SINAV_BASVURU_BASLIK,
+    SINAV_BASVURU_UST_BASLIK,
+)
 from takip.forms import SinavBasvuruForm
 from takip.models import SinavBasvuruMesajSablon
 from takip.sinav_basvuru_mesaj_service import basvuru_mesaji_gonder
@@ -39,6 +43,8 @@ def sinav_basvuru_form(request):
         {
             "form": form,
             "sinav_basvuru_baslik": SINAV_BASVURU_BASLIK,
+            "sinav_ust_baslik": SINAV_BASVURU_UST_BASLIK,
+            "sinav_ana_baslik": SINAV_BASVURU_ANA_BASLIK,
         },
     )
 
@@ -48,5 +54,9 @@ def sinav_basvuru_tesekkur(request):
     return render(
         request,
         "sinav_basvuru/tesekkur.html",
-        {"sinav_basvuru_baslik": SINAV_BASVURU_BASLIK},
+        {
+            "sinav_basvuru_baslik": SINAV_BASVURU_BASLIK,
+            "sinav_ust_baslik": SINAV_BASVURU_UST_BASLIK,
+            "sinav_ana_baslik": SINAV_BASVURU_ANA_BASLIK,
+        },
     )
