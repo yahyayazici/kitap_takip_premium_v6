@@ -11,7 +11,7 @@
     --sb-focus: rgba(0, 113, 227, 0.28);
     --sb-danger: #b00020;
     --sb-radius: 20px;
-    --sb-max: min(1120px, 94vw);
+    --sb-max: 100%;
     --sb-chalk: #ebe4d8;
     --sb-dust: #e4dccf;
     --sb-ivory: #faf7f2;
@@ -105,7 +105,7 @@ body::after {
 }
 
 .sb-logo {
-    width: min(100%, 320px);
+    width: min(100%, 240px);
     height: auto;
     margin: 0 auto 1.15rem;
     background: transparent;
@@ -532,5 +532,30 @@ body::after {
 
     .sb-panel-head h2 {
         font-size: 2.35rem;
+    }
+}
+
+/* Form sayfanın tamamını kaplasın: telefonda kenardan kenara panel */
+@media (max-width: 640px) {
+    .sb-page {
+        padding-left: 0;
+        padding-right: 0;
+        padding-bottom: 0;
+    }
+
+    .sb-brand {
+        padding: 0 1rem;
+    }
+
+    .sb-logo {
+        width: min(100%, 200px);
+    }
+
+    .sb-panel {
+        border-left: 0;
+        border-right: 0;
+        border-bottom: 0;
+        border-radius: 24px 24px 0 0;
+        padding: 1.5rem 1rem 2rem;
     }
 }
