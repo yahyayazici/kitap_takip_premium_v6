@@ -624,6 +624,11 @@ urlpatterns = [
         name="sinav_basvuru_excel",
     ),
     path(
+        "seviye-tespit/salon-yazdir/",
+        sinav_basvuru_yonetim_views.seviye_tespit_salon_yazdir,
+        name="seviye_tespit_salon_yazdir",
+    ),
+    path(
         "sinav-basvurulari/toplu-mesaj/",
         sinav_basvuru_yonetim_views.sinav_basvuru_toplu_mesaj,
         name="sinav_basvuru_toplu_mesaj",

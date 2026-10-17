@@ -144,6 +144,14 @@ def _ilk_ad(basvuru: SinavBasvuru) -> str:
     return parcalar[0] if parcalar else "Öğrencimiz"
 
 
+def _sinav_yeri(basvuru: SinavBasvuru) -> str:
+    """Kelebek yerleşimi yapıldıysa "Salon 2, Masa 7 Sol"; yoksa ""."""
+    from takip.sinav_salon_service import yerlesim_bul
+
+    yerlesim = yerlesim_bul(basvuru) if basvuru.pk else None
+    return yerlesim.tam_metin if yerlesim else ""
+
+
 def bildirim_metni(an_kodu: str, basvuru: SinavBasvuru, takvim: SinavTakvim | None) -> tuple[str, str]:
     ad = _ilk_ad(basvuru)
     if takvim:
@@ -159,9 +167,13 @@ def bildirim_metni(an_kodu: str, basvuru: SinavBasvuru, takvim: SinavTakvim | No
     if an_kodu == AN_UC_GUN:
         return "Sınava 3 gün kaldı", f"{ad} için geri sayım başladı: {tarih}, saat {saat}. {yer}."
     if an_kodu == AN_BIR_GUN:
-        return "Sınav yarın", f"Yarın saat {saat}, {yer}. Kurşun kalem ve silgiyi unutmayın."
+        oturma = _sinav_yeri(basvuru)
+        oturma = f" {ad}: {oturma}." if oturma else ""
+        return "Sınav yarın", f"Yarın saat {saat}, {yer}.{oturma} Kurşun kalem ve silgiyi unutmayın."
     if an_kodu == AN_SABAH:
-        return "Bugün sınav günü", f"Sınav saat {saat}. Başarılar {ad}!"
+        oturma = _sinav_yeri(basvuru)
+        oturma = f" Yeri: {oturma}." if oturma else ""
+        return "Bugün sınav günü", f"Sınav saat {saat}.{oturma} Başarılar {ad}!"
     if an_kodu == AN_BITIS:
         return (
             "Sınav tamamlandı",
@@ -260,10 +272,13 @@ def eposta_metni(an_kodu: str, basvuru: SinavBasvuru, takvim: SinavTakvim | None
         )
         return f"Başvurunuz alındı · {basvuru.sinav_adi}", govde + imza
     if an_kodu == AN_BIR_GUN:
+        oturma = _sinav_yeri(basvuru)
         govde = (
             "Sayın Veli,\n\n"
             f"{basvuru.ad_soyad} için {basvuru.sinav_adi} yarın yapılacaktır.\n\n"
-            f"{bilgi}\n"
+            f"{bilgi}"
+            + (f"Salon ve masa: {oturma}\n" if oturma else "")
+            + "\n"
             "Lütfen kurşun kalem, silgi ve kalemtıraş getirmeyi unutmayınız.\n"
         )
         return f"Sınav yarın · {basvuru.sinav_adi}", govde + imza

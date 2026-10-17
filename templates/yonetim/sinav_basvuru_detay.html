@@ -1,7 +1,7 @@
 {% extends "yonetim/base.html" %}
 {% load static %}
 {% block title %}{{ basvuru.ad_soyad }} · Seviye Tespit{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/seviye-tespit.css' %}?v=1">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/seviye-tespit.css' %}?v=2">{% endblock %}
 {% block content %}
 <div class="st">
 
@@ -28,6 +28,7 @@
             <dl class="st-bilgi">
                 <div><dt>Doğum tarihi</dt><dd>{{ basvuru.dogum_tarihi|date:"j F Y" }}</dd></div>
                 <div><dt>Sınav</dt><dd>{{ basvuru.sinav_adi }}</dd></div>
+                <div><dt>Sınav yeri</dt><dd>{% if yerlesim %}{{ yerlesim.tam_metin }}{% else %}<span class="st-soluk">Henüz yerleştirilmedi</span>{% endif %}</dd></div>
                 <div><dt>Başvuru</dt><dd>{{ basvuru.olusturulma|date:"j F Y, H.i" }}</dd></div>
                 <div><dt>Hatırlatma</dt><dd>
                     {% if bildirim_cihaz %}Uygulama bildirimi ({{ bildirim_cihaz }} cihaz){% elif basvuru.hatirlatma_turu == "takvim" %}Takvim{% else %}<span class="st-soluk">Kapalı</span>{% endif %}{% if basvuru.veli_eposta %} + e-posta{% endif %}

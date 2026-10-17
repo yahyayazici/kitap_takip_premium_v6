@@ -1,7 +1,7 @@
 {% extends "yonetim/base.html" %}
 {% load static %}
 {% block title %}Seviye Tespit{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/seviye-tespit.css' %}?v=1">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/seviye-tespit.css' %}?v=2">{% endblock %}
 {% block content %}
 <div class="st">
 
@@ -17,6 +17,7 @@
     <nav class="st-sekmeler" aria-label="Bölümler">
         <a href="?bolum=genel" {% if bolum == "genel" %}aria-current="page"{% endif %}>Genel Bakış</a>
         <a href="?bolum=basvurular" {% if bolum == "basvurular" %}aria-current="page"{% endif %}>Başvurular <span class="st-sayac">{{ basvuru_sayisi }}</span></a>
+        <a href="?bolum=salonlar" {% if bolum == "salonlar" %}aria-current="page"{% endif %}>Salonlar</a>
         <a href="?bolum=bildirimler" {% if bolum == "bildirimler" %}aria-current="page"{% endif %}>Bildirimler</a>
         <a href="?bolum=ayarlar" {% if bolum == "ayarlar" %}aria-current="page"{% endif %}>Ayarlar</a>
     </nav>
@@ -239,6 +240,137 @@
         </div>
     </form>
 
+    {% elif bolum == "salonlar" %}
+    {# ——— SALONLAR ——— #}
+    <section class="st-istatistik" aria-label="Salon özeti">
+        <div class="st-kutu">
+            <span class="st-kutu-etiket">Öğrenci</span>
+            <strong class="st-kutu-deger">{{ salon.ogrenci }}</strong>
+            <span class="st-kutu-not">Bu sınava başvuran</span>
+        </div>
+        <div class="st-kutu">
+            <span class="st-kutu-etiket">Yer</span>
+            <strong class="st-kutu-deger">{{ salon.kapasite }}</strong>
+            <span class="st-kutu-not">{% if salon.yer_yetmiyor %}<span class="st-hata">{{ salon.eksik_yer }} kişilik yer eksik</span>{% else %}{{ salon.salonlar|length }} salon{% endif %}</span>
+        </div>
+        <div class="st-kutu">
+            <span class="st-kutu-etiket">Yerleşen</span>
+            <strong class="st-kutu-deger">{{ salon.yerlesen }}</strong>
+            <span class="st-kutu-not">{% if salon.yerlesmeyen and salon.yerlesim_var %}<span class="st-hata">{{ salon.yerlesmeyen }} öğrencinin yeri yok</span>{% elif salon.yerlesim_var %}Herkesin yeri hazır{% else %}Henüz yerleştirilmedi{% endif %}</span>
+        </div>
+        <div class="st-kutu">
+            <span class="st-kutu-etiket">Masa başına</span>
+            <strong class="st-kutu-deger">{{ salon.masa_kisi }}</strong>
+            <span class="st-kutu-not">öğrenci</span>
+        </div>
+    </section>
+
+    <div class="st-iki st-iki--salon">
+        <section class="st-kart">
+            <h2 class="st-kart-baslik">Salonlar ve masalar</h2>
+            <p class="st-kart-aciklama">Her salonun adını ve masa sayısını girin.</p>
+            <form method="post" class="st-form" id="st-salon-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="salon_kaydet">
+                <input type="hidden" name="bolum" value="salonlar">
+                <div class="st-alan">
+                    <span>Masa başına öğrenci</span>
+                    <div class="st-segment" role="radiogroup" aria-label="Masa başına öğrenci">
+                        <label><input type="radio" name="masa_kisi" value="1" {% if salon.masa_kisi != 2 %}checked{% endif %}><span>1 öğrenci</span></label>
+                        <label><input type="radio" name="masa_kisi" value="2" {% if salon.masa_kisi == 2 %}checked{% endif %}><span>2 öğrenci</span></label>
+                    </div>
+                </div>
+                <ol class="st-salon-satirlar" id="st-salon-satirlar">
+                    {% for k in salon.salonlar %}
+                    <li class="st-salon-satir">
+                        <input type="text" name="salon_ad" value="{{ k.salon.ad }}" maxlength="60" aria-label="Salon adı" placeholder="Salon adı">
+                        <label class="st-masa-giris"><input type="number" name="salon_masa" value="{{ k.salon.masa_sayisi }}" min="1" max="200" inputmode="numeric" aria-label="Masa sayısı"><span>masa</span></label>
+                        <button type="button" class="st-satir-sil" data-salon-sil aria-label="Salonu çıkar">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+                        </button>
+                    </li>
+                    {% empty %}
+                    <li class="st-salon-satir">
+                        <input type="text" name="salon_ad" value="Salon 1" maxlength="60" aria-label="Salon adı" placeholder="Salon adı">
+                        <label class="st-masa-giris"><input type="number" name="salon_masa" value="" min="1" max="200" inputmode="numeric" aria-label="Masa sayısı" placeholder="0"><span>masa</span></label>
+                        <button type="button" class="st-satir-sil" data-salon-sil aria-label="Salonu çıkar">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+                        </button>
+                    </li>
+                    {% endfor %}
+                </ol>
+                <div class="st-form-alt">
+                    <button type="button" class="st-dugme-sade" id="st-salon-ekle">+ Salon ekle</button>
+                    <span class="st-soluk" id="st-salon-kapasite" aria-live="polite"></span>
+                    <span class="st-arac-bosluk"></span>
+                    <button type="submit" class="st-dugme">Kaydet</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="st-kart st-kelebek">
+            <span class="st-kelebek-ikon" aria-hidden="true">
+                <svg width="30" height="30" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M16 9v16"></path><path d="M16 12c-2-5-8-8-11-6s-1 9 3 10c-3 2-3 6 0 7s6-2 8-6"></path><path d="M16 12c2-5 8-8 11-6s1 9-3 10c3 2 3 6 0 7s-6-2-8-6"></path></svg>
+            </span>
+            <h2 class="st-kart-baslik">Kelebek sistemi</h2>
+            <p class="st-kart-aciklama">Aynı sınıftan öğrenciler yan yana ve arka arkaya oturmaz; her salona sınıflar karışık dağılır. Aynı okuldan gelenler de birbirinden uzaklaştırılır.</p>
+            <form method="post" {% if salon.yerlesim_var %}onsubmit="return confirm('Mevcut oturma düzeni silinip herkes yeniden yerleştirilecek. Devam edilsin mi?');"{% endif %}>
+                {% csrf_token %}
+                <input type="hidden" name="action" value="kelebek">
+                <input type="hidden" name="bolum" value="salonlar">
+                <button type="submit" class="st-dugme st-dugme--buyuk" {% if not salon.salonlar or salon.yer_yetmiyor or not salon.ogrenci %}disabled{% endif %}>
+                    {% if salon.yerlesim_var %}Yeniden yerleştir{% else %}Kelebek sistemiyle yerleştir{% endif %}
+                </button>
+            </form>
+            {% if not salon.salonlar %}<p class="st-not">Önce salonları kaydedin.</p>
+            {% elif salon.yer_yetmiyor %}<p class="st-not">Yer yetmiyor: {{ salon.eksik_yer }} kişilik masa daha ekleyin.</p>
+            {% elif salon.yerlesmeyen and salon.yerlesim_var %}<p class="st-not">Yerleşimden sonra {{ salon.yerlesmeyen }} yeni başvuru geldi. Yeniden yerleştirince onlar da yer alır.</p>{% endif %}
+            {% if salon.yerlesim_var %}
+            <div class="st-yazdir">
+                <span class="st-kart-alt-baslik">Yazdır</span>
+                <a class="st-ikon-bag" href="{% url 'yonetim:seviye_tespit_salon_yazdir' %}?tur=kapi" target="_blank" rel="noopener">Kapı listesi</a>
+                <a class="st-ikon-bag" href="{% url 'yonetim:seviye_tespit_salon_yazdir' %}?tur=oturma" target="_blank" rel="noopener">Oturma planı</a>
+                <a class="st-ikon-bag" href="{% url 'yonetim:seviye_tespit_salon_yazdir' %}?tur=yoklama" target="_blank" rel="noopener">Yoklama listesi</a>
+                <a class="st-ikon-bag" href="{% url 'yonetim:seviye_tespit_salon_yazdir' %}?tur=etiket" target="_blank" rel="noopener">Masa etiketleri</a>
+            </div>
+            <p class="st-not">Salon ve masa bilgisi, "Sınav yarın" ve "Bugün sınav günü" hatırlatmalarında veliye de gönderilir.</p>
+            {% endif %}
+        </section>
+    </div>
+
+    {% if salon.yerlesim_var %}
+    <div class="st-sinif-lejant" aria-label="Sınıf renkleri">
+        {% for value, label in sinif_secenekleri %}<span class="st-lejant st-s{{ value }}"><i aria-hidden="true"></i>{{ label }}</span>{% endfor %}
+    </div>
+    {% for k in salon.salonlar %}{% if k.yerlesimler %}
+    <section class="st-kart st-salon-plan">
+        <div class="st-kart-ust">
+            <div>
+                <h2 class="st-kart-baslik">{{ k.salon.ad }}</h2>
+                <p class="st-kart-aciklama">{{ k.dolu }} öğrenci · {{ k.salon.masa_sayisi }} masa · {% for sinif, n in k.siniflar %}{{ sinif }}. sınıf {{ n }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+            </div>
+            <a class="st-bag" href="{% url 'yonetim:seviye_tespit_salon_yazdir' %}?tur=kapi&salon={{ k.salon.pk }}" target="_blank" rel="noopener">Bu salonu yazdır</a>
+        </div>
+        <ol class="st-masalar{% if k.salon.masa_kisi == 2 %} st-masalar--ikili{% endif %}">
+            {% for m in k.masalar %}
+            <li class="st-masa">
+                <span class="st-masa-no">{{ m.no }}</span>
+                {% for y in m.koltuklar %}
+                {% if y %}
+                <a class="st-koltuk st-s{{ y.basvuru.sinif }}" href="{% url 'yonetim:sinav_basvuru_detay' y.basvuru_id %}" title="{{ y.basvuru.ad_soyad }} · {{ y.basvuru.sinif }}. sınıf · {{ y.basvuru.okul_adi }}">
+                    <strong>{{ y.basvuru.ad_soyad }}</strong><span>{{ y.basvuru.sinif }}. sınıf</span>
+                </a>
+                {% else %}
+                <span class="st-koltuk st-koltuk--bos">Boş</span>
+                {% endif %}
+                {% endfor %}
+            </li>
+            {% endfor %}
+        </ol>
+    </section>
+    {% endif %}{% endfor %}
+    {% endif %}
+
     {% elif bolum == "bildirimler" %}
     {# ——— BİLDİRİMLER ——— #}
     <section class="st-kanallar" aria-label="Kanallar">
@@ -374,4 +506,4 @@
 
 </div>
 {% endblock %}
-{% block extra_js %}<script src="{% static 'js/seviye-tespit.js' %}?v=1" defer></script>{% endblock %}
+{% block extra_js %}<script src="{% static 'js/seviye-tespit.js' %}?v=2" defer></script>{% endblock %}

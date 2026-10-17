@@ -35,6 +35,13 @@ from takip.sinav_bildirim_service import (
     sinav_eposta_aktif,
     zamanlanmis_anlar,
 )
+from takip.sinav_salon_service import (
+    YerlesimHatasi,
+    kelebek_yerlestir,
+    salon_ozeti,
+    salonlari_kaydet,
+    yerlesim_bul,
+)
 from takip.sinav_basvuru_mesaj_service import (
     basvuru_mesaji_gonder,
     basvurularda_mesaj_gonder,
@@ -62,7 +69,7 @@ def _tum_durumlar():
     ).order_by("sira", "ad")
 
 
-BOLUMLER = ("genel", "basvurular", "bildirimler", "ayarlar")
+BOLUMLER = ("genel", "basvurular", "salonlar", "bildirimler", "ayarlar")
 
 
 def _sinav_filtresi(request) -> str:
@@ -136,6 +143,22 @@ def sinav_basvuru_listesi(request):
         if action == "takvim_kaydet":
             _takvim_kaydet(request)
             return _geri(request, "ayarlar")
+
+        if action == "salon_kaydet":
+            _salon_kaydet(request)
+            return _geri(request, "salonlar")
+
+        if action == "kelebek":
+            try:
+                sonuc = kelebek_yerlestir(SINAV_BASVURU_BASLIK)
+            except YerlesimHatasi as exc:
+                messages.error(request, str(exc))
+            else:
+                messages.success(
+                    request,
+                    f"{sonuc['ogrenci']} öğrenci kelebek sistemiyle {sonuc['salon']} salona yerleştirildi.",
+                )
+            return _geri(request, "salonlar")
 
         if action == "durum_ekle":
             ad = request.POST.get("durum_ad", "").strip()
@@ -278,6 +301,77 @@ def sinav_basvuru_listesi(request):
             "sinif_secenekleri": SINAV_BASVURU_SINIF_SECENEKLERI,
             "durumlar": _aktif_durumlar(),
             "tum_durumlar": _tum_durumlar(),
+            "salon": salon_ozeti(SINAV_BASVURU_BASLIK) if bolum == "salonlar" else None,
+        },
+    )
+
+
+MAKS_SALON = 40
+MAKS_MASA = 200
+
+
+def _salon_kaydet(request) -> None:
+    adlar = request.POST.getlist("salon_ad")
+    masalar = request.POST.getlist("salon_masa")
+    satirlar = []
+    for i, (ad, masa) in enumerate(zip(adlar, masalar), start=1):
+        ad = (ad or "").strip()[:60] or f"Salon {i}"
+        try:
+            adet = int(masa)
+        except (TypeError, ValueError):
+            adet = 0
+        if adet <= 0:
+            continue
+        satirlar.append((ad, min(adet, MAKS_MASA)))
+    if len(satirlar) > MAKS_SALON:
+        messages.error(request, f"En fazla {MAKS_SALON} salon girilebilir.")
+        return
+    try:
+        masa_kisi = int(request.POST.get("masa_kisi", "1"))
+    except ValueError:
+        masa_kisi = 1
+    yerlesim_vardi = salon_ozeti(SINAV_BASVURU_BASLIK)["yerlesim_var"]
+    degisti = salonlari_kaydet(SINAV_BASVURU_BASLIK, satirlar, masa_kisi)
+    if degisti and yerlesim_vardi:
+        messages.warning(
+            request,
+            "Salonlar kaydedildi. Masa düzeni değiştiği için yerleşim sıfırlandı; kelebek sistemini yeniden çalıştırın.",
+        )
+    else:
+        messages.success(request, "Salonlar kaydedildi.")
+
+
+YAZDIRMA_TURLERI = {
+    "kapi": "Kapı listesi",
+    "yoklama": "Yoklama listesi",
+    "etiket": "Masa etiketleri",
+    "oturma": "Oturma planı",
+}
+
+
+@yonetici_gerekli
+def seviye_tespit_salon_yazdir(request):
+    tur = request.GET.get("tur", "kapi")
+    if tur not in YAZDIRMA_TURLERI:
+        tur = "kapi"
+    ozet = salon_ozeti(SINAV_BASVURU_BASLIK)
+    kartlar = [k for k in ozet["salonlar"] if k["yerlesimler"]]
+    salon_id = request.GET.get("salon", "")
+    if salon_id.isdigit():
+        kartlar = [k for k in kartlar if k["salon"].pk == int(salon_id)]
+    for kart in kartlar:
+        kart["alfabetik"] = sorted(
+            kart["yerlesimler"], key=lambda y: y.basvuru.ad_soyad.casefold()
+        )
+    return render(
+        request,
+        "yonetim/seviye_tespit_yazdir.html",
+        {
+            "tur": tur,
+            "tur_adi": YAZDIRMA_TURLERI[tur],
+            "kartlar": kartlar,
+            "sinav_adi": SINAV_BASVURU_BASLIK,
+            "takvim": guncel_takvim(),
         },
     )
 
@@ -586,6 +680,7 @@ def sinav_basvuru_detay(request, pk):
                 for log in basvuru.bildirim_loglari.order_by("olusturulma")
             ],
             "bildirim_cihaz": basvuru.push_abonelikleri.count(),
+            "yerlesim": yerlesim_bul(basvuru),
         },
     )
 
