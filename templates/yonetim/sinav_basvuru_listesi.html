@@ -191,7 +191,7 @@
                         <th>Anne tel</th>
                         <th>İl / İlçe</th>
                         <th>Doğum tarihi</th>
-                        <th>Bildirim</th>
+                        <th>Hatırlatma</th>
                         <th>Durum</th>
                         <th>Tarih</th>
                         <th class="yonetim-action-col">İşlem</th>
@@ -211,7 +211,7 @@
                         <td>{{ b.anne_telefon }}</td>
                         <td>{{ b.il }} / {{ b.ilce }}</td>
                         <td>{{ b.dogum_tarihi|date:"d.m.Y" }}</td>
-                        <td>{% if b.bildirim_cihaz %}Açık{% else %}—{% endif %}</td>
+                        <td>{% if b.bildirim_cihaz %}Bildirim{% elif b.hatirlatma_turu == "takvim" %}Takvim{% else %}—{% endif %}{% if b.veli_eposta %} + e-posta{% endif %}</td>
                         <td>
                             <select class="cs-input" name="durum_{{ b.pk }}" style="min-width:9rem;">
                                 {% for d in durumlar %}

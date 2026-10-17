@@ -62,6 +62,11 @@ urlpatterns = [
         name="sinav_basvuru_tesekkur",
     ),
     path(
+        "sinav-basvuru/takvim.ics",
+        sinav_basvuru_views.sinav_basvuru_takvim,
+        name="sinav_basvuru_takvim",
+    ),
+    path(
         "sinav-basvuru/bildirim/<str:token>/abone/",
         sinav_basvuru_views.sinav_basvuru_bildirim_abone,
         name="sinav_basvuru_bildirim_abone",

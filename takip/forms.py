@@ -1353,6 +1353,18 @@ class YctOlayForm(StyledModelForm):
 
 
 class SinavBasvuruForm(StyledModelForm):
+    HATIRLATMA_HATA = "Formu göndermeden önce hatırlatmaları açın."
+
+    hatirlatma_turu = forms.ChoiceField(
+        choices=[("push", "Uygulama bildirimi"), ("takvim", "Takvim")],
+        required=True,
+        widget=forms.HiddenInput,
+        error_messages={
+            "required": HATIRLATMA_HATA,
+            "invalid_choice": HATIRLATMA_HATA,
+        },
+    )
+    bildirim_abonelik = forms.CharField(required=False, widget=forms.HiddenInput)
     bilgilendirme_onay = forms.BooleanField(
         required=True,
         label="Bilgilendirme ve değerlendirme metinlerini okudum, anladım.",
@@ -1369,6 +1381,7 @@ class SinavBasvuruForm(StyledModelForm):
             "ad_soyad",
             "sinif",
             "okul_adi",
+            "veli_eposta",
             "baba_adi",
             "baba_telefon",
             "anne_adi",
@@ -1383,6 +1396,9 @@ class SinavBasvuruForm(StyledModelForm):
             ),
             "sinif": forms.Select(attrs={"class": "sb-select"}),
             "okul_adi": forms.TextInput(attrs={"placeholder": "Okuduğu okulun adı"}),
+            "veli_eposta": forms.EmailInput(
+                attrs={"placeholder": "ornek@gmail.com", "autocomplete": "email", "inputmode": "email"}
+            ),
             "baba_adi": forms.TextInput(attrs={"placeholder": "Baba adı"}),
             "baba_telefon": forms.TextInput(
                 attrs={
@@ -1422,6 +1438,9 @@ class SinavBasvuruForm(StyledModelForm):
         )
         self.fields["sinif"].error_messages["required"] = "Öğrencinin sınıfını seçin."
         self.fields["okul_adi"].required = True
+        self.fields["veli_eposta"].required = True
+        self.fields["veli_eposta"].error_messages["required"] = "Veli e-posta adresini yazın."
+        self.fields["veli_eposta"].error_messages["invalid"] = "Geçerli bir e-posta adresi yazın."
         self.fields["okul_adi"].error_messages["required"] = "Okul adını yazın."
         if not self.is_bound and not self.initial.get("il"):
             self.initial["il"] = ISTANBUL
@@ -1441,6 +1460,27 @@ class SinavBasvuruForm(StyledModelForm):
 
     def clean_ad_soyad(self):
         return (self.cleaned_data.get("ad_soyad") or "").strip()
+
+    def clean_veli_eposta(self):
+        return (self.cleaned_data.get("veli_eposta") or "").strip().lower()
+
+    def clean(self):
+        cleaned = super().clean()
+        cleaned["abonelik"] = None
+        if cleaned.get("hatirlatma_turu") == "push":
+            import json
+
+            try:
+                veri = json.loads(cleaned.get("bildirim_abonelik") or "")
+            except (TypeError, ValueError):
+                veri = None
+            keys = (veri or {}).get("keys") or {} if isinstance(veri, dict) else {}
+            endpoint = str((veri or {}).get("endpoint") or "") if isinstance(veri, dict) else ""
+            if not endpoint.startswith("https://") or not keys.get("p256dh") or not keys.get("auth"):
+                self.add_error("hatirlatma_turu", self.HATIRLATMA_HATA)
+            else:
+                cleaned["abonelik"] = veri
+        return cleaned
 
     def clean_okul_adi(self):
         okul = (self.cleaned_data.get("okul_adi") or "").strip()

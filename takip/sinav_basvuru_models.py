@@ -54,6 +54,13 @@ class SinavBasvuru(models.Model):
         verbose_name="Sınıf",
     )
     okul_adi = models.CharField(max_length=150, blank=True, verbose_name="Okul adı")
+    veli_eposta = models.EmailField(blank=True, verbose_name="Veli e-posta")
+    hatirlatma_turu = models.CharField(
+        max_length=10,
+        blank=True,
+        choices=[("push", "Uygulama bildirimi"), ("takvim", "Takvim")],
+        verbose_name="Hatırlatma türü",
+    )
     baba_adi = models.CharField(max_length=100, verbose_name="Baba adı")
     baba_telefon = models.CharField(max_length=20, verbose_name="Baba telefon")
     anne_adi = models.CharField(max_length=100, verbose_name="Anne adı")

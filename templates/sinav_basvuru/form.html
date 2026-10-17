@@ -197,6 +197,13 @@
                     {% if form.okul_adi.errors %}<p class="sb-field-error">{{ form.okul_adi.errors.0 }}</p>{% endif %}
                 </div>
 
+                <div class="sb-field sb-field--full">
+                    <label for="{{ form.veli_eposta.id_for_label }}">Veli e-posta</label>
+                    <input type="email" name="{{ form.veli_eposta.html_name }}" id="{{ form.veli_eposta.id_for_label }}" value="{{ form.veli_eposta.value|default:'' }}" autocomplete="email" inputmode="email" required placeholder="ornek@gmail.com">
+                    <p class="sb-field-hint">Sınav bilgileri ve hatırlatmalar bu adrese de gönderilir.</p>
+                    {% if form.veli_eposta.errors %}<p class="sb-field-error">{{ form.veli_eposta.errors.0 }}</p>{% endif %}
+                </div>
+
                 <div class="sb-field">
                     <label for="{{ form.baba_adi.id_for_label }}">Baba adı</label>
                     <input type="text" name="{{ form.baba_adi.html_name }}" id="{{ form.baba_adi.id_for_label }}" value="{{ form.baba_adi.value|default:'' }}" required placeholder="Baba adı">
@@ -287,6 +294,27 @@
                     {% endif %}
                 </div>
 
+                <div class="sb-hatirlatma sb-field--full{% if form.hatirlatma_turu.errors %} sb-hatirlatma--hata{% endif %}" id="sb-hatirlatma" data-vapid-key="{{ push_vapid }}">
+                    <div class="sb-hatirlatma-ust">
+                        <span class="sb-hatirlatma-ikon" aria-hidden="true">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+                        </span>
+                        <div>
+                            <strong>Hatırlatmaları açın</strong>
+                            <p>Sınava 3 gün ve 1 gün kala ve sınav sabahı size hatırlatma gönderelim. Bu adım tamamlanmadan başvuru gönderilemez.</p>
+                        </div>
+                    </div>
+                    <div class="sb-hatirlatma-eylem">
+                        <button type="button" class="sb-hatirlatma-btn" data-hat-push hidden>Bildirimlere izin ver</button>
+                        {% if takvim_var %}<a class="sb-hatirlatma-btn" data-hat-takvim href="{% url 'sinav_basvuru_takvim' %}" hidden>Takvime ekle</a>{% endif %}
+                    </div>
+                    <p class="sb-hatirlatma-not" data-hat-not hidden></p>
+                    <p class="sb-hatirlatma-ok" data-hat-ok role="status" hidden></p>
+                    <input type="hidden" name="{{ form.hatirlatma_turu.html_name }}" id="sb-hatirlatma-turu" value="{{ form.hatirlatma_turu.value|default:'' }}">
+                    <input type="hidden" name="{{ form.bildirim_abonelik.html_name }}" id="sb-bildirim-abonelik" value="{{ form.bildirim_abonelik.value|default:'' }}">
+                    <p class="sb-field-error" data-hat-hata {% if not form.hatirlatma_turu.errors %}hidden{% endif %}>{% if form.hatirlatma_turu.errors %}{{ form.hatirlatma_turu.errors.0 }}{% else %}Formu göndermeden önce hatırlatmaları açın.{% endif %}</p>
+                </div>
+
                 <div class="sb-actions">
                     <button type="submit" class="sb-submit" id="sb-submit">Başvuruyu gönder</button>
                 </div>
@@ -297,5 +325,6 @@
     </div>
 </main>
 <script src="{% static 'js/sinav-basvuru.js' %}"></script>
+<script src="{% static 'js/sinav-basvuru-hatirlatma.js' %}"></script>
 </body>
 </html>
